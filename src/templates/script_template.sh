@@ -20,7 +20,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Source common library
-source "${ORADBA_BASE}/srv/lib/common.sh"
+source "${ORADBA_BASE}/src/lib/common.sh"
 
 # Script variables
 SCRIPT_NAME="$(basename "$0")"

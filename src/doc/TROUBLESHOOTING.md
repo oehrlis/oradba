@@ -10,10 +10,10 @@
 
 ```bash
 # Add to PATH
-export PATH="/opt/oradba/srv/bin:$PATH"
+export PATH="/opt/oradba/src/bin:$PATH"
 
 # Or use full path
-source /opt/oradba/srv/bin/oraenv.sh ORCL
+source /opt/oradba/src/bin/oraenv.sh ORCL
 ```
 
 ### Issue: "This script must be sourced, not executed"
@@ -206,13 +206,13 @@ source oraenv.sh ORCL
 
 ```bash
 # Check installation directory
-ls -la /opt/oradba/srv/
+ls -la /opt/oradba/src/
 
 # Verify scripts are executable
-ls -l /opt/oradba/srv/bin/oraenv.sh
+ls -l /opt/oradba/src/bin/oraenv.sh
 
 # Test basic functionality
-source /opt/oradba/srv/bin/oraenv.sh --help
+source /opt/oradba/src/bin/oraenv.sh --help
 ```
 
 ### Verify Environment
@@ -233,7 +233,7 @@ rman -version
 
 ```bash
 # Check configuration files
-cat $ORADBA_PREFIX/srv/etc/oradba.conf
+cat $ORADBA_PREFIX/src/etc/oradba.conf
 cat ~/.oradba_config  # If exists
 
 # Verify oratab
@@ -280,7 +280,7 @@ getenforce
 sudo setenforce 0
 
 # Add proper context
-sudo chcon -R -t bin_t /opt/oradba/srv/bin/
+sudo chcon -R -t bin_t /opt/oradba/src/bin/
 ```
 
 ## Getting Help

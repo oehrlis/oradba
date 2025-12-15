@@ -73,10 +73,10 @@ source oraenv.sh
 
 ```bash
 # Database info
-sqlplus / as sysdba @$ORADBA_PREFIX/srv/sql/db_info.sql
+sqlplus / as sysdba @$ORADBA_PREFIX/src/sql/db_info.sql
 
 # Or set SQLPATH
-export SQLPATH=$ORADBA_PREFIX/srv/sql
+export SQLPATH=$ORADBA_PREFIX/src/sql
 sqlplus / as sysdba @db_info.sql
 ```
 
@@ -84,14 +84,14 @@ sqlplus / as sysdba @db_info.sql
 
 ```bash
 # Full backup
-rman target / @$ORADBA_PREFIX/srv/rcv/backup_full.rman
+rman target / @$ORADBA_PREFIX/src/rcv/backup_full.rman
 ```
 
 ## Configuration
 
 ### Global Configuration
 
-Edit `/opt/oradba/srv/etc/oradba.conf`:
+Edit `/opt/oradba/src/etc/oradba.conf`:
 
 ```bash
 # Set debug mode
@@ -110,7 +110,7 @@ Create `~/.oradba_config`:
 
 ```bash
 # Copy example
-cp /opt/oradba/srv/etc/oradba_config.example ~/.oradba_config
+cp /opt/oradba/src/etc/oradba_config.example ~/.oradba_config
 
 # Edit
 vim ~/.oradba_config
@@ -122,10 +122,10 @@ vim ~/.oradba_config
 
 ```bash
 # Add to PATH
-export PATH="/opt/oradba/srv/bin:$PATH"
+export PATH="/opt/oradba/src/bin:$PATH"
 
 # Or use full path
-source /opt/oradba/srv/bin/oraenv.sh ORCL
+source /opt/oradba/src/bin/oraenv.sh ORCL
 ```
 
 ### ORACLE_SID not found in oratab
@@ -185,7 +185,7 @@ Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
 
 ```bash
 # Copy template
-cp /opt/oradba/srv/templates/script_template.sh ~/my_script.sh
+cp /opt/oradba/src/templates/script_template.sh ~/my_script.sh
 
 # Edit
 vim ~/my_script.sh
@@ -204,8 +204,8 @@ Add to `~/.bash_profile` or `~/.bashrc`:
 ```bash
 # oradba setup
 export ORADBA_PREFIX="/opt/oradba"
-export PATH="$ORADBA_PREFIX/srv/bin:$PATH"
-export SQLPATH="$ORADBA_PREFIX/srv/sql"
+export PATH="$ORADBA_PREFIX/src/bin:$PATH"
+export SQLPATH="$ORADBA_PREFIX/src/sql"
 
 # Default Oracle SID (optional)
 export ORACLE_SID=ORCL
@@ -216,7 +216,7 @@ source oraenv.sh $ORACLE_SID
 
 - Read the [full documentation](README.md)
 - Check [development guide](docs/DEVELOPMENT.md) for contributing
-- Review [example scripts](srv/sql/) and [templates](srv/templates/)
+- Review [example scripts](src/sql/) and [templates](src/templates/)
 - Join the community and contribute!
 
 ## Getting Help

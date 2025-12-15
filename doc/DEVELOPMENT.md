@@ -11,7 +11,7 @@ oradba/
 │       ├── ci.yml        # Continuous integration
 │       ├── release.yml   # Release automation
 │       └── dependency-review.yml
-├── srv/                  # Server/service files
+├── src/                  # Server/service files
 │   ├── bin/             # Executable scripts
 │   │   └── oraenv.sh    # Core environment setup script
 │   ├── lib/             # Library functions
@@ -75,7 +75,7 @@ Library of common functions used across scripts.
 
 ### Configuration
 
-Main configuration file: [srv/etc/oradba.conf](srv/etc/oradba.conf)
+Main configuration file: [src/etc/oradba.conf](src/etc/oradba.conf)
 
 **Key Settings:**
 
@@ -94,7 +94,7 @@ Main configuration file: [srv/etc/oradba.conf](srv/etc/oradba.conf)
 git checkout -b feature/my-feature
 
 # Make changes
-vim srv/bin/oraenv.sh
+vim src/bin/oraenv.sh
 
 # Test changes
 ./test/run_tests.sh
@@ -245,7 +245,7 @@ git push origin main --tags
 
 The installer is created by `build_installer.sh`:
 
-1. Creates tarball of srv/ directory and documentation
+1. Creates tarball of src/ directory and documentation
 2. Generates installer script with embedded base64 payload
 3. Appends base64-encoded tarball to installer script
 4. Makes installer executable

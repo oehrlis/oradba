@@ -20,7 +20,7 @@ VERSION 		:= $(shell cat VERSION 2>/dev/null || echo "0.0.0")
 SHELL 			:= /bin/bash
 
 # Directories
-SRC_DIR 	:= srv
+SRC_DIR 	:= src
 BIN_DIR 	:= $(SRC_DIR)/bin
 LIB_DIR 	:= $(SRC_DIR)/lib
 ETC_DIR 	:= $(SRC_DIR)/etc
@@ -146,7 +146,7 @@ lint-scripts: ## Check for common script issues
 lint-markdown: ## Lint Markdown files with markdownlint
 	@echo -e "$(COLOR_BLUE)Linting Markdown files...$(COLOR_RESET)"
 	@if [ -n "$(MARKDOWNLINT)" ]; then \
-		$(MARKDOWNLINT) --config .markdownlint.yaml *.md doc/*.md srv/doc/*.md || exit 1; \
+		$(MARKDOWNLINT) --config .markdownlint.yaml *.md doc/*.md src/doc/*.md || exit 1; \
 		echo -e "$(COLOR_GREEN)✓ Markdown files passed linting$(COLOR_RESET)"; \
 	else \
 		echo -e "$(COLOR_YELLOW)Warning: markdownlint not found. Install with: npm install -g markdownlint-cli$(COLOR_RESET)"; \

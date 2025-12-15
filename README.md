@@ -32,7 +32,7 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 ```text
 oradba/
-├── srv/
+├── src/
 │   ├── bin/         # Executable scripts
 │   ├── lib/         # Library files and functions
 │   ├── etc/         # Configuration files
@@ -78,7 +78,7 @@ source oraenv.sh ORCL
 
 ### Configuration
 
-**Global Configuration**: `/opt/oradba/srv/etc/oradba.conf`
+**Global Configuration**: `/opt/oradba/src/etc/oradba.conf`
 
 - Installation paths and directories
 - oratab file locations
@@ -90,7 +90,7 @@ source oraenv.sh ORCL
 - User-specific overrides
 - Custom paths and preferences
 
-**Example oratab**: `/opt/oradba/srv/etc/oratab.example`
+**Example oratab**: `/opt/oradba/src/etc/oratab.example`
 
 ```text
 # ORACLE_SID:ORACLE_HOME:AUTO_START

@@ -2,7 +2,7 @@
 
 ## Common Library Functions
 
-This document describes the public API of the oradba common library (`srv/lib/common.sh`).
+This document describes the public API of the oradba common library (`src/lib/common.sh`).
 
 ## Logging Functions
 
@@ -242,7 +242,7 @@ export_oracle_base_env
 
 ### Configuration Hierarchy
 
-1. System configuration: `$ORADBA_PREFIX/srv/etc/oradba.conf`
+1. System configuration: `$ORADBA_PREFIX/src/etc/oradba.conf`
 2. User configuration: `~/.oradba_config`
 3. Environment variables
 4. Command-line arguments (highest priority)
@@ -256,7 +256,7 @@ Variables can be overridden by environment variables.
 
 ```bash
 # In script
-source "${ORADBA_PREFIX}/srv/etc/oradba.conf"
+source "${ORADBA_PREFIX}/src/etc/oradba.conf"
 
 # Override with environment variable
 export ORATAB_FILE="/custom/path/oratab"
@@ -306,7 +306,7 @@ After sourcing oraenv.sh, the following variables are set:
 
 ## Script Template API
 
-Use the script template from `srv/templates/script_template.sh` for new scripts.
+Use the script template from `src/templates/script_template.sh` for new scripts.
 
 ### Template Structure
 
@@ -315,7 +315,7 @@ Use the script template from `srv/templates/script_template.sh` for new scripts.
 # Header (use doc/templates/header.sh)
 
 # Source common library
-source "${ORADBA_BASE}/srv/lib/common.sh"
+source "${ORADBA_BASE}/src/lib/common.sh"
 
 # Define functions
 usage() { ... }
@@ -369,7 +369,7 @@ Standard return codes across all scripts:
    ```bash
    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
    ORADBA_BASE="$(dirname "$(dirname "$SCRIPT_DIR")")"
-   source "${ORADBA_BASE}/srv/lib/common.sh"
+   source "${ORADBA_BASE}/src/lib/common.sh"
    ```
 
 ## See Also

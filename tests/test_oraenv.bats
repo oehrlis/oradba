@@ -18,7 +18,7 @@
 setup() {
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
-    ORAENV_SCRIPT="${PROJECT_ROOT}/srv/bin/oraenv.sh"
+    ORAENV_SCRIPT="${PROJECT_ROOT}/src/bin/oraenv.sh"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"

@@ -79,7 +79,7 @@ Display environment summary
 
 **Hierarchy**:
 
-1. System defaults (`srv/etc/oradba.conf`)
+1. System defaults (`src/etc/oradba.conf`)
 2. User overrides (`~/.oradba_config`)
 3. Environment variables
 4. Command-line arguments
@@ -89,7 +89,7 @@ Display environment summary
 **Build Process**:
 
 ```text
-Source Files (srv/)
+Source Files (src/)
     ↓
 Tarball Creation
     ↓
@@ -104,7 +104,7 @@ Self-Extracting Script
 
 ```text
 oradba/
-├── srv/                    # Distribution files
+├── src/                    # Distribution files
 │   ├── bin/               # Executable scripts
 │   ├── lib/               # Libraries
 │   ├── etc/               # Configuration
@@ -146,7 +146,7 @@ Script → common.sh → Configuration → Validation → Execution → Logging
 
 ### Adding New Scripts
 
-1. Use script template from `srv/templates/`
+1. Use script template from `src/templates/`
 2. Source common library
 3. Follow naming conventions
 4. Add appropriate tests
@@ -154,7 +154,7 @@ Script → common.sh → Configuration → Validation → Execution → Logging
 
 ### Adding New Functions
 
-1. Add to `srv/lib/common.sh`
+1. Add to `src/lib/common.sh`
 2. Document parameters and return values
 3. Add unit tests
 4. Update API documentation

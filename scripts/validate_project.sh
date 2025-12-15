@@ -90,28 +90,28 @@ check_file "doc/templates/header.conf"
 
 echo ""
 echo "Checking source structure..."
-check_dir "srv"
-check_dir "srv/bin"
-check_dir "srv/lib"
-check_dir "srv/etc"
-check_dir "srv/sql"
-check_dir "srv/rcv"
-check_dir "srv/templates"
+check_dir "src"
+check_dir "src/bin"
+check_dir "src/lib"
+check_dir "src/etc"
+check_dir "src/sql"
+check_dir "src/rcv"
+check_dir "src/templates"
 
 echo ""
 echo "Checking core scripts..."
-check_file "srv/bin/oraenv.sh"
-check_file "srv/lib/common.sh"
-check_file "srv/etc/oradba.conf"
+check_file "src/bin/oraenv.sh"
+check_file "src/lib/common.sh"
+check_file "src/etc/oradba.conf"
 
 echo ""
 echo "Checking examples..."
-check_file "srv/sql/db_info.sql"
-check_file "srv/sql/login.sql"
-check_file "srv/rcv/backup_full.rman"
-check_file "srv/templates/script_template.sh"
-check_file "srv/etc/oratab.example"
-check_file "srv/etc/oradba_config.example"
+check_file "src/sql/db_info.sql"
+check_file "src/sql/login.sql"
+check_file "src/rcv/backup_full.rman"
+check_file "src/templates/script_template.sh"
+check_file "src/etc/oratab.example"
+check_file "src/etc/oradba_config.example"
 
 echo ""
 echo "Checking test structure..."
@@ -128,11 +128,11 @@ check_file "scripts/build_installer.sh"
 check_file "scripts/validate_project.sh"
 
 echo ""
-echo "Checking srv/doc directory..."
-check_dir "srv/doc"
-check_file "srv/doc/README.md"
-check_file "srv/doc/USAGE.md"
-check_file "srv/doc/TROUBLESHOOTING.md"
+echo "Checking src/doc directory..."
+check_dir "src/doc"
+check_file "src/doc/README.md"
+check_file "src/doc/USAGE.md"
+check_file "src/doc/TROUBLESHOOTING.md"
 
 echo ""
 echo "Checking GitHub issue templates..."
@@ -169,10 +169,10 @@ else
     ERRORS=$((ERRORS + 1))
 fi
 
-if [[ -x "srv/bin/oraenv.sh" ]]; then
-    echo "✓ srv/bin/oraenv.sh is executable"
+if [[ -x "src/bin/oraenv.sh" ]]; then
+    echo "✓ src/bin/oraenv.sh is executable"
 else
-    echo "✗ srv/bin/oraenv.sh is not executable"
+    echo "✗ src/bin/oraenv.sh is not executable"
     ERRORS=$((ERRORS + 1))
 fi
 

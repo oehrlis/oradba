@@ -18,7 +18,7 @@ This directory contains user-facing documentation that is installed with oradba.
 ## Getting Help
 
 1. Check this documentation
-2. Review examples in `srv/sql/` and `srv/templates/`
+2. Review examples in `src/sql/` and `src/templates/`
 3. Read the troubleshooting guide
 4. Open an issue on GitHub
 

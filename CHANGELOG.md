@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed `srv/` directory to `src/` throughout the entire project for better clarity
+- Updated all documentation, configuration files, and scripts to reference `src/` instead of `srv/`
+- Refactored installer build process to package `src/` contents directly without directory wrapper
+- Installation now places files directly in `$INSTALL_PREFIX/` (e.g., `bin/`, `lib/`, `etc/`)
+- Fixed cross-platform base64 encoding/decoding using `openssl base64` for compatibility
 - Refactored SQL script naming concept to use SQL-style operation verbs (CREATE, DROP,
   UPDATE, ENABLE, DISABLE, GRANT) instead of Linux-style commands
 - Added privilege indicators to script naming and documentation (User, DBA, SYSDBA, AUD)
@@ -17,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced Quick Reference Card with privilege level indicators
 - Added comprehensive naming guidelines and best practices for SQL/database operations
 - Introduced short aliases (2-7 chars) for commonly used scripts
+
+### Added
+
+- Integrated `build_installer.sh` into `make build` target to automatically generate installer
+- Self-contained installer script with embedded base64-encoded payload
+- Cross-platform installer supporting both macOS and Linux
+
+### Fixed
+
+- Fixed installer script base64 encoding/decoding for macOS and Linux compatibility
+- Fixed sed commands for cross-platform compatibility in build script
+- Corrected tarball creation to avoid nested directory structure in installation
 
 ## [0.2.3] - 2025-12-15
 
@@ -84,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Comprehensive GitHub issue templates (bug report, feature request, task)
 - Developer documentation in `doc/` directory (ARCHITECTURE.md, API.md, STRUCTURE.md)
-- User documentation in `srv/doc/` directory (USAGE.md, TROUBLESHOOTING.md)
+- User documentation in `src/doc/` directory (USAGE.md, TROUBLESHOOTING.md)
 - Markdownlint configuration files (.markdownlint.json, .markdownlint.yaml)
 - Markdown linting documentation (MARKDOWN_LINTING.md)
 - Project reorganization documentation (REORGANIZATION.md)

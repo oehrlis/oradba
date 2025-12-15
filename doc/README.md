@@ -17,7 +17,7 @@ For general information, see the main [README.md](../README.md) in the project r
 
 ## Distribution Documentation
 
-User-facing documentation that gets installed with oradba is located in [srv/doc/](../srv/doc/).
+User-facing documentation that gets installed with oradba is located in [src/doc/](../src/doc/).
 
 ## Contributing to Documentation
 

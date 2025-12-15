@@ -8,7 +8,7 @@ The root directory contains only essential files and subdirectories for a clean 
 
 ```text
 oradba/
-├── srv/                    # Distribution files (installed on target systems)
+├── src/                    # Distribution files (installed on target systems)
 ├── scripts/                # Build, test, and utility scripts
 ├── tests/                  # BATS test suite
 ├── doc/                    # Developer documentation
@@ -26,12 +26,12 @@ oradba/
 
 ## Directory Details
 
-### srv/ - Distribution Files
+### src/ - Distribution Files
 
 Files that get installed on target systems:
 
 ```text
-srv/
+src/
 ├── bin/                    # Executable scripts
 │   └── oraenv.sh          # Core environment setup script
 ├── lib/                    # Shared libraries
@@ -126,8 +126,8 @@ When referencing paths in scripts:
 
 ```bash
 # Distribution files (installed)
-$ORADBA_PREFIX/srv/bin/oraenv.sh
-$ORADBA_PREFIX/srv/lib/common.sh
+$ORADBA_PREFIX/src/bin/oraenv.sh
+$ORADBA_PREFIX/src/lib/common.sh
 
 # Build scripts (development)
 ./scripts/build_installer.sh
@@ -143,8 +143,8 @@ $ORADBA_PREFIX/srv/lib/common.sh
 ## Development Workflow
 
 ```bash
-# 1. Make changes to source files in srv/
-vim srv/bin/oraenv.sh
+# 1. Make changes to source files in src/
+vim src/bin/oraenv.sh
 
 # 2. Run tests
 ./tests/run_tests.sh
@@ -163,7 +163,7 @@ sudo ./dist/oradba_install.sh --prefix /tmp/oradba-test
 
 ### New Script
 
-1. Create in appropriate srv/ subdirectory
+1. Create in appropriate src/ subdirectory
 2. Use header template from doc/templates/
 3. Add to tests/
 4. Update documentation
@@ -177,7 +177,7 @@ sudo ./dist/oradba_install.sh --prefix /tmp/oradba-test
 ### New Documentation
 
 1. Developer docs in doc/
-2. User docs in srv/doc/
+2. User docs in src/doc/
 3. Follow markdown linting rules
 4. Update relevant README files
 

@@ -9,7 +9,7 @@
 # Revision...: 0.1.0
 # Purpose....: Build self-contained installer with base64 payload
 # Notes......: Creates a single executable installer with embedded tarball.
-#              Packages srv/ directory and creates distribution installer.
+#              Packages src/ directory and creates distribution installer.
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
@@ -42,16 +42,27 @@ rm -f "$INSTALLER_OUTPUT"
 
 echo "Creating payload..."
 
-# Create tarball of srv directory
+# Create tarball of src directory contents (without src/ wrapper)
+# First create a temporary directory to combine everything
+TEMP_TAR_DIR="${BUILD_DIR}/tar_staging"
+mkdir -p "$TEMP_TAR_DIR"
+
+# Copy src contents
+cp -r src/* "$TEMP_TAR_DIR/"
+
+# Copy additional files
+cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
+
+# Create the final tarball
 tar -czf "$PAYLOAD_FILE" \
     --exclude='.git' \
     --exclude='*.log' \
     --exclude='*.tmp' \
-    srv/ \
-    VERSION \
-    README.md \
-    LICENSE \
-    CHANGELOG.md
+    -C "$TEMP_TAR_DIR" \
+    .
+
+# Clean up staging directory
+rm -rf "$TEMP_TAR_DIR"
 
 echo "Payload size: $(du -h "$PAYLOAD_FILE" | cut -f1)"
 
@@ -178,7 +189,9 @@ log_info "Created temporary directory: $TEMP_DIR"
 # Extract payload
 log_info "Extracting payload..."
 PAYLOAD_LINE=$(awk '/^__PAYLOAD_BEGINS__/ {print NR + 1; exit 0; }' "$0")
-tail -n +${PAYLOAD_LINE} "$0" | base64 -d | tar -xz -C "$TEMP_DIR"
+
+# Decode base64 (use --decode for cross-platform compatibility)
+tail -n +${PAYLOAD_LINE} "$0" | base64 --decode | tar -xz -C "$TEMP_DIR"
 
 # Create installation directory
 if [[ ! -d "$INSTALL_PREFIX" ]]; then
@@ -201,12 +214,12 @@ fi
 
 # Make scripts executable
 log_info "Setting permissions..."
-find "$INSTALL_PREFIX/srv/bin" -type f -name "*.sh" -exec chmod +x {} \;
+find "$INSTALL_PREFIX/bin" -type f -name "*.sh" -exec chmod +x {} \;
 
 # Create symbolic link for oraenv.sh
 if [[ -w "/usr/local/bin" ]] || [[ "$EUID" -eq 0 ]]; then
     log_info "Creating symbolic link in /usr/local/bin"
-    ln -sf "$INSTALL_PREFIX/srv/bin/oraenv.sh" /usr/local/bin/oraenv 2>/dev/null || true
+    ln -sf "$INSTALL_PREFIX/bin/oraenv.sh" /usr/local/bin/oraenv 2>/dev/null || true
 fi
 
 # Installation complete
@@ -218,7 +231,7 @@ echo ""
 echo "oradba has been installed to: $INSTALL_PREFIX"
 echo ""
 echo "To use oraenv:"
-echo "  source $INSTALL_PREFIX/srv/bin/oraenv.sh [ORACLE_SID]"
+echo "  source $INSTALL_PREFIX/bin/oraenv.sh [ORACLE_SID]"
 echo ""
 echo "Or if symbolic link was created:"
 echo "  source oraenv [ORACLE_SID]"
@@ -231,12 +244,14 @@ exit 0
 __PAYLOAD_BEGINS__
 INSTALLER_HEADER
 
-# Replace version placeholder
-sed -i.bak "s/__VERSION__/$VERSION/g" "$INSTALLER_OUTPUT" && rm "${INSTALLER_OUTPUT}.bak"
+# Replace version placeholder (use a temp file for portability)
+echo "Injecting version number..."
+sed "s/__VERSION__/${VERSION}/g" "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.tmp"
+mv "${INSTALLER_OUTPUT}.tmp" "$INSTALLER_OUTPUT"
 
 # Append base64 encoded payload
 echo "Creating installer with embedded payload..."
-base64 "$PAYLOAD_FILE" >> "$INSTALLER_OUTPUT"
+openssl base64 < "$PAYLOAD_FILE" >> "$INSTALLER_OUTPUT"
 
 # Make installer executable
 chmod +x "$INSTALLER_OUTPUT"

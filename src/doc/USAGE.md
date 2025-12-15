@@ -53,7 +53,7 @@ sqlplus username/password
 
 ```bash
 # Set SQLPATH
-export SQLPATH=$ORADBA_PREFIX/srv/sql
+export SQLPATH=$ORADBA_PREFIX/src/sql
 
 # Run script
 sqlplus / as sysdba @db_info.sql
@@ -69,7 +69,7 @@ sqlplus / as sysdba @script.sql param1 param2
 source oraenv.sh ORCL
 
 # Run RMAN script
-rman target / @$ORADBA_PREFIX/srv/rcv/backup_full.rman
+rman target / @$ORADBA_PREFIX/src/rcv/backup_full.rman
 
 # Interactive RMAN
 rman target /
@@ -98,7 +98,7 @@ echo $ORACLE_SID  # Should show: TESTDB
 Edit the global configuration file:
 
 ```bash
-vim $ORADBA_PREFIX/srv/etc/oradba.conf
+vim $ORADBA_PREFIX/src/etc/oradba.conf
 ```
 
 Key settings:
@@ -122,7 +122,7 @@ Create personal configuration file:
 
 ```bash
 # Copy example
-cp $ORADBA_PREFIX/srv/etc/oradba_config.example ~/.oradba_config
+cp $ORADBA_PREFIX/src/etc/oradba_config.example ~/.oradba_config
 
 # Edit
 vim ~/.oradba_config
@@ -138,7 +138,7 @@ ORATAB_FILE="$HOME/.oratab"
 DEBUG=1
 
 # Custom SQL path
-SQLPATH="$HOME/sql:$ORADBA_PREFIX/srv/sql"
+SQLPATH="$HOME/sql:$ORADBA_PREFIX/src/sql"
 ```
 
 ## Advanced Usage
@@ -167,7 +167,7 @@ source oraenv.sh ORCL
 
 # Source oraenv
 ORADBA_PREFIX="/opt/oradba"
-source "$ORADBA_PREFIX/srv/bin/oraenv.sh" ORCL
+source "$ORADBA_PREFIX/src/bin/oraenv.sh" ORCL
 
 # Verify environment
 if [[ "$ORACLE_SID" != "ORCL" ]]; then
@@ -191,8 +191,8 @@ Add to `~/.bash_profile` or `~/.bashrc`:
 ```bash
 # oradba configuration
 export ORADBA_PREFIX="/opt/oradba"
-export PATH="$ORADBA_PREFIX/srv/bin:$PATH"
-export SQLPATH="$ORADBA_PREFIX/srv/sql"
+export PATH="$ORADBA_PREFIX/src/bin:$PATH"
+export SQLPATH="$ORADBA_PREFIX/src/sql"
 
 # Set default environment (optional)
 # source oraenv.sh ORCL
@@ -202,7 +202,7 @@ export SQLPATH="$ORADBA_PREFIX/srv/sql"
 
 ```bash
 # Example cron entry
-0 2 * * * . /opt/oradba/srv/bin/oraenv.sh ORCL && /backup/scripts/backup.sh
+0 2 * * * . /opt/oradba/src/bin/oraenv.sh ORCL && /backup/scripts/backup.sh
 ```
 
 ### Systemd Service
@@ -216,8 +216,8 @@ After=network.target
 Type=forking
 User=oracle
 Environment="ORADBA_PREFIX=/opt/oradba"
-ExecStart=/bin/bash -c 'source /opt/oradba/srv/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbstart $ORACLE_HOME'
-ExecStop=/bin/bash -c 'source /opt/oradba/srv/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbshut $ORACLE_HOME'
+ExecStart=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbstart $ORACLE_HOME'
+ExecStop=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbshut $ORACLE_HOME'
 
 [Install]
 WantedBy=multi-user.target
@@ -229,7 +229,7 @@ The oradba installation includes a login.sql script that configures SQL*Plus:
 
 ```bash
 # Set SQLPATH to use login.sql automatically
-export SQLPATH=$ORADBA_PREFIX/srv/sql
+export SQLPATH=$ORADBA_PREFIX/src/sql
 
 # Now SQL*Plus will use the configuration
 sqlplus / as sysdba
