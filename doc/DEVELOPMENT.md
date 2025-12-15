@@ -286,6 +286,310 @@ Version is stored in `VERSION` file and used by:
 - Release workflow
 - Documentation
 
+## Makefile Development Workflow
+
+The project includes a comprehensive Makefile for automating development tasks.
+
+### Available Targets
+
+View all available targets with organized sections:
+
+```bash
+make help
+```
+
+### Development Tasks
+
+**Testing:**
+
+```bash
+# Run all tests
+make test
+
+# Run unit tests only
+make test-unit
+
+# Run integration tests only
+make test-integration
+
+# Quick shortcut
+make t
+```
+
+**Linting:**
+
+```bash
+# Run all linters (shell, markdown, scripts)
+make lint
+
+# Lint shell scripts with shellcheck
+make lint-shell
+
+# Check for common script issues
+make lint-scripts
+
+# Lint Markdown files
+make lint-markdown
+
+# Quick shortcut
+make l
+```
+
+**Formatting:**
+
+```bash
+# Format all shell scripts with shfmt
+make format
+
+# Check if scripts are properly formatted
+make format-check
+
+# Quick shortcut
+make f
+```
+
+**Validation:**
+
+```bash
+# Run all checks (lint + test)
+make check
+
+# Validate configuration files
+make validate
+
+# Run full CI pipeline locally
+make ci
+```
+
+### Build & Distribution
+
+```bash
+# Build distribution archive
+make build
+
+# Install OraDBA locally
+make install
+
+# Uninstall OraDBA
+make uninstall
+
+# Clean build artifacts
+make clean
+
+# Deep clean (including caches)
+make clean-all
+
+# Quick shortcut for build
+make b
+```
+
+### Version Management
+
+**Bump Version:**
+
+```bash
+# Bump patch version (0.2.1 → 0.2.2)
+make version-bump-patch
+
+# Bump minor version (0.2.1 → 0.3.0)
+make version-bump-minor
+
+# Bump major version (0.2.1 → 1.0.0)
+make version-bump-major
+
+# Show current version
+make version
+```
+
+**Git Operations:**
+
+```bash
+# Create git tag from VERSION file
+make tag
+
+# Show git status and current version
+make status
+```
+
+### Release Process
+
+**1. Check Release Readiness:**
+
+```bash
+make release-check
+```
+
+This command verifies:
+
+- Working directory is clean (no uncommitted changes)
+- Version tag doesn't already exist
+- All tests pass
+- All linting passes
+
+**2. Prepare for Release:**
+
+Before running release commands:
+
+```bash
+# Bump the version (choose appropriate level)
+make version-bump-patch  # or minor/major
+
+# Update CHANGELOG.md manually
+vim CHANGELOG.md
+# - Move [Unreleased] items to new version section
+# - Add release date
+# - Create new empty [Unreleased] section
+
+# Commit version and changelog changes
+git add VERSION CHANGELOG.md
+git commit -m "chore: Release v$(cat VERSION)"
+```
+
+**3. Run Release Check:**
+
+```bash
+# Verify everything is ready
+make release-check
+```
+
+If successful, you'll see:
+
+```text
+✓ Working directory clean
+✓ Version tag available
+✓ All checks passed
+✓ Ready for release
+```
+
+**4. Create Release:**
+
+```bash
+# Create git tag
+make tag
+
+# Push to remote with tags
+git push origin main --tags
+```
+
+**5. Automated GitHub Release:**
+
+Once the tag is pushed, GitHub Actions will automatically:
+
+- Build the distribution archive
+- Create a GitHub release
+- Upload artifacts
+- Generate release notes
+
+### Complete Release Example
+
+```bash
+# 1. Ensure working directory is clean
+git status
+
+# 2. Bump version
+make version-bump-patch
+# Updates VERSION file: 0.2.1 → 0.2.2
+
+# 3. Update CHANGELOG.md
+vim CHANGELOG.md
+# Move [Unreleased] changes to [0.2.2] section
+# Add release date
+# Create new [Unreleased] section
+
+# 4. Commit changes
+git add VERSION CHANGELOG.md
+git commit -m "chore: Release v0.2.2"
+
+# 5. Verify release readiness
+make release-check
+# ✓ All checks passed
+
+# 6. Create and push tag
+make tag
+git push origin main --tags
+
+# 7. GitHub Actions creates the release automatically
+# Monitor at: https://github.com/oehrlis/oradba/actions
+```
+
+### Pre-commit Checks
+
+Run before committing code:
+
+```bash
+# Format code and run linters
+make pre-commit
+```
+
+This runs:
+
+1. Format all shell scripts
+2. Lint shell scripts
+3. Lint Markdown files
+4. Check for common issues
+
+### Pre-push Checks
+
+Run before pushing to remote:
+
+```bash
+# Run full validation
+make pre-push
+```
+
+This runs:
+
+1. All linting
+2. All tests
+
+### Development Tools
+
+**Check installed tools:**
+
+```bash
+make tools
+```
+
+Shows status of:
+
+- shellcheck
+- shfmt
+- markdownlint
+- bats
+- git
+
+**Setup development environment:**
+
+```bash
+# Install all required tools (macOS with Homebrew)
+make setup-dev
+```
+
+### Project Information
+
+```bash
+# Show comprehensive project info
+make info
+```
+
+Displays:
+
+- Project name and version
+- Directory structure
+- File counts (scripts, libraries, SQL, tests)
+
+### Quick Shortcuts
+
+For faster development:
+
+```bash
+make t    # Test
+make l    # Lint
+make f    # Format
+make b    # Build
+make c    # Clean
+```
+
 ## Best Practices
 
 ### Bash Scripting
