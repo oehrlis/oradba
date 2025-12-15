@@ -15,35 +15,35 @@
 # ------------------------------------------------------------------------------
 
 # Project configuration
-PROJECT_NAME := oradba
-VERSION := $(shell cat VERSION 2>/dev/null || echo "0.0.0")
-SHELL := /bin/bash
+PROJECT_NAME	:= oradba
+VERSION 		:= $(shell cat VERSION 2>/dev/null || echo "0.0.0")
+SHELL 			:= /bin/bash
 
 # Directories
-SRC_DIR := srv
-BIN_DIR := $(SRC_DIR)/bin
-LIB_DIR := $(SRC_DIR)/lib
-ETC_DIR := $(SRC_DIR)/etc
-SQL_DIR := $(SRC_DIR)/sql
-TEST_DIR := tests
-DOC_DIR := doc
-SCRIPTS_DIR := scripts
-DIST_DIR := dist
+SRC_DIR 	:= srv
+BIN_DIR 	:= $(SRC_DIR)/bin
+LIB_DIR 	:= $(SRC_DIR)/lib
+ETC_DIR 	:= $(SRC_DIR)/etc
+SQL_DIR 	:= $(SRC_DIR)/sql
+TEST_DIR 	:= tests
+DOC_DIR 	:= doc
+SCRIPTS_DIR	:= scripts
+DIST_DIR 	:= dist
 
 # Tools
-SHELLCHECK := $(shell command -v shellcheck 2>/dev/null)
-SHFMT := $(shell command -v shfmt 2>/dev/null)
-BATS := $(shell command -v bats 2>/dev/null)
-GIT := $(shell command -v git 2>/dev/null)
-TAR := $(shell command -v tar 2>/dev/null)
+SHELLCHECK	:= $(shell command -v shellcheck 2>/dev/null)
+SHFMT 		:= $(shell command -v shfmt 2>/dev/null)
+BATS 		:= $(shell command -v bats 2>/dev/null)
+GIT 		:= $(shell command -v git 2>/dev/null)
+TAR 		:= $(shell command -v tar 2>/dev/null)
 
 # Color output
-COLOR_RESET := \033[0m
-COLOR_BOLD := \033[1m
-COLOR_GREEN := \033[32m
-COLOR_YELLOW := \033[33m
-COLOR_BLUE := \033[34m
-COLOR_RED := \033[31m
+COLOR_RESET 	:= \033[0m
+COLOR_BOLD		:= \033[1m
+COLOR_GREEN 	:= \033[32m
+COLOR_YELLOW	:= \033[33m
+COLOR_BLUE 		:= \033[34m
+COLOR_RED 		:= \033[31m
 
 # Default target
 .DEFAULT_GOAL := help
@@ -104,9 +104,9 @@ lint-shell: ## Lint shell scripts with shellcheck
 	@if [ -n "$(SHELLCHECK)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHELLCHECK) -x -S warning || exit 1; \
-		echo "$(COLOR_GREEN)✓ Shell scripts passed linting$(COLOR_RESET)"; \
+		echo -e "$(COLOR_GREEN)✓ Shell scripts passed linting$(COLOR_RESET)"; \
 	else \
-		echo "$(COLOR_RED)Error: shellcheck not found. Install with: brew install shellcheck$(COLOR_RESET)"; \
+		echo -e "$(COLOR_RED)Error: shellcheck not found. Install with: brew install shellcheck$(COLOR_RESET)"; \
 		exit 1; \
 	fi
 
@@ -114,8 +114,8 @@ lint-shell: ## Lint shell scripts with shellcheck
 lint-scripts: ## Check for common script issues
 	@echo -e "$(COLOR_BLUE)Checking scripts for common issues...$(COLOR_RESET)"
 	@! find $(BIN_DIR) -name "*.sh" -type f -exec grep -l "^#!/bin/sh" {} \; | \
-		grep . && echo "$(COLOR_GREEN)✓ No #!/bin/sh found (use #!/usr/bin/env bash)$(COLOR_RESET)" || \
-		(echo "$(COLOR_RED)✗ Found scripts using #!/bin/sh$(COLOR_RESET)" && exit 1)
+		grep . && echo -e "$(COLOR_GREEN)✓ No #!/bin/sh found (use #!/usr/bin/env bash)$(COLOR_RESET)" || \
+		(echo -e "$(COLOR_RED)✗ Found scripts using #!/bin/sh$(COLOR_RESET)" && exit 1)
 
 .PHONY: format
 format: ## Format shell scripts with shfmt
@@ -123,9 +123,9 @@ format: ## Format shell scripts with shfmt
 	@if [ -n "$(SHFMT)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHFMT) -i 4 -bn -ci -sr -w; \
-		echo "$(COLOR_GREEN)✓ Scripts formatted$(COLOR_RESET)"; \
+		echo -e "$(COLOR_GREEN)✓ Scripts formatted$(COLOR_RESET)"; \
 	else \
-		echo "$(COLOR_YELLOW)Warning: shfmt not found. Install with: brew install shfmt$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)Warning: shfmt not found. Install with: brew install shfmt$(COLOR_RESET)"; \
 	fi
 
 .PHONY: format-check
@@ -134,8 +134,8 @@ format-check: ## Check if scripts are formatted correctly
 	@if [ -n "$(SHFMT)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHFMT) -i 4 -bn -ci -sr -d || \
-			(echo "$(COLOR_RED)✗ Scripts need formatting. Run: make format$(COLOR_RESET)" && exit 1); \
-		echo "$(COLOR_GREEN)✓ All scripts properly formatted$(COLOR_RESET)"; \
+			(echo -e "$(COLOR_RED)✗ Scripts need formatting. Run: make format$(COLOR_RESET)" && exit 1); \
+		echo -e "$(COLOR_GREEN)✓ All scripts properly formatted$(COLOR_RESET)"; \
 	else \
 		echo "$(COLOR_YELLOW)Warning: shfmt not found$(COLOR_RESET)"; \
 	fi
@@ -207,7 +207,7 @@ changelog: ## Update CHANGELOG.md from git commits
 		echo "# Changelog" > CHANGELOG.new.md; \
 		echo "" >> CHANGELOG.new.md; \
 		$(GIT) log --pretty=format:"- %s (%h)" --reverse >> CHANGELOG.new.md; \
-		echo "$(COLOR_YELLOW)New changelog preview:$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)New changelog preview:$(COLOR_RESET)"; \
 		head -20 CHANGELOG.new.md; \
 		rm CHANGELOG.new.md; \
 	fi
@@ -230,7 +230,7 @@ version-bump-patch: ## Bump patch version (0.0.X)
 	patch=$${rest#*.}; \
 	new_patch=$$((patch + 1)); \
 	echo "$$major.$$minor.$$new_patch" > VERSION; \
-	echo "$(COLOR_GREEN)✓ Version bumped: $$current → $$major.$$minor.$$new_patch$(COLOR_RESET)"
+	echo -e "$(COLOR_GREEN)✓ Version bumped: $$current → $$major.$$minor.$$new_patch$(COLOR_RESET)"
 
 .PHONY: version-bump-minor
 version-bump-minor: ## Bump minor version (0.X.0)
@@ -241,7 +241,7 @@ version-bump-minor: ## Bump minor version (0.X.0)
 	minor=$${rest%%.*}; \
 	new_minor=$$((minor + 1)); \
 	echo "$$major.$$new_minor.0" > VERSION; \
-	echo "$(COLOR_GREEN)✓ Version bumped: $$current → $$major.$$new_minor.0$(COLOR_RESET)"
+	echo -e "$(COLOR_GREEN)✓ Version bumped: $$current → $$major.$$new_minor.0$(COLOR_RESET)"
 
 .PHONY: version-bump-major
 version-bump-major: ## Bump major version (X.0.0)
@@ -250,13 +250,13 @@ version-bump-major: ## Bump major version (X.0.0)
 	major=$${current%%.*}; \
 	new_major=$$((major + 1)); \
 	echo "$$new_major.0.0" > VERSION; \
-	echo "$(COLOR_GREEN)✓ Version bumped: $$current → $$new_major.0.0$(COLOR_RESET)"
+	echo -e "$(COLOR_GREEN)✓ Version bumped: $$current → $$new_major.0.0$(COLOR_RESET)"
 
 .PHONY: tag
 tag: ## Create git tag from VERSION file
 	@if [ -n "$(GIT)" ]; then \
 		$(GIT) tag -a "v$(VERSION)" -m "Release v$(VERSION)"; \
-		echo "$(COLOR_GREEN)✓ Created tag v$(VERSION)$(COLOR_RESET)"; \
+		echo -e "$(COLOR_GREEN)✓ Created tag v$(VERSION)$(COLOR_RESET)"; \
 	fi
 
 .PHONY: status
@@ -313,7 +313,7 @@ setup-dev: ## Setup development environment
 		echo "Installing development tools via Homebrew..."; \
 		brew install shellcheck shfmt bats-core 2>/dev/null || true; \
 	else \
-		echo "$(COLOR_YELLOW)Please install tools manually:$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)Please install tools manually:$(COLOR_RESET)"; \
 		echo "  - shellcheck: https://github.com/koalaman/shellcheck"; \
 		echo "  - shfmt: https://github.com/mvdan/sh"; \
 		echo "  - bats: https://github.com/bats-core/bats-core"; \
@@ -351,13 +351,13 @@ release-check: ## Check if ready for release
 			echo "$(COLOR_RED)✗ Working directory not clean$(COLOR_RESET)"; \
 			exit 1; \
 		else \
-			echo "$(COLOR_GREEN)✓ Working directory clean$(COLOR_RESET)"; \
+			echo -e "$(COLOR_GREEN)✓ Working directory clean$(COLOR_RESET)"; \
 		fi; \
 		if $(GIT) tag | grep -q "v$(VERSION)"; then \
 			echo "$(COLOR_RED)✗ Tag v$(VERSION) already exists$(COLOR_RESET)"; \
 			exit 1; \
 		else \
-			echo "$(COLOR_GREEN)✓ Version tag available$(COLOR_RESET)"; \
+			echo -e "$(COLOR_GREEN)✓ Version tag available$(COLOR_RESET)"; \
 		fi; \
 	fi
 	@$(MAKE) check
