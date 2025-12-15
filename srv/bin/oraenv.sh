@@ -43,11 +43,13 @@ fi
 # Parse command line arguments
 _oraenv_parse_args() {
     local requested_sid=""
+    # shellcheck disable=SC2034  # Reserved for future use
     local force_mode=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -f | --force)
+                # shellcheck disable=SC2034  # Reserved for future use
                 force_mode=true
                 shift
                 ;;
@@ -169,7 +171,9 @@ _oraenv_set_environment() {
     # Set ORACLE_BASE if not already set
     if [[ -z "${ORACLE_BASE}" ]]; then
         # Try to derive from ORACLE_HOME
-        export ORACLE_BASE="$(dirname "$(dirname "$ORACLE_HOME")")"
+        local derived_base
+        derived_base="$(dirname "$(dirname "$ORACLE_HOME")")"
+        export ORACLE_BASE="${derived_base}"
     fi
 
     # Set common environment variables

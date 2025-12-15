@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Release workflow now includes scripts/ directory in source archive
 - Makefile color output and command execution (fixed missing @echo statements)
+- Shellcheck SC2155 warnings by separating declaration and assignment (oraenv.sh, common.sh)
+- Shellcheck SC2034 warning for unused force_mode variable (marked for future use)
 
 ## [0.2.0] - 2025-12-15
 
