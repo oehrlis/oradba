@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Comprehensive Makefile for development workflow automation
+  - Testing targets: test, test-unit, test-integration
+  - Linting targets: lint, lint-shell, lint-scripts
+  - Formatting targets: format, format-check
+  - Build targets: build, install, uninstall, clean
+  - Version management: version-bump-patch/minor/major, tag
+  - CI/CD targets: ci, pre-commit, pre-push
+  - Release targets: release-check, release-prepare
+  - Quick shortcuts: t (test), l (lint), f (format), b (build), c (check)
+  - Color-coded help system with target descriptions
+
 ### Changed
 
 - Converted GitHub issue templates from Markdown to YAML forms for better UX
@@ -14,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Release workflow now includes scripts/ directory in source archive
+- Makefile color output now displays correctly (added -e flag to echo commands)
 
 ## [0.2.0] - 2025-12-15
 

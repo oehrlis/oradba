@@ -65,16 +65,75 @@ This will set up the environment for the ORACLE_SID "ORCL" based on your oratab 
 - Bash 4.0+
 - BATS for testing
 - Oracle Database (for testing database-specific scripts)
+- Development tools: shellcheck, shfmt (optional, for linting/formatting)
+
+### Development Workflow
+
+The project includes a comprehensive `Makefile` for development tasks:
+
+```bash
+# Show all available targets
+make help
+
+# Run all tests
+make test
+
+# Lint shell scripts
+make lint
+
+# Format shell scripts
+make format
+
+# Run all checks (test + lint)
+make check
+
+# Build installer
+make build
+
+# Clean build artifacts
+make clean
+```
+
+**Quick shortcuts:**
+- `make t` - Run tests
+- `make l` - Lint code
+- `make f` - Format code
+- `make b` - Build installer
+- `make c` - Run all checks
+
+### Version Management
+
+```bash
+# Bump patch version (0.2.0 -> 0.2.1)
+make version-bump-patch
+
+# Bump minor version (0.2.0 -> 0.3.0)
+make version-bump-minor
+
+# Bump major version (0.2.0 -> 1.0.0)
+make version-bump-major
+
+# Create git tag
+make tag
+```
 
 ### Running Tests
 
 ```bash
+# Using Makefile (recommended)
+make test
+
+# Or directly
 ./tests/run_tests.sh
 ```
 
 ### Building the Installer
 
 ```bash
+# Using Makefile (recommended)
+make build
+
+# Or directly
 ./scripts/build_installer.sh
 ```
 
