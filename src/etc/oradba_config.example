@@ -19,7 +19,7 @@
 #NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
 
 # Custom SQL*Plus settings
-#SQLPATH="/home/oracle/scripts/sql:${ORADBA_PREFIX}/src/sql"
+#SQLPATH="/home/oracle/scripts/sql:${ORADBA_PREFIX}/sql"
 
 # Logging
 #LOG_DIR="/var/log/oradba"

@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored installer build process to package `src/` contents directly without directory wrapper
 - Installation now places files directly in `$INSTALL_PREFIX/` (e.g., `bin/`, `lib/`, `etc/`)
 - Fixed cross-platform base64 encoding/decoding using `openssl base64` for compatibility
+- Updated runtime paths in oraenv.sh to reference installed directory structure
+- Updated configuration file paths (SQLPATH, ORACLE_PATH, RECOVERY_DIR) to remove `/src/` wrapper
 - Refactored SQL script naming concept to use SQL-style operation verbs (CREATE, DROP,
   UPDATE, ENABLE, DISABLE, GRANT) instead of Linux-style commands
 - Added privilege indicators to script naming and documentation (User, DBA, SYSDBA, AUD)
@@ -34,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed installer script base64 encoding/decoding for macOS and Linux compatibility
 - Fixed sed commands for cross-platform compatibility in build script
 - Corrected tarball creation to avoid nested directory structure in installation
+- Fixed oraenv.sh to correctly locate common library and configuration files at runtime
+- Fixed script template to use correct library paths after installation
+- Fixed oradba.conf default paths for SQL and recovery directories
 
 ## [0.2.3] - 2025-12-15
 

@@ -28,15 +28,15 @@ _ORAENV_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _ORAENV_BASE_DIR="$(dirname "$_ORAENV_SCRIPT_DIR")"
 
 # Source configuration
-if [[ -f "${_ORAENV_BASE_DIR}/src/etc/oradba.conf" ]]; then
-    source "${_ORAENV_BASE_DIR}/src/etc/oradba.conf"
+if [[ -f "${_ORAENV_BASE_DIR}/etc/oradba.conf" ]]; then
+    source "${_ORAENV_BASE_DIR}/etc/oradba.conf"
 fi
 
 # Source common library
-if [[ -f "${_ORAENV_BASE_DIR}/src/lib/common.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/src/lib/common.sh"
+if [[ -f "${_ORAENV_BASE_DIR}/lib/common.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/common.sh"
 else
-    echo "ERROR: Cannot find common library"
+    echo "ERROR: Cannot find common library at ${_ORAENV_BASE_DIR}/lib/common.sh"
     return 1
 fi
 
