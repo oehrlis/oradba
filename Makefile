@@ -137,7 +137,7 @@ format-check: ## Check if scripts are formatted correctly
 			(echo -e "$(COLOR_RED)✗ Scripts need formatting. Run: make format$(COLOR_RESET)" && exit 1); \
 		echo -e "$(COLOR_GREEN)✓ All scripts properly formatted$(COLOR_RESET)"; \
 	else \
-		echo "$(COLOR_YELLOW)Warning: shfmt not found$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)Warning: shfmt not found$(COLOR_RESET)"; \
 	fi
 
 .PHONY: check
@@ -297,10 +297,10 @@ tools: ## Show installed development tools
 	@echo ""
 	@printf "%-20s %s\n" "Tool" "Status"
 	@printf "%-20s %s\n" "----" "------"
-	@printf "%-20s %s\n" "shellcheck" "$$([ -n '$(SHELLCHECK)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
-	@printf "%-20s %s\n" "shfmt" "$$([ -n '$(SHFMT)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
-	@printf "%-20s %s\n" "bats" "$$([ -n '$(BATS)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
-	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "shellcheck" "$$([ -n '$(SHELLCHECK)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "shfmt" "$$([ -n '$(SHFMT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "bats" "$$([ -n '$(BATS)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@echo ""
 	@echo -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
 	@echo "  macOS:  brew install shellcheck shfmt bats-core"
@@ -348,13 +348,13 @@ release-check: ## Check if ready for release
 	@echo ""
 	@if [ -n "$(GIT)" ]; then \
 		if [ -n "$$($(GIT) status --porcelain)" ]; then \
-			echo "$(COLOR_RED)✗ Working directory not clean$(COLOR_RESET)"; \
+			echo -e "$(COLOR_RED)✗ Working directory not clean$(COLOR_RESET)"; \
 			exit 1; \
 		else \
 			echo -e "$(COLOR_GREEN)✓ Working directory clean$(COLOR_RESET)"; \
 		fi; \
 		if $(GIT) tag | grep -q "v$(VERSION)"; then \
-			echo "$(COLOR_RED)✗ Tag v$(VERSION) already exists$(COLOR_RESET)"; \
+			echo -e "$(COLOR_RED)✗ Tag v$(VERSION) already exists$(COLOR_RESET)"; \
 			exit 1; \
 		else \
 			echo -e "$(COLOR_GREEN)✓ Version tag available$(COLOR_RESET)"; \
