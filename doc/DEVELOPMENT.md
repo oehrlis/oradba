@@ -4,7 +4,7 @@ This guide provides detailed information for developers working on oradba.
 
 ## Project Structure
 
-```
+```text
 oradba/
 ├── .github/
 │   └── workflows/        # GitHub Actions CI/CD workflows
@@ -48,6 +48,7 @@ oradba/
 The core script that sets up Oracle environment variables based on oratab configuration.
 
 **Key Features:**
+
 - Reads oratab file
 - Sets ORACLE_SID, ORACLE_HOME, ORACLE_BASE
 - Updates PATH and LD_LIBRARY_PATH
@@ -55,6 +56,7 @@ The core script that sets up Oracle environment variables based on oratab config
 - Must be sourced, not executed
 
 **Usage:**
+
 ```bash
 source oraenv.sh ORCL
 ```
@@ -64,6 +66,7 @@ source oraenv.sh ORCL
 Library of common functions used across scripts.
 
 **Key Functions:**
+
 - `log_info()`, `log_error()`, `log_warn()`, `log_debug()`
 - `command_exists()` - Check command availability
 - `verify_oracle_env()` - Validate Oracle environment
@@ -75,6 +78,7 @@ Library of common functions used across scripts.
 Main configuration file: [srv/etc/oradba.conf](srv/etc/oradba.conf)
 
 **Key Settings:**
+
 - `ORADBA_PREFIX` - Installation directory
 - `ORATAB_FILE` - Path to oratab
 - `DEBUG` - Debug mode toggle
@@ -137,6 +141,7 @@ sudo ./dist/oradba_install.sh --prefix /tmp/oradba-test
 BATS (Bash Automated Testing System) is used for all tests.
 
 **Test Structure:**
+
 ```bash
 #!/usr/bin/env bats
 
@@ -156,6 +161,7 @@ teardown() {
 ```
 
 **Common Assertions:**
+
 - `[ "$status" -eq 0 ]` - Command succeeded
 - `[ "$status" -ne 0 ]` - Command failed
 - `[[ "$output" =~ "pattern" ]]` - Output matches pattern
@@ -165,6 +171,7 @@ teardown() {
 ### Writing Tests
 
 1. **Unit Tests** - Test individual functions
+
    ```bash
    @test "log_info outputs correct format" {
        run log_info "Test message"
@@ -174,6 +181,7 @@ teardown() {
    ```
 
 2. **Integration Tests** - Test script interactions
+
    ```bash
    @test "oraenv sets environment correctly" {
        source oraenv.sh TESTDB
@@ -182,6 +190,7 @@ teardown() {
    ```
 
 3. **Mock Data** - Create temporary test data
+
    ```bash
    setup() {
        TEST_DIR=$(mktemp -d)
@@ -272,6 +281,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 - **PATCH** version: Backward-compatible bug fixes
 
 Version is stored in `VERSION` file and used by:
+
 - Installer script
 - Release workflow
 - Documentation
@@ -281,6 +291,7 @@ Version is stored in `VERSION` file and used by:
 ### Bash Scripting
 
 1. **Use strict mode**
+
    ```bash
    set -e  # Exit on error
    set -u  # Exit on undefined variable
@@ -288,6 +299,7 @@ Version is stored in `VERSION` file and used by:
    ```
 
 2. **Quote variables**
+
    ```bash
    # Good
    echo "$variable"
@@ -297,6 +309,7 @@ Version is stored in `VERSION` file and used by:
    ```
 
 3. **Use local variables in functions**
+
    ```bash
    my_function() {
        local var="value"
@@ -305,6 +318,7 @@ Version is stored in `VERSION` file and used by:
    ```
 
 4. **Check command existence**
+
    ```bash
    if command_exists "oracle"; then
        # Use command
@@ -330,6 +344,7 @@ Version is stored in `VERSION` file and used by:
 ### Common Issues
 
 **BATS not found:**
+
 ```bash
 # macOS
 brew install bats-core
@@ -339,11 +354,13 @@ sudo apt-get install bats
 ```
 
 **Permission denied:**
+
 ```bash
 chmod +x script.sh
 ```
 
 **Tests failing:**
+
 ```bash
 # Run with debug
 DEBUG=1 ./test/run_tests.sh

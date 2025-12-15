@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 -->
 # oradba Documentation
 
 Welcome to the oradba documentation. This directory contains comprehensive documentation for the Oracle Database Administration Toolset.

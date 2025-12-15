@@ -114,7 +114,7 @@ main "$@"
 
 Follow conventional commits format:
 
-```
+```text
 type(scope): subject
 
 body
@@ -123,6 +123,7 @@ footer
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -132,7 +133,8 @@ Types:
 - `chore`: Maintenance tasks
 
 Examples:
-```
+
+```text
 feat(oraenv): Add support for Oracle 23c
 fix(installer): Handle spaces in installation path
 docs(readme): Update installation instructions

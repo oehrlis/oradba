@@ -17,7 +17,7 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 ## Project Structure
 
-```
+```text
 oradba/
 ├── srv/
 │   ├── bin/         # Executable scripts

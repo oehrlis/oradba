@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 -->
 # oradba Project Summary
 
 ## Overview
@@ -13,12 +14,14 @@
 ## Key Features
 
 ### 1. Core Environment Management
+
 - **oraenv.sh**: Intelligent Oracle environment setup based on oratab
 - Automatic ORACLE_HOME, ORACLE_SID, and ORACLE_BASE configuration
 - Support for multiple Oracle versions and instances
 - Interactive SID selection
 
 ### 2. Self-Contained Installer
+
 - Single executable with base64-encoded payload
 - No external dependencies required
 - Customizable installation prefix
@@ -26,12 +29,14 @@
 - Automatic symbolic link creation
 
 ### 3. Testing Framework
+
 - Comprehensive BATS test suite
 - Unit tests for common functions
 - Integration tests for scripts
 - Automated test runner
 
 ### 4. CI/CD Pipeline
+
 - GitHub Actions workflows
 - Automated testing on push/PR
 - Release automation with artifacts
@@ -39,6 +44,7 @@
 - Security scanning
 
 ### 5. Documentation
+
 - Comprehensive README
 - Quick start guide
 - Development guide
@@ -47,7 +53,7 @@
 
 ## Project Structure
 
-```
+```text
 oradba/
 ├── .github/workflows/       # CI/CD pipelines
 │   ├── ci.yml              # Continuous integration
@@ -93,6 +99,7 @@ oradba/
 ## Technical Details
 
 ### Technologies Used
+
 - **Language**: Bash 4.0+
 - **Testing**: BATS (Bash Automated Testing System)
 - **CI/CD**: GitHub Actions
@@ -102,6 +109,7 @@ oradba/
 ### Core Components
 
 #### 1. oraenv.sh
+
 - Sources oratab configuration
 - Sets environment variables
 - Validates Oracle installations
@@ -109,6 +117,7 @@ oradba/
 - Must be sourced, not executed
 
 #### 2. common.sh
+
 - Logging functions (info, warn, error, debug)
 - Command existence checks
 - Environment verification
@@ -116,6 +125,7 @@ oradba/
 - Directory validation
 
 #### 3. Installer
+
 - Self-extracting archive
 - Base64-encoded payload
 - Customizable installation
@@ -125,6 +135,7 @@ oradba/
 ### Configuration System
 
 **Global Configuration**: `/opt/oradba/srv/etc/oradba.conf`
+
 - Installation paths
 - oratab locations
 - Debug settings
@@ -132,6 +143,7 @@ oradba/
 - Backup directories
 
 **User Configuration**: `~/.oradba_config`
+
 - User-specific overrides
 - Custom paths
 - Personal preferences
@@ -139,12 +151,14 @@ oradba/
 ### Testing Strategy
 
 **Test Coverage**:
+
 - Unit tests for library functions
 - Integration tests for scripts
 - Installer validation
 - Mock data for isolated testing
 
 **Test Execution**:
+
 ```bash
 ./test/run_tests.sh
 ```
@@ -152,12 +166,14 @@ oradba/
 ### CI/CD Workflow
 
 **Continuous Integration**:
+
 1. Shellcheck linting
 2. BATS test execution
 3. Installer build
 4. Installation validation
 
 **Release Process**:
+
 1. Version tag creation
 2. Installer build
 3. GitHub release creation
@@ -189,6 +205,7 @@ sqlplus / as sysdba @db_info.sql
 ## Development
 
 ### Prerequisites
+
 - Bash 4.0+
 - BATS testing framework
 - Shellcheck linter
@@ -227,6 +244,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 ## Roadmap
 
 ### Version 0.1.0 (Current)
+
 - ✅ Core oraenv.sh script
 - ✅ Self-contained installer
 - ✅ BATS test suite
@@ -234,6 +252,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 - ✅ Comprehensive documentation
 
 ### Future Versions
+
 - Additional SQL scripts
 - RMAN automation scripts
 - Database health check tools
@@ -253,25 +272,29 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 ## Resources
 
 ### Documentation
+
 - [README.md](README.md) - Main documentation
 - [QUICKSTART.md](docs/QUICKSTART.md) - Quick start guide
 - [DEVELOPMENT.md](docs/DEVELOPMENT.md) - Developer guide
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guide
 
 ### Links
-- GitHub Repository: https://github.com/oehrlis/oradba
-- Issues: https://github.com/oehrlis/oradba/issues
-- Releases: https://github.com/oehrlis/oradba/releases
+
+- GitHub Repository: <https://github.com/oehrlis/oradba>
+- Issues: <https://github.com/oehrlis/oradba/issues>
+- Releases: <https://github.com/oehrlis/oradba/releases>
 
 ## Support
 
 ### Getting Help
+
 - Read the documentation
 - Check existing issues
 - Open new issue for bugs
 - Submit feature requests
 
 ### Community
+
 - Contribute code
 - Report bugs
 - Improve documentation
@@ -292,4 +315,4 @@ Copyright (c) 2025 Stefan Oehrli
 
 ---
 
-**Built with ❤️ for Oracle Database professionals**
+**Built with ❤️** for Oracle Database professionals
