@@ -126,7 +126,6 @@ echo "Checking scripts directory..."
 check_dir "scripts"
 check_file "scripts/build_installer.sh"
 check_file "scripts/validate_project.sh"
-check_file "scripts/init_git.sh"
 
 echo ""
 echo "Checking srv/doc directory..."
@@ -167,13 +166,6 @@ if [[ -x "scripts/validate_project.sh" ]]; then
     echo "✓ scripts/validate_project.sh is executable"
 else
     echo "✗ scripts/validate_project.sh is not executable"
-    ERRORS=$((ERRORS + 1))
-fi
-
-if [[ -x "scripts/init_git.sh" ]]; then
-    echo "✓ scripts/init_git.sh is executable"
-else
-    echo "✗ scripts/init_git.sh is not executable"
     ERRORS=$((ERRORS + 1))
 fi
 
