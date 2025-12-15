@@ -7,14 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-12-15
+
 ### Added
 
 - Markdownlint integration for Markdown file validation (lint-markdown target)
-- Organized help output with grouped sections (Development, Build & Distribution, Documentation, Version & Git, CI/CD & Release, Tools & Info, Quick Shortcuts)
+- Organized help output with grouped sections (Development, Build & Distribution,
+  Documentation, Version & Git, CI/CD & Release, Tools & Info, Quick Shortcuts)
 
 ### Changed
 
 - Updated Makefile help to show targets organized by category
+- Removed 2>/dev/null from the lint-markdown command so errors are now visible
 
 ### Fixed
 
