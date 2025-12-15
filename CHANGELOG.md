@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2025-12-15
+
 ### Added
 
 - Add SQL scripts to show session information
+
+### Changed
+
+- Enhanced README.md with comprehensive feature descriptions and configuration details
+- Updated README.md version number to 0.2.3
+
+### Removed
+
+- Removed obsolete files: doc/header (empty), scripts/init_git.sh, doc/REORGANIZATION.md
+- Removed build artifact: build/oradba-0.1.0.tar.gz
 
 ## [0.2.2] - 2025-12-15
 

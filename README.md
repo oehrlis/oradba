@@ -182,7 +182,7 @@ make build
 
 This project uses [Semantic Versioning](https://semver.org/).
 
-Current version: **0.2.2**
+Current version: **0.2.3**
 
 ## License
 
