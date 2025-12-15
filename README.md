@@ -95,6 +95,7 @@ make clean
 ```
 
 **Quick shortcuts:**
+
 - `make t` - Run tests
 - `make l` - Lint code
 - `make f` - Format code
