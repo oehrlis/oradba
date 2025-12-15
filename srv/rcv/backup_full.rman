@@ -1,0 +1,40 @@
+# -----------------------------------------------------------------------
+# oradba - Oracle Database Administration Toolset
+# RMAN backup script template
+# -----------------------------------------------------------------------
+# Copyright (c) 2025 Stefan Oehrli
+# Licensed under the Apache License, Version 2.0
+# -----------------------------------------------------------------------
+
+RUN {
+    # Allocate channels for backup
+    ALLOCATE CHANNEL ch1 DEVICE TYPE DISK;
+    ALLOCATE CHANNEL ch2 DEVICE TYPE DISK;
+    
+    # Backup database plus archivelog
+    BACKUP AS COMPRESSED BACKUPSET 
+        DATABASE 
+        PLUS ARCHIVELOG
+        FORMAT '/backup/%d_%T_%U.bkp'
+        TAG 'FULL_BACKUP';
+    
+    # Backup current controlfile
+    BACKUP CURRENT CONTROLFILE 
+        FORMAT '/backup/%d_%T_controlfile_%U.bkp'
+        TAG 'CONTROLFILE_BACKUP';
+    
+    # Release channels
+    RELEASE CHANNEL ch1;
+    RELEASE CHANNEL ch2;
+}
+
+# Delete obsolete backups
+DELETE NOPROMPT OBSOLETE;
+
+# Crosscheck backups and copies
+CROSSCHECK BACKUP;
+CROSSCHECK COPY;
+
+# Report on backup status
+REPORT SCHEMA;
+LIST BACKUP SUMMARY;

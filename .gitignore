@@ -1,0 +1,33 @@
+# Build and distribution
+/dist/
+/build/
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test results
+test/test_results/
+*.tap
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+
+# Environment specific
+.env
+.env.local

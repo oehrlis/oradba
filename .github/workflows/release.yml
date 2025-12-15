@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      - name: Update VERSION file
+        run: |
+          echo "${{ steps.version.outputs.version }}" > VERSION
+      
+      - name: Build installer
+        run: |
+          ./build_installer.sh
+      
+      - name: Create release archive
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          tar -czf "oradba-${VERSION}-src.tar.gz" \
+            --exclude='.git' \
+            --exclude='dist' \
+            --exclude='build' \
+            --exclude='*.log' \
+            srv/ VERSION README.md LICENSE CHANGELOG.md build_installer.sh
+      
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cat > release_notes.md <<EOF
+          # oradba v${VERSION}
+          
+          Oracle Database Administration Toolset
+          
+          ## Installation
+          
+          \`\`\`bash
+          curl -o oradba_install.sh -L https://github.com/\${{ github.repository }}/releases/download/v${VERSION}/oradba_install.sh
+          chmod +x oradba_install.sh
+          sudo ./oradba_install.sh
+          \`\`\`
+          
+          ## What's Changed
+          
+          See [CHANGELOG.md](https://github.com/\${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          
+          ## Assets
+          
+          - **oradba_install.sh**: Self-contained installer with embedded payload
+          - **oradba-${VERSION}-src.tar.gz**: Source code archive
+          EOF
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            dist/oradba_install.sh
+            oradba-${{ steps.version.outputs.version }}-src.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oradba-installer-v${{ steps.version.outputs.version }}
+          path: dist/oradba_install.sh

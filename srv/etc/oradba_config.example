@@ -1,0 +1,33 @@
+# Example user configuration file
+# Copy this to ~/.oradba_config and customize
+# -----------------------------------------------------------------------
+
+# Override default oratab location
+#ORATAB_FILE="/var/opt/oracle/oratab"
+
+# Set Oracle base
+#ORACLE_BASE="/u01/app/oracle"
+
+# Set TNS_ADMIN
+#TNS_ADMIN="/u01/app/oracle/network/admin"
+
+# Enable debug mode
+#DEBUG=1
+
+# Set NLS language
+#NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+#NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
+
+# Custom SQL*Plus settings
+#SQLPATH="/home/oracle/scripts/sql:${ORADBA_PREFIX}/srv/sql"
+
+# Logging
+#LOG_DIR="/var/log/oradba"
+#LOG_LEVEL="DEBUG"
+
+# Backup directory
+#BACKUP_DIR="/backup/oracle"
+
+# Custom aliases (uncomment to enable)
+#alias sqlplus='rlwrap sqlplus'
+#alias rman='rlwrap rman'

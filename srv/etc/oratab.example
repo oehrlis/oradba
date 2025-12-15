@@ -1,0 +1,19 @@
+# Example oratab file for testing
+# Format: SID:ORACLE_HOME:STARTUP_FLAG
+#
+# SID             - Oracle System Identifier
+# ORACLE_HOME     - Path to Oracle home directory
+# STARTUP_FLAG    - Y/N whether to start on boot
+#
+
+# Oracle 19c instances
+ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+CDB1:/u01/app/oracle/product/19.0.0/dbhome_1:N
+PDB1:/u01/app/oracle/product/19.0.0/dbhome_1:N
+
+# Oracle 21c instances
+DEV21:/u01/app/oracle/product/21.0.0/dbhome_1:Y
+TEST21:/u01/app/oracle/product/21.0.0/dbhome_1:N
+
+# Oracle 23c instances (if available)
+#DEV23:/u01/app/oracle/product/23.0.0/dbhome_1:N
