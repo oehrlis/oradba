@@ -304,13 +304,13 @@ not yet available
 
 #### Configuration & Management Scripts
 
-| Script                  | Alias         | Privs  | Purpose                                       |
-|-------------------------|---------------|--------|-----------------------------------------------|
-| [cr_aud_init_dba.sql]   |               | DBA    | Initialize audit environment (tbs, jobs)      |
-| [cr_aud_policies_aud.sql]|              | AUD    | Create custom audit policies                  |
-| [en_aud_policies_aud.sql]|              | AUD    | Enable custom audit policies                  |
-| [dis_aud_policies_aud.sql]|             | AUD    | Disable all audit policies                    |
-| [dr_aud_policies_aud.sql]|              | AUD    | Drop all non-Oracle maintained policies       |
+| Script                     | Alias | Privs | Purpose                                  |
+|----------------------------|-------|-------|------------------------------------------|
+| [cr_aud_init_dba.sql]      |       | DBA   | Initialize audit environment (tbs, jobs) |
+| [cr_aud_policies_aud.sql]  |       | AUD   | Create custom audit policies             |
+| [en_aud_policies_aud.sql]  |       | AUD   | Enable custom audit policies             |
+| [dis_aud_policies_aud.sql] |       | AUD   | Disable all audit policies               |
+| [dr_aud_policies_aud.sql]  |       | AUD   | Drop all non-Oracle maintained policies  |
 
 #### Statement Generators
 
