@@ -26,9 +26,10 @@ oradba/
 │   ├── sql/         # SQL scripts
 │   ├── rcv/         # RMAN recovery scripts
 │   └── templates/   # Template files
-├── test/            # BATS test files
-├── .github/         # GitHub workflows
-└── oradba_install.sh # Self-contained installer
+├── tests/           # BATS test files
+├── scripts/         # Build and utility scripts
+├── doc/             # Developer documentation
+└── .github/         # GitHub workflows
 ```
 
 ## Installation
@@ -68,14 +69,13 @@ This will set up the environment for the ORACLE_SID "ORCL" based on your oratab 
 ### Running Tests
 
 ```bash
-cd test
-./run_tests.sh
+./tests/run_tests.sh
 ```
 
 ### Building the Installer
 
 ```bash
-./build_installer.sh
+./scripts/build_installer.sh
 ```
 
 ## Versioning

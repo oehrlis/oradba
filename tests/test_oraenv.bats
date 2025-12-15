@@ -1,11 +1,18 @@
 #!/usr/bin/env bats
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# test_oraenv.bats - Tests for oraenv.sh script
-# -----------------------------------------------------------------------
-# Copyright (c) 2025 Stefan Oehrli
-# Licensed under the Apache License, Version 2.0
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_oraenv.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.15
+# Revision...: 0.1.0
+# Purpose....: BATS tests for oraenv.sh environment script
+# Notes......: Tests environment setup and oratab parsing functionality.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 # Setup test environment
 setup() {

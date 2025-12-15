@@ -1,10 +1,18 @@
--- -----------------------------------------------------------------------
--- oradba - Oracle Database Administration Toolset
--- login.sql - SQL*Plus login script
--- -----------------------------------------------------------------------
--- Copyright (c) 2025 Stefan Oehrli
--- Licensed under the Apache License, Version 2.0
--- -----------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- ------------------------------------------------------------------------------
+-- Name.......: login.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2025.12.15
+-- Revision...: 0.1.0
+-- Purpose....: SQL*Plus login and environment configuration script
+-- Notes......: Automatically executed when SQL*Plus starts if in SQLPATH.
+--              Sets formatting, timing, and column display options.
+-- Reference..: https://github.com/oehrlis/oradba
+-- License....: Apache License Version 2.0, January 2004 as shown
+--              at http://www.apache.org/licenses/
+-- ------------------------------------------------------------------------------
 
 -- Set SQL*Plus formatting
 SET PAGESIZE 50000

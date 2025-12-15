@@ -72,13 +72,16 @@ oradba/
 │   │   └── backup_full.rman
 │   └── templates/          # Script templates
 │       └── script_template.sh
-├── test/                    # Test suite
+├── tests/                   # Test suite
 │   ├── test_common.bats    # Common lib tests
 │   ├── test_oraenv.bats    # oraenv tests
 │   ├── test_installer.bats # Installer tests
 │   └── run_tests.sh        # Test runner
-├── build_installer.sh       # Installer builder
-├── validate_project.sh      # Project validator
+├── scripts/                 # Build and utility scripts
+│   ├── build_installer.sh  # Installer builder
+│   ├── validate_project.sh # Project validator
+│   └── init_git.sh         # Git initialization
+├── doc/                     # Developer documentation
 ├── VERSION                  # Semantic version
 ├── README.md               # Main documentation
 ├── CHANGELOG.md            # Version history

@@ -55,10 +55,10 @@ git clone https://github.com/oehrlis/oradba.git
 cd oradba
 
 # Run tests
-./test/run_tests.sh
+./tests/run_tests.sh
 
 # Build installer
-./build_installer.sh
+./scripts/build_installer.sh
 ```
 
 ## Coding Standards

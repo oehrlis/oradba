@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# build_installer.sh - Build self-contained installer with base64 payload
-# -----------------------------------------------------------------------
-# Copyright (c) 2025 Stefan Oehrli
-# Licensed under the Apache License, Version 2.0
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: build_installer.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.15
+# Revision...: 0.1.0
+# Purpose....: Build self-contained installer with base64 payload
+# Notes......: Creates a single executable installer with embedded tarball.
+#              Packages srv/ directory and creates distribution installer.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 set -e
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+cd "$(dirname "$SCRIPT_DIR")"
 
 # Variables
 VERSION=$(cat VERSION 2>/dev/null || echo "0.1.0")

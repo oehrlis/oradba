@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# oraenv.sh - Set Oracle environment for a specific ORACLE_SID
-# -----------------------------------------------------------------------
-# Copyright (c) 2025 Stefan Oehrli
-# Licensed under the Apache License, Version 2.0
-# -----------------------------------------------------------------------
-# Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
-#
-# This script sets up the Oracle environment based on the oratab file
-# and configuration files. It should be sourced, not executed.
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oraenv.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.15
+# Revision...: 0.1.0
+# Purpose....: Set Oracle environment for a specific ORACLE_SID
+# Notes......: This script sets up the Oracle environment based on the oratab
+#              file and configuration files. It should be sourced, not executed.
+#              Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 # Prevent direct execution
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

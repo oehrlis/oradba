@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# validate_project.sh - Validate project structure and files
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: validate_project.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.15
+# Revision...: 0.1.0
+# Purpose....: Validate project structure and required files
+# Notes......: Checks for presence of all required files and directories.
+#              Verifies permissions and file formats.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 set -e
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "========================================="
@@ -61,13 +72,21 @@ check_file "CHANGELOG.md"
 check_file "LICENSE"
 check_file "CONTRIBUTING.md"
 check_file ".gitignore"
-check_file "build_installer.sh"
+check_file "PROJECT_SUMMARY.md"
 
 echo ""
 echo "Checking documentation..."
-check_dir "docs"
-check_file "docs/DEVELOPMENT.md"
-check_file "docs/QUICKSTART.md"
+check_dir "doc"
+check_file "doc/DEVELOPMENT.md"
+check_file "doc/QUICKSTART.md"
+check_file "doc/ARCHITECTURE.md"
+check_file "doc/API.md"
+check_file "doc/README.md"
+check_dir "doc/templates"
+check_file "doc/templates/header.sh"
+check_file "doc/templates/header.sql"
+check_file "doc/templates/header.rman"
+check_file "doc/templates/header.conf"
 
 echo ""
 echo "Checking source structure..."
@@ -96,11 +115,37 @@ check_file "srv/etc/oradba_config.example"
 
 echo ""
 echo "Checking test structure..."
-check_dir "test"
-check_file "test/run_tests.sh"
-check_file "test/test_common.bats"
-check_file "test/test_oraenv.bats"
-check_file "test/test_installer.bats"
+check_dir "tests"
+check_file "tests/run_tests.sh"
+check_file "tests/test_common.bats"
+check_file "tests/test_oraenv.bats"
+check_file "tests/test_installer.bats"
+
+echo ""
+echo "Checking scripts directory..."
+check_dir "scripts"
+check_file "scripts/build_installer.sh"
+check_file "scripts/validate_project.sh"
+check_file "scripts/init_git.sh"
+
+echo ""
+echo "Checking srv/doc directory..."
+check_dir "srv/doc"
+check_file "srv/doc/README.md"
+check_file "srv/doc/USAGE.md"
+check_file "srv/doc/TROUBLESHOOTING.md"
+
+echo ""
+echo "Checking GitHub issue templates..."
+check_dir ".github/ISSUE_TEMPLATE"
+check_file ".github/ISSUE_TEMPLATE/bug_report.md"
+check_file ".github/ISSUE_TEMPLATE/feature_request.md"
+check_file ".github/ISSUE_TEMPLATE/task.md"
+check_file ".github/ISSUE_TEMPLATE/config.yml"
+
+echo ""
+echo "Checking markdownlint configuration..."
+check_file ".markdownlint.json"
 
 echo ""
 echo "Checking CI/CD configuration..."
@@ -111,10 +156,24 @@ check_file ".github/workflows/dependency-review.yml"
 
 echo ""
 echo "Checking file permissions..."
-if [[ -x "build_installer.sh" ]]; then
-    echo "✓ build_installer.sh is executable"
+if [[ -x "scripts/build_installer.sh" ]]; then
+    echo "✓ scripts/build_installer.sh is executable"
 else
-    echo "✗ build_installer.sh is not executable"
+    echo "✗ scripts/build_installer.sh is not executable"
+    ERRORS=$((ERRORS + 1))
+fi
+
+if [[ -x "scripts/validate_project.sh" ]]; then
+    echo "✓ scripts/validate_project.sh is executable"
+else
+    echo "✗ scripts/validate_project.sh is not executable"
+    ERRORS=$((ERRORS + 1))
+fi
+
+if [[ -x "scripts/init_git.sh" ]]; then
+    echo "✓ scripts/init_git.sh is executable"
+else
+    echo "✗ scripts/init_git.sh is not executable"
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -125,10 +184,10 @@ else
     ERRORS=$((ERRORS + 1))
 fi
 
-if [[ -x "test/run_tests.sh" ]]; then
-    echo "✓ test/run_tests.sh is executable"
+if [[ -x "tests/run_tests.sh" ]]; then
+    echo "✓ tests/run_tests.sh is executable"
 else
-    echo "✗ test/run_tests.sh is not executable"
+    echo "✗ tests/run_tests.sh is not executable"
     ERRORS=$((ERRORS + 1))
 fi
 

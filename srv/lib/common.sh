@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# Common library functions
-# -----------------------------------------------------------------------
-# Copyright (c) 2025 Stefan Oehrli
-# Licensed under the Apache License, Version 2.0
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: common.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.15
+# Revision...: 0.1.0
+# Purpose....: Common library functions for oradba scripts
+# Notes......: This library provides reusable functions for logging, validation,
+#              Oracle environment management, and configuration parsing.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 # Get the absolute path of the script directory
 get_script_dir() {

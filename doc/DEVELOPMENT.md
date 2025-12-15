@@ -100,13 +100,13 @@ vim srv/bin/oraenv.sh
 
 ```bash
 # Run all tests
-./test/run_tests.sh
+./tests/run_tests.sh
 
 # Run specific test file
-bats test/test_common.bats
+bats tests/test_common.bats
 
 # Run with debug output
-DEBUG=1 bats test/test_common.bats
+DEBUG=1 bats tests/test_common.bats
 ```
 
 ### 3. Linting
@@ -124,7 +124,7 @@ find . -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellch
 
 ```bash
 # Build installer
-./build_installer.sh
+./scripts/build_installer.sh
 
 # Test installer locally
 sudo ./dist/oradba_install.sh --prefix /tmp/oradba-test

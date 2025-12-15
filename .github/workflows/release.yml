@@ -40,7 +40,7 @@ jobs:
       
       - name: Build installer
         run: |
-          ./build_installer.sh
+          ./scripts/build_installer.sh
       
       - name: Create release archive
         run: |
