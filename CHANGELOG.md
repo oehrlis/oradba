@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Markdownlint integration for Markdown file validation (lint-markdown target)
+- Organized help output with grouped sections (Development, Build & Distribution, Documentation, Version & Git, CI/CD & Release, Tools & Info, Quick Shortcuts)
+
+### Changed
+
+- Updated Makefile help to show targets organized by category
+
+### Fixed
+
+- Makefile color output and command execution (fixed missing @echo statements)
+- Shellcheck SC2155 warnings by separating declaration and assignment (oraenv.sh, common.sh)
+- Shellcheck SC2034 warning for unused force_mode variable (marked for future use)
+
 ## [0.2.1] - 2025-12-15
 
 ### Added
@@ -29,9 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Release workflow now includes scripts/ directory in source archive
-- Makefile color output and command execution (fixed missing @echo statements)
-- Shellcheck SC2155 warnings by separating declaration and assignment (oraenv.sh, common.sh)
-- Shellcheck SC2034 warning for unused force_mode variable (marked for future use)
 
 ## [0.2.0] - 2025-12-15
 

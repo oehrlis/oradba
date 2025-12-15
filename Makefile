@@ -31,11 +31,12 @@ SCRIPTS_DIR	:= scripts
 DIST_DIR 	:= dist
 
 # Tools
-SHELLCHECK	:= $(shell command -v shellcheck 2>/dev/null)
-SHFMT 		:= $(shell command -v shfmt 2>/dev/null)
-BATS 		:= $(shell command -v bats 2>/dev/null)
-GIT 		:= $(shell command -v git 2>/dev/null)
-TAR 		:= $(shell command -v tar 2>/dev/null)
+SHELLCHECK		:= $(shell command -v shellcheck 2>/dev/null)
+SHFMT 			:= $(shell command -v shfmt 2>/dev/null)
+MARKDOWNLINT	:= $(shell command -v markdownlint 2>/dev/null || command -v markdownlint-cli 2>/dev/null)
+BATS 			:= $(shell command -v bats 2>/dev/null)
+GIT 			:= $(shell command -v git 2>/dev/null)
+TAR 			:= $(shell command -v tar 2>/dev/null)
 
 # Color output
 COLOR_RESET 	:= \033[0m
@@ -60,16 +61,40 @@ help: ## Show this help message
 	@echo -e "$(COLOR_BOLD)Usage:$(COLOR_RESET)"
 	@echo -e "  make $(COLOR_GREEN)<target>$(COLOR_RESET)"
 	@echo ""
-	@echo -e "$(COLOR_BOLD)Targets:$(COLOR_RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo -e "$(COLOR_BOLD)Development:$(COLOR_RESET)"
+	@grep -E '^(test|lint|format|check|validate).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)Build & Distribution:$(COLOR_RESET)"
+	@grep -E '^(build|install|uninstall|clean).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)Documentation:$(COLOR_RESET)"
+	@grep -E '^(docs|changelog).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)Version & Git:$(COLOR_RESET)"
+	@grep -E '^(version|tag|status).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)CI/CD & Release:$(COLOR_RESET)"
+	@grep -E '^(ci|pre-commit|pre-push|release).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)Tools & Info:$(COLOR_RESET)"
+	@grep -E '^(tools|setup-dev|info|help).*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo -e "$(COLOR_BOLD)Quick Shortcuts:$(COLOR_RESET)"
+	@grep -E '^[tlfbc]:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-22s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo -e "$(COLOR_BOLD)Examples:$(COLOR_RESET)"
 	@echo "  make test              # Run all tests"
-	@echo "  make lint              # Run linters"
-	@echo "  make format            # Format shell scripts"
-	@echo "  make build             # Build distribution archive"
-	@echo "  make install           # Install locally"
+	@echo "  make lint              # Run all linters"
+	@echo "  make format            # Format code"
+	@echo "  make build             # Build distribution"
+	@echo "  make ci                # Run full CI pipeline"
 
 # ==============================================================================
 # Development
@@ -96,7 +121,7 @@ test-integration: ## Run integration tests only
 	@$(BATS) $(TEST_DIR)/integration/*.bats 2>/dev/null || echo "No integration tests found"
 
 .PHONY: lint
-lint: lint-shell lint-scripts ## Run all linters
+lint: lint-shell lint-scripts lint-markdown ## Run all linters
 
 .PHONY: lint-shell
 lint-shell: ## Lint shell scripts with shellcheck
@@ -116,6 +141,16 @@ lint-scripts: ## Check for common script issues
 	@! find $(BIN_DIR) -name "*.sh" -type f -exec grep -l "^#!/bin/sh" {} \; | \
 		grep . && echo -e "$(COLOR_GREEN)✓ No #!/bin/sh found (use #!/usr/bin/env bash)$(COLOR_RESET)" || \
 		(echo -e "$(COLOR_RED)✗ Found scripts using #!/bin/sh$(COLOR_RESET)" && exit 1)
+
+.PHONY: lint-markdown
+lint-markdown: ## Lint Markdown files with markdownlint
+	@echo -e "$(COLOR_BLUE)Linting Markdown files...$(COLOR_RESET)"
+	@if [ -n "$(MARKDOWNLINT)" ]; then \
+		$(MARKDOWNLINT) --config .markdownlint.yaml *.md doc/*.md srv/doc/*.md 2>/dev/null || exit 1; \
+		echo -e "$(COLOR_GREEN)✓ Markdown files passed linting$(COLOR_RESET)"; \
+	else \
+		echo -e "$(COLOR_YELLOW)Warning: markdownlint not found. Install with: npm install -g markdownlint-cli$(COLOR_RESET)"; \
+	fi
 
 .PHONY: format
 format: ## Format shell scripts with shfmt
@@ -299,12 +334,14 @@ tools: ## Show installed development tools
 	@printf "%-20s %s\n" "----" "------"
 	@printf "%-20s %s\n" "shellcheck" "$$([ -n '$(SHELLCHECK)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "shfmt" "$$([ -n '$(SHFMT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "markdownlint" "$$([ -n '$(MARKDOWNLINT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "bats" "$$([ -n '$(BATS)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@echo ""
 	@echo -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
-	@echo "  macOS:  brew install shellcheck shfmt bats-core"
+	@echo "  macOS:  brew install shellcheck shfmt bats-core markdownlint-cli""
 	@echo "  Linux:  apt-get install shellcheck shfmt bats"
+	@echo "          npm install -g markdownlint-cli"
 
 .PHONY: setup-dev
 setup-dev: ## Setup development environment
