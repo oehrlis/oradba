@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated Makefile help to show targets organized by category
 - Removed 2>/dev/null from the lint-markdown command so errors are now visible
+- Update Makefile Development Workflow documentation in doc/DEVELOPMENT.md
 
 ### Fixed
 
