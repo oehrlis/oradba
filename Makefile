@@ -190,7 +190,7 @@ validate: ## Validate configuration files
 # ==============================================================================
 
 .PHONY: build
-build: clean ## Build distribution archive
+build: clean ## Build distribution archive and installer
 	@echo -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
 	@$(TAR) czf $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz \
@@ -203,6 +203,10 @@ build: clean ## Build distribution archive
 		$(SRC_DIR) $(SCRIPTS_DIR) README.md LICENSE CHANGELOG.md VERSION
 	@echo -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
 	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
+	@echo -e "$(COLOR_BLUE)Building installer script...$(COLOR_RESET)"
+	@bash $(SCRIPTS_DIR)/build_installer.sh
+	@echo -e "$(COLOR_GREEN)✓ Installer created: $(DIST_DIR)/oradba_install.sh$(COLOR_RESET)"
+	@ls -lh $(DIST_DIR)/oradba_install.sh
 
 .PHONY: install
 install: ## Install OraDBA locally
