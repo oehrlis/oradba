@@ -127,15 +127,46 @@ _oraenv_find_oratab() {
 # Get SID from user
 _oraenv_prompt_sid() {
     local oratab_file="$1"
-
-    echo ""
-    echo "Available Oracle instances from oratab:"
-    echo "========================================"
-    grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print "  " $1}'
-    echo ""
-
-    read -p "Enter ORACLE_SID: " ORACLE_SID
-    echo "$ORACLE_SID"
+    
+    # Get list of available SIDs
+    local -a sids
+    mapfile -t sids < <(grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print $1}')
+    
+    # Check if we found any SIDs
+    if [[ ${#sids[@]} -eq 0 ]]; then
+        log_error "No Oracle instances found in $oratab_file"
+        return 1
+    fi
+    
+    # Display list to stderr so it appears before the prompt
+    {
+        echo ""
+        echo "Available Oracle instances from oratab:"
+        echo "========================================"
+        
+        # Display SIDs with numbers
+        local i
+        for i in "${!sids[@]}"; do
+            printf "  [%d] %s\n" "$((i + 1))" "${sids[$i]}"
+        done
+        echo ""
+    } >&2
+    
+    # Prompt for selection
+    local selection
+    read -p "Enter ORACLE_SID or number [1-${#sids[@]}]: " selection
+    
+    # Check if user entered a number
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ $selection -ge 1 ]] && [[ $selection -le ${#sids[@]} ]]; then
+        # User entered a valid number
+        echo "${sids[$((selection - 1))]}"
+    elif [[ -n "$selection" ]]; then
+        # User entered a SID name directly
+        echo "$selection"
+    else
+        log_error "No ORACLE_SID selected"
+        return 1
+    fi
 }
 
 # Set Oracle environment
