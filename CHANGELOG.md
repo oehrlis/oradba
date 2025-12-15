@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-15
+
 ### Added
 
 - Comprehensive GitHub issue templates (bug report, feature request, task)
@@ -39,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Path references in CONTRIBUTING.md for build and test commands
 - CI workflow references to test and build directories
 - Release workflow references to build script location
-- Fix Markdownlint errors in all *.md files
+- Markdownlint errors in all *.md files
 
 ## [0.1.0] - 2025-12-15
 
