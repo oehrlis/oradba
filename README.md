@@ -9,11 +9,24 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 ## Features
 
-- **oraenv.sh**: Core environment setup script based on oratab and configuration files
-- **Administration Scripts**: Collection of bash, SQL, and RMAN scripts
-- **Easy Installation**: Self-contained installer with base64 payload
-- **Automated Testing**: BATS-based test suite
-- **CI/CD Ready**: GitHub Actions workflows included
+### Core Capabilities
+
+- **oraenv.sh**: Intelligent Oracle environment setup based on oratab
+  - Automatic ORACLE_HOME, ORACLE_SID, and ORACLE_BASE configuration
+  - Support for multiple Oracle versions and instances
+  - Interactive SID selection
+- **Administration Scripts**: Collection of bash, SQL, and RMAN scripts for daily operations
+- **Configuration System**: Global and user-specific configuration files
+- **SQL Scripts**: Ready-to-use SQL scripts for database information and management
+- **RMAN Templates**: Backup and recovery script templates
+
+### Development & Quality
+
+- **Self-Contained Installer**: Single executable with base64-encoded payload, no external dependencies
+- **Comprehensive Testing**: BATS-based test suite with unit and integration tests
+- **CI/CD Pipeline**: GitHub Actions workflows with automated testing and releases
+- **Code Quality**: Shellcheck linting, shfmt formatting, markdownlint validation
+- **Development Tools**: Makefile with 50+ targets for streamlined development
 
 ## Project Structure
 
@@ -53,10 +66,37 @@ Or with options:
 ### Setting Oracle Environment
 
 ```bash
+# Set Oracle environment for specific SID
 source oraenv.sh ORCL
+
+# The script will:
+# - Read oratab configuration
+# - Set ORACLE_SID, ORACLE_HOME, ORACLE_BASE
+# - Update PATH and LD_LIBRARY_PATH
+# - Configure TNS_ADMIN and NLS settings
 ```
 
-This will set up the environment for the ORACLE_SID "ORCL" based on your oratab configuration.
+### Configuration
+
+**Global Configuration**: `/opt/oradba/srv/etc/oradba.conf`
+
+- Installation paths and directories
+- oratab file locations
+- Debug and logging settings
+- Backup directories
+
+**User Configuration**: `~/.oradba_config`
+
+- User-specific overrides
+- Custom paths and preferences
+
+**Example oratab**: `/opt/oradba/srv/etc/oratab.example`
+
+```text
+# ORACLE_SID:ORACLE_HOME:AUTO_START
+ORCL:/u01/app/oracle/product/19c/dbhome_1:N
+TEST:/u01/app/oracle/product/21c/dbhome_1:Y
+```
 
 ## Development
 
@@ -142,7 +182,7 @@ make build
 
 This project uses [Semantic Versioning](https://semver.org/).
 
-Current version: **0.1.0**
+Current version: **0.2.2**
 
 ## License
 
