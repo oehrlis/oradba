@@ -87,12 +87,12 @@ test: ## Run all tests
 
 .PHONY: test-unit
 test-unit: ## Run unit tests only
-	 -e "$(COLOR_BLUE)Running unit tests...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Running unit tests...$(COLOR_RESET)"
 	@$(BATS) $(TEST_DIR)/unit/*.bats 2>/dev/null || echo "No unit tests found"
 
 .PHONY: test-integration
 test-integration: ## Run integration tests only
-	 -e "$(COLOR_BLUE)Running integration tests...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Running integration tests...$(COLOR_RESET)"
 	@$(BATS) $(TEST_DIR)/integration/*.bats 2>/dev/null || echo "No integration tests found"
 
 .PHONY: lint
@@ -100,7 +100,7 @@ lint: lint-shell lint-scripts ## Run all linters
 
 .PHONY: lint-shell
 lint-shell: ## Lint shell scripts with shellcheck
-	 -e "$(COLOR_BLUE)Linting shell scripts...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Linting shell scripts...$(COLOR_RESET)"
 	@if [ -n "$(SHELLCHECK)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHELLCHECK) -x -S warning || exit 1; \
@@ -112,14 +112,14 @@ lint-shell: ## Lint shell scripts with shellcheck
 
 .PHONY: lint-scripts
 lint-scripts: ## Check for common script issues
-	 -e "$(COLOR_BLUE)Checking scripts for common issues...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Checking scripts for common issues...$(COLOR_RESET)"
 	@! find $(BIN_DIR) -name "*.sh" -type f -exec grep -l "^#!/bin/sh" {} \; | \
 		grep . && echo "$(COLOR_GREEN)✓ No #!/bin/sh found (use #!/usr/bin/env bash)$(COLOR_RESET)" || \
 		(echo "$(COLOR_RED)✗ Found scripts using #!/bin/sh$(COLOR_RESET)" && exit 1)
 
 .PHONY: format
 format: ## Format shell scripts with shfmt
-	 -e "$(COLOR_BLUE)Formatting shell scripts...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Formatting shell scripts...$(COLOR_RESET)"
 	@if [ -n "$(SHFMT)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHFMT) -i 4 -bn -ci -sr -w; \
@@ -130,7 +130,7 @@ format: ## Format shell scripts with shfmt
 
 .PHONY: format-check
 format-check: ## Check if scripts are formatted correctly
-	 -e "$(COLOR_BLUE)Checking script formatting...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Checking script formatting...$(COLOR_RESET)"
 	@if [ -n "$(SHFMT)" ]; then \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHFMT) -i 4 -bn -ci -sr -d || \
@@ -145,10 +145,10 @@ check: lint test ## Run all checks (lint + test)
 
 .PHONY: validate
 validate: ## Validate configuration files
-	 -e "$(COLOR_BLUE)Validating configuration files...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Validating configuration files...$(COLOR_RESET)"
 	@bash -n $(ETC_DIR)/*.conf 2>/dev/null || true
 	@bash -n $(ETC_DIR)/*.bashrc 2>/dev/null || true
-	 -e "$(COLOR_GREEN)✓ Configuration files validated$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Configuration files validated$(COLOR_RESET)"
 
 # ==============================================================================
 # Build and Distribution
@@ -156,7 +156,7 @@ validate: ## Validate configuration files
 
 .PHONY: build
 build: clean ## Build distribution archive
-	 -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
 	@$(TAR) czf $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz \
 		--exclude='.git' \
@@ -166,18 +166,18 @@ build: clean ## Build distribution archive
 		--exclude='tests' \
 		--transform 's,^,$(PROJECT_NAME)-$(VERSION)/,' \
 		$(SRC_DIR) $(SCRIPTS_DIR) README.md LICENSE CHANGELOG.md VERSION
-	 -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
 	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
 
 .PHONY: install
 install: ## Install OraDBA locally
-	 -e "$(COLOR_BLUE)Installing OraDBA...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Installing OraDBA...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/install.sh
-	 -e "$(COLOR_GREEN)✓ OraDBA installed$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ OraDBA installed$(COLOR_RESET)"
 
 .PHONY: uninstall
 uninstall: ## Uninstall OraDBA
-	 -e "$(COLOR_BLUE)Uninstalling OraDBA...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Uninstalling OraDBA...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/uninstall.sh 2>/dev/null || echo "Uninstall script not found"
 
 # ==============================================================================
@@ -186,7 +186,7 @@ uninstall: ## Uninstall OraDBA
 
 .PHONY: docs
 docs: ## Generate documentation
-	 -e "$(COLOR_BLUE)Generating documentation...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Generating documentation...$(COLOR_RESET)"
 	@mkdir -p $(DOC_DIR)
 	@echo "# OraDBA Scripts" > $(DOC_DIR)/SCRIPTS.md
 	@echo "" >> $(DOC_DIR)/SCRIPTS.md
@@ -198,11 +198,11 @@ docs: ## Generate documentation
 		echo '```' >> $(DOC_DIR)/SCRIPTS.md; \
 		echo "" >> $(DOC_DIR)/SCRIPTS.md; \
 	done 2>/dev/null || true
-	 -e "$(COLOR_GREEN)✓ Documentation generated$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Documentation generated$(COLOR_RESET)"
 
 .PHONY: changelog
 changelog: ## Update CHANGELOG.md from git commits
-	 -e "$(COLOR_BLUE)Generating changelog...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Generating changelog...$(COLOR_RESET)"
 	@if [ -n "$(GIT)" ]; then \
 		echo "# Changelog" > CHANGELOG.new.md; \
 		echo "" >> CHANGELOG.new.md; \
@@ -218,11 +218,11 @@ changelog: ## Update CHANGELOG.md from git commits
 
 .PHONY: version
 version: ## Show current version
-	 -e "$(COLOR_BOLD)OraDBA Version: $(COLOR_GREEN)$(VERSION)$(COLOR_RESET)"
+	@echo -e "$(COLOR_BOLD)OraDBA Version: $(COLOR_GREEN)$(VERSION)$(COLOR_RESET)"
 
 .PHONY: version-bump-patch
 version-bump-patch: ## Bump patch version (0.0.X)
-	 -e "$(COLOR_BLUE)Bumping patch version...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Bumping patch version...$(COLOR_RESET)"
 	@current=$$(cat VERSION); \
 	major=$${current%%.*}; \
 	rest=$${current#*.}; \
@@ -234,7 +234,7 @@ version-bump-patch: ## Bump patch version (0.0.X)
 
 .PHONY: version-bump-minor
 version-bump-minor: ## Bump minor version (0.X.0)
-	 -e "$(COLOR_BLUE)Bumping minor version...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Bumping minor version...$(COLOR_RESET)"
 	@current=$$(cat VERSION); \
 	major=$${current%%.*}; \
 	rest=$${current#*.}; \
@@ -245,7 +245,7 @@ version-bump-minor: ## Bump minor version (0.X.0)
 
 .PHONY: version-bump-major
 version-bump-major: ## Bump major version (X.0.0)
-	 -e "$(COLOR_BLUE)Bumping major version...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Bumping major version...$(COLOR_RESET)"
 	@current=$$(cat VERSION); \
 	major=$${current%%.*}; \
 	new_major=$$((major + 1)); \
@@ -261,8 +261,8 @@ tag: ## Create git tag from VERSION file
 
 .PHONY: status
 status: ## Show git status and current version
-	 -e "$(COLOR_BOLD)Project Status$(COLOR_RESET)"
-	 -e "Version: $(COLOR_GREEN)$(VERSION)$(COLOR_RESET)"
+	@echo -e "$(COLOR_BOLD)Project Status$(COLOR_RESET)"
+	@echo -e "Version: $(COLOR_GREEN)$(VERSION)$(COLOR_RESET)"
 	@if [ -n "$(GIT)" ]; then \
 		echo ""; \
 		$(GIT) status -sb; \
@@ -274,18 +274,18 @@ status: ## Show git status and current version
 
 .PHONY: clean
 clean: ## Clean build artifacts
-	 -e "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
 	@rm -rf $(DIST_DIR)
 	@find . -name "*.log" -type f -delete 2>/dev/null || true
 	@find . -name "*.tmp" -type f -delete 2>/dev/null || true
 	@find . -name "*~" -type f -delete 2>/dev/null || true
-	 -e "$(COLOR_GREEN)✓ Cleaned$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Cleaned$(COLOR_RESET)"
 
 .PHONY: clean-all
 clean-all: clean ## Deep clean (including caches)
-	 -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
-	 -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"
 
 # ==============================================================================
 # Development Tools
@@ -293,7 +293,7 @@ clean-all: clean ## Deep clean (including caches)
 
 .PHONY: tools
 tools: ## Show installed development tools
-	 -e "$(COLOR_BOLD)Development Tools Status$(COLOR_RESET)"
+	@echo -e "$(COLOR_BOLD)Development Tools Status$(COLOR_RESET)"
 	@echo ""
 	@printf "%-20s %s\n" "Tool" "Status"
 	@printf "%-20s %s\n" "----" "------"
@@ -302,13 +302,13 @@ tools: ## Show installed development tools
 	@printf "%-20s %s\n" "bats" "$$([ -n '$(BATS)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@echo ""
-	 -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
+	@echo -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
 	@echo "  macOS:  brew install shellcheck shfmt bats-core"
 	@echo "  Linux:  apt-get install shellcheck shfmt bats"
 
 .PHONY: setup-dev
 setup-dev: ## Setup development environment
-	 -e "$(COLOR_BLUE)Setting up development environment...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Setting up development environment...$(COLOR_RESET)"
 	@if [ "$$(uname)" = "Darwin" ] && command -v brew >/dev/null; then \
 		echo "Installing development tools via Homebrew..."; \
 		brew install shellcheck shfmt bats-core 2>/dev/null || true; \
@@ -318,7 +318,7 @@ setup-dev: ## Setup development environment
 		echo "  - shfmt: https://github.com/mvdan/sh"; \
 		echo "  - bats: https://github.com/bats-core/bats-core"; \
 	fi
-	 -e "$(COLOR_GREEN)✓ Development environment setup complete$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Development environment setup complete$(COLOR_RESET)"
 
 # ==============================================================================
 # CI/CD Helpers
@@ -326,15 +326,15 @@ setup-dev: ## Setup development environment
 
 .PHONY: ci
 ci: clean lint test build ## Run CI pipeline locally
-	 -e "$(COLOR_GREEN)✓ CI pipeline completed successfully$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ CI pipeline completed successfully$(COLOR_RESET)"
 
 .PHONY: pre-commit
 pre-commit: format lint ## Run pre-commit checks
-	 -e "$(COLOR_GREEN)✓ Pre-commit checks passed$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Pre-commit checks passed$(COLOR_RESET)"
 
 .PHONY: pre-push
 pre-push: check ## Run pre-push checks
-	 -e "$(COLOR_GREEN)✓ Pre-push checks passed$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Pre-push checks passed$(COLOR_RESET)"
 
 # ==============================================================================
 # Release Management
@@ -342,7 +342,7 @@ pre-push: check ## Run pre-push checks
 
 .PHONY: release-check
 release-check: ## Check if ready for release
-	 -e "$(COLOR_BLUE)Checking release readiness...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Checking release readiness...$(COLOR_RESET)"
 	@echo ""
 	@echo "Version: $(VERSION)"
 	@echo ""
@@ -362,11 +362,11 @@ release-check: ## Check if ready for release
 	fi
 	@$(MAKE) check
 	@echo ""
-	 -e "$(COLOR_GREEN)✓ Ready for release$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Ready for release$(COLOR_RESET)"
 
 .PHONY: release-prepare
 release-prepare: release-check build ## Prepare release
-	 -e "$(COLOR_BLUE)Preparing release v$(VERSION)...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Preparing release v$(VERSION)...$(COLOR_RESET)"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Review CHANGELOG.md"
@@ -380,7 +380,7 @@ release-prepare: release-check build ## Prepare release
 
 .PHONY: info
 info: ## Show project information
-	 -e "$(COLOR_BOLD)OraDBA Project Information$(COLOR_RESET)"
+	@echo -e "$(COLOR_BOLD)OraDBA Project Information$(COLOR_RESET)"
 	@echo ""
 	@echo "Project:     $(PROJECT_NAME)"
 	@echo "Version:     $(VERSION)"

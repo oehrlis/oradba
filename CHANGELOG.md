@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Release workflow now includes scripts/ directory in source archive
-- Makefile color output now displays correctly (added -e flag to echo commands)
+- Makefile color output and command execution (fixed missing @echo statements)
 
 ## [0.2.0] - 2025-12-15
 
