@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add SQL scripts to show session information
+- Add log folder for future use
 
 ### Changed
 
