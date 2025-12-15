@@ -72,7 +72,6 @@ check_file "CHANGELOG.md"
 check_file "LICENSE"
 check_file "CONTRIBUTING.md"
 check_file ".gitignore"
-check_file "PROJECT_SUMMARY.md"
 
 echo ""
 echo "Checking documentation..."
