@@ -22,6 +22,7 @@ available via GitHub on [oehrli/oradba](https://github.com/oehrlis/oradba).
 ### Script Naming Convention
 
 Scripts follow a simplified two-part format:
+
 - **Query/Show Scripts**: `<object>.sql` or `ls_<object>.sql`
 - **Action Scripts**: `<verb>_<object>.sql`
 
@@ -64,6 +65,7 @@ Optional suffix to indicate required privilege level:
 | _aud   | Audit Admin  | aud_config_aud.sql       | Requires AUDIT_ADMIN/AUDIT_VIEWER|
 
 **Usage Guidelines:**
+
 - Add suffix only when elevated privileges are required
 - Query scripts without suffix can run with minimal privileges
 - Action scripts (cr, dr, up, en, dis) typically need DBA or SYSDBA privileges
@@ -101,43 +103,51 @@ Super-short 2-5 character aliases for most frequently used scripts:
 #### Naming Patterns by Use Case
 
 **Query/Display (SELECT - Read-Only)**:
-```
+
+```text
 <category>_<object>[_priv].sql        # e.g., aud_sessions.sql, sec_users_dba.sql
 <object>.sql                           # e.g., sessions.sql (generic, no category)
 ```
 
 **Create Objects (CREATE)**:
-```
+
+```text
 cr_<category>_<object>[_priv].sql     # e.g., cr_aud_policies_dba.sql, cr_tde_keystore_sys.sql
 ```
 
 **Drop/Remove (DROP)**:
-```
+
+```text
 dr_<category>_<object>[_priv].sql     # e.g., dr_aud_policies_dba.sql, dr_sec_role_sys.sql
 ```
 
 **Update/Modify (UPDATE/ALTER)**:
-```
+
+```text
 up_<category>_<object>[_priv].sql     # e.g., up_sec_profile_dba.sql, up_tde_wallet_sys.sql
 ```
 
 **Enable Features (ENABLE)**:
-```
+
+```text
 en_<category>_<object>[_priv].sql     # e.g., en_aud_policies_aud.sql, en_tde_sys.sql
 ```
 
 **Disable Features (DISABLE)**:
-```
+
+```text
 dis_<category>_<object>[_priv].sql    # e.g., dis_aud_policies_aud.sql
 ```
 
 **Grant Privileges (GRANT)**:
-```
+
+```text
 gr_<category>_<object>[_priv].sql     # e.g., gr_sec_privs_dba.sql
 ```
 
 **Generate Statements (GENERATE)**:
-```
+
+```text
 gen_<category>_<action>.sql           # e.g., gen_aud_enable.sql, gen_tde_encrypt.sql
 ```
 
