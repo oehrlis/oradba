@@ -22,7 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$(dirname "$SCRIPT_DIR")"
 
 # Variables
-VERSION=$(cat VERSION 2>/dev/null || echo "0.1.0")
+VERSION=$(cat VERSION 2> /dev/null || echo "0.1.0")
 BUILD_DIR="build"
 DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
@@ -56,7 +56,7 @@ tar -czf "$PAYLOAD_FILE" \
 echo "Payload size: $(du -h "$PAYLOAD_FILE" | cut -f1)"
 
 # Create installer script
-cat > "$INSTALLER_OUTPUT" <<'INSTALLER_HEADER'
+cat > "$INSTALLER_OUTPUT" << 'INSTALLER_HEADER'
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------
 # oradba - Oracle Database Administration Toolset

@@ -49,14 +49,14 @@ echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
     echo "Adding files to git..."
-    
+
     # Add all files
     git add .
-    
+
     echo ""
     echo "Files to be committed:"
     git status --short
-    
+
     echo ""
     echo "Creating initial commit..."
     git commit -m "Initial commit: oradba Oracle Database Administration Toolset
@@ -70,7 +70,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 - Apache 2.0 license
 
 Version: 0.1.0"
-    
+
     echo ""
     echo "✓ Initial commit created successfully!"
     echo ""

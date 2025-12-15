@@ -32,7 +32,7 @@ WARNINGS=0
 check_file() {
     local file="$1"
     local required="${2:-true}"
-    
+
     if [[ -f "$file" ]]; then
         echo "✓ Found: $file"
     else
@@ -50,7 +50,7 @@ check_file() {
 check_dir() {
     local dir="$1"
     local required="${2:-true}"
-    
+
     if [[ -d "$dir" ]]; then
         echo "✓ Found: $dir/"
     else

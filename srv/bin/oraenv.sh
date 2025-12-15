@@ -44,14 +44,14 @@ fi
 _oraenv_parse_args() {
     local requested_sid=""
     local force_mode=false
-    
+
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -f|--force)
+            -f | --force)
                 force_mode=true
                 shift
                 ;;
-            -h|--help)
+            -h | --help)
                 _oraenv_usage
                 return 1
                 ;;
@@ -71,13 +71,13 @@ _oraenv_parse_args() {
                 ;;
         esac
     done
-    
+
     echo "$requested_sid"
 }
 
 # Display usage
 _oraenv_usage() {
-    cat <<EOF
+    cat << EOF
 Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
 
 Set Oracle environment for a specific ORACLE_SID based on oratab.
@@ -109,7 +109,7 @@ _oraenv_find_oratab() {
         echo "${ORATAB_FILE}"
         return 0
     fi
-    
+
     # Check alternative locations
     for oratab in "${ORATAB_ALTERNATIVES[@]}"; do
         if [[ -f "$oratab" ]]; then
@@ -117,7 +117,7 @@ _oraenv_find_oratab() {
             return 0
         fi
     done
-    
+
     log_error "No oratab file found"
     return 1
 }
@@ -125,13 +125,13 @@ _oraenv_find_oratab() {
 # Get SID from user
 _oraenv_prompt_sid() {
     local oratab_file="$1"
-    
+
     echo ""
     echo "Available Oracle instances from oratab:"
     echo "========================================"
     grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print "  " $1}'
     echo ""
-    
+
     read -p "Enter ORACLE_SID: " ORACLE_SID
     echo "$ORACLE_SID"
 }
@@ -140,51 +140,51 @@ _oraenv_prompt_sid() {
 _oraenv_set_environment() {
     local requested_sid="$1"
     local oratab_file="$2"
-    
+
     # Parse oratab entry
     local oratab_entry
     oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
-    
+
     if [[ -z "$oratab_entry" ]]; then
         log_error "ORACLE_SID '$requested_sid' not found in $oratab_file"
         return 1
     fi
-    
+
     # Extract ORACLE_HOME from oratab
     local oracle_home
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
-    
+
     if [[ ! -d "$oracle_home" ]]; then
         log_error "ORACLE_HOME directory does not exist: $oracle_home"
         return 1
     fi
-    
+
     # Unset previous Oracle environment
     _oraenv_unset_old_env
-    
+
     # Set new environment
     export ORACLE_SID="$requested_sid"
     export ORACLE_HOME="$oracle_home"
-    
+
     # Set ORACLE_BASE if not already set
     if [[ -z "${ORACLE_BASE}" ]]; then
         # Try to derive from ORACLE_HOME
         export ORACLE_BASE="$(dirname "$(dirname "$ORACLE_HOME")")"
     fi
-    
+
     # Set common environment variables
     export_oracle_base_env
-    
+
     # Set startup flag from oratab
     local startup_flag
     startup_flag=$(echo "$oratab_entry" | cut -d: -f3)
     export ORACLE_STARTUP="${startup_flag:-N}"
-    
+
     log_info "Oracle environment set for SID: $ORACLE_SID"
     log_debug "ORACLE_HOME: $ORACLE_HOME"
     log_debug "ORACLE_BASE: $ORACLE_BASE"
     log_debug "TNS_ADMIN: ${TNS_ADMIN:-not set}"
-    
+
     return 0
 }
 
@@ -195,14 +195,14 @@ _oraenv_unset_old_env() {
         PATH=$(echo "$PATH" | sed -e "s|${ORACLE_HOME}/bin:||g" -e "s|:${ORACLE_HOME}/bin||g")
         LD_LIBRARY_PATH=$(echo "${LD_LIBRARY_PATH:-}" | sed -e "s|${ORACLE_HOME}/lib:||g" -e "s|:${ORACLE_HOME}/lib||g")
     fi
-    
+
     export PATH
     export LD_LIBRARY_PATH
 }
 
 # Display current Oracle environment
 _oraenv_show_environment() {
-    cat <<EOF
+    cat << EOF
 
 Oracle Environment:
 ==================
@@ -220,22 +220,22 @@ EOF
 _oraenv_main() {
     local requested_sid
     requested_sid=$(_oraenv_parse_args "$@")
-    
+
     if [[ $? -ne 0 ]]; then
         return 1
     fi
-    
+
     # Find oratab file
     local oratab_file
     oratab_file=$(_oraenv_find_oratab)
-    
+
     if [[ $? -ne 0 ]]; then
         log_error "Cannot proceed without oratab file"
         return 1
     fi
-    
+
     log_debug "Using oratab file: $oratab_file"
-    
+
     # Get ORACLE_SID if not provided
     if [[ -z "$requested_sid" ]]; then
         requested_sid=$(_oraenv_prompt_sid "$oratab_file")
@@ -244,15 +244,15 @@ _oraenv_main() {
             return 1
         fi
     fi
-    
+
     # Set environment
     _oraenv_set_environment "$requested_sid" "$oratab_file"
     local result=$?
-    
+
     if [[ $result -eq 0 ]]; then
         _oraenv_show_environment
     fi
-    
+
     return $result
 }
 

@@ -47,25 +47,25 @@ log_debug() {
 
 # Check if a command exists
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
 }
 
 # Verify Oracle environment variables
 verify_oracle_env() {
     local required_vars=("ORACLE_SID" "ORACLE_HOME")
     local missing_vars=()
-    
+
     for var in "${required_vars[@]}"; do
         if [[ -z "${!var}" ]]; then
             missing_vars+=("$var")
         fi
     done
-    
+
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
         log_error "Missing required Oracle environment variables: ${missing_vars[*]}"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -75,7 +75,7 @@ get_oracle_version() {
         log_error "ORACLE_HOME not set"
         return 1
     fi
-    
+
     if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
         "${ORACLE_HOME}/bin/sqlplus" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
     else
@@ -88,12 +88,12 @@ get_oracle_version() {
 parse_oratab() {
     local sid="$1"
     local oratab_file="${2:-/etc/oratab}"
-    
+
     if [[ ! -f "$oratab_file" ]]; then
         log_error "oratab file not found: $oratab_file"
         return 1
     fi
-    
+
     grep "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
 }
 
@@ -102,14 +102,14 @@ export_oracle_base_env() {
     # Set common paths if not already set
     export PATH="${ORACLE_HOME}/bin:${PATH}"
     export LD_LIBRARY_PATH="${ORACLE_HOME}/lib:${LD_LIBRARY_PATH:-}"
-    
+
     # Set TNS_ADMIN if not set
     if [[ -z "${TNS_ADMIN}" ]]; then
         if [[ -d "${ORACLE_HOME}/network/admin" ]]; then
             export TNS_ADMIN="${ORACLE_HOME}/network/admin"
         fi
     fi
-    
+
     # Set NLS_LANG if not set
     export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 }
@@ -118,10 +118,10 @@ export_oracle_base_env() {
 validate_directory() {
     local dir="$1"
     local create="${2:-false}"
-    
+
     if [[ ! -d "$dir" ]]; then
         if [[ "$create" == "true" ]]; then
-            mkdir -p "$dir" 2>/dev/null
+            mkdir -p "$dir" 2> /dev/null
             if [[ $? -ne 0 ]]; then
                 log_error "Failed to create directory: $dir"
                 return 1
@@ -132,6 +132,6 @@ validate_directory() {
             return 1
         fi
     fi
-    
+
     return 0
 }
