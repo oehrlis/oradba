@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored SQL script naming concept to use SQL-style operation verbs (CREATE, DROP,
+  UPDATE, ENABLE, DISABLE, GRANT) instead of Linux-style commands
+- Added privilege indicators to script naming and documentation (User, DBA, SYSDBA, AUD)
+- Reorganized SQL scripts into clear categories (Security, Audit, Encryption, Admin, Monitor)
+- Updated all script tables with privilege requirements for better security awareness
+- Enhanced Quick Reference Card with privilege level indicators
+- Added comprehensive naming guidelines and best practices for SQL/database operations
+- Introduced short aliases (2-7 chars) for commonly used scripts
+
 ## [0.2.3] - 2025-12-15
 
 ### Added
