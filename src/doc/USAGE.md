@@ -15,12 +15,24 @@ The primary function of oradba is to set up your Oracle environment based on the
 # Set environment for specific SID
 source oraenv.sh ORCL
 
-# Interactive selection
+# Interactive selection with numbered list
 source oraenv.sh
+
+# Silent mode (for scripts, no output)
+source oraenv.sh ORCL --silent
+
+# Display only database status
+source oraenv.sh ORCL --status
 
 # Using symbolic link (if created during installation)
 source oraenv ORCL
 ```
+
+**Interactive Mode Features:**
+
+- Automatically displays available SIDs from oratab as a numbered list
+- Shows database status after environment is set (unless --silent is used)
+- Detects TTY automatically to enable/disable interactive features
 
 ### Environment Variables
 
@@ -251,9 +263,44 @@ sqlplus / as sysdba
 source oraenv.sh [ORACLE_SID] [OPTIONS]
 
 Options:
-  -f, --force    Force environment setup
-  -h, --help     Display help message
+  -f, --force      Force environment setup
+  -h, --help       Display help message
+  --silent         Silent mode (no output, for scripts)
+  --status         Display only database status
 ```
+
+### dbstatus.sh - Database Status Display
+
+Display comprehensive database status information:
+
+```bash
+# Show status for current ORACLE_SID
+dbstatus.sh
+
+# Show status for specific SID
+dbstatus.sh --sid ORCL
+
+# Enable debug output
+dbstatus.sh --debug
+
+# Options
+dbstatus.sh [OPTIONS]
+
+Options:
+  -h, --help       Display help message
+  -v, --version    Display version information
+  -d, --debug      Enable debug mode
+  -s, --sid SID    Display status for specific ORACLE_SID
+```
+
+**Status Information Displayed:**
+
+- Database open mode (NOMOUNT, MOUNT, OPEN)
+- Instance status and uptime
+- Database name and log mode (MOUNT+)
+- Datafile size and memory usage (OPEN)
+- Session information (OPEN)
+- PDB information if applicable (OPEN)
 
 ### Environment Verification
 

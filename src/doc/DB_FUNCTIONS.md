@@ -1,0 +1,350 @@
+<!-- markdownlint-disable MD013 -->
+# Database Functions Library (db_functions.sh)
+
+## Overview
+
+The `db_functions.sh` library provides reusable functions to query Oracle database information from v$ views. Functions are designed to work gracefully with databases in different states: NOMOUNT, MOUNT, and OPEN.
+
+## Location
+
+```bash
+${ORADBA_BASE}/lib/db_functions.sh
+```
+
+## Dependencies
+
+- `common.sh` - Must be sourced before db_functions.sh
+- Oracle SQL*Plus
+- ORACLE_HOME and ORACLE_SID environment variables
+
+## Usage
+
+```bash
+# Source common library first
+source "${ORADBA_BASE}/lib/common.sh"
+
+# Source database functions
+source "${ORADBA_BASE}/lib/db_functions.sh"
+
+# Use functions
+if check_database_connection; then
+    show_database_status
+fi
+```
+
+## Functions Reference
+
+### Connection and Status
+
+#### check_database_connection()
+
+Check if database is accessible.
+
+**Returns:** 0 if connected, 1 if not
+
+```bash
+if check_database_connection; then
+    echo "Database is accessible"
+fi
+```
+
+#### get_database_open_mode()
+
+Get current database open mode.
+
+**Returns:** "NOMOUNT", "MOUNT", "OPEN", or "UNKNOWN"
+
+```bash
+mode=$(get_database_open_mode)
+echo "Database is in $mode mode"
+```
+
+### Instance Information (NOMOUNT+)
+
+#### query_instance_info()
+
+Query v$instance for basic instance information.
+
+**Available at:** NOMOUNT, MOUNT, OPEN states
+
+**Returns:** Multi-line output with:
+
+- INSTANCE_NAME
+- HOST_NAME
+- VERSION
+- STARTUP_TIME
+- STATUS
+- INSTANCE_ROLE
+
+```bash
+instance_info=$(query_instance_info)
+echo "$instance_info"
+```
+
+#### format_uptime()
+
+Format database uptime in human-readable format.
+
+**Parameters:** `startup_time` - Startup time in format "YYYY-MM-DD HH:MI:SS"
+
+**Returns:** Formatted uptime string (e.g., "2d 5h 23m")
+
+```bash
+startup_time="2025-12-14 10:30:00"
+uptime=$(format_uptime "$startup_time")
+echo "Uptime: $uptime"
+```
+
+### Database Information (MOUNT+)
+
+#### query_database_info()
+
+Query v$database for database-level information.
+
+**Available at:** MOUNT, OPEN states
+
+**Returns:** Multi-line output with:
+
+- DATABASE_NAME
+- DB_UNIQUE_NAME
+- DBID
+- LOG_MODE
+- OPEN_MODE
+- CREATED
+
+```bash
+if [[ "$mode" != "NOMOUNT" ]]; then
+    db_info=$(query_database_info)
+    echo "$db_info"
+fi
+```
+
+#### query_datafile_size()
+
+Query total size of all datafiles.
+
+**Available at:** MOUNT, OPEN states
+
+**Returns:** Total size in MB
+
+```bash
+if [[ "$mode" != "NOMOUNT" ]]; then
+    size=$(query_datafile_size)
+    echo "Total datafile size: ${size} MB"
+fi
+```
+
+### Performance Information (OPEN only)
+
+#### query_memory_usage()
+
+Query SGA and PGA memory usage.
+
+**Available at:** OPEN state only
+
+**Returns:** Multi-line output with:
+
+- SGA_SIZE (MB)
+- PGA_SIZE (MB)
+
+```bash
+if [[ "$mode" == "OPEN" ]]; then
+    memory=$(query_memory_usage)
+    echo "$memory"
+fi
+```
+
+#### query_sessions_info()
+
+Query session statistics.
+
+**Available at:** OPEN state only
+
+**Returns:** Multi-line output with:
+
+- TOTAL_SESSIONS
+- ACTIVE_SESSIONS
+- USER_SESSIONS
+
+```bash
+if [[ "$mode" == "OPEN" ]]; then
+    sessions=$(query_sessions_info)
+    echo "$sessions"
+fi
+```
+
+#### query_pdb_info()
+
+Query pluggable database information.
+
+**Available at:** OPEN state only
+
+**Returns:** Multi-line output with PDB details or empty if not a CDB
+
+```bash
+if [[ "$mode" == "OPEN" ]]; then
+    pdb_info=$(query_pdb_info)
+    [[ -n "$pdb_info" ]] && echo "$pdb_info"
+fi
+```
+
+### Display Functions
+
+#### show_database_status()
+
+Display comprehensive database status information. Automatically adjusts output based on database state.
+
+**Available at:** All states (NOMOUNT, MOUNT, OPEN)
+
+**Output includes:**
+
+- Database open mode
+- Instance information (NOMOUNT+)
+  - Instance name, host, version
+  - Startup time and uptime
+  - Status and role
+- Database information (MOUNT+)
+  - Database name and unique name
+  - Log mode and open mode
+  - Datafile size
+- Performance information (OPEN)
+  - Memory usage (SGA/PGA)
+  - Session counts
+  - PDB information if applicable
+
+```bash
+show_database_status
+```
+
+## State-Dependent Behavior
+
+The library automatically handles different database states:
+
+| Function                  | NOMOUNT | MOUNT | OPEN |
+|---------------------------|---------|-------|------|
+| check_database_connection | ✓       | ✓     | ✓    |
+| get_database_open_mode    | ✓       | ✓     | ✓    |
+| query_instance_info       | ✓       | ✓     | ✓    |
+| format_uptime             | ✓       | ✓     | ✓    |
+| query_database_info       | ✗       | ✓     | ✓    |
+| query_datafile_size       | ✗       | ✓     | ✓    |
+| query_memory_usage        | ✗       | ✗     | ✓    |
+| query_sessions_info       | ✗       | ✗     | ✓    |
+| query_pdb_info            | ✗       | ✗     | ✓    |
+| show_database_status      | ✓       | ✓     | ✓    |
+
+## Error Handling
+
+All functions include error handling:
+
+- Return appropriate exit codes
+- Log errors using `log_error()` from common.sh
+- Gracefully handle missing or inaccessible views
+- Validate environment (ORACLE_HOME, ORACLE_SID)
+
+## Examples
+
+### Basic Status Check
+
+```bash
+#!/usr/bin/env bash
+source /opt/oradba/lib/common.sh
+source /opt/oradba/lib/db_functions.sh
+
+if check_database_connection; then
+    show_database_status
+else
+    log_error "Cannot connect to database"
+    exit 1
+fi
+```
+
+### State-Specific Queries
+
+```bash
+#!/usr/bin/env bash
+source /opt/oradba/lib/common.sh
+source /opt/oradba/lib/db_functions.sh
+
+mode=$(get_database_open_mode)
+
+case "$mode" in
+    NOMOUNT)
+        echo "Database is in NOMOUNT state"
+        query_instance_info
+        ;;
+    MOUNT)
+        echo "Database is mounted"
+        query_instance_info
+        query_database_info
+        ;;
+    OPEN)
+        echo "Database is open"
+        show_database_status  # Shows everything
+        ;;
+    *)
+        log_error "Unknown database state: $mode"
+        exit 1
+        ;;
+esac
+```
+
+### Custom Status Display
+
+```bash
+#!/usr/bin/env bash
+source /opt/oradba/lib/common.sh
+source /opt/oradba/lib/db_functions.sh
+
+# Get mode first
+mode=$(get_database_open_mode)
+echo "Database Mode: $mode"
+
+# Get instance info (works at any state)
+instance_info=$(query_instance_info)
+instance_name=$(echo "$instance_info" | grep INSTANCE_NAME | cut -d: -f2 | xargs)
+startup_time=$(echo "$instance_info" | grep STARTUP_TIME | cut -d: -f2- | xargs)
+uptime=$(format_uptime "$startup_time")
+
+echo "Instance: $instance_name"
+echo "Uptime: $uptime"
+
+# Get database info if mounted
+if [[ "$mode" != "NOMOUNT" ]]; then
+    db_info=$(query_database_info)
+    db_name=$(echo "$db_info" | grep "^DATABASE_NAME" | cut -d: -f2 | xargs)
+    log_mode=$(echo "$db_info" | grep LOG_MODE | cut -d: -f2 | xargs)
+    echo "Database: $db_name"
+    echo "Archive Mode: $log_mode"
+fi
+
+# Get performance metrics if open
+if [[ "$mode" == "OPEN" ]]; then
+    memory=$(query_memory_usage)
+    sga=$(echo "$memory" | grep SGA_SIZE | cut -d: -f2 | xargs)
+    echo "SGA: ${sga} MB"
+    
+    sessions=$(query_sessions_info)
+    total=$(echo "$sessions" | grep TOTAL_SESSIONS | cut -d: -f2 | xargs)
+    echo "Sessions: $total"
+fi
+```
+
+## Testing
+
+The library includes comprehensive test coverage in `tests/test_db_functions.bats`:
+
+```bash
+# Run all database function tests
+bats tests/test_db_functions.bats
+
+# Run specific test
+bats tests/test_db_functions.bats -f "check_database_connection"
+```
+
+## See Also
+
+- [USAGE.md](USAGE.md) - Usage guide including dbstatus.sh
+- [common.sh](../lib/common.sh) - Common library functions
+- [dbstatus.sh](../bin/dbstatus.sh) - Standalone status display script
+- [oraenv.sh](../bin/oraenv.sh) - Environment setup with status display
