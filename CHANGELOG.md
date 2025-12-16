@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-12-16
+
+### Added
+
+- **Issue #5**: Hierarchical configuration system with override capability
+  - `oradba_core.conf`: Core system settings (paths, installation, behavior)
+  - `oradba_standard.conf`: Standard environment variables and simple aliases
+  - `oradba_customer.conf`: Customer-specific configuration overrides (optional)
+  - `sid._DEFAULT_.conf`: Default SID-specific settings template
+  - `sid.<ORACLE_SID>.conf`: Auto-created SID-specific configurations with database metadata
+  - Configuration loading order: core → standard → customer → default → sid-specific
+  - Later configurations override earlier settings (hierarchical override)
+  - `load_config()` function in common.sh for configuration management
+  - `create_sid_config()` function for auto-creating SID configs from database metadata
+  - Auto-population of DBID, DB_UNIQUE_NAME, diagnostic_dest from v$database and v$parameter
+  - Example configuration files: `sid.ORCL.conf.example`, `oradba_customer.conf.example`
+- **Issue #8**: Comprehensive shell alias system
+  - Simple aliases in `oradba_standard.conf`: sq, sqh, sqlp, rmans, cdob, cdoh, cdbn, cdnw, lstat, lstart, lstop, pmon, oratab, tns
+  - Dynamic alias generation in `srv/lib/aliases.sh`: taa, vaa, cdda, cdta, cdaa (SID-specific)
+  - `get_diagnostic_dest()`: Query database for diagnostic_dest with convention-based fallback
+  - `generate_sid_aliases()`: Generate SID-specific aliases based on current ORACLE_SID
+  - rlwrap integration for SQL*Plus with graceful fallback if not installed
+  - `has_rlwrap()`: Check rlwrap availability
+- Comprehensive documentation:
+  - `doc/ALIASES.md`: Complete alias reference, rlwrap integration, troubleshooting
+  - `doc/CONFIGURATION.md`: Hierarchical config system guide, customization examples, variable reference
+
+### Changed
+
+- Renamed `oradba.conf` to `oradba_core.conf` (focused on core system settings only)
+- `oraenv.sh` now uses hierarchical configuration via `load_config()`
+- Configuration reloaded on each environment switch (allows SID-specific customization)
+- Updated file headers to v0.5.0: oraenv.sh, common.sh, oradba_core.conf
+
+### Migration Notes
+
+- If upgrading from v0.4.0, rename your customized `oradba.conf` to `oradba_customer.conf`
+- Move any SID-specific settings to `sid.<ORACLE_SID>.conf`
+- Review new `oradba_core.conf` for system settings
+
 ## [0.4.0] - 2025-12-16
 
 ### Added
