@@ -55,10 +55,14 @@ _oraenv_parse_args() {
     if [[ -t 0 ]]; then
         ORAENV_INTERACTIVE=true
         SHOW_STATUS=true  # Default to showing status in interactive mode
+        SHOW_ENV=true     # Show environment info
     else
         ORAENV_INTERACTIVE=false
         SHOW_STATUS=false  # Default to silent in non-interactive mode
+        SHOW_ENV=false
     fi
+    
+    ORAENV_STATUS_ONLY=false  # Flag for --status option
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -70,10 +74,13 @@ _oraenv_parse_args() {
             -s | --silent)
                 ORAENV_INTERACTIVE=false
                 SHOW_STATUS=false
+                SHOW_ENV=false
                 shift
                 ;;
             --status)
                 SHOW_STATUS=true
+                SHOW_ENV=false
+                ORAENV_STATUS_ONLY=true
                 shift
                 ;;
             -h | --help)
@@ -319,12 +326,19 @@ _oraenv_main() {
             log_error "No ORACLE_SID provided"
             return 1
         fi
-    fi
-
-    # Set environment
-    _oraenv_set_environment "$requested_sid" "$oratab_file"
-    local result=$?
-
+    fiHandle different display modes
+        if [[ "$ORAENV_STATUS_ONLY" == "true" ]] && command -v show_database_status &> /dev/null; then
+            # --status flag: show only database status
+            show_database_status
+        elif [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
+            # Interactive mode with status
+            _oraenv_show_environment
+            show_database_status
+        elif [[ "$SHOW_ENV" == "true" ]]; then
+            # Show environment info only
+            _oraenv_show_environment
+        fi
+        # Otherwise: silent mode, show nothing
     if [[ $result -eq 0 ]]; then
         # Show detailed database status if requested and function is available
         if [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
