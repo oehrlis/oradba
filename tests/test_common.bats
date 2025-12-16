@@ -117,3 +117,37 @@ EOF
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+# Tests for new features (tasks 4-7)
+
+@test "generate_pdb_aliases function exists" {
+    type -t generate_pdb_aliases | grep -q "function"
+}
+
+@test "generate_pdb_aliases returns 0 when ORADBA_NO_PDB_ALIASES is true" {
+    export ORADBA_NO_PDB_ALIASES="true"
+    run generate_pdb_aliases
+    [ "$status" -eq 0 ]
+}
+
+@test "load_rman_catalog_connection function exists" {
+    type -t load_rman_catalog_connection | grep -q "function"
+}
+
+@test "load_rman_catalog_connection returns 1 when ORADBA_RMAN_CATALOG is empty" {
+    unset ORADBA_RMAN_CATALOG
+    run load_rman_catalog_connection
+    [ "$status" -eq 1 ]
+}
+
+@test "load_rman_catalog_connection validates catalog format" {
+    export ORADBA_RMAN_CATALOG="rman_user@catdb"
+    load_rman_catalog_connection
+    [ -n "$ORADBA_RMAN_CATALOG_CONNECTION" ]
+}
+
+@test "load_rman_catalog_connection builds connection string correctly" {
+    export ORADBA_RMAN_CATALOG="rman_user/password@catdb"
+    load_rman_catalog_connection
+    [[ "$ORADBA_RMAN_CATALOG_CONNECTION" == "catalog rman_user/password@catdb" ]]
+}

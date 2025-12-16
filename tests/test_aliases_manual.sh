@@ -137,6 +137,13 @@ test_alias "rmanc"
 test_alias "rmanh"
 test_alias "rmanch"
 test_alias "lsnr"
+test_alias "adrcih"
+echo ""
+
+# Test sessionsql
+echo "Testing sessionsql:"
+echo "-------------------------------------------------------------------------------"
+test_alias "sessionsql"
 echo ""
 
 # Test Directory Aliases - Oracle
