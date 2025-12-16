@@ -6,10 +6,10 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.4.0
+# Revision...: 0.5.0
 # Purpose....: Set Oracle environment for a specific ORACLE_SID
 # Notes......: This script sets up the Oracle environment based on the oratab
-#              file and configuration files. It should be sourced, not executed.
+#              file and hierarchical configuration files. Must be sourced.
 #              Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
@@ -27,16 +27,25 @@ fi
 _ORAENV_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _ORAENV_BASE_DIR="$(dirname "$_ORAENV_SCRIPT_DIR")"
 
-# Source configuration
-if [[ -f "${_ORAENV_BASE_DIR}/etc/oradba.conf" ]]; then
-    source "${_ORAENV_BASE_DIR}/etc/oradba.conf"
-fi
+# Set ORADBA_PREFIX for configuration loading
+export ORADBA_PREFIX="${_ORAENV_BASE_DIR}"
+export ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
 
-# Source common library
+# Source common library first (provides load_config function)
 if [[ -f "${_ORAENV_BASE_DIR}/lib/common.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/common.sh"
 else
     echo "ERROR: Cannot find common library at ${_ORAENV_BASE_DIR}/lib/common.sh"
+    return 1
+fi
+
+# Load core configuration (provides base settings for oratab, paths, etc.)
+# Note: Full hierarchical config (including SID-specific) is loaded after setting ORACLE_SID
+if [[ -f "${ORADBA_CONFIG_DIR}/oradba_core.conf" ]]; then
+    # shellcheck source=/dev/null
+    source "${ORADBA_CONFIG_DIR}/oradba_core.conf"
+else
+    echo "ERROR: Cannot find core configuration at ${ORADBA_CONFIG_DIR}/oradba_core.conf"
     return 1
 fi
 
@@ -281,6 +290,11 @@ _oraenv_set_environment() {
     local startup_flag
     startup_flag=$(echo "$oratab_entry" | cut -d: -f3)
     export ORACLE_STARTUP="${startup_flag:-N}"
+
+    # Load hierarchical configuration for this SID
+    # This reloads all configs in order: core -> standard -> customer -> default -> sid-specific
+    # Later configs override earlier settings, including aliases
+    load_config "$actual_sid"
 
     log_debug "Oracle environment set for SID: $ORACLE_SID"
     log_debug "ORACLE_HOME: $ORACLE_HOME"

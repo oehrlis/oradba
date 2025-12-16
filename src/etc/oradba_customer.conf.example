@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: oradba_customer.conf
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.16
+# Revision...: 0.5.0
+# Purpose....: Customer-specific configuration overrides for OraDBA
+# Notes......: Copy this file to oradba_customer.conf and customize as needed
+#              Settings here override oradba_core.conf and oradba_standard.conf
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Example: Customize Oracle Environment
+# ------------------------------------------------------------------------------
+
+# Override default Oracle base
+# ORACLE_BASE="/u02/app/oracle"
+
+# Override default NLS settings
+# NLS_LANG="GERMAN_GERMANY.AL32UTF8"
+# NLS_DATE_FORMAT="DD.MM.YYYY HH24:MI:SS"
+
+# ------------------------------------------------------------------------------
+# Example: Customize Behavior
+# ------------------------------------------------------------------------------
+
+# Disable automatic alias loading
+# ORADBA_LOAD_ALIASES="false"
+
+# Disable database status display on environment switch
+# ORADBA_SHOW_DB_STATUS="false"
+
+# Disable auto-creation of SID configuration files
+# ORADBA_AUTO_CREATE_SID_CONFIG="false"
+
+# ------------------------------------------------------------------------------
+# Example: Customize Paths
+# ------------------------------------------------------------------------------
+
+# Override backup directory
+# BACKUP_DIR="/backup/oracle"
+
+# Override log directory
+# LOG_DIR="/var/log/oradba"
+
+# Use custom oratab location
+# ORATAB_FILE="/u01/app/oracle/oratab"
+
+# ------------------------------------------------------------------------------
+# Example: Add Custom Aliases
+# ------------------------------------------------------------------------------
+
+# Custom SQL*Plus alias with connection string
+# alias sqdev='sqlplus user/pass@dev'
+
+# Custom directory alias
+# alias cdarch='cd /backup/oracle/archive'
+
+# Custom backup alias
+# alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'

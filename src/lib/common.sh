@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.3.3
+# Revision...: 0.5.0
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -136,4 +136,162 @@ validate_directory() {
     fi
 
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Configuration Management
+# ------------------------------------------------------------------------------
+
+# Load hierarchical configuration files
+# Usage: load_config [ORACLE_SID]
+# Loads configuration in order: core -> standard -> customer -> default -> sid-specific
+# Later configs override earlier settings
+load_config() {
+    local sid="${1:-${ORACLE_SID}}"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    
+    log_debug "Loading OraDBA configuration for SID: ${sid:-<none>}"
+    
+    # 1. Load core configuration (required)
+    local core_config="${config_dir}/oradba_core.conf"
+    if [[ -f "${core_config}" ]]; then
+        log_debug "Loading core config: ${core_config}"
+        # shellcheck source=/dev/null
+        source "${core_config}"
+    else
+        log_error "Core configuration not found: ${core_config}"
+        return 1
+    fi
+    
+    # 2. Load standard configuration (required)
+    local standard_config="${config_dir}/oradba_standard.conf"
+    if [[ -f "${standard_config}" ]]; then
+        log_debug "Loading standard config: ${standard_config}"
+        # shellcheck source=/dev/null
+        source "${standard_config}"
+    else
+        log_warn "Standard configuration not found: ${standard_config}"
+    fi
+    
+    # 3. Load customer configuration (optional)
+    local customer_config="${config_dir}/oradba_customer.conf"
+    if [[ -f "${customer_config}" ]]; then
+        log_debug "Loading customer config: ${customer_config}"
+        # shellcheck source=/dev/null
+        source "${customer_config}"
+    fi
+    
+    # 4. Load default SID configuration (optional)
+    local default_config="${config_dir}/sid._DEFAULT_.conf"
+    if [[ -f "${default_config}" ]]; then
+        log_debug "Loading default SID config: ${default_config}"
+        # shellcheck source=/dev/null
+        source "${default_config}"
+    fi
+    
+    # 5. Load SID-specific configuration (optional)
+    if [[ -n "${sid}" ]]; then
+        local sid_config="${config_dir}/sid.${sid}.conf"
+        if [[ -f "${sid_config}" ]]; then
+            log_debug "Loading SID config: ${sid_config}"
+            # shellcheck source=/dev/null
+            source "${sid_config}"
+        else
+            log_debug "SID-specific config not found: ${sid_config}"
+            
+            # Auto-create SID config if enabled
+            if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
+                create_sid_config "${sid}"
+            fi
+        fi
+    fi
+    
+    log_debug "Configuration loading complete"
+    return 0
+}
+
+# Create SID-specific configuration file with database metadata
+# Usage: create_sid_config <ORACLE_SID>
+create_sid_config() {
+    local sid="$1"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    local sid_config="${config_dir}/sid.${sid}.conf"
+    
+    log_info "Creating SID-specific configuration: ${sid_config}"
+    
+    # Query database for metadata
+    local db_info
+    db_info=$(sqlplus -S / as sysdba <<EOF 2>/dev/null
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF TRIMSPOOL ON
+SELECT 
+    name || '|' || 
+    db_unique_name || '|' || 
+    dbid || '|' || 
+    database_role || '|' || 
+    open_mode
+FROM v\$database;
+EXIT;
+EOF
+    )
+    
+    local diagnostic_dest
+    diagnostic_dest=$(sqlplus -S / as sysdba <<EOF 2>/dev/null
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF TRIMSPOOL ON
+SELECT value FROM v\$parameter WHERE name = 'diagnostic_dest';
+EXIT;
+EOF
+    )
+    
+    # Parse database info
+    IFS='|' read -r db_name db_unique_name dbid db_role open_mode <<< "${db_info}"
+    
+    # Clean up values
+    db_name=$(echo "${db_name}" | tr -d '[:space:]')
+    db_unique_name=$(echo "${db_unique_name}" | tr -d '[:space:]')
+    dbid=$(echo "${dbid}" | tr -d '[:space:]')
+    db_role=$(echo "${db_role}" | tr -d '[:space:]')
+    open_mode=$(echo "${open_mode}" | tr -d '[:space:]')
+    diagnostic_dest=$(echo "${diagnostic_dest}" | tr -d '[:space:]')
+    
+    # Create configuration file
+    cat > "${sid_config}" <<EOF
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: sid.${sid}.conf
+# Auto-created: $(date '+%Y-%m-%d %H:%M:%S')
+# Purpose....: SID-specific configuration for ${sid} database
+# Notes......: Auto-generated from database metadata. Customize as needed.
+# ------------------------------------------------------------------------------
+
+# Database Identity (from v\$database)
+ORADBA_DB_NAME="${db_name:-${sid}}"
+ORADBA_DB_UNIQUE_NAME="${db_unique_name:-${sid}}"
+ORADBA_DBID="${dbid}"
+ORADBA_DB_ROLE="${db_role:-PRIMARY}"
+ORADBA_DB_OPEN_MODE="${open_mode:-READ WRITE}"
+
+# Diagnostic destination (from v\$parameter)
+ORADBA_DIAGNOSTIC_DEST="${diagnostic_dest:-${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}}"
+
+# NLS Settings (customize if needed)
+# NLS_LANG="${NLS_LANG}"
+# NLS_DATE_FORMAT="${NLS_DATE_FORMAT}"
+
+# Backup settings
+ORADBA_DB_BACKUP_DIR="${BACKUP_DIR}/${sid}"
+ORADBA_BACKUP_RETENTION=7
+EOF
+    
+    if [[ -f "${sid_config}" ]]; then
+        log_info "Created SID configuration: ${sid_config}"
+        # Source the newly created config
+        # shellcheck source=/dev/null
+        source "${sid_config}"
+        return 0
+    else
+        log_error "Failed to create SID configuration: ${sid_config}"
+        return 1
+    fi
 }
