@@ -53,6 +53,30 @@ cp -r src/* "$TEMP_TAR_DIR/"
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
+echo "Generating checksums..."
+# Generate checksum file with SHA256 for all installed files
+{
+    echo "# OraDBA Installation Checksums"
+    echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "# Version: ${VERSION}"
+    echo "#"
+    
+    # Change to staging directory to generate relative paths
+    cd "$TEMP_TAR_DIR" || exit 1
+    
+    # Generate checksums for all files (excluding checksum file itself)
+    find bin lib sql rcv etc templates doc -type f 2>/dev/null | sort | while read -r file; do
+        sha256sum "$file"
+    done
+    
+    # Also checksum the VERSION file
+    sha256sum VERSION
+    
+    cd - > /dev/null || exit 1
+} > "$TEMP_TAR_DIR/.oradba.checksum"
+
+echo "Checksum file created with $(grep -c '^[^#]' "$TEMP_TAR_DIR/.oradba.checksum") entries"
+
 # Create the final tarball
 tar -czf "$PAYLOAD_FILE" \
     --exclude='.git' \
@@ -309,6 +333,16 @@ cp -r "$TEMP_DIR"/* "$INSTALL_PREFIX/"
 
 # Create logs directory
 mkdir -p "$INSTALL_PREFIX/logs"
+
+# Create installation metadata
+log_info "Creating installation metadata..."
+cat > "$INSTALL_PREFIX/.install_info" <<METADATA
+install_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+install_version=${INSTALLER_VERSION}
+install_method=installer
+install_user=${INSTALL_USER:-${USER}}
+install_prefix=${INSTALL_PREFIX}
+METADATA
 
 # Set ownership if user specified
 if [[ -n "$INSTALL_USER" ]]; then

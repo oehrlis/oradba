@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #7**: Checksum verification and version checking utility
+  - `oradba_version.sh` utility for version management and integrity verification
+  - Automatic checksum generation during build (`.oradba.checksum` with SHA256)
+  - `--check` / `-c`: Show current installed version
+  - `--verify` / `-v`: Verify installation integrity against checksums
+  - `--update-check` / `-u`: Check for available updates from GitHub
+  - `--info` / `-i`: Show comprehensive installation information
+  - Installation metadata file (`.install_info`) with timestamp and details
+  - Checksums for all distributed files (bin, lib, sql, rcv, etc, templates)
+- **Issue #3**: README.md files added to all major directories for inline documentation
+  - build/ - Build artifacts and output directory
+  - doc/templates/ - File header templates
+  - scripts/ - Build and validation scripts
+  - src/etc/ - Configuration files
+  - src/lib/ - Shell libraries
+  - src/rcv/ - RMAN scripts
+  - src/templates/ - Script templates
+  - tests/ - Test suite
+- All READMEs reference central documentation to minimize redundancy
+- Comprehensive BATS test suite for `oradba_version.sh`
+
+### Changed
+
+- update issue template for tasks
+- Build process now generates checksums for all installed files
+- Installer creates `.install_info` metadata with installation details
+
 ## [0.3.3] - 2025-12-16
 
 ### Added

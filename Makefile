@@ -439,6 +439,7 @@ info: ## Show project information
 	@echo "  Libraries: $$(find $(LIB_DIR) -name "*.sh" 2>/dev/null | wc -l | xargs)"
 	@echo "  SQL:       $$(find $(SQL_DIR) -name "*.sql" 2>/dev/null | wc -l | xargs)"
 	@echo "  Tests:     $$(find $(TEST_DIR) -name "*.bats" 2>/dev/null | wc -l | xargs)"
+	@echo "  Docs:      $$(find $(DOC_DIR) -name "*.md" 2>/dev/null | wc -l | xargs)"
 
 # ==============================================================================
 # Quick Shortcuts
