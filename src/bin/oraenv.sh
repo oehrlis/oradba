@@ -45,9 +45,15 @@ if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"
 fi
 
+# Global variables - declared at script level so they persist across functions
+SHOW_ENV=true
+SHOW_STATUS=false
+ORAENV_STATUS_ONLY=false
+ORAENV_INTERACTIVE=true
+REQUESTED_SID=""
+
 # Parse command line arguments
 _oraenv_parse_args() {
-    local requested_sid=""
     # shellcheck disable=SC2034  # Reserved for future use
     local force_mode=false
     
@@ -93,8 +99,8 @@ _oraenv_parse_args() {
                 return 1
                 ;;
             *)
-                if [[ -z "$requested_sid" ]]; then
-                    requested_sid="$1"
+                if [[ -z "$REQUESTED_SID" ]]; then
+                    REQUESTED_SID="$1"
                 else
                     log_error "Multiple SIDs provided"
                     return 1
@@ -103,8 +109,6 @@ _oraenv_parse_args() {
                 ;;
         esac
     done
-
-    echo "$requested_sid"
 }
 
 # Display usage
@@ -305,8 +309,7 @@ EOF
 
 # Main execution
 _oraenv_main() {
-    local requested_sid
-    requested_sid=$(_oraenv_parse_args "$@")
+    _oraenv_parse_args "$@"
 
     if [[ $? -ne 0 ]]; then
         return 1
@@ -324,16 +327,16 @@ _oraenv_main() {
     log_debug "Using oratab file: $oratab_file"
 
     # Get ORACLE_SID if not provided
-    if [[ -z "$requested_sid" ]]; then
-        requested_sid=$(_oraenv_prompt_sid "$oratab_file")
-        if [[ -z "$requested_sid" ]]; then
+    if [[ -z "$REQUESTED_SID" ]]; then
+        REQUESTED_SID=$(_oraenv_prompt_sid "$oratab_file")
+        if [[ -z "$REQUESTED_SID" ]]; then
             log_error "No ORACLE_SID provided"
             return 1
         fi
     fi
 
     # Set environment
-    _oraenv_set_environment "$requested_sid" "$oratab_file"
+    _oraenv_set_environment "$REQUESTED_SID" "$oratab_file"
     local result=$?
 
     if [[ $result -eq 0 ]]; then
