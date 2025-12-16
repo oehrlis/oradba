@@ -76,29 +76,36 @@ generate_sid_aliases() {
         local alert_dir="${diag_dest}/alert"
         if [[ -d "${alert_dir}" ]]; then
             # tail alert log
+            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias taa="tail -f ${alert_dir}/log.xml 2>/dev/null || tail -f ${alert_dir}/alert_${sid}.log"
             # view/less alert log
+            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias vaa="less ${alert_dir}/log.xml 2>/dev/null || less ${alert_dir}/alert_${sid}.log"
         fi
         
         # Diagnostic dest directory
+        # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
         alias cdda="cd ${diag_dest}"
         
         # Trace directory
         local trace_dir="${diag_dest}/trace"
         if [[ -d "${trace_dir}" ]]; then
+            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias cdta="cd ${trace_dir}"
         fi
         
         # Alert directory
         if [[ -d "${alert_dir}" ]]; then
+            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias cdaa="cd ${alert_dir}"
         fi
     fi
     
     # SQL*Plus with rlwrap if available
     if has_rlwrap; then
+        # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
         alias sq="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
+        # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
         alias sqh="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus /nolog"
     fi
 }
