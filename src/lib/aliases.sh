@@ -23,17 +23,22 @@ get_diagnostic_dest() {
     local sid="${ORACLE_SID:-}"
     
     # Try to query database if ORACLE_SID is set and database is available
-    if [[ -n "${sid}" ]] && [[ -n "${ORACLE_HOME}" ]]; then
-        # Query database for diagnostic_dest
-        diag_dest=$(sqlplus -S / as sysdba <<EOF 2>/dev/null
+    if [[ -n "${sid}" ]] && [[ -n "${ORACLE_HOME}" ]] && [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
+        # Query database for diagnostic_dest (suppress all errors)
+        diag_dest=$(sqlplus -S / as sysdba <<EOF 2>&1 | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | head -1
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
 SELECT value FROM v\$parameter WHERE name = 'diagnostic_dest';
 EXIT;
 EOF
         )
         
-        # Clean up result (remove whitespace)
+        # Clean up result (remove whitespace and check if it's a valid path)
         diag_dest=$(echo "${diag_dest}" | tr -d '[:space:]')
+        
+        # If result contains error indicators or is too short, clear it
+        if [[ "${diag_dest}" =~ (ERROR|ORA-|SP2-|Help:) ]] || [[ ${#diag_dest} -lt 5 ]]; then
+            diag_dest=""
+        fi
     fi
     
     # Fallback to convention-based path if query failed
