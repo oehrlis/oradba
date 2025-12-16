@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-12-16
+
+### Fixed
+
+- **Bug #25**: Fixed PDB display to show correct open modes (RW, RO, MO, MI) instead of truncated text
+- **Bug #25**: Fixed PDB query to include PDB$SEED in output
+- **Bug #25**: Fixed memory query SQL echo issue - now displays clean numeric values instead of SQL text
+- Fixed subshell variable scope issue causing `--silent` flag to fail completely
+- Fixed date command compatibility for uptime calculation (macOS and Linux)
+- Fixed default installation prefix to `${ORACLE_BASE}/local/oradba` (no longer requires root)
+- Added shellcheck disable comments for intentionally global variables
+
+### Changed
+
+- Removed redundant [INFO] log message on environment setup
+- Removed duplicate "Oracle Environment" display section
+- Simplified output to show only database status in interactive mode
+- Added ORACLE_BASE and TNS_ADMIN to database status output
+- Removed verbose PATH display from status output
+
 ## [0.3.1] - 2025-12-16
 
 ### Fixed
