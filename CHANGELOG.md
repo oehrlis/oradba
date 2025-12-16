@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Alias: `sessionsql` for quick access
   - Falls back to sensible defaults (120 columns, 50 lines) if detection fails
 
+- **RMAN catalog support**: Automatic RMAN recovery catalog connection management
+  - New `ORADBA_RMAN_CATALOG` configuration variable
+  - `load_rman_catalog_connection()` function validates and loads catalog connection
+  - `rmanc` and `rmanch` aliases automatically use configured catalog
+  - Supports formats: `user/password@tnsalias` or `user@tnsalias` (prompts for password)
+  - Can be configured globally in oradba_core.conf or per-SID in
+    sid.SID.conf
+  - Falls back to interactive catalog prompt if not configured
+  - Added catalog configuration examples to SID templates
+
 ## [0.5.1] - 2025-12-16
 
 ### Added

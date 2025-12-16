@@ -215,6 +215,40 @@ EOF
     return 0
 }
 
+# ------------------------------------------------------------------------------
+# Function: load_rman_catalog_connection
+# Purpose.: Load and validate RMAN catalog connection string
+# Returns.: 0 on success, 1 if no catalog configured
+# Notes...: Updates ORADBA_RMAN_CATALOG_CONNECTION for use in aliases
+#           Catalog format: catalog user/password@tnsalias
+#           or catalog user@tnsalias (prompts for password)
+# ------------------------------------------------------------------------------
+load_rman_catalog_connection() {
+    log_debug "Checking RMAN catalog configuration"
+    
+    # Check if catalog is configured
+    if [[ -z "${ORADBA_RMAN_CATALOG}" ]]; then
+        log_debug "No RMAN catalog configured (ORADBA_RMAN_CATALOG not set)"
+        export ORADBA_RMAN_CATALOG_CONNECTION=""
+        return 1
+    fi
+    
+    # Validate catalog connection string format
+    # Expected: user/password@tnsalias or user@tnsalias
+    if [[ ! "${ORADBA_RMAN_CATALOG}" =~ ^[a-zA-Z0-9_]+(@|/) ]]; then
+        log_warn "Invalid RMAN catalog format: ${ORADBA_RMAN_CATALOG}"
+        log_warn "Expected: user/password@tnsalias or user@tnsalias"
+        export ORADBA_RMAN_CATALOG_CONNECTION=""
+        return 1
+    fi
+    
+    # Build the full catalog connection string for RMAN
+    export ORADBA_RMAN_CATALOG_CONNECTION="catalog ${ORADBA_RMAN_CATALOG}"
+    log_debug "RMAN catalog connection: ${ORADBA_RMAN_CATALOG_CONNECTION}"
+    
+    return 0
+}
+
 # Export common Oracle environment variables
 export_oracle_base_env() {
     # Set common paths if not already set

@@ -25,15 +25,20 @@ LINESIZE and PAGESIZE accordingly. This ensures optimal output formatting for yo
 
 ### RMAN Aliases
 
-| Alias    | Description                                 | Command                        |
-|----------|---------------------------------------------|--------------------------------|
-| `rman`   | RMAN with target connection                 | `rman target /`                |
-| `rmanc`  | RMAN with target and catalog                | `rman target / catalog`        |
-| `rmanh`  | RMAN with target (with rlwrap if available) | `rlwrap rman target /`         |
-| `rmanch` | RMAN with target and catalog (with rlwrap)  | `rlwrap rman target / catalog` |
+| Alias    | Description                                 | Command                                    |
+|----------|---------------------------------------------|--------------------------------------------|
+| `rman`   | RMAN with target connection                 | `rman target /`                            |
+| `rmanc`  | RMAN with target and catalog                | `rman target / catalog <connection>`       |
+| `rmanh`  | RMAN with target (with rlwrap if available) | `rlwrap rman target /`                     |
+| `rmanch` | RMAN with target and catalog (with rlwrap)  | `rlwrap rman target / catalog <connection>`|
 
-**Note:** When `ORADBA_RLWRAP_FILTER=true`, aliases with rlwrap (rmanh, rmanch) use password
-filtering. See [RLWRAP_FILTER.md](RLWRAP_FILTER.md) for details.
+**Notes:**
+
+- When `ORADBA_RLWRAP_FILTER=true`, aliases with rlwrap (rmanh, rmanch) use password filtering.
+  See [RLWRAP_FILTER.md](RLWRAP_FILTER.md) for details.
+- `rmanc` and `rmanch` use the catalog connection from `ORADBA_RMAN_CATALOG` if configured, otherwise
+  prompt for catalog connection interactively.
+- Configure catalog in [oradba_core.conf](../etc/oradba_core.conf) globally or per-SID in `sid.<SID>.conf`.
 
 ### Directory Navigation Aliases
 

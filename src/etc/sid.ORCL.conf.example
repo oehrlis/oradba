@@ -86,3 +86,13 @@ ORADBA_BACKUP_TYPE="INCREMENTAL"
 
 # Compression (BASIC, LOW, MEDIUM, HIGH)
 ORADBA_BACKUP_COMPRESSION="MEDIUM"
+
+# ------------------------------------------------------------------------------
+# RMAN Catalog Connection (optional)
+# ------------------------------------------------------------------------------
+
+# RMAN recovery catalog connection
+# Format: user/password@tnsalias or user@tnsalias (prompts for password)
+# Example: ORADBA_RMAN_CATALOG="rman_user/rman_pass@catdb"
+# Example: ORADBA_RMAN_CATALOG="rman_user@catdb"
+ORADBA_RMAN_CATALOG=""
