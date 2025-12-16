@@ -190,7 +190,7 @@ validate: ## Validate configuration files
 # ==============================================================================
 
 .PHONY: build
-build: clean ## Build distribution archive and installer
+build: clean clean-test-configs ## Build distribution archive and installer
 	@echo -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
 	@$(TAR) czf $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz \
@@ -320,8 +320,18 @@ clean: ## Clean build artifacts
 	@find . -name "*~" -type f -delete 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Cleaned$(COLOR_RESET)"
 
+.PHONY: clean-test-configs
+clean-test-configs: ## Clean test-generated SID config files
+	@echo -e "$(COLOR_BLUE)Cleaning test SID config files...$(COLOR_RESET)"
+	@rm -f $(ETC_DIR)/sid.FREE.conf 2>/dev/null || true
+	@rm -f $(ETC_DIR)/sid.CDB1.conf 2>/dev/null || true
+	@rm -f $(ETC_DIR)/sid.TESTDB.conf 2>/dev/null || true
+	@rm -f $(ETC_DIR)/sid.TESTDB1.conf 2>/dev/null || true
+	@rm -f $(ETC_DIR)/sid.TESTDB2.conf 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Test config files cleaned$(COLOR_RESET)"
+
 .PHONY: clean-all
-clean-all: clean ## Deep clean (including caches)
+clean-all: clean clean-test-configs ## Deep clean (including caches and test configs)
 	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"

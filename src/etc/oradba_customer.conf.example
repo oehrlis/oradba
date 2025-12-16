@@ -24,6 +24,18 @@
 # NLS_DATE_FORMAT="DD.MM.YYYY HH24:MI:SS"
 
 # ------------------------------------------------------------------------------
+# Example: Customize PATH
+# ------------------------------------------------------------------------------
+
+# Add OraDBA bin directory to PATH
+# PATH="${ORADBA_PREFIX}/bin:${PATH}"
+
+# Add custom bin directories
+# PATH="/opt/custom/bin:${PATH}"
+
+# Note: PATH modifications are automatically exported (no 'export' keyword needed)
+
+# ------------------------------------------------------------------------------
 # Example: Customize Behavior
 # ------------------------------------------------------------------------------
 

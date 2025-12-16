@@ -14,15 +14,34 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 - **oraenv.sh**: Intelligent Oracle environment setup based on oratab
   - Automatic ORACLE_HOME, ORACLE_SID, and ORACLE_BASE configuration
   - Support for multiple Oracle versions and instances
-  - Interactive SID selection
+  - Interactive SID selection with numbered options
   - Case-insensitive SID matching
+  - Auto-generated SID aliases (e.g., `free` to source environment)
+- **Hierarchical Configuration System** (5 levels with override):
+  - `oradba_core.conf`: Core system settings
+  - `oradba_standard.conf`: Standard aliases and variables (50+ aliases)
+  - `oradba_customer.conf`: Customer overrides (optional)
+  - `sid._DEFAULT_.conf`: Default SID template
+  - `sid.<SID>.conf`: Auto-created per-SID configs with database metadata
+- **Comprehensive Alias System** (~50 aliases):
+  - SQL*Plus, RMAN, directory navigation, VI editors, alert log access
+  - SID lists: `ORADBA_SIDLIST`, `ORADBA_REALSIDLIST`
+  - rlwrap integration with graceful fallback
+  - Dynamic aliases based on diagnostic_dest
+- **dbstatus.sh**: Compact database status display
+  - Instance, database, memory, storage information
+  - Works in NOMOUNT, MOUNT, and OPEN states
+  - PDB information for multitenant databases
 - **oradba_version.sh**: Version management and integrity verification
   - Check installed version and available updates
   - Verify installation integrity with SHA256 checksums
   - Detect modified or corrupted files
   - Query GitHub releases for updates
+- **oradba_validate.sh**: Post-installation validation
+  - Checks directory structure, scripts, configs, documentation
+  - Optional Oracle environment validation
+  - Color-coded output with pass/fail/warning counts
 - **Administration Scripts**: Collection of bash, SQL, and RMAN scripts for daily operations
-- **Configuration System**: Global and user-specific configuration files
 - **SQL Scripts**: Ready-to-use SQL scripts for database information and management
 - **RMAN Templates**: Backup and recovery script templates
 
@@ -75,11 +94,64 @@ Or with options:
 # Set Oracle environment for specific SID
 source oraenv.sh FREE
 
+# Use SID aliases (auto-generated from oratab)
+free       # Short for: source oraenv.sh FREE
+cdb1       # Short for: source oraenv.sh CDB1
+
+# Interactive selection
+source oraenv.sh
+
 # The script will:
-# - Read oratab configuration
+# - Load hierarchical configuration (5 levels)
 # - Set ORACLE_SID, ORACLE_HOME, ORACLE_BASE
 # - Update PATH and LD_LIBRARY_PATH
 # - Configure TNS_ADMIN and NLS settings
+# - Generate 50+ aliases for administration
+# - Create SID-specific convenience variables
+```
+
+### Using Aliases
+
+```bash
+# After sourcing oraenv.sh, you have 50+ aliases:
+
+# SQL*Plus
+sq         # sqlplus / as sysdba
+sqh        # sqlplus with rlwrap (history/editing)
+sqoh       # sqlplus / as sysoper with rlwrap
+
+# Directory navigation
+cdh        # cd $ORACLE_HOME
+cda        # cd $ORACLE_BASE/admin/$ORACLE_SID
+cdd        # cd diagnostic_dest
+etc        # cd OraDBA etc directory
+log        # cd OraDBA log directory
+
+# Alert log
+taa        # tail -f alert log
+vaa        # view alert log with less
+via        # edit alert log with vi
+
+# Quick help
+alih       # Show all aliases with descriptions
+alig       # List current aliases
+```
+
+### Database Status
+
+```bash
+# Show comprehensive database status
+dbstatus.sh
+
+# Example output:
+# -------------------------------------------------------------------------------
+# ORACLE_BASE    : /opt/oracle
+# ORACLE_HOME    : /opt/oracle/product/26ai/dbhomeFree
+# -------------------------------------------------------------------------------
+# DATABASE       : FREE (Instance: FREE, DBID: 1489657696)
+# STATUS         : OPEN / OPEN
+# MEMORY_SIZE    : 1.49G SGA / .36G PGA
+# ...
 ```
 
 ### Version Management and Integrity
@@ -98,14 +170,31 @@ oradba_version.sh --update-check
 oradba_version.sh --info
 ```
 
+### Post-Installation Validation
+
+```bash
+# Validate installation
+oradba_validate.sh
+
+# Verbose output
+oradba_validate.sh --verbose
+```
+
 ### Configuration
 
-**Global Configuration**: `/opt/oradba/src/etc/oradba.conf`
+**Hierarchical Configuration** (5 levels, later overrides earlier):
 
-- Installation paths and directories
-- oratab file locations
-- Debug and logging settings
-- Backup directories
+1. `oradba_core.conf`: Core system settings (paths, installation)
+2. `oradba_standard.conf`: Standard aliases and variables
+3. `oradba_customer.conf`: Customer-specific overrides (optional)
+4. `sid._DEFAULT_.conf`: Default SID template
+5. `sid.<SID>.conf`: Auto-created per-SID configs with database metadata
+
+**Key Variables**:
+- `ORADBA_SIDLIST`: All SIDs from oratab
+- `ORADBA_REALSIDLIST`: Real SIDs (excludes DGMGRL dummy entries)
+- `ORADBA_ORA_ADMIN_SID`: Admin directory for current SID
+- `ORADBA_ORA_DIAG_SID`: Diagnostic destination for current SID
 
 **User Configuration**: `~/.oradba_config`
 

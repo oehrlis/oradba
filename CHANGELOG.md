@@ -13,40 +13,129 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Issue #5**: Hierarchical configuration system with override capability
   - `oradba_core.conf`: Core system settings (paths, installation, behavior)
-  - `oradba_standard.conf`: Standard environment variables and simple aliases
+  - `oradba_standard.conf`: Standard environment variables and aliases (50+ aliases)
   - `oradba_customer.conf`: Customer-specific configuration overrides (optional)
   - `sid._DEFAULT_.conf`: Default SID-specific settings template
   - `sid.<ORACLE_SID>.conf`: Auto-created SID-specific configurations with database metadata
   - Configuration loading order: core → standard → customer → default → sid-specific
-  - Later configurations override earlier settings (hierarchical override)
+  - Auto-export all variables using `set -a`/`set +a` wrapper (export keyword optional)
   - `load_config()` function in common.sh for configuration management
   - `create_sid_config()` function for auto-creating SID configs from database metadata
-  - Auto-population of DBID, DB_UNIQUE_NAME, diagnostic_dest from v$database and v$parameter
+  - Smart config generation: only writes non-default and valid values
   - Example configuration files: `sid.ORCL.conf.example`, `oradba_customer.conf.example`
-- **Issue #8**: Comprehensive shell alias system
-  - Simple aliases in `oradba_standard.conf`: sq, sqh, sqlp, rmans, cdob, cdoh, cdbn, cdnw,
-    lstat, lstart, lstop, pmon, oratab, tns
-  - Dynamic alias generation in `srv/lib/aliases.sh`: taa, vaa, cdda, cdta, cdaa (SID-specific)
-  - `get_diagnostic_dest()`: Query database for diagnostic_dest with convention-based fallback
-  - `generate_sid_aliases()`: Generate SID-specific aliases based on current ORACLE_SID
-  - rlwrap integration for SQL*Plus with graceful fallback if not installed
-  - `has_rlwrap()`: Check rlwrap availability
+
+- **Issue #8**: Comprehensive shell alias system (~50 aliases)
+  - **SQL*Plus**: sq, sqh, sqlplush, sqoh (with rlwrap fallback)
+  - **RMAN**: rman, rmanc, rmanh, rmanch (with rlwrap support)
+  - **Directory navigation**: cdh, cdn, cdob, cdbn, cdt, cdb, cde, cdr, cdlog, cdtmp, cdl, etc, log
+  - **SID-specific**: cda, cdc, cdd, cddt, cdda (dynamic based on ORACLE_SID)
+  - **VI editors**: vio, vit, vil, visql, vildap, vis, vic, vii, via
+  - **Alert log**: taa, vaa, via (tail/view/edit alert log)
+  - **Listener**: lstat, lstart, lstop, lsnr
+  - **Database ops**: pmon, oratab, tns, sta
+  - **Help**: alih, alig, version
+  - Dynamic alias generation in `lib/aliases.sh` based on diagnostic_dest
+  - rlwrap integration for SQL*Plus/RMAN with graceful fallback
+  - SID aliases: Auto-generate lowercase aliases for all SIDs in oratab (e.g., `alias free='. oraenv.sh FREE'`)
+
+- **SID lists and variables**:
+  - `ORADBA_SIDLIST`: Space-separated list of all SIDs from oratab (Y/N/D flags)
+  - `ORADBA_REALSIDLIST`: Space-separated list of real SIDs (Y/N only, excludes D for DGMGRL dummy)
+  - `generate_sid_lists()`: Parses oratab and creates SID-specific aliases dynamically
+  - Auto-aliases regenerated on every environment source
+
+- **Convenience variables** (short paths):
+  - `$cdh`: ORACLE_HOME path
+  - `$cda`: Admin directory (ORACLE_BASE/admin/SID)
+  - `$cdob`: ORACLE_BASE path
+  - `$cdl`: ORACLE_BASE/local path
+  - `$cdd`: Diagnostic destination path
+  - `$etc`: OraDBA etc directory
+  - `$log`: OraDBA log directory
+  - `$cdn`: TNS_ADMIN parent directory
+
+- **Enhanced error handling**:
+  - Comprehensive SET commands in all SQL queries to isolate from user login.sql/glogin.sql
+  - Multi-layer error filtering: grep -v for ERROR, ORA-, SP2-, Help:, Usage:, etc.
+  - Query validation: checks for pipe separator, minimum length, no error strings
+  - Default values used when database not accessible
+  - `ORADBA_ORA_ADMIN_SID` and `ORADBA_ORA_DIAG_SID` calculated dynamically from current ORACLE_BASE/ORACLE_SID
+
+- **Validation and help**:
+  - `oradba_validate.sh`: Post-installation validation script with color-coded output
+    * Checks directory structure, scripts, libraries, configs, docs, SQL files
+    * Optional Oracle environment checks (ORACLE_HOME, sqlplus, oratab)
+    * Exit codes: 0=success, 1=failures found
+  - `ALIAS_HELP.txt`: Quick reference help file with ASCII art banner
+  - `alih` alias displays quick help with categorized alias listing
+
+- **Improved dbstatus.sh output**:
+  - Compact format: Oracle environment shown first (ORACLE_BASE → ORACLE_HOME → TNS_ADMIN → VERSION)
+  - Smart database identity: Single line if DB_NAME == DB_UNIQUE_NAME, two lines for standby/RAC
+  - Combined status: "STATUS: OPEN / OPEN" instead of separate lines
+  - Supports all database states: STARTED, MOUNTED, OPEN
+  - Graceful handling of dummy/unavailable databases: Shows simple environment status only
+  
+- **PS1/PS1BASH prompt customization**:
+  - Automatically includes ORACLE_SID in bash prompt: `user@host:path/ [SID] `
+  - PDB support: Shows `[SID.PDB]` when ORADBA_PDB variable is set
+  - Two formats: PS1BASH (bash escapes \u, \h, \w) and PS1 (environment variables)
+  - Controlled by ORADBA_CUSTOMIZE_PS1 toggle (enabled by default)
+  
+- **PATH handling documentation**:
+  - Documented that PATH modifications in config files are auto-exported via set -a
+  - Added examples in oradba_customer.conf.example
+  - Referenced Issue #24 for future .bash_profile integration
+
 - Comprehensive documentation:
-  - `doc/ALIASES.md`: Complete alias reference, rlwrap integration, troubleshooting
+  - `doc/ALIASES.md`: Complete alias reference (50+ aliases), rlwrap integration, troubleshooting
   - `doc/CONFIGURATION.md`: Hierarchical config system guide, customization examples, variable reference
+  - `doc/ALIAS_HELP.txt`: Quick reference with ASCII art banner
 
 ### Changed
 
 - Renamed `oradba.conf` to `oradba_core.conf` (focused on core system settings only)
 - `oraenv.sh` now uses hierarchical configuration via `load_config()`
 - Configuration reloaded on each environment switch (allows SID-specific customization)
-- Updated file headers to v0.5.0: oraenv.sh, common.sh, oradba_core.conf
+- Alias names updated for consistency:
+  - `cdoh` → `cdh` (ORACLE_HOME)
+  - `cdnw` → `cdn` (TNS_ADMIN parent)
+  - `sqlp` → `sqoh` (sysoper with rlwrap)
+  - `cdda` → `cdd` (diagnostic_dest)
+  - `cdta` → `cddt` (trace directory)
+  - `cdaa` → `cdda` (alert directory)
+  - Removed: `sqls` (redundant with sq)
+- Updated file headers to v0.5.0: oraenv.sh, common.sh, oradba_core.conf, oradba_standard.conf
+- Build process now auto-cleans test SID configs before packaging
+
+### Fixed
+
+- **Critical**: Error messages no longer pollute variables (ORADBA_ORA_DIAG_SID, ORADBA_DIAGNOSTIC_DEST)
+  - Added `2>&1` redirection before heredoc in all sqlplus queries
+  - Enhanced grep filters to remove all error patterns
+  - Changed WHENEVER SQLERROR from EXIT FAILURE to EXIT SQL.SQLCODE
+- **Critical**: Variables now exported even without 'export' keyword (set -a/set +a wrapper)
+- **Critical**: All database queries isolated from user login.sql/glogin.sql settings
+  - 7-line SET command block in every sqlplus invocation
+  - SET TIMING OFF, TIME OFF, SQLPROMPT "", etc.
+- rlwrap aliases now use hardcoded 'rlwrap' command instead of ${RLWRAP_COMMAND} variable
+- login.sql cleaned: removed PROMPT statements, disabled TIMING
+- `alih` alias fixed: uses external ALIAS_HELP.txt file instead of heredoc
+- ORADBA_ORA_ADMIN_SID and ORADBA_ORA_DIAG_SID now calculated dynamically from current ORACLE_BASE/ORACLE_SID
+  - No longer stored in sid.*.conf files (prevents stale paths from test environments)
+- SID config generation improved: Only writes non-default and valid values
+  - Skips PRIMARY database role (default)
+  - Skips READ WRITE open mode (default)
+  - Validates all queried values before writing
+- Makefile: Added clean-test-configs target, integrated into build process
 
 ### Migration Notes
 
 - If upgrading from v0.4.0, rename your customized `oradba.conf` to `oradba_customer.conf`
 - Move any SID-specific settings to `sid.<ORACLE_SID>.conf`
 - Review new `oradba_core.conf` for system settings
+- Update any custom scripts using old alias names (cdoh→cdh, cdnw→cdn, etc.)
+- Run `oradba_validate.sh` after installation to verify setup
 
 ## [0.4.0] - 2025-12-16
 

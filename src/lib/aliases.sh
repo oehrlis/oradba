@@ -62,7 +62,7 @@ has_rlwrap() {
 
 # Generate SID-specific aliases based on current ORACLE_SID
 # Usage: generate_sid_aliases
-# Creates: taa, vaa, cdda, cdta, cdaa aliases
+# Creates: taa, vaa, via, cdd, cddt, cdda aliases
 generate_sid_aliases() {
     local sid="${ORACLE_SID:-}"
     
@@ -75,7 +75,7 @@ generate_sid_aliases() {
     local diag_dest
     diag_dest=$(get_diagnostic_dest)
     
-    # Generate trace file aliases (tail/view alert log and trace files)
+    # Generate trace file aliases (tail/view/edit alert log and trace files)
     if [[ -d "${diag_dest}" ]]; then
         # Alert log directory
         local alert_dir="${diag_dest}/alert"
@@ -86,23 +86,26 @@ generate_sid_aliases() {
             # view/less alert log
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias vaa="less ${alert_dir}/log.xml 2>/dev/null || less ${alert_dir}/alert_${sid}.log"
+            # edit alert log with vi
+            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
+            alias via="vi ${alert_dir}/log.xml 2>/dev/null || vi ${alert_dir}/alert_${sid}.log"
         fi
         
-        # Diagnostic dest directory
+        # Diagnostic dest directory (cdd)
         # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-        alias cdda="cd ${diag_dest}"
+        alias cdd="cd ${diag_dest}"
         
-        # Trace directory
+        # Trace directory (cddt)
         local trace_dir="${diag_dest}/trace"
         if [[ -d "${trace_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias cdta="cd ${trace_dir}"
+            alias cddt="cd ${trace_dir}"
         fi
         
-        # Alert directory
+        # Alert directory (cdda)
         if [[ -d "${alert_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias cdaa="cd ${alert_dir}"
+            alias cdda="cd ${alert_dir}"
         fi
     fi
     

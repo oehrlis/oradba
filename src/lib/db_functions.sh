@@ -62,8 +62,12 @@ EOF
 # Returns.: Tab-separated values: INSTANCE_NAME|STATUS|STARTUP_TIME|VERSION|...
 # ------------------------------------------------------------------------------
 query_instance_info() {
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT 
     i.instance_name || '|' ||
     i.status || '|' ||
@@ -97,8 +101,12 @@ query_database_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT 
     d.name || '|' ||
     d.db_unique_name || '|' ||
@@ -127,8 +135,12 @@ query_datafile_size() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT ROUND(SUM(bytes)/1024/1024/1024, 2)
 FROM v$datafile;
 EXIT;
@@ -148,8 +160,12 @@ query_memory_usage() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT 
     ROUND(SUM(CASE WHEN name = 'sga' THEN value ELSE 0 END)/1024/1024/1024, 2) || '|' ||
     ROUND(SUM(CASE WHEN name = 'pga' THEN value ELSE 0 END)/1024/1024/1024, 2)
@@ -175,8 +191,12 @@ query_sessions_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT 
     COUNT(DISTINCT CASE WHEN username IS NULL THEN sid END) || '|' ||
     COUNT(CASE WHEN username IS NULL THEN sid END) || '|' ||
@@ -201,8 +221,12 @@ query_pdb_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON
+    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
 SELECT LISTAGG(
     name || '(' || 
     CASE open_mode 
@@ -257,7 +281,28 @@ format_uptime() {
 show_database_status() {
     # Check if we can connect
     if ! check_database_connection; then
-        log_error "Cannot connect to database. Is it running?"
+        # Database not accessible - show simple environment status
+        echo ""
+        echo "-------------------------------------------------------------------------------"
+        echo "Oracle Environment (Database not accessible)"
+        echo "-------------------------------------------------------------------------------"
+        printf "%-15s: %s\n" "ORACLE_SID" "${ORACLE_SID:-not set}"
+        printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
+        printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
+        printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
+        
+        # Try to get version from Oracle Home
+        local version=""
+        if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
+            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+        printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
+        
+        echo "-------------------------------------------------------------------------------"
+        echo ""
+        echo "Note: Database instance is not available."
+        echo "      This may be a dummy SID (startup flag 'D' in oratab) or instance not started."
+        echo ""
         return 1
     fi
     
@@ -280,7 +325,12 @@ show_database_status() {
     # Start output
     echo ""
     echo "-------------------------------------------------------------------------------"
-    printf "%-15s: %s\n" "INSTANCE_NAME" "$instance_name"
+    # Oracle Environment (show first)
+    printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
+    printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
+    printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
+    printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
+    echo "-------------------------------------------------------------------------------"
     
     # Query database info if MOUNTED or OPEN
     if [[ "$open_mode" != "STARTED" ]]; then
@@ -289,9 +339,14 @@ show_database_status() {
         
         if [[ -n "$db_info" ]]; then
             IFS='|' read -r db_name db_unique_name dbid log_mode db_role charset <<< "$db_info"
-            printf "%-15s: %s\n" "DB_NAME" "$db_name"
-            printf "%-15s: %s\n" "DB_UNIQUE_NAME" "$db_unique_name"
-            printf "%-15s: %s\n" "DBID" "$dbid"
+            # Database identity (compact: one or two lines)
+            # Show DB_NAME(DBID) and DB_UNIQUE_NAME on one line if they differ
+            if [[ "$db_name" == "$db_unique_name" ]]; then
+                printf "%-15s: %s (Instance: %s, DBID: %s)\n" "DATABASE" "$db_name" "$instance_name" "$dbid"
+            else
+                printf "%-15s: %s (DBID: %s)\n" "DB_NAME" "$db_name" "$dbid"
+                printf "%-15s: %s (Instance: %s)\n" "DB_UNIQUE_NAME" "$db_unique_name" "$instance_name"
+            fi
             
             # Get datafile size
             local df_size
@@ -318,9 +373,8 @@ show_database_status() {
     # Uptime
     printf "%-15s: %s\n" "UPTIME" "$(format_uptime "$startup_time")"
     
-    # Instance status
-    printf "%-15s: %s\n" "INSTANCE_STATUS" "$status"
-    printf "%-15s: %s\n" "OPEN_MODE" "$open_mode"
+    # Instance and open mode status (combined)
+    printf "%-15s: %s / %s\n" "STATUS" "$status" "$open_mode"
     
     # Session info if OPEN
     if [[ "$open_mode" == "OPEN" ]]; then
@@ -339,12 +393,6 @@ show_database_status() {
         printf "%-15s: %s\n" "LOG_MODE" "$log_mode"
         printf "%-15s: %s\n" "CHARACTERSET" "$charset"
     fi
-    
-    # Oracle Home and Version
-    printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
-    printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
-    printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
-    printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
     
     # PDB info (OPEN only)
     if [[ "$open_mode" == "OPEN" ]]; then

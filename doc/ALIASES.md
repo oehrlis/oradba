@@ -8,27 +8,46 @@ Oracle environment using `oraenv.sh`.
 
 ### SQL*Plus Aliases
 
-| Alias  | Description                                       | Command                |
-|--------|---------------------------------------------------|------------------------|
-| `sq`   | SQL*Plus as SYSDBA (with rlwrap if available)     | `sqlplus / as sysdba`  |
-| `sqh`  | SQL*Plus without login (with rlwrap if available) | `sqlplus /nolog`       |
-| `sqlp` | SQL*Plus as SYSOPER                               | `sqlplus / as sysoper` |
-| `sqls` | SQL*Plus as SYSDBA (alias for sq)                 | `sqlplus / as sysdba`  |
+| Alias      | Description                                   | Command                |
+|------------|-----------------------------------------------|------------------------|
+| `sq`       | SQL*Plus as SYSDBA (basic)                    | `sqlplus / as sysdba`  |
+| `sqh`      | SQL*Plus as SYSDBA (with rlwrap if available) | `rlwrap sqlplus / as sysdba` |
+| `sqlplush` | SQL*Plus as SYSDBA (with rlwrap if available) | `rlwrap sqlplus / as sysdba` |
+| `sqoh`     | SQL*Plus as SYSOPER (with rlwrap if available)| `rlwrap sqlplus / as sysoper` |
 
-### RMAN Alias
+### RMAN Aliases
 
-| Alias   | Description                 | Command         |
-|---------|-----------------------------|-----------------|
-| `rmans` | RMAN with target connection | `rman target /` |
+| Alias    | Description                                      | Command                    |
+|----------|--------------------------------------------------|----------------------------|
+| `rman`   | RMAN with target connection                      | `rman target /`            |
+| `rmanc`  | RMAN with target and catalog                     | `rman target / catalog`    |
+| `rmanh`  | RMAN with target (with rlwrap if available)      | `rlwrap rman target /`     |
+| `rmanch` | RMAN with target and catalog (with rlwrap)       | `rlwrap rman target / catalog` |
 
 ### Directory Navigation Aliases
+
+#### Oracle Directories
 
 | Alias  | Description                         | Target Directory                             |
 |--------|-------------------------------------|----------------------------------------------|
 | `cdob` | Change to ORACLE_BASE               | `$ORACLE_BASE`                               |
-| `cdoh` | Change to ORACLE_HOME               | `$ORACLE_HOME`                               |
+| `cdh`  | Change to ORACLE_HOME               | `$ORACLE_HOME`                               |
 | `cdbn` | Change to ORACLE_HOME/bin           | `$ORACLE_HOME/bin`                           |
-| `cdnw` | Change to TNS_ADMIN (network admin) | `$TNS_ADMIN` or `$ORACLE_HOME/network/admin` |
+| `cdn`  | Change to TNS_ADMIN parent          | `$TNS_ADMIN/..` or `$ORACLE_HOME/network`    |
+| `cdt`  | Change to TNS_ADMIN                 | `$TNS_ADMIN` or `$ORACLE_HOME/network/admin` |
+
+#### OraDBA Directories
+
+| Alias   | Description                    | Target Directory       |
+|---------|--------------------------------|------------------------|
+| `cdb`   | Change to OraDBA base          | `$ORADBA_PREFIX`       |
+| `cde`   | Change to OraDBA etc           | `$ORADBA_ETC`          |
+| `etc`   | Change to OraDBA etc           | `$ORADBA_ETC`          |
+| `cdr`   | Change to OraDBA rcv           | `$ORADBA_RCV`          |
+| `cdlog` | Change to OraDBA log           | `$ORADBA_LOG`          |
+| `log`   | Change to OraDBA log           | `$ORADBA_LOG`          |
+| `cdtmp` | Change to OraDBA tmp           | `$ORADBA_TMP`          |
+| `cdl`   | Change to ORACLE_BASE/local    | `$ORACLE_BASE/local`   |
 
 ### Database Operations Aliases
 
@@ -41,17 +60,65 @@ Oracle environment using `oraenv.sh`.
 | `oratab` | Display oratab file             | `cat /etc/oratab`             |
 | `tns`    | Display tnsnames.ora            | `cat $TNS_ADMIN/tnsnames.ora` |
 
+### VI Editor Aliases
+
+| Alias    | Description                   | Command                     |
+|----------|-------------------------------|-----------------------------||
+| `vio`    | Edit oratab file              | `vi /etc/oratab`            |
+| `vit`    | Edit tnsnames.ora             | `vi $TNS_ADMIN/tnsnames.ora`|
+| `vil`    | Edit listener.ora             | `vi $TNS_ADMIN/listener.ora`|
+| `visql`  | Edit sqlnet.ora               | `vi $TNS_ADMIN/sqlnet.ora`  |
+| `vildap` | Edit ldap.ora                 | `vi $TNS_ADMIN/ldap.ora`    |
+| `vis`    | Edit OraDBA standard config   | `vi $ORADBA_ETC/oradba_standard.conf` |
+| `vic`    | Edit OraDBA customer config   | `vi $ORADBA_ETC/oradba_customer.conf` |
+| `vii`    | Edit OraDBA SID config        | `vi $ORADBA_ETC/sid.$ORACLE_SID.conf` |
+| `via`    | Edit alert log                | `vi` alert log (dynamic)    |
+
+### Convenience Variables
+
+These short variables can be used with `cd` or other commands:
+
+| Variable | Description               | Value                        |
+|----------|---------------------------|------------------------------|
+| `$cdh`   | ORACLE_HOME path          | `$ORACLE_HOME`               |
+| `$cda`   | Admin directory path      | `$ORADBA_ORA_ADMIN_SID`      |
+| `$cdob`  | ORACLE_BASE path          | `$ORACLE_BASE`               |
+| `$cdl`   | Local directory path      | `$ORACLE_BASE/local`         |
+| `$cdd`   | Diagnostic dest path      | `$ORADBA_ORA_DIAG_SID`       |
+| `$etc`   | OraDBA etc path           | `$ORADBA_ETC`                |
+| `$log`   | OraDBA log path           | `$ORADBA_LOG`                |
+| `$cdn`   | Network admin parent path | `$TNS_ADMIN/..`              |
+
+**Example usage:**
+
+```bash
+cd $cdh/bin       # Navigate to ORACLE_HOME/bin
+ls -l $cda        # List admin directory
+vi $etc/oradba_customer.conf  # Edit customer config
+```
+
 ### SID-Specific Dynamic Aliases
 
 These aliases are generated dynamically based on the current `ORACLE_SID` and diagnostic_dest location:
 
-| Alias  | Description               | Command                      |
-|--------|---------------------------|------------------------------|
-| `taa`  | Tail alert log            | `tail -f <alert_log_path>`   |
-| `vaa`  | View alert log with less  | `less <alert_log_path>`      |
-| `cdda` | Change to diagnostic_dest | `cd <diagnostic_dest>`       |
-| `cdta` | Change to trace directory | `cd <diagnostic_dest>/trace` |
-| `cdaa` | Change to alert directory | `cd <diagnostic_dest>/alert` |
+| Alias  | Description               | Dynamic Path Example                                         |
+|--------|---------------------------|--------------------------------------------------------------|
+| `cda`  | Change to admin directory | `$ORADBA_ORA_ADMIN_SID` (e.g., `$ORACLE_BASE/admin/ORCL`)   |
+| `cdc`  | Change to control files   | `$ORADBA_ORA_CONTROL` (e.g., `$ORACLE_BASE/oradata/ORCL`)   |
+| `cdd`  | Change to diagnostic dest | `$ORADBA_ORA_DIAG_SID` (e.g., `$ORACLE_BASE/diag/rdbms/orcl/ORCL`) |
+| `cddt` | Change to trace directory | `diagnostic_dest/trace`                                      |
+| `cdda` | Change to alert directory | `diagnostic_dest/alert`                                      |
+| `taa`  | Tail alert log            | `tail -f` alert log (log.xml or alert_SID.log)               |
+| `vaa`  | View alert log with less  | `less` alert log (log.xml or alert_SID.log)                  |
+| `via`  | Edit alert log with vi    | `vi` alert log (log.xml or alert_SID.log)                    |
+
+### Help and Information
+
+| Alias   | Description                 | Command                              |
+|---------|-----------------------------|--------------------------------------|
+| `alih`  | Display alias help          | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt` |
+| `alig`  | List all current aliases    | `alias \| grep -E '^(cd\|sq\|rm\|via\|taa\|vaa)'` |
+| `version` | Show OraDBA version       | `oradba_version.sh`                  |
 
 ## Configuration
 
@@ -129,9 +196,13 @@ Oracle environment set successfully.
 $ type taa
 taa is aliased to `tail -f /u01/app/oracle/diag/rdbms/orcl/ORCL/alert/log.xml'
 
-$ cdta
+$ cddt  # Change to trace directory
 $ pwd
 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace
+
+$ cd $cdh/bin  # Using convenience variable
+$ pwd
+/u01/app/oracle/product/19.0.0/dbhome_1/bin
 ```
 
 ## Alias Categories

@@ -1,0 +1,107 @@
+-------------------------------------------------------------------------------
+                  ____                 _____  ____    _    
+                 / __ \  _ __   __ _  |  __ \| __ )  / \   
+                / / _` || \__| / _` | | |  | |  _ \ / _ \  
+               | | (_| || |   | (_| | | |__| | |_) / ___ \ 
+                \ \__,_||_|    \__,_| |_____/|____/_/   \_\
+                 \____/                                     
+
+ Online Help for OraDBA Aliases and Variables
+
+ GENERAL ALIASES
+ -------------------------------------------------------------------------------
+ alih            --> Online help for OraDBA aliases
+ version         --> Show OraDBA version information
+ c               --> Clear screen
+ m               --> More
+ l               --> List files (ls -al)
+ ll              --> List files in list mode (ls -alb)
+ lr              --> List files, order by ascending date (ls -ltr)
+ lsl             --> Show newest 20 files (ls -lrt | tail -n 20)
+ psg             --> Grep in current process list (ps -ef | grep)
+ alig            --> Alias grep (alias | grep -i)
+ save_cron       --> Save current crontab to file
+
+ SQL*PLUS ALIASES
+ -------------------------------------------------------------------------------
+ sq              --> SQL*Plus as SYSDBA
+ sqh             --> SQL*Plus as SYSDBA with rlwrap (history)
+ sqlplush        --> SQL*Plus /nolog with rlwrap
+ sqoh            --> SQL*Plus as SYSOPER with rlwrap
+
+ RMAN ALIASES
+ -------------------------------------------------------------------------------
+ rman            --> RMAN target /
+ rmanc           --> RMAN target / catalog
+ rmanh           --> RMAN target / with rlwrap (history)
+ rmanch          --> RMAN target / catalog with rlwrap
+ lsnr            --> lsnrctl command
+
+ DATABASE OPERATIONS
+ -------------------------------------------------------------------------------
+ sta             --> Show database status
+ lstat           --> Listener status
+ lstart          --> Start listener
+ lstop           --> Stop listener
+ pmon            --> Show running Oracle processes (grep pmon)
+ oratab          --> Display oratab file
+ tns             --> Display tnsnames.ora
+
+ DIRECTORY ALIASES - ORACLE
+ -------------------------------------------------------------------------------
+ cdh             --> cd $ORACLE_HOME
+ cdob            --> cd $ORACLE_BASE
+ cdbn            --> cd $ORACLE_HOME/bin
+ cdn             --> cd $TNS_ADMIN parent directory
+ cdt             --> cd $TNS_ADMIN
+
+ DIRECTORY ALIASES - ORADBA
+ -------------------------------------------------------------------------------
+ cdb             --> cd $ORADBA_PREFIX
+ cde             --> cd directory containing oratab
+ cdr             --> cd $ORACLE_HOME/rdbms/admin
+ cdlog           --> cd $ORADBA_LOG
+ cdtmp           --> cd $ORADBA_TEMP
+ cdl             --> cd $ORACLE_BASE/local
+ etc             --> cd $ORADBA_ETC
+ log             --> cd $ORADBA_LOG
+
+ DIRECTORY ALIASES - SID SPECIFIC (Dynamic)
+ -------------------------------------------------------------------------------
+ cda             --> cd $ORADBA_ORA_ADMIN_SID (admin directory)
+ cdc             --> cd $ORADBA_ORA_ADMIN_SID/create
+ cdd             --> cd $ORADBA_ORA_DIAG_SID (diagnostic_dest)
+ cdda            --> cd diagnostic_dest/alert
+ cddt            --> cd diagnostic_dest/trace
+
+ VI ALIASES - Edit specific files
+ -------------------------------------------------------------------------------
+ vio             --> vi oratab file
+ vit             --> vi tnsnames.ora
+ vil             --> vi listener.ora
+ visql           --> vi sqlnet.ora
+ vildap          --> vi ldap.ora
+ vis             --> vi sid.$ORACLE_SID.conf
+ vic             --> vi oradba_customer.conf
+ vii             --> vi init$ORACLE_SID.ora (pfile)
+ via             --> vi alert log (SID-specific, dynamic)
+
+ VI/VIEW/TAIL ALERT LOG (Dynamic, SID-specific)
+ -------------------------------------------------------------------------------
+ via             --> vi alert log
+ vaa             --> view alert log (less)
+ taa             --> tail alert log (tail -f)
+
+ CONVENIENCE VARIABLES
+ -------------------------------------------------------------------------------
+ cdh             --> $ORACLE_HOME
+ cda             --> $ORADBA_ORA_ADMIN_SID
+ cdob            --> $ORACLE_BASE
+ cdl             --> $ORACLE_BASE/local
+ cdd             --> $ORADBA_ORA_DIAG_SID
+ etc             --> $ORADBA_ETC
+ log             --> $ORADBA_LOG
+ cdn             --> $TNS_ADMIN parent
+
+ Full documentation: $ORADBA_PREFIX/doc/ALIASES.md
+-------------------------------------------------------------------------------

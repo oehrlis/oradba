@@ -99,6 +99,55 @@ parse_oratab() {
     grep -i "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
 }
 
+# Generate SID lists and aliases from oratab
+# Usage: generate_sid_lists [oratab_file]
+generate_sid_lists() {
+    local oratab_file="${1:-/etc/oratab}"
+    
+    # Check if oratab exists
+    if [[ ! -f "$oratab_file" ]]; then
+        log_debug "oratab file not found: $oratab_file"
+        export ORADBA_SIDLIST=""
+        export ORADBA_REALSIDLIST=""
+        return 1
+    fi
+    
+    local all_sids=""
+    local real_sids=""
+    
+    # Parse oratab, skip comments and empty lines
+    while IFS=: read -r sid oracle_home startup_flag; do
+        # Skip empty lines and comments
+        [[ -z "$sid" ]] && continue
+        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+        
+        # Skip ASM instances (start with +)
+        [[ "$sid" =~ ^\+ ]] && continue
+        
+        # Add to all SIDs list
+        all_sids="${all_sids}${all_sids:+ }${sid}"
+        
+        # Add to real SIDs list if startup flag is Y or N (not D for DGMGRL dummy)
+        if [[ "$startup_flag" =~ ^[YyNn] ]]; then
+            real_sids="${real_sids}${real_sids:+ }${sid}"
+        fi
+        
+        # Create alias for this SID (lowercase)
+        local sid_lower="${sid,,}"
+        alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${sid}"
+        
+    done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
+    
+    # Export the lists
+    export ORADBA_SIDLIST="$all_sids"
+    export ORADBA_REALSIDLIST="$real_sids"
+    
+    log_debug "ORADBA_SIDLIST: $ORADBA_SIDLIST"
+    log_debug "ORADBA_REALSIDLIST: $ORADBA_REALSIDLIST"
+    
+    return 0
+}
+
 # Export common Oracle environment variables
 export_oracle_base_env() {
     # Set common paths if not already set
@@ -152,6 +201,11 @@ load_config() {
     
     log_debug "Loading OraDBA configuration for SID: ${sid:-<none>}"
     
+    # Enable auto-export of all variables (set -a)
+    # This ensures all variables in config files are exported to environment
+    # even if 'export' keyword is forgotten
+    set -a
+    
     # 1. Load core configuration (required)
     local core_config="${config_dir}/oradba_core.conf"
     if [[ -f "${core_config}" ]]; then
@@ -160,6 +214,7 @@ load_config() {
         source "${core_config}"
     else
         log_error "Core configuration not found: ${core_config}"
+        set +a
         return 1
     fi
     
@@ -206,6 +261,9 @@ load_config() {
         fi
     fi
     
+    # Disable auto-export (set +a)
+    set +a
+    
     log_debug "Configuration loading complete"
     return 0
 }
@@ -219,39 +277,89 @@ create_sid_config() {
     
     log_info "Creating SID-specific configuration: ${sid_config}"
     
-    # Query database for metadata
-    local db_info
-    db_info=$(sqlplus -S / as sysdba <<EOF 2>/dev/null
-SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF TRIMSPOOL ON
+    # Initialize variables with defaults
+    local db_name="${sid}"
+    local db_unique_name="${sid}"
+    local dbid=""
+    local db_role="PRIMARY"
+    local open_mode="READ WRITE"
+    local diagnostic_dest="${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}"
+    
+    # Check if database is accessible before querying
+    local db_accessible=false
+    if command -v sqlplus >/dev/null 2>&1; then
+        local conn_test
+        conn_test=$(sqlplus -S / as sysdba <<'EOF' 2>&1
+SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
+SELECT 'OK' FROM dual;
+EXIT;
+EOF
+        )
+        if [[ "${conn_test}" == "OK" ]]; then
+            db_accessible=true
+        fi
+    fi
+    
+    # Query database for metadata only if accessible
+    if [[ "${db_accessible}" == "true" ]]; then
+        local db_info
+        db_info=$(sqlplus -S / as sysdba 2>&1 <<'EOF' | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | grep -v "^Help:" | grep -v "^Usage:" | grep -v "^where" | tr -d '\n'
+SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+WHENEVER OSERROR EXIT SQL.SQLCODE
 SELECT 
     name || '|' || 
     db_unique_name || '|' || 
     dbid || '|' || 
     database_role || '|' || 
     open_mode
-FROM v\$database;
+FROM v$database;
 EXIT;
 EOF
-    )
-    
-    local diagnostic_dest
-    diagnostic_dest=$(sqlplus -S / as sysdba <<EOF 2>/dev/null
-SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF TRIMSPOOL ON
-SELECT value FROM v\$parameter WHERE name = 'diagnostic_dest';
+        )
+        
+        local diag_dest_query
+        diag_dest_query=$(sqlplus -S / as sysdba <<'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | tr -d '\n'
+SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
+SELECT value FROM v$parameter WHERE name = 'diagnostic_dest';
 EXIT;
 EOF
-    )
-    
-    # Parse database info
-    IFS='|' read -r db_name db_unique_name dbid db_role open_mode <<< "${db_info}"
-    
-    # Clean up values
-    db_name=$(echo "${db_name}" | tr -d '[:space:]')
-    db_unique_name=$(echo "${db_unique_name}" | tr -d '[:space:]')
-    dbid=$(echo "${dbid}" | tr -d '[:space:]')
-    db_role=$(echo "${db_role}" | tr -d '[:space:]')
-    open_mode=$(echo "${open_mode}" | tr -d '[:space:]')
-    diagnostic_dest=$(echo "${diagnostic_dest}" | tr -d '[:space:]')
+        )
+        
+        # Parse database info only if query succeeded (contains pipe separator)
+        if [[ "${db_info}" == *"|"* ]]; then
+            IFS='|' read -r db_name db_unique_name dbid db_role open_mode <<< "${db_info}"
+            # Clean up values
+            db_name=$(echo "${db_name}" | tr -d '[:space:]')
+            db_unique_name=$(echo "${db_unique_name}" | tr -d '[:space:]')
+            dbid=$(echo "${dbid}" | tr -d '[:space:]')
+            db_role=$(echo "${db_role}" | tr -d '[:space:]')
+            open_mode=$(echo "${open_mode}" | tr -d '[:space:]')
+        fi
+        
+        # Update diagnostic_dest if query succeeded (check for errors and minimum length)
+        if [[ -n "${diag_dest_query}" ]] && [[ "${diag_dest_query}" != *"ERROR"* ]] && [[ "${diag_dest_query}" != *"ORA-"* ]] && [[ "${diag_dest_query}" != *"SP2-"* ]] && [[ ${#diag_dest_query} -gt 5 ]]; then
+            diagnostic_dest=$(echo "${diag_dest_query}" | tr -d '[:space:]')
+        fi
+    else
+        log_warn "Database not accessible, using default values for SID configuration"
+    fi
     
     # Create configuration file
     cat > "${sid_config}" <<EOF
@@ -266,26 +374,60 @@ EOF
 # ------------------------------------------------------------------------------
 
 # Database Identity (from v\$database)
-ORADBA_DB_NAME="${db_name:-${sid}}"
-ORADBA_DB_UNIQUE_NAME="${db_unique_name:-${sid}}"
+# Only set if successfully retrieved from database
+EOF
+
+    # Only add database metadata if successfully retrieved (no errors)
+    if [[ -n "${db_name}" ]] && [[ "${db_name}" != "ERROR:"* ]] && [[ "${db_name}" != *"ORA-"* ]]; then
+        cat >> "${sid_config}" <<EOF
+ORADBA_DB_NAME="${db_name}"
+EOF
+    fi
+    
+    if [[ -n "${db_unique_name}" ]] && [[ "${db_unique_name}" != "ERROR:"* ]] && [[ "${db_unique_name}" != *"ORA-"* ]]; then
+        cat >> "${sid_config}" <<EOF
+ORADBA_DB_UNIQUE_NAME="${db_unique_name}"
+EOF
+    fi
+    
+    if [[ -n "${dbid}" ]] && [[ "${dbid}" != "ERROR:"* ]] && [[ "${dbid}" != *"ORA-"* ]]; then
+        cat >> "${sid_config}" <<EOF
 ORADBA_DBID="${dbid}"
-ORADBA_DB_ROLE="${db_role:-PRIMARY}"
-ORADBA_DB_OPEN_MODE="${open_mode:-READ WRITE}"
+EOF
+    fi
+    
+    # Only set role/mode if not default values (to keep config clean)
+    if [[ -n "${db_role}" ]] && [[ "${db_role}" != "PRIMARY" ]] && [[ "${db_role}" != "ERROR:"* ]]; then
+        cat >> "${sid_config}" <<EOF
+ORADBA_DB_ROLE="${db_role}"
+EOF
+    fi
+    
+    if [[ -n "${open_mode}" ]] && [[ "${open_mode}" != "READ WRITE" ]] && [[ "${open_mode}" != "READWRITE" ]] && [[ "${open_mode}" != "ERROR:"* ]]; then
+        cat >> "${sid_config}" <<EOF
+ORADBA_DB_OPEN_MODE="${open_mode}"
+EOF
+    fi
+    
+    # Only set diagnostic dest if successfully retrieved
+    if [[ -n "${diagnostic_dest}" ]] && [[ "${diagnostic_dest}" != "ERROR:"* ]] && [[ "${diagnostic_dest}" != *"ORA-"* ]] && [[ "${diagnostic_dest}" != *"SP2-"* ]]; then
+        cat >> "${sid_config}" <<EOF
 
 # Diagnostic destination (from v\$parameter)
-ORADBA_DIAGNOSTIC_DEST="${diagnostic_dest:-${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}}"
-
-# Admin and diagnostic directories (for compatibility aliases)
-ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${sid}"
-ORADBA_ORA_DIAG_SID="\${ORADBA_DIAGNOSTIC_DEST}"
+ORADBA_DIAGNOSTIC_DEST="${diagnostic_dest}"
+EOF
+    fi
+    
+    # Add NLS and backup settings
+    cat >> "${sid_config}" <<EOF
 
 # NLS Settings (customize if needed)
 # NLS_LANG="${NLS_LANG}"
 # NLS_DATE_FORMAT="${NLS_DATE_FORMAT}"
 
-# Backup settings
-ORADBA_DB_BACKUP_DIR="${BACKUP_DIR}/${sid}"
-ORADBA_BACKUP_RETENTION=7
+# Backup settings (customize as needed)
+# ORADBA_DB_BACKUP_DIR="${ORACLE_BASE}/backup/${sid}"
+# ORADBA_BACKUP_RETENTION=7
 EOF
     
     if [[ -f "${sid_config}" ]]; then

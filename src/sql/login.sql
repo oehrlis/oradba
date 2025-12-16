@@ -19,19 +19,18 @@ SET PAGESIZE 50000
 SET LINESIZE 200
 SET LONG 20000
 SET LONGCHUNKSIZE 20000
-SET TIMING ON
-SET TIME ON
-SET SQLPROMPT "_USER'@'_CONNECT_IDENTIFIER> "
+
+-- Timing and prompts (commented out to avoid polluting automated queries)
+-- Uncomment these for interactive sessions:
+-- SET TIMING ON
+-- SET TIME ON
+-- SET SQLPROMPT "_USER'@'_CONNECT_IDENTIFIER> "
 
 -- Set editor
 DEFINE _EDITOR=vi
 
 -- Set error handling
 WHENEVER SQLERROR CONTINUE
-
--- Display connection info
-PROMPT Connected to Oracle Database
-PROMPT
 
 -- Column formatting for common queries
 COLUMN owner FORMAT A30
