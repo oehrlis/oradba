@@ -149,15 +149,8 @@ query_memory_usage() {
     fi
     
     sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 TRIMSPOOL ON
-SELECT 
-    ROUND(
-        (SELECT SUM(value)/1024/1024/1024 FROM v$sga), 2
-    ) || '|' ||
-    ROUND(
-        (SELECT value/1024/1024/1024 FROM v$pgastat WHERE name = 'total PGA allocated'), 2
-    )
-FROM dual;
+SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
+SELECT ROUND((SELECT SUM(value)/1024/1024/1024 FROM v$sga), 2) || '|' || ROUND((SELECT value/1024/1024/1024 FROM v$pgastat WHERE name = 'total PGA allocated'), 2) FROM dual;
 EXIT;
 EOF
 }
@@ -203,9 +196,18 @@ query_pdb_info() {
     
     sqlplus -s / as sysdba << 'EOF' 2>/dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON
-SELECT LISTAGG(name || '(' || open_mode || ')', ', ') WITHIN GROUP (ORDER BY name)
-FROM v$pdbs
-WHERE name != 'PDB$SEED' AND open_mode != 'MOUNTED';
+SELECT LISTAGG(
+    name || '(' || 
+    CASE open_mode 
+        WHEN 'READ WRITE' THEN 'RW'
+        WHEN 'READ ONLY' THEN 'RO'
+        WHEN 'MOUNTED' THEN 'MO'
+        WHEN 'MIGRATE' THEN 'MI'
+        ELSE SUBSTR(open_mode, 1, 2)
+    END || ')', 
+    ', '
+) WITHIN GROUP (ORDER BY name)
+FROM v$pdbs;
 EXIT;
 EOF
 }
