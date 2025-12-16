@@ -25,22 +25,24 @@
  SQL*PLUS ALIASES
  -------------------------------------------------------------------------------
  sq              --> SQL*Plus as SYSDBA
- sqh             --> SQL*Plus as SYSDBA with rlwrap (history)
- sqlplush        --> SQL*Plus /nolog with rlwrap
- sqoh            --> SQL*Plus as SYSOPER with rlwrap
+ sqh             --> SQL*Plus as SYSDBA with rlwrap (history + tab completion)
+ sqlplush        --> SQL*Plus /nolog with rlwrap (history + tab completion)
+ sqoh            --> SQL*Plus as SYSOPER with rlwrap (history + tab completion)
 
  RMAN ALIASES
  -------------------------------------------------------------------------------
  rman            --> RMAN target /
  rmanc           --> RMAN target / catalog
- rmanh           --> RMAN target / with rlwrap (history)
+ rmanh           --> RMAN target / with rlwrap (history + tab completion)
  rmanch          --> RMAN target / catalog with rlwrap
  lsnr            --> lsnrctl command
- adrcih          --> ADRCI with rlwrap (history)
+ lsnrh           --> lsnrctl with rlwrap (history + tab completion)
+ adrcih          --> ADRCI with rlwrap (history + tab completion)
 
  DATABASE OPERATIONS
  -------------------------------------------------------------------------------
  sta             --> Show database status
+ oraup           --> Show Oracle environment overview (all DBs/listeners)
  lstat           --> Listener status
  lstart          --> Start listener
  lstop           --> Stop listener

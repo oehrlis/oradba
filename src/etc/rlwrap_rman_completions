@@ -1,0 +1,187 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: rlwrap_rman_completions
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.17
+# Revision...: 0.5.1
+# Purpose....: rlwrap completion file for RMAN commands
+# Notes......: Used by rlwrap for tab completion in RMAN sessions
+# Usage......: rlwrap -f rlwrap_rman_completions rman
+# ------------------------------------------------------------------------------
+
+# RMAN Commands
+ADVISE
+ALLOCATE
+ALTER
+BACKUP
+BLOCKRECOVER
+CATALOG
+CHANGE
+CONFIGURE
+CONNECT
+CONVERT
+COPY
+CREATE
+CROSSCHECK
+DELETE
+DROP
+DUPLICATE
+EXECUTE
+EXIT
+FLASHBACK
+GRANT
+HOST
+IMPORT
+LIST
+MOUNT
+OPEN
+PRINT
+QUIT
+RECOVER
+REGISTER
+RELEASE
+REMAN
+RENORMALIZE
+REPAIR
+REPLACE
+REPORT
+RESET
+RESTORE
+RESYNC
+REVOKE
+RUN
+SEND
+SET
+SHOW
+SHUTDOWN
+SPOOL
+SQL
+STARTUP
+SWITCH
+TRANSPORT
+UNREGISTER
+UPGRADE
+VALIDATE
+
+# RMAN Keywords
+ARCHIVELOG
+AS
+AUXILIARY
+AUTOBACKUP
+AUTOMATIC
+BACKUP
+BACKUPSET
+BLOCK
+CHANNEL
+COMPRESSION
+CONTROLFILE
+COPY
+DATABASE
+DATAFILE
+DAY
+DELETE
+DEVICE
+DISK
+DUPLEX
+DURATION
+EXCLUDE
+EXPIRED
+FILESPERSET
+FORCE
+FORMAT
+FROM
+FULL
+GENERATED
+HIGH
+HOUR
+IMAGE
+INCLUDE
+INCREMENTAL
+KEEP
+LEVEL
+LIKE
+LOG
+LOGFILE
+LOGS
+LOW
+MAXSETSIZE
+MEDIUM
+MINUTE
+MOUNTED
+NOAUDIT
+NOCATALOG
+NOEXCLUDE
+NOLOGS
+NOMOUNT
+NOREDO
+OBSOLETE
+OF
+OFFLINE
+ONLY
+OPEN
+OPTIMIZATION
+PARAMETER
+PFILE
+PLUS
+PLUGGABLE
+PREVIEW
+RECOVERY
+REDUNDANCY
+RETENTION
+REUSE
+SCRIPT
+SECTION
+SIZE
+SKIP
+SPFILE
+STANDBY
+TABLESPACE
+TAG
+TARGET
+TEMPORARY
+TIMES
+TO
+TYPE
+UNAVAILABLE
+UNDO
+UNTIL
+VALIDATE
+WINDOW
+
+# Common Patterns
+target
+catalog
+auxiliary
+nocatalog
+cmdfile
+log
+msglog
+send
+debug
+@
+
+# Database States
+NOMOUNT
+MOUNT
+OPEN
+
+# Backup Types
+FULL
+INCREMENTAL
+LEVEL 0
+LEVEL 1
+AS COMPRESSED BACKUPSET
+AS COPY
+
+# Common Clauses
+PLUS ARCHIVELOG
+DELETE INPUT
+FORMAT
+TAG
+KEEP FOREVER
+RESTORE POINT
+UNTIL TIME
+UNTIL SCN
+UNTIL SEQUENCE

@@ -1,0 +1,87 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: rlwrap_lsnrctl_completions
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.17
+# Revision...: 0.5.1
+# Purpose....: rlwrap completion file for lsnrctl commands
+# Notes......: Used by rlwrap for tab completion in lsnrctl sessions
+# Usage......: rlwrap -f rlwrap_lsnrctl_completions lsnrctl
+# ------------------------------------------------------------------------------
+
+# Listener Control Commands
+start
+stop
+status
+services
+version
+reload
+save_config
+trace
+spawn
+change_password
+quit
+exit
+set
+show
+
+# SET Commands
+current_listener
+trc_file
+trc_directory
+trc_level
+log_file
+log_directory
+log_status
+connect_timeout
+startup_waittime
+use_plugandplay
+save_config_on_stop
+inbound_connect_timeout
+password
+rawmode
+displaymode
+
+# SHOW Commands
+current_listener
+trc_file
+trc_directory
+trc_level
+log_file
+log_directory
+log_status
+connect_timeout
+startup_waittime
+use_plugandplay
+save_config_on_stop
+inbound_connect_timeout
+rawmode
+displaymode
+snmp_visible
+
+# Trace Levels
+OFF
+USER
+ADMIN
+SUPPORT
+
+# Log Status
+ON
+OFF
+
+# Common Listener Names
+LISTENER
+LISTENER_SCAN1
+LISTENER_SCAN2
+LISTENER_SCAN3
+
+# Display Modes
+NORMAL
+COMPACT
+VERBOSE
+
+# Raw Modes
+ON
+OFF

@@ -77,14 +77,18 @@ Command Interpreter (ADRCI), making it easier to navigate and query Oracle diagn
 
 ### Database Operations Aliases
 
-| Alias    | Description                     | Command                       |
-|----------|---------------------------------|-------------------------------|
-| `lstat`  | Listener status                 | `lsnrctl status`              |
-| `lstart` | Start listener                  | `lsnrctl start`               |
-| `lstop`  | Stop listener                   | `lsnrctl stop`                |
-| `pmon`   | Show running database processes | `ps -ef \| grep pmon`         |
-| `oratab` | Display oratab file             | `cat /etc/oratab`             |
-| `tns`    | Display tnsnames.ora            | `cat $TNS_ADMIN/tnsnames.ora` |
+| Alias    | Description                             | Command                       |
+|----------|-----------------------------------------|-------------------------------|
+| `oraup`  | Oracle environment overview             | `oraup.sh`                    |
+| `lstat`  | Listener status                         | `lsnrctl status`              |
+| `lstart` | Start listener                          | `lsnrctl start`               |
+| `lstop`  | Stop listener                           | `lsnrctl stop`                |
+| `pmon`   | Show running database processes         | `ps -ef \| grep pmon`         |
+| `oratab` | Display oratab file                     | `cat /etc/oratab`             |
+| `tns`    | Display tnsnames.ora                    | `cat $TNS_ADMIN/tnsnames.ora` |
+
+**Note:** `oraup` provides a comprehensive overview of all Oracle databases, listeners, and
+processes on the system. It shows status, open mode, Oracle homes, and startup flags from oratab.
 
 ### VI Editor Aliases
 
@@ -211,13 +215,20 @@ alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'
 
 ## rlwrap Integration
 
-OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) with SQL*Plus if it's available, providing:
+OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) with Oracle command-line tools if it's available, providing:
 
 - Command history (up/down arrows)
-- Tab completion
+- Tab completion with tool-specific keywords
 - Editing capabilities
+- Password filtering (when `ORADBA_RLWRAP_FILTER=true`)
 
-If rlwrap is not installed, the aliases fall back to standard SQL*Plus without these features.
+OraDBA includes completion files for enhanced tab completion:
+- **SQL*Plus** (`sqh`, `sqlplush`, `sqoh`): SQL commands, SET/SHOW parameters, system views, privileges
+- **RMAN** (`rmanh`, `rmanch`): Backup/restore commands, keywords, connection types
+- **lsnrctl** (`lsnrh`): Listener commands, parameters, trace levels
+- **ADRCI** (`adrcih`): Diagnostic commands, show/set/ips operations
+
+If rlwrap is not installed, the aliases fall back to standard behavior without these features.
 
 ### Installing rlwrap
 

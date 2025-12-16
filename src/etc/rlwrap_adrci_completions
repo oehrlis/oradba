@@ -1,0 +1,136 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: rlwrap_adrci_completions
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.17
+# Revision...: 0.5.1
+# Purpose....: rlwrap completion file for ADRCI commands
+# Notes......: Used by rlwrap for tab completion in ADRCI sessions
+# Usage......: rlwrap -f rlwrap_adrci_completions adrci
+# ------------------------------------------------------------------------------
+
+# ADRCI Commands
+show
+set
+create
+purge
+ips
+exit
+quit
+help
+spool
+
+# SHOW Commands
+show alert
+show homes
+show base
+show tracefile
+show incident
+show problem
+show report
+show log
+show control
+
+# SET Commands
+set base
+set homepath
+set browser
+set editor
+set echo
+set termout
+set control
+
+# CREATE Commands
+create report
+create package
+
+# PURGE Commands
+purge
+
+# IPS Commands
+ips create package
+ips generate package
+ips add
+ips remove
+ips show
+ips delete
+
+# Common Parameters
+-a
+-p
+-l
+-t
+-all
+-alert
+-trace
+-incident
+-problem
+last
+minute
+hour
+day
+week
+month
+
+# Product Types
+diag
+rdbms
+asm
+crs
+has
+listener
+tnslsnr
+
+# Alert Levels
+CRITICAL
+ERROR
+WARNING
+NOTIFICATION
+TRACE
+
+# Incident States
+OPEN
+CLOSED
+
+# File Types
+alert
+trace
+cdump
+incident
+sweep
+hm
+ir
+
+# Common Directories
+ALERT
+TRACE
+CDUMP
+INCIDENT
+SWEEP
+HM
+IR
+METADATA
+STAGE
+
+# Report Types
+HM_RUN
+PROBLEM
+INCIDENT
+
+# Package Operations
+DESCRIBE
+FINALIZE
+INCREMENT
+GET
+UNPACK
+
+# Time Keywords
+LAST
+MINUTE
+HOUR
+DAY
+WEEK
+MONTH
+YEAR

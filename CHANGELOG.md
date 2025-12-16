@@ -34,6 +34,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports password filtering when `ORADBA_RLWRAP_FILTER=true`
   - Falls back to standard adrci if rlwrap unavailable
 
+- **oraup utility**: Comprehensive Oracle environment overview
+  - New `oraup.sh` script and `oraup` alias
+  - Shows all Oracle databases from oratab with status and open mode
+  - Displays listener status for all Oracle homes
+  - Shows startup flags (Y/N/D) and dummy entries
+  - Provides system-wide Oracle process overview
+  - Formatted table output similar to database status displays
+
+- **rlwrap completion files**: Tab completion support for Oracle tools
+  - New completion files: `rlwrap_sqlplus_completions`, `rlwrap_rman_completions`,
+    `rlwrap_lsnrctl_completions`, `rlwrap_adrci_completions`
+  - 650+ keywords covering commands, parameters, and common patterns
+  - Integrated with rlwrap for enhanced command-line experience
+  - Automatic tab completion in interactive sessions (sqh, rmanh, lsnrh, adrcih)
+  - SQL*Plus: SQL commands, SET/SHOW parameters, system views, privileges
+  - RMAN: Backup/restore commands, keywords, connection types
+  - lsnrctl: Listener commands, SET/SHOW parameters, trace levels
+  - ADRCI: Diagnostic commands, show/set/ips operations, product types
+
 ## [0.5.1] - 2025-12-16
 
 ### Added
