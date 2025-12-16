@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **sessionsql dynamic linesize**: SQL*Plus session configurator with automatic terminal width detection
+  - Detects terminal dimensions using `tput cols` and `tput lines`
+  - Automatically sets LINESIZE based on terminal width
+  - Automatically sets PAGESIZE based on terminal height
+  - Wrapper script: `sessionsql.sh` for easy terminal-aware SQL*Plus sessions
+  - SQL script: `sessionsql.sql` for manual configuration
+  - Alias: `sessionsql` for quick access
+  - Falls back to sensible defaults (120 columns, 50 lines) if detection fails
+
 ## [0.5.1] - 2025-12-16
 
 ### Added

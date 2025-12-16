@@ -8,16 +8,20 @@ Oracle environment using `oraenv.sh`.
 
 ### SQL*Plus Aliases
 
-| Alias      | Description                                    | Command                       |
-|------------|------------------------------------------------|-------------------------------|
-| `sq`       | SQL*Plus as SYSDBA (basic)                     | `sqlplus / as sysdba`         |
-| `sqh`      | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
-| `sqlplush` | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
-| `sqoh`     | SQL*Plus as SYSOPER (with rlwrap if available) | `rlwrap sqlplus / as sysoper` |
+| Alias        | Description                                    | Command                       |
+|--------------|------------------------------------------------|-------------------------------|
+| `sq`         | SQL*Plus as SYSDBA (basic)                     | `sqlplus / as sysdba`         |
+| `sqh`        | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
+| `sqlplush`   | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
+| `sqoh`       | SQL*Plus as SYSOPER (with rlwrap if available) | `rlwrap sqlplus / as sysoper` |
+| `sessionsql` | SQL*Plus with dynamic terminal width detection | `sessionsql.sh`               |
 
 **Note:** When `ORADBA_RLWRAP_FILTER=true`, aliases with rlwrap (sqh, sqlplush, sqoh)
 use password filtering to hide passwords from command history. See [RLWRAP_FILTER.md](RLWRAP_FILTER.md)
 for details.
+
+**sessionsql** automatically detects your terminal width using `tput` and configures SQL*Plus
+LINESIZE and PAGESIZE accordingly. This ensures optimal output formatting for your current terminal size.
 
 ### RMAN Aliases
 

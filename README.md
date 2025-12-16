@@ -25,6 +25,7 @@ A comprehensive toolset for Oracle Database administration and operations, desig
   - `sid.<SID>.conf`: Auto-created per-SID configs with database metadata
 - **Comprehensive Alias System** (~50 aliases):
   - SQL*Plus, RMAN, directory navigation, VI editors, alert log access
+  - `sessionsql` - SQL*Plus with automatic terminal width detection
   - SID lists: `ORADBA_SIDLIST`, `ORADBA_REALSIDLIST`
   - PDB aliases: Auto-generated for CDB environments (configurable with ORADBA_NO_PDB_ALIASES)
   - rlwrap integration with graceful fallback
