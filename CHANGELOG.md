@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Alert log aliases**: Added fallback aliases for `taa`, `via`, and `vaa`
+  - Fixed issue where aliases were not created if diagnostic directories didn't exist yet
+  - Added static aliases based on ORACLE_BASE and ORACLE_SID in oradba_standard.conf
+  - Dynamic aliases from aliases.sh will still override these if diagnostic_dest exists
+  - Also includes fallback aliases for `cdd`, `cddt`, `cdda` directory navigation
+
 ### Added
 
 - **sessionsql dynamic linesize**: SQL*Plus session configurator with automatic terminal width detection
