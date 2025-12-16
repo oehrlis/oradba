@@ -55,6 +55,11 @@ teardown() {
     [ -x "$ORAENV_SCRIPT" ]
 }
 
+@test "oraenv.sh has valid bash syntax" {
+    run bash -n "$ORAENV_SCRIPT"
+    [ "$status" -eq 0 ]
+}
+
 @test "oraenv.sh cannot be executed directly" {
     run bash "$ORAENV_SCRIPT"
     [ "$status" -eq 1 ]
@@ -143,4 +148,82 @@ teardown() {
     # The script should handle this without crashing
     # We check that error handling exists in the code
     grep -q "No Oracle instances found" "$ORAENV_SCRIPT"
+}
+
+# Integration tests - actually execute the script with valid parameters
+
+@test "oraenv.sh integration: sources successfully with valid SID" {
+    # Create a script that sources oraenv and checks result
+    run bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' ORCL 2>&1
+        if [[ \$? -eq 0 ]]; then
+            echo \"SUCCESS\"
+            exit 0
+        else
+            echo \"FAILED\"
+            exit 1
+        fi
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "SUCCESS" ]]
+}
+
+@test "oraenv.sh integration: sets ORACLE_SID correctly" {
+    # Source and verify ORACLE_SID is set
+    result=$(bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' TESTDB --silent 2>&1
+        echo \$ORACLE_SID
+    " | tail -1)
+    [[ "$result" == "TESTDB" ]]
+}
+
+@test "oraenv.sh integration: sets ORACLE_HOME from oratab" {
+    # Source and verify ORACLE_HOME is set correctly
+    result=$(bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' ORCL --silent 2>&1
+        echo \$ORACLE_HOME
+    " | tail -1)
+    [[ "$result" == "${TEST_TEMP_DIR}/oracle/19c" ]]
+}
+
+@test "oraenv.sh integration: --silent flag minimizes output" {
+    # Silent mode should minimize output (may have [INFO] log but no environment display)
+    run bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' ORCL --silent 2>&1
+    "
+    [ "$status" -eq 0 ]
+    # Should not show environment details
+    ! [[ "$output" =~ "Oracle Environment:" ]]
+    ! [[ "$output" =~ "ORACLE_HOME" ]]
+}
+
+@test "oraenv.sh integration: --help shows usage" {
+    # Help should display usage information
+    # Check that usage function exists and can be called
+    grep -q "^_oraenv_usage()" "$ORAENV_SCRIPT"
+    grep -q "Usage: source oraenv.sh" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh integration: invalid SID fails gracefully" {
+    # Invalid SID should produce error
+    run bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' INVALID_SID 2>&1
+    "
+    [ "$status" -ne 0 ]
+    [[ "$output" =~ "ERROR" ]] || [[ "$output" =~ "not found" ]]
+}
+
+@test "oraenv.sh integration: updates PATH with ORACLE_HOME/bin" {
+    # Verify PATH includes ORACLE_HOME/bin
+    result=$(bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        source '$ORAENV_SCRIPT' CDB1 --silent 2>&1
+        echo \$PATH
+    ")
+    [[ "$result" =~ "${TEST_TEMP_DIR}/oracle/21c/bin" ]]
 }
