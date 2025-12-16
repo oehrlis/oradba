@@ -46,6 +46,7 @@ if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
 fi
 
 # Global variables - declared at script level so they persist across functions
+# shellcheck disable=SC2034  # Used across functions in _oraenv_parse_args and _oraenv_main
 SHOW_ENV=true
 SHOW_STATUS=false
 ORAENV_STATUS_ONLY=false
@@ -60,11 +61,15 @@ _oraenv_parse_args() {
     # Detect if running in interactive mode (with TTY)
     if [[ -t 0 ]]; then
         ORAENV_INTERACTIVE=true
+        # shellcheck disable=SC2034  # Global variables used in _oraenv_main
         SHOW_STATUS=true  # Default to showing status in interactive mode
+        # shellcheck disable=SC2034  # Global variables used in _oraenv_main
         SHOW_ENV=true     # Show environment info
     else
         ORAENV_INTERACTIVE=false
+        # shellcheck disable=SC2034  # Global variables used in _oraenv_main
         SHOW_STATUS=false  # Default to silent in non-interactive mode
+        # shellcheck disable=SC2034  # Global variables used in _oraenv_main
         SHOW_ENV=false
     fi
     
@@ -79,13 +84,18 @@ _oraenv_parse_args() {
                 ;;
             -s | --silent)
                 ORAENV_INTERACTIVE=false
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 SHOW_STATUS=false
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 SHOW_ENV=false
                 shift
                 ;;
             --status)
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 SHOW_STATUS=true
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 SHOW_ENV=false
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 ORAENV_STATUS_ONLY=true
                 shift
                 ;;
