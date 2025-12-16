@@ -102,12 +102,12 @@ jobs:
           sudo dist/oradba_install.sh --prefix /tmp/oradba-test
           
           # Verify installation
-          if [ ! -d "/tmp/oradba-test/src/bin" ]; then
-            echo "Installation failed: src/bin not found"
+          if [ ! -d "/tmp/oradba-test/bin" ]; then
+            echo "Installation failed: /tmp/oradba-test/bin not found"
             exit 1
           fi
           
-          if [ ! -f "/tmp/oradba-test/src/bin/oraenv.sh" ]; then
+          if [ ! -f "/tmp/oradba-test/bin/oraenv.sh" ]; then
             echo "Installation failed: oraenv.sh not found"
             exit 1
           fi
