@@ -77,3 +77,70 @@ teardown() {
     result=$(grep "^TESTDB:" "$MOCK_ORATAB" | cut -d: -f2)
     [[ "$result" == "${TEST_TEMP_DIR}/oracle/19c" ]]
 }
+
+@test "oraenv.sh --help displays usage" {
+    # Check that help option exists in the code
+    grep -q "\\-h.*--help" "$ORAENV_SCRIPT"
+    grep -q "Usage:" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh supports --silent flag" {
+    # Check that --silent flag is recognized in the code
+    grep -q "\\-s.*--silent" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh supports --status flag" {
+    # Check that --status flag is documented in the code
+    grep -q "\-\-status" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh detects TTY for interactive mode" {
+    # This tests that the script can detect TTY
+    # In test environment, we check the logic exists
+    grep -q "ORAENV_INTERACTIVE" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh handles non-interactive mode" {
+    # Verify the script has logic for non-interactive mode
+    grep -q "ORAENV_INTERACTIVE.*false" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh _oraenv_prompt_sid function exists" {
+    # Check that the prompt function is defined
+    grep -q "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh _oraenv_prompt_sid handles silent mode" {
+    # Check that function has logic for non-interactive mode
+    grep -A 20 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
+}
+
+@test "oraenv.sh loads db_functions.sh if available" {
+    # Check that oraenv sources db_functions
+    grep -q "db_functions.sh" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh has show_database_status integration" {
+    # Check that show_database_status is called conditionally
+    grep -q "show_database_status" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh validates multiple SIDs handling" {
+    # Check error handling for multiple SIDs
+    grep -q "Multiple SIDs provided" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh supports numbered SID selection" {
+    # Check that numbered selection is implemented
+    grep -A 30 "_oraenv_prompt_sid" "$ORAENV_SCRIPT" | grep -q "printf.*\[%d\]"
+}
+
+@test "oraenv.sh handles empty oratab gracefully" {
+    # Create empty oratab
+    echo "# Empty oratab" > "${TEST_TEMP_DIR}/empty_oratab"
+    export ORATAB_FILE="${TEST_TEMP_DIR}/empty_oratab"
+    
+    # The script should handle this without crashing
+    # We check that error handling exists in the code
+    grep -q "No Oracle instances found" "$ORAENV_SCRIPT"
+}

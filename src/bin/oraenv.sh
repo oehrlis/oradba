@@ -40,17 +40,40 @@ else
     return 1
 fi
 
+# Source database functions library (optional, only if available)
+if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"
+fi
+
 # Parse command line arguments
 _oraenv_parse_args() {
     local requested_sid=""
     # shellcheck disable=SC2034  # Reserved for future use
     local force_mode=false
+    
+    # Detect if running in interactive mode (with TTY)
+    if [[ -t 0 ]]; then
+        ORAENV_INTERACTIVE=true
+        SHOW_STATUS=true  # Default to showing status in interactive mode
+    else
+        ORAENV_INTERACTIVE=false
+        SHOW_STATUS=false  # Default to silent in non-interactive mode
+    fi
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -f | --force)
                 # shellcheck disable=SC2034  # Reserved for future use
                 force_mode=true
+                shift
+                ;;
+            -s | --silent)
+                ORAENV_INTERACTIVE=false
+                SHOW_STATUS=false
+                shift
+                ;;
+            --status)
+                SHOW_STATUS=true
                 shift
                 ;;
             -h | --help)
@@ -85,16 +108,28 @@ Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
 Set Oracle environment for a specific ORACLE_SID based on oratab.
 
 Arguments:
-  ORACLE_SID          Oracle System Identifier (optional, will prompt if not provided)
+  ORACLE_SID          Oracle System Identifier (optional)
 
 Options:
+  -s, --silent        Silent mode: no prompts, no status display
+  --status            Force showing detailed database status
   -f, --force         Force environment setup even if validation fails
   -h, --help          Display this help message
 
+Behavior:
+  Interactive (TTY): 
+    - With SID: Sets environment and shows database status
+    - Without SID: Prompts for selection and shows status
+  
+  Non-interactive (no TTY) or --silent:
+    - With SID: Sets environment silently
+    - Without SID: Uses first entry from oratab silently
+
 Examples:
-  source oraenv.sh ORCL
-  source oraenv.sh TESTDB
-  source oraenv.sh           # Will prompt for SID
+  source oraenv.sh ORCL              # Interactive: with status
+  source oraenv.sh ORCL --silent     # Silent: no status
+  source oraenv.sh                   # Interactive: prompt for SID
+  echo "..." | source oraenv.sh      # Non-interactive: first SID, silent
 
 Environment Variables:
   ORATAB_FILE        Path to oratab file (default: /etc/oratab)
@@ -124,7 +159,7 @@ _oraenv_find_oratab() {
     return 1
 }
 
-# Get SID from user
+# Get SID from user (interactive) or first SID (non-interactive)
 _oraenv_prompt_sid() {
     local oratab_file="$1"
     
@@ -136,6 +171,12 @@ _oraenv_prompt_sid() {
     if [[ ${#sids[@]} -eq 0 ]]; then
         log_error "No Oracle instances found in $oratab_file"
         return 1
+    fi
+    
+    # If non-interactive mode, return first SID
+    if [[ "$ORAENV_INTERACTIVE" != "true" ]]; then
+        echo "${sids[0]}"
+        return 0
     fi
     
     # Display list to stderr so it appears before the prompt
@@ -285,7 +326,12 @@ _oraenv_main() {
     local result=$?
 
     if [[ $result -eq 0 ]]; then
-        _oraenv_show_environment
+        # Show detailed database status if requested and function is available
+        if [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
+            show_database_status
+        else
+            _oraenv_show_environment
+        fi
     fi
 
     return $result
