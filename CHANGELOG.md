@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2025-12-16
+
+### Added
+
+- **Issue #23**: Intelligent installer prefix detection with automatic ORACLE_BASE discovery
+  - Priority 1: Uses `${ORACLE_BASE}/local/oradba` if ORACLE_BASE is set
+  - Priority 2: Derives from ORACLE_HOME by checking orabasetab and envVars.properties
+  - Priority 3: Derives from first SID in oratab using same logic
+  - Priority 4: Falls back to `${HOME}/local/oradba`
+- Automatic base directory creation when it doesn't exist
+- Case-insensitive ORACLE_SID lookup (accepts 'free', 'Free', or 'FREE')
+
+### Changed
+
+- Generated installer now includes standard OraDBA header with version information
+- ORACLE_SID now preserves uppercase from oratab regardless of user input case
+- Improved installer error messages with helpful suggestions
+
+### Fixed
+
+- Installer no longer requires root privileges in most Oracle environments
+- Installation fails gracefully with clear messages when permissions are insufficient
+
 ## [0.3.2] - 2025-12-16
 
 ### Fixed
