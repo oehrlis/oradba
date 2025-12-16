@@ -203,9 +203,9 @@ query_pdb_info() {
     
     sqlplus -s / as sysdba << 'EOF' 2>/dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON
-SELECT LISTAGG(name || '(' || SUBSTR(open_mode, 1, 2) || ')', ', ') WITHIN GROUP (ORDER BY name)
+SELECT LISTAGG(name || '(' || open_mode || ')', ', ') WITHIN GROUP (ORDER BY name)
 FROM v$pdbs
-WHERE name != 'PDB$SEED' OR open_mode != 'MOUNTED';
+WHERE name != 'PDB$SEED' AND open_mode != 'MOUNTED';
 EXIT;
 EOF
 }
@@ -331,6 +331,8 @@ show_database_status() {
     
     # Oracle Home and Version
     printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
+    printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
+    printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
     printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
     
     # PDB info (OPEN only)

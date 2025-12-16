@@ -268,10 +268,7 @@ _oraenv_set_environment() {
     startup_flag=$(echo "$oratab_entry" | cut -d: -f3)
     export ORACLE_STARTUP="${startup_flag:-N}"
 
-    # Only log if not in silent mode
-    if [[ "${SHOW_ENV:-true}" == "true" ]] || [[ "${SHOW_STATUS:-false}" == "true" ]]; then
-        log_info "Oracle environment set for SID: $ORACLE_SID"
-    fi
+    log_debug "Oracle environment set for SID: $ORACLE_SID"
     log_debug "ORACLE_HOME: $ORACLE_HOME"
     log_debug "ORACLE_BASE: $ORACLE_BASE"
     log_debug "TNS_ADMIN: ${TNS_ADMIN:-not set}"
@@ -346,13 +343,9 @@ _oraenv_main() {
             show_database_status
         elif [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
             # Interactive mode with status
-            _oraenv_show_environment
             show_database_status
-        elif [[ "$SHOW_ENV" == "true" ]]; then
-            # Show environment info only
-            _oraenv_show_environment
         fi
-        # Otherwise: silent mode, show nothing
+        # Silent mode or no status: show nothing
     fi
 
     return $result
