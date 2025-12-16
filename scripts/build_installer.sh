@@ -69,19 +69,26 @@ echo "Payload size: $(du -h "$PAYLOAD_FILE" | cut -f1)"
 # Create installer script
 cat > "$INSTALLER_OUTPUT" << 'INSTALLER_HEADER'
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------
-# oradba - Oracle Database Administration Toolset
-# Self-contained installer with embedded payload
-# -----------------------------------------------------------------------
-# Copyright (c) 2025 Stefan Oehrli
-# Licensed under the Apache License, Version 2.0
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_install.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.16
+# Revision...: __VERSION__
+# Purpose....: Self-contained installer with embedded payload
+# Notes......: This installer can automatically detect ORACLE_BASE and ORACLE_HOME
+#              to determine the installation prefix. Default: ${ORACLE_BASE}/local/oradba
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 set -e
 
 # Variables
 INSTALLER_VERSION="__VERSION__"
-DEFAULT_PREFIX="${ORACLE_BASE:-$HOME}/local/oradba"
 TEMP_DIR=""
 
 # Colors for output
@@ -89,6 +96,88 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# Determine default installation prefix
+determine_default_prefix() {
+    # Priority 1: ORACLE_BASE is set
+    if [[ -n "${ORACLE_BASE}" ]]; then
+        echo "${ORACLE_BASE}/local/oradba"
+        return 0
+    fi
+    
+    # Priority 2: Derive from ORACLE_HOME
+    if [[ -n "${ORACLE_HOME}" ]]; then
+        # Try orabasetab first
+        if [[ -f "${ORACLE_HOME}/install/orabasetab" ]]; then
+            local oracle_base
+            oracle_base=$(grep "^${ORACLE_HOME}:" "${ORACLE_HOME}/install/orabasetab" 2>/dev/null | cut -d: -f2)
+            if [[ -n "$oracle_base" ]]; then
+                echo "${oracle_base}/local/oradba"
+                return 0
+            fi
+        fi
+        
+        # Try envVars.properties
+        if [[ -f "${ORACLE_HOME}/install/envVars.properties" ]]; then
+            local oracle_base
+            oracle_base=$(grep "^ORACLE_BASE=" "${ORACLE_HOME}/install/envVars.properties" 2>/dev/null | cut -d= -f2)
+            if [[ -n "$oracle_base" ]]; then
+                echo "${oracle_base}/local/oradba"
+                return 0
+            fi
+        fi
+        
+        # Fallback: derive from ORACLE_HOME path (e.g., /opt/oracle/product/... -> /opt/oracle)
+        local derived_base
+        derived_base="$(dirname "$(dirname "$ORACLE_HOME")")"
+        if [[ -n "$derived_base" ]]; then
+            echo "${derived_base}/local/oradba"
+            return 0
+        fi
+    fi
+    
+    # Priority 3: Try to get ORACLE_HOME from oratab (use first SID)
+    for oratab_file in /etc/oratab /var/opt/oracle/oratab; do
+        if [[ -f "$oratab_file" ]]; then
+            local first_home
+            first_home=$(grep -v "^#" "$oratab_file" | grep -v "^$" | head -1 | cut -d: -f2)
+            if [[ -n "$first_home" && -d "$first_home" ]]; then
+                # Try orabasetab
+                if [[ -f "${first_home}/install/orabasetab" ]]; then
+                    local oracle_base
+                    oracle_base=$(grep "^${first_home}:" "${first_home}/install/orabasetab" 2>/dev/null | cut -d: -f2)
+                    if [[ -n "$oracle_base" ]]; then
+                        echo "${oracle_base}/local/oradba"
+                        return 0
+                    fi
+                fi
+                
+                # Try envVars.properties
+                if [[ -f "${first_home}/install/envVars.properties" ]]; then
+                    local oracle_base
+                    oracle_base=$(grep "^ORACLE_BASE=" "${first_home}/install/envVars.properties" 2>/dev/null | cut -d= -f2)
+                    if [[ -n "$oracle_base" ]]; then
+                        echo "${oracle_base}/local/oradba"
+                        return 0
+                    fi
+                fi
+                
+                # Fallback: derive from path
+                local derived_base
+                derived_base="$(dirname "$(dirname "$first_home")")"
+                if [[ -n "$derived_base" ]]; then
+                    echo "${derived_base}/local/oradba"
+                    return 0
+                fi
+            fi
+        fi
+    done
+    
+    # Priority 4: Fallback to HOME
+    echo "${HOME}/local/oradba"
+}
+
+DEFAULT_PREFIX=$(determine_default_prefix)
 
 # Logging functions
 log_info() {
@@ -168,10 +257,25 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Check and create base directory if needed
+INSTALL_BASE_DIR="$(dirname "$INSTALL_PREFIX")"
+if [[ ! -d "$INSTALL_BASE_DIR" ]]; then
+    log_info "Base directory does not exist: $INSTALL_BASE_DIR"
+    if mkdir -p "$INSTALL_BASE_DIR" 2>/dev/null; then
+        log_info "Created base directory: $INSTALL_BASE_DIR"
+    else
+        log_error "Cannot create base directory: $INSTALL_BASE_DIR"
+        log_info "Please create it manually or run with appropriate privileges"
+        log_info "Or use --prefix to specify a different location"
+        exit 1
+    fi
+fi
+
 # Check permissions
-if [[ ! -w "$(dirname "$INSTALL_PREFIX")" ]] && [[ "$EUID" -ne 0 ]]; then
+if [[ ! -w "$INSTALL_BASE_DIR" ]] && [[ "$EUID" -ne 0 ]]; then
     log_error "Installation to $INSTALL_PREFIX requires root privileges"
-    log_info "Please run with sudo or choose a different prefix"
+    log_info "The base directory $INSTALL_BASE_DIR is not writable"
+    log_info "Please run with sudo or choose a different prefix with --prefix"
     exit 1
 fi
 
