@@ -237,7 +237,11 @@ Output includes:
 
 - `get_diagnostic_dest()` - Query database for diagnostic_dest or use fallback
 - `has_rlwrap()` - Check if rlwrap is available
-- `generate_sid_aliases()` - Generate SID-specific aliases (taa, vaa, cdda, cdta, cdaa)
+- `generate_sid_aliases()` - Generate SID-specific aliases (taa, vaa, via, cdd, cddt, cdda)
+
+**Key Variables:**
+
+- `ORADBA_SID_ALERTLOG` - Path to the standard text alert log (alert_SID.log)
 
 **Auto-Execution:** `generate_sid_aliases()` is called automatically if ORACLE_SID is set
 

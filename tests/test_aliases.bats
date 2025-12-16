@@ -178,6 +178,20 @@ teardown() {
 # generate_sid_aliases() Tests - With Mock Diagnostic Directories
 # ------------------------------------------------------------------------------
 
+@test "ORADBA_SID_ALERTLOG variable is set when ORACLE_SID and ORACLE_BASE exist" {
+    export ORACLE_SID="TESTDB"
+    export ORACLE_BASE="${TEMP_TEST_DIR}/oracle"
+    export ORADBA_ORA_DIAG_SID="${ORACLE_BASE}/diag/rdbms/testdb/TESTDB"
+    
+    # Source the standard config to set ORADBA_SID_ALERTLOG
+    ORADBA_SID_ALERTLOG="${ORADBA_ORA_DIAG_SID}/trace/alert_${ORACLE_SID}.log"
+    
+    # Verify variable is set correctly
+    [ -n "${ORADBA_SID_ALERTLOG}" ]
+    [[ "${ORADBA_SID_ALERTLOG}" =~ "alert_TESTDB.log" ]]
+    [[ "${ORADBA_SID_ALERTLOG}" =~ "/trace/" ]]
+}
+
 @test "generate_sid_aliases creates cdda alias when diagnostic dest exists" {
     export ORACLE_SID="TESTDB"
     export ORACLE_BASE="${TEMP_TEST_DIR}/oracle"
@@ -226,12 +240,19 @@ teardown() {
     
     # Create diagnostic directory structure
     local diag_dest="${ORACLE_BASE}/diag/rdbms/testdb/TESTDB"
-    mkdir -p "${diag_dest}/alert"
-    touch "${diag_dest}/alert/alert_TESTDB.log"
+    mkdir -p "${diag_dest}/trace"
+    touch "${diag_dest}/trace/alert_TESTDB.log"
+    
+    # Set ORADBA_SID_ALERTLOG
+    export ORADBA_SID_ALERTLOG="${diag_dest}/trace/alert_TESTDB.log"
     
     # Generate aliases - should succeed
     generate_sid_aliases
     [ "$?" -eq 0 ]
+    
+    # Verify alias contains ORADBA_SID_ALERTLOG
+    run alias taa
+    [[ "$output" =~ "ORADBA_SID_ALERTLOG" ]]
 }
 
 @test "generate_sid_aliases creates vaa alias when alert directory exists" {
@@ -240,12 +261,19 @@ teardown() {
     
     # Create diagnostic directory structure
     local diag_dest="${ORACLE_BASE}/diag/rdbms/testdb/TESTDB"
-    mkdir -p "${diag_dest}/alert"
-    touch "${diag_dest}/alert/alert_TESTDB.log"
+    mkdir -p "${diag_dest}/trace"
+    touch "${diag_dest}/trace/alert_TESTDB.log"
+    
+    # Set ORADBA_SID_ALERTLOG
+    export ORADBA_SID_ALERTLOG="${diag_dest}/trace/alert_TESTDB.log"
     
     # Generate aliases - should succeed
     generate_sid_aliases
     [ "$?" -eq 0 ]
+    
+    # Verify alias contains ORADBA_SID_ALERTLOG
+    run alias vaa
+    [[ "$output" =~ "ORADBA_SID_ALERTLOG" ]]
 }
 
 @test "generate_sid_aliases doesn't create aliases when diagnostic dest doesn't exist" {

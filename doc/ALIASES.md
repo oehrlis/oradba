@@ -138,9 +138,9 @@ These aliases are generated dynamically based on the current `ORACLE_SID` and di
 | `cdd`  | Change to diagnostic dest | `$ORADBA_ORA_DIAG_SID` (e.g., `$ORACLE_BASE/diag/rdbms/orcl/ORCL`) |
 | `cddt` | Change to trace directory | `diagnostic_dest/trace`                                            |
 | `cdda` | Change to alert directory | `diagnostic_dest/alert`                                            |
-| `taa`  | Tail alert log            | `tail -f` alert log (log.xml or alert_SID.log)                     |
-| `vaa`  | View alert log with less  | `less` alert log (log.xml or alert_SID.log)                        |
-| `via`  | Edit alert log with vi    | `vi` alert log (log.xml or alert_SID.log)                          |
+| `taa`  | Tail alert log            | `tail -f -n 50` of `$ORADBA_SID_ALERTLOG` (alert_SID.log)          |
+| `vaa`  | View alert log with less  | `less $ORADBA_SID_ALERTLOG` (alert_SID.log)                        |
+| `via`  | Edit alert log with vi    | `vi $ORADBA_SID_ALERTLOG` (alert_SID.log)                          |
 
 ### PDB Aliases (Multitenant)
 
@@ -269,7 +269,10 @@ Setting Oracle environment for ORCL...
 Oracle environment set successfully.
 
 $ type taa
-taa is aliased to `tail -f /u01/app/oracle/diag/rdbms/orcl/ORCL/alert/log.xml'
+taa is aliased to `if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; ...'
+
+$ echo $ORADBA_SID_ALERTLOG
+/u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log
 
 $ cddt  # Change to trace directory
 $ pwd
