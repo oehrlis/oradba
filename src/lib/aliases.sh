@@ -77,32 +77,32 @@ generate_sid_aliases() {
     
     # Generate trace file aliases (tail/view/edit alert log and trace files)
     if [[ -d "${diag_dest}" ]]; then
-        # Alert log directory
-        local alert_dir="${diag_dest}/alert"
-        if [[ -d "${alert_dir}" ]]; then
-            # tail alert log
-            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias taa="tail -f ${alert_dir}/log.xml 2>/dev/null || tail -f ${alert_dir}/alert_${sid}.log"
-            # view/less alert log
-            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias vaa="less ${alert_dir}/log.xml 2>/dev/null || less ${alert_dir}/alert_${sid}.log"
-            # edit alert log with vi
-            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias via="vi ${alert_dir}/log.xml 2>/dev/null || vi ${alert_dir}/alert_${sid}.log"
+        # Set alert log file path variable
+        local trace_dir="${diag_dest}/trace"
+        local alertlog_file="${trace_dir}/alert_${sid}.log"
+        
+        # Override ORADBA_SID_ALERTLOG with queried path if different
+        if [[ -f "${alertlog_file}" ]] && [[ "${alertlog_file}" != "${ORADBA_SID_ALERTLOG}" ]]; then
+            export ORADBA_SID_ALERTLOG="${alertlog_file}"
         fi
+        
+        # Alert log aliases using ORADBA_SID_ALERTLOG
+        alias taa='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        alias vaa='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        alias via='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
         
         # Diagnostic dest directory (cdd)
         # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
         alias cdd="cd ${diag_dest}"
         
         # Trace directory (cddt)
-        local trace_dir="${diag_dest}/trace"
         if [[ -d "${trace_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias cddt="cd ${trace_dir}"
         fi
         
         # Alert directory (cdda)
+        local alert_dir="${diag_dest}/alert"
         if [[ -d "${alert_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
             alias cdda="cd ${alert_dir}"

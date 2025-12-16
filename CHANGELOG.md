@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Alert log aliases**: Point to regular alert log instead of XML format
+  - Changed `taa`, `via`, and `vaa` to use `alert_SID.log` instead of `log.xml`
+  - Added `ORADBA_SID_ALERTLOG` variable pointing to the standard text alert log
+  - Aliases check if file exists before attempting to open it
+  - Added `-n 50` to `taa` to show last 50 lines by default
+  - Both static (oradba_standard.conf) and dynamic (aliases.sh) aliases updated
+  
 - **Alert log aliases**: Added fallback aliases for `taa`, `via`, and `vaa`
   - Fixed issue where aliases were not created if diagnostic directories didn't exist yet
   - Added static aliases based on ORACLE_BASE and ORACLE_SID in oradba_standard.conf
