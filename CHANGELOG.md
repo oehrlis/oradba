@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `src/lib/db_functions.sh` library with reusable database query functions
+- Enhanced database status display showing detailed information based on database state
+- Support for querying database info at NOMOUNT, MOUNT, and OPEN states
+- Added `--status` flag to oraenv.sh for detailed database status display
+- Added `--silent` flag to oraenv.sh for non-interactive execution
+- Interactive SID selection with numbered list when no SID provided to oraenv.sh
+- User can select database by number or name from available instances
+- Comprehensive test suite for db_functions.sh library (test_db_functions.bats)
+- Extended test coverage for oraenv.sh with new behavior patterns
+- Automatic TTY detection for interactive vs non-interactive mode
+- Silent mode auto-selection when running without TTY (e.g., in scripts)
+- New `dbstatus.sh` standalone script for displaying database status information
+- Comprehensive documentation for db_functions.sh library (DB_FUNCTIONS.md)
+- Updated USAGE.md with documentation for enhanced oraenv.sh features and dbstatus.sh
+
 ### Changed
 
 - Renamed `srv/` directory to `src/` throughout the entire project for better clarity
@@ -16,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed cross-platform base64 encoding/decoding using `openssl base64` for compatibility
 - Updated runtime paths in oraenv.sh to reference installed directory structure
 - Updated configuration file paths (SQLPATH, ORACLE_PATH, RECOVERY_DIR) to remove `/src/` wrapper
+- Enhanced oraenv.sh prompt to display available databases before asking for selection
 - Refactored SQL script naming concept to use SQL-style operation verbs (CREATE, DROP,
   UPDATE, ENABLE, DISABLE, GRANT) instead of Linux-style commands
 - Added privilege indicators to script naming and documentation (User, DBA, SYSDBA, AUD)
@@ -24,9 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced Quick Reference Card with privilege level indicators
 - Added comprehensive naming guidelines and best practices for SQL/database operations
 - Introduced short aliases (2-7 chars) for commonly used scripts
-
-### Added
-
 - Integrated `build_installer.sh` into `make build` target to automatically generate installer
 - Self-contained installer script with embedded base64-encoded payload
 - Cross-platform installer supporting both macOS and Linux
