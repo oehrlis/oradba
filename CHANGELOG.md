@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-12-16
+
+### Fixed
+
+- Fixed argument parsing in oraenv.sh where `--silent` and `--status` flags were not working correctly
+- Fixed syntax error in oraenv.sh from incomplete code replacement
+- Corrected display modes: `--silent` now produces no output, `--status` shows only database status
+
+### Changed
+
+- Changed all example SIDs from ORCL to FREE throughout documentation and tests
+- Examples now align with Oracle Database Free Edition default SID for easier getting started
+
+### Added
+
+- Added bash syntax validation test (`bash -n`) to catch syntax errors early
+- Added 8 new integration tests that actually execute oraenv.sh (previously only grep-based tests)
+- Integration tests verify ORACLE_SID, ORACLE_HOME, PATH updates, and flag behavior
+- Test count increased from 55 to 63 tests
+
 ## [0.3.0] - 2025-12-16
 
 ### Added
