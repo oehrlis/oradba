@@ -43,6 +43,15 @@ bats tests/test_common.bats --filter "log_info"
 
 ## Test Structure
 
+The test suite includes 106 tests across 6 test files:
+
+- **test_aliases.bats** (28 tests) - Dynamic alias generation functions
+- **test_common.bats** (11 tests) - Common library functions
+- **test_db_functions.bats** (35 tests) - Database interaction functions
+- **test_installer.bats** (3 tests) - Installer build validation
+- **test_oradba_version.bats** (15 tests) - Version management utility
+- **test_oraenv.bats** (26 tests) - Environment setup script
+
 Tests use standard BATS format with `setup()` and `teardown()` functions.
 Each test file focuses on a specific module or script.
 
