@@ -237,7 +237,7 @@ _oraenv_set_environment() {
     local requested_sid="$1"
     local oratab_file="$2"
 
-    # Parse oratab entry
+    # Parse oratab entry (case-insensitive)
     local oratab_entry
     oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
 
@@ -246,6 +246,10 @@ _oraenv_set_environment() {
         return 1
     fi
 
+    # Extract actual SID from oratab (preserves uppercase from oratab)
+    local actual_sid
+    actual_sid=$(echo "$oratab_entry" | cut -d: -f1)
+    
     # Extract ORACLE_HOME from oratab
     local oracle_home
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
@@ -258,8 +262,8 @@ _oraenv_set_environment() {
     # Unset previous Oracle environment
     _oraenv_unset_old_env
 
-    # Set new environment
-    export ORACLE_SID="$requested_sid"
+    # Set new environment (use actual SID from oratab to preserve case)
+    export ORACLE_SID="$actual_sid"
     export ORACLE_HOME="$oracle_home"
 
     # Set ORACLE_BASE if not already set

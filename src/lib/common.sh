@@ -95,7 +95,8 @@ parse_oratab() {
         return 1
     fi
 
-    grep "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
+    # Case-insensitive search for SID
+    grep -i "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
 }
 
 # Export common Oracle environment variables
