@@ -46,6 +46,38 @@ After setting the environment, the following variables are available:
 - `TNS_ADMIN` - TNS configuration directory
 - `NLS_LANG` - Language settings
 
+### Version Management
+
+Check and verify your oradba installation:
+
+```bash
+# Check current version
+oradba_version.sh --check
+
+# Verify installation integrity (checksums)
+oradba_version.sh --verify
+
+# Check for available updates from GitHub
+oradba_version.sh --update-check
+
+# Show detailed version and installation information
+oradba_version.sh --info
+```
+
+**Version Utility Features:**
+
+- **Version Checking**: Display current installed version
+- **Integrity Verification**: Verify all files match their SHA256 checksums
+- **Update Detection**: Check GitHub for newer releases
+- **Installation Metadata**: View installation date, method, and user
+- **Security Auditing**: Cryptographic proof of unmodified installation
+
+**Exit Codes:**
+
+- `0` - Success or up-to-date
+- `1` - Error or integrity check failed
+- `2` - Update available
+
 ## Common Tasks
 
 ### Connecting to Database

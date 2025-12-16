@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.3.3
+# Revision...: 0.4.0
 # Purpose....: Build self-contained installer with base64 payload
 # Notes......: Creates a single executable installer with embedded tarball.
 #              Packages src/ directory and creates distribution installer.

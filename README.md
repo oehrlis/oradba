@@ -15,6 +15,12 @@ A comprehensive toolset for Oracle Database administration and operations, desig
   - Automatic ORACLE_HOME, ORACLE_SID, and ORACLE_BASE configuration
   - Support for multiple Oracle versions and instances
   - Interactive SID selection
+  - Case-insensitive SID matching
+- **oradba_version.sh**: Version management and integrity verification
+  - Check installed version and available updates
+  - Verify installation integrity with SHA256 checksums
+  - Detect modified or corrupted files
+  - Query GitHub releases for updates
 - **Administration Scripts**: Collection of bash, SQL, and RMAN scripts for daily operations
 - **Configuration System**: Global and user-specific configuration files
 - **SQL Scripts**: Ready-to-use SQL scripts for database information and management
@@ -74,6 +80,22 @@ source oraenv.sh FREE
 # - Set ORACLE_SID, ORACLE_HOME, ORACLE_BASE
 # - Update PATH and LD_LIBRARY_PATH
 # - Configure TNS_ADMIN and NLS settings
+```
+
+### Version Management and Integrity
+
+```bash
+# Check installed version
+oradba_version.sh --check
+
+# Verify installation integrity
+oradba_version.sh --verify
+
+# Check for updates
+oradba_version.sh --update-check
+
+# Show detailed information
+oradba_version.sh --info
 ```
 
 ### Configuration

@@ -42,9 +42,13 @@ source oraenv.sh FREE
 source oraenv FREE
 ```
 
-### 3. Verify environment
+### 3. Verify installation and environment
 
 ```bash
+# Check oradba version and integrity
+oradba_version.sh --verify
+
+# Verify Oracle environment
 echo $ORACLE_SID
 echo $ORACLE_HOME
 sqlplus -V
