@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.17
-# Revision...: 0.5.1
+# Revision...: 0.6.0
 # Purpose....: Configure SQL*Plus session with dynamic terminal width
 # Notes......: Wrapper script that detects terminal width and launches SQL*Plus
 # Usage......: sessionsql.sh [connection_string]

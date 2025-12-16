@@ -216,7 +216,8 @@ alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'
 
 ## rlwrap Integration
 
-OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) with Oracle command-line tools if it's available, providing:
+OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) with
+Oracle command-line tools if it's available, providing:
 
 - Command history (up/down arrows)
 - Tab completion with tool-specific keywords
@@ -224,6 +225,7 @@ OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) with Ora
 - Password filtering (when `ORADBA_RLWRAP_FILTER=true`)
 
 OraDBA includes completion files for enhanced tab completion:
+
 - **SQL*Plus** (`sqh`, `sqlplush`, `sqoh`): SQL commands, SET/SHOW parameters, system views, privileges
 - **RMAN** (`rmanh`, `rmanch`): Backup/restore commands, keywords, connection types
 - **lsnrctl** (`lsnrh`): Listener commands, parameters, trace levels

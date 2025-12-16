@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **u alias**: Short alias for oraup.sh for quick Oracle environment overview
+## [0.6.0] - 2025-12-17
 
 ### Fixed
 
@@ -35,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **u alias**: Short alias for oraup.sh for quick Oracle environment overview
 - **sessionsql dynamic linesize**: SQL*Plus session configurator with automatic terminal width detection
   - Detects terminal dimensions using `tput cols` and `tput lines`
   - Automatically sets LINESIZE based on terminal width
