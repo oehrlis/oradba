@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Falls back to interactive catalog prompt if not configured
   - Added catalog configuration examples to SID templates
 
+- **ADRCI rlwrap wrapper**: Command history support for ADRCI
+  - New `adrcih` alias provides rlwrap support for ADRCI
+  - Enables command history, line editing, and recall in ADRCI sessions
+  - Supports password filtering when `ORADBA_RLWRAP_FILTER=true`
+  - Falls back to standard adrci if rlwrap unavailable
+
 ## [0.5.1] - 2025-12-16
 
 ### Added

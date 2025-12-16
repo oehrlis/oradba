@@ -40,6 +40,16 @@ LINESIZE and PAGESIZE accordingly. This ensures optimal output formatting for yo
   prompt for catalog connection interactively.
 - Configure catalog in [oradba_core.conf](../etc/oradba_core.conf) globally or per-SID in `sid.<SID>.conf`.
 
+### Diagnostic Aliases
+
+| Alias    | Description                            | Command         |
+|----------|----------------------------------------|-----------------|
+| `lsnr`   | Listener control                       | `lsnrctl`       |
+| `adrcih` | ADRCI with rlwrap (command history)    | `rlwrap adrci`  |
+
+**Note:** `adrcih` provides command history and line editing for the Automatic Diagnostic Repository
+Command Interpreter (ADRCI), making it easier to navigate and query Oracle diagnostic data.
+
 ### Directory Navigation Aliases
 
 #### Oracle Directories

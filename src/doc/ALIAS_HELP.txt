@@ -36,6 +36,7 @@
  rmanh           --> RMAN target / with rlwrap (history)
  rmanch          --> RMAN target / catalog with rlwrap
  lsnr            --> lsnrctl command
+ adrcih          --> ADRCI with rlwrap (history)
 
  DATABASE OPERATIONS
  -------------------------------------------------------------------------------
