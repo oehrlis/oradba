@@ -27,7 +27,7 @@ setup() {
     MOCK_ORATAB="${TEST_TEMP_DIR}/oratab"
     cat > "$MOCK_ORATAB" <<EOF
 # Test oratab file
-ORCL:${TEST_TEMP_DIR}/oracle/19c:N
+FREE:${TEST_TEMP_DIR}/oracle/19c:N
 TESTDB:${TEST_TEMP_DIR}/oracle/19c:Y
 CDB1:${TEST_TEMP_DIR}/oracle/21c:N
 EOF
@@ -73,8 +73,8 @@ teardown() {
 
 @test "oraenv.sh sets ORACLE_SID from oratab" {
     # This test verifies the script can find entries in oratab
-    result=$(bash -c "export ORATAB_FILE='$MOCK_ORATAB'; grep '^ORCL:' '$MOCK_ORATAB'")
-    [[ "$result" =~ "ORCL:" ]]
+    result=$(bash -c "export ORATAB_FILE='$MOCK_ORATAB'; grep '^FREE:' '$MOCK_ORATAB'")
+    [[ "$result" =~ "FREE:" ]]
 }
 
 @test "oraenv.sh parses oratab correctly" {
@@ -156,7 +156,7 @@ teardown() {
     # Create a script that sources oraenv and checks result
     run bash -c "
         export ORATAB_FILE='$MOCK_ORATAB'
-        source '$ORAENV_SCRIPT' ORCL 2>&1
+        source '$ORAENV_SCRIPT' FREE 2>&1
         if [[ \$? -eq 0 ]]; then
             echo \"SUCCESS\"
             exit 0
@@ -183,7 +183,7 @@ teardown() {
     # Source and verify ORACLE_HOME is set correctly
     result=$(bash -c "
         export ORATAB_FILE='$MOCK_ORATAB'
-        source '$ORAENV_SCRIPT' ORCL --silent 2>&1
+        source '$ORAENV_SCRIPT' FREE --silent 2>&1
         echo \$ORACLE_HOME
     " | tail -1)
     [[ "$result" == "${TEST_TEMP_DIR}/oracle/19c" ]]
@@ -193,7 +193,7 @@ teardown() {
     # Silent mode should minimize output (may have [INFO] log but no environment display)
     run bash -c "
         export ORATAB_FILE='$MOCK_ORATAB'
-        source '$ORAENV_SCRIPT' ORCL --silent 2>&1
+        source '$ORAENV_SCRIPT' FREE --silent 2>&1
     "
     [ "$status" -eq 0 ]
     # Should not show environment details

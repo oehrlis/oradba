@@ -133,8 +133,8 @@ Behavior:
     - Without SID: Uses first entry from oratab silently
 
 Examples:
-  source oraenv.sh ORCL              # Interactive: with status
-  source oraenv.sh ORCL --silent     # Silent: no status
+  source oraenv.sh FREE              # Interactive: with status
+  source oraenv.sh FREE --silent     # Silent: no status
   source oraenv.sh                   # Interactive: prompt for SID
   echo "..." | source oraenv.sh      # Non-interactive: first SID, silent
 

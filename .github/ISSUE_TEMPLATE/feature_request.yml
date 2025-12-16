@@ -91,7 +91,7 @@ body:
       render: shell
       placeholder: |
         # Example command or usage
-        source oraenv.sh --new-feature ORCL
+        source oraenv.sh --new-feature FREE
     validations:
       required: false
 

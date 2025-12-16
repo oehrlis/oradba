@@ -13,19 +13,19 @@ The primary function of oradba is to set up your Oracle environment based on the
 
 ```bash
 # Set environment for specific SID
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Interactive selection with numbered list
 source oraenv.sh
 
 # Silent mode (for scripts, no output)
-source oraenv.sh ORCL --silent
+source oraenv.sh FREE --silent
 
 # Display only database status
-source oraenv.sh ORCL --status
+source oraenv.sh FREE --status
 
 # Using symbolic link (if created during installation)
-source oraenv ORCL
+source oraenv FREE
 ```
 
 **Interactive Mode Features:**
@@ -52,7 +52,7 @@ After setting the environment, the following variables are available:
 
 ```bash
 # Set environment
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Connect as sysdba
 sqlplus / as sysdba
@@ -78,7 +78,7 @@ sqlplus / as sysdba @script.sql param1 param2
 
 ```bash
 # Set environment
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Run RMAN script
 rman target / @$ORADBA_PREFIX/src/rcv/backup_full.rman
@@ -90,11 +90,11 @@ rman target /
 ### Switching Between Databases
 
 ```bash
-# Switch to ORCL
-source oraenv.sh ORCL
+# Switch to FREE
+source oraenv.sh FREE
 
 # Verify
-echo $ORACLE_SID  # Should show: ORCL
+echo $ORACLE_SID  # Should show: FREE
 
 # Switch to TESTDB
 source oraenv.sh TESTDB
@@ -161,14 +161,14 @@ Enable detailed output:
 
 ```bash
 export DEBUG=1
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Custom oratab Location
 
 ```bash
 export ORATAB_FILE="/custom/path/oratab"
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Scripting with oraenv
@@ -179,10 +179,10 @@ source oraenv.sh ORCL
 
 # Source oraenv
 ORADBA_PREFIX="/opt/oradba"
-source "$ORADBA_PREFIX/src/bin/oraenv.sh" ORCL
+source "$ORADBA_PREFIX/src/bin/oraenv.sh" FREE
 
 # Verify environment
-if [[ "$ORACLE_SID" != "ORCL" ]]; then
+if [[ "$ORACLE_SID" != "FREE" ]]; then
     echo "Failed to set environment"
     exit 1
 fi
@@ -207,14 +207,14 @@ export PATH="$ORADBA_PREFIX/src/bin:$PATH"
 export SQLPATH="$ORADBA_PREFIX/src/sql"
 
 # Set default environment (optional)
-# source oraenv.sh ORCL
+# source oraenv.sh FREE
 ```
 
 ### Cron Jobs
 
 ```bash
 # Example cron entry
-0 2 * * * . /opt/oradba/src/bin/oraenv.sh ORCL && /backup/scripts/backup.sh
+0 2 * * * . /opt/oradba/src/bin/oraenv.sh FREE && /backup/scripts/backup.sh
 ```
 
 ### Systemd Service
@@ -228,8 +228,8 @@ After=network.target
 Type=forking
 User=oracle
 Environment="ORADBA_PREFIX=/opt/oradba"
-ExecStart=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbstart $ORACLE_HOME'
-ExecStop=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh ORCL && $ORACLE_HOME/bin/dbshut $ORACLE_HOME'
+ExecStart=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh FREE && $ORACLE_HOME/bin/dbstart $ORACLE_HOME'
+ExecStop=/bin/bash -c 'source /opt/oradba/src/bin/oraenv.sh FREE && $ORACLE_HOME/bin/dbshut $ORACLE_HOME'
 
 [Install]
 WantedBy=multi-user.target
@@ -278,7 +278,7 @@ Display comprehensive database status information:
 dbstatus.sh
 
 # Show status for specific SID
-dbstatus.sh --sid ORCL
+dbstatus.sh --sid FREE
 
 # Enable debug output
 dbstatus.sh --debug
@@ -312,7 +312,7 @@ verify_oracle_env
 get_oracle_version
 
 # Parse oratab
-parse_oratab "ORCL"
+parse_oratab "FREE"
 ```
 
 ## See Also

@@ -211,7 +211,7 @@ Parse oratab file for specific SID.
 **Example**:
 
 ```bash
-entry=$(parse_oratab "ORCL" "/etc/oratab")
+entry=$(parse_oratab "FREE" "/etc/oratab")
 echo "Entry: $entry"
 
 # Extract ORACLE_HOME
@@ -283,7 +283,7 @@ Must be sourced, not executed directly.
 
 ```bash
 # With SID
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Interactive
 source oraenv.sh

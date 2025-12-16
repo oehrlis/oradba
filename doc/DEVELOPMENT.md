@@ -58,7 +58,7 @@ The core script that sets up Oracle environment variables based on oratab config
 **Usage:**
 
 ```bash
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### common.sh

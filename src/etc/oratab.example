@@ -7,7 +7,7 @@
 #
 
 # Oracle 19c instances
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 CDB1:/u01/app/oracle/product/19.0.0/dbhome_1:N
 PDB1:/u01/app/oracle/product/19.0.0/dbhome_1:N
 

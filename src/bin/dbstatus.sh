@@ -57,7 +57,7 @@ Works with databases in NOMOUNT, MOUNT, and OPEN states.
 
 Examples:
   $SCRIPT_NAME
-  $SCRIPT_NAME --sid ORCL
+  $SCRIPT_NAME --sid FREE
   $SCRIPT_NAME --debug
 
 EOF

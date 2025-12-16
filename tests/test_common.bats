@@ -86,19 +86,19 @@ teardown() {
     local mock_oratab="${TEST_TEMP_DIR}/oratab"
     cat > "$mock_oratab" <<EOF
 # Mock oratab file
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 TESTDB:/u01/app/oracle/product/19.0.0/dbhome_2:Y
 EOF
     
-    run parse_oratab "ORCL" "$mock_oratab"
+    run parse_oratab "FREE" "$mock_oratab"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N" ]]
+    [[ "$output" =~ "FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N" ]]
 }
 
 @test "parse_oratab fails for non-existing SID" {
     local mock_oratab="${TEST_TEMP_DIR}/oratab"
     cat > "$mock_oratab" <<EOF
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 EOF
     
     run parse_oratab "NONEXISTENT" "$mock_oratab"
@@ -110,7 +110,7 @@ EOF
     local mock_oratab="${TEST_TEMP_DIR}/oratab"
     cat > "$mock_oratab" <<EOF
 #COMMENTED:/path/to/oracle:N
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 EOF
     
     run parse_oratab "COMMENTED" "$mock_oratab"

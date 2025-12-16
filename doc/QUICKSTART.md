@@ -28,7 +28,7 @@ Create or edit `/etc/oratab`:
 
 ```bash
 # Format: SID:ORACLE_HOME:STARTUP_FLAG
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 TESTDB:/u01/app/oracle/product/19.0.0/dbhome_2:Y
 ```
 
@@ -36,10 +36,10 @@ TESTDB:/u01/app/oracle/product/19.0.0/dbhome_2:Y
 
 ```bash
 # Using oraenv
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Or if symbolic link was created
-source oraenv ORCL
+source oraenv FREE
 ```
 
 ### 3. Verify environment
@@ -55,8 +55,8 @@ sqlplus -V
 ### Switch Between Databases
 
 ```bash
-# Switch to ORCL
-source oraenv.sh ORCL
+# Switch to FREE
+source oraenv.sh FREE
 
 # Switch to TESTDB
 source oraenv.sh TESTDB
@@ -125,7 +125,7 @@ vim ~/.oradba_config
 export PATH="/opt/oradba/src/bin:$PATH"
 
 # Or use full path
-source /opt/oradba/src/bin/oraenv.sh ORCL
+source /opt/oradba/src/bin/oraenv.sh FREE
 ```
 
 ### ORACLE_SID not found in oratab
@@ -136,7 +136,7 @@ cat /etc/oratab
 
 # Set custom oratab location
 export ORATAB_FILE=/path/to/custom/oratab
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Permission issues
@@ -154,7 +154,7 @@ sudo chown -R oracle:oinstall /opt/oradba
 ```bash
 # Enable debug output
 export DEBUG=1
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ## Examples
@@ -162,12 +162,12 @@ source oraenv.sh ORCL
 ### Basic Usage
 
 ```bash
-# Set environment for ORCL
-$ source oraenv.sh ORCL
+# Set environment for FREE
+$ source oraenv.sh FREE
 
 Oracle Environment:
 ==================
-ORACLE_SID       : ORCL
+ORACLE_SID       : FREE
 ORACLE_HOME      : /u01/app/oracle/product/19.0.0/dbhome_1
 ORACLE_BASE      : /u01/app/oracle
 TNS_ADMIN        : /u01/app/oracle/product/19.0.0/dbhome_1/network/admin
@@ -208,7 +208,7 @@ export PATH="$ORADBA_PREFIX/src/bin:$PATH"
 export SQLPATH="$ORADBA_PREFIX/src/sql"
 
 # Default Oracle SID (optional)
-export ORACLE_SID=ORCL
+export ORACLE_SID=FREE
 source oraenv.sh $ORACLE_SID
 ```
 

@@ -13,7 +13,7 @@
 export PATH="/opt/oradba/src/bin:$PATH"
 
 # Or use full path
-source /opt/oradba/src/bin/oraenv.sh ORCL
+source /opt/oradba/src/bin/oraenv.sh FREE
 ```
 
 ### Issue: "This script must be sourced, not executed"
@@ -24,13 +24,13 @@ source /opt/oradba/src/bin/oraenv.sh ORCL
 
 ```bash
 # Correct
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Or
-. oraenv.sh ORCL
+. oraenv.sh FREE
 
 # Incorrect
-./oraenv.sh ORCL  # This will fail
+./oraenv.sh FREE  # This will fail
 ```
 
 ### Issue: "ORACLE_SID not found in oratab"
@@ -50,7 +50,7 @@ source oraenv.sh ORCL
 cat /etc/oratab
 
 # Verify SID name (case-sensitive)
-grep "ORCL:" /etc/oratab
+grep "FREE:" /etc/oratab
 
 # Check alternative locations
 cat /var/opt/oracle/oratab
@@ -58,7 +58,7 @@ cat $HOME/.oratab
 
 # Use custom oratab location
 export ORATAB_FILE="/path/to/oratab"
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Issue: "ORACLE_HOME directory does not exist"
@@ -69,8 +69,8 @@ source oraenv.sh ORCL
 
 ```bash
 # Verify ORACLE_HOME in oratab
-grep "ORCL:" /etc/oratab
-# Should show: ORCL:/correct/path:N
+grep "FREE:" /etc/oratab
+# Should show: FREE:/correct/path:N
 
 # Check directory exists
 ls -ld /u01/app/oracle/product/19.0.0/dbhome_1
@@ -115,7 +115,7 @@ sudo vim /etc/oratab
 
 # Add entry
 # Format: SID:ORACLE_HOME:STARTUP_FLAG
-ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:N
+FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N
 ```
 
 ### Issue: SQL*Plus or RMAN not found
@@ -143,7 +143,7 @@ ls -l $ORACLE_HOME/bin/rman
 export PATH=$ORACLE_HOME/bin:$PATH
 
 # Re-source oraenv
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Issue: Libraries not found (LD_LIBRARY_PATH)
@@ -163,7 +163,7 @@ ls -l $ORACLE_HOME/lib/libclntsh.so
 export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
 
 # Re-source oraenv
-source oraenv.sh ORCL
+source oraenv.sh FREE
 ```
 
 ### Issue: TNS configuration not found
@@ -195,7 +195,7 @@ Enable detailed logging:
 export DEBUG=1
 
 # Run oraenv
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # Check output for detailed information
 ```

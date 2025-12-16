@@ -67,7 +67,7 @@ Or with options:
 
 ```bash
 # Set Oracle environment for specific SID
-source oraenv.sh ORCL
+source oraenv.sh FREE
 
 # The script will:
 # - Read oratab configuration
@@ -94,7 +94,7 @@ source oraenv.sh ORCL
 
 ```text
 # ORACLE_SID:ORACLE_HOME:AUTO_START
-ORCL:/u01/app/oracle/product/19c/dbhome_1:N
+FREE:/u01/app/oracle/product/19c/dbhome_1:N
 TEST:/u01/app/oracle/product/21c/dbhome_1:Y
 ```
 
