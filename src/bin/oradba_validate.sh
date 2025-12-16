@@ -20,7 +20,6 @@ ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Options
@@ -158,10 +157,10 @@ echo ""
 echo "Checking Documentation..."
 echo "-------------------------------------------------------------------------------"
 
-test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]"
+test_item "README.md exists" "[[ -f '${ORADBA_BASE}/../README.md' ]]"
 test_item "ALIASES.md exists" "[[ -f '${ORADBA_BASE}/../doc/ALIASES.md' ]]"
-test_item "CONFIGURATION.md exists" "[[ -f '${ORADBA_BASE}/../doc/CONFIGURATION.md' ]]"
-test_item "ALIAS_HELP.txt exists" "[[ -f '${ORADBA_BASE}/../doc/ALIAS_HELP.txt' ]]" "optional"
+test_item "CONFIGURATION.md exists" "[[ -f '${ORADBA_BASE}/../doc/CONFIGURATION.md' ]]" "optional"
+test_item "ALIAS_HELP.txt exists" "[[ -f '${ORADBA_BASE}/../doc/ALIAS_HELP.txt' ]]"
 
 echo ""
 
@@ -224,29 +223,23 @@ echo ""
 
 # Final result
 if [[ ${FAILED} -eq 0 ]]; then
-    cat << EOF
-${GREEN}✓ OraDBA installation is valid!${NC}
-
-To use OraDBA, source the environment script:
-  source ${ORADBA_BASE}/bin/oraenv.sh [ORACLE_SID]
-
-For help:
-  ${ORADBA_BASE}/bin/oraenv.sh --help
-  source ${ORADBA_BASE}/bin/oraenv.sh && alih
-
-EOF
+    echo -e "${GREEN}✓ OraDBA installation is valid!${NC}"
+    echo ""
+    echo "To use OraDBA, source the environment script:"
+    echo "  source ${ORADBA_BASE}/bin/oraenv.sh [ORACLE_SID]"
+    echo ""
+    echo "For help:"
+    echo "  ${ORADBA_BASE}/bin/oraenv.sh --help"
+    echo "  source ${ORADBA_BASE}/bin/oraenv.sh && alih"
     exit 0
 else
-    cat << EOF
-${RED}✗ OraDBA installation has issues!${NC}
-
-Please check the failed items above. You may need to:
-  1. Reinstall OraDBA
-  2. Check file permissions
-  3. Verify installation directory
-
-For support, see: ${ORADBA_BASE}/README.md
-
-EOF
+    echo -e "${RED}✗ OraDBA installation has issues!${NC}"
+    echo ""
+    echo "Please check the failed items above. You may need to:"
+    echo "  1. Reinstall OraDBA"
+    echo "  2. Check file permissions"
+    echo "  3. Verify installation directory"
+    echo ""
+    echo "For support, see: ${ORADBA_BASE}/README.md"
     exit 1
 fi

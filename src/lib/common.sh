@@ -116,7 +116,7 @@ generate_sid_lists() {
     local real_sids=""
     
     # Parse oratab, skip comments and empty lines
-    while IFS=: read -r sid oracle_home startup_flag; do
+    while IFS=: read -r sid _oracle_home startup_flag; do
         # Skip empty lines and comments
         [[ -z "$sid" ]] && continue
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
@@ -134,6 +134,7 @@ generate_sid_lists() {
         
         # Create alias for this SID (lowercase)
         local sid_lower="${sid,,}"
+        # shellcheck disable=SC2139
         alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${sid}"
         
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
@@ -144,6 +145,72 @@ generate_sid_lists() {
     
     log_debug "ORADBA_SIDLIST: $ORADBA_SIDLIST"
     log_debug "ORADBA_REALSIDLIST: $ORADBA_REALSIDLIST"
+    
+    return 0
+}
+
+# Usage: generate_pdb_aliases
+# Generate aliases for PDBs in the current CDB
+generate_pdb_aliases() {
+    # Skip if disabled
+    if [[ "${ORADBA_NO_PDB_ALIASES}" == "true" ]]; then
+        log_debug "PDB aliases disabled (ORADBA_NO_PDB_ALIASES=true)"
+        return 0
+    fi
+    
+    # Skip if no database connection
+    if ! check_database_connection 2>/dev/null; then
+        log_debug "No database connection, skipping PDB alias generation"
+        return 0
+    fi
+    
+    # Skip if not a CDB
+    local is_cdb
+    is_cdb=$(sqlplus -s / as sysdba <<EOF
+SET HEADING OFF FEEDBACK OFF PAGESIZE 0 VERIFY OFF TIMING OFF TIME OFF SQLPROMPT "" TRIMSPOOL ON TRIMOUT ON
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SELECT cdb FROM v\$database;
+EXIT
+EOF
+)
+    
+    if [[ "${is_cdb}" != "YES" ]]; then
+        log_debug "Not a CDB, skipping PDB alias generation"
+        return 0
+    fi
+    
+    # Get list of PDBs
+    local pdb_list
+    pdb_list=$(sqlplus -s / as sysdba <<EOF
+SET HEADING OFF FEEDBACK OFF PAGESIZE 0 VERIFY OFF TIMING OFF TIME OFF SQLPROMPT "" TRIMSPOOL ON TRIMOUT ON
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SELECT name FROM v\$pdbs WHERE name != 'PDB\$SEED' ORDER BY name;
+EXIT
+EOF
+)
+    
+    # Create aliases for each PDB
+    while IFS= read -r pdb_name; do
+        # Skip empty lines
+        [[ -z "$pdb_name" ]] && continue
+        
+        # Create lowercase alias
+        local pdb_lower="${pdb_name,,}"
+        
+        # Create alias to set ORADBA_PDB and connect
+        # shellcheck disable=SC2139
+        alias "${pdb_lower}"="export ORADBA_PDB='${pdb_name}'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=${pdb_name};'"
+        
+        # Create alias with 'pdb' prefix for clarity
+        # shellcheck disable=SC2139
+        alias "pdb${pdb_lower}"="export ORADBA_PDB='${pdb_name}'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=${pdb_name};'"
+        
+        log_debug "Created PDB alias: ${pdb_lower} -> ${pdb_name}"
+    done <<< "$pdb_list"
+    
+    # Export the PDB list
+    export ORADBA_PDBLIST="${pdb_list//$'\n'/ }"
+    log_debug "ORADBA_PDBLIST: $ORADBA_PDBLIST"
     
     return 0
 }

@@ -26,7 +26,9 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 - **Comprehensive Alias System** (~50 aliases):
   - SQL*Plus, RMAN, directory navigation, VI editors, alert log access
   - SID lists: `ORADBA_SIDLIST`, `ORADBA_REALSIDLIST`
+  - PDB aliases: Auto-generated for CDB environments (configurable with ORADBA_NO_PDB_ALIASES)
   - rlwrap integration with graceful fallback
+  - Optional password filtering for command history (requires Perl RlwrapFilter)
   - Dynamic aliases based on diagnostic_dest
 - **dbstatus.sh**: Compact database status display
   - Instance, database, memory, storage information
@@ -191,6 +193,7 @@ oradba_validate.sh --verbose
 5. `sid.<SID>.conf`: Auto-created per-SID configs with database metadata
 
 **Key Variables**:
+
 - `ORADBA_SIDLIST`: All SIDs from oratab
 - `ORADBA_REALSIDLIST`: Real SIDs (excludes DGMGRL dummy entries)
 - `ORADBA_ORA_ADMIN_SID`: Admin directory for current SID

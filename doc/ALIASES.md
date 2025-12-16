@@ -8,21 +8,28 @@ Oracle environment using `oraenv.sh`.
 
 ### SQL*Plus Aliases
 
-| Alias      | Description                                   | Command                |
-|------------|-----------------------------------------------|------------------------|
-| `sq`       | SQL*Plus as SYSDBA (basic)                    | `sqlplus / as sysdba`  |
-| `sqh`      | SQL*Plus as SYSDBA (with rlwrap if available) | `rlwrap sqlplus / as sysdba` |
-| `sqlplush` | SQL*Plus as SYSDBA (with rlwrap if available) | `rlwrap sqlplus / as sysdba` |
-| `sqoh`     | SQL*Plus as SYSOPER (with rlwrap if available)| `rlwrap sqlplus / as sysoper` |
+| Alias      | Description                                    | Command                       |
+|------------|------------------------------------------------|-------------------------------|
+| `sq`       | SQL*Plus as SYSDBA (basic)                     | `sqlplus / as sysdba`         |
+| `sqh`      | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
+| `sqlplush` | SQL*Plus as SYSDBA (with rlwrap if available)  | `rlwrap sqlplus / as sysdba`  |
+| `sqoh`     | SQL*Plus as SYSOPER (with rlwrap if available) | `rlwrap sqlplus / as sysoper` |
+
+**Note:** When `ORADBA_RLWRAP_FILTER=true`, aliases with rlwrap (sqh, sqlplush, sqoh)
+use password filtering to hide passwords from command history. See [RLWRAP_FILTER.md](RLWRAP_FILTER.md)
+for details.
 
 ### RMAN Aliases
 
-| Alias    | Description                                      | Command                    |
-|----------|--------------------------------------------------|----------------------------|
-| `rman`   | RMAN with target connection                      | `rman target /`            |
-| `rmanc`  | RMAN with target and catalog                     | `rman target / catalog`    |
-| `rmanh`  | RMAN with target (with rlwrap if available)      | `rlwrap rman target /`     |
-| `rmanch` | RMAN with target and catalog (with rlwrap)       | `rlwrap rman target / catalog` |
+| Alias    | Description                                 | Command                        |
+|----------|---------------------------------------------|--------------------------------|
+| `rman`   | RMAN with target connection                 | `rman target /`                |
+| `rmanc`  | RMAN with target and catalog                | `rman target / catalog`        |
+| `rmanh`  | RMAN with target (with rlwrap if available) | `rlwrap rman target /`         |
+| `rmanch` | RMAN with target and catalog (with rlwrap)  | `rlwrap rman target / catalog` |
+
+**Note:** When `ORADBA_RLWRAP_FILTER=true`, aliases with rlwrap (rmanh, rmanch) use password
+filtering. See [RLWRAP_FILTER.md](RLWRAP_FILTER.md) for details.
 
 ### Directory Navigation Aliases
 
@@ -62,17 +69,17 @@ Oracle environment using `oraenv.sh`.
 
 ### VI Editor Aliases
 
-| Alias    | Description                   | Command                     |
-|----------|-------------------------------|-----------------------------||
-| `vio`    | Edit oratab file              | `vi /etc/oratab`            |
-| `vit`    | Edit tnsnames.ora             | `vi $TNS_ADMIN/tnsnames.ora`|
-| `vil`    | Edit listener.ora             | `vi $TNS_ADMIN/listener.ora`|
-| `visql`  | Edit sqlnet.ora               | `vi $TNS_ADMIN/sqlnet.ora`  |
-| `vildap` | Edit ldap.ora                 | `vi $TNS_ADMIN/ldap.ora`    |
-| `vis`    | Edit OraDBA standard config   | `vi $ORADBA_ETC/oradba_standard.conf` |
-| `vic`    | Edit OraDBA customer config   | `vi $ORADBA_ETC/oradba_customer.conf` |
-| `vii`    | Edit OraDBA SID config        | `vi $ORADBA_ETC/sid.$ORACLE_SID.conf` |
-| `via`    | Edit alert log                | `vi` alert log (dynamic)    |
+| Alias    | Description                 | Command                               |
+|----------|-----------------------------|---------------------------------------|
+| `vio`    | Edit oratab file            | `vi /etc/oratab`                      |
+| `vit`    | Edit tnsnames.ora           | `vi $TNS_ADMIN/tnsnames.ora`          |
+| `vil`    | Edit listener.ora           | `vi $TNS_ADMIN/listener.ora`          |
+| `visql`  | Edit sqlnet.ora             | `vi $TNS_ADMIN/sqlnet.ora`            |
+| `vildap` | Edit ldap.ora               | `vi $TNS_ADMIN/ldap.ora`              |
+| `vis`    | Edit OraDBA standard config | `vi $ORADBA_ETC/oradba_standard.conf` |
+| `vic`    | Edit OraDBA customer config | `vi $ORADBA_ETC/oradba_customer.conf` |
+| `vii`    | Edit OraDBA SID config      | `vi $ORADBA_ETC/sid.$ORACLE_SID.conf` |
+| `via`    | Edit alert log              | `vi` alert log (dynamic)              |
 
 ### Convenience Variables
 
@@ -101,24 +108,62 @@ vi $etc/oradba_customer.conf  # Edit customer config
 
 These aliases are generated dynamically based on the current `ORACLE_SID` and diagnostic_dest location:
 
-| Alias  | Description               | Dynamic Path Example                                         |
-|--------|---------------------------|--------------------------------------------------------------|
-| `cda`  | Change to admin directory | `$ORADBA_ORA_ADMIN_SID` (e.g., `$ORACLE_BASE/admin/ORCL`)   |
-| `cdc`  | Change to control files   | `$ORADBA_ORA_CONTROL` (e.g., `$ORACLE_BASE/oradata/ORCL`)   |
+| Alias  | Description               | Dynamic Path Example                                               |
+|--------|---------------------------|--------------------------------------------------------------------|
+| `cda`  | Change to admin directory | `$ORADBA_ORA_ADMIN_SID` (e.g., `$ORACLE_BASE/admin/ORCL`)          |
+| `cdc`  | Change to control files   | `$ORADBA_ORA_CONTROL` (e.g., `$ORACLE_BASE/oradata/ORCL`)          |
 | `cdd`  | Change to diagnostic dest | `$ORADBA_ORA_DIAG_SID` (e.g., `$ORACLE_BASE/diag/rdbms/orcl/ORCL`) |
-| `cddt` | Change to trace directory | `diagnostic_dest/trace`                                      |
-| `cdda` | Change to alert directory | `diagnostic_dest/alert`                                      |
-| `taa`  | Tail alert log            | `tail -f` alert log (log.xml or alert_SID.log)               |
-| `vaa`  | View alert log with less  | `less` alert log (log.xml or alert_SID.log)                  |
-| `via`  | Edit alert log with vi    | `vi` alert log (log.xml or alert_SID.log)                    |
+| `cddt` | Change to trace directory | `diagnostic_dest/trace`                                            |
+| `cdda` | Change to alert directory | `diagnostic_dest/alert`                                            |
+| `taa`  | Tail alert log            | `tail -f` alert log (log.xml or alert_SID.log)                     |
+| `vaa`  | View alert log with less  | `less` alert log (log.xml or alert_SID.log)                        |
+| `via`  | Edit alert log with vi    | `vi` alert log (log.xml or alert_SID.log)                          |
+
+### PDB Aliases (Multitenant)
+
+For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database:
+
+| Alias Type | Example   | Description                                    |
+|------------|-----------|------------------------------------------------|
+| Simple     | `pdb1`    | Connect to PDB1, set ORADBA_PDB, alter session |
+| Prefixed   | `pdbpdb1` | Same as simple, with 'pdb' prefix for clarity  |
+
+**Generated for each PDB:**
+
+```bash
+# For PDB named "PDB1"
+alias pdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
+alias pdbpdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
+```
+
+**Usage:**
+
+```bash
+# List available PDBs
+echo $ORADBA_PDBLIST
+
+# Connect to a PDB
+pdb1
+
+# Prompt shows: [CDB1.PDB1]
+```
+
+**Configuration:**
+
+```bash
+# Disable PDB aliases (in oradba_customer.conf or sid.*.conf)
+export ORADBA_NO_PDB_ALIASES="true"
+```
+
+See [PDB_ALIASES.md](PDB_ALIASES.md) for complete documentation.
 
 ### Help and Information
 
-| Alias   | Description                 | Command                              |
-|---------|-----------------------------|--------------------------------------|
-| `alih`  | Display alias help          | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt` |
-| `alig`  | List all current aliases    | `alias \| grep -E '^(cd\|sq\|rm\|via\|taa\|vaa)'` |
-| `version` | Show OraDBA version       | `oradba_version.sh`                  |
+| Alias     | Description              | Command                                           |
+|-----------|--------------------------|---------------------------------------------------|
+| `alih`    | Display alias help       | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt`           |
+| `alig`    | List all current aliases | `alias \| grep -E '^(cd\|sq\|rm\|via\|taa\|vaa)'` |
+| `version` | Show OraDBA version      | `oradba_version.sh`                               |
 
 ## Configuration
 
@@ -286,6 +331,63 @@ Generated by functions in [aliases.sh](../lib/aliases.sh), these adapt to the cu
    ```bash
    rlwrap -i -c -f $ORACLE_HOME/bin/sqlplus sqlplus / as sysdba
    ```
+
+## rlwrap and Password Security
+
+### Password Filtering
+
+OraDBA supports optional password filtering for rlwrap-enabled aliases. When enabled,
+passwords are hidden from command history files.
+
+**Enable password filtering:**
+
+```bash
+# In oradba_customer.conf or sid.*.conf
+export ORADBA_RLWRAP_FILTER="true"
+```
+
+**Requirements:**
+
+- rlwrap installed
+- Perl with RlwrapFilter module (`cpan RlwrapFilter`)
+
+**What gets filtered:**
+
+- Password prompts (SQL*Plus, RMAN)
+- CONNECT commands with embedded passwords
+- CREATE/ALTER USER IDENTIFIED BY statements
+
+**Example:**
+
+```sql
+-- Input:
+CONNECT user/password@database
+
+-- Saved in history as:
+CONNECT user/@database
+```
+
+For complete documentation, see [RLWRAP_FILTER.md](RLWRAP_FILTER.md)
+
+### Installing rlwrap
+
+**RHEL/Oracle Linux:**
+
+```bash
+sudo yum install rlwrap
+```
+
+**Ubuntu/Debian:**
+
+```bash
+sudo apt-get install rlwrap
+```
+
+**macOS:**
+
+```bash
+brew install rlwrap
+```
 
 ## See Also
 

@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-12-16
+
+### Added
+
+- **PDB alias support** (ORADBA_NO_PDB_ALIASES toggle):
+  - Automatic PDB discovery in CDB environments
+  - Generates lowercase aliases for each PDB (e.g., `pdb1` for PDB1)
+  - Generates prefixed aliases (e.g., `pdbpdb1`)
+  - Sets ORADBA_PDB variable for prompt integration
+  - Exports ORADBA_PDBLIST with all available PDBs
+  - Configurable via ORADBA_NO_PDB_ALIASES=true to disable
+  - Documentation in doc/PDB_ALIASES.md
+  - Integration with PS1 prompt ([SID.PDB] format)
+- **rlwrap password filter support** (ORADBA_RLWRAP_FILTER):
+  - Perl-based filter to hide passwords from command history
+  - Detects common Oracle password prompts (SQL*Plus, RMAN)
+  - Masks CONNECT commands with embedded passwords
+  - Masks CREATE/ALTER USER IDENTIFIED BY statements
+  - Configurable via ORADBA_RLWRAP_FILTER=true (default: false)
+  - Documentation in doc/RLWRAP_FILTER.md
+  - Affects: sqh, sqlplush, sqoh, rmanh, rmanch aliases
+- **Requirements check in installer**:
+  - Validates bash installation before proceeding
+  - Checks for rlwrap with installation instructions if missing
+  - Verifies basic utilities (tar, base64, awk, sed, grep)
+  - Provides OS-specific installation commands
+
+### Fixed
+
+- **Bug #28**: oradba_validate.sh validation issues
+  - Fixed color codes not displaying (changed from heredoc to echo -e)
+  - Fixed README.md path (now ${ORADBA_BASE}/../README.md)
+  - Changed CONFIGURATION.md to optional (doesn't exist yet)
+  - Changed ALIAS_HELP.txt to required (used by alih alias)
+- **Shellcheck warnings**:
+  - Fixed SC2034 in common.sh: Marked unused oracle_home variable with underscore
+  - Fixed SC2139 in common.sh: Added disable comment for intentional alias expansion
+  - Fixed SC2034 in oradba_validate.sh: Removed unused BLUE color variable
+
 ## [0.5.0] - 2025-12-16
 
 ### Added
@@ -63,9 +102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Validation and help**:
   - `oradba_validate.sh`: Post-installation validation script with color-coded output
-    * Checks directory structure, scripts, libraries, configs, docs, SQL files
-    * Optional Oracle environment checks (ORACLE_HOME, sqlplus, oratab)
-    * Exit codes: 0=success, 1=failures found
+    - Checks directory structure, scripts, libraries, configs, docs, SQL files
+    - Optional Oracle environment checks (ORACLE_HOME, sqlplus, oratab)
+    - Exit codes: 0=success, 1=failures found
   - `ALIAS_HELP.txt`: Quick reference help file with ASCII art banner
   - `alih` alias displays quick help with categorized alias listing
 
@@ -77,7 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Graceful handling of dummy/unavailable databases: Shows simple environment status only
   
 - **PS1/PS1BASH prompt customization**:
-  - Automatically includes ORACLE_SID in bash prompt: `user@host:path/ [SID] `
+  - Automatically includes ORACLE_SID in bash prompt: `user@host:path/ [SID]`
   - PDB support: Shows `[SID.PDB]` when ORADBA_PDB variable is set
   - Two formats: PS1BASH (bash escapes \u, \h, \w) and PS1 (environment variables)
   - Controlled by ORADBA_CUSTOMIZE_PS1 toggle (enabled by default)

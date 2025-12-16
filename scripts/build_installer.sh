@@ -6,8 +6,8 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.4.0
-# Purpose....: Build self-contained installer with base64 payload
+# Revision...: 0.5.0
+# Purpose....: Build self-contained installer with base64 payload and requirements check
 # Notes......: Creates a single executable installer with embedded tarball.
 #              Packages src/ directory and creates distribution installer.
 # Reference..: https://github.com/oehrlis/oradba
@@ -248,6 +248,61 @@ EOF
     exit 0
 }
 
+# Check system requirements
+check_requirements() {
+    local requirements_met=true
+    
+    echo "========================================="
+    echo "Checking System Requirements"
+    echo "========================================="
+    
+    # Check for bash
+    if command -v bash >/dev/null 2>&1; then
+        local bash_version
+        bash_version=$(bash --version | head -1)
+        log_info "Bash found: ${bash_version}"
+    else
+        log_error "Bash not found - oradba requires bash to function"
+        requirements_met=false
+    fi
+    
+    # Check for rlwrap (optional but recommended)
+    if command -v rlwrap >/dev/null 2>&1; then
+        local rlwrap_version
+        rlwrap_version=$(rlwrap -v 2>&1 | head -1)
+        log_info "rlwrap found: ${rlwrap_version}"
+    else
+        log_warn "rlwrap not found (optional)"
+        log_warn "Many oradba aliases (sqh, rman, etc.) provide enhanced"
+        log_warn "readline support with rlwrap. Install rlwrap for better"
+        log_warn "command-line editing and history features."
+        echo ""
+        log_info "To install rlwrap:"
+        echo "  - RHEL/Oracle Linux: sudo yum install rlwrap"
+        echo "  - Ubuntu/Debian:     sudo apt-get install rlwrap"
+        echo "  - macOS:             brew install rlwrap"
+        echo ""
+    fi
+    
+    # Check for basic utilities
+    for cmd in tar base64 awk sed grep; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            log_error "Required utility not found: $cmd"
+            requirements_met=false
+        fi
+    done
+    
+    echo ""
+    
+    if [[ "$requirements_met" == "false" ]]; then
+        log_error "System requirements not met. Please install missing components."
+        exit 1
+    fi
+    
+    log_info "System requirements check passed"
+    echo ""
+}
+
 # Parse arguments
 INSTALL_PREFIX="$DEFAULT_PREFIX"
 INSTALL_USER=""
@@ -309,6 +364,9 @@ echo "========================================="
 echo "Installation prefix: $INSTALL_PREFIX"
 [[ -n "$INSTALL_USER" ]] && echo "Install user: $INSTALL_USER"
 echo ""
+
+# Check system requirements
+check_requirements
 
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)

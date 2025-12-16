@@ -1,0 +1,81 @@
+#!/usr/bin/env perl
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
+# ------------------------------------------------------------------------------
+# Name.......: rlwrap_filter_oracle
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.16
+# Revision...: 0.5.0
+# Purpose....: rlwrap filter to hide passwords from history
+# Notes......: Filters out password inputs for Oracle tools (SQL*Plus, RMAN)
+# Usage......: rlwrap -z rlwrap_filter_oracle sqlplus /nolog
+# Reference..: man rlwrap
+# ------------------------------------------------------------------------------
+
+use lib ($ENV{RLWRAP_FILTERDIR} or ".");
+use RlwrapFilter;
+use strict;
+
+my $filter = RlwrapFilter->new;
+
+# Patterns that indicate password prompts
+my @password_patterns = (
+    qr/password:/i,
+    qr/enter password:/i,
+    qr/\bpassword\b:/i,
+    qr/sys password:/i,
+    qr/system password:/i,
+    qr/rman.*password:/i,
+    qr/catalog.*password:/i,
+    qr/target.*password:/i,
+);
+
+# Track if we're in a password prompt
+my $in_password_prompt = 0;
+
+# Filter output
+$filter->output_handler(sub {
+    my $output = shift;
+    
+    # Check if this looks like a password prompt
+    foreach my $pattern (@password_patterns) {
+        if ($output =~ /$pattern/) {
+            $in_password_prompt = 1;
+            last;
+        }
+    }
+    
+    return $output;
+});
+
+# Filter input - don't save password lines to history
+$filter->input_handler(sub {
+    my $input = shift;
+    
+    if ($in_password_prompt) {
+        $in_password_prompt = 0;
+        # Return empty string to prevent saving to history
+        return "";
+    }
+    
+    # Check if the input itself contains password keywords (CONNECT command)
+    if ($input =~ /\bconnect\b.*\/.+@/i) {
+        # This is a connect string with embedded password
+        # Mask the password part
+        my $masked = $input;
+        $masked =~ s/\/[^@\s]+/@/g;  # Replace /password with just /
+        return $masked;
+    }
+    
+    # Check for IDENTIFIED BY password
+    if ($input =~ /\bidentified\s+by\s+/i) {
+        my $masked = $input;
+        $masked =~ s/(identified\s+by\s+)\S+/$1***HIDDEN***/gi;
+        return $masked;
+    }
+    
+    return $input;
+});
+
+$filter->run;

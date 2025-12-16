@@ -9,6 +9,9 @@ Welcome to the oradba documentation. This directory contains comprehensive docum
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Developer guide and best practices
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design
 - **[API.md](API.md)** - API documentation for scripts and functions
+- **[ALIASES.md](ALIASES.md)** - Complete alias reference with examples
+- **[PDB_ALIASES.md](PDB_ALIASES.md)** - PDB alias configuration and usage
+- **[RLWRAP_FILTER.md](RLWRAP_FILTER.md)** - Password filtering configuration
 - **[templates/](templates/)** - File and header templates
 
 ## Main Documentation
