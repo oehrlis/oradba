@@ -1,6 +1,8 @@
 # OraDBA Configuration System
 
-OraDBA uses a hierarchical configuration system that allows flexible customization at multiple levels. Configuration files are loaded in a specific order, with later files overriding earlier settings.
+OraDBA uses a hierarchical configuration system that allows flexible
+customization at multiple levels. Configuration files are loaded in a specific
+order, with later files overriding earlier settings.
 
 ## Configuration Hierarchy
 
@@ -12,7 +14,8 @@ OraDBA uses a hierarchical configuration system that allows flexible customizati
 4. **sid._DEFAULT_.conf** - Default SID settings (optional)
 5. **sid.<ORACLE_SID>.conf** - SID-specific configuration (optional, auto-created)
 
-Later configurations override earlier ones, allowing you to customize settings at each level without modifying the base configuration.
+Later configurations override earlier ones, allowing you to customize settings at
+each level without modifying the base configuration.
 
 ## Configuration Files
 
@@ -49,7 +52,8 @@ BACKUP_DIR="/backup"
 RECOVERY_DIR="${ORADBA_PREFIX}/rcv"
 ```
 
-**When to Edit:** Rarely. Only modify if you need to change installation paths, logging behavior, or core features.
+**When to Edit:** Rarely. Only modify if you need to change installation paths,
+logging behavior, or core features.
 
 ### 2. oradba_standard.conf
 
@@ -179,7 +183,8 @@ ORADBA_BACKUP_TYPE="INCREMENTAL"
 ORADBA_BACKUP_COMPRESSION="MEDIUM"
 ```
 
-**When to Edit:** Customize settings for specific databases. Auto-created configs include database metadata queried from v$database and v$parameter.
+**When to Edit:** Customize settings for specific databases. Auto-created
+configs include database metadata queried from v$database and v$parameter.
 
 ## Configuration Loading Process
 
@@ -207,7 +212,8 @@ DEBUG=1 source oraenv.sh ORCL
 ```
 
 Output includes:
-```
+
+```text
 [DEBUG] Loading OraDBA configuration for SID: ORCL
 [DEBUG] Loading core config: /opt/oradba/etc/oradba_core.conf
 [DEBUG] Loading standard config: /opt/oradba/etc/oradba_standard.conf
@@ -298,13 +304,15 @@ ORATAB_ALTERNATIVES=(
 
 ### When Auto-Creation Occurs
 
-If `ORADBA_AUTO_CREATE_SID_CONFIG=true` (default), OraDBA automatically creates a SID-specific configuration file on first environment switch for a new ORACLE_SID.
+If `ORADBA_AUTO_CREATE_SID_CONFIG=true` (default), OraDBA automatically creates
+a SID-specific configuration file on first environment switch for a new ORACLE_SID.
 
 ### Database Metadata Queried
 
 The `create_sid_config()` function queries the database for:
 
 From **v$database:**
+
 - `name` → ORADBA_DB_NAME
 - `db_unique_name` → ORADBA_DB_UNIQUE_NAME
 - `dbid` → ORADBA_DBID
@@ -312,11 +320,13 @@ From **v$database:**
 - `open_mode` → ORADBA_DB_OPEN_MODE
 
 From **v$parameter:**
+
 - `diagnostic_dest` → ORADBA_DIAGNOSTIC_DEST
 
 ### Fallback Behavior
 
 If database is not accessible during auto-creation:
+
 - Metadata fields are populated with defaults
 - `ORADBA_DIAGNOSTIC_DEST` uses convention: `${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}`
 - Configuration file is still created for future customization
@@ -334,87 +344,90 @@ cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 ### Core System Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| ORADBA_PREFIX | /opt/oradba | Installation base directory |
-| ORADBA_CONFIG_DIR | ${ORADBA_PREFIX}/etc | Configuration directory |
-| ORATAB_FILE | /etc/oratab | Oratab file location |
-| DEBUG | 0 | Debug mode (0=off, 1=on) |
-| LOG_DIR | ${ORADBA_PREFIX}/logs | Log directory |
-| LOG_LEVEL | INFO | Log level (DEBUG, INFO, WARN, ERROR) |
-| BACKUP_DIR | /backup | Default backup directory |
-| RECOVERY_DIR | ${ORADBA_PREFIX}/rcv | Recovery scripts directory |
+| Variable          | Default               | Description                          |
+|-------------------|-----------------------|--------------------------------------|
+| ORADBA_PREFIX     | /opt/oradba           | Installation base directory          |
+| ORADBA_CONFIG_DIR | ${ORADBA_PREFIX}/etc  | Configuration directory              |
+| ORATAB_FILE       | /etc/oratab           | Oratab file location                 |
+| DEBUG             | 0                     | Debug mode (0=off, 1=on)             |
+| LOG_DIR           | ${ORADBA_PREFIX}/logs | Log directory                        |
+| LOG_LEVEL         | INFO                  | Log level (DEBUG, INFO, WARN, ERROR) |
+| BACKUP_DIR        | /backup               | Default backup directory             |
+| RECOVERY_DIR      | ${ORADBA_PREFIX}/rcv  | Recovery scripts directory           |
 
 ### Behavior Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| ORADBA_LOAD_ALIASES | true | Load aliases and functions |
-| ORADBA_SHOW_DB_STATUS | true | Show database status on environment switch |
-| ORADBA_AUTO_CREATE_SID_CONFIG | true | Auto-create SID configurations |
+| Variable                      | Default | Description                                |
+|-------------------------------|---------|--------------------------------------------|
+| ORADBA_LOAD_ALIASES           | true    | Load aliases and functions                 |
+| ORADBA_SHOW_DB_STATUS         | true    | Show database status on environment switch |
+| ORADBA_AUTO_CREATE_SID_CONFIG | true    | Auto-create SID configurations             |
 
 ### Oracle Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| ORACLE_BASE | /u01/app/oracle | Oracle base directory |
-| TNS_ADMIN | ${ORACLE_HOME}/network/admin | TNS configuration directory |
-| NLS_LANG | AMERICAN_AMERICA.AL32UTF8 | NLS language and character set |
-| NLS_DATE_FORMAT | YYYY-MM-DD HH24:MI:SS | Date format |
-| NLS_TIMESTAMP_FORMAT | YYYY-MM-DD HH24:MI:SS.FF | Timestamp format |
-| SQLPATH | ${ORADBA_PREFIX}/sql | SQL*Plus script path |
-| ORACLE_PATH | ${ORADBA_PREFIX}/sql | Oracle script search path |
+| Variable             | Default                      | Description                    |
+|----------------------|------------------------------|--------------------------------|
+| ORACLE_BASE          | /u01/app/oracle              | Oracle base directory          |
+| TNS_ADMIN            | ${ORACLE_HOME}/network/admin | TNS configuration directory    |
+| NLS_LANG             | AMERICAN_AMERICA.AL32UTF8    | NLS language and character set |
+| NLS_DATE_FORMAT      | YYYY-MM-DD HH24:MI:SS        | Date format                    |
+| NLS_TIMESTAMP_FORMAT | YYYY-MM-DD HH24:MI:SS.FF     | Timestamp format               |
+| SQLPATH              | ${ORADBA_PREFIX}/sql         | SQL*Plus script path           |
+| ORACLE_PATH          | ${ORADBA_PREFIX}/sql         | Oracle script search path      |
 
 ### Database Metadata Variables (SID-specific)
 
-| Variable | Source | Description |
-|----------|--------|-------------|
-| ORADBA_DB_NAME | v$database.name | Database name |
-| ORADBA_DB_UNIQUE_NAME | v$database.db_unique_name | Database unique name (Data Guard) |
-| ORADBA_DBID | v$database.dbid | Database ID |
-| ORADBA_DB_ROLE | v$database.database_role | Database role (PRIMARY, STANDBY, etc.) |
-| ORADBA_DB_VERSION | v$instance.version | Database version |
-| ORADBA_DB_OPEN_MODE | v$database.open_mode | Database open mode |
-| ORADBA_DIAGNOSTIC_DEST | v$parameter (diagnostic_dest) | Diagnostic destination directory |
+| Variable               | Source                        | Description                            |
+|------------------------|-------------------------------|----------------------------------------|
+| ORADBA_DB_NAME         | v$database.name               | Database name                          |
+| ORADBA_DB_UNIQUE_NAME  | v$database.db_unique_name     | Database unique name (Data Guard)      |
+| ORADBA_DBID            | v$database.dbid               | Database ID                            |
+| ORADBA_DB_ROLE         | v$database.database_role      | Database role (PRIMARY, STANDBY, etc.) |
+| ORADBA_DB_VERSION      | v$instance.version            | Database version                       |
+| ORADBA_DB_OPEN_MODE    | v$database.open_mode          | Database open mode                     |
+| ORADBA_DIAGNOSTIC_DEST | v$parameter (diagnostic_dest) | Diagnostic destination directory       |
 
 ### Connection Variables (SID-specific)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| ORADBA_TNS_ALIAS | ${ORACLE_SID} | TNS alias for connection |
-| ORADBA_CONNECT_TYPE | LOCAL | Connection type (LOCAL, TNS, EZCONNECT) |
+| Variable            | Default       | Description                             |
+|---------------------|---------------|-----------------------------------------|
+| ORADBA_TNS_ALIAS    | ${ORACLE_SID} | TNS alias for connection                |
+| ORADBA_CONNECT_TYPE | LOCAL         | Connection type (LOCAL, TNS, EZCONNECT) |
 
 ### Backup Variables (SID-specific)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| ORADBA_DB_BACKUP_DIR | ${BACKUP_DIR}/${ORACLE_SID} | Database backup directory |
-| ORADBA_BACKUP_RETENTION | 7 | Backup retention (days) |
-| ORADBA_BACKUP_TYPE | INCREMENTAL | Backup type (FULL, INCREMENTAL) |
-| ORADBA_BACKUP_COMPRESSION | MEDIUM | Compression level (BASIC, LOW, MEDIUM, HIGH) |
+| Variable                  | Default                     | Description                                  |
+|---------------------------|-----------------------------|----------------------------------------------|
+| ORADBA_DB_BACKUP_DIR      | ${BACKUP_DIR}/${ORACLE_SID} | Database backup directory                    |
+| ORADBA_BACKUP_RETENTION   | 7                           | Backup retention (days)                      |
+| ORADBA_BACKUP_TYPE        | INCREMENTAL                 | Backup type (FULL, INCREMENTAL)              |
+| ORADBA_BACKUP_COMPRESSION | MEDIUM                      | Compression level (BASIC, LOW, MEDIUM, HIGH) |
 
 ### rlwrap Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| RLWRAP_COMMAND | rlwrap | rlwrap executable |
-| RLWRAP_OPTS | -i -c -f $ORACLE_HOME/bin/sqlplus | rlwrap options |
+| Variable       | Default                           | Description       |
+|----------------|-----------------------------------|-------------------|
+| RLWRAP_COMMAND | rlwrap                            | rlwrap executable |
+| RLWRAP_OPTS    | -i -c -f $ORACLE_HOME/bin/sqlplus | rlwrap options    |
 
 ## Troubleshooting
 
 ### Configuration Not Loading
 
 1. **Check file permissions:**
+
    ```bash
    ls -l ${ORADBA_PREFIX}/etc/oradba_*.conf
    ```
 
 2. **Enable debug mode:**
+
    ```bash
    DEBUG=1 source oraenv.sh ORCL
    ```
 
 3. **Verify ORADBA_PREFIX:**
+
    ```bash
    echo $ORADBA_PREFIX
    ```
@@ -422,16 +435,19 @@ cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 ### SID Configuration Not Auto-Created
 
 1. **Check auto-creation setting:**
+
    ```bash
    grep ORADBA_AUTO_CREATE_SID_CONFIG ${ORADBA_PREFIX}/etc/oradba_core.conf
    ```
 
 2. **Check database connectivity:**
+
    ```bash
    sqlplus -S / as sysdba <<< "SELECT 1 FROM dual;"
    ```
 
 3. **Manually create if needed:**
+
    ```bash
    cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example ${ORADBA_PREFIX}/etc/sid.MYDB.conf
    ```

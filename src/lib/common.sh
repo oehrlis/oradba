@@ -275,6 +275,10 @@ ORADBA_DB_OPEN_MODE="${open_mode:-READ WRITE}"
 # Diagnostic destination (from v\$parameter)
 ORADBA_DIAGNOSTIC_DEST="${diagnostic_dest:-${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}}"
 
+# Admin and diagnostic directories (for compatibility aliases)
+ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${sid}"
+ORADBA_ORA_DIAG_SID="\${ORADBA_DIAGNOSTIC_DEST}"
+
 # NLS Settings (customize if needed)
 # NLS_LANG="${NLS_LANG}"
 # NLS_DATE_FORMAT="${NLS_DATE_FORMAT}"

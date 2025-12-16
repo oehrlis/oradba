@@ -24,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-population of DBID, DB_UNIQUE_NAME, diagnostic_dest from v$database and v$parameter
   - Example configuration files: `sid.ORCL.conf.example`, `oradba_customer.conf.example`
 - **Issue #8**: Comprehensive shell alias system
-  - Simple aliases in `oradba_standard.conf`: sq, sqh, sqlp, rmans, cdob, cdoh, cdbn, cdnw, lstat, lstart, lstop, pmon, oratab, tns
+  - Simple aliases in `oradba_standard.conf`: sq, sqh, sqlp, rmans, cdob, cdoh, cdbn, cdnw,
+    lstat, lstart, lstop, pmon, oratab, tns
   - Dynamic alias generation in `srv/lib/aliases.sh`: taa, vaa, cdda, cdta, cdaa (SID-specific)
   - `get_diagnostic_dest()`: Query database for diagnostic_dest with convention-based fallback
   - `generate_sid_aliases()`: Generate SID-specific aliases based on current ORACLE_SID

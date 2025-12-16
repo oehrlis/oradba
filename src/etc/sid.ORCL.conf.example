@@ -70,6 +70,10 @@ ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/ORCL"
 # Database backup directory
 ORADBA_DB_BACKUP_DIR="/backup/ORCL"
 
+# Admin and diagnostic directories (for compatibility aliases)
+ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${ORACLE_SID}"
+ORADBA_ORA_DIAG_SID="${ORADBA_DIAGNOSTIC_DEST}"
+
 # ------------------------------------------------------------------------------
 # Backup Settings
 # ------------------------------------------------------------------------------
