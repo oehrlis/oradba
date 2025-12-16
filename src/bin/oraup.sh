@@ -100,7 +100,9 @@ get_db_mode() {
     local mode
     mode=$(ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2>/dev/null <<EOF
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
-SELECT open_mode FROM v\$database;
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+WHENEVER OSERROR EXIT FAILURE
+SELECT status FROM v\$instance;
 EXIT;
 EOF
 )
@@ -108,10 +110,24 @@ EOF
     # Clean up output
     mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     
-    if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]]; then
+    # Check if we got a valid result
+    if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
         echo "$mode" | tr '[:upper:]' '[:lower:]'
     else
-        echo "unknown"
+        # If v$instance query failed, try v$database for open_mode
+        mode=$(ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2>/dev/null <<EOF
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
+SELECT open_mode FROM v\$database;
+EXIT;
+EOF
+)
+        mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
+            echo "$mode" | tr '[:upper:]' '[:lower:]'
+        else
+            echo "started"
+        fi
     fi
 }
 
@@ -232,7 +248,8 @@ show_oracle_status() {
             local lstatus
             lstatus=$(get_listener_status "$listener" "$oh")
             
-            if [[ "$lstatus" == "up" ]] || ps -ef | grep -v grep | grep "tnslsnr" | grep -q "$oh"; then
+            # Only show listeners that are actually running
+            if [[ "$lstatus" == "up" ]]; then
                 printf "%-18s : %-15s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
                 found_listener=true
             fi

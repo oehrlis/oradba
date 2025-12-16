@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **u alias**: Short alias for oraup.sh for quick Oracle environment overview
+
 ### Fixed
+
+- **oraup.sh**: Improved database status detection
+  - Changed query from v$database.open_mode to v$instance.status for better state detection
+  - Now correctly shows: open, mounted, started, nomount status
+  - Falls back to v$database.open_mode if v$instance query fails
+  - Fixed listener detection to only show running listeners (not down listeners)
+  - Removed display of non-existent listeners from hostname
 
 - **Alert log aliases**: Point to regular alert log instead of XML format
   - Changed `taa`, `via`, and `vaa` to use `alert_SID.log` instead of `log.xml`

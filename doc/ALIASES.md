@@ -80,6 +80,7 @@ Command Interpreter (ADRCI), making it easier to navigate and query Oracle diagn
 | Alias    | Description                             | Command                       |
 |----------|-----------------------------------------|-------------------------------|
 | `oraup`  | Oracle environment overview             | `oraup.sh`                    |
+| `u`      | Short alias for oraup                   | `oraup.sh`                    |
 | `lstat`  | Listener status                         | `lsnrctl status`              |
 | `lstart` | Start listener                          | `lsnrctl start`               |
 | `lstop`  | Stop listener                           | `lsnrctl stop`                |

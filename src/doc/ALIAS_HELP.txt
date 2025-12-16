@@ -43,6 +43,7 @@
  -------------------------------------------------------------------------------
  sta             --> Show database status
  oraup           --> Show Oracle environment overview (all DBs/listeners)
+ u               --> Short alias for oraup
  lstat           --> Listener status
  lstart          --> Start listener
  lstop           --> Stop listener
