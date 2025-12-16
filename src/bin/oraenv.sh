@@ -109,7 +109,8 @@ _oraenv_parse_args() {
 
 # Display usage
 _oraenv_usage() {
-    cat << EOF
+    # Output to stderr so it's visible when sourced
+    cat >&2 << EOF
 Usage: source oraenv.sh [ORACLE_SID] [OPTIONS]
 
 Set Oracle environment for a specific ORACLE_SID based on oratab.
@@ -263,7 +264,10 @@ _oraenv_set_environment() {
     startup_flag=$(echo "$oratab_entry" | cut -d: -f3)
     export ORACLE_STARTUP="${startup_flag:-N}"
 
-    log_info "Oracle environment set for SID: $ORACLE_SID"
+    # Only log if not in silent mode
+    if [[ "${SHOW_ENV:-true}" == "true" ]] || [[ "${SHOW_STATUS:-false}" == "true" ]]; then
+        log_info "Oracle environment set for SID: $ORACLE_SID"
+    fi
     log_debug "ORACLE_HOME: $ORACLE_HOME"
     log_debug "ORACLE_BASE: $ORACLE_BASE"
     log_debug "TNS_ADMIN: ${TNS_ADMIN:-not set}"
