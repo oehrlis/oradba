@@ -148,10 +148,10 @@ query_memory_usage() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << EOF 2>/dev/null
-SET ECHO OFF HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
-SELECT ROUND((SELECT SUM(value)/1024/1024/1024 FROM v\$sga), 2) || '|' || ROUND((SELECT value/1024/1024/1024 FROM v\$pgastat WHERE name = 'total PGA allocated'), 2) FROM dual;
-EXIT
+    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
+SET ECHO OFF TERMOUT ON HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
+SELECT ROUND((SELECT SUM(value)/1024/1024/1024 FROM v$sga), 2) || '|' || ROUND((SELECT value/1024/1024/1024 FROM v$pgastat WHERE name = 'total PGA allocated'), 2) FROM dual;
+EXIT;
 EOF
 }
 
@@ -226,9 +226,11 @@ format_uptime() {
         return
     fi
     
-    # Calculate uptime using date commands
+    # Calculate uptime using date commands (cross-platform: macOS and Linux)
     local startup_epoch current_epoch uptime_seconds
-    startup_epoch=$(date -j -f "%Y-%m-%d %H:%M:%S" "$startup_time" "+%s" 2>/dev/null || echo "0")
+    # Try macOS format first, then Linux format
+    startup_epoch=$(date -j -f "%Y-%m-%d %H:%M:%S" "$startup_time" "+%s" 2>/dev/null || \
+                    date -d "$startup_time" "+%s" 2>/dev/null || echo "0")
     current_epoch=$(date "+%s")
     uptime_seconds=$((current_epoch - startup_epoch))
     
