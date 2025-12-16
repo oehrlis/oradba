@@ -81,7 +81,7 @@ set -e
 
 # Variables
 INSTALLER_VERSION="__VERSION__"
-DEFAULT_PREFIX="/opt/oradba"
+DEFAULT_PREFIX="${ORACLE_BASE:-$HOME}/local/oradba"
 TEMP_DIR=""
 
 # Colors for output
