@@ -32,13 +32,14 @@ body:
       label: Component
       description: Which component does this task relate to?
       options:
-        - oraenv.sh (Environment setup)
-        - common.sh (Library functions)
+        - Environment setup (oradba.env))
+        - Library functions (db_functions.sh, common.sh)
         - Installer (build/installation)
         - Tests (BATS test suite)
         - Documentation
         - CI/CD (GitHub Actions)
         - Configuration files
+        - Shell scripts
         - SQL scripts
         - RMAN scripts
         - Other (specify in Implementation Notes)
