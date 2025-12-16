@@ -149,8 +149,15 @@ query_memory_usage() {
     fi
     
     sqlplus -s / as sysdba << 'EOF' 2>/dev/null
-SET ECHO OFF TERMOUT ON HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
-SELECT ROUND((SELECT SUM(value)/1024/1024/1024 FROM v$sga), 2) || '|' || ROUND((SELECT value/1024/1024/1024 FROM v$pgastat WHERE name = 'total PGA allocated'), 2) FROM dual;
+SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON
+SELECT 
+    ROUND(SUM(CASE WHEN name = 'sga' THEN value ELSE 0 END)/1024/1024/1024, 2) || '|' ||
+    ROUND(SUM(CASE WHEN name = 'pga' THEN value ELSE 0 END)/1024/1024/1024, 2)
+FROM (
+    SELECT 'sga' name, SUM(value) value FROM v$sga
+    UNION ALL
+    SELECT 'pga' name, value FROM v$pgastat WHERE name = 'total PGA allocated'
+);
 EXIT;
 EOF
 }
