@@ -220,7 +220,9 @@ show_oracle_status() {
     done < "$ORATAB_FILE"
     
     # Remove duplicates
-    oracle_homes=($(printf '%s\n' "${oracle_homes[@]}" | sort -u))
+    local -a unique_homes
+    mapfile -t unique_homes < <(printf '%s\n' "${oracle_homes[@]}" | sort -u)
+    oracle_homes=("${unique_homes[@]}")
     
     # Check for listeners in each Oracle home
     local found_listener=false
@@ -240,8 +242,6 @@ show_oracle_status() {
     if [[ "$found_listener" == "false" ]]; then
         # Check for any running listeners
         if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
-            local listener_proc
-            listener_proc=$(ps -ef | grep -v grep | grep "tnslsnr" | head -1)
             printf "%-18s : %-15s %-11s %s\n" "Listener" "LISTENER" "up" "(running)"
         else
             printf "%-18s : %-15s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
