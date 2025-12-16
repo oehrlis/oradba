@@ -5,8 +5,8 @@
 # Name.......: common.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.15
-# Revision...: 0.1.0
+# Date.......: 2025.12.16
+# Revision...: 0.3.0
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.

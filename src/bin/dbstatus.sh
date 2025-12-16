@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.1.0
+# Revision...: 0.3.0
 # Purpose....: Display Oracle database status information
 # Notes......: This script displays comprehensive database status including
 #              instance state, uptime, database mode, and resource usage.
