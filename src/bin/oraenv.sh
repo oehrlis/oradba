@@ -326,7 +326,14 @@ _oraenv_main() {
             log_error "No ORACLE_SID provided"
             return 1
         fi
-    fiHandle different display modes
+    fi
+
+    # Set environment
+    _oraenv_set_environment "$requested_sid" "$oratab_file"
+    local result=$?
+
+    if [[ $result -eq 0 ]]; then
+        # Handle different display modes
         if [[ "$ORAENV_STATUS_ONLY" == "true" ]] && command -v show_database_status &> /dev/null; then
             # --status flag: show only database status
             show_database_status
@@ -339,13 +346,6 @@ _oraenv_main() {
             _oraenv_show_environment
         fi
         # Otherwise: silent mode, show nothing
-    if [[ $result -eq 0 ]]; then
-        # Show detailed database status if requested and function is available
-        if [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
-            show_database_status
-        else
-            _oraenv_show_environment
-        fi
     fi
 
     return $result
