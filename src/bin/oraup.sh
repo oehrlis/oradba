@@ -189,45 +189,51 @@ show_oracle_status() {
         return 1
     fi
     
-    # Process oratab entries
+    # Collect all entries first for sorting
+    local -a dummy_entries
+    local -a db_entries
+    
     while IFS=: read -r sid oracle_home startup_flag _rest; do
         # Skip comments and empty lines
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
         [[ -z "$sid" ]] && continue
         
-        # Determine type
-        local db_type="DB-instance"
-        local display_flag="$startup_flag"
-        
+        # Collect entries based on type
         if [[ "$startup_flag" == "D" ]]; then
-            db_type="Dummy rdbms"
-            display_flag="n/a"
+            dummy_entries+=("$sid:$oracle_home:$startup_flag")
+        else
+            db_entries+=("$sid:$oracle_home:$startup_flag")
         fi
+    done < "$ORATAB_FILE"
+    
+    # Sort both arrays alphabetically by SID
+    mapfile -t dummy_entries < <(printf '%s\n' "${dummy_entries[@]}" | sort)
+    mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
+    
+    # Process dummy entries first
+    for entry in "${dummy_entries[@]}"; do
+        IFS=: read -r sid oracle_home startup_flag <<< "$entry"
+        printf "%-18s : %-15s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+    done
+    
+    # Process DB instances
+    for entry in "${db_entries[@]}"; do
+        IFS=: read -r sid oracle_home startup_flag <<< "$entry"
         
         # Get status
         local status
-        if [[ "$startup_flag" == "D" ]]; then
-            status="n/a"
-        else
-            status=$(get_db_status "$sid")
-            
-            # Get open mode if instance is up
-            if [[ "$status" == "up" ]]; then
-                local mode
-                mode=$(get_db_mode "$sid" "$oracle_home")
-                status="$mode"
-            fi
+        status=$(get_db_status "$sid")
+        
+        # Get open mode if instance is up
+        if [[ "$status" == "up" ]]; then
+            local mode
+            mode=$(get_db_mode "$sid" "$oracle_home")
+            status="$mode"
         fi
         
-        # Display startup flags for DB instances
-        local type_display="$db_type"
-        if [[ "$db_type" == "DB-instance" ]]; then
-            type_display="${db_type} (${startup_flag})"
-        fi
-        
-        printf "%-18s : %-15s %-11s %s\n" "$type_display" "$sid" "$status" "$oracle_home"
-        
-    done < "$ORATAB_FILE"
+        # Display with startup flag
+        printf "%-18s : %-15s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
+    done
     
     echo ""
     

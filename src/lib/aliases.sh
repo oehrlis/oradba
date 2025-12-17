@@ -114,7 +114,7 @@ generate_sid_aliases() {
         # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
         alias sq="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
         # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
-        alias sqh="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus /nolog"
+        alias sqh="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
     fi
 }
 

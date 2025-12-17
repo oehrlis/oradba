@@ -130,3 +130,18 @@ setup() {
     grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q '\${sid}'
     grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q '\${sid_lower}'
 }
+
+# ------------------------------------------------------------------------------
+# Sorting Tests
+# ------------------------------------------------------------------------------
+
+@test "oraup.sh sorts entries (Dummy first, then DB instances)" {
+    # Check that code collects and sorts dummy_entries and db_entries
+    grep -q "dummy_entries" "${ORAUP_SCRIPT}"
+    grep -q "db_entries" "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh sorts arrays alphabetically" {
+    # Verify that sort is used for both entry types
+    grep "show_oracle_status" -A 50 "${ORAUP_SCRIPT}" | grep -q "sort"
+}

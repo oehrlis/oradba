@@ -328,6 +328,24 @@ teardown() {
     [ "$?" -eq 0 ]
 }
 
+@test "sqh alias connects with sysdba when rlwrap available" {
+    if ! command -v rlwrap &>/dev/null; then
+        skip "rlwrap not installed on this system"
+    fi
+    
+    export ORACLE_SID="TESTDB"
+    export RLWRAP_COMMAND="rlwrap"
+    export RLWRAP_OPTS="-i -c"
+    
+    generate_sid_aliases
+    
+    # Check sqh alias uses "/ as sysdba" not "/nolog"
+    run bash -c "alias sqh"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "sqlplus / as sysdba" ]]
+    [[ ! "$output" =~ "/nolog" ]]
+}
+
 # ------------------------------------------------------------------------------
 # Integration Tests - Different SIDs
 # ------------------------------------------------------------------------------
