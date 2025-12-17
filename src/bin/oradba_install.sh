@@ -412,19 +412,17 @@ check_permissions() {
 detect_profile_file() {
     local profile=""
     
-    # Priority 1: bash_profile (most common for login shells)
+    # Always use bash_profile for bash (required for macOS login shells)
+    # bashrc is only for non-login shells and won't work on macOS
     if [[ -f "${HOME}/.bash_profile" ]]; then
         profile="${HOME}/.bash_profile"
-    # Priority 2: bashrc (common on Linux)
-    elif [[ -f "${HOME}/.bashrc" ]]; then
-        profile="${HOME}/.bashrc"
-    # Priority 3: profile (generic)
+    # Priority 2: profile (generic POSIX)
     elif [[ -f "${HOME}/.profile" ]]; then
         profile="${HOME}/.profile"
-    # Priority 4: zshrc (if using zsh)
+    # Priority 3: zshrc (if using zsh)
     elif [[ -f "${HOME}/.zshrc" ]]; then
         profile="${HOME}/.zshrc"
-    # Create bash_profile if none exist
+    # Create bash_profile by default (works on both macOS and Linux)
     else
         profile="${HOME}/.bash_profile"
     fi
@@ -501,8 +499,8 @@ update_profile() {
         echo "      # Load first Oracle SID from oratab (silent mode)"
         echo "      source \"${install_prefix}/bin/oraenv.sh\" --silent"
         echo "      # Show environment status on interactive shells"
-        echo "      if [[ \$- == *i* ]] && command -v oraup >/dev/null 2>&1; then"
-        echo "          oraup"
+        echo "      if [[ \$- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then"
+        echo "          oraup.sh"
         echo "      fi"
         echo "  fi"
         echo ""
@@ -530,8 +528,8 @@ if [ -f "${install_prefix}/bin/oraenv.sh" ]; then
     # Load first Oracle SID from oratab (silent mode)
     source "${install_prefix}/bin/oraenv.sh" --silent
     # Show environment status on interactive shells
-    if [[ \$- == *i* ]] && command -v oraup >/dev/null 2>&1; then
-        oraup
+    if [[ \$- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then
+        oraup.sh
     fi
 fi
 EOF

@@ -102,18 +102,19 @@ if [ -f "/opt/oracle/local/oradba/bin/oraenv.sh" ]; then
     # Load first Oracle SID from oratab (silent mode)
     source "/opt/oracle/local/oradba/bin/oraenv.sh" --silent
     # Show environment status on interactive shells
-    if [[ $- == *i* ]] && command -v oraup >/dev/null 2>&1; then
-        oraup
+    if [[ $- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then
+        oraup.sh
     fi
 fi
 ```
 
 **Profile detection order:**
 
-1. `~/.bash_profile` (preferred for login shells)
-2. `~/.bashrc` (common on Linux)
-3. `~/.profile` (generic fallback)
-4. `~/.zshrc` (if using zsh)
+1. `~/.bash_profile` (preferred for Bash - required for macOS login shells)
+2. `~/.profile` (generic POSIX fallback)
+3. `~/.zshrc` (if using zsh)
+
+**Note**: `.bashrc` is intentionally excluded as it's not loaded by login shells on macOS.
 
 A backup is automatically created before any modifications.
 
