@@ -412,17 +412,19 @@ check_permissions() {
 detect_profile_file() {
     local profile=""
     
-    # Always use bash_profile for bash (required for macOS login shells)
-    # bashrc is only for non-login shells and won't work on macOS
+    # Priority 1: bash_profile (login shells - works on both macOS and Linux)
     if [[ -f "${HOME}/.bash_profile" ]]; then
         profile="${HOME}/.bash_profile"
-    # Priority 2: profile (generic POSIX)
+    # Priority 2: bashrc (common on Linux, often sourced by bash_profile)
+    elif [[ -f "${HOME}/.bashrc" ]]; then
+        profile="${HOME}/.bashrc"
+    # Priority 3: profile (generic POSIX)
     elif [[ -f "${HOME}/.profile" ]]; then
         profile="${HOME}/.profile"
-    # Priority 3: zshrc (if using zsh)
+    # Priority 4: zshrc (if using zsh)
     elif [[ -f "${HOME}/.zshrc" ]]; then
         profile="${HOME}/.zshrc"
-    # Create bash_profile by default (works on both macOS and Linux)
+    # Create bash_profile if none exist (works on both macOS and Linux)
     else
         profile="${HOME}/.bash_profile"
     fi

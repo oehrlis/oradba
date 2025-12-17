@@ -110,11 +110,12 @@ fi
 
 **Profile detection order:**
 
-1. `~/.bash_profile` (preferred for Bash - required for macOS login shells)
-2. `~/.profile` (generic POSIX fallback)
-3. `~/.zshrc` (if using zsh)
+1. `~/.bash_profile` (preferred for login shells)
+2. `~/.bashrc` (common on Linux, often sourced by bash_profile)
+3. `~/.profile` (generic POSIX fallback)
+4. `~/.zshrc` (if using zsh)
 
-**Note**: `.bashrc` is intentionally excluded as it's not loaded by login shells on macOS.
+If none exist, `~/.bash_profile` is created automatically.
 
 A backup is automatically created before any modifications.
 
