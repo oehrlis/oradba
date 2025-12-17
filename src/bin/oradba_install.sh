@@ -359,7 +359,8 @@ check_permissions() {
     echo "--------------------"
     
     # Check if we need to create parent directories
-    local parent_dir="$(dirname "$install_dir")"
+    local parent_dir
+    parent_dir="$(dirname "$install_dir")"
     
     if [[ -d "$install_dir" ]]; then
         # Directory exists, check if writable
@@ -478,10 +479,6 @@ while [[ $# -gt 0 ]]; do
             FORCE_UPDATE=true
             shift
             ;;
-        --no-examples)
-            INSTALL_EXAMPLES=false
-            shift
-            ;;
         -h|--help)
             usage
             ;;
@@ -588,7 +585,8 @@ check_existing_installation() {
 # Backup existing installation
 backup_installation() {
     local install_dir="$1"
-    local backup_dir="${install_dir}.backup.$(date +%Y%m%d_%H%M%S)"
+    local backup_dir
+    backup_dir="${install_dir}.backup.$(date +%Y%m%d_%H%M%S)"
     
     log_info "Creating backup: $backup_dir"
     
