@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **oraup.sh**: Fixed database status detection for uppercase SID names
-  - Oracle pmon process names use lowercase SID (ora_pmon_free not ora_pmon_FREE)
-  - Added lowercase conversion in get_db_status function
+- **oraup.sh**: Fixed database status detection for Oracle 23ai new process naming
+  - Oracle 23ai uses db_pmon_SID (uppercase) instead of ora_pmon_sid (lowercase)
+  - Updated get_db_status to check both naming conventions with grep -E
+  - Now supports: db_pmon_FREE (23ai+) and ora_pmon_free (pre-23ai)
   - Fixed duplicate startup flag display (was showing N|N, now shows N)
 
 ## [0.6.0] - 2025-12-17

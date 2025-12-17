@@ -74,9 +74,12 @@ EOF
 # ------------------------------------------------------------------------------
 get_db_status() {
     local sid="$1"
-    # Oracle process names use lowercase SID
     local sid_lower="${sid,,}"
-    if ps -ef | grep -v grep | grep "ora_pmon_${sid_lower}" > /dev/null 2>&1; then
+    
+    # Check for both naming conventions:
+    # - Oracle 23ai+: db_pmon_<SID> (uppercase)
+    # - Oracle <23ai: ora_pmon_<sid> (lowercase)
+    if ps -ef | grep -v grep | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
         echo "up"
     else
         echo "down"
