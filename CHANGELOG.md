@@ -35,6 +35,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Integrity Check Output Improvement**:
+  - Improved `oradba_version.sh --verify` output format for failed integrity checks
+  - Clean, one-line-per-file format showing status (MISSING or MODIFIED)
+  - Added summary section with counts of modified and missing files
+  - Filtered out verbose sha256sum warnings for better readability
+  - Example output:
+    ```
+    Modified or missing files:
+      etc/oratab.example: MISSING
+      etc/sid.ORCL.conf.example: MODIFIED
+    
+    Summary:
+      Modified files: 1
+      Missing files:  1
+      Total issues:   2
+    ```
+
 - **Documentation Updates**:
   - Updated QUICKSTART.md with system prerequisites check section
   - Added troubleshooting section using oradba_check.sh

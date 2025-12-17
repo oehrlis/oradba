@@ -95,8 +95,54 @@ check_integrity() {
         echo -e "${RED}✗ Installation integrity check FAILED${NC}"
         echo "  Files have been modified, corrupted, or are missing"
         echo ""
+        
+        # Parse and format the output more cleanly
+        local missing_count=0
+        local modified_count=0
+        
         echo "Modified or missing files:"
-        echo "${verify_output}" | grep -v ": OK$" | sed 's/^/  /'
+        while IFS= read -r line; do
+            # Skip OK lines and empty lines
+            if [[ "$line" =~ ": OK"$ ]] || [[ -z "$line" ]]; then
+                continue
+            fi
+            
+            # Parse sha256sum error messages for missing files
+            if [[ "$line" =~ ^sha256sum:[[:space:]]+(.+):[[:space:]]+No[[:space:]]+such[[:space:]]+file ]]; then
+                local file="${BASH_REMATCH[1]}"
+                # Remove leading space if present
+                file="${file# }"
+                echo "  ${file}: MISSING"
+                ((missing_count++))
+                continue
+            fi
+            
+            # Skip other sha256sum warnings
+            if [[ "$line" =~ ^sha256sum: ]]; then
+                continue
+            fi
+            
+            # Parse different failure types
+            if [[ "$line" =~ ^(.+):[[:space:]]*FAILED[[:space:]]*open[[:space:]]*or[[:space:]]*read$ ]]; then
+                # File not found or can't be read
+                local file="${BASH_REMATCH[1]}"
+                echo "  ${file}: MISSING"
+                ((missing_count++))
+            elif [[ "$line" =~ ^(.+):[[:space:]]*FAILED$ ]]; then
+                # Checksum mismatch
+                local file="${BASH_REMATCH[1]}"
+                echo "  ${file}: MODIFIED"
+                ((modified_count++))
+            fi
+        done <<< "$verify_output"
+        
+        # Summary
+        echo ""
+        echo "Summary:"
+        [[ $modified_count -gt 0 ]] && echo "  Modified files: ${modified_count}"
+        [[ $missing_count -gt 0 ]] && echo "  Missing files:  ${missing_count}"
+        echo "  Total issues:   $((modified_count + missing_count))"
+        
         return 1
     fi
 }

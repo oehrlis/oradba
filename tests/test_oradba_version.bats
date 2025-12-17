@@ -136,6 +136,50 @@ teardown() {
     [[ "$output" =~ "FAILED" ]]
 }
 
+@test "oradba_version.sh --verify shows clean output for modified files" {
+    # Create test installation
+    mkdir -p "$TEST_INSTALL_DIR/bin" "$TEST_INSTALL_DIR/etc"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "original" > "$TEST_INSTALL_DIR/bin/test.sh"
+    echo "config" > "$TEST_INSTALL_DIR/etc/config.conf"
+    
+    # Generate checksums
+    cd "$TEST_INSTALL_DIR" || return 1
+    sha256sum bin/test.sh etc/config.conf > .oradba.checksum
+    
+    # Modify one file
+    echo "modified" > bin/test.sh
+    cd - > /dev/null || return 1
+    
+    run "$ORADBA_VERSION" --verify
+    [[ "$status" -eq 1 ]]
+    # Check for clean output format
+    [[ "$output" =~ "bin/test.sh: MODIFIED" ]]
+    [[ "$output" =~ "Summary:" ]]
+    [[ "$output" =~ "Modified files: 1" ]]
+}
+
+@test "oradba_version.sh --verify shows missing files correctly" {
+    # Create test installation
+    mkdir -p "$TEST_INSTALL_DIR/bin"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "content" > "$TEST_INSTALL_DIR/bin/test.sh"
+    
+    # Generate checksums
+    cd "$TEST_INSTALL_DIR" || return 1
+    sha256sum bin/test.sh > .oradba.checksum
+    # Add a properly formatted checksum for a file that doesn't exist
+    echo "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  bin/missing.sh" >> .oradba.checksum
+    cd - > /dev/null || return 1
+    
+    run "$ORADBA_VERSION" --verify
+    [[ "$status" -eq 1 ]]
+    # Check for missing file in clean format
+    [[ "$output" =~ "bin/missing.sh: MISSING" ]]
+    [[ "$output" =~ "Summary:" ]]
+    [[ "$output" =~ "Missing files:" ]]
+}
+
 # ------------------------------------------------------------------------------
 # Update checking tests
 # ------------------------------------------------------------------------------
