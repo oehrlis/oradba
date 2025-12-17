@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.17
-# Revision...: 0.6.1
+# Revision...: 0.7.3
 # Purpose....: BATS tests for installer build script and installer functionality
 # Notes......: Tests installer creation, VERSION validation, and installation modes.
 # Reference..: https://github.com/oehrlis/oradba

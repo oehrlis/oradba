@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.17
-# Revision...: __VERSION__
+# Revision...: 0.7.3
 # Purpose....: Universal installer for oradba toolset
 # Notes......: Can install from embedded payload, local tarball, or GitHub releases.
 #              When distributed with embedded payload, provides self-extracting installer.

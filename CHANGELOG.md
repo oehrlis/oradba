@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.7.3] - 2025-12-17
+
+### Added
+
 - **Shell Profile Integration** (#24):
   - Automatic Oracle environment loading on shell startup
   - Installer flags: `--update-profile` and `--no-update-profile`
@@ -18,10 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Duplicate detection prevents multiple integrations
   - Automatic profile backup before modification
   - 19 new tests for profile integration (63 total installer tests)
-
-### Changed
-
-### Fixed
+  - Uses first SID from oratab automatically
+  - Smart TTY detection: prompts in interactive mode, defaults to no in automation
 
 ## [0.7.2] - 2025-12-17
 
