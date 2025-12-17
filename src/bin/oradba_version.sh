@@ -79,15 +79,17 @@ check_integrity() {
     cd "${BASE_DIR}" || return 1
     
     # Verify checksums and capture output
+    # Exclude .install_info as it's modified during installation
     local verify_output
-    verify_output=$(sha256sum -c "${checksum_file}" 2>&1)
+    verify_output=$(grep -v '\.install_info$' "${checksum_file}" | sha256sum -c - 2>&1)
     local verify_status=$?
     
     if [[ ${verify_status} -eq 0 ]]; then
         local file_count
-        file_count=$(grep -c '^[^#]' "${checksum_file}")
+        file_count=$(grep -c -v '\.install_info$' "${checksum_file}" | grep -c '^[^#]')
         echo -e "${GREEN}✓ Installation integrity verified${NC}"
         echo "  All ${file_count} files match their checksums"
+        echo "  (Excluding .install_info which is updated during installation)"
         return 0
     else
         echo -e "${RED}✗ Installation integrity check FAILED${NC}"

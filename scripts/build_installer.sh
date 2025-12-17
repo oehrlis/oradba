@@ -770,6 +770,27 @@ fi
 log_info "Setting permissions..."
 find "$INSTALL_PREFIX/bin" -type f -name "*.sh" -exec chmod +x {} \;
 
+# Verify installation integrity
+log_info "Verifying installation integrity..."
+if [[ -x "$INSTALL_PREFIX/bin/oradba_version.sh" ]]; then
+    # Run checksum verification with ORADBA_BASE set
+    if ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify >/dev/null 2>&1; then
+        log_info "Installation integrity verified"
+    else
+        log_error "Installation integrity verification FAILED"
+        log_error "Some files may be corrupted or missing"
+        echo ""
+        echo "Running detailed verification:"
+        ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify
+        echo ""
+        log_error "Installation completed but verification failed"
+        log_error "Installation directory: $INSTALL_PREFIX"
+        exit 1
+    fi
+else
+    log_warn "oradba_version.sh not found - skipping integrity verification"
+fi
+
 # Create symbolic link for oraenv.sh
 if [[ -w "/usr/local/bin" ]] || [[ "$EUID" -eq 0 ]]; then
     log_info "Creating symbolic link in /usr/local/bin"
