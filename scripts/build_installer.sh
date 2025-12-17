@@ -5,11 +5,12 @@
 # Name.......: build_installer.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.5.0
-# Purpose....: Build self-contained installer with base64 payload and requirements check
+# Date.......: 2025.12.17
+# Revision...: 0.6.1
+# Purpose....: Build self-contained installer with base64 payload and version management
 # Notes......: Creates a single executable installer with embedded tarball.
 #              Packages src/ directory and creates distribution installer.
+#              Generates .install_info metadata and .oradba.checksum for integrity.
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
@@ -53,6 +54,20 @@ cp -r src/* "$TEMP_TAR_DIR/"
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
+echo "Generating installation metadata..."
+# Generate install info template with build information
+{
+    echo "# OraDBA Installation Information"
+    echo "# This file will be updated during installation"
+    echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo ""
+    echo "VERSION=\"${VERSION}\""
+    echo "BUILD_DATE=\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+    echo "BUILD_HOST=\"${HOSTNAME}\""
+    echo "BUILD_USER=\"${USER}\""
+    echo "BUILD_SOURCE=\"build\""
+} > "$TEMP_TAR_DIR/.install_info"
+
 echo "Generating checksums..."
 # Generate checksum file with SHA256 for all installed files
 {
@@ -69,8 +84,8 @@ echo "Generating checksums..."
         sha256sum "$file"
     done
     
-    # Also checksum the VERSION file
-    sha256sum VERSION
+    # Also checksum the VERSION and .install_info files
+    sha256sum VERSION .install_info
     
     cd - > /dev/null || exit 1
 } > "$TEMP_TAR_DIR/.oradba.checksum"

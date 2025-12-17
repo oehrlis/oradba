@@ -542,3 +542,136 @@ EOF
         return 1
     fi
 }
+
+# ------------------------------------------------------------------------------
+# Version Management Functions
+# ------------------------------------------------------------------------------
+
+# Get OraDBA version from VERSION file
+get_oradba_version() {
+    local version_file="${ORADBA_BASE}/VERSION"
+    
+    if [[ -f "${version_file}" ]]; then
+        cat "${version_file}" | tr -d '[:space:]'
+    else
+        echo "unknown"
+    fi
+}
+
+# Compare two semantic versions
+# Returns: 0 if equal, 1 if v1 > v2, 2 if v1 < v2
+version_compare() {
+    local v1="$1"
+    local v2="$2"
+    
+    # Remove leading 'v' if present
+    v1="${v1#v}"
+    v2="${v2#v}"
+    
+    # Split versions into components
+    IFS='.' read -ra v1_parts <<< "$v1"
+    IFS='.' read -ra v2_parts <<< "$v2"
+    
+    # Compare each component
+    for i in {0..2}; do
+        local part1="${v1_parts[$i]:-0}"
+        local part2="${v2_parts[$i]:-0}"
+        
+        # Remove any non-numeric suffix (e.g., "1-beta")
+        part1="${part1%%-*}"
+        part2="${part2%%-*}"
+        
+        if (( part1 > part2 )); then
+            return 1
+        elif (( part1 < part2 )); then
+            return 2
+        fi
+    done
+    
+    return 0
+}
+
+# Check if version meets minimum requirement
+# Usage: version_meets_requirement "0.6.1" "0.6.0"
+version_meets_requirement() {
+    local current_version="$1"
+    local required_version="$2"
+    
+    version_compare "$current_version" "$required_version"
+    local result=$?
+    
+    # Returns 0 (equal) or 1 (greater) means requirement is met
+    [[ $result -eq 0 || $result -eq 1 ]]
+}
+
+# Get installation metadata
+get_install_info() {
+    local key="$1"
+    local install_info="${ORADBA_BASE}/.install_info"
+    
+    if [[ -f "${install_info}" ]]; then
+        grep "^${key}=" "${install_info}" | cut -d= -f2- | tr -d '"'
+    fi
+}
+
+# Set installation metadata
+set_install_info() {
+    local key="$1"
+    local value="$2"
+    local install_info="${ORADBA_BASE}/.install_info"
+    
+    # Create or update key
+    if [[ -f "${install_info}" ]]; then
+        # Update existing key or append
+        if grep -q "^${key}=" "${install_info}"; then
+            sed -i.bak "s|^${key}=.*|${key}=\"${value}\"|" "${install_info}"
+            rm -f "${install_info}.bak"
+        else
+            echo "${key}=\"${value}\"" >> "${install_info}"
+        fi
+    else
+        # Create new file
+        mkdir -p "$(dirname "${install_info}")"
+        echo "${key}=\"${value}\"" > "${install_info}"
+    fi
+}
+
+# Initialize installation info file
+init_install_info() {
+    local version="$1"
+    local install_info="${ORADBA_BASE}/.install_info"
+    
+    cat > "${install_info}" <<EOF
+# OraDBA Installation Information
+# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+VERSION="${version}"
+INSTALL_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+INSTALL_USER="${USER}"
+INSTALL_HOST="${HOSTNAME}"
+INSTALL_METHOD="installer"
+INSTALL_SOURCE="local"
+ORADBA_BASE="${ORADBA_BASE}"
+ORACLE_BASE="${ORACLE_BASE:-}"
+EOF
+    
+    log_info "Created installation metadata: ${install_info}"
+}
+
+# Show version information
+show_version_info() {
+    local version
+    version=$(get_oradba_version)
+    
+    echo "OraDBA Version: ${version}"
+    
+    if [[ -f "${ORADBA_BASE}/.install_info" ]]; then
+        echo ""
+        echo "Installation Details:"
+        echo "  Installed: $(get_install_info "INSTALL_DATE")"
+        echo "  Method: $(get_install_info "INSTALL_METHOD")"
+        echo "  Source: $(get_install_info "INSTALL_SOURCE")"
+        echo "  User: $(get_install_info "INSTALL_USER")"
+        echo "  Base: $(get_install_info "ORADBA_BASE")"
+    fi
+}

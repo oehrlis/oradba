@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# Test script for version management functions
+# ------------------------------------------------------------------------------
+
+# Source the common library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ORADBA_BASE="${SCRIPT_DIR}"
+
+# shellcheck source=../src/lib/common.sh
+source "${SCRIPT_DIR}/src/lib/common.sh"
+
+echo "Testing OraDBA Version Management Functions"
+echo "=============================================="
+echo ""
+
+# Test 1: Get version
+echo "Test 1: Get OraDBA version"
+VERSION=$(get_oradba_version)
+echo "  Current version: ${VERSION}"
+[[ "${VERSION}" == "0.6.1" ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 2: Version comparison - equal
+echo "Test 2: Version comparison (equal)"
+version_compare "0.6.1" "0.6.1"
+result=$?
+echo "  0.6.1 vs 0.6.1: ${result}"
+[[ ${result} -eq 0 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 3: Version comparison - greater
+echo "Test 3: Version comparison (greater)"
+version_compare "0.7.0" "0.6.1"
+result=$?
+echo "  0.7.0 vs 0.6.1: ${result}"
+[[ ${result} -eq 1 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 4: Version comparison - less
+echo "Test 4: Version comparison (less)"
+version_compare "0.6.0" "0.6.1"
+result=$?
+echo "  0.6.0 vs 0.6.1: ${result}"
+[[ ${result} -eq 2 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 5: Version with v prefix
+echo "Test 5: Version with v prefix"
+version_compare "v0.7.0" "v0.6.1"
+result=$?
+echo "  v0.7.0 vs v0.6.1: ${result}"
+[[ ${result} -eq 1 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 6: Major version difference
+echo "Test 6: Major version difference"
+version_compare "1.0.0" "0.9.9"
+result=$?
+echo "  1.0.0 vs 0.9.9: ${result}"
+[[ ${result} -eq 1 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 7: Version meets requirement (yes)
+echo "Test 7: Version meets requirement (yes)"
+version_meets_requirement "0.6.1" "0.6.0"
+result=$?
+echo "  0.6.1 meets 0.6.0: ${result}"
+[[ ${result} -eq 0 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 8: Version meets requirement (no)
+echo "Test 8: Version meets requirement (no)"
+version_meets_requirement "0.5.0" "0.6.0"
+result=$?
+echo "  0.5.0 meets 0.6.0: ${result}"
+[[ ${result} -eq 1 ]] && echo "  ✗ PASS (expected failure)" || echo "  ✗ FAIL"
+echo ""
+
+# Test 9: Version meets requirement (equal)
+echo "Test 9: Version meets requirement (equal)"
+version_meets_requirement "0.6.1" "0.6.1"
+result=$?
+echo "  0.6.1 meets 0.6.1: ${result}"
+[[ ${result} -eq 0 ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+echo ""
+
+# Test 10: Initialize and read install info
+echo "Test 10: Install info functions"
+TEMP_DIR=$(mktemp -d)
+ORADBA_BASE="${TEMP_DIR}"
+init_install_info "0.6.1"
+STORED_VERSION=$(get_install_info "VERSION")
+echo "  Stored version: ${STORED_VERSION}"
+[[ "${STORED_VERSION}" == "0.6.1" ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+rm -rf "${TEMP_DIR}"
+echo ""
+
+# Test 11: Set and get install info
+echo "Test 11: Set/Get install info"
+TEMP_DIR=$(mktemp -d)
+ORADBA_BASE="${TEMP_DIR}"
+init_install_info "0.6.1"
+set_install_info "TEST_KEY" "test_value"
+TEST_VALUE=$(get_install_info "TEST_KEY")
+echo "  Stored value: ${TEST_VALUE}"
+[[ "${TEST_VALUE}" == "test_value" ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
+rm -rf "${TEMP_DIR}"
+echo ""
+
+echo "=============================================="
+echo "Testing completed"
