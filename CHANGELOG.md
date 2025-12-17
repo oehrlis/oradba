@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Version Management Infrastructure** (#6):
+  - Added comprehensive version management functions to `common.sh`
+  - New functions: `get_oradba_version()`, `version_compare()`, `version_meets_requirement()`
+  - Installation metadata management: `get_install_info()`, `set_install_info()`, `init_install_info()`
+  - Display function: `show_version_info()` for version and installation details
+  - `.install_info` metadata file generated during build with installation information
+  - Build script now includes version, build date, host, and user information
+  - Comprehensive test suite: `tests/test_version.sh` with 11 test cases covering all version functions
+  - Foundation for version-aware installation and update capabilities in v0.7.0
+
 ## [0.6.1] - 2025-12-17
 
 ### Fixed
