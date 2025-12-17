@@ -20,6 +20,7 @@ chmod +x oradba_check.sh
 ```
 
 The check validates:
+
 - Required system tools (bash, tar, awk, sed, grep, etc.)
 - Disk space availability (minimum 100MB)
 - Oracle environment (if configured)

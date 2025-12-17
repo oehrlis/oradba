@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
-## [Unreleased]
-
 ### Added
 
 - **SID Config Template Auto-Creation**:
@@ -18,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updates date stamps and auto-created comment in new config
   - Adds comprehensive BATS tests for template-based SID config creation (`test_sid_config.bats`)
   - Ensures robust, consistent SID config generation and test coverage
-
 
 ### Changed
 
@@ -52,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added summary section with counts of modified and missing files
   - Filtered out verbose sha256sum warnings for better readability
   - Example output:
-    ```
+
+    ```text
     Modified or missing files:
       etc/oratab.example: MISSING
       etc/sid.ORCL.conf.example: MODIFIED

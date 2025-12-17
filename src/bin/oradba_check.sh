@@ -166,26 +166,31 @@ check_system_info() {
     log_header "System Information"
     
     # OS Type
-    local os_type=$(uname -s)
+    local os_type
+    os_type=$(uname -s)
     log_info "OS Type: $os_type"
     
     # OS Version
     if [[ -f /etc/os-release ]]; then
-        local os_name=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d'"' -f2)
+        local os_name
+        os_name=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d'"' -f2)
         log_info "OS Version: $os_name"
     elif [[ "$os_type" == "Darwin" ]]; then
-        local os_version=$(sw_vers -productVersion)
+        local os_version
+        os_version=$(sw_vers -productVersion)
         log_info "OS Version: macOS $os_version"
     else
         log_info "OS Version: Unable to determine"
     fi
     
     # Hostname
-    local hostname=$(hostname)
+    local hostname
+    hostname=$(hostname)
     log_info "Hostname: $hostname"
     
     # Current User
-    local current_user=$(whoami)
+    local current_user
+    current_user=$(whoami)
     log_info "Current User: $current_user"
     
     # Shell
@@ -216,7 +221,8 @@ check_system_tools() {
         
         if command -v "$tool" >/dev/null 2>&1; then
             if [[ "$VERBOSE" == "true" ]]; then
-                local version=$($tool --version 2>&1 | head -1 || echo "unknown")
+                local version
+                version=$($tool --version 2>&1 | head -1 || echo "unknown")
                 log_pass "$tool found - $desc ($version)"
             else
                 log_pass "$tool - $desc"
@@ -237,7 +243,11 @@ check_system_tools() {
         tools_ok=false
     fi
     
-    return $([ "$tools_ok" = true ] && echo 0 || echo 1)
+    if [ "$tools_ok" = true ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # =============================================================================
@@ -248,7 +258,8 @@ check_optional_tools() {
     
     # rlwrap
     if command -v rlwrap >/dev/null 2>&1; then
-        local rlwrap_version=$(rlwrap -v 2>&1 | head -1 || echo "unknown")
+        local rlwrap_version
+        rlwrap_version=$(rlwrap -v 2>&1 | head -1 || echo "unknown")
         log_pass "rlwrap found - Enhanced readline support"
         [[ "$VERBOSE" == "true" ]] && log_info "  Version: $rlwrap_version"
     else
@@ -295,7 +306,8 @@ check_disk_space() {
     log_info "Checking: $check_dir"
     
     if command -v df >/dev/null 2>&1; then
-        local available_mb=$(df -Pm "$check_dir" 2>/dev/null | awk 'NR==2 {print $4}')
+        local available_mb
+        available_mb=$(df -Pm "$check_dir" 2>/dev/null | awk 'NR==2 {print $4}')
         
         if [[ -n "$available_mb" ]] && [[ "$available_mb" =~ ^[0-9]+$ ]]; then
             log_info "Available: ${available_mb} MB"
@@ -321,15 +333,12 @@ check_disk_space() {
 check_oracle_environment() {
     log_header "Oracle Environment Variables"
     
-    local env_ok=true
-    
     # ORACLE_HOME
     if [[ -n "$ORACLE_HOME" ]]; then
         if [[ -d "$ORACLE_HOME" ]]; then
             log_pass "ORACLE_HOME set and exists: $ORACLE_HOME"
         else
             log_fail "ORACLE_HOME set but directory does not exist: $ORACLE_HOME"
-            env_ok=false
         fi
     else
         log_info "ORACLE_HOME not set (not required for OraDBA installation)"
@@ -390,7 +399,8 @@ check_oracle_tools() {
         local desc="${tool_info#*:}"
         
         if command -v "$tool" >/dev/null 2>&1; then
-            local tool_path=$(command -v "$tool")
+            local tool_path
+            tool_path=$(command -v "$tool")
             log_pass "$tool - $desc"
             [[ "$VERBOSE" == "true" ]] && log_info "  Path: $tool_path"
         else
@@ -426,7 +436,8 @@ check_database_connectivity() {
             
             # Get database version
             if [[ "$VERBOSE" == "true" ]]; then
-                local db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2>/dev/null | grep "Oracle")
+                local db_version
+                db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2>/dev/null | grep "Oracle")
                 [[ -n "$db_version" ]] && log_info "  Version: $db_version"
             fi
         else
@@ -465,7 +476,8 @@ check_oracle_versions() {
                     
                     # Get version if possible
                     if [[ -f "$home/bin/sqlplus" ]] && [[ "$VERBOSE" == "true" ]]; then
-                        local version=$("$home/bin/sqlplus" -version 2>/dev/null | grep "^SQL" | awk '{print $3}')
+                        local version
+                        version=$("$home/bin/sqlplus" -version 2>/dev/null | grep "^SQL" | awk '{print $3}')
                         [[ -n "$version" ]] && log_info "  Version: $version"
                     fi
                 fi

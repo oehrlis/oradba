@@ -441,6 +441,7 @@ run_preflight_checks() {
 # Parse arguments
 INSTALL_PREFIX="$DEFAULT_PREFIX"
 INSTALL_USER=""
+# shellcheck disable=SC2034  # Used for future enhancement
 INSTALL_EXAMPLES=true
 INSTALL_MODE="auto"  # auto, embedded, local, github
 LOCAL_TARBALL=""
