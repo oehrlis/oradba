@@ -19,6 +19,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive test suite: `tests/test_version.sh` with 11 test cases
   - Foundation for version-aware installation and update capabilities in v0.7.0
 
+- **Installation Enhancements** (#6):
+  - **Multiple Installation Modes**:
+    - Embedded mode (default): Self-contained installer with base64 payload
+    - Local mode (`--local`): Install from tarball for air-gapped environments
+    - GitHub mode (`--github`): Download and install from GitHub releases
+  - **Pre-flight Checks**:
+    - Required tools validation (bash, tar, sha256sum, base64, etc.)
+    - Optional tools detection with warnings (curl, wget, git)
+    - Disk space verification (minimum 100MB required)
+    - Installation directory permissions checking
+    - Comprehensive pre-installation validation
+  - **Post-install Verification**:
+    - Automatic SHA256 checksum validation after installation
+    - Integrated `oradba_version.sh --verify` into installer
+    - Verifies all installed files match expected checksums
+    - Excludes `.install_info` from validation (modified during install)
+    - Fails installation if integrity check detects corruption
+    - Detailed error reporting showing which files failed
+
 ## [0.6.1] - 2025-12-17
 
 ### Fixed
