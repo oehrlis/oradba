@@ -283,46 +283,63 @@ EOF
     exit 0
 }
 
-# Check system requirements
-check_requirements() {
+# Check mandatory system tools
+check_required_tools() {
     local requirements_met=true
     
-    echo "========================================="
-    echo "Checking System Requirements"
-    echo "========================================="
+    echo "Checking Required Tools"
+    echo "-----------------------"
     
-    # Check for bash
-    if command -v bash >/dev/null 2>&1; then
-        local bash_version
-        bash_version=$(bash --version | head -1)
-        log_info "Bash found: ${bash_version}"
+    # Mandatory tools
+    local required_tools=(
+        "bash:Bash shell"
+        "tar:Archive extraction"
+        "awk:Text processing"
+        "sed:Stream editor"
+        "grep:Pattern matching"
+    )
+    
+    # Check for shasum or sha256sum (platform dependent)
+    if command -v sha256sum >/dev/null 2>&1; then
+        log_info "sha256sum found (checksum verification)"
+    elif command -v shasum >/dev/null 2>&1; then
+        log_info "shasum found (checksum verification)"
     else
-        log_error "Bash not found - oradba requires bash to function"
+        log_error "Neither sha256sum nor shasum found - required for checksum verification"
         requirements_met=false
     fi
     
-    # Check for rlwrap (optional but recommended)
-    if command -v rlwrap >/dev/null 2>&1; then
-        local rlwrap_version
-        rlwrap_version=$(rlwrap -v 2>&1 | head -1)
-        log_info "rlwrap found: ${rlwrap_version}"
-    else
-        log_warn "rlwrap not found (optional)"
-        log_warn "Many oradba aliases (sqh, rman, etc.) provide enhanced"
-        log_warn "readline support with rlwrap. Install rlwrap for better"
-        log_warn "command-line editing and history features."
-        echo ""
-        log_info "To install rlwrap:"
-        echo "  - RHEL/Oracle Linux: sudo yum install rlwrap"
-        echo "  - Ubuntu/Debian:     sudo apt-get install rlwrap"
-        echo "  - macOS:             brew install rlwrap"
-        echo ""
+    # Check base64 (needed for embedded payload)
+    if [[ "$INSTALL_MODE" == "embedded" ]]; then
+        if command -v base64 >/dev/null 2>&1; then
+            log_info "base64 found (payload decoding)"
+        else
+            log_error "base64 not found - required for embedded payload"
+            requirements_met=false
+        fi
     fi
     
-    # Check for basic utilities
-    for cmd in tar base64 awk sed grep; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            log_error "Required utility not found: $cmd"
+    # Check download tools (needed for GitHub mode)
+    if [[ "$INSTALL_MODE" == "github" ]]; then
+        if command -v curl >/dev/null 2>&1; then
+            log_info "curl found (GitHub downloads)"
+        elif command -v wget >/dev/null 2>&1; then
+            log_info "wget found (GitHub downloads)"
+        else
+            log_error "Neither curl nor wget found - required for GitHub downloads"
+            requirements_met=false
+        fi
+    fi
+    
+    # Check each required tool
+    for tool_info in "${required_tools[@]}"; do
+        local tool="${tool_info%%:*}"
+        local desc="${tool_info#*:}"
+        
+        if command -v "$tool" >/dev/null 2>&1; then
+            log_info "$tool found ($desc)"
+        else
+            log_error "$tool not found - required for $desc"
             requirements_met=false
         fi
     done
@@ -330,11 +347,188 @@ check_requirements() {
     echo ""
     
     if [[ "$requirements_met" == "false" ]]; then
-        log_error "System requirements not met. Please install missing components."
+        log_error "Required tools missing. Please install missing components."
+        return 1
+    fi
+    
+    return 0
+}
+
+# Check optional tools
+check_optional_tools() {
+    echo "Checking Optional Tools"
+    echo "-----------------------"
+    
+    local warnings=0
+    
+    # Check for rlwrap (optional but recommended)
+    if command -v rlwrap >/dev/null 2>&1; then
+        local rlwrap_version
+        rlwrap_version=$(rlwrap -v 2>&1 | head -1 || echo "unknown")
+        log_info "rlwrap found: ${rlwrap_version}"
+    else
+        log_warn "rlwrap not found (optional)"
+        echo "  Many oradba aliases (sqh, rman, etc.) provide enhanced"
+        echo "  readline support with rlwrap. Install for better CLI experience."
+        echo "  Install: yum install rlwrap | apt install rlwrap | brew install rlwrap"
+        ((warnings++)) || true  # Prevent set -e from exiting on arithmetic
+        echo ""
+    fi
+    
+    # Check for less (optional pager)
+    if command -v less >/dev/null 2>&1; then
+        log_info "less found (paging support)"
+    else
+        log_warn "less not found (optional)"
+        echo "  Some scripts use 'less' for paging output."
+        ((warnings++)) || true  # Prevent set -e from exiting on arithmetic
+    fi
+    
+    echo ""
+    
+    if [[ $warnings -gt 0 ]]; then
+        log_info "Optional tools missing: $warnings"
+        log_info "Installation will continue, but some features may be limited"
+    else
+        log_info "All optional tools available"
+    fi
+    
+    echo ""
+    return 0  # Explicitly return success
+}
+
+# Check disk space
+check_disk_space() {
+    local install_dir="$1"
+    local required_mb=100
+    
+    echo "Checking Disk Space"
+    echo "-------------------"
+    
+    # Get the directory to check (use parent if target doesn't exist)
+    local check_dir="$install_dir"
+    if [[ ! -d "$check_dir" ]]; then
+        check_dir="$(dirname "$install_dir")"
+        # Keep going up until we find an existing directory
+        while [[ ! -d "$check_dir" ]] && [[ "$check_dir" != "/" ]]; do
+            check_dir="$(dirname "$check_dir")"
+        done
+    fi
+    
+    log_info "Checking space in: $check_dir"
+    
+    # Get available space in MB (cross-platform)
+    local available_mb
+    if command -v df >/dev/null 2>&1; then
+        # Try to get available space
+        available_mb=$(df -Pm "$check_dir" 2>/dev/null | awk 'NR==2 {print $4}')
+        
+        if [[ -z "$available_mb" ]] || ! [[ "$available_mb" =~ ^[0-9]+$ ]]; then
+            log_warn "Could not determine available disk space"
+            return 0  # Continue anyway
+        fi
+        
+        log_info "Available space: ${available_mb} MB"
+        log_info "Required space: ${required_mb} MB"
+        
+        if [[ $available_mb -lt $required_mb ]]; then
+            log_error "Insufficient disk space"
+            log_error "Available: ${available_mb} MB, Required: ${required_mb} MB"
+            return 1
+        fi
+        
+        log_info "Sufficient disk space available"
+    else
+        log_warn "df command not found - cannot verify disk space"
+    fi
+    
+    echo ""
+    return 0
+}
+
+# Check write permissions
+check_permissions() {
+    local install_dir="$1"
+    
+    echo "Checking Permissions"
+    echo "--------------------"
+    
+    # Check if we need to create parent directories
+    local parent_dir="$(dirname "$install_dir")"
+    
+    if [[ -d "$install_dir" ]]; then
+        # Directory exists, check if writable
+        if [[ -w "$install_dir" ]]; then
+            log_info "Installation directory is writable: $install_dir"
+        else
+            log_error "Installation directory exists but is not writable: $install_dir"
+            log_info "Run with sudo or choose a different --prefix"
+            return 1
+        fi
+    elif [[ -d "$parent_dir" ]]; then
+        # Parent exists, check if we can create subdirectory
+        if [[ -w "$parent_dir" ]]; then
+            log_info "Parent directory is writable: $parent_dir"
+            log_info "Will create: $install_dir"
+        else
+            log_error "Cannot create installation directory (parent not writable)"
+            log_error "Parent: $parent_dir"
+            log_info "Run with sudo or choose a different --prefix"
+            return 1
+        fi
+    else
+        # Need to create parent directories
+        log_info "Will create directory tree: $install_dir"
+        
+        # Find first existing parent
+        local test_dir="$parent_dir"
+        while [[ ! -d "$test_dir" ]] && [[ "$test_dir" != "/" ]]; do
+            test_dir="$(dirname "$test_dir")"
+        done
+        
+        if [[ -w "$test_dir" ]]; then
+            log_info "Base directory is writable: $test_dir"
+        else
+            log_error "Cannot create installation directory tree"
+            log_error "Base directory not writable: $test_dir"
+            log_info "Run with sudo or choose a different --prefix"
+            return 1
+        fi
+    fi
+    
+    echo ""
+    return 0
+}
+
+# Run all pre-flight checks
+run_preflight_checks() {
+    local install_dir="$1"
+    
+    echo "========================================="
+    echo "Pre-flight Checks"
+    echo "========================================="
+    echo ""
+    
+    # Check required tools
+    if ! check_required_tools; then
         exit 1
     fi
     
-    log_info "System requirements check passed"
+    # Check optional tools (warnings only)
+    check_optional_tools
+    
+    # Check disk space
+    if ! check_disk_space "$install_dir"; then
+        exit 1
+    fi
+    
+    # Check permissions
+    if ! check_permissions "$install_dir"; then
+        exit 1
+    fi
+    
+    log_info "All pre-flight checks passed"
+    echo "========================================="
     echo ""
 }
 
@@ -398,27 +592,7 @@ if [[ -n "$GITHUB_VERSION" ]] && [[ "$INSTALL_MODE" != "github" ]]; then
     usage
 fi
 
-# Check and create base directory if needed
-INSTALL_BASE_DIR="$(dirname "$INSTALL_PREFIX")"
-if [[ ! -d "$INSTALL_BASE_DIR" ]]; then
-    log_info "Base directory does not exist: $INSTALL_BASE_DIR"
-    if mkdir -p "$INSTALL_BASE_DIR" 2>/dev/null; then
-        log_info "Created base directory: $INSTALL_BASE_DIR"
-    else
-        log_error "Cannot create base directory: $INSTALL_BASE_DIR"
-        log_info "Please create it manually or run with appropriate privileges"
-        log_info "Or use --prefix to specify a different location"
-        exit 1
-    fi
-fi
-
-# Check permissions
-if [[ ! -w "$INSTALL_BASE_DIR" ]] && [[ "$EUID" -ne 0 ]]; then
-    log_error "Installation to $INSTALL_PREFIX requires root privileges"
-    log_info "The base directory $INSTALL_BASE_DIR is not writable"
-    log_info "Please run with sudo or choose a different prefix with --prefix"
-    exit 1
-fi
+# These checks are now handled by run_preflight_checks()
 
 # Extract from embedded payload
 extract_embedded_payload() {
@@ -537,8 +711,8 @@ echo "Installation prefix: $INSTALL_PREFIX"
 [[ "$INSTALL_MODE" == "github" ]] && [[ -n "$GITHUB_VERSION" ]] && echo "GitHub version: $GITHUB_VERSION"
 echo ""
 
-# Check system requirements
-check_requirements
+# Run pre-flight checks
+run_preflight_checks "$INSTALL_PREFIX"
 
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)
