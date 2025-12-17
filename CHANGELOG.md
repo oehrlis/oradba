@@ -13,6 +13,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.7.1] - 2025-12-17
+
+### Added
+
+- **System Prerequisites Check Script** (#22):
+  - New `oradba_check.sh` script for validating system readiness
+  - Checks required tools (bash, tar, awk, sed, grep, find, sort, sha256sum)
+  - Validates optional tools (rlwrap, less, curl, wget)
+  - Disk space verification (100MB minimum)
+  - Oracle environment detection (ORACLE_HOME, ORACLE_BASE, ORACLE_SID, TNS_ADMIN)
+  - Oracle tools validation (sqlplus, rman, lsnrctl, tnsping)
+  - Database connectivity testing (when environment is set)
+  - OS and Oracle version information display
+  - OraDBA installation verification
+  - Color-coded output with symbols (✓ ✗ ⚠ ℹ)
+  - Options: `--dir`, `--quiet`, `--verbose`, `--help`, `--version`
+  - Exit codes: 0 (passed), 1 (failed), 2 (invalid usage)
+  - Comprehensive test suite: 24 tests (all passing)
+  - Addresses most prerequisites validation requirements from issue #22
+
+### Changed
+
+- **Documentation Updates**:
+  - Updated QUICKSTART.md with system prerequisites check section
+  - Added troubleshooting section using oradba_check.sh
+  - Enhanced installation workflow with pre-installation validation
+
 ## [0.7.0] - 2025-12-17
 
 ### Added

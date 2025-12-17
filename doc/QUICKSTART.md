@@ -2,6 +2,29 @@
 
 ## Installation
 
+### System Prerequisites Check
+
+Before installation, verify your system meets the requirements:
+
+```bash
+# Download and run system check
+curl -L -o oradba_check.sh https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh
+chmod +x oradba_check.sh
+./oradba_check.sh
+
+# Check with verbose output
+./oradba_check.sh --verbose
+
+# Check specific installation directory
+./oradba_check.sh --dir /opt/oradba
+```
+
+The check validates:
+- Required system tools (bash, tar, awk, sed, grep, etc.)
+- Disk space availability (minimum 100MB)
+- Oracle environment (if configured)
+- Optional tools (rlwrap for better CLI experience)
+
 ### Quick Install (from GitHub Release)
 
 Download and run the self-extracting installer with embedded payload:
@@ -203,6 +226,21 @@ vim ~/.oradba_config
 ```
 
 ## Troubleshooting
+
+### System Check
+
+Run the system check script to diagnose issues:
+
+```bash
+# Run comprehensive check
+$PREFIX/bin/oradba_check.sh
+
+# Quiet mode (errors only)
+$PREFIX/bin/oradba_check.sh --quiet
+
+# Check specific directory
+$PREFIX/bin/oradba_check.sh --dir /custom/path
+```
 
 ### oraenv not found
 
