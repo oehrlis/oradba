@@ -153,6 +153,8 @@ Options:
   --version VERSION   Specify version for --github mode
   --no-examples       Don't install example files
   --force             Force update even if same version
+  --update-profile    Update shell profile for automatic environment loading
+  --no-update-profile Don't update shell profile (default: prompt user)
   -h, --help          Display this help message
   -v, --show-version  Display installer version information
 
@@ -406,6 +408,149 @@ check_permissions() {
     return 0
 }
 
+# Detect user's shell profile file
+detect_profile_file() {
+    local profile=""
+    
+    # Priority 1: bash_profile (most common for login shells)
+    if [[ -f "${HOME}/.bash_profile" ]]; then
+        profile="${HOME}/.bash_profile"
+    # Priority 2: bashrc (common on Linux)
+    elif [[ -f "${HOME}/.bashrc" ]]; then
+        profile="${HOME}/.bashrc"
+    # Priority 3: profile (generic)
+    elif [[ -f "${HOME}/.profile" ]]; then
+        profile="${HOME}/.profile"
+    # Priority 4: zshrc (if using zsh)
+    elif [[ -f "${HOME}/.zshrc" ]]; then
+        profile="${HOME}/.zshrc"
+    # Create bash_profile if none exist
+    else
+        profile="${HOME}/.bash_profile"
+    fi
+    
+    echo "$profile"
+}
+
+# Check if profile already has OraDBA integration
+profile_has_oradba() {
+    local profile_file="$1"
+    
+    if [[ ! -f "$profile_file" ]]; then
+        return 1
+    fi
+    
+    # Check for OraDBA marker or oraenv.sh source
+    if grep -q "# OraDBA Environment Integration" "$profile_file" 2>/dev/null || \
+       grep -q "oraenv.sh" "$profile_file" 2>/dev/null; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Update shell profile with OraDBA integration
+update_profile() {
+    local install_prefix="$1"
+    local profile_file
+    profile_file=$(detect_profile_file)
+    
+    echo ""
+    echo "========================================="
+    echo "Shell Profile Integration"
+    echo "========================================="
+    echo ""
+    
+    # Check if already integrated
+    if profile_has_oradba "$profile_file"; then
+        log_info "OraDBA already integrated in: $profile_file"
+        log_info "Skipping profile update to avoid duplicates"
+        return 0
+    fi
+    
+    # Determine if we should update
+    local should_update="$UPDATE_PROFILE"
+    
+    if [[ "$should_update" == "auto" ]] && [[ -t 0 ]] && [[ -t 1 ]]; then
+        # Interactive mode with TTY - ask user
+        echo "OraDBA can automatically load the Oracle environment on shell startup."
+        echo ""
+        echo "This will add the following to: $profile_file"
+        echo "  - Automatic sourcing of oraenv.sh (uses first SID from oratab)"
+        echo "  - Display Oracle environment status on login (if interactive)"
+        echo ""
+        read -t 30 -p "Update shell profile? [y/N]: " -n 1 -r 2>/dev/null
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            should_update="yes"
+        else
+            should_update="no"
+        fi
+    elif [[ "$should_update" == "auto" ]]; then
+        # Non-interactive or no TTY - don't update by default
+        should_update="no"
+    fi
+    
+    if [[ "$should_update" != "yes" ]]; then
+        log_info "Skipping profile update"
+        echo ""
+        echo "To manually add OraDBA to your profile, add these lines to $profile_file:"
+        echo ""
+        echo "  # OraDBA Environment Integration"
+        echo "  if [ -f \"${install_prefix}/bin/oraenv.sh\" ]; then"
+        echo "      # Load first Oracle SID from oratab (silent mode)"
+        echo "      source \"${install_prefix}/bin/oraenv.sh\" --silent"
+        echo "      # Show environment status on interactive shells"
+        echo "      if [[ \$- == *i* ]] && command -v oraup >/dev/null 2>&1; then"
+        echo "          oraup"
+        echo "      fi"
+        echo "  fi"
+        echo ""
+        return 0
+    fi
+    
+    # Create profile file if it doesn't exist
+    if [[ ! -f "$profile_file" ]]; then
+        touch "$profile_file" || {
+            log_error "Cannot create profile file: $profile_file"
+            return 1
+        }
+    fi
+    
+    # Backup profile
+    cp "$profile_file" "${profile_file}.backup.$(date +%Y%m%d_%H%M%S)" || {
+        log_warn "Could not create backup of profile file"
+    }
+    
+    # Add OraDBA integration
+    cat >> "$profile_file" <<EOF
+
+# OraDBA Environment Integration (added $(date '+%Y-%m-%d'))
+if [ -f "${install_prefix}/bin/oraenv.sh" ]; then
+    # Load first Oracle SID from oratab (silent mode)
+    source "${install_prefix}/bin/oraenv.sh" --silent
+    # Show environment status on interactive shells
+    if [[ \$- == *i* ]] && command -v oraup >/dev/null 2>&1; then
+        oraup
+    fi
+fi
+EOF
+    
+    if [[ $? -eq 0 ]]; then
+        log_info "Profile updated successfully: $profile_file"
+        log_info "Backup created: ${profile_file}.backup.$(date +%Y%m%d_%H%M%S)"
+        echo ""
+        echo "The Oracle environment will be loaded automatically on next login"
+        echo "To activate now, run: source $profile_file"
+    else
+        log_error "Failed to update profile file"
+        return 1
+    fi
+    
+    echo ""
+    return 0
+}
+
 # Run all pre-flight checks
 run_preflight_checks() {
     local install_dir="$1"
@@ -448,6 +593,7 @@ LOCAL_TARBALL=""
 GITHUB_VERSION=""
 UPDATE_MODE=false
 FORCE_UPDATE=false
+UPDATE_PROFILE="auto"  # auto, yes, no
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -478,6 +624,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --force)
             FORCE_UPDATE=true
+            shift
+            ;;
+        --update-profile)
+            UPDATE_PROFILE="yes"
+            shift
+            ;;
+        --no-update-profile)
+            UPDATE_PROFILE="no"
             shift
             ;;
         -h|--help)
@@ -998,6 +1152,9 @@ if [[ -w "/usr/local/bin" ]] || [[ "$EUID" -eq 0 ]]; then
     log_info "Creating symbolic link in /usr/local/bin"
     ln -sf "$INSTALL_PREFIX/bin/oraenv.sh" /usr/local/bin/oraenv 2>/dev/null || true
 fi
+
+# Profile integration (issue #24)
+update_profile "$INSTALL_PREFIX"
 
 # Installation complete
 echo ""
