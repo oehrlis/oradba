@@ -246,16 +246,37 @@ Usage: $0 [OPTIONS]
 
 Install oradba - Oracle Database Administration Toolset v${INSTALLER_VERSION}
 
+Installation Modes:
+  Default             Install from embedded payload (default)
+  --local PATH        Install from local tarball file
+  --github            Install latest release from GitHub
+  --github --version  Install specific version from GitHub
+
 Options:
   --prefix PATH       Installation prefix (default: $DEFAULT_PREFIX)
   --user USER         Run as specific user (requires sudo)
+  --version VERSION   Specify version for --github mode
   --no-examples       Don't install example files
   -h, --help          Display this help message
-  -v, --version       Display version information
+  -v, --show-version  Display installer version information
 
 Examples:
+  # Install from embedded payload
   $0
+  
+  # Install from local tarball (air-gapped)
+  $0 --local /tmp/oradba-0.6.1.tar.gz
+  
+  # Install latest from GitHub
+  $0 --github
+  
+  # Install specific version from GitHub
+  $0 --github --version 0.6.0
+  
+  # Custom installation prefix
   $0 --prefix /usr/local/oradba
+  
+  # Install as different user
   sudo $0 --prefix /opt/oradba --user oracle
 
 EOF
@@ -321,6 +342,9 @@ check_requirements() {
 INSTALL_PREFIX="$DEFAULT_PREFIX"
 INSTALL_USER=""
 INSTALL_EXAMPLES=true
+INSTALL_MODE="embedded"  # embedded, local, github
+LOCAL_TARBALL=""
+GITHUB_VERSION=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -332,6 +356,19 @@ while [[ $# -gt 0 ]]; do
             INSTALL_USER="$2"
             shift 2
             ;;
+        --local)
+            INSTALL_MODE="local"
+            LOCAL_TARBALL="$2"
+            shift 2
+            ;;
+        --github)
+            INSTALL_MODE="github"
+            shift
+            ;;
+        --version)
+            GITHUB_VERSION="$2"
+            shift 2
+            ;;
         --no-examples)
             INSTALL_EXAMPLES=false
             shift
@@ -339,7 +376,7 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             usage
             ;;
-        -v|--version)
+        -v|--show-version)
             echo "oradba installer version $INSTALLER_VERSION"
             exit 0
             ;;
@@ -349,6 +386,17 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Validate arguments
+if [[ "$INSTALL_MODE" == "local" ]] && [[ -z "$LOCAL_TARBALL" ]]; then
+    log_error "--local requires a path to tarball file"
+    usage
+fi
+
+if [[ -n "$GITHUB_VERSION" ]] && [[ "$INSTALL_MODE" != "github" ]]; then
+    log_error "--version can only be used with --github"
+    usage
+fi
 
 # Check and create base directory if needed
 INSTALL_BASE_DIR="$(dirname "$INSTALL_PREFIX")"
@@ -372,11 +420,121 @@ if [[ ! -w "$INSTALL_BASE_DIR" ]] && [[ "$EUID" -ne 0 ]]; then
     exit 1
 fi
 
+# Extract from embedded payload
+extract_embedded_payload() {
+    log_info "Extracting embedded payload..."
+    local payload_line
+    payload_line=$(awk '/^__PAYLOAD_BEGINS__/ {print NR + 1; exit 0; }' "$0")
+    
+    # Decode base64 (use --decode for cross-platform compatibility)
+    tail -n +${payload_line} "$0" | base64 --decode | tar -xz -C "$TEMP_DIR"
+    
+    if [[ $? -ne 0 ]]; then
+        log_error "Failed to extract embedded payload"
+        return 1
+    fi
+    
+    log_info "Embedded payload extracted successfully"
+    return 0
+}
+
+# Extract from local tarball
+extract_local_tarball() {
+    local tarball="$1"
+    
+    log_info "Validating local tarball: $tarball"
+    
+    # Check if file exists
+    if [[ ! -f "$tarball" ]]; then
+        log_error "Tarball not found: $tarball"
+        return 1
+    fi
+    
+    # Check if file is readable
+    if [[ ! -r "$tarball" ]]; then
+        log_error "Tarball not readable: $tarball"
+        return 1
+    fi
+    
+    log_info "Extracting local tarball..."
+    if tar -xzf "$tarball" -C "$TEMP_DIR" 2>/dev/null; then
+        log_info "Local tarball extracted successfully"
+        return 0
+    else
+        log_error "Failed to extract tarball (may be corrupted or not a valid gzip archive)"
+        return 1
+    fi
+}
+
+# Download and extract from GitHub
+extract_github_release() {
+    local version="$1"
+    local download_url
+    local tarball_name
+    
+    # Determine download URL
+    if [[ -z "$version" ]]; then
+        log_info "Fetching latest release from GitHub..."
+        download_url="https://github.com/oehrlis/oradba/releases/latest/download/oradba.tar.gz"
+        tarball_name="oradba-latest.tar.gz"
+    else
+        log_info "Fetching version ${version} from GitHub..."
+        download_url="https://github.com/oehrlis/oradba/releases/download/v${version}/oradba-${version}.tar.gz"
+        tarball_name="oradba-${version}.tar.gz"
+    fi
+    
+    local tarball_path="${TEMP_DIR}/${tarball_name}"
+    
+    # Check for download tool
+    local download_cmd=""
+    if command -v curl >/dev/null 2>&1; then
+        download_cmd="curl"
+    elif command -v wget >/dev/null 2>&1; then
+        download_cmd="wget"
+    else
+        log_error "Neither curl nor wget found - cannot download from GitHub"
+        log_info "Please install curl or wget, or use --local with a downloaded tarball"
+        return 1
+    fi
+    
+    # Download tarball
+    log_info "Downloading from: ${download_url}"
+    if [[ "$download_cmd" == "curl" ]]; then
+        if ! curl -L -f -o "$tarball_path" "$download_url" 2>/dev/null; then
+            log_error "Failed to download from GitHub"
+            [[ -n "$version" ]] && log_info "Version ${version} may not exist. Check: https://github.com/oehrlis/oradba/releases"
+            return 1
+        fi
+    else
+        if ! wget -q -O "$tarball_path" "$download_url" 2>/dev/null; then
+            log_error "Failed to download from GitHub"
+            [[ -n "$version" ]] && log_info "Version ${version} may not exist. Check: https://github.com/oehrlis/oradba/releases"
+            return 1
+        fi
+    fi
+    
+    log_info "Download completed: $(du -h "$tarball_path" | cut -f1)"
+    
+    # Extract downloaded tarball
+    log_info "Extracting downloaded tarball..."
+    if tar -xzf "$tarball_path" -C "$TEMP_DIR" 2>/dev/null; then
+        rm -f "$tarball_path"  # Clean up downloaded file
+        log_info "GitHub release extracted successfully"
+        return 0
+    else
+        log_error "Failed to extract downloaded tarball"
+        return 1
+    fi
+}
+
 echo "========================================="
 echo "oradba Installer v${INSTALLER_VERSION}"
 echo "========================================="
+echo "Installation mode: $INSTALL_MODE"
 echo "Installation prefix: $INSTALL_PREFIX"
 [[ -n "$INSTALL_USER" ]] && echo "Install user: $INSTALL_USER"
+[[ "$INSTALL_MODE" == "local" ]] && echo "Local tarball: $LOCAL_TARBALL"
+[[ "$INSTALL_MODE" == "github" ]] && [[ -n "$GITHUB_VERSION" ]] && echo "GitHub version: $GITHUB_VERSION"
 echo ""
 
 # Check system requirements
@@ -386,12 +544,22 @@ check_requirements
 TEMP_DIR=$(mktemp -d)
 log_info "Created temporary directory: $TEMP_DIR"
 
-# Extract payload
-log_info "Extracting payload..."
-PAYLOAD_LINE=$(awk '/^__PAYLOAD_BEGINS__/ {print NR + 1; exit 0; }' "$0")
-
-# Decode base64 (use --decode for cross-platform compatibility)
-tail -n +${PAYLOAD_LINE} "$0" | base64 --decode | tar -xz -C "$TEMP_DIR"
+# Extract based on installation mode
+case "$INSTALL_MODE" in
+    embedded)
+        extract_embedded_payload || exit 1
+        ;;
+    local)
+        extract_local_tarball "$LOCAL_TARBALL" || exit 1
+        ;;
+    github)
+        extract_github_release "$GITHUB_VERSION" || exit 1
+        ;;
+    *)
+        log_error "Unknown installation mode: $INSTALL_MODE"
+        exit 1
+        ;;
+esac
 
 # Create installation directory
 if [[ ! -d "$INSTALL_PREFIX" ]]; then

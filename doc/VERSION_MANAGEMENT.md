@@ -1,6 +1,7 @@
 # Version Management
 
-OraDBA includes a comprehensive version management system that enables version-aware installations, updates, and compatibility checking.
+OraDBA includes a comprehensive version management system that enables
+version-aware installations, updates, and compatibility checking.
 
 ## Overview
 
@@ -16,11 +17,12 @@ The version management infrastructure provides:
 
 The `VERSION` file in the root directory contains the current OraDBA version:
 
-```
+```text
 0.6.1
 ```
 
 This file is:
+
 - Read by the build system to create versioned installers
 - Used by runtime functions to determine the current version
 - Updated during version bumps
@@ -65,6 +67,7 @@ echo "Current version: ${version}"
 Compares two semantic versions.
 
 **Returns:**
+
 - `0` - Versions are equal
 - `1` - First version is greater
 - `2` - First version is less
@@ -78,6 +81,7 @@ fi
 ```
 
 **Features:**
+
 - Supports semantic versioning (MAJOR.MINOR.PATCH)
 - Handles version prefixes (`v0.6.1` → `0.6.1`)
 - Handles pre-release versions (`0.7.0-beta`)
@@ -120,6 +124,7 @@ init_install_info "0.6.1"
 ```
 
 This creates the `.install_info` file with:
+
 - Version information
 - Installation timestamp
 - User and host information
@@ -134,7 +139,8 @@ show_version_info
 ```
 
 **Output:**
-```
+
+```test
 OraDBA Version: 0.6.1
 
 Installation Details:
@@ -231,6 +237,7 @@ The build system automatically generates version metadata:
 ```
 
 **Generated files:**
+
 - `dist/oradba_install.sh` - Self-contained installer
 - `build/oradba-0.6.1.tar.gz` - Tarball payload
 - Embedded `.install_info` - Installation metadata
@@ -245,6 +252,7 @@ Comprehensive test suite validates all version functions:
 ```
 
 **Test coverage:**
+
 - Version reading and parsing
 - Version comparison (equal, greater, less)
 - Version prefix handling
@@ -260,22 +268,26 @@ All 11 tests validate the version management system.
 The version management infrastructure enables:
 
 ### Update Capability (v0.7.0)
+
 - Check current vs available version
 - Download and verify updates
 - Preserve configuration during updates
 - Rollback on failure
 
 ### Local Installation (v0.7.0)
+
 - Verify installer version
 - Check compatibility with existing installation
 - Track installation source (local vs GitHub)
 
 ### Prerequisites Check (v0.7.0)
+
 - Verify minimum OraDBA version
 - Check compatibility with Oracle versions
 - Validate feature availability
 
 ### Bash Profile Integration (v0.7.0)
+
 - Version-aware PATH updates
 - Conditional feature loading based on version
 - Profile compatibility checking
