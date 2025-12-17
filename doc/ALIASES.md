@@ -89,7 +89,9 @@ Command Interpreter (ADRCI), making it easier to navigate and query Oracle diagn
 | `tns`    | Display tnsnames.ora                    | `cat $TNS_ADMIN/tnsnames.ora` |
 
 **Note:** `oraup` provides a comprehensive overview of all Oracle databases, listeners, and
-processes on the system. It shows status, open mode, Oracle homes, and startup flags from oratab.
+processes on the system. It shows status (open/mounted/started/nomount), Oracle homes, and startup 
+flags from oratab. Supports all Oracle versions from 11g through 23ai (handles both `ora_pmon_*` 
+and `db_pmon_*` process naming conventions).
 
 ### VI Editor Aliases
 

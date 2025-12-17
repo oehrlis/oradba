@@ -55,9 +55,12 @@ DESCRIPTION:
     Shows all Oracle databases, listeners, and processes on the system:
     - Database instances (from oratab)
     - Running Oracle processes (pmon, listener)
+    - Instance status (open/mounted/started/nomount)
     - Listener status
     - Oracle Home locations
     - Startup flags and modes
+    
+    Supports Oracle 11g through 23ai (both ora_pmon_* and db_pmon_* naming)
 
 EXAMPLES:
     $(basename "$0")                # Show full status
