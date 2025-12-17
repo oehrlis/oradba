@@ -74,12 +74,48 @@ sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
 # Install without example files
 ./oradba_install.sh --no-examples
 
+# Enable automatic profile integration (loads Oracle environment on shell startup)
+./oradba_install.sh --update-profile
+
+# Disable profile integration (manual sourcing required)
+./oradba_install.sh --no-update-profile
+
 # Show installer version
 ./oradba_install.sh --show-version
 
 # Display help
 ./oradba_install.sh --help
 ```
+
+### Shell Profile Integration
+
+OraDBA can automatically load the Oracle environment when you start a new shell session. During installation:
+
+- **Interactive mode**: The installer will prompt you to update your shell profile
+- **Non-interactive mode**: Profile is not updated by default (use `--update-profile` to enable)
+
+**What gets added to your profile:**
+
+```bash
+# OraDBA Environment Integration
+if [ -f "/opt/oracle/local/oradba/bin/oraenv.sh" ]; then
+    # Load first Oracle SID from oratab (silent mode)
+    source "/opt/oracle/local/oradba/bin/oraenv.sh" --silent
+    # Show environment status on interactive shells
+    if [[ $- == *i* ]] && command -v oraup >/dev/null 2>&1; then
+        oraup
+    fi
+fi
+```
+
+**Profile detection order:**
+
+1. `~/.bash_profile` (preferred for login shells)
+2. `~/.bashrc` (common on Linux)
+3. `~/.profile` (generic fallback)
+4. `~/.zshrc` (if using zsh)
+
+A backup is automatically created before any modifications.
 
 ### Post-Installation Usage
 

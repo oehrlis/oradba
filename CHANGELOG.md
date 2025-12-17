@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Shell Profile Integration** (#24):
+  - Automatic Oracle environment loading on shell startup
+  - Installer flags: `--update-profile` and `--no-update-profile`
+  - Supports bash_profile, bashrc, profile, and zshrc
+  - Silent environment sourcing for non-interactive shells
+  - Displays Oracle environment status (oraup) on login for interactive shells
+  - Duplicate detection prevents multiple integrations
+  - Automatic profile backup before modification
+  - 19 new tests for profile integration (63 total installer tests)
+
 ### Changed
 
 ### Fixed
