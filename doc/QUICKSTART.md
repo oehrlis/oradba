@@ -114,7 +114,10 @@ fi
 2. `~/.profile` (generic POSIX login shells)
 3. `~/.zshrc` (for zsh)
 
-If none exist, `~/.bash_profile` is created automatically. Note that `.bashrc` is not used directly as it's only loaded by non-login shells; if your `.bash_profile` sources `.bashrc`, the environment will be available in all shells.
+If none exist, `~/.bash_profile` is created automatically.
+Note that `.bashrc` is not used directly as it's only loaded by non-login
+shells; if your `.bash_profile` sources `.bashrc`, the environment will be
+available in all shells.
 
 A backup is automatically created before any modifications.
 
