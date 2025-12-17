@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [Unreleased]
+
 ### Added
+
+- **SID Config Template Auto-Creation**:
+  - Enhanced `create_sid_config()` to use `sid.ORCL.conf.example` as a template for new SID configs
+  - Uses `sed` to replace `ORCL`/`orcl` with the actual SID
+  - Updates date stamps and auto-created comment in new config
+  - Adds comprehensive BATS tests for template-based SID config creation (`test_sid_config.bats`)
+  - Ensures robust, consistent SID config generation and test coverage
+
 
 ### Changed
 
