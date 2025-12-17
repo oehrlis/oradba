@@ -375,8 +375,28 @@ create_sid_config() {
     local sid="$1"
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
+    local example_config="${config_dir}/sid.ORCL.conf.example"
     
     log_info "Creating SID-specific configuration: ${sid_config}"
+    
+    # Check if example template exists - use it as base
+    if [[ -f "${example_config}" ]]; then
+        log_info "Using template: ${example_config}"
+        # Copy example and replace ORCL with actual SID
+        sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
+            "${example_config}" > "${sid_config}"
+        
+        # Source the newly created config
+        if [[ -f "${sid_config}" ]]; then
+            log_info "Created SID configuration from template: ${sid_config}"
+            # shellcheck source=/dev/null
+            source "${sid_config}"
+            return 0
+        fi
+    fi
+    
+    # Fallback: Create config from database metadata or defaults
+    log_debug "Template not found, creating from database metadata"
     
     # Initialize variables with defaults
     local db_name="${sid}"
