@@ -678,6 +678,126 @@ EOF
     log_info "Created installation metadata: ${install_info}"
 }
 
+# ------------------------------------------------------------------------------
+# SQLPATH Management Functions (#11)
+# ------------------------------------------------------------------------------
+
+# Configure SQLPATH for SQL*Plus script discovery
+# Usage: configure_sqlpath
+# Builds SQLPATH with priority:
+#   1. Current directory (pwd)
+#   2. OraDBA SQL scripts
+#   3. SID-specific SQL directory (if exists)
+#   4. Oracle RDBMS admin scripts
+#   5. Oracle sqlplus admin scripts
+#   6. User custom SQL directory
+#   7. Custom SQLPATH from config
+#   8. Existing SQLPATH entries (if preserve enabled)
+configure_sqlpath() {
+    local sqlpath_parts=()
+    
+    # 1. Current directory (standard Oracle behavior)
+    sqlpath_parts+=(".")
+    
+    # 2. OraDBA SQL scripts
+    if [[ -d "${ORADBA_PREFIX}/sql" ]]; then
+        sqlpath_parts+=("${ORADBA_PREFIX}/sql")
+    fi
+    
+    # 3. SID-specific SQL directory (if exists and enabled)
+    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID}" ]] && [[ -d "${ORADBA_PREFIX}/sql/${ORACLE_SID}" ]]; then
+        sqlpath_parts+=("${ORADBA_PREFIX}/sql/${ORACLE_SID}")
+    fi
+    
+    # 4. Oracle RDBMS admin scripts (catproc.sql, etc.)
+    if [[ -n "${ORACLE_HOME}" ]] && [[ -d "${ORACLE_HOME}/rdbms/admin" ]]; then
+        sqlpath_parts+=("${ORACLE_HOME}/rdbms/admin")
+    fi
+    
+    # 5. Oracle sqlplus admin scripts
+    if [[ -n "${ORACLE_HOME}" ]] && [[ -d "${ORACLE_HOME}/sqlplus/admin" ]]; then
+        sqlpath_parts+=("${ORACLE_HOME}/sqlplus/admin")
+    fi
+    
+    # 6. User custom SQL directory (create if needed)
+    if [[ "${ORADBA_CREATE_USER_SQL_DIR}" == "true" ]] && [[ ! -d "${HOME}/.oradba/sql" ]]; then
+        mkdir -p "${HOME}/.oradba/sql" 2>/dev/null && log_debug "Created user SQL directory: ${HOME}/.oradba/sql"
+    fi
+    if [[ -d "${HOME}/.oradba/sql" ]]; then
+        sqlpath_parts+=("${HOME}/.oradba/sql")
+    fi
+    
+    # 7. Custom SQLPATH from config (append)
+    if [[ -n "${ORADBA_CUSTOM_SQLPATH}" ]]; then
+        IFS=':' read -ra custom_paths <<< "${ORADBA_CUSTOM_SQLPATH}"
+        sqlpath_parts+=("${custom_paths[@]}")
+    fi
+    
+    # 8. Preserve existing SQLPATH entries (optional)
+    if [[ -n "${SQLPATH}" ]] && [[ "${ORADBA_PRESERVE_SQLPATH}" == "true" ]]; then
+        IFS=':' read -ra existing_paths <<< "${SQLPATH}"
+        sqlpath_parts+=("${existing_paths[@]}")
+    fi
+    
+    # Build colon-separated SQLPATH, removing duplicates while preserving order
+    export SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd:)
+    
+    log_debug "SQLPATH configured: ${SQLPATH}"
+}
+
+# Display current SQLPATH directories
+# Usage: show_sqlpath
+show_sqlpath() {
+    if [[ -z "${SQLPATH}" ]]; then
+        echo "SQLPATH is not set"
+        return 1
+    fi
+    
+    echo "SQLPATH Directories:"
+    echo "==================="
+    local count=1
+    IFS=':' read -ra paths <<< "${SQLPATH}"
+    for path in "${paths[@]}"; do
+        if [[ -d "${path}" ]]; then
+            printf "%2d. %-60s [✓]\n" "${count}" "${path}"
+        else
+            printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
+        fi
+        ((count++))
+    done
+}
+
+# Add directory to SQLPATH
+# Usage: add_to_sqlpath <directory>
+add_to_sqlpath() {
+    local new_path="${1}"
+    
+    if [[ -z "${new_path}" ]]; then
+        log_error "Directory path required"
+        return 1
+    fi
+    
+    if [[ ! -d "${new_path}" ]]; then
+        log_error "Directory does not exist: ${new_path}"
+        return 1
+    fi
+    
+    # Check if already in SQLPATH
+    if [[ ":${SQLPATH}:" == *":${new_path}:"* ]]; then
+        log_info "Directory already in SQLPATH: ${new_path}"
+        return 0
+    fi
+    
+    # Add to SQLPATH
+    if [[ -z "${SQLPATH}" ]]; then
+        export SQLPATH="${new_path}"
+    else
+        export SQLPATH="${SQLPATH}:${new_path}"
+    fi
+    
+    log_info "Added to SQLPATH: ${new_path}"
+}
+
 # Show version information
 show_version_info() {
     local version

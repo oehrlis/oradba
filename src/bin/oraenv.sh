@@ -296,10 +296,16 @@ _oraenv_set_environment() {
     # Later configs override earlier settings, including aliases
     load_config "$actual_sid"
 
+    # Configure SQLPATH for SQL script discovery (#11)
+    if [[ "${ORADBA_CONFIGURE_SQLPATH}" != "false" ]]; then
+        configure_sqlpath
+    fi
+
     log_debug "Oracle environment set for SID: $ORACLE_SID"
     log_debug "ORACLE_HOME: $ORACLE_HOME"
     log_debug "ORACLE_BASE: $ORACLE_BASE"
     log_debug "TNS_ADMIN: ${TNS_ADMIN:-not set}"
+    log_debug "SQLPATH: ${SQLPATH:-not set}"
 
     return 0
 }
