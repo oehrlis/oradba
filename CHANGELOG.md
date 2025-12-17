@@ -15,9 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Installation metadata management: `get_install_info()`, `set_install_info()`, `init_install_info()`
   - Display function: `show_version_info()` for version and installation details
   - `.install_info` metadata file generated during build with installation information
-  - Build script now includes version, build date, host, and user information
+  - Build script now includes version template for installer to populate
   - Comprehensive test suite: `tests/test_version.sh` with 11 test cases covering all version functions
+  - Backward compatibility test: `tests/test_backward_compat.sh` validates existing installations
   - Foundation for version-aware installation and update capabilities in v0.7.0
+
+### Fixed
+
+- **Version Management Format** (#6):
+  - Corrected `.install_info` format to match existing installer and `oradba_version.sh`
+  - Uses lowercase keys without quotes: `install_version=0.6.1` (not `VERSION="0.6.1"`)
+  - Maintains backward compatibility with existing 0.6.0 installations
+  - Field names: `install_date`, `install_version`, `install_method`, `install_user`, `install_prefix`
+  - Updated documentation to reflect correct format and usage examples
 
 ## [0.6.1] - 2025-12-17
 
