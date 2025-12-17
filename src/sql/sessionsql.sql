@@ -5,7 +5,7 @@
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
 -- Date.......: 2025.12.17
--- Revision...: 0.6.0
+-- Revision...: 0.6.1
 -- Purpose....: Configure SQL*Plus session with dynamic terminal width
 -- Notes......: Sets LINESIZE and PAGESIZE based on current terminal dimensions
 -- Usage......: @sessionsql.sql or via sessionsql alias
