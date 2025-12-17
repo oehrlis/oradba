@@ -54,18 +54,17 @@ cp -r src/* "$TEMP_TAR_DIR/"
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
-echo "Generating installation metadata..."
-# Generate install info template with build information
+echo "Generating installation metadata template..."
+# Generate install info template (will be updated during installation)
 {
     echo "# OraDBA Installation Information"
     echo "# This file will be updated during installation"
-    echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    echo ""
-    echo "VERSION=\"${VERSION}\""
-    echo "BUILD_DATE=\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
-    echo "BUILD_HOST=\"${HOSTNAME}\""
-    echo "BUILD_USER=\"${USER}\""
-    echo "BUILD_SOURCE=\"build\""
+    echo "# Build: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "install_date="
+    echo "install_version=${VERSION}"
+    echo "install_method="
+    echo "install_user="
+    echo "install_prefix="
 } > "$TEMP_TAR_DIR/.install_info"
 
 echo "Generating checksums..."

@@ -31,29 +31,22 @@ The `.install_info` file stores installation metadata:
 
 ```bash
 # OraDBA Installation Information
-VERSION="0.6.1"
-INSTALL_DATE="2025-12-17T08:02:47Z"
-INSTALL_USER="oracle"
-INSTALL_HOST="dbserver01"
-INSTALL_METHOD="installer"
-INSTALL_SOURCE="local"
-ORADBA_BASE="/opt/oradba"
-ORACLE_BASE="/u01/app/oracle"
+install_date=2025-12-17T10:30:00Z
+install_version=0.6.1
+install_method=installer
+install_user=oracle
+install_prefix=/opt/oracle/local/oradba
 ```
 
 ### Metadata Fields
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| `VERSION` | OraDBA version installed | `0.6.1` |
-| `BUILD_DATE` | When the installer was built | `2025-12-17T08:02:47Z` |
-| `INSTALL_DATE` | When OraDBA was installed | `2025-12-17T10:30:00Z` |
-| `INSTALL_USER` | User who performed installation | `oracle` |
-| `INSTALL_HOST` | Host where OraDBA is installed | `dbserver01` |
-| `INSTALL_METHOD` | How OraDBA was installed | `installer`, `git`, `update` |
-| `INSTALL_SOURCE` | Installation source | `local`, `github`, `update` |
-| `ORADBA_BASE` | OraDBA installation directory | `/opt/oradba` |
-| `ORACLE_BASE` | Oracle base directory | `/u01/app/oracle` |
+| `install_date` | When OraDBA was installed | `2025-12-17T10:30:00Z` |
+| `install_version` | OraDBA version installed | `0.6.1` |
+| `install_method` | How OraDBA was installed | `installer`, `git`, `update` |
+| `install_user` | User who performed installation | `oracle` |
+| `install_prefix` | OraDBA installation directory | `/opt/oracle/local/oradba` |
 
 ## Version Management Functions
 
@@ -104,8 +97,8 @@ fi
 Retrieves a value from the `.install_info` file.
 
 ```bash
-install_date=$(get_install_info "INSTALL_DATE")
-install_user=$(get_install_info "INSTALL_USER")
+install_date=$(get_install_info "install_date")
+install_user=$(get_install_info "install_user")
 echo "Installed on ${install_date} by ${install_user}"
 ```
 
@@ -114,8 +107,8 @@ echo "Installed on ${install_date} by ${install_user}"
 Sets or updates a value in the `.install_info` file.
 
 ```bash
-set_install_info "LAST_UPDATE" "2025-12-17T15:30:00Z"
-set_install_info "UPDATE_SOURCE" "github"
+set_install_info "last_update" "2025-12-17T15:30:00Z"
+set_install_info "update_source" "github"
 ```
 
 ### init_install_info()
@@ -147,9 +140,8 @@ OraDBA Version: 0.6.1
 Installation Details:
   Installed: 2025-12-17T10:30:00Z
   Method: installer
-  Source: local
   User: oracle
-  Base: /opt/oradba
+  Prefix: /opt/oracle/local/oradba
 ```
 
 ## Usage Examples
@@ -182,8 +174,8 @@ log_info "Version check passed: ${CURRENT_VERSION}"
 
 source "${ORADBA_BASE}/lib/common.sh"
 
-set_install_info "LAST_CONFIG_UPDATE" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-set_install_info "CONFIG_VERSION" "2"
+set_install_info "last_config_update" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+set_install_info "config_version" "2"
 
 log_info "Configuration metadata updated"
 ```
@@ -221,8 +213,8 @@ show_version_info
 
 echo ""
 echo "Oracle Environment:"
-echo "  ORACLE_BASE: $(get_install_info "ORACLE_BASE")"
-echo "  ORADBA_BASE: $(get_install_info "ORADBA_BASE")"
+echo "  Install Prefix: $(get_install_info "install_prefix")"
+echo "  Install User: $(get_install_info "install_user")"
 ```
 
 ## Build Process

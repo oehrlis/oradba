@@ -90,7 +90,7 @@ echo "Test 10: Install info functions"
 TEMP_DIR=$(mktemp -d)
 ORADBA_BASE="${TEMP_DIR}"
 init_install_info "0.6.1"
-STORED_VERSION=$(get_install_info "VERSION")
+STORED_VERSION=$(get_install_info "install_version")
 echo "  Stored version: ${STORED_VERSION}"
 [[ "${STORED_VERSION}" == "0.6.1" ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
 rm -rf "${TEMP_DIR}"
@@ -101,8 +101,8 @@ echo "Test 11: Set/Get install info"
 TEMP_DIR=$(mktemp -d)
 ORADBA_BASE="${TEMP_DIR}"
 init_install_info "0.6.1"
-set_install_info "TEST_KEY" "test_value"
-TEST_VALUE=$(get_install_info "TEST_KEY")
+set_install_info "test_key" "test_value"
+TEST_VALUE=$(get_install_info "test_key")
 echo "  Stored value: ${TEST_VALUE}"
 [[ "${TEST_VALUE}" == "test_value" ]] && echo "  ✓ PASS" || echo "  ✗ FAIL"
 rm -rf "${TEMP_DIR}"

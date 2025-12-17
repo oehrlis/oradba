@@ -605,16 +605,21 @@ version_meets_requirement() {
 }
 
 # Get installation metadata
+# Supports both old format (install_version) and new format (version)
 get_install_info() {
     local key="$1"
     local install_info="${ORADBA_BASE}/.install_info"
     
     if [[ -f "${install_info}" ]]; then
-        grep "^${key}=" "${install_info}" | cut -d= -f2- | tr -d '"'
+        # Try to get value, handle both with and without quotes
+        local value
+        value=$(grep "^${key}=" "${install_info}" | cut -d= -f2- | sed 's/^"//;s/"$//')
+        echo "${value}"
     fi
 }
 
 # Set installation metadata
+# Uses lowercase keys without quotes for consistency with installer
 set_install_info() {
     local key="$1"
     local value="$2"
@@ -624,35 +629,30 @@ set_install_info() {
     if [[ -f "${install_info}" ]]; then
         # Update existing key or append
         if grep -q "^${key}=" "${install_info}"; then
-            sed -i.bak "s|^${key}=.*|${key}=\"${value}\"|" "${install_info}"
+            sed -i.bak "s|^${key}=.*|${key}=${value}|" "${install_info}"
             rm -f "${install_info}.bak"
         else
-            echo "${key}=\"${value}\"" >> "${install_info}"
+            echo "${key}=${value}" >> "${install_info}"
         fi
     else
         # Create new file
         mkdir -p "$(dirname "${install_info}")"
-        echo "${key}=\"${value}\"" > "${install_info}"
+        echo "${key}=${value}" > "${install_info}"
     fi
 }
 
 # Initialize installation info file
+# Uses lowercase keys without quotes to match installer format
 init_install_info() {
     local version="$1"
     local install_info="${ORADBA_BASE}/.install_info"
     
     cat > "${install_info}" <<EOF
-# OraDBA Installation Information
-# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-VERSION="${version}"
-INSTALL_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-INSTALL_USER="${USER}"
-INSTALL_HOST="${HOSTNAME}"
-INSTALL_METHOD="installer"
-INSTALL_SOURCE="local"
-ORADBA_BASE="${ORADBA_BASE}"
-ORACLE_BASE="${ORACLE_BASE:-}"
+install_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+install_version=${version}
+install_method=installer
+install_user=${USER}
+install_prefix=${ORADBA_BASE}
 EOF
     
     log_info "Created installation metadata: ${install_info}"
@@ -668,10 +668,9 @@ show_version_info() {
     if [[ -f "${ORADBA_BASE}/.install_info" ]]; then
         echo ""
         echo "Installation Details:"
-        echo "  Installed: $(get_install_info "INSTALL_DATE")"
-        echo "  Method: $(get_install_info "INSTALL_METHOD")"
-        echo "  Source: $(get_install_info "INSTALL_SOURCE")"
-        echo "  User: $(get_install_info "INSTALL_USER")"
-        echo "  Base: $(get_install_info "ORADBA_BASE")"
+        echo "  Installed: $(get_install_info "install_date")"
+        echo "  Method: $(get_install_info "install_method")"
+        echo "  User: $(get_install_info "install_user")"
+        echo "  Prefix: $(get_install_info "install_prefix")"
     fi
 }
