@@ -124,6 +124,37 @@ source oraenv.sh TESTDB
 source oraenv.sh
 ```
 
+## Updating OraDBA
+
+### Update from GitHub
+
+```bash
+# Update to latest version
+$PREFIX/bin/oradba_install.sh --update --github
+
+# Update to specific version
+$PREFIX/bin/oradba_install.sh --update --github --version 0.7.0
+```
+
+### Update from Local Tarball
+
+```bash
+# Download new version
+curl -L -o oradba-0.7.0.tar.gz \
+  https://github.com/oehrlis/oradba/releases/download/v0.7.0/oradba-0.7.0.tar.gz
+
+# Update installation
+$PREFIX/bin/oradba_install.sh --update --local oradba-0.7.0.tar.gz
+```
+
+### Update Features
+
+- **Automatic Backup**: Creates backup before update
+- **Configuration Preservation**: Keeps your custom settings
+- **Rollback on Failure**: Restores previous version if update fails
+- **Version Detection**: Skips if already running latest version
+- **Force Update**: Use `--force` to reinstall same version
+
 ### Run SQL Scripts
 
 ```bash

@@ -145,12 +145,14 @@ Installation Modes:
   --local PATH        Install from local tarball file
   --github            Install latest release from GitHub
   --github --version  Install specific version from GitHub
+  --update            Update existing installation (preserves config)
 
 Options:
   --prefix PATH       Installation prefix (default: $DEFAULT_PREFIX)
   --user USER         Run as specific user (requires sudo)
   --version VERSION   Specify version for --github mode
   --no-examples       Don't install example files
+  --force             Force update even if same version
   -h, --help          Display this help message
   -v, --show-version  Display installer version information
 
@@ -166,6 +168,15 @@ Examples:
   
   # Install specific version from GitHub
   $0 --github --version 0.6.0
+  
+  # Update existing installation
+  $0 --update
+  
+  # Update from local tarball
+  $0 --update --local /path/to/oradba-0.7.0.tar.gz
+  
+  # Update from specific GitHub version
+  $0 --update --github --version 0.7.0
   
   # Custom installation prefix
   $0 --prefix /usr/local/oradba
@@ -433,6 +444,8 @@ INSTALL_EXAMPLES=true
 INSTALL_MODE="auto"  # auto, embedded, local, github
 LOCAL_TARBALL=""
 GITHUB_VERSION=""
+UPDATE_MODE=false
+FORCE_UPDATE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -456,6 +469,14 @@ while [[ $# -gt 0 ]]; do
         --version)
             GITHUB_VERSION="$2"
             shift 2
+            ;;
+        --update)
+            UPDATE_MODE=true
+            shift
+            ;;
+        --force)
+            FORCE_UPDATE=true
+            shift
             ;;
         --no-examples)
             INSTALL_EXAMPLES=false
@@ -498,6 +519,238 @@ if [[ "$INSTALL_MODE" == "auto" ]]; then
         exit 1
     fi
 fi
+
+# ============================================================================
+# Update Functions
+# ============================================================================
+
+# Compare two semantic versions
+# Returns: 0 if equal, 1 if v1 > v2, 2 if v1 < v2
+version_compare() {
+    local v1="$1"
+    local v2="$2"
+    
+    # Remove leading 'v' if present
+    v1="${v1#v}"
+    v2="${v2#v}"
+    
+    # Split versions into components
+    IFS='.' read -ra v1_parts <<< "$v1"
+    IFS='.' read -ra v2_parts <<< "$v2"
+    
+    # Compare each component
+    for i in {0..2}; do
+        local part1="${v1_parts[$i]:-0}"
+        local part2="${v2_parts[$i]:-0}"
+        
+        # Remove any non-numeric suffix
+        part1="${part1%%-*}"
+        part2="${part2%%-*}"
+        
+        if (( part1 > part2 )); then
+            return 1
+        elif (( part1 < part2 )); then
+            return 2
+        fi
+    done
+    
+    return 0
+}
+
+# Get current installed version
+get_installed_version() {
+    local install_dir="$1"
+    local version_file="${install_dir}/VERSION"
+    
+    if [[ -f "$version_file" ]]; then
+        cat "$version_file" | tr -d '[:space:]'
+    else
+        echo "unknown"
+    fi
+}
+
+# Check if installation exists
+check_existing_installation() {
+    local install_dir="$1"
+    
+    if [[ ! -d "$install_dir" ]]; then
+        return 1
+    fi
+    
+    # Check for key files
+    if [[ ! -f "${install_dir}/VERSION" ]] || [[ ! -d "${install_dir}/bin" ]]; then
+        return 1
+    fi
+    
+    return 0
+}
+
+# Backup existing installation
+backup_installation() {
+    local install_dir="$1"
+    local backup_dir="${install_dir}.backup.$(date +%Y%m%d_%H%M%S)"
+    
+    log_info "Creating backup: $backup_dir"
+    
+    if ! cp -r "$install_dir" "$backup_dir"; then
+        log_error "Failed to create backup"
+        return 1
+    fi
+    
+    log_info "Backup created successfully"
+    echo "$backup_dir"
+    return 0
+}
+
+# Restore from backup
+restore_from_backup() {
+    local install_dir="$1"
+    local backup_dir="$2"
+    
+    log_info "Restoring from backup: $backup_dir"
+    
+    # Remove failed installation
+    if [[ -d "$install_dir" ]]; then
+        rm -rf "$install_dir"
+    fi
+    
+    # Restore backup
+    if ! mv "$backup_dir" "$install_dir"; then
+        log_error "Failed to restore from backup"
+        return 1
+    fi
+    
+    log_info "Restore completed successfully"
+    return 0
+}
+
+# Preserve user configuration files
+preserve_configs() {
+    local install_dir="$1"
+    local temp_config_dir="$2"
+    
+    log_info "Preserving configuration files..."
+    
+    mkdir -p "$temp_config_dir"
+    
+    # Files to preserve
+    local preserve_files=(
+        ".install_info"
+        "etc/oradba.conf"
+        "etc/oratab.example"
+    )
+    
+    for file in "${preserve_files[@]}"; do
+        local src="${install_dir}/${file}"
+        if [[ -f "$src" ]]; then
+            local dest="${temp_config_dir}/${file}"
+            mkdir -p "$(dirname "$dest")"
+            cp "$src" "$dest"
+            log_info "Preserved: $file"
+        fi
+    done
+    
+    return 0
+}
+
+# Restore preserved configurations
+restore_configs() {
+    local install_dir="$1"
+    local temp_config_dir="$2"
+    
+    log_info "Restoring configuration files..."
+    
+    if [[ ! -d "$temp_config_dir" ]]; then
+        log_warn "No preserved configurations found"
+        return 0
+    fi
+    
+    # Restore preserved files
+    find "$temp_config_dir" -type f | while read -r src; do
+        local rel_path="${src#${temp_config_dir}/}"
+        local dest="${install_dir}/${rel_path}"
+        
+        mkdir -p "$(dirname "$dest")"
+        cp "$src" "$dest"
+        log_info "Restored: $rel_path"
+    done
+    
+    # Clean up temp directory
+    rm -rf "$temp_config_dir"
+    
+    return 0
+}
+
+# Perform update
+perform_update() {
+    local install_dir="$INSTALL_PREFIX"
+    local current_version
+    local new_version="$INSTALLER_VERSION"
+    local backup_dir
+    local config_dir
+    
+    echo "========================================="
+    echo "OraDBA Update Process"
+    echo "========================================="
+    echo ""
+    
+    # Check if installation exists
+    if ! check_existing_installation "$install_dir"; then
+        log_error "No existing installation found at: $install_dir"
+        log_error "Use regular installation mode instead"
+        exit 1
+    fi
+    
+    # Get current version
+    current_version=$(get_installed_version "$install_dir")
+    log_info "Current version: $current_version"
+    log_info "New version: $new_version"
+    
+    # Compare versions
+    version_compare "$new_version" "$current_version"
+    local cmp_result=$?
+    
+    if [[ $cmp_result -eq 0 ]]; then
+        if [[ "$FORCE_UPDATE" != "true" ]]; then
+            log_info "Already running latest version ($current_version)"
+            log_info "Use --force to reinstall same version"
+            exit 0
+        else
+            log_info "Force update enabled - reinstalling version $current_version"
+        fi
+    elif [[ $cmp_result -eq 2 ]]; then
+        log_warn "New version ($new_version) is older than installed ($current_version)"
+        if [[ "$FORCE_UPDATE" != "true" ]]; then
+            log_error "Use --force to downgrade"
+            exit 1
+        fi
+        log_info "Force downgrade enabled"
+    else
+        log_info "Upgrading from $current_version to $new_version"
+    fi
+    
+    # Create backup
+    backup_dir=$(backup_installation "$install_dir")
+    if [[ $? -ne 0 ]]; then
+        log_error "Backup failed - aborting update"
+        exit 1
+    fi
+    
+    # Preserve configurations
+    config_dir=$(mktemp -d)
+    preserve_configs "$install_dir" "$config_dir"
+    
+    # Remove old installation (keep backup)
+    log_info "Removing old installation..."
+    rm -rf "$install_dir"
+    
+    echo ""
+    echo "Proceeding with installation..."
+    echo ""
+    
+    # Return backup and config directories for use in main flow
+    echo "$backup_dir|$config_dir"
+}
 
 # Extract from embedded payload
 extract_embedded_payload() {
@@ -611,15 +864,29 @@ extract_github_release() {
     fi
 }
 
-echo "========================================="
-echo "oradba Installer v${INSTALLER_VERSION}"
-echo "========================================="
-echo "Installation mode: $INSTALL_MODE"
-echo "Installation prefix: $INSTALL_PREFIX"
-[[ -n "$INSTALL_USER" ]] && echo "Install user: $INSTALL_USER"
-[[ "$INSTALL_MODE" == "local" ]] && echo "Local tarball: $LOCAL_TARBALL"
-[[ "$INSTALL_MODE" == "github" ]] && [[ -n "$GITHUB_VERSION" ]] && echo "GitHub version: $GITHUB_VERSION"
-echo ""
+# ============================================================================
+# Main Installation Flow
+# ============================================================================
+
+# Handle update mode
+BACKUP_DIR=""
+CONFIG_DIR=""
+if [[ "$UPDATE_MODE" == "true" ]]; then
+    # Perform update pre-checks and backup (capture last line with paths, show rest)
+    UPDATE_INFO=$(perform_update 2>&1 | tee /dev/stderr | tail -1)
+    BACKUP_DIR="${UPDATE_INFO%%|*}"
+    CONFIG_DIR="${UPDATE_INFO##*|}"
+else
+    echo "========================================="
+    echo "oradba Installer v${INSTALLER_VERSION}"
+    echo "========================================="
+    echo "Installation mode: $INSTALL_MODE"
+    echo "Installation prefix: $INSTALL_PREFIX"
+    [[ -n "$INSTALL_USER" ]] && echo "Install user: $INSTALL_USER"
+    [[ "$INSTALL_MODE" == "local" ]] && echo "Local tarball: $LOCAL_TARBALL"
+    [[ "$INSTALL_MODE" == "github" ]] && [[ -n "$GITHUB_VERSION" ]] && echo "GitHub version: $GITHUB_VERSION"
+    echo ""
+fi
 
 # Run pre-flight checks
 run_preflight_checks "$INSTALL_PREFIX"
@@ -693,12 +960,38 @@ if [[ -x "$INSTALL_PREFIX/bin/oradba_version.sh" ]]; then
         echo "Running detailed verification:"
         ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify
         echo ""
+        
+        # Rollback if this was an update
+        if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$BACKUP_DIR" ]]; then
+            log_error "Update failed - rolling back to previous version"
+            restore_from_backup "$INSTALL_PREFIX" "$BACKUP_DIR"
+            log_info "Rollback completed - previous version restored"
+            exit 1
+        fi
+        
         log_error "Installation completed but verification failed"
         log_error "Installation directory: $INSTALL_PREFIX"
         exit 1
     fi
 else
     log_warn "oradba_version.sh not found - skipping integrity verification"
+fi
+
+# Restore preserved configurations if updating
+if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$CONFIG_DIR" ]]; then
+    restore_configs "$INSTALL_PREFIX" "$CONFIG_DIR"
+    
+    # Update install_info with new version and date (replace existing metadata lines)
+    sed -i.bak "s|^install_date=.*|install_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)|" "$INSTALL_PREFIX/.install_info"
+    sed -i.bak "s|^install_version=.*|install_version=${INSTALLER_VERSION}|" "$INSTALL_PREFIX/.install_info"
+    sed -i.bak "s|^install_method=.*|install_method=update|" "$INSTALL_PREFIX/.install_info"
+    rm -f "$INSTALL_PREFIX/.install_info.bak"
+    
+    # Remove backup if update successful
+    if [[ -n "$BACKUP_DIR" ]] && [[ -d "$BACKUP_DIR" ]]; then
+        log_info "Update successful - removing backup"
+        rm -rf "$BACKUP_DIR"
+    fi
 fi
 
 # Create symbolic link for oraenv.sh
@@ -710,10 +1003,20 @@ fi
 # Installation complete
 echo ""
 echo "========================================="
-log_info "Installation completed successfully!"
-echo "========================================="
-echo ""
-echo "oradba has been installed to: $INSTALL_PREFIX"
+if [[ "$UPDATE_MODE" == "true" ]]; then
+    log_info "Update completed successfully!"
+    echo "========================================="
+    echo ""
+    echo "oradba has been updated at: $INSTALL_PREFIX"
+    echo "New version: $INSTALLER_VERSION"
+    echo ""
+    echo "Configuration files have been preserved"
+else
+    log_info "Installation completed successfully!"
+    echo "========================================="
+    echo ""
+    echo "oradba has been installed to: $INSTALL_PREFIX"
+fi
 echo ""
 echo "To use oraenv:"
 echo "  source $INSTALL_PREFIX/bin/oraenv.sh [ORACLE_SID]"

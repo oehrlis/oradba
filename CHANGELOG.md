@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Enables post-installation operations using same installer
     - Build process: read installer → inject version → append payload
     - Better separation of concerns and maintainability
+  - **Update Capabilities** (#6):
+    - Added `--update` flag for upgrading existing installations
+    - Semantic version comparison (detects upgrades, same version, downgrades)
+    - Automatic backup before update with rollback on failure
+    - Configuration file preservation (.install_info, oradba.conf, etc.)
+    - `--force` flag to reinstall same version or downgrade
+    - Update from any source: embedded, --local, or --github
+    - Automatic backup cleanup on successful update
+    - Rollback capability if integrity verification fails
+    - Preserves user customizations during updates
 
 ## [0.6.1] - 2025-12-17
 

@@ -213,9 +213,59 @@ After installation, `$PREFIX/bin/oradba_install.sh` (without payload) can be use
 # Install to another location from local tarball
 /opt/oradba/bin/oradba_install.sh --local /downloads/oradba.tar.gz --prefix /new/location
 
-# Update installation from GitHub
-/opt/oradba/bin/oradba_install.sh --github --prefix /opt/oradba
+# Update existing installation
+/opt/oradba/bin/oradba_install.sh --update --github
+
+# Update from local tarball
+/opt/oradba/bin/oradba_install.sh --update --local /path/to/new-version.tar.gz
 ```
+
+## Update Process
+
+### Update Flow
+
+1. **Version Check**: Compare installed vs new version
+2. **Backup**: Create timestamped backup of existing installation
+3. **Preserve Config**: Save user configuration files
+4. **Remove Old**: Delete old installation (backup remains)
+5. **Install New**: Extract and install new version
+6. **Restore Config**: Restore preserved configurations
+7. **Verify**: Run integrity check
+8. **Rollback or Cleanup**: Restore backup if failed, remove if successful
+
+### Update Examples
+
+```bash
+# Update to latest from GitHub
+./oradba_install.sh --update --github
+
+# Update from local tarball
+./oradba_install.sh --update --local oradba-0.7.0.tar.gz
+
+# Force reinstall same version
+./oradba_install.sh --update --force
+
+# Update with specific GitHub version
+./oradba_install.sh --update --github --version 0.7.0
+```
+
+### Configuration Preservation
+
+The following files are preserved during updates:
+
+- `.install_info` - Installation metadata
+- `etc/oradba.conf` - Main configuration
+- `etc/oratab.example` - Custom oratab examples
+
+### Rollback
+
+If integrity verification fails, the installer automatically:
+
+1. Removes failed installation
+2. Restores backup
+3. Exits with error code 1
+
+Backup location: `$PREFIX.backup.YYYYMMDD_HHMMSS`
 
 ## Testing Guide
 

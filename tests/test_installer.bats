@@ -265,3 +265,142 @@ teardown() {
         skip "Built installer not found"
     fi
 }
+
+# ============================================================================
+# Update Mode Tests
+# ============================================================================
+
+@test "installer has --update flag" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --help | grep -q "\--update"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "installer has --force flag" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --help | grep -q "\--force"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "installer has version_compare function" {
+    grep -q "version_compare()" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has backup_installation function" {
+    grep -q "backup_installation()" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has restore_from_backup function" {
+    grep -q "restore_from_backup()" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has preserve_configs function" {
+    grep -q "preserve_configs()" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has perform_update function" {
+    grep -q "perform_update()" "$STANDALONE_INSTALLER"
+}
+
+@test "update detects existing installation" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Try update
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --update --prefix "$TEST_INSTALL_DIR" 2>&1)
+        echo "$output" | grep -q "Current version"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "update skips when same version without force" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Try update without force
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --update --prefix "$TEST_INSTALL_DIR" 2>&1)
+        echo "$output" | grep -q "Already running latest version"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "update proceeds with --force flag" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Update with force
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --update --force --prefix "$TEST_INSTALL_DIR" 2>&1)
+        echo "$output" | grep -q "Force update enabled"
+        echo "$output" | grep -q "Creating backup"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "update preserves configuration files" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Add custom config
+        echo "test_setting=custom" >> "$TEST_INSTALL_DIR/etc/oradba.conf"
+        
+        # Update
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Check config preserved
+        grep -q "test_setting=custom" "$TEST_INSTALL_DIR/etc/oradba.conf"
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "update removes backup on success" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        local install_parent
+        install_parent="$(dirname "$TEST_INSTALL_DIR")"
+        
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Update with force
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Check no backup directories remain
+        [ "$(find "$install_parent" -type d -name "*.backup.*" 2>/dev/null | wc -l)" -eq 0 ]
+    else
+        skip "Built installer not found"
+    fi
+}
+
+@test "update updates install_info metadata" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # Install first
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Update
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Check install_method is "update"
+        grep -q "install_method=update" "$TEST_INSTALL_DIR/.install_info"
+    else
+        skip "Built installer not found"
+    fi
+}
