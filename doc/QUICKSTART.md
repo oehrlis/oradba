@@ -2,22 +2,73 @@
 
 ## Installation
 
-### Quick Install (Default)
+### Quick Install (from GitHub Release)
+
+Download and run the self-extracting installer with embedded payload:
 
 ```bash
-curl -o oradba_install.sh https://raw.githubusercontent.com/oehrlis/oradba/main/oradba_install.sh
+# Download latest release installer
+curl -L -o oradba_install.sh https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 chmod +x oradba_install.sh
-sudo ./oradba_install.sh
+
+# Run installer (auto-detects ORACLE_BASE for prefix)
+./oradba_install.sh
+
+# Or specify custom prefix
+./oradba_install.sh --prefix /usr/local/oradba
 ```
 
-### Custom Installation
+### Alternative Installation Methods
+
+#### From Local Tarball (Air-gapped)
 
 ```bash
-# Install to custom location
-sudo ./oradba_install.sh --prefix /usr/local/oradba
+# Download tarball separately
+curl -L -o oradba-0.6.1.tar.gz \
+  https://github.com/oehrlis/oradba/releases/download/v0.6.1/oradba-0.6.1.tar.gz
 
-# Install as specific user
+# Install from local file
+./oradba_install.sh --local oradba-0.6.1.tar.gz --prefix /opt/oradba
+```
+
+#### Directly from GitHub
+
+```bash
+# Install latest version
+./oradba_install.sh --github
+
+# Install specific version
+./oradba_install.sh --github --version 0.6.1
+```
+
+### Installation Options
+
+```bash
+# Install with custom user (requires sudo)
 sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
+
+# Install without example files
+./oradba_install.sh --no-examples
+
+# Show installer version
+./oradba_install.sh --show-version
+
+# Display help
+./oradba_install.sh --help
+```
+
+### Post-Installation Usage
+
+After installation, the installer script is available at
+`$PREFIX/bin/oradba_install.sh` and can be used for updates or installing to other
+locations:
+
+```bash
+# Install to another location using installed script
+/opt/oradba/bin/oradba_install.sh --local /path/to/tarball --prefix /another/location
+
+# Update from GitHub using installed script
+/opt/oradba/bin/oradba_install.sh --github --prefix /opt/oradba
 ```
 
 ## First Steps

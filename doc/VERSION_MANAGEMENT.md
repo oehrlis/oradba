@@ -42,13 +42,13 @@ install_prefix=/opt/oracle/local/oradba
 
 ### Metadata Fields
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| `install_date` | When OraDBA was installed | `2025-12-17T10:30:00Z` |
-| `install_version` | OraDBA version installed | `0.6.1` |
-| `install_method` | How OraDBA was installed | `installer`, `git`, `update` |
-| `install_user` | User who performed installation | `oracle` |
-| `install_prefix` | OraDBA installation directory | `/opt/oracle/local/oradba` |
+| Field             | Description                     | Example                      |
+|-------------------|---------------------------------|------------------------------|
+| `install_date`    | When OraDBA was installed       | `2025-12-17T10:30:00Z`       |
+| `install_version` | OraDBA version installed        | `0.6.1`                      |
+| `install_method`  | How OraDBA was installed        | `installer`, `git`, `update` |
+| `install_user`    | User who performed installation | `oracle`                     |
+| `install_prefix`  | OraDBA installation directory   | `/opt/oracle/local/oradba`   |
 
 ## Version Management Functions
 

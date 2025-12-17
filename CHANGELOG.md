@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Excludes `.install_info` from validation (modified during install)
     - Fails installation if integrity check detects corruption
     - Detailed error reporting showing which files failed
+  - **Installer Architecture Refactoring**:
+    - Extracted installer logic to dedicated `src/bin/oradba_install.sh`
+    - Installer now part of distribution (installed to `$PREFIX/bin/`)
+    - Simplified build script from 844 to ~130 lines
+    - Installed script can be used for --local, --github, --update without payload
+    - Enables post-installation operations using same installer
+    - Build process: read installer → inject version → append payload
+    - Better separation of concerns and maintainability
 
 ## [0.6.1] - 2025-12-17
 

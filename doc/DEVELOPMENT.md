@@ -127,11 +127,94 @@ find . -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellch
 ### 4. Building
 
 ```bash
-# Build installer
+# Build self-extracting installer
 ./scripts/build_installer.sh
 
+# Output files:
+# - build/oradba-X.Y.Z.tar.gz  (tarball payload)
+# - dist/oradba_install.sh     (self-extracting installer with embedded payload)
+
 # Test installer locally
-sudo ./dist/oradba_install.sh --prefix /tmp/oradba-test
+./dist/oradba_install.sh --prefix /tmp/oradba-test
+
+# Test specific installation modes
+./dist/oradba_install.sh --local build/oradba-X.Y.Z.tar.gz --prefix /tmp/test-local
+./dist/oradba_install.sh --github --version X.Y.Z --prefix /tmp/test-github
+```
+
+## Build Process
+
+### Installer Architecture
+
+The installer uses a two-component architecture:
+
+1. **Standalone Installer**: `src/bin/oradba_install.sh`
+   - Contains all installation logic
+   - Part of the distribution (installed to `$PREFIX/bin/`)
+   - Can be used post-installation for updates and additional installs
+   - Supports multiple installation modes: embedded, local, github
+
+2. **Build Script**: `scripts/build_installer.sh`
+   - Creates tarball payload from `src/` directory
+   - Copies standalone installer to `dist/`
+   - Injects VERSION number
+   - Appends base64-encoded payload
+   - Produces self-extracting installer
+
+### Build Steps
+
+```bash
+# 1. Create tarball payload
+tar -czf build/oradba-X.Y.Z.tar.gz src/*
+
+# 2. Generate checksums
+find src -type f | sha256sum > .oradba.checksum
+
+# 3. Copy installer script
+cp src/bin/oradba_install.sh dist/
+
+# 4. Inject version
+sed 's/__VERSION__/X.Y.Z/g' dist/oradba_install.sh
+
+# 5. Append base64 payload
+base64 < build/oradba-X.Y.Z.tar.gz >> dist/oradba_install.sh
+```
+
+### Installation Modes
+
+The installer supports three modes:
+
+1. **Embedded Mode** (default with payload):
+
+   ```bash
+   # Extracts base64 payload from installer itself
+   ./dist/oradba_install.sh
+   ```
+
+2. **Local Mode** (air-gapped):
+
+   ```bash
+   # Uses local tarball file
+   ./oradba_install.sh --local /path/to/oradba-X.Y.Z.tar.gz
+   ```
+
+3. **GitHub Mode**:
+
+   ```bash
+   # Downloads from GitHub releases
+   ./oradba_install.sh --github [--version X.Y.Z]
+   ```
+
+### Post-Installation Usage
+
+After installation, `$PREFIX/bin/oradba_install.sh` (without payload) can be used:
+
+```bash
+# Install to another location from local tarball
+/opt/oradba/bin/oradba_install.sh --local /downloads/oradba.tar.gz --prefix /new/location
+
+# Update installation from GitHub
+/opt/oradba/bin/oradba_install.sh --github --prefix /opt/oradba
 ```
 
 ## Testing Guide
