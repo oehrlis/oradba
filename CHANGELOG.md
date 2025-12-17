@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.7.0] - 2025-12-17
+
+### Added
+
 - **Version Management Infrastructure** (#6):
   - Added comprehensive version management functions to `common.sh`
   - New functions: `get_oradba_version()`, `version_compare()`, `version_meets_requirement()`
@@ -17,9 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses existing `.install_info` format: `install_date`, `install_version`, `install_method`, `install_user`, `install_prefix`
   - Build script generates `.install_info` template for installer to populate
   - Comprehensive test suite: `tests/test_version.sh` with 11 test cases
-  - Foundation for version-aware installation and update capabilities in v0.7.0
+  - Foundation for version-aware installation and update capabilities
 
-- **Installation Enhancements** (#6):
+- **Installation Enhancements** (#6, partially addresses #22):
   - **Multiple Installation Modes**:
     - Embedded mode (default): Self-contained installer with base64 payload
     - Local mode (`--local`): Install from tarball for air-gapped environments
@@ -55,6 +63,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Automatic backup cleanup on successful update
     - Rollback capability if integrity verification fails
     - Preserves user customizations during updates
+
+### Fixed
+
+- **Installer code quality**: Resolved shellcheck warnings
+  - SC2155: Separated variable declaration from assignment for `parent_dir` and `backup_dir`
+  - SC2034: Removed unused `INSTALL_EXAMPLES` variable and `--no-examples` flag
+  - Improved shell script best practices and maintainability
 
 ## [0.6.1] - 2025-12-17
 
