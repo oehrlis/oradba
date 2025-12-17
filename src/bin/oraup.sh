@@ -74,7 +74,9 @@ EOF
 # ------------------------------------------------------------------------------
 get_db_status() {
     local sid="$1"
-    if ps -ef | grep -v grep | grep "ora_pmon_${sid}" > /dev/null 2>&1; then
+    # Oracle process names use lowercase SID
+    local sid_lower="${sid,,}"
+    if ps -ef | grep -v grep | grep "ora_pmon_${sid_lower}" > /dev/null 2>&1; then
         echo "up"
     else
         echo "down"
@@ -214,7 +216,7 @@ show_oracle_status() {
         # Display startup flags for DB instances
         local type_display="$db_type"
         if [[ "$db_type" == "DB-instance" ]]; then
-            type_display="${db_type} (${startup_flag}|${display_flag})"
+            type_display="${db_type} (${startup_flag})"
         fi
         
         printf "%-18s : %-15s %-11s %s\n" "$type_display" "$sid" "$status" "$oracle_home"
