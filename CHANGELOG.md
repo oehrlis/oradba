@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shell Profile Integration** (#24):
   - Automatic Oracle environment loading on shell startup
   - Installer flags: `--update-profile` and `--no-update-profile`
-  - Supports bash_profile, bashrc, profile, and zshrc with intelligent priority
+  - Supports bash_profile, profile, and zshrc (login shell profiles only)
   - Silent environment sourcing for non-interactive shells
   - Displays Oracle environment status (oraup.sh) on login for interactive shells
   - Duplicate detection prevents multiple integrations
@@ -31,10 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Profile detection now prefers `~/.bash_profile` first, ensuring login shell compatibility
-  - Priority: `.bash_profile` → `.bashrc` → `.profile` → `.zshrc`
-  - Creates `.bash_profile` if none exist (works on both macOS and Linux)
-  - `.bash_profile` is preferred for login shells on both macOS and Linux
+- Profile detection now only uses login shell profiles for compatibility
+  - Priority: `.bash_profile` → `.profile` → `.zshrc`
+  - Creates `.bash_profile` if none exist
+  - `.bashrc` excluded as it's only for non-login shells and should be sourced by `.bash_profile`
+  - Ensures environment loads correctly on SSH sessions and terminal login shells
 - Profile integration now correctly calls `oraup.sh` instead of `oraup` command
 
 ## [0.7.2] - 2025-12-17

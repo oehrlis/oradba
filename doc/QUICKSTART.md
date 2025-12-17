@@ -110,12 +110,11 @@ fi
 
 **Profile detection order:**
 
-1. `~/.bash_profile` (preferred for login shells)
-2. `~/.bashrc` (common on Linux, often sourced by bash_profile)
-3. `~/.profile` (generic POSIX fallback)
-4. `~/.zshrc` (if using zsh)
+1. `~/.bash_profile` (for Bash login shells)
+2. `~/.profile` (generic POSIX login shells)
+3. `~/.zshrc` (for zsh)
 
-If none exist, `~/.bash_profile` is created automatically.
+If none exist, `~/.bash_profile` is created automatically. Note that `.bashrc` is not used directly as it's only loaded by non-login shells; if your `.bash_profile` sources `.bashrc`, the environment will be available in all shells.
 
 A backup is automatically created before any modifications.
 
