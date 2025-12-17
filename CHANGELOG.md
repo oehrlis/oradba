@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **sqh alias**: Fixed to connect as sysdba instead of using /nolog
+  - Users were not automatically connected when running sqh
+  - Changed from `sqlplus /nolog` to `sqlplus / as sysdba`
+  - Now behaves consistently with sq alias
+
+- **oraup.sh**: Improved output sorting and organization
+  - Dummy entries now displayed first (alphabetically sorted)
+  - DB instances displayed second (alphabetically sorted)
+  - Better readability and consistent ordering
+
 - **oraup.sh**: Fixed database status detection for Oracle 23ai new process naming
   - Oracle 23ai uses db_pmon_SID (uppercase) instead of ora_pmon_sid (lowercase)
   - Updated get_db_status to check both naming conventions with grep -E
