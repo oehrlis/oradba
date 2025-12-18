@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.6] - 2025-12-18
+
+### Fixed
+
+- **Build System**:
+  - Fixed tarball creation to substitute `__VERSION__` with actual version in `oradba_install.sh`
+  - Fixed `build_installer.sh` to substitute version in embedded payload
+  - Ensures installed `oradba_install.sh` has correct `INSTALLER_VERSION` instead of placeholder
+  
+- **Installer**:
+  - Fixed version detection during `--update` mode to read VERSION from extracted tarball
+  - Fixed final installation message to display actual installed version from VERSION file
+  - Proper version comparison now works for `--github` and `--local` updates
+
 ## [0.7.5] - 2025-12-18
 
 ### Added
