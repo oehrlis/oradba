@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.11] - 2025-12-18
+
+### Fixed
+
+- **Auto-create SID Config**: Fixed syntax error in writability check
+  - Removed escaped quotes that prevented the check from working
+  - Function was failing silently due to bash syntax error
+  - Now correctly validates directory permissions before file creation
+  - Added visible echo messages when config is created (not just log_info)
+  - Users now see "[INFO] Creating SID-specific configuration for <SID>..." message
+  - Shows success message: "[INFO] Created SID configuration from template: <path>"
+
 ## [0.7.10] - 2025-12-18
 
 ### Fixed

@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.10
+# Revision...: 0.7.11
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -381,13 +381,16 @@ create_sid_config() {
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
     local example_config="${config_dir}/sid.ORCL.conf.example"
-        # Check if config directory is writable
-    if [[ ! -w \"${config_dir}\" ]]; then
-        log_error \"Config directory is not writable: ${config_dir}\"
-        log_error \"Cannot create SID configuration file. Run with appropriate permissions.\"
+    
+    # Check if config directory is writable
+    if [[ ! -w "${config_dir}" ]]; then
+        log_error "Config directory is not writable: ${config_dir}"
+        log_error "Cannot create SID configuration file. Run with appropriate permissions."
         return 1
     fi
-        log_info "Creating SID-specific configuration: ${sid_config}"
+    
+    echo "[INFO] Creating SID-specific configuration for ${sid}..."
+    log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
     if [[ -f "${example_config}" ]]; then
@@ -398,6 +401,7 @@ create_sid_config() {
         
         # Source the newly created config
         if [[ -f "${sid_config}" ]]; then
+            echo "[INFO] Created SID configuration from template: ${sid_config}"
             log_info "Created SID configuration from template: ${sid_config}"
             # shellcheck source=/dev/null
             source "${sid_config}"
@@ -562,6 +566,7 @@ EOF
 EOF
     
     if [[ -f "${sid_config}" ]]; then
+        echo "[INFO] Created SID configuration from database metadata: ${sid_config}"
         log_info "Created SID configuration: ${sid_config}"
         # Source the newly created config
         # shellcheck source=/dev/null
