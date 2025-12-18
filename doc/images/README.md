@@ -12,7 +12,6 @@ doc/images/              # Source images (tracked in git)
 └── README.md            # This file
 
 src/doc/images/          # Build artifact (NOT tracked, copied during build)
-srv/doc/images/          # Build artifact (NOT tracked, copied during build)
 ```
 
 ## Image Workflow
@@ -26,8 +25,7 @@ srv/doc/images/          # Build artifact (NOT tracked, copied during build)
 
 - During `make docs-html` or `make docs-pdf`:
   1. Images copied from `doc/images/` → `src/doc/images/`
-  2. Images copied from `doc/images/` → `srv/doc/images/`
-  3. Documentation built with images in place
+  2. Documentation built with images in place
 - Build artifacts cleaned with `make docs-clean-images`
 
 **References in Documentation:**

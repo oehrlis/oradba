@@ -20,7 +20,6 @@
 src/doc/*.pdf
 src/doc/*.html
 src/doc/images/
-srv/doc/images/
 
 # Archives
 *.tar.gz

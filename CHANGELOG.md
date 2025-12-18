@@ -45,12 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 9 professional diagrams (PNG format) for architecture, workflows, and processes
   - Modern responsive CSS template for HTML documentation
   - Left-floating table of contents (240px width) with fixed positioning
-  - Images now included in distribution package (srv/doc/images/)
+  - Images now included in distribution package (src/doc/images/)
   - Diagram source files (Excalidraw format) for easy maintenance
   - Images: system architecture, config hierarchy, oraenv flow, installation process, config sequence, alias
     generation, CI/CD pipeline, dev workflow, test strategy
   - Images source in doc/images/ with Excalidraw sources in doc/images/source/
-  - Images copied to src/doc/images/ and srv/doc/images/ during build
+  - Images copied to src/doc/images/ during build
 
 ### Changed
 
@@ -61,8 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved metadata.yml from src/doc/ to doc/ (separate from user documentation)
   - Updated pandoc flags: replaced deprecated --self-contained with --embed-resources
   - Enhanced Makefile with docs-prepare and docs-clean-images targets
-  - Added SRV_DIR variable to Makefile for srv directory
-  - Updated .gitignore to exclude src/doc/images/ and srv/doc/images/ (build-time only)
+  - Updated .gitignore to exclude src/doc/images/ (build-time only)
 
 ### Fixed
 

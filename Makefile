@@ -21,7 +21,6 @@ SHELL 			:= /bin/bash
 
 # Directories
 SRC_DIR 	:= src
-SRV_DIR 	:= srv
 BIN_DIR 	:= $(SRC_DIR)/bin
 LIB_DIR 	:= $(SRC_DIR)/lib
 ETC_DIR 	:= $(SRC_DIR)/etc
@@ -254,9 +253,9 @@ docs: ## Generate all documentation (HTML and PDF)
 docs-prepare: ## Prepare documentation images for distribution
 	@echo -e "$(COLOR_BLUE)Preparing documentation images...$(COLOR_RESET)"
 	@mkdir -p $(USER_DOC_DIR)/images
-	@mkdir -p $(SRV_DIR)/doc/images
+	@mkdir -p $(SRC_DIR)/doc/images
 	@cp -r $(DOC_DIR)/images/* $(USER_DOC_DIR)/images/ 2>/dev/null || true
-	@cp -r $(DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
+	@cp -r $(DOC_DIR)/images/* $(SRC_DIR)/doc/images/ 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Images copied for documentation build$(COLOR_RESET)"
 
 .PHONY: docs-html
@@ -270,7 +269,7 @@ docs-html: docs-prepare ## Generate HTML user guide from markdown
 	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
 		sed -i.bak -E 's/\]\(([0-9]{2}-[^)]+)\.md\)/](#\1)/g' "$$file" && rm "$$file.bak"; \
 	done
-	@cp -r $(SRV_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
+	@cp -r $(SRC_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
 	@if command -v pandoc >/dev/null 2>&1; then \
 		cd $(DIST_DIR)/.tmp_docs && \
 		pandoc ??-*.md -o ../oradba-user-guide.html \
@@ -313,7 +312,7 @@ docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker
 		sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "$$file"; \
 		rm "$$file.bak"; \
 	done
-	@cp -r $(SRV_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
+	@cp -r $(SRC_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
 	@if command -v docker >/dev/null 2>&1; then \
 		cd $(DIST_DIR)/.tmp_docs && \
 		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
@@ -368,7 +367,7 @@ docs-clean: ## Remove generated documentation
 docs-clean-images: ## Remove images from build artifacts
 	@echo -e "$(COLOR_BLUE)Cleaning documentation images from build artifacts...$(COLOR_RESET)"
 	@rm -rf $(USER_DOC_DIR)/images 2>/dev/null || true
-	@rm -rf $(SRV_DIR)/doc/images 2>/dev/null || true
+	@rm -rf $(SRC_DIR)/doc/images 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Build artifact images removed$(COLOR_RESET)"
 
 .PHONY: changelog
