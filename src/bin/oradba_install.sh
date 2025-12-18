@@ -5,8 +5,8 @@
 # Name.......: oradba_install.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
-# Revision...: 0.7.3
+# Date.......: 2025.12.18
+# Revision...: 0.7.13
 # Purpose....: Universal installer for oradba toolset
 # Notes......: Can install from embedded payload, local tarball, or GitHub releases.
 #              When distributed with embedded payload, provides self-extracting installer.
@@ -1083,6 +1083,12 @@ case "$INSTALL_MODE" in
         exit 1
         ;;
 esac
+
+# Update INSTALLER_VERSION from extracted VERSION file (for github/local modes)
+if [[ -f "$TEMP_DIR/VERSION" ]]; then
+    INSTALLER_VERSION=$(cat "$TEMP_DIR/VERSION" | tr -d '[:space:]')
+    log_info "Detected version: $INSTALLER_VERSION"
+fi
 
 # Create installation directory
 if [[ ! -d "$INSTALL_PREFIX" ]]; then

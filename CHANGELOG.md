@@ -6,7 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.7.13] - 2025-12-18
 
+### Fixed
+
+- **Install Version Tracking**: Fixed issue where `.install_info` showed incorrect version after GitHub/local updates
+  - Installer now reads VERSION file from extracted tarball and updates `INSTALLER_VERSION` variable
+  - Ensures correct version is written to `.install_info` metadata during installation
+  - Affects `--github` and `--local` installation modes
+
+### Technical Details
+
+- `src/bin/oradba_install.sh`: Added version detection after tarball extraction
+- Reads `VERSION` file from temp directory before copying to installation directory
+- Updates internal `INSTALLER_VERSION` variable for accurate metadata recording
 ## [0.7.12] - 2025-12-18
 
 ### Fixed
