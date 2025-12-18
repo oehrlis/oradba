@@ -35,8 +35,11 @@ This hierarchical approach means:
 
 ```bash
 # Installation paths
-ORADBA_PREFIX="/opt/oradba"
+ORADBA_PREFIX="/opt/oradba"                    # Installation directory
+ORADBA_LOCAL_BASE="/opt"                       # Parent directory (auto-detected)
+ORADBA_BASE="${ORADBA_PREFIX}"                 # Alias for TVD BasEnv compatibility
 ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
+ORADBA_BIN_DIR="${ORADBA_PREFIX}/bin"
 ORATAB_FILE="/etc/oratab"
 
 # Behavior control
@@ -50,6 +53,16 @@ LOG_DIR="${ORADBA_PREFIX}/logs"
 BACKUP_DIR="/backup"
 RECOVERY_DIR="${ORADBA_PREFIX}/rcv"
 ```
+
+**Path Variables Explained:**
+
+- **ORADBA_PREFIX**: Main installation directory (e.g., `/opt/oracle/local/oradba`)
+- **ORADBA_LOCAL_BASE**: Parent "local" directory, auto-detected from:
+  - `${ORACLE_BASE}/local` if ORACLE_BASE is set
+  - Parent directory of ORADBA_PREFIX otherwise
+  - Used by `cdl` alias to navigate to shared tools directory
+- **ORADBA_BASE**: Alias to ORADBA_PREFIX for compatibility when installed alongside TVD BasEnv
+- **ORADBA_BIN_DIR**: Binary directory, automatically added to PATH
 
 **When to Edit:** Rarely. Only modify if changing installation paths or core
 features. Most settings should be overridden in customer config instead.

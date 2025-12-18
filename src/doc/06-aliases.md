@@ -110,7 +110,7 @@ Quick navigation to Oracle and OraDBA directories:
 | `cdbn` | Change to bin directory   | `$ORACLE_HOME/bin`   |
 | `cdn`  | Change to network parent  | `$TNS_ADMIN/..`      |
 | `cdt`  | Change to TNS_ADMIN       | `$TNS_ADMIN`         |
-| `cdl`  | Change to local directory | `$ORACLE_BASE/local` |
+| `cdl`  | Change to local directory | `$ORADBA_LOCAL_BASE` |
 
 ### OraDBA Directories
 

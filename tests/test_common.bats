@@ -151,3 +151,62 @@ EOF
     load_rman_catalog_connection
     [[ "$ORADBA_RMAN_CATALOG_CONNECTION" == "catalog rman_user/password@catdb" ]]
 }
+
+# ------------------------------------------------------------------------------
+# ORADBA_LOCAL_BASE Tests
+# ------------------------------------------------------------------------------
+
+@test "ORADBA_LOCAL_BASE is derived from ORACLE_BASE/local when available" {
+    # Test with ORACLE_BASE set and local directory exists
+    export ORACLE_BASE="/u01/app/oracle"
+    mkdir -p "${TEST_TEMP_DIR}/u01/app/oracle/local"
+    export ORACLE_BASE="${TEST_TEMP_DIR}/u01/app/oracle"
+    export ORADBA_PREFIX="${TEST_TEMP_DIR}/u01/app/oracle/local/oradba"
+    unset ORADBA_LOCAL_BASE
+    
+    source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
+    
+    [[ "$ORADBA_LOCAL_BASE" == "${TEST_TEMP_DIR}/u01/app/oracle/local" ]]
+}
+
+@test "ORADBA_LOCAL_BASE is derived from ORADBA_PREFIX parent when ORACLE_BASE not set" {
+    # Test without ORACLE_BASE
+    unset ORACLE_BASE
+    export ORADBA_PREFIX="${TEST_TEMP_DIR}/opt/oradba"
+    unset ORADBA_LOCAL_BASE
+    
+    source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
+    
+    [[ "$ORADBA_LOCAL_BASE" == "${TEST_TEMP_DIR}/opt" ]]
+}
+
+@test "ORADBA_LOCAL_BASE respects manual override" {
+    # Pre-set ORADBA_LOCAL_BASE should be preserved
+    export ORADBA_LOCAL_BASE="/custom/location"
+    export ORACLE_BASE="/u01/app/oracle"
+    export ORADBA_PREFIX="/opt/oradba"
+    
+    source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
+    
+    [[ "$ORADBA_LOCAL_BASE" == "/custom/location" ]]
+}
+
+@test "ORADBA_BASE equals ORADBA_PREFIX for TVD BasEnv compatibility" {
+    export ORADBA_PREFIX="/opt/oradba"
+    unset ORADBA_BASE
+    
+    source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
+    
+    [[ "$ORADBA_BASE" == "$ORADBA_PREFIX" ]]
+}
+
+@test "ORADBA_BIN_DIR and ORADBA_BIN are set correctly" {
+    export ORADBA_PREFIX="/opt/oradba"
+    unset ORADBA_BIN_DIR
+    unset ORADBA_BIN
+    
+    source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
+    
+    [[ "$ORADBA_BIN_DIR" == "/opt/oradba/bin" ]]
+    [[ "$ORADBA_BIN" == "$ORADBA_BIN_DIR" ]]
+}
