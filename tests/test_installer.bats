@@ -124,7 +124,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     ./scripts/build_installer.sh >/dev/null 2>&1
     version=$(cat VERSION)
-    [ -f "${PROJECT_ROOT}/build/oradba-${version}.tar.gz" ]
+    [ -f "${PROJECT_ROOT}/dist/oradba-${version}.tar.gz" ]
 }
 
 @test "built installer is executable" {
