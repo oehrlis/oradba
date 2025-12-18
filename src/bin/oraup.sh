@@ -177,15 +177,13 @@ show_oracle_status() {
     
     # Header
     echo ""
-    echo "Oracle Environment Status Overview"
-    echo "============================================================================="
-    printf "%-18s : %-15s %-11s %s\n" "TYPE (Cluster|DG)" "SID/PROCESS" "STATUS" "HOME"
-    echo "-----------------------------------------------------------------------------"
+    echo "Oracle Environment Status"
+    printf "%-17s : %-12s %-11s %s\n" "TYPE (Cluster|DG)" "SID/PROCESS" "STATUS" "HOME"
+    echo "---------------------------------------------------------------------------------"
     
     # Check if oratab exists
     if [[ ! -f "$ORATAB_FILE" ]]; then
         echo "Warning: oratab file not found at $ORATAB_FILE"
-        echo "============================================================================="
         return 1
     fi
     
@@ -213,7 +211,7 @@ show_oracle_status() {
     # Process dummy entries first
     for entry in "${dummy_entries[@]}"; do
         IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-        printf "%-18s : %-15s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+        printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
     done
     
     # Process DB instances
@@ -232,14 +230,14 @@ show_oracle_status() {
         fi
         
         # Display with startup flag
-        printf "%-18s : %-15s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
+        printf "%-17s : %-12s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
     done
     
     echo ""
     
     # Check for listeners
     echo "Listener Status"
-    echo "-----------------------------------------------------------------------------"
+    echo "---------------------------------------------------------------------------------"
     
     # Find unique Oracle homes
     local -a oracle_homes
@@ -264,7 +262,7 @@ show_oracle_status() {
             
             # Only show listeners that are actually running
             if [[ "$lstatus" == "up" ]]; then
-                printf "%-18s : %-15s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
+                printf "%-17s : %-12s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
                 found_listener=true
             fi
         done
@@ -273,13 +271,12 @@ show_oracle_status() {
     if [[ "$found_listener" == "false" ]]; then
         # Check for any running listeners
         if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
-            printf "%-18s : %-15s %-11s %s\n" "Listener" "LISTENER" "up" "(running)"
+            printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "up" "(running)"
         else
-            printf "%-18s : %-15s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
+            printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
         fi
     fi
     
-    echo "============================================================================="
     echo ""
 }
 
