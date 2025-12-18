@@ -10,11 +10,11 @@ project files.
 
 ## Available Templates
 
-| Template | File Type | Description |
-|----------|-----------|-------------|
-| [header.sh](header.sh) | Shell scripts | Bash/shell script header template |
-| [header.sql](header.sql) | SQL scripts | SQL*Plus script header template |
-| [header.rman](header.rman) | RMAN scripts | RMAN script header template |
+| Template                   | File Type     | Description                        |
+|----------------------------|---------------|------------------------------------|
+| [header.sh](header.sh)     | Shell scripts | Bash/shell script header template  |
+| [header.sql](header.sql)   | SQL scripts   | SQL*Plus script header template    |
+| [header.rman](header.rman) | RMAN scripts  | RMAN script header template        |
 | [header.conf](header.conf) | Configuration | Configuration file header template |
 
 **Total Templates:** 4

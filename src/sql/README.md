@@ -4,17 +4,19 @@ SQL scripts for Oracle Database administration and diagnostics.
 
 ## Overview
 
-This directory contains SQL scripts for database queries, user information, and session management. These scripts are designed to be executed directly from SQL*Plus or SQLcl, and can be used standalone or invoked by OraDBA aliases.
+This directory contains SQL scripts for database queries, user information, and
+session management. These scripts are designed to be executed directly from
+SQL*Plus or SQLcl, and can be used standalone or invoked by OraDBA aliases.
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| [db_info.sql](db_info.sql) | Database instance and version information |
-| [login.sql](login.sql) | SQL*Plus login script (glogin.sql replacement) |
-| [sessionsql.sql](sessionsql.sql) | Session query and diagnostic script |
-| [ssec_usrinf.sql](ssec_usrinf.sql) | Security user information report |
-| [whoami.sql](whoami.sql) | Current user and session details |
+| Script                             | Description                                    |
+|------------------------------------|------------------------------------------------|
+| [db_info.sql](db_info.sql)         | Database instance and version information      |
+| [login.sql](login.sql)             | SQL*Plus login script (glogin.sql replacement) |
+| [sessionsql.sql](sessionsql.sql)   | Session query and diagnostic script            |
+| [ssec_usrinf.sql](ssec_usrinf.sql) | Security user information report               |
+| [whoami.sql](whoami.sql)           | Current user and session details               |
 
 **Total Scripts:** 5
 

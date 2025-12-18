@@ -4,35 +4,38 @@ OraDBA configuration files, examples, and rlwrap integration files.
 
 ## Overview
 
-This directory contains the configuration hierarchy for OraDBA, including core settings, standard aliases, customer customizations, and SID-specific configurations. It also includes rlwrap configuration files for command-line completion in Oracle tools.
+This directory contains the configuration hierarchy for OraDBA, including core
+settings, standard aliases, customer customizations, and SID-specific
+configurations. It also includes rlwrap configuration files for command-line
+completion in Oracle tools.
 
 ## Configuration Files
 
-| File | Type | Description |
-|------|------|-------------|
-| [oradba_core.conf](oradba_core.conf) | Core | Base configuration (required) |
-| [oradba_standard.conf](oradba_standard.conf) | Standard | Default aliases and functions |
-| [oradba_customer.conf.example](oradba_customer.conf.example) | Example | Customer customization template |
-| [sid._DEFAULT_.conf](sid._DEFAULT_.conf) | Default | Default SID configuration |
-| [sid.ORCL.conf.example](sid.ORCL.conf.example) | Example | SID-specific configuration template |
-| [oradba_config.example](oradba_config.example) | Legacy | Old configuration format (deprecated) |
-| [oratab.example](oratab.example) | Reference | Sample oratab file |
+| File                                                         | Type      | Description                           |
+|--------------------------------------------------------------|-----------|---------------------------------------|
+| [oradba_core.conf](oradba_core.conf)                         | Core      | Base configuration (required)         |
+| [oradba_standard.conf](oradba_standard.conf)                 | Standard  | Default aliases and functions         |
+| [oradba_customer.conf.example](oradba_customer.conf.example) | Example   | Customer customization template       |
+| [sid._DEFAULT_.conf](sid._DEFAULT_.conf)                     | Default   | Default SID configuration             |
+| [sid.ORCL.conf.example](sid.ORCL.conf.example)               | Example   | SID-specific configuration template   |
+| [oradba_config.example](oradba_config.example)               | Legacy    | Old configuration format (deprecated) |
+| [oratab.example](oratab.example)                             | Reference | Sample oratab file                    |
 
 ## rlwrap Files
 
-| File | Description |
-|------|-------------|
-| [rlwrap_filter_oracle](rlwrap_filter_oracle) | Password masking filter for Oracle tools |
-| [rlwrap_sqlplus_completions](rlwrap_sqlplus_completions) | SQL*Plus command completion |
-| [rlwrap_rman_completions](rlwrap_rman_completions) | RMAN command completion |
-| [rlwrap_lsnrctl_completions](rlwrap_lsnrctl_completions) | lsnrctl command completion |
-| [rlwrap_adrci_completions](rlwrap_adrci_completions) | ADRCI command completion |
+| File                                                     | Description                              |
+|----------------------------------------------------------|------------------------------------------|
+| [rlwrap_filter_oracle](rlwrap_filter_oracle)             | Password masking filter for Oracle tools |
+| [rlwrap_sqlplus_completions](rlwrap_sqlplus_completions) | SQL*Plus command completion              |
+| [rlwrap_rman_completions](rlwrap_rman_completions)       | RMAN command completion                  |
+| [rlwrap_lsnrctl_completions](rlwrap_lsnrctl_completions) | lsnrctl command completion               |
+| [rlwrap_adrci_completions](rlwrap_adrci_completions)     | ADRCI command completion                 |
 
 ## Configuration Hierarchy
 
 OraDBA uses a 5-level configuration hierarchy:
 
-```
+```text
 1. oradba_core.conf          # Core settings (always loaded)
 2. oradba_standard.conf      # Standard aliases (always loaded)
 3. sid._DEFAULT_.conf        # Default SID settings

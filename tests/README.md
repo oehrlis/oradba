@@ -4,17 +4,19 @@ BATS (Bash Automated Testing System) test suite for OraDBA functionality.
 
 ## Overview
 
-The OraDBA test suite provides comprehensive testing of shell scripts, library functions, and utilities. Tests use BATS framework and are organized by component, with unit tests for libraries and integration tests for scripts.
+The OraDBA test suite provides comprehensive testing of shell scripts, library
+functions, and utilities. Tests use BATS framework and are organized by component,
+with unit tests for libraries and integration tests for scripts.
 
 ## Test Files
 
-| Test File | Component | Tests | Description |
-|-----------|-----------|-------|-------------|
-| [test_common.bats](test_common.bats) | lib/common.sh | 11 | Core utility functions |
-| [test_db_functions.bats](test_db_functions.bats) | lib/db_functions.sh | 23 | Database operations |
-| [test_oraenv.bats](test_oraenv.bats) | bin/oraenv.sh | 25 | Environment setup |
-| [test_installer.bats](test_installer.bats) | Installation | 3 | Build and install |
-| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12 | Version management |
+| Test File                                            | Component             | Tests | Description            |
+|------------------------------------------------------|-----------------------|-------|------------------------|
+| [test_common.bats](test_common.bats)                 | lib/common.sh         | 11    | Core utility functions |
+| [test_db_functions.bats](test_db_functions.bats)     | lib/db_functions.sh   | 23    | Database operations    |
+| [test_oraenv.bats](test_oraenv.bats)                 | bin/oraenv.sh         | 25    | Environment setup      |
+| [test_installer.bats](test_installer.bats)           | Installation          | 3     | Build and install      |
+| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12    | Version management     |
 
 **Total: 74 tests** (some integration tests may be skipped without database)
 
@@ -74,6 +76,7 @@ bats --timing tests/
 ### Software
 
 - **BATS Core** - Testing framework
+
   ```bash
   # macOS
   brew install bats-core
@@ -86,6 +89,7 @@ bats --timing tests/
   ```
 
 - **BATS Support Libraries** (optional, for enhanced features)
+
   ```bash
   brew tap kaos/shell
   brew install bats-assert bats-support
@@ -106,7 +110,7 @@ Tests requiring database are skipped if unavailable.
 
 ### Test Organization
 
-```
+```text
 tests/
 ├── test_common.bats           # Unit tests for lib/common.sh
 ├── test_db_functions.bats     # Unit tests for lib/db_functions.sh
@@ -172,13 +176,13 @@ Tests that mock external dependencies:
 
 Current coverage by component:
 
-| Component | Functions | Tested | Coverage |
-|-----------|-----------|--------|----------|
-| common.sh | ~30 | 11 | 37% |
-| db_functions.sh | ~15 | 23 | 100%* |
-| oraenv.sh | Main script | 25 | High |
-| oradba_version.sh | Main script | 12 | High |
-| Installer | Build system | 3 | Basic |
+| Component         | Functions    | Tested | Coverage |
+|-------------------|--------------|--------|----------|
+| common.sh         | ~30          | 11     | 37%      |
+| db_functions.sh   | ~15          | 23     | 100%*    |
+| oraenv.sh         | Main script  | 25     | High     |
+| oradba_version.sh | Main script  | 12     | High     |
+| Installer         | Build system | 3      | Basic    |
 
 *Some tests skipped without database
 

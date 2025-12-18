@@ -4,15 +4,17 @@ Shared shell libraries providing common functionality for OraDBA scripts and fun
 
 ## Overview
 
-This directory contains reusable shell libraries that provide core functionality for OraDBA. These libraries are sourced by executable scripts and configuration files to provide logging, database operations, alias generation, and utility functions.
+This directory contains reusable shell libraries that provide core functionality
+for OraDBA. These libraries are sourced by executable scripts and configuration
+files to provide logging, database operations, alias generation, and utility functions.
 
 ## Available Libraries
 
-| Library | Description | Functions |
-|---------|-------------|-----------|
-| [common.sh](common.sh) | Core utilities and logging | ~30 functions |
+| Library                            | Description                 | Functions     |
+|------------------------------------|-----------------------------|---------------|
+| [common.sh](common.sh)             | Core utilities and logging  | ~30 functions |
 | [db_functions.sh](db_functions.sh) | Database queries and status | ~15 functions |
-| [aliases.sh](aliases.sh) | Dynamic alias generation | ~10 functions |
+| [aliases.sh](aliases.sh)           | Dynamic alias generation    | ~10 functions |
 
 **Total Libraries:** 3
 
@@ -52,6 +54,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 ### common.sh - Core Utilities
 
 **Logging Functions:**
+
 - `log_info` - Information messages
 - `log_warn` - Warning messages
 - `log_error` - Error messages
@@ -59,6 +62,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `log_msg` - Generic logging with custom level
 
 **oratab Management:**
+
 - `parse_oratab` - Parse oratab file entries
 - `list_oracle_sids` - List all Oracle SIDs from oratab
 - `get_oracle_home` - Get ORACLE_HOME for specific SID
@@ -66,17 +70,20 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `find_sid_case_insensitive` - Case-insensitive SID matching
 
 **Environment Functions:**
+
 - `validate_oracle_env` - Check Oracle environment variables
 - `check_oracle_home` - Verify ORACLE_HOME validity
 - `set_oracle_env` - Set Oracle environment for SID
 - `cleanup_path` - Remove duplicate PATH entries
 
 **Configuration:**
+
 - `load_config` - Load configuration file
 - `get_config_value` - Get configuration parameter value
 - `set_sqlpath` - Configure SQL*Plus SQLPATH
 
 **Utility Functions:**
+
 - `is_sourced` - Check if script is being sourced
 - `command_exists` - Check if command is available
 - `get_timestamp` - Generate timestamp for logging
@@ -84,6 +91,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 ### db_functions.sh - Database Operations
 
 **Status Functions:**
+
 - `get_db_status` - Get database open mode
 - `is_db_running` - Check if database is running
 - `get_instance_name` - Get instance name
@@ -91,18 +99,21 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `get_db_name` - Get database name
 
 **CDB/PDB Functions:**
+
 - `is_cdb` - Check if database is a container database
 - `get_pdb_list` - List all PDBs in CDB
 - `get_pdb_status` - Get PDB open mode
 - `validate_pdb` - Check if PDB exists
 
 **Query Functions:**
+
 - `sql_query` - Execute SQL query and return result
 - `sql_query_silent` - Execute SQL without output
 - `get_db_parameter` - Get database parameter value
 - `get_session_count` - Count active sessions
 
 **Monitoring:**
+
 - `get_memory_usage` - Get SGA/PGA usage
 - `get_tablespace_usage` - Get tablespace usage
 - `check_alert_log` - Check for errors in alert log
@@ -110,6 +121,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 ### aliases.sh - Alias Generation
 
 **Alias Functions:**
+
 - `generate_standard_aliases` - Create standard OraDBA aliases
 - `generate_pdb_aliases` - Create PDB-specific aliases
 - `generate_sid_aliases` - Create SID-specific aliases
@@ -117,6 +129,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `list_oradba_aliases` - Show all OraDBA aliases
 
 **Helper Functions:**
+
 - `create_alias` - Create single alias safely
 - `alias_exists` - Check if alias already exists
 - `get_alias_definition` - Get current alias definition

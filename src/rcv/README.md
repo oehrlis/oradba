@@ -4,12 +4,14 @@ Recovery Manager (RMAN) scripts for Oracle Database backup and recovery operatio
 
 ## Overview
 
-This directory contains RMAN script templates for database backup, recovery, and maintenance tasks. Scripts use RMAN command language and are executed via the `rman` utility.
+This directory contains RMAN script templates for database backup, recovery, and
+maintenance tasks. Scripts use RMAN command language and are executed via the
+`rman` utility.
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
+| Script                               | Description                                     |
+|--------------------------------------|-------------------------------------------------|
 | [backup_full.rman](backup_full.rman) | Full database backup template with archive logs |
 
 **Total Scripts:** 1

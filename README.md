@@ -112,6 +112,29 @@ For contributors and developers:
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+### Quick User Guide
+
+```bash
+# Install OraDBA
+curl -L https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh | bash
+
+# Set Oracle environment for a database
+source oraenv.sh FREE           # Source for specific SID
+free                            # Or use auto-generated alias
+
+# Common aliases (50+ available)
+sq                              # sqlplus / as sysdba
+cdh                             # cd $ORACLE_HOME
+taa                             # tail -f alert.log
+alih                            # Show all aliases
+
+# View database status
+dbstatus.sh
+```
+
+See the **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** or
+**[online documentation](src/doc/README.md)** for complete features and usage.
+
 ### Quick Development Commands
 
 ```bash
