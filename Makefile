@@ -37,6 +37,7 @@ MARKDOWNLINT	:= $(shell command -v markdownlint 2>/dev/null || command -v markdo
 BATS 			:= $(shell command -v bats 2>/dev/null)
 GIT 			:= $(shell command -v git 2>/dev/null)
 TAR 			:= $(shell command -v tar 2>/dev/null)
+DOCKER 			:= $(shell command -v docker 2>/dev/null)
 
 # Color output
 COLOR_RESET 	:= \033[0m
@@ -230,19 +231,39 @@ USER_DOC_METADATA := $(USER_DOC_DIR)/metadata.yml
 PANDOC_IMAGE := oehrlis/pandoc:latest
 
 .PHONY: docs
-docs: docs-html docs-pdf ## Generate all documentation (HTML and PDF)
+docs: ## Generate all documentation (HTML and PDF)
+	@if [ -n "$(DOCKER)" ]; then \
+		$(MAKE) docs-html docs-pdf; \
+	else \
+		echo -e "$(COLOR_YELLOW)⚠ Docker not available - skipping documentation generation$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)  Install Docker to generate documentation: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
+	fi
 
 .PHONY: docs-html
 docs-html: ## Generate HTML user guide from markdown
 	@echo -e "$(COLOR_BLUE)Generating HTML documentation...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
-	@cd $(USER_DOC_DIR) && \
+	@if command -v pandoc >/dev/null 2>&1; then \
+		cd $(USER_DOC_DIR) && \
 		pandoc ??-*.md -o ../../$(DIST_DIR)/oradba-user-guide.html \
-		--metadata-file=metadata.yml \
-		--toc --toc-depth=3 \
-		--standalone \
-		--self-contained 2>/dev/null || \
-		echo -e "$(COLOR_YELLOW)⚠ Pandoc not available locally, skipping HTML generation$(COLOR_RESET)"
+			--metadata-file=metadata.yml \
+			--toc --toc-depth=3 \
+			--standalone \
+			--self-contained; \
+		cd - >/dev/null; \
+	elif [ -n "$(DOCKER)" ]; then \
+		cd $(USER_DOC_DIR) && \
+		docker run --rm -v $$(pwd):/workdir $(PANDOC_IMAGE) \
+			??-*.md -o oradba-user-guide.html \
+			--metadata-file=metadata.yml \
+			--toc --toc-depth=3 \
+			--standalone \
+			--self-contained; \
+		mv oradba-user-guide.html ../../$(DIST_DIR)/ 2>/dev/null || true; \
+		cd - >/dev/null; \
+	else \
+		echo -e "$(COLOR_YELLOW)⚠ Neither pandoc nor Docker available, skipping HTML generation$(COLOR_RESET)"; \
+	fi
 	@if [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
 		echo -e "$(COLOR_GREEN)✓ HTML documentation generated: $(DIST_DIR)/oradba-user-guide.html$(COLOR_RESET)"; \
 		ls -lh $(DIST_DIR)/oradba-user-guide.html; \
@@ -409,10 +430,16 @@ tools: ## Show installed development tools
 	@printf "%-20s %s\n" "markdownlint" "$$([ -n '$(MARKDOWNLINT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "bats" "$$([ -n '$(BATS)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
+	@printf "%-20s %s\n" "docker" "$$([ -n '$(DOCKER)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@echo ""
+	@if [ -z '$(DOCKER)' ]; then \
+		echo -e "$(COLOR_YELLOW)⚠ Docker not found - documentation generation (PDF) will not work$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)  Install Docker: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
+		echo ""; \
+	fi
 	@echo -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
-	@echo "  macOS:  brew install shellcheck shfmt bats-core markdownlint-cli"
-	@echo "  Linux:  apt-get install shellcheck shfmt bats"
+	@echo "  macOS:  brew install shellcheck shfmt bats-core markdownlint-cli docker"
+	@echo "  Linux:  apt-get install shellcheck shfmt bats docker.io"
 	@echo "          npm install -g markdownlint-cli"
 
 .PHONY: setup-dev
