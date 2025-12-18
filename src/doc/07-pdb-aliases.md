@@ -2,7 +2,9 @@
 
 ## Introduction
 
-OraDBA automatically generates aliases for Pluggable Databases (PDBs) in Oracle Multitenant environments. These aliases provide quick access to connect to specific PDBs, making it easy to work with containerized databases.
+OraDBA automatically generates aliases for Pluggable Databases (PDBs) in Oracle
+Multitenant environments. These aliases provide quick access to connect to
+specific PDBs, making it easy to work with containerized databases.
 
 **Key Features:**
 
@@ -188,6 +190,7 @@ PDB1
 ```
 
 **Used by:**
+
 - PS1 prompt customization
 - Scripts to track current PDB context
 - Functions that need PDB context

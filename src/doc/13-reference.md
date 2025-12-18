@@ -315,6 +315,6 @@ Full documentation available in `$ORADBA_PREFIX/doc/`:
 ---
 
 **OraDBA** - Oracle Database Administration Toolset
-https://github.com/oehrlis/oradba
+<https://github.com/oehrlis/oradba>
 
-For issues and contributions: https://github.com/oehrlis/oradba/issues
+For issues and contributions: <https://github.com/oehrlis/oradba/issues>

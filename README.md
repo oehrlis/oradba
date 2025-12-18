@@ -69,24 +69,35 @@ dbstatus.sh       # Comprehensive database information
 
 ### 📘 User Documentation
 
-Complete user guides and reference materials:
+Complete user guides available in multiple formats:
 
-- **[User Documentation Hub](src/doc/README.md)** - Start here for usage guides
-- **[Usage Guide](src/doc/USAGE.md)** - Comprehensive usage instructions
-- **[Troubleshooting](src/doc/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Database Functions](src/doc/DB_FUNCTIONS.md)** - Function reference
+- **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** - Download complete guide
+- **[User Guide (HTML)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** - Single-page HTML
+- **[Online Documentation](src/doc/README.md)** - Browse chapters individually
+
+**User Guide Contents:**
+- Introduction and features
+- Installation and quickstart
+- Environment management
+- Configuration system
+- Shell aliases reference
+- PDB alias management
+- SQL and RMAN scripts
+- rlwrap integration
+- Troubleshooting guide
+- Complete reference
 
 ### 🛠️ Developer Documentation
 
 For contributors and developers:
 
-- **[Developer Documentation Hub](doc/README.md)** - Developer resources index
-- **[Quick Start](doc/QUICKSTART.md)** - Installation and setup details
-- **[Development Guide](doc/DEVELOPMENT.md)** - Development workflow and standards
-- **[Architecture](doc/ARCHITECTURE.md)** - System design and architecture
-- **[API Reference](doc/API.md)** - Function and script API documentation
-- **[Configuration System](doc/CONFIGURATION.md)** - Configuration hierarchy details
-- **[Alias Reference](doc/ALIASES.md)** - Complete alias documentation
+- **[Developer Hub](doc/README.md)** - Developer resources index
+- **[Development Guide](doc/development.md)** - Workflow and standards
+- **[Architecture](doc/architecture.md)** - System design
+- **[API Reference](doc/api.md)** - Function and script APIs
+- **[Project Structure](doc/structure.md)** - Directory organization
+- **[Version Management](doc/version-management.md)** - Release process
+- **[Markdown Linting](doc/markdown-linting.md)** - Documentation standards
 
 ### Additional Resources
 

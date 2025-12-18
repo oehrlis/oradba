@@ -2,7 +2,10 @@
 
 ## Introduction
 
-OraDBA includes a comprehensive collection of SQL scripts for database administration, focusing on security, audit, encryption, and general DBA tasks. Scripts are organized by topic and follow consistent naming conventions for easy discovery and use.
+OraDBA includes a comprehensive collection of SQL scripts for database
+administration, focusing on security, audit, encryption, and general DBA tasks.
+Scripts are organized by topic and follow consistent naming conventions for
+easy discovery and use.
 
 ## Location and Usage
 
@@ -58,41 +61,42 @@ Scripts follow a consistent naming pattern for easy discovery:
 ```
 
 **Components:**
+
 - **action**: Operation verb (cr, dr, up, en, dis, gen) or omitted for queries
 - **category**: Topic area (sec, aud, tde, dba, mon)
 - **object**: What the script operates on
-- **priv**: Required privilege level (_dba, _sys, _aud) - optional
+- **priv**: Required privilege level (_dba,_sys, _aud) - optional
 
 ### Action Verbs
 
-| Verb | SQL Command | Example | Description |
-|------|-------------|---------|-------------|
-| cr   | CREATE      | `cr_aud_policies.sql` | Create objects/configuration |
-| dr   | DROP        | `dr_aud_policies.sql` | Drop/remove objects |
-| up   | UPDATE      | `up_sec_profile.sql` | Update/alter configuration |
-| en   | ENABLE      | `en_aud_policies.sql` | Enable features/policies |
-| dis  | DISABLE     | `dis_aud_policies.sql` | Disable features/policies |
-| gen  | GENERATE    | `gen_aud_stmts.sql` | Generate SQL statements |
-| (none) | SELECT    | `aud_sessions.sql` | Query/show information |
+| Verb   | SQL Command | Example                | Description                  |
+|--------|-------------|------------------------|------------------------------|
+| cr     | CREATE      | `cr_aud_policies.sql`  | Create objects/configuration |
+| dr     | DROP        | `dr_aud_policies.sql`  | Drop/remove objects          |
+| up     | UPDATE      | `up_sec_profile.sql`   | Update/alter configuration   |
+| en     | ENABLE      | `en_aud_policies.sql`  | Enable features/policies     |
+| dis    | DISABLE     | `dis_aud_policies.sql` | Disable features/policies    |
+| gen    | GENERATE    | `gen_aud_stmts.sql`    | Generate SQL statements      |
+| (none) | SELECT      | `aud_sessions.sql`     | Query/show information       |
 
 ### Categories
 
-| Category | Prefix | Focus Area | Examples |
-|----------|--------|------------|----------|
-| Security | `sec_` | Users, roles, privileges | `sec_users.sql`, `sec_roles.sql` |
-| Audit    | `aud_` | Unified & traditional audit | `aud_sessions.sql`, `aud_events.sql` |
-| Encryption | `tde_` | Transparent Data Encryption | `tde_info.sql`, `tde_keys.sql` |
-| Admin    | `dba_` | General DBA tasks | `dba_space.sql`, `dba_jobs.sql` |
-| Monitor  | `mon_` | Monitoring & diagnostics | `mon_sessions.sql`, `mon_locks.sql` |
+| Category   | Prefix | Focus Area                  | Examples                             |
+|------------|--------|-----------------------------|--------------------------------------|
+| Security   | `sec_` | Users, roles, privileges    | `sec_users.sql`, `sec_roles.sql`     |
+| Audit      | `aud_` | Unified & traditional audit | `aud_sessions.sql`, `aud_events.sql` |
+| Encryption | `tde_` | Transparent Data Encryption | `tde_info.sql`, `tde_keys.sql`       |
+| Admin      | `dba_` | General DBA tasks           | `dba_space.sql`, `dba_jobs.sql`      |
+| Monitor    | `mon_` | Monitoring & diagnostics    | `mon_sessions.sql`, `mon_locks.sql`  |
 
 ### Privilege Indicators
 
-| Suffix | Privilege | Example | Required Access |
-|--------|-----------|---------|-----------------|
-| (none) | Regular User | `sec_whoami.sql` | Minimal privileges |
-| `_dba` | DBA Role | `sec_users_dba.sql` | DBA or SYSTEM |
-| `_sys` | SYSDBA | `tde_keystore_sys.sql` | SYSDBA/SYSKM/SYSBACKUP |
-| `_aud` | Audit Admin | `aud_config_aud.sql` | AUDIT_ADMIN/AUDIT_VIEWER |
+| Suffix | Privilege    | Example                | Required Access          |
+|--------|--------------|------------------------|--------------------------|
+| (none) | Regular User | `sec_whoami.sql`       | Minimal privileges       |
+| `_dba` | DBA Role     | `sec_users_dba.sql`    | DBA or SYSTEM            |
+| `_sys` | SYSDBA       | `tde_keystore_sys.sql` | SYSDBA/SYSKM/SYSBACKUP   |
+| `_aud` | Audit Admin  | `aud_config_aud.sql`   | AUDIT_ADMIN/AUDIT_VIEWER |
 
 ## Quick Reference Card
 
@@ -135,12 +139,12 @@ Most frequently used scripts for daily DBA tasks:
 
 Basic database and session information scripts:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `db_info.sql` | - | Any | Database name, version, status |
-| `sec_whoami.sql` | `who.sql` | Any | Current session info |
-| `mon_sessions.sql` | `sess.sql` | Any | Active database sessions |
-| `mon_locks.sql` | `locks.sql` | Any | Current locks and blocking |
+| Script             | Alias       | Privilege | Description                    |
+|--------------------|-------------|-----------|--------------------------------|
+| `db_info.sql`      | -           | Any       | Database name, version, status |
+| `sec_whoami.sql`   | `who.sql`   | Any       | Current session info           |
+| `mon_sessions.sql` | `sess.sql`  | Any       | Active database sessions       |
+| `mon_locks.sql`    | `locks.sql` | Any       | Current locks and blocking     |
 
 **Usage Examples:**
 
@@ -159,10 +163,10 @@ SQL> @sess
 
 Tablespace and storage management:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `dba_space.sql` | `space.sql` | DBA | Tablespace usage and free space |
-| `dba_temp.sql` | `temp.sql` | DBA | Temporary tablespace usage |
+| Script          | Alias       | Privilege | Description                     |
+|-----------------|-------------|-----------|---------------------------------|
+| `dba_space.sql` | `space.sql` | DBA       | Tablespace usage and free space |
+| `dba_temp.sql`  | `temp.sql`  | DBA       | Temporary tablespace usage      |
 
 **Usage Examples:**
 
@@ -178,15 +182,15 @@ SQL> @temp
 
 User and privilege management:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `sec_whoami.sql` | `who.sql` | Any | Current session and user info |
-| `sec_users.sql` | `users.sql` | DBA | List all database users |
-| `sec_roles.sql` | `roles.sql` | DBA | Show role hierarchy and grants |
-| `sec_privs.sql` | `privs.sql` | Any | Show privileges for current user |
-| `sec_obj_grants.sql` | `objgr.sql` | Any | Object privileges for current user |
-| `sec_profiles.sql` | `prof.sql` | DBA | Password profiles and settings |
-| `sec_failed_logins.sql` | `fails.sql` | DBA | Recent failed login attempts |
+| Script                  | Alias       | Privilege | Description                        |
+|-------------------------|-------------|-----------|------------------------------------|
+| `sec_whoami.sql`        | `who.sql`   | Any       | Current session and user info      |
+| `sec_users.sql`         | `users.sql` | DBA       | List all database users            |
+| `sec_roles.sql`         | `roles.sql` | DBA       | Show role hierarchy and grants     |
+| `sec_privs.sql`         | `privs.sql` | Any       | Show privileges for current user   |
+| `sec_obj_grants.sql`    | `objgr.sql` | Any       | Object privileges for current user |
+| `sec_profiles.sql`      | `prof.sql`  | DBA       | Password profiles and settings     |
+| `sec_failed_logins.sql` | `fails.sql` | DBA       | Recent failed login attempts       |
 
 **Usage Examples:**
 
@@ -208,25 +212,25 @@ SQL> @fails
 
 Unified audit query and analysis:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `aud_config.sql` | `audit.sql` | AUDIT_VIEWER | Audit configuration and trail info |
-| `aud_policies.sql` | `apol.sql` | AUDIT_VIEWER | List audit policies and status |
-| `aud_sessions.sql` | `asess.sql` | AUDIT_VIEWER | Show all audit sessions |
-| `aud_events.sql` | `aevt.sql` | AUDIT_VIEWER | Recent audit events overview |
-| `aud_logins.sql` | `logins.sql` | AUDIT_VIEWER | Show all login events |
-| `aud_failed.sql` | `afails.sql` | AUDIT_VIEWER | Failed login attempts |
-| `aud_top_users.sql` | - | AUDIT_VIEWER | Top audit events by user |
-| `aud_top_actions.sql` | - | AUDIT_VIEWER | Top audit events by action |
+| Script                | Alias        | Privilege    | Description                        |
+|-----------------------|--------------|--------------|------------------------------------|
+| `aud_config.sql`      | `audit.sql`  | AUDIT_VIEWER | Audit configuration and trail info |
+| `aud_policies.sql`    | `apol.sql`   | AUDIT_VIEWER | List audit policies and status     |
+| `aud_sessions.sql`    | `asess.sql`  | AUDIT_VIEWER | Show all audit sessions            |
+| `aud_events.sql`      | `aevt.sql`   | AUDIT_VIEWER | Recent audit events overview       |
+| `aud_logins.sql`      | `logins.sql` | AUDIT_VIEWER | Show all login events              |
+| `aud_failed.sql`      | `afails.sql` | AUDIT_VIEWER | Failed login attempts              |
+| `aud_top_users.sql`   | -            | AUDIT_VIEWER | Top audit events by user           |
+| `aud_top_actions.sql` | -            | AUDIT_VIEWER | Top audit events by action         |
 
 **Audit Management Scripts:**
 
-| Script | Privilege | Description |
-|--------|-----------|-------------|
-| `cr_aud_policies_aud.sql` | AUDIT_ADMIN | Create custom audit policies |
-| `en_aud_policies_aud.sql` | AUDIT_ADMIN | Enable custom audit policies |
-| `dis_aud_policies_aud.sql` | AUDIT_ADMIN | Disable all audit policies |
-| `gen_aud_enable.sql` | AUDIT_ADMIN | Generate AUDIT POLICY statements |
+| Script                     | Privilege   | Description                      |
+|----------------------------|-------------|----------------------------------|
+| `cr_aud_policies_aud.sql`  | AUDIT_ADMIN | Create custom audit policies     |
+| `en_aud_policies_aud.sql`  | AUDIT_ADMIN | Enable custom audit policies     |
+| `dis_aud_policies_aud.sql` | AUDIT_ADMIN | Disable all audit policies       |
+| `gen_aud_enable.sql`       | AUDIT_ADMIN | Generate AUDIT POLICY statements |
 
 **Usage Examples:**
 
@@ -248,23 +252,23 @@ SQL> @aud_top_users
 
 Encryption management and monitoring:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `tde_info.sql` | `tde.sql` | DBA | TDE configuration status |
-| `tde_keys.sql` | `keys.sql` | SYSDBA | Master encryption keys info |
-| `tde_wallets.sql` | `wallets.sql` | DBA | Keystore/wallet status |
-| `tde_enc_cols.sql` | - | DBA | Show encrypted columns |
-| `tde_enc_tbs.sql` | - | DBA | Show encrypted tablespaces |
-| `tde_ops.sql` | `tdeops.sql` | DBA | TDE operations progress |
+| Script             | Alias         | Privilege | Description                 |
+|--------------------|---------------|-----------|-----------------------------|
+| `tde_info.sql`     | `tde.sql`     | DBA       | TDE configuration status    |
+| `tde_keys.sql`     | `keys.sql`    | SYSDBA    | Master encryption keys info |
+| `tde_wallets.sql`  | `wallets.sql` | DBA       | Keystore/wallet status      |
+| `tde_enc_cols.sql` | -             | DBA       | Show encrypted columns      |
+| `tde_enc_tbs.sql`  | -             | DBA       | Show encrypted tablespaces  |
+| `tde_ops.sql`      | `tdeops.sql`  | DBA       | TDE operations progress     |
 
 **TDE Setup Scripts:**
 
-| Script | Privilege | Description |
-|--------|-----------|-------------|
-| `cr_tde_sys.sql` | SYSDBA | Initialize TDE for database |
-| `cr_tde_keystore_sys.sql` | SYSDBA | Create software keystore |
-| `cr_tde_key_sys.sql` | SYSDBA | Create master encryption key |
-| `gen_tde_encrypt.sql` | DBA | Generate datafile encryption statements |
+| Script                    | Privilege | Description                             |
+|---------------------------|-----------|-----------------------------------------|
+| `cr_tde_sys.sql`          | SYSDBA    | Initialize TDE for database             |
+| `cr_tde_keystore_sys.sql` | SYSDBA    | Create software keystore                |
+| `cr_tde_key_sys.sql`      | SYSDBA    | Create master encryption key            |
+| `gen_tde_encrypt.sql`     | DBA       | Generate datafile encryption statements |
 
 **Usage Examples:**
 
@@ -286,23 +290,23 @@ SQL> @tdeops
 
 Database monitoring and diagnostics:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `mon_sessions.sql` | `sess.sql` | Any | Show active sessions |
-| `mon_locks.sql` | `locks.sql` | Any | Current locks and blocking |
-| `mon_sqlmon.sql` | `sqlmon.sql` | Any | SQL Monitor active executions |
-| `dba_jobs.sql` | `jobs.sql` | DBA | Scheduler jobs status |
+| Script             | Alias        | Privilege | Description                   |
+|--------------------|--------------|-----------|-------------------------------|
+| `mon_sessions.sql` | `sess.sql`   | Any       | Show active sessions          |
+| `mon_locks.sql`    | `locks.sql`  | Any       | Current locks and blocking    |
+| `mon_sqlmon.sql`   | `sqlmon.sql` | Any       | SQL Monitor active executions |
+| `dba_jobs.sql`     | `jobs.sql`   | DBA       | Scheduler jobs status         |
 
 ### Administration Scripts
 
 General DBA tasks:
 
-| Script | Alias | Privilege | Description |
-|--------|-------|-----------|-------------|
-| `dba_params.sql` | `params.sql` | DBA | Show all init parameters (including hidden) |
-| `dba_space.sql` | `space.sql` | DBA | Tablespace usage |
-| `dba_temp.sql` | `temp.sql` | DBA | Temp tablespace usage |
-| `dba_jobs.sql` | `jobs.sql` | DBA | Scheduler jobs |
+| Script           | Alias        | Privilege | Description                                 |
+|------------------|--------------|-----------|---------------------------------------------|
+| `dba_params.sql` | `params.sql` | DBA       | Show all init parameters (including hidden) |
+| `dba_space.sql`  | `space.sql`  | DBA       | Tablespace usage                            |
+| `dba_temp.sql`   | `temp.sql`   | DBA       | Temp tablespace usage                       |
+| `dba_jobs.sql`   | `jobs.sql`   | DBA       | Scheduler jobs                              |
 
 ## Common Usage Patterns
 

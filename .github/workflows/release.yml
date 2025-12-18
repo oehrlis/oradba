@@ -38,6 +38,11 @@ jobs:
         run: |
           echo "${{ steps.version.outputs.version }}" > VERSION
       
+      - name: Generate documentation
+        run: |
+          docker pull oehrlis/pandoc:latest
+          make docs-pdf docs-html || echo "Documentation generation failed, continuing..."
+      
       - name: Build installer
         run: |
           ./scripts/build_installer.sh
@@ -77,6 +82,8 @@ jobs:
           
           - **oradba_install.sh**: Self-contained installer with embedded payload
           - **oradba-${VERSION}-src.tar.gz**: Source code archive
+          - **oradba-user-guide.pdf**: Complete user documentation (PDF)
+          - **oradba-user-guide.html**: Complete user documentation (HTML)
           EOF
       
       - name: Create GitHub Release
@@ -90,6 +97,8 @@ jobs:
           files: |
             dist/oradba_install.sh
             oradba-${{ steps.version.outputs.version }}-src.tar.gz
+            dist/oradba-user-guide.pdf
+            dist/oradba-user-guide.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       

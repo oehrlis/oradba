@@ -60,12 +60,52 @@ jobs:
             echo "No BATS tests found, skipping..."
           fi
 
-  build:
-    name: Build Installer
+  docs:
+    name: Generate Documentation
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Generate PDF documentation
+        run: |
+          docker pull oehrlis/pandoc:latest
+          make docs-pdf
+      
+      - name: Generate HTML documentation  
+        run: |
+          docker run --rm -v $(pwd)/src/doc:/workdir oehrlis/pandoc:latest \
+            pandoc ??-*.md -o ../../dist/oradba-user-guide.html \
+            --metadata-file=metadata.yml \
+            --toc --toc-depth=3 \
+            --standalone
+      
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oradba-documentation
+          path: |
+            dist/oradba-user-guide.pdf
+            dist/oradba-user-guide.html
+          retention-days: 90
+      
+      - name: Display documentation info
+        run: |
+          ls -lh dist/oradba-user-guide.*
+          echo "Documentation generated successfully"
+
+  build:
+    name: Build Installer
+    runs-on: ubuntu-latest
+    needs: [test, docs]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: oradba-documentation
+          path: dist/
       
       - name: Build installer
         run: |
@@ -78,7 +118,7 @@ jobs:
           path: dist/oradba_install.sh
           retention-days: 30
       
-      - name: Display installer info
+      - name: Display build info
         run: |
           ls -lh dist/
           echo "Installer created successfully"

@@ -223,21 +223,79 @@ uninstall: ## Uninstall OraDBA
 # Documentation
 # ==============================================================================
 
+# Documentation directories and files
+USER_DOC_DIR := $(SRC_DIR)/doc
+USER_DOC_CHAPTERS := $(USER_DOC_DIR)/??-*.md
+USER_DOC_METADATA := $(USER_DOC_DIR)/metadata.yml
+PANDOC_IMAGE := oehrlis/pandoc:latest
+
 .PHONY: docs
-docs: ## Generate documentation
-	@echo -e "$(COLOR_BLUE)Generating documentation...$(COLOR_RESET)"
-	@mkdir -p $(DOC_DIR)
-	@echo "# OraDBA Scripts" > $(DOC_DIR)/SCRIPTS.md
-	@echo "" >> $(DOC_DIR)/SCRIPTS.md
-	@for script in $(BIN_DIR)/*.sh; do \
-		echo "## $$(basename $$script)" >> $(DOC_DIR)/SCRIPTS.md; \
-		echo "" >> $(DOC_DIR)/SCRIPTS.md; \
-		echo '```bash' >> $(DOC_DIR)/SCRIPTS.md; \
-		$$script --help 2>&1 || echo "No help available"; \
-		echo '```' >> $(DOC_DIR)/SCRIPTS.md; \
-		echo "" >> $(DOC_DIR)/SCRIPTS.md; \
-	done 2>/dev/null || true
-	@echo -e "$(COLOR_GREEN)✓ Documentation generated$(COLOR_RESET)"
+docs: docs-html docs-pdf ## Generate all documentation (HTML and PDF)
+
+.PHONY: docs-html
+docs-html: ## Generate HTML user guide from markdown
+	@echo -e "$(COLOR_BLUE)Generating HTML documentation...$(COLOR_RESET)"
+	@mkdir -p $(DIST_DIR)
+	@cd $(USER_DOC_DIR) && \
+		pandoc ??-*.md -o ../../$(DIST_DIR)/oradba-user-guide.html \
+		--metadata-file=metadata.yml \
+		--toc --toc-depth=3 \
+		--standalone \
+		--self-contained 2>/dev/null || \
+		echo -e "$(COLOR_YELLOW)⚠ Pandoc not available locally, skipping HTML generation$(COLOR_RESET)"
+	@if [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
+		echo -e "$(COLOR_GREEN)✓ HTML documentation generated: $(DIST_DIR)/oradba-user-guide.html$(COLOR_RESET)"; \
+		ls -lh $(DIST_DIR)/oradba-user-guide.html; \
+	fi
+
+.PHONY: docs-pdf
+docs-pdf: ## Generate PDF user guide from markdown (requires Docker)
+	@echo -e "$(COLOR_BLUE)Generating PDF documentation...$(COLOR_RESET)"
+	@mkdir -p $(DIST_DIR)
+	@if command -v docker >/dev/null 2>&1; then \
+		cd $(USER_DOC_DIR) && \
+		docker run --rm -v $$(pwd):/workdir $(PANDOC_IMAGE) \
+			??-*.md -o oradba-user-guide.pdf \
+			--metadata-file=metadata.yml \
+			--toc --toc-depth=3 \
+			--pdf-engine=xelatex \
+			-N --listings 2>&1 | grep -v "Missing character" || true; \
+		mv oradba-user-guide.pdf ../../$(DIST_DIR)/ 2>/dev/null || true; \
+		cd - >/dev/null; \
+		if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ]; then \
+			echo -e "$(COLOR_GREEN)✓ PDF documentation generated: $(DIST_DIR)/oradba-user-guide.pdf$(COLOR_RESET)"; \
+			ls -lh $(DIST_DIR)/oradba-user-guide.pdf; \
+		else \
+			echo -e "$(COLOR_RED)✗ PDF generation failed$(COLOR_RESET)"; \
+			exit 1; \
+		fi; \
+	else \
+		echo -e "$(COLOR_YELLOW)⚠ Docker not available, skipping PDF generation$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)  Install Docker to generate PDF documentation$(COLOR_RESET)"; \
+	fi
+
+.PHONY: docs-check
+docs-check: ## Check if documentation source files exist
+	@echo -e "$(COLOR_BLUE)Checking documentation files...$(COLOR_RESET)"
+	@if [ ! -f "$(USER_DOC_METADATA)" ]; then \
+		echo -e "$(COLOR_RED)✗ Metadata file not found: $(USER_DOC_METADATA)$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@chapter_count=$$(ls -1 $(USER_DOC_DIR)/??-*.md 2>/dev/null | wc -l | xargs); \
+	if [ "$$chapter_count" -eq 0 ]; then \
+		echo -e "$(COLOR_RED)✗ No documentation chapters found$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	echo -e "$(COLOR_GREEN)✓ Found $$chapter_count documentation chapters$(COLOR_RESET)"
+
+.PHONY: docs-clean
+docs-clean: ## Remove generated documentation
+	@echo -e "$(COLOR_BLUE)Cleaning generated documentation...$(COLOR_RESET)"
+	@rm -f $(DIST_DIR)/oradba-user-guide.html 2>/dev/null || true
+	@rm -f $(DIST_DIR)/oradba-user-guide.pdf 2>/dev/null || true
+	@rm -f $(USER_DOC_DIR)/oradba-user-guide.html 2>/dev/null || true
+	@rm -f $(USER_DOC_DIR)/oradba-user-guide.pdf 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Documentation cleaned$(COLOR_RESET)"
 
 .PHONY: changelog
 changelog: ## Update CHANGELOG.md from git commits
@@ -331,7 +389,7 @@ clean-test-configs: ## Clean test-generated SID config files
 	@echo -e "$(COLOR_GREEN)✓ Test config files cleaned$(COLOR_RESET)"
 
 .PHONY: clean-all
-clean-all: clean clean-test-configs ## Deep clean (including caches and test configs)
+clean-all: clean clean-test-configs docs-clean ## Deep clean (including caches, test configs, and docs)
 	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"
@@ -376,7 +434,7 @@ setup-dev: ## Setup development environment
 # ==============================================================================
 
 .PHONY: ci
-ci: clean lint test build ## Run CI pipeline locally
+ci: clean lint test docs build ## Run CI pipeline locally (includes docs)
 	@echo -e "$(COLOR_GREEN)✓ CI pipeline completed successfully$(COLOR_RESET)"
 
 .PHONY: pre-commit

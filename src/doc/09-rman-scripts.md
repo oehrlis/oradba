@@ -2,7 +2,9 @@
 
 ## Introduction
 
-OraDBA includes RMAN (Recovery Manager) script templates for common backup and recovery operations. These templates provide a starting point for database backup strategies.
+OraDBA includes RMAN (Recovery Manager) script templates for common backup and
+recovery operations. These templates provide a starting point for database
+backup strategies.
 
 ## Location
 
@@ -33,6 +35,7 @@ RMAN> @backup_full.rman
 ```
 
 **What it does:**
+
 - Connects to target database
 - Performs full database backup
 - Includes all datafiles
@@ -42,6 +45,7 @@ RMAN> @backup_full.rman
 
 **Customization:**
 Edit the file to adjust:
+
 - Backup format and location
 - Compression level
 - Retention policy

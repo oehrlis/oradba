@@ -2,7 +2,11 @@
 
 ## What is OraDBA?
 
-OraDBA is a comprehensive toolset for Oracle Database administration and operations, designed specifically for lab and engineering environments. It provides an intelligent, hierarchical environment management system that simplifies daily database administration tasks through automation and consistent workflows.
+OraDBA is a comprehensive toolset for Oracle Database administration and
+operations, designed specifically for lab and engineering environments. It
+provides an intelligent, hierarchical environment management system that
+simplifies daily database administration tasks through automation and consistent
+workflows.
 
 ## Key Features
 
@@ -24,7 +28,7 @@ Flexible 5-level configuration with override capability:
 2. **oradba_standard.conf**: Standard aliases and variables (50+ aliases)
 3. **oradba_customer.conf**: Customer-specific overrides (optional)
 4. **sid._DEFAULT_.conf**: Default SID template
-5. **sid.<SID>.conf**: Auto-created per-SID configs with database metadata
+5. **sid.\<SID>.conf**: Auto-created per-SID configs with database metadata
 
 Later levels override earlier settings, giving you complete control without modifying base configurations.
 

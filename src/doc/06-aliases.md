@@ -2,11 +2,14 @@
 
 ## Introduction
 
-OraDBA provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.
+OraDBA provides 50+ shell aliases to streamline Oracle database administration
+tasks. Aliases are automatically loaded when you set your Oracle environment
+using `oraenv.sh`, giving you convenient shortcuts for common operations.
 
 ## Alias Categories
 
 Aliases are organized into these categories:
+
 - **SQL*Plus & RMAN** - Database connection shortcuts
 - **Directory Navigation** - Quick navigation to Oracle directories
 - **Database Operations** - Status, listener, process management
@@ -18,13 +21,13 @@ Aliases are organized into these categories:
 
 Quick access to SQL*Plus with various options:
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `sq` | SQL*Plus as SYSDBA (basic) | `sqlplus / as sysdba` |
-| `sqh` | SQL*Plus as SYSDBA (with rlwrap) | `rlwrap sqlplus / as sysdba` |
-| `sqlplush` | SQL*Plus /nolog (with rlwrap) | `rlwrap sqlplus /nolog` |
-| `sqoh` | SQL*Plus as SYSOPER (with rlwrap) | `rlwrap sqlplus / as sysoper` |
-| `sessionsql` | SQL*Plus with dynamic terminal width | `sessionsql.sh` |
+| Alias        | Description                          | Command                       |
+|--------------|--------------------------------------|-------------------------------|
+| `sq`         | SQL*Plus as SYSDBA (basic)           | `sqlplus / as sysdba`         |
+| `sqh`        | SQL*Plus as SYSDBA (with rlwrap)     | `rlwrap sqlplus / as sysdba`  |
+| `sqlplush`   | SQL*Plus /nolog (with rlwrap)        | `rlwrap sqlplus /nolog`       |
+| `sqoh`       | SQL*Plus as SYSOPER (with rlwrap)    | `rlwrap sqlplus / as sysoper` |
+| `sessionsql` | SQL*Plus with dynamic terminal width | `sessionsql.sh`               |
 
 **Usage Examples:**
 
@@ -43,6 +46,7 @@ sqoh
 ```
 
 **rlwrap Features:**
+
 - Command history (up/down arrows)
 - Tab completion with SQL keywords
 - Line editing capabilities
@@ -54,11 +58,11 @@ sqoh
 
 Recovery Manager connection shortcuts:
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `rman` | RMAN target connection | `rman target /` |
-| `rmanh` | RMAN with rlwrap | `rlwrap rman target /` |
-| `rmanc` | RMAN with catalog | `rman target / catalog ...` |
+| Alias    | Description                | Command                            |
+|----------|----------------------------|------------------------------------|
+| `rman`   | RMAN target connection     | `rman target /`                    |
+| `rmanh`  | RMAN with rlwrap           | `rlwrap rman target /`             |
+| `rmanc`  | RMAN with catalog          | `rman target / catalog ...`        |
 | `rmanch` | RMAN with catalog (rlwrap) | `rlwrap rman target / catalog ...` |
 
 **Usage Examples:**
@@ -94,37 +98,37 @@ Quick navigation to Oracle and OraDBA directories:
 
 ### Oracle Directories
 
-| Alias | Description | Target Directory |
-|-------|-------------|------------------|
-| `cdob` | Change to ORACLE_BASE | `$ORACLE_BASE` |
-| `cdh` | Change to ORACLE_HOME | `$ORACLE_HOME` |
-| `cdbn` | Change to bin directory | `$ORACLE_HOME/bin` |
-| `cdn` | Change to network parent | `$TNS_ADMIN/..` |
-| `cdt` | Change to TNS_ADMIN | `$TNS_ADMIN` |
-| `cdl` | Change to local directory | `$ORACLE_BASE/local` |
+| Alias  | Description               | Target Directory     |
+|--------|---------------------------|----------------------|
+| `cdob` | Change to ORACLE_BASE     | `$ORACLE_BASE`       |
+| `cdh`  | Change to ORACLE_HOME     | `$ORACLE_HOME`       |
+| `cdbn` | Change to bin directory   | `$ORACLE_HOME/bin`   |
+| `cdn`  | Change to network parent  | `$TNS_ADMIN/..`      |
+| `cdt`  | Change to TNS_ADMIN       | `$TNS_ADMIN`         |
+| `cdl`  | Change to local directory | `$ORACLE_BASE/local` |
 
 ### OraDBA Directories
 
-| Alias | Description | Target Directory |
-|-------|-------------|------------------|
-| `cdb` | Change to OraDBA base | `$ORADBA_PREFIX` |
-| `etc` | Change to OraDBA etc | `$ORADBA_ETC` |
-| `cde` | Change to OraDBA etc | `$ORADBA_ETC` |
-| `log` | Change to OraDBA log | `$ORADBA_LOG` |
-| `cdlog` | Change to OraDBA log | `$ORADBA_LOG` |
-| `cdtmp` | Change to temp directory | `$ORADBA_TMP` |
+| Alias   | Description              | Target Directory |
+|---------|--------------------------|------------------|
+| `cdb`   | Change to OraDBA base    | `$ORADBA_PREFIX` |
+| `etc`   | Change to OraDBA etc     | `$ORADBA_ETC`    |
+| `cde`   | Change to OraDBA etc     | `$ORADBA_ETC`    |
+| `log`   | Change to OraDBA log     | `$ORADBA_LOG`    |
+| `cdlog` | Change to OraDBA log     | `$ORADBA_LOG`    |
+| `cdtmp` | Change to temp directory | `$ORADBA_TMP`    |
 
 ### SID-Specific Directories (Dynamic)
 
 These aliases are generated dynamically based on current `ORACLE_SID`:
 
-| Alias | Description | Target Directory |
-|-------|-------------|------------------|
-| `cda` | Change to admin directory | `$ORACLE_BASE/admin/$ORACLE_SID` |
-| `cdc` | Change to control file directory | `$ORACLE_BASE/oradata/$ORACLE_SID` |
-| `cdd` | Change to diagnostic dest | `$ORADBA_ORA_DIAG_SID` |
-| `cddt` | Change to trace directory | `diagnostic_dest/trace` |
-| `cdda` | Change to alert directory | `diagnostic_dest/alert` |
+| Alias  | Description                      | Target Directory                   |
+|--------|----------------------------------|------------------------------------|
+| `cda`  | Change to admin directory        | `$ORACLE_BASE/admin/$ORACLE_SID`   |
+| `cdc`  | Change to control file directory | `$ORACLE_BASE/oradata/$ORACLE_SID` |
+| `cdd`  | Change to diagnostic dest        | `$ORADBA_ORA_DIAG_SID`             |
+| `cddt` | Change to trace directory        | `diagnostic_dest/trace`            |
+| `cdda` | Change to alert directory        | `diagnostic_dest/alert`            |
 
 **Usage Examples:**
 
@@ -150,14 +154,14 @@ pwd  # /opt/oradba/etc
 
 Short variables for use in commands or scripts:
 
-| Variable | Description | Value |
-|----------|-------------|-------|
-| `$cdh` | ORACLE_HOME path | `$ORACLE_HOME` |
-| `$cdob` | ORACLE_BASE path | `$ORACLE_BASE` |
-| `$cda` | Admin directory path | `$ORADBA_ORA_ADMIN_SID` |
-| `$cdd` | Diagnostic dest path | `$ORADBA_ORA_DIAG_SID` |
-| `$etc` | OraDBA etc path | `$ORADBA_ETC` |
-| `$log` | OraDBA log path | `$ORADBA_LOG` |
+| Variable | Description          | Value                   |
+|----------|----------------------|-------------------------|
+| `$cdh`   | ORACLE_HOME path     | `$ORACLE_HOME`          |
+| `$cdob`  | ORACLE_BASE path     | `$ORACLE_BASE`          |
+| `$cda`   | Admin directory path | `$ORADBA_ORA_ADMIN_SID` |
+| `$cdd`   | Diagnostic dest path | `$ORADBA_ORA_DIAG_SID`  |
+| `$etc`   | OraDBA etc path      | `$ORADBA_ETC`           |
+| `$log`   | OraDBA log path      | `$ORADBA_LOG`           |
 
 **Usage Examples:**
 
@@ -180,11 +184,11 @@ Manage databases, listeners, and view status:
 
 ### Status and Monitoring
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `oraup` / `u` | Oracle environment overview | `oraup.sh` |
-| `sta` | Database status | `dbstatus.sh` |
-| `pmon` | Show running database processes | `ps -ef \| grep pmon` |
+| Alias         | Description                     | Command               |
+|---------------|---------------------------------|-----------------------|
+| `oraup` / `u` | Oracle environment overview     | `oraup.sh`            |
+| `sta`         | Database status                 | `dbstatus.sh`         |
+| `pmon`        | Show running database processes | `ps -ef \| grep pmon` |
 
 **Usage Examples:**
 
@@ -202,6 +206,7 @@ pmon
 ```
 
 **oraup.sh** displays:
+
 - All databases from oratab
 - Database status (OPEN, MOUNTED, NOMOUNT, DOWN)
 - Listener status
@@ -210,13 +215,13 @@ pmon
 
 ### Listener Commands
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `lsnr` | Listener control | `lsnrctl` |
-| `lsnrh` | Listener control (with rlwrap) | `rlwrap lsnrctl` |
-| `lstat` | Listener status | `lsnrctl status` |
-| `lstart` | Start listener | `lsnrctl start` |
-| `lstop` | Stop listener | `lsnrctl stop` |
+| Alias    | Description                    | Command          |
+|----------|--------------------------------|------------------|
+| `lsnr`   | Listener control               | `lsnrctl`        |
+| `lsnrh`  | Listener control (with rlwrap) | `rlwrap lsnrctl` |
+| `lstat`  | Listener status                | `lsnrctl status` |
+| `lstart` | Start listener                 | `lsnrctl start`  |
+| `lstop`  | Stop listener                  | `lsnrctl stop`   |
 
 **Usage Examples:**
 
@@ -236,10 +241,10 @@ lsnrh
 
 ### Configuration Viewing
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `oratab` | Display oratab file | `cat /etc/oratab` |
-| `tns` | Display tnsnames.ora | `cat $TNS_ADMIN/tnsnames.ora` |
+| Alias    | Description          | Command                       |
+|----------|----------------------|-------------------------------|
+| `oratab` | Display oratab file  | `cat /etc/oratab`             |
+| `tns`    | Display tnsnames.ora | `cat $TNS_ADMIN/tnsnames.ora` |
 
 ## File Editing Aliases
 
@@ -247,21 +252,21 @@ Quick access to edit configuration files:
 
 ### Oracle Configuration Files
 
-| Alias | Description | Target File |
-|-------|-------------|-------------|
-| `vio` | Edit oratab | `/etc/oratab` |
-| `vit` | Edit tnsnames.ora | `$TNS_ADMIN/tnsnames.ora` |
-| `vil` | Edit listener.ora | `$TNS_ADMIN/listener.ora` |
-| `visql` | Edit sqlnet.ora | `$TNS_ADMIN/sqlnet.ora` |
-| `vildap` | Edit ldap.ora | `$TNS_ADMIN/ldap.ora` |
+| Alias    | Description       | Target File               |
+|----------|-------------------|---------------------------|
+| `vio`    | Edit oratab       | `/etc/oratab`             |
+| `vit`    | Edit tnsnames.ora | `$TNS_ADMIN/tnsnames.ora` |
+| `vil`    | Edit listener.ora | `$TNS_ADMIN/listener.ora` |
+| `visql`  | Edit sqlnet.ora   | `$TNS_ADMIN/sqlnet.ora`   |
+| `vildap` | Edit ldap.ora     | `$TNS_ADMIN/ldap.ora`     |
 
 ### OraDBA Configuration Files
 
-| Alias | Description | Target File |
-|-------|-------------|-------------|
+| Alias | Description          | Target File                        |
+|-------|----------------------|------------------------------------|
 | `vis` | Edit standard config | `$ORADBA_ETC/oradba_standard.conf` |
 | `vic` | Edit customer config | `$ORADBA_ETC/oradba_customer.conf` |
-| `vii` | Edit SID config | `$ORADBA_ETC/sid.$ORACLE_SID.conf` |
+| `vii` | Edit SID config      | `$ORADBA_ETC/sid.$ORACLE_SID.conf` |
 
 **Usage Examples:**
 
@@ -282,11 +287,11 @@ Access and monitor Oracle diagnostic files:
 
 ### Alert Log Access (Dynamic)
 
-| Alias | Description | Command |
-|-------|-------------|---------|
+| Alias | Description             | Command                              |
+|-------|-------------------------|--------------------------------------|
 | `taa` | Tail alert log (follow) | `tail -f -n 50 $ORADBA_SID_ALERTLOG` |
-| `vaa` | View alert log (less) | `less $ORADBA_SID_ALERTLOG` |
-| `via` | Edit alert log (vi) | `vi $ORADBA_SID_ALERTLOG` |
+| `vaa` | View alert log (less)   | `less $ORADBA_SID_ALERTLOG`          |
+| `via` | Edit alert log (vi)     | `vi $ORADBA_SID_ALERTLOG`            |
 
 **Usage Examples:**
 
@@ -306,8 +311,8 @@ via
 
 ### Diagnostic Tools
 
-| Alias | Description | Command |
-|-------|-------------|---------|
+| Alias    | Description       | Command        |
+|----------|-------------------|----------------|
 | `adrcih` | ADRCI with rlwrap | `rlwrap adrci` |
 
 **Usage Example:**
@@ -326,9 +331,9 @@ For Container Databases (CDB), OraDBA automatically generates aliases for each P
 
 ### PDB Alias Format
 
-| Format | Example | Description |
-|--------|---------|-------------|
-| Simple | `pdb1` | Connect to PDB1 |
+| Format   | Example   | Description            |
+|----------|-----------|------------------------|
+| Simple   | `pdb1`    | Connect to PDB1        |
 | Prefixed | `pdbpdb1` | Same with 'pdb' prefix |
 
 **Usage Examples:**
@@ -369,11 +374,11 @@ See [PDB Aliases](07-pdb-aliases.md) for complete documentation.
 
 ## Help and Information Aliases
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `alih` | Display alias help | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt` |
-| `alig` | Search aliases | `alias \| grep -i` |
-| `version` | Show OraDBA version | `oradba_version.sh -i` |
+| Alias     | Description         | Command                                 |
+|-----------|---------------------|-----------------------------------------|
+| `alih`    | Display alias help  | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt` |
+| `alig`    | Search aliases      | `alias \| grep -i`                      |
+| `version` | Show OraDBA version | `oradba_version.sh -i`                  |
 
 **Usage Examples:**
 
@@ -392,17 +397,17 @@ version
 
 Additional convenience aliases:
 
-| Alias | Description | Command |
-|-------|-------------|---------|
-| `c` | Clear screen | `clear` |
-| `m` | More | `more` |
-| `l` | List all (long format) | `ls -al` |
-| `ll` | List all (detailed) | `ls -alb` |
-| `lr` | List reverse time order | `ls -ltr` |
-| `lsl` | List recent 20 files | `ls -lrt \| tail -n 20` |
-| `psg` | Search processes | `ps -ef \| grep` |
-| `sqa` | Show SQLPATH | `show_sqlpath` |
-| `save_cron` | Backup crontab | `crontab -l > ~/crontab.txt.$(date)` |
+| Alias       | Description             | Command                              |
+|-------------|-------------------------|--------------------------------------|
+| `c`         | Clear screen            | `clear`                              |
+| `m`         | More                    | `more`                               |
+| `l`         | List all (long format)  | `ls -al`                             |
+| `ll`        | List all (detailed)     | `ls -alb`                            |
+| `lr`        | List reverse time order | `ls -ltr`                            |
+| `lsl`       | List recent 20 files    | `ls -lrt \| tail -n 20`              |
+| `psg`       | Search processes        | `ps -ef \| grep`                     |
+| `sqa`       | Show SQLPATH            | `show_sqlpath`                       |
+| `save_cron` | Backup crontab          | `crontab -l > ~/crontab.txt.$(date)` |
 
 ## rlwrap Integration
 
@@ -452,10 +457,12 @@ export ORADBA_RLWRAP_FILTER="true"
 ```
 
 **Requirements:**
+
 - rlwrap installed
 - Perl with RlwrapFilter module
 
 **What gets filtered:**
+
 - Password prompts (SQL*Plus, RMAN)
 - CONNECT commands with passwords
 - CREATE/ALTER USER statements

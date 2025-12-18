@@ -2,13 +2,19 @@
 
 ## Introduction
 
-OraDBA supports optional password filtering for rlwrap-enabled aliases. When enabled, passwords are hidden from command history files, improving security when using interactive Oracle tools.
+OraDBA supports optional password filtering for rlwrap-enabled aliases. When
+enabled, passwords are hidden from command history files, improving security
+when using interactive Oracle tools.
 
 ## What is rlwrap?
 
-[rlwrap](https://github.com/hanslub42/rlwrap) (readline wrapper) provides command-line history and editing for programs that don't natively support it. OraDBA automatically uses rlwrap with SQL*Plus, RMAN, and other Oracle tools when available.
+[rlwrap](https://github.com/hanslub42/rlwrap) (readline wrapper) provides
+command-line history and editing for programs that don't natively support it.
+OraDBA automatically uses rlwrap with SQL*Plus, RMAN, and other Oracle tools
+when available.
 
 **Benefits:**
+
 - Command history (up/down arrows)
 - Tab completion with keywords
 - Line editing (Emacs/vi modes)
@@ -18,6 +24,7 @@ OraDBA supports optional password filtering for rlwrap-enabled aliases. When ena
 ## Password Filtering
 
 Password filtering removes sensitive information from command history, preventing:
+
 - Plain-text passwords in `~/.sqlplus_history`
 - Connection strings with passwords in `~/.rman_history`
 - CREATE/ALTER USER statements with passwords
@@ -132,15 +139,18 @@ CONNECT CATALOG rman/password@cat → CONNECT CATALOG rman/@cat
 When `ORADBA_RLWRAP_FILTER=true`, these aliases use password filtering:
 
 **SQL*Plus:**
+
 - `sqh` - SQL*Plus as SYSDBA with rlwrap
 - `sqlplush` - SQL*Plus /nolog with rlwrap
 - `sqoh` - SQL*Plus as SYSOPER with rlwrap
 
 **RMAN:**
+
 - `rmanh` - RMAN with rlwrap
 - `rmanch` - RMAN with catalog and rlwrap
 
 **ADRCI:**
+
 - `adrcih` - ADRCI with rlwrap
 
 ## Testing Password Filtering

@@ -2,7 +2,9 @@
 
 ## Introduction
 
-OraDBA uses a hierarchical configuration system that allows flexible customization at multiple levels. This chapter explains how to configure OraDBA to match your environment and preferences.
+OraDBA uses a hierarchical configuration system that allows flexible
+customization at multiple levels. This chapter explains how to configure OraDBA
+to match your environment and preferences.
 
 ## Configuration Hierarchy
 
@@ -15,6 +17,7 @@ Configuration files are loaded in a specific order, with later files overriding 
 5. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created)
 
 This hierarchical approach means:
+
 - Base settings work everywhere
 - You can customize globally or per-database
 - Your customizations survive updates
@@ -48,7 +51,8 @@ BACKUP_DIR="/backup"
 RECOVERY_DIR="${ORADBA_PREFIX}/rcv"
 ```
 
-**When to Edit:** Rarely. Only modify if changing installation paths or core features. Most settings should be overridden in customer config instead.
+**When to Edit:** Rarely. Only modify if changing installation paths or core
+features. Most settings should be overridden in customer config instead.
 
 ### oradba_standard.conf - Standard Settings
 
@@ -83,7 +87,8 @@ alias cdh='cd ${ORACLE_HOME}'
 # ... and 50+ more aliases
 ```
 
-**When to Edit:** Not recommended. Override settings in `oradba_customer.conf` instead to preserve your changes during updates.
+**When to Edit:** Not recommended. Override settings in `oradba_customer.conf`
+instead to preserve your changes during updates.
 
 ### oradba_customer.conf - Your Customizations ⭐
 
@@ -197,7 +202,8 @@ ORADBA_DIAGNOSTIC_DEST="${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}"
 ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/${ORACLE_SID}"
 ```
 
-**When to Edit:** Modify to set defaults that apply to all your databases. Individual databases can override in their own sid configs.
+**When to Edit:** Modify to set defaults that apply to all your databases.
+Individual databases can override in their own sid configs.
 
 ### sid.<ORACLE_SID>.conf - Database-Specific Settings
 
@@ -248,7 +254,8 @@ ORADBA_BACKUP_COMPRESSION="MEDIUM"
 # ORADBA_BACKUP_RETENTION=30
 ```
 
-**When to Edit:** Add database-specific customizations. The auto-populated metadata helps document your database but can be manually adjusted if needed.
+**When to Edit:** Add database-specific customizations. The auto-populated
+metadata helps document your database but can be manually adjusted if needed.
 
 ## Configuration Loading Process
 
@@ -287,9 +294,11 @@ $ DEBUG=1 source oraenv.sh FREE
 
 ### How Auto-Creation Works
 
-When you switch to a new ORACLE_SID for the first time, OraDBA can automatically create a configuration file with database metadata.
+When you switch to a new ORACLE_SID for the first time, OraDBA can automatically
+create a configuration file with database metadata.
 
 **Requirements:**
+
 - `ORADBA_AUTO_CREATE_SID_CONFIG=true` (default)
 - Database is accessible (OPEN or MOUNT mode)
 - Configuration file doesn't already exist
@@ -297,6 +306,7 @@ When you switch to a new ORACLE_SID for the first time, OraDBA can automatically
 **Database Metadata Queried:**
 
 From `v$database`:
+
 - `name` → ORADBA_DB_NAME
 - `db_unique_name` → ORADBA_DB_UNIQUE_NAME
 - `dbid` → ORADBA_DBID
@@ -304,14 +314,17 @@ From `v$database`:
 - `open_mode` → ORADBA_DB_OPEN_MODE
 
 From `v$instance`:
+
 - `version` → ORADBA_DB_VERSION
 
 From `v$parameter`:
+
 - `diagnostic_dest` → ORADBA_DIAGNOSTIC_DEST
 
 ### Fallback Behavior
 
 If the database is not accessible:
+
 - Configuration file is still created
 - Metadata fields use defaults based on ORACLE_SID
 - You can manually update the file later
@@ -415,53 +428,53 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 
 ### Core System Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORADBA_PREFIX` | `/opt/oradba` | Installation base directory |
-| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc` | Configuration directory |
-| `ORATAB_FILE` | `/etc/oratab` | oratab file location |
-| `DEBUG` | `0` | Debug mode (0=off, 1=on) |
-| `LOG_DIR` | `${ORADBA_PREFIX}/logs` | Log directory |
-| `BACKUP_DIR` | `/backup` | Default backup directory |
+| Variable            | Default                 | Description                 |
+|---------------------|-------------------------|-----------------------------|
+| `ORADBA_PREFIX`     | `/opt/oradba`           | Installation base directory |
+| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc`  | Configuration directory     |
+| `ORATAB_FILE`       | `/etc/oratab`           | oratab file location        |
+| `DEBUG`             | `0`                     | Debug mode (0=off, 1=on)    |
+| `LOG_DIR`           | `${ORADBA_PREFIX}/logs` | Log directory               |
+| `BACKUP_DIR`        | `/backup`               | Default backup directory    |
 
 ### Behavior Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORADBA_LOAD_ALIASES` | `true` | Load aliases and functions |
-| `ORADBA_SHOW_DB_STATUS` | `true` | Show database status on environment switch |
-| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true` | Auto-create SID configurations |
-| `ORADBA_RLWRAP_FILTER` | `false` | Enable password filtering in rlwrap |
+| Variable                        | Default | Description                                |
+|---------------------------------|---------|--------------------------------------------|
+| `ORADBA_LOAD_ALIASES`           | `true`  | Load aliases and functions                 |
+| `ORADBA_SHOW_DB_STATUS`         | `true`  | Show database status on environment switch |
+| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true`  | Auto-create SID configurations             |
+| `ORADBA_RLWRAP_FILTER`          | `false` | Enable password filtering in rlwrap        |
 
 ### Oracle Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORACLE_BASE` | `/u01/app/oracle` | Oracle base directory |
-| `TNS_ADMIN` | `$ORACLE_HOME/network/admin` | TNS configuration directory |
-| `NLS_LANG` | `AMERICAN_AMERICA.AL32UTF8` | NLS language and character set |
-| `NLS_DATE_FORMAT` | `YYYY-MM-DD HH24:MI:SS` | Date format |
-| `SQLPATH` | `${ORADBA_PREFIX}/sql` | SQL*Plus script path |
+| Variable          | Default                      | Description                    |
+|-------------------|------------------------------|--------------------------------|
+| `ORACLE_BASE`     | `/u01/app/oracle`            | Oracle base directory          |
+| `TNS_ADMIN`       | `$ORACLE_HOME/network/admin` | TNS configuration directory    |
+| `NLS_LANG`        | `AMERICAN_AMERICA.AL32UTF8`  | NLS language and character set |
+| `NLS_DATE_FORMAT` | `YYYY-MM-DD HH24:MI:SS`      | Date format                    |
+| `SQLPATH`         | `${ORADBA_PREFIX}/sql`       | SQL*Plus script path           |
 
 ### Database Metadata (SID-specific, auto-populated)
 
-| Variable | Source | Description |
-|----------|--------|-------------|
-| `ORADBA_DB_NAME` | `v$database.name` | Database name |
-| `ORADBA_DB_UNIQUE_NAME` | `v$database.db_unique_name` | Unique database name |
-| `ORADBA_DBID` | `v$database.dbid` | Database ID |
-| `ORADBA_DB_ROLE` | `v$database.database_role` | Database role (PRIMARY, STANDBY) |
-| `ORADBA_DB_VERSION` | `v$instance.version` | Database version |
-| `ORADBA_DIAGNOSTIC_DEST` | `v$parameter.diagnostic_dest` | Diagnostic directory |
+| Variable                 | Source                        | Description                      |
+|--------------------------|-------------------------------|----------------------------------|
+| `ORADBA_DB_NAME`         | `v$database.name`             | Database name                    |
+| `ORADBA_DB_UNIQUE_NAME`  | `v$database.db_unique_name`   | Unique database name             |
+| `ORADBA_DBID`            | `v$database.dbid`             | Database ID                      |
+| `ORADBA_DB_ROLE`         | `v$database.database_role`    | Database role (PRIMARY, STANDBY) |
+| `ORADBA_DB_VERSION`      | `v$instance.version`          | Database version                 |
+| `ORADBA_DIAGNOSTIC_DEST` | `v$parameter.diagnostic_dest` | Diagnostic directory             |
 
 ### Backup Variables (SID-specific, customizable)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORADBA_DB_BACKUP_DIR` | `${BACKUP_DIR}/${ORACLE_SID}` | Database backup directory |
-| `ORADBA_BACKUP_RETENTION` | `7` | Backup retention (days) |
-| `ORADBA_BACKUP_TYPE` | `INCREMENTAL` | Backup type |
-| `ORADBA_BACKUP_COMPRESSION` | `MEDIUM` | Compression level |
+| Variable                    | Default                       | Description               |
+|-----------------------------|-------------------------------|---------------------------|
+| `ORADBA_DB_BACKUP_DIR`      | `${BACKUP_DIR}/${ORACLE_SID}` | Database backup directory |
+| `ORADBA_BACKUP_RETENTION`   | `7`                           | Backup retention (days)   |
+| `ORADBA_BACKUP_TYPE`        | `INCREMENTAL`                 | Backup type               |
+| `ORADBA_BACKUP_COMPRESSION` | `MEDIUM`                      | Compression level         |
 
 ## Troubleshooting
 
@@ -530,7 +543,8 @@ cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example \
 
 ### Variables Not Persisting
 
-Configuration files are sourced, not exported. For custom variables to persist across shells:
+Configuration files are sourced, not exported. For custom variables to persist
+across shells:
 
 ```bash
 # In oradba_customer.conf:
@@ -541,7 +555,7 @@ export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 
 1. **Never modify core or standard configs** - Use customer config for overrides
 2. **Use oradba_customer.conf for global settings** - All your customizations in one place
-3. **Use sid.<SID>.conf for database-specific settings** - Per-database customization
+3. **Use sid.\<SID>.conf for database-specific settings** - Per-database customization
 4. **Comment your customizations** - Explain why you changed defaults
 5. **Backup your configs** - Keep copies of customer and SID configs
 6. **Test configuration changes** - Use DEBUG=1 to verify loading

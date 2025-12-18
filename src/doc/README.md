@@ -6,6 +6,14 @@ Complete user guides and reference materials for the Oracle Database Administrat
 
 **For Developers:** See [Developer Documentation](../../doc/README.md) for contribution guides and technical details.
 
+## 📖 Complete User Guide
+
+The complete OraDBA user documentation is available in multiple formats:
+
+- **[PDF User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** - Download for offline use
+- **[HTML User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** - Single-page HTML version
+- **Browse Online** - Individual chapters below
+
 ## Documentation Overview
 
 This documentation is organized to take you from installation through advanced usage:

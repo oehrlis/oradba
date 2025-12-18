@@ -283,6 +283,7 @@ PRODCDB:/u01/app/oracle/product/19c/dbhome_1:N
 ```
 
 **Startup Flags:**
+
 - `Y` - Database should auto-start
 - `N` - Manual startup required
 - `D` - Dummy entry (e.g., for Data Guard Broker)
@@ -332,7 +333,7 @@ The installer uses this priority for default prefix:
 
 After installation:
 
-```
+```text
 ${PREFIX}/
 ├── bin/                    # Executable scripts
 │   ├── oraenv.sh          # Environment setup

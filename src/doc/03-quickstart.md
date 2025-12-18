@@ -2,7 +2,9 @@
 
 ## Introduction
 
-This guide helps you get started with OraDBA quickly after installation. You'll learn how to set up your oratab file, switch between databases, and perform common tasks.
+This guide helps you get started with OraDBA quickly after installation. You'll
+learn how to set up your oratab file, switch between databases, and perform
+common tasks.
 
 ## Prerequisites
 
@@ -28,7 +30,9 @@ TESTDB:/u01/app/oracle/product/19.0.0/dbhome_2:Y
 PRODDB:/u01/app/oracle/product/21.0.0/dbhome_1:N
 ```
 
-**Note:** The startup flag (Y/N/D) is mainly for documentation purposes in OraDBA. It doesn't trigger automatic database startup but helps identify production vs development databases.
+**Note:** The startup flag (Y/N/D) is mainly for documentation purposes in OraDBA.
+It doesn't trigger automatic database startup but helps identify production vs
+development databases.
 
 ### 2. Set Your Oracle Environment
 

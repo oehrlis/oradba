@@ -57,6 +57,7 @@ Start here if you're new to OraDBA development:
 ### Configuration & Features
 
 > **Note:** User-facing documentation for configuration, aliases, PDB aliases, and rlwrap filter has been migrated to the user documentation in `../src/doc/`:
+>
 > - Configuration: `../src/doc/05-configuration.md`
 > - Shell Aliases: `../src/doc/06-aliases.md`
 > - PDB Aliases: `../src/doc/07-pdb-aliases.md`
@@ -114,7 +115,7 @@ make tag                   # Create git tag
 
 - Use ATX-style headers (`#` instead of underlines)
 - One sentence per line for easier diffs
-- Code blocks must specify language (```bash, ```sql, etc.)
+- Code blocks must specify language (```bash,```sql, etc.)
 - Internal links use relative paths
 - External links use full URLs
 - Follow [markdownlint](MARKDOWN_LINTING.md) rules

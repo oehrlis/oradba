@@ -2,11 +2,15 @@
 
 ## Introduction
 
-This chapter covers the `oraenv.sh` script in detail - OraDBA's core component for managing Oracle database environments. Learn how to use it effectively in interactive shells, scripts, and automation.
+This chapter covers the `oraenv.sh` script in detail - OraDBA's core component
+for managing Oracle database environments. Learn how to use it effectively in
+interactive shells, scripts, and automation.
 
 ## oraenv.sh Overview
 
-The `oraenv.sh` script sets up your Oracle environment based on the oratab file. It configures all necessary environment variables, loads OraDBA configurations, and can display database status.
+The `oraenv.sh` script sets up your Oracle environment based on the oratab file.
+It configures all necessary environment variables, loads OraDBA configurations,
+and can display database status.
 
 **Key features:**
 
@@ -215,6 +219,7 @@ When you source `oraenv.sh`, it loads configurations in this order:
    - Final overrides
 
 This hierarchical approach allows:
+
 - Default settings that work everywhere
 - Database-specific customization
 - Personal preferences
@@ -453,31 +458,31 @@ sqlplus / as sysdba <<< "SELECT name, open_mode FROM v\$database;"
 
 ### Standard Oracle Variables
 
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `ORACLE_SID` | System Identifier | `FREE` |
-| `ORACLE_HOME` | Installation directory | `/u01/app/oracle/product/19.0.0/dbhome_1` |
-| `ORACLE_BASE` | Base directory | `/u01/app/oracle` |
-| `ORACLE_UNQNAME` | Unique database name | `FREE` (or `FREE_STBY` for standby) |
-| `TNS_ADMIN` | TNS configuration location | `$ORACLE_HOME/network/admin` |
+| Variable         | Description                | Example Value                             |
+|------------------|----------------------------|-------------------------------------------|
+| `ORACLE_SID`     | System Identifier          | `FREE`                                    |
+| `ORACLE_HOME`    | Installation directory     | `/u01/app/oracle/product/19.0.0/dbhome_1` |
+| `ORACLE_BASE`    | Base directory             | `/u01/app/oracle`                         |
+| `ORACLE_UNQNAME` | Unique database name       | `FREE` (or `FREE_STBY` for standby)       |
+| `TNS_ADMIN`      | TNS configuration location | `$ORACLE_HOME/network/admin`              |
 
 ### NLS Variables
 
-| Variable | Description | Default Value |
-|----------|-------------|---------------|
-| `NLS_LANG` | Language and character set | `AMERICAN_AMERICA.AL32UTF8` |
-| `NLS_DATE_FORMAT` | Date display format | `YYYY-MM-DD HH24:MI:SS` |
-| `NLS_TIMESTAMP_FORMAT` | Timestamp format | `YYYY-MM-DD HH24:MI:SS.FF` |
+| Variable               | Description                | Default Value               |
+|------------------------|----------------------------|-----------------------------|
+| `NLS_LANG`             | Language and character set | `AMERICAN_AMERICA.AL32UTF8` |
+| `NLS_DATE_FORMAT`      | Date display format        | `YYYY-MM-DD HH24:MI:SS`     |
+| `NLS_TIMESTAMP_FORMAT` | Timestamp format           | `YYYY-MM-DD HH24:MI:SS.FF`  |
 
 ### OraDBA Variables
 
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `ORADBA_PREFIX` | Installation directory | `/opt/oradba` |
-| `ORADBA_VERSION` | Version number | `0.7.4` |
-| `ORADBA_ETC` | Configuration directory | `$ORADBA_PREFIX/etc` |
-| `ORADBA_LOG` | Log directory | `$ORADBA_PREFIX/log` |
-| `ORADBA_SIDLIST` | All SIDs from oratab | `FREE TESTDB PRODDB` |
+| Variable         | Description             | Example Value        |
+|------------------|-------------------------|----------------------|
+| `ORADBA_PREFIX`  | Installation directory  | `/opt/oradba`        |
+| `ORADBA_VERSION` | Version number          | `0.7.4`              |
+| `ORADBA_ETC`     | Configuration directory | `$ORADBA_PREFIX/etc` |
+| `ORADBA_LOG`     | Log directory           | `$ORADBA_PREFIX/log` |
+| `ORADBA_SIDLIST` | All SIDs from oratab    | `FREE TESTDB PRODDB` |
 
 ## Troubleshooting
 

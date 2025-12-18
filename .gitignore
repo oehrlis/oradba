@@ -16,6 +16,10 @@
 /dist/
 /build/
 
+# Generated documentation
+src/doc/*.pdf
+src/doc/*.html
+
 # Archives
 *.tar.gz
 *.zip
