@@ -11,15 +11,14 @@ Welcome to the oradba developer documentation. This directory contains technical
 
 Start here if you're new to OraDBA development:
 
-1. **[QUICKSTART.md](QUICKSTART.md)** - Installation, system setup, and first steps
-2. **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow, testing, and contribution process
-3. **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design, components, and decisions
+1. **[development.md](development.md)** - Development workflow, testing, and contribution process
+2. **[architecture.md](architecture.md)** - System design, components, and decisions
 
 ## Core Documentation
 
 ### Development
 
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Complete development guide
+- **[development.md](development.md)** - Complete development guide
   - Project structure and components
   - Development workflow and Git practices
   - Testing with BATS framework
@@ -29,27 +28,27 @@ Start here if you're new to OraDBA development:
 
 ### Architecture & Design
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture
+- **[architecture.md](architecture.md)** - System architecture
   - Overall design principles
   - Component interactions
   - Configuration system hierarchy
   - Environment loading sequence
   - Alias generation mechanism
 
-- **[STRUCTURE.md](STRUCTURE.md)** - Project structure
+- **[structure.md](structure.md)** - Project structure
   - Directory organization
   - File naming conventions
   - Module boundaries
 
 ### Technical Reference
 
-- **[API.md](API.md)** - Internal API documentation
+- **[api.md](api.md)** - Internal API documentation
   - Library functions in `src/lib/common.sh`
   - Script interfaces and contracts
   - Environment variables
   - Return codes and error handling
 
-- **[VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md)** - Version system internals
+- **[version-management.md](version-management.md)** - Version system internals
   - Semantic versioning implementation
   - Version comparison functions
   - Installation metadata
@@ -57,33 +56,15 @@ Start here if you're new to OraDBA development:
 
 ### Configuration & Features
 
-- **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration system deep dive
-  - 5-level hierarchy implementation
-  - Configuration file formats
-  - Override mechanisms
-  - SID-specific configurations
-  - Customer customization patterns
-
-- **[ALIASES.md](ALIASES.md)** - Alias system reference
-  - All 50+ aliases with implementations
-  - Alias generation code
-  - Dynamic alias creation
-  - Customization options
-
-- **[PDB_ALIASES.md](PDB_ALIASES.md)** - PDB alias subsystem
-  - PDB detection logic
-  - Auto-generated PDB aliases
-  - Configuration options
-  - Implementation details
-
-- **[RLWRAP_FILTER.md](RLWRAP_FILTER.md)** - Password filtering
-  - Perl RlwrapFilter integration
-  - Password detection patterns
-  - Configuration and troubleshooting
+> **Note:** User-facing documentation for configuration, aliases, PDB aliases, and rlwrap filter has been migrated to the user documentation in `../src/doc/`:
+> - Configuration: `../src/doc/05-configuration.md`
+> - Shell Aliases: `../src/doc/06-aliases.md`
+> - PDB Aliases: `../src/doc/07-pdb-aliases.md`
+> - rlwrap Filter: `../src/doc/11-rlwrap.md`
 
 ### Standards & Tools
 
-- **[MARKDOWN_LINTING.md](MARKDOWN_LINTING.md)** - Documentation standards
+- **[markdown-linting.md](markdown-linting.md)** - Documentation standards
   - Markdown linting rules
   - markdownlint configuration
   - Documentation best practices
