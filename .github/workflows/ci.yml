@@ -67,18 +67,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Generate PDF documentation
+      - name: Generate documentation
         run: |
           docker pull oehrlis/pandoc:latest
-          make docs-pdf
-      
-      - name: Generate HTML documentation  
-        run: |
-          docker run --rm -v $(pwd)/src/doc:/workdir oehrlis/pandoc:latest \
-            pandoc ??-*.md -o ../../dist/oradba-user-guide.html \
-            --metadata-file=metadata.yml \
-            --toc --toc-depth=3 \
-            --standalone
+          make docs
       
       - name: Upload documentation artifacts
         uses: actions/upload-artifact@v4
