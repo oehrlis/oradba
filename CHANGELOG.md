@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.15] - 2025-12-18
+
+### Fixed
+
+- **Auto-Create Debugging**: Enhanced error messaging and debugging output
+  - Messages now written to stderr to bypass output redirections
+  - Added explicit warnings when config file creation fails
+  - Better visibility of ORADBA_AUTO_CREATE_SID_CONFIG setting
+  - Helps diagnose why SID configs aren't being created
+
+### Improved
+
+- Error messages more visible even in silent mode
+- Better debugging for auto-create troubleshooting
+
 ## [0.7.14] - 2025-12-18
 
 ### Fixed
@@ -44,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/bin/oradba_install.sh`: Added version detection after tarball extraction
 - Reads `VERSION` file from temp directory before copying to installation directory
 - Updates internal `INSTALLER_VERSION` variable for accurate metadata recording
+
 ## [0.7.12] - 2025-12-18
 
 ### Fixed

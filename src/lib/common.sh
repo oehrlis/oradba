@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.14
+# Revision...: 0.7.15
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -357,16 +357,23 @@ load_config() {
             
             # Auto-create SID config if enabled
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
+                log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                 if create_sid_config "${sid}"; then
                     # Source the newly created config file
                     if [[ -f "${sid_config}" ]]; then
                         log_debug "Loading newly created SID config: ${sid_config}"
                         # shellcheck source=/dev/null
                         source "${sid_config}"
+                    else
+                        echo "[WARN] Config file was not created: ${sid_config}" >&2
+                        log_warn "Config file was not created after successful return: ${sid_config}"
                     fi
                 else
+                    echo "[WARN] Failed to auto-create SID config for ${sid}" >&2
                     log_warn "Failed to auto-create SID config for ${sid}"
                 fi
+            else
+                log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
             fi
         fi
     fi
@@ -388,14 +395,15 @@ create_sid_config() {
     
     # Check if config directory is writable
     if [[ ! -w "${config_dir}" ]]; then
+        echo "[ERROR] Config directory is not writable: ${config_dir}" >&2
         log_error "Config directory is not writable: ${config_dir}"
         log_error "Cannot create SID configuration file. Run with appropriate permissions."
         return 1
     fi
     
-    # User-visible message
-    echo ""
-    echo "[INFO] Auto-creating SID configuration for ${sid}..."
+    # User-visible message (write to stderr to bypass any redirections)
+    echo "" >&2
+    echo "[INFO] Auto-creating SID configuration for ${sid}..." >&2
     log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
@@ -404,10 +412,11 @@ create_sid_config() {
         # Copy example and replace ORCL with actual SID
         if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
             "${example_config}" > "${sid_config}"; then
-            echo "[INFO] ✓ Created SID configuration: ${sid_config}"
+            echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
             log_info "Created SID configuration from template: ${sid_config}"
             return 0
         else
+            echo "[ERROR] Failed to create config from template" >&2
             log_error "Failed to create config from template"
             return 1
         fi
