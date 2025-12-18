@@ -855,6 +855,18 @@ perform_update() {
     
     # Get current version
     current_version=$(get_installed_version "$install_dir")
+    
+    # Try to get new version from extracted tarball (for GitHub/local installs)
+    if [[ -f "$TEMP_DIR/VERSION" ]]; then
+        new_version=$(cat "$TEMP_DIR/VERSION" 2>/dev/null || echo "$INSTALLER_VERSION")
+    elif [[ -n "$TEMP_DIR" ]]; then
+        # Look for VERSION file in extracted directory structure
+        local extracted_version=$(find "$TEMP_DIR" -name "VERSION" -type f 2>/dev/null | head -1)
+        if [[ -n "$extracted_version" ]]; then
+            new_version=$(cat "$extracted_version" 2>/dev/null || echo "$INSTALLER_VERSION")
+        fi
+    fi
+    
     log_info "Current version: $current_version"
     log_info "New version: $new_version"
     
@@ -1161,6 +1173,9 @@ fi
 update_profile "$INSTALL_PREFIX"
 
 # Installation complete
+# Get actual installed version for display
+INSTALLED_VERSION=$(cat "$INSTALL_PREFIX/VERSION" 2>/dev/null || echo "$INSTALLER_VERSION")
+
 echo ""
 echo "========================================="
 if [[ "$UPDATE_MODE" == "true" ]]; then
@@ -1168,7 +1183,7 @@ if [[ "$UPDATE_MODE" == "true" ]]; then
     echo "========================================="
     echo ""
     echo "oradba has been updated at: $INSTALL_PREFIX"
-    echo "New version: $INSTALLER_VERSION"
+    echo "New version: $INSTALLED_VERSION"
     echo ""
     echo "Configuration files have been preserved"
 else
