@@ -147,7 +147,7 @@ lint-scripts: ## Check for common script issues
 lint-markdown: ## Lint Markdown files with markdownlint
 	@echo -e "$(COLOR_BLUE)Linting Markdown files...$(COLOR_RESET)"
 	@if [ -n "$(MARKDOWNLINT)" ]; then \
-		$(MARKDOWNLINT) --config .markdownlint.yaml *.md doc/*.md src/doc/*.md || exit 1; \
+		$(MARKDOWNLINT) --config .markdownlint.yaml '**/*.md' --ignore node_modules --ignore dist --ignore build || exit 1; \
 		echo -e "$(COLOR_GREEN)✓ Markdown files passed linting$(COLOR_RESET)"; \
 	else \
 		echo -e "$(COLOR_YELLOW)Warning: markdownlint not found. Install with: npm install -g markdownlint-cli$(COLOR_RESET)"; \
