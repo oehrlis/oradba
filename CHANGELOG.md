@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.7] - 2025-12-18
+
+### Fixed
+
+- **CI/CD Workflow**:
+  - Fixed release workflow to use `make build` instead of manual tar creation
+  - Tarball now correctly named `oradba-VERSION.tar.gz` instead of `oradba-VERSION-src.tar.gz`
+  - Ensures uploaded tarball has version substitution in installer
+  - `--update --github` now works correctly with CI/CD generated releases
+
 ## [0.7.6] - 2025-12-18
 
 ### Fixed
