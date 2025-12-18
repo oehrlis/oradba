@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Administration Toolset
 # ------------------------------------------------------------------------------

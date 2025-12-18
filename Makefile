@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.4
+# Revision...: 0.7.5
 # Purpose....: Development workflow automation for OraDBA project. Provides
 #              targets for testing, linting, formatting, building, and releasing.
 # Notes......: Use 'make help' to show all available targets
@@ -129,9 +129,19 @@ lint: lint-shell lint-scripts lint-markdown ## Run all linters
 lint-shell: ## Lint shell scripts with shellcheck
 	@echo -e "$(COLOR_BLUE)Linting shell scripts...$(COLOR_RESET)"
 	@if [ -n "$(SHELLCHECK)" ]; then \
+		echo -e "$(COLOR_BLUE)  Checking main scripts...$(COLOR_RESET)"; \
 		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
 			xargs $(SHELLCHECK) -x -S warning || exit 1; \
-		echo -e "$(COLOR_GREEN)✓ Shell scripts passed linting$(COLOR_RESET)"; \
+		echo -e "$(COLOR_BLUE)  Checking test scripts...$(COLOR_RESET)"; \
+		find tests -name "*.sh" -type f | \
+			xargs $(SHELLCHECK) -x -S warning || exit 1; \
+		echo -e "$(COLOR_BLUE)  Checking BATS test files...$(COLOR_RESET)"; \
+		find tests -name "*.bats" -type f | \
+			xargs $(SHELLCHECK) -x -S warning || exit 1; \
+		echo -e "$(COLOR_BLUE)  Checking configuration files...$(COLOR_RESET)"; \
+		find $(ETC_DIR) -name "*.conf" -o -name "*.example" -type f | \
+			xargs $(SHELLCHECK) -x -S warning || exit 1; \
+		echo -e "$(COLOR_GREEN)✓ All shell scripts passed linting$(COLOR_RESET)"; \
 	else \
 		echo -e "$(COLOR_RED)Error: shellcheck not found. Install with: brew install shellcheck$(COLOR_RESET)"; \
 		exit 1; \

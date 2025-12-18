@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -188,8 +189,8 @@ teardown() {
     
     # Verify variable is set correctly
     [ -n "${ORADBA_SID_ALERTLOG}" ]
-    [[ "${ORADBA_SID_ALERTLOG}" =~ "alert_TESTDB.log" ]]
-    [[ "${ORADBA_SID_ALERTLOG}" =~ "/trace/" ]]
+    [[ "${ORADBA_SID_ALERTLOG}" =~ alert_TESTDB.log ]]
+    [[ "${ORADBA_SID_ALERTLOG}" =~ /trace/ ]]
 }
 
 @test "generate_sid_aliases creates cdda alias when diagnostic dest exists" {
@@ -442,19 +443,13 @@ teardown() {
 }
 
 @test "aliases.sh functions don't pollute environment with unexpected variables" {
-    # Capture current variables
-    local vars_before=$(compgen -v | sort)
-    
     # Run alias generation
     export ORACLE_SID="TESTDB"
     export ORACLE_BASE="${TEMP_TEST_DIR}/oracle"
     generate_sid_aliases
     
-    # Capture variables after
-    local vars_after=$(compgen -v | sort)
-    
     # Should not have unexpected new variables (some test framework vars are OK)
     # Main concern is no leaked 'sid', 'diag_dest', etc. at global scope
     run bash -c "declare -p sid 2>&1"
-    [[ "$output" =~ "not found" ]] || [[ "$output" =~ "not set" ]]
+    [[ "$output" =~ (not found|not set) ]]
 }

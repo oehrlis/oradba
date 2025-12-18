@@ -66,6 +66,7 @@ main() {
                 version
                 ;;
             -d|--debug)
+                # shellcheck disable=SC2034  # debug_mode may be used in scripts based on this template
                 debug_mode=true
                 export DEBUG=1
                 shift

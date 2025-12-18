@@ -12,8 +12,12 @@
 
 # Setup function - runs before each test
 setup() {
-    export TEST_DIR=$(mktemp -d)
-    export PROJECT_ROOT="$(cd "$(dirname "${BATS_TEST_DIRNAME}")" && pwd)"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    export TEST_DIR="${temp_dir}"
+    local root_dir
+    root_dir="$(cd "$(dirname "${BATS_TEST_DIRNAME}")" && pwd)"
+    export PROJECT_ROOT="${root_dir}"
     
     # Create etc directory structure
     mkdir -p "${TEST_DIR}/etc"
@@ -98,7 +102,8 @@ teardown() {
 
 @test "Date stamp is updated in created config" {
     local sid="FREE"
-    local today=$(date '+%Y.%m.%d')
+    local today
+    today=$(date '+%Y.%m.%d')
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Date.......: .*/Date.......: ${today}/" \
@@ -109,7 +114,8 @@ teardown() {
 
 @test "Auto-created comment is updated" {
     local sid="FREE"
-    local timestamp=$(date '+%Y-%m-%d %H:%M')
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M')
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Auto-created on first environment switch/Auto-created: ${timestamp}/" \

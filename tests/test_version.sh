@@ -110,7 +110,7 @@ echo ""
 # Test 11: Set and get install info
 echo "Test 11: Set/Get install info"
 TEMP_DIR=$(mktemp -d)
-ORADBA_BASE="${TEMP_DIR}"
+export ORADBA_BASE="${TEMP_DIR}"
 init_install_info "0.6.1"
 set_install_info "test_key" "test_value"
 TEST_VALUE=$(get_install_info "test_key")

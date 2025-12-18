@@ -154,7 +154,7 @@ teardown() {
     run "$ORADBA_VERSION" --verify
     [[ "$status" -eq 1 ]]
     # Check for clean output format
-    [[ "$output" =~ "bin/test.sh: MODIFIED" ]]
+    [[ "$output" =~ bin/test\.sh:\ MODIFIED ]]
     [[ "$output" =~ "Summary:" ]]
     [[ "$output" =~ "Modified files: 1" ]]
 }
@@ -175,7 +175,7 @@ teardown() {
     run "$ORADBA_VERSION" --verify
     [[ "$status" -eq 1 ]]
     # Check for missing file in clean format
-    [[ "$output" =~ "bin/missing.sh: MISSING" ]]
+    [[ "$output" =~ bin/missing\.sh:\ MISSING ]]
     [[ "$output" =~ "Summary:" ]]
     [[ "$output" =~ "Missing files:" ]]
 }

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Example oratab file for testing
 # Format: SID:ORACLE_HOME:STARTUP_FLAG
 #

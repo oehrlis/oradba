@@ -52,7 +52,7 @@ teardown() {
 @test "oradba_check.sh --version displays version" {
     run "$CHECK_SCRIPT" --version
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "0.7" ]]
+    [[ "$output" =~ 0.7 ]]
 }
 
 @test "oradba_check.sh handles invalid option" {
@@ -176,7 +176,7 @@ EOF
     run "$CHECK_SCRIPT" --dir "${TEST_TEMP_DIR}/oradba"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OraDBA directory exists" ]]
-    [[ "$output" =~ ".install_info found" ]]
+    [[ "$output" =~ \.install_info\ found ]]
 }
 
 # ============================================================================

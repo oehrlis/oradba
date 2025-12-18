@@ -7,26 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.5] - 2025-12-18
+
 ### Added
 
-- **Core Configuration** (#28):
-  - ORADBA_LOCAL_BASE variable for parent directory (auto-detected from ORACLE_BASE/local or ORADBA_PREFIX parent)
-  - ORADBA_BIN_DIR and ORADBA_BIN variables for binary directory  
-  - ORADBA_BASE alias for TVD BasEnv compatibility (equals ORADBA_PREFIX)
-  - Automatic PATH configuration: ORADBA_BIN_DIR added to PATH when config loaded (prevents duplicates)
-  - Tests for all new variables and PATH logic
-
-### Changed
-
-- **Directory Aliases** (#28):
-  - cdl alias now uses ORADBA_LOCAL_BASE instead of hardcoded ${ORACLE_BASE}/local
-  - Supports flexible installation structures (standalone /opt/oradba or nested /opt/oracle/local/oradba)
+- **Linting Improvements** (#29):
+  - Enhanced Makefile lint-shell target to cover tests, BATS files, and configuration files
+  - Comprehensive shellcheck coverage across the entire codebase
 
 ### Fixed
 
-- **PATH Configuration** (#28):
-  - OraDBA bin directory now automatically added to PATH on config load
-  - PATH updated correctly even when sourcing oraenv.sh multiple times
+- **Code Quality** (#29):
+  - Fixed shellcheck warnings across all shell scripts, tests, and configuration files
+  - Added proper shellcheck disable directives with explanations where necessary
+  - Fixed quote issues in alias definitions (rmanc, rmanch)
+  - Improved regex patterns in BATS tests (removed unnecessary quotes)
+  - Fixed variable scoping and command substitution patterns
+  - Added shebang lines to example configuration files
+  - Corrected PS1BASH variable expansion handling
 
 ## [0.7.4] - 2025-12-18
 

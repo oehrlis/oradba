@@ -45,7 +45,8 @@ test_alias() {
     TOTAL=$((TOTAL + 1))
     
     if alias "${alias_name}" >/dev/null 2>&1; then
-        local alias_def=$(alias "${alias_name}" 2>/dev/null | sed "s/^alias ${alias_name}=//")
+        local alias_def
+        alias_def=$(alias "${alias_name}" 2>/dev/null | sed "s/^alias ${alias_name}=//")
         echo -e "${GREEN}✓${NC} ${alias_name} → ${alias_def}"
         PASSED=$((PASSED + 1))
     else

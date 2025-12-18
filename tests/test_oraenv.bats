@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -197,8 +198,8 @@ teardown() {
     "
     [ "$status" -eq 0 ]
     # Should not show environment details
-    ! [[ "$output" =~ "Oracle Environment:" ]]
-    ! [[ "$output" =~ "ORACLE_HOME" ]]
+    [[ ! "$output" =~ "Oracle Environment:" ]]
+    [[ ! "$output" =~ "ORACLE_HOME" ]]
 }
 
 @test "oraenv.sh integration: --help shows usage" {
@@ -225,5 +226,5 @@ teardown() {
         source '$ORAENV_SCRIPT' CDB1 --silent 2>&1
         echo \$PATH
     ")
-    [[ "$result" =~ "${TEST_TEMP_DIR}/oracle/21c/bin" ]]
+    [[ "$result" =~ ${TEST_TEMP_DIR}/oracle/21c/bin ]]
 }

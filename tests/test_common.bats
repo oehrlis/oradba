@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -36,7 +37,8 @@ teardown() {
 }
 
 @test "get_script_dir returns valid directory" {
-    local script_dir=$(get_script_dir)
+    local script_dir
+    script_dir=$(get_script_dir)
     [ -d "$script_dir" ]
 }
 
@@ -92,7 +94,7 @@ EOF
     
     run parse_oratab "FREE" "$mock_oratab"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N" ]]
+    [[ "$output" =~ FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N ]]
 }
 
 @test "parse_oratab fails for non-existing SID" {
