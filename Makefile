@@ -204,14 +204,17 @@ validate: ## Validate configuration files
 build: clean clean-test-configs ## Build distribution archive and installer
 	@echo -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
-	@$(TAR) czf $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz \
-		--exclude='.git' \
-		--exclude='$(DIST_DIR)' \
-		--exclude='.github' \
-		--exclude='*.bats' \
-		--exclude='tests' \
+	@# Create temporary copy with version substitution
+	@mkdir -p $(DIST_DIR)/.tmp_build
+	@cp -r $(SRC_DIR) $(SCRIPTS_DIR) README.md LICENSE CHANGELOG.md VERSION $(DIST_DIR)/.tmp_build/
+	@# Substitute version in installer
+	@sed -i.bak 's/__VERSION__/$(VERSION)/g' $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh
+	@rm -f $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh.bak
+	@# Create tarball from temp directory
+	@cd $(DIST_DIR)/.tmp_build && $(TAR) czf ../$(PROJECT_NAME)-$(VERSION).tar.gz \
 		--transform 's,^,$(PROJECT_NAME)-$(VERSION)/,' \
-		$(SRC_DIR) $(SCRIPTS_DIR) README.md LICENSE CHANGELOG.md VERSION
+		*
+	@rm -rf $(DIST_DIR)/.tmp_build
 	@echo -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
 	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
 	@echo -e "$(COLOR_BLUE)Building installer script...$(COLOR_RESET)"
