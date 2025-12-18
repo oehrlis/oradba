@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.8] - 2025-12-18
+
+### Fixed
+
+- **Build System**: Fixed tarball structure to have flat file layout instead of nested directory
+  - Removed `--transform` flag from tar command that was adding directory prefix
+  - Tarball now contains `src/`, `scripts/`, etc. at root level as installer expects
+  - Fixes extraction issue where files were nested in `oradba-VERSION/` subdirectory
+  - Enables `--update --github` to correctly detect and install new version
+
 ## [0.7.7] - 2025-12-18
 
 ### Fixed

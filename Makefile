@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.7
+# Revision...: 0.7.8
 # Purpose....: Development workflow automation for OraDBA project. Provides
 #              targets for testing, linting, formatting, building, and releasing.
 # Notes......: Use 'make help' to show all available targets
@@ -210,10 +210,8 @@ build: clean clean-test-configs ## Build distribution archive and installer
 	@# Substitute version in installer
 	@sed -i.bak 's/__VERSION__/$(VERSION)/g' $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh
 	@rm -f $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh.bak
-	@# Create tarball from temp directory
-	@cd $(DIST_DIR)/.tmp_build && $(TAR) czf ../$(PROJECT_NAME)-$(VERSION).tar.gz \
-		--transform 's,^,$(PROJECT_NAME)-$(VERSION)/,' \
-		*
+	@# Create tarball from temp directory (no directory prefix for flat structure)
+	@cd $(DIST_DIR)/.tmp_build && $(TAR) czf ../$(PROJECT_NAME)-$(VERSION).tar.gz *
 	@rm -rf $(DIST_DIR)/.tmp_build
 	@echo -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
 	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
