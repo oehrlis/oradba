@@ -11,6 +11,8 @@
 # Notes......: Copy this file to oradba_customer.conf and customize as needed
 #              Settings here override oradba_core.conf and oradba_standard.conf
 # ------------------------------------------------------------------------------
+# shellcheck shell=bash disable=SC2034
+# Config file defines variables for consumers; unused warnings are expected.
 
 # ------------------------------------------------------------------------------
 # Example: Customize Oracle Environment

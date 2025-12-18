@@ -11,6 +11,8 @@
 # Notes......: Auto-created on first environment switch to ORACLE_SID=ORCL
 #              Copy this file to sid.<YOUR_SID>.conf and customize as needed
 # ------------------------------------------------------------------------------
+# shellcheck shell=bash disable=SC2034
+# Config file defines variables for consumers; unused warnings are expected.
 
 # ------------------------------------------------------------------------------
 # Database Identity (populated from v$database on first connection)
