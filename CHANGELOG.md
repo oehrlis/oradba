@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.9] - 2025-12-18
+
+### Changed
+
+- **Build System**: Unified tarball creation process
+  - `build_installer.sh` now creates single distribution tarball in `dist/` directory
+  - Same tarball used for both GitHub releases and installer payload
+  - Tarball includes `.oradba.checksum` file for integrity verification
+  - Eliminates duplicate tarball creation in Makefile
+  - Fixes checksum verification during `--update --github` installations
+
+### Fixed
+
+- **Installer**: Installation integrity verification now works correctly
+  - Distribution tarball includes `.oradba.checksum` file
+  - GitHub release tarball matches installer payload exactly
+  - Resolves "Installation integrity verification FAILED" errors
+
 ## [0.7.8] - 2025-12-18
 
 ### Fixed

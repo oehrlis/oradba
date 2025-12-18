@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.8
+# Revision...: 0.7.9
 # Purpose....: Development workflow automation for OraDBA project. Provides
 #              targets for testing, linting, formatting, building, and releasing.
 # Notes......: Use 'make help' to show all available targets
@@ -202,23 +202,10 @@ validate: ## Validate configuration files
 
 .PHONY: build
 build: clean clean-test-configs ## Build distribution archive and installer
-	@echo -e "$(COLOR_BLUE)Building OraDBA distribution...$(COLOR_RESET)"
-	@mkdir -p $(DIST_DIR)
-	@# Create temporary copy with version substitution
-	@mkdir -p $(DIST_DIR)/.tmp_build
-	@cp -r $(SRC_DIR) $(SCRIPTS_DIR) README.md LICENSE CHANGELOG.md VERSION $(DIST_DIR)/.tmp_build/
-	@# Substitute version in installer
-	@sed -i.bak 's/__VERSION__/$(VERSION)/g' $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh
-	@rm -f $(DIST_DIR)/.tmp_build/$(SRC_DIR)/bin/oradba_install.sh.bak
-	@# Create tarball from temp directory (no directory prefix for flat structure)
-	@cd $(DIST_DIR)/.tmp_build && $(TAR) czf ../$(PROJECT_NAME)-$(VERSION).tar.gz *
-	@rm -rf $(DIST_DIR)/.tmp_build
-	@echo -e "$(COLOR_GREEN)✓ Distribution archive created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz$(COLOR_RESET)"
-	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
-	@echo -e "$(COLOR_BLUE)Building installer script...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Building OraDBA distribution and installer...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/build_installer.sh
-	@echo -e "$(COLOR_GREEN)✓ Installer created: $(DIST_DIR)/oradba_install.sh$(COLOR_RESET)"
-	@ls -lh $(DIST_DIR)/oradba_install.sh
+	@echo -e "$(COLOR_GREEN)✓ Build complete$(COLOR_RESET)"
+	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz $(DIST_DIR)/oradba_install.sh
 
 .PHONY: install
 install: ## Install OraDBA locally

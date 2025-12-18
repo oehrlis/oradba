@@ -5,8 +5,8 @@
 # Name.......: build_installer.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
-# Revision...: 0.6.1
+# Date.......: 2025.12.18
+# Revision...: 0.7.9
 # Purpose....: Build self-contained installer with base64 payload and version management
 # Notes......: Creates a single executable installer with embedded tarball.
 #              Packages src/ directory and creates distribution installer.
@@ -27,7 +27,7 @@ VERSION=$(cat VERSION 2> /dev/null || echo "0.1.0")
 BUILD_DIR="build"
 DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
-PAYLOAD_FILE="${BUILD_DIR}/${PACKAGE_NAME}.tar.gz"
+DIST_TARBALL="${DIST_DIR}/${PACKAGE_NAME}.tar.gz"
 INSTALLER_OUTPUT="${DIST_DIR}/oradba_install.sh"
 
 echo "========================================="
@@ -98,8 +98,9 @@ echo "Generating checksums..."
 
 echo "Checksum file created with $(grep -c '^[^#]' "$TEMP_TAR_DIR/.oradba.checksum") entries"
 
-# Create the final tarball
-tar -czf "$PAYLOAD_FILE" \
+# Create the distribution tarball (used for both GitHub releases and installer payload)
+echo "Creating distribution tarball..."
+tar -czf "$DIST_TARBALL" \
     --exclude='.git' \
     --exclude='*.log' \
     --exclude='*.tmp' \
@@ -109,7 +110,7 @@ tar -czf "$PAYLOAD_FILE" \
 # Clean up staging directory
 rm -rf "$TEMP_TAR_DIR"
 
-echo "Payload size: $(du -h "$PAYLOAD_FILE" | cut -f1)"
+echo "Distribution tarball: $(du -h "$DIST_TARBALL" | cut -f1)"
 
 # Copy standalone installer and prepare it
 echo "Preparing installer script..."
@@ -123,9 +124,9 @@ cp "src/bin/oradba_install.sh" "$INSTALLER_OUTPUT"
 sed -i.bak "s/__VERSION__/${VERSION}/g" "$INSTALLER_OUTPUT"
 rm -f "${INSTALLER_OUTPUT}.bak"
 
-# Append base64 encoded payload
+# Append base64 encoded payload (reusing the distribution tarball)
 echo "Creating installer with embedded payload..."
-openssl base64 < "$PAYLOAD_FILE" >> "$INSTALLER_OUTPUT"
+openssl base64 < "$DIST_TARBALL" >> "$INSTALLER_OUTPUT"
 
 # Make installer executable
 chmod +x "$INSTALLER_OUTPUT"
@@ -134,9 +135,13 @@ echo ""
 echo "========================================="
 echo "Build completed successfully!"
 echo "========================================="
-echo "Installer: $INSTALLER_OUTPUT"
-echo "Size: $(du -h "$INSTALLER_OUTPUT" | cut -f1)"
+echo "Distribution: $DIST_TARBALL ($(du -h "$DIST_TARBALL" | cut -f1))"
+echo "Installer:    $INSTALLER_OUTPUT ($(du -h "$INSTALLER_OUTPUT" | cut -f1))"
 echo ""
 echo "To install:"
 echo "  $INSTALLER_OUTPUT"
+echo ""
+echo "For GitHub release, upload:"
+echo "  - $DIST_TARBALL"
+echo "  - $INSTALLER_OUTPUT"
 echo ""
