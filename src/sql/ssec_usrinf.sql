@@ -1,18 +1,19 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: ssec_usrinf.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2024.08.21
---  Revision..:  
---  Purpose...: Show session information of current user based on sys_context
---  Usage.....: @ssec_usrinf.sql
---  Notes.....: 
---  Reference.: Inspired by TVD-BasEnv sql sousrinf.sql
---  License...: Apache License Version 2.0, January 2004 as shown
+-- ------------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- ------------------------------------------------------------------------------
+-- Name.......: ssec_usrinf.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2024.08.21
+-- Revision...: 0.1.0
+-- Purpose....: Show session information of current user based on sys_context
+-- Notes......: Displays database, instance, and user session details
+-- Usage......: @ssec_usrinf.sql or use 'whoami' alias
+-- Reference..: Inspired by TVD-BasEnv sql sousrinf.sql
+--              https://github.com/oehrlis/oradba
+-- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 SET ECHO OFF
 SET serveroutput ON SIZE 10000
 SET PAGESIZE 200

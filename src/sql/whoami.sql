@@ -1,17 +1,16 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: whoami.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2024.08.21
---  Revision..:  
---  Purpose...: Alias for spsec_usrinf.sql
---  Usage.....: n/a
---  Notes.....: n/a
---  Reference.: 
---  License...: Apache License Version 2.0, January 2004 as shown
+-- ------------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- ------------------------------------------------------------------------------
+-- Name.......: whoami.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2024.08.21
+-- Revision...: 0.1.0
+-- Purpose....: Alias for ssec_usrinf.sql - shows current user information
+-- Notes......: Simple wrapper script that calls ssec_usrinf.sql
+-- Reference..: https://github.com/oehrlis/oradba
+-- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 @spsec_usrinf.sql
 -- EOF -------------------------------------------------------------------------
