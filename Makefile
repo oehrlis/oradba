@@ -243,9 +243,11 @@ docs: ## Generate all documentation (HTML and PDF)
 .PHONY: docs-prepare
 docs-prepare: ## Prepare documentation images for distribution
 	@echo -e "$(COLOR_BLUE)Preparing documentation images...$(COLOR_RESET)"
+	@mkdir -p $(USER_DOC_DIR)/images
 	@mkdir -p $(SRV_DIR)/doc/images
-	@cp -r $(USER_DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
-	@echo -e "$(COLOR_GREEN)✓ Images copied to $(SRV_DIR)/doc/images$(COLOR_RESET)"
+	@cp -r $(DOC_DIR)/images/* $(USER_DOC_DIR)/images/ 2>/dev/null || true
+	@cp -r $(DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Images copied for documentation build$(COLOR_RESET)"
 
 .PHONY: docs-html
 docs-html: docs-prepare ## Generate HTML user guide from markdown
@@ -353,10 +355,11 @@ docs-clean: ## Remove generated documentation
 	@echo -e "$(COLOR_GREEN)✓ Documentation cleaned$(COLOR_RESET)"
 
 .PHONY: docs-clean-images
-docs-clean-images: ## Remove images from srv/doc (after packaging)
-	@echo -e "$(COLOR_BLUE)Cleaning documentation images from srv/doc...$(COLOR_RESET)"
+docs-clean-images: ## Remove images from build artifacts
+	@echo -e "$(COLOR_BLUE)Cleaning documentation images from build artifacts...$(COLOR_RESET)"
+	@rm -rf $(USER_DOC_DIR)/images 2>/dev/null || true
 	@rm -rf $(SRV_DIR)/doc/images 2>/dev/null || true
-	@echo -e "$(COLOR_GREEN)✓ Documentation images cleaned$(COLOR_RESET)"
+	@echo -e "$(COLOR_GREEN)✓ Build artifact images removed$(COLOR_RESET)"
 
 .PHONY: changelog
 changelog: ## Update CHANGELOG.md from git commits
