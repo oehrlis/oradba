@@ -54,6 +54,11 @@ cp -r src/* "$TEMP_TAR_DIR/"
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
+# Substitute version in installer
+echo "Substituting version ${VERSION} in oradba_install.sh..."
+sed -i.bak "s/__VERSION__/${VERSION}/g" "$TEMP_TAR_DIR/bin/oradba_install.sh"
+rm -f "$TEMP_TAR_DIR/bin/oradba_install.sh.bak"
+
 # Note: oradba_install.sh is already included in src/bin/
 
 echo "Generating installation metadata template..."
