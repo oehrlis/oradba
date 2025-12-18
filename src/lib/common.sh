@@ -5,8 +5,8 @@
 # Name.......: common.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.5.0
+# Date.......: 2025.12.18
+# Revision...: 0.7.10
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -357,7 +357,12 @@ load_config() {
             
             # Auto-create SID config if enabled
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
-                create_sid_config "${sid}"
+                log_info "SID config not found, attempting to auto-create: ${sid_config}"
+                if create_sid_config "${sid}"; then
+                    log_info "Successfully auto-created SID config: ${sid_config}"
+                else
+                    log_warn "Failed to auto-create SID config for ${sid}"
+                fi
             fi
         fi
     fi
@@ -376,8 +381,13 @@ create_sid_config() {
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
     local example_config="${config_dir}/sid.ORCL.conf.example"
-    
-    log_info "Creating SID-specific configuration: ${sid_config}"
+        # Check if config directory is writable
+    if [[ ! -w \"${config_dir}\" ]]; then
+        log_error \"Config directory is not writable: ${config_dir}\"
+        log_error \"Cannot create SID configuration file. Run with appropriate permissions.\"
+        return 1
+    fi
+        log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
     if [[ -f "${example_config}" ]]; then

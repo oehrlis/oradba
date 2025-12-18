@@ -5,8 +5,8 @@
 # Name.......: oradba_version.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.4.0
+# Date.......: 2025.12.18
+# Revision...: 0.7.10
 # Purpose....: Version and integrity checking utility for OraDBA installation
 # Notes......: Provides version info, integrity verification, and update checking
 # Reference..: https://github.com/oehrlis/oradba
@@ -86,10 +86,14 @@ check_integrity() {
     
     if [[ ${verify_status} -eq 0 ]]; then
         local file_count
-        file_count=$(grep -c -v '\.install_info$' "${checksum_file}" | grep -c '^[^#]')
+        file_count=$(grep -v '^\.install_info$' "${checksum_file}" | grep -c '^[^#]')
         echo -e "${GREEN}✓ Installation integrity verified${NC}"
         echo "  All ${file_count} files match their checksums"
         echo "  (Excluding .install_info which is updated during installation)"
+        
+        # Check for additional files in managed directories
+        check_additional_files
+        
         return 0
     else
         echo -e "${RED}✗ Installation integrity check FAILED${NC}"
@@ -144,6 +148,50 @@ check_integrity() {
         echo "  Total issues:   $((modified_count + missing_count))"
         
         return 1
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Check for additional files not in checksum (user modifications)
+# ------------------------------------------------------------------------------
+check_additional_files() {
+    local checksum_file="${BASE_DIR}/.oradba.checksum"
+    local managed_dirs=("bin" "doc" "etc" "lib" "rcv" "sql" "templates")
+    local additional_files=()
+    
+    # Extract file list from checksum file
+    local checksummed_files
+    checksummed_files=$(grep -v '^#' "${checksum_file}" | awk '{print $2}' | sort)
+    
+    # Check each managed directory
+    for dir in "${managed_dirs[@]}"; do
+        if [[ ! -d "${BASE_DIR}/${dir}" ]]; then
+            continue
+        fi
+        
+        # Find all files in directory
+        while IFS= read -r -d '' file; do
+            local rel_path="${file#${BASE_DIR}/}"
+            
+            # Skip if file is in checksum list
+            if echo "${checksummed_files}" | grep -qxF "${rel_path}"; then
+                continue
+            fi
+            
+            additional_files+=("${rel_path}")
+        done < <(find "${BASE_DIR}/${dir}" -type f -print0)
+    done
+    
+    # Report additional files if found
+    if [[ ${#additional_files[@]} -gt 0 ]]; then
+        echo ""
+        echo -e "${YELLOW}⚠ Additional files detected (not part of installation):${NC}"
+        echo "  These files may have been created or modified by the user."
+        echo "  Consider backing them up before updating."
+        echo ""
+        for file in "${additional_files[@]}"; do
+            echo "  ${file}"
+        done
     fi
 }
 

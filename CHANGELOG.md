@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.10] - 2025-12-18
+
+### Fixed
+
+- **oradba_version.sh**: Fixed file count display in integrity verification
+  - Now correctly counts and displays number of verified files
+  - Added detection of additional files in managed directories (bin, doc, etc, lib, rcv, sql, templates)
+  - Warns users about custom files before updates to help with backups
+  - Excludes logs directory from additional file detection
+
+- **Auto-create SID config**: Improved error handling and logging
+  - Added check for writable config directory before attempting to create file
+  - Enhanced logging to show when auto-creation is attempted
+  - Added success/failure messages for better debugging
+  - Clearer error messages when permissions are insufficient
+
 ## [0.7.9] - 2025-12-18
 
 ### Changed
