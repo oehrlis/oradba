@@ -6,6 +6,11 @@ OraDBA provides 50+ shell aliases to streamline Oracle database administration
 tasks. Aliases are automatically loaded when you set your Oracle environment
 using `oraenv.sh`, giving you convenient shortcuts for common operations.
 
+![Alias Generation Flow](../../doc/images/alias-generation.png)
+
+The alias system automatically detects if your database is a CDB and generates
+PDB-specific aliases accordingly.
+
 ## Alias Categories
 
 Aliases are organized into these categories:

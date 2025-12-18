@@ -362,7 +362,6 @@ ${PREFIX}/
 │   └── README.md
 ├── doc/                    # User documentation
 │   ├── README.md
-│   ├── metadata.yml
 │   ├── 01-introduction.md
 │   └── ...
 ├── templates/              # Script templates

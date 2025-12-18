@@ -4,8 +4,8 @@
 # Name.......: Makefile
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.15
-# Revision...: 0.2.0
+# Date.......: 2025.12.18
+# Revision...: 0.7.4
 # Purpose....: Development workflow automation for OraDBA project. Provides
 #              targets for testing, linting, formatting, building, and releasing.
 # Notes......: Use 'make help' to show all available targets
@@ -21,6 +21,7 @@ SHELL 			:= /bin/bash
 
 # Directories
 SRC_DIR 	:= src
+SRV_DIR 	:= srv
 BIN_DIR 	:= $(SRC_DIR)/bin
 LIB_DIR 	:= $(SRC_DIR)/lib
 ETC_DIR 	:= $(SRC_DIR)/etc
@@ -227,7 +228,7 @@ uninstall: ## Uninstall OraDBA
 # Documentation directories and files
 USER_DOC_DIR := $(SRC_DIR)/doc
 USER_DOC_CHAPTERS := $(USER_DOC_DIR)/??-*.md
-USER_DOC_METADATA := $(USER_DOC_DIR)/metadata.yml
+USER_DOC_METADATA := $(DOC_DIR)/metadata.yml
 PANDOC_IMAGE := oehrlis/pandoc:latest
 
 .PHONY: docs
@@ -239,49 +240,77 @@ docs: ## Generate all documentation (HTML and PDF)
 		echo -e "$(COLOR_YELLOW)  Install Docker to generate documentation: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
 	fi
 
+.PHONY: docs-prepare
+docs-prepare: ## Prepare documentation images for distribution
+	@echo -e "$(COLOR_BLUE)Preparing documentation images...$(COLOR_RESET)"
+	@mkdir -p $(SRV_DIR)/doc/images
+	@cp -r $(DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Images copied to $(SRV_DIR)/doc/images$(COLOR_RESET)"
+
 .PHONY: docs-html
-docs-html: ## Generate HTML user guide from markdown
+docs-html: docs-prepare ## Generate HTML user guide from markdown
 	@echo -e "$(COLOR_BLUE)Generating HTML documentation...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
+	@# Create temp directory with fixed markdown files
+	@mkdir -p $(DIST_DIR)/.tmp_docs
+	@cp $(USER_DOC_DIR)/*.md $(DIST_DIR)/.tmp_docs/
+	@# Fix .md links to use anchors and copy images
+	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
+		sed -i.bak -E 's/\]\(([0-9]{2}-[^)]+)\.md\)/](#\1)/g' "$$file" && rm "$$file.bak"; \
+	done
+	@cp -r $(SRV_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
 	@if command -v pandoc >/dev/null 2>&1; then \
-		cd $(USER_DOC_DIR) && \
-		pandoc ??-*.md -o ../../$(DIST_DIR)/oradba-user-guide.html \
-			--metadata-file=metadata.yml \
+		cd $(DIST_DIR)/.tmp_docs && \
+		pandoc ??-*.md -o ../oradba-user-guide.html \
+			--metadata-file=../../$(DOC_DIR)/metadata.yml \
+			--css=../../$(DOC_DIR)/templates/pandoc-style.css \
 			--toc --toc-depth=3 \
 			--standalone \
-			--self-contained; \
+			--embed-resources; \
 		cd - >/dev/null; \
 	elif [ -n "$(DOCKER)" ]; then \
-		cd $(USER_DOC_DIR) && \
-		docker run --rm -v $$(pwd):/workdir $(PANDOC_IMAGE) \
+		cd $(DIST_DIR)/.tmp_docs && \
+		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
 			??-*.md -o oradba-user-guide.html \
-			--metadata-file=metadata.yml \
+			--metadata-file=/doc/metadata.yml \
+			--css=/doc/templates/pandoc-style.css \
 			--toc --toc-depth=3 \
 			--standalone \
-			--self-contained; \
-		mv oradba-user-guide.html ../../$(DIST_DIR)/ 2>/dev/null || true; \
+			--embed-resources; \
+		mv oradba-user-guide.html ../ 2>/dev/null || true; \
 		cd - >/dev/null; \
 	else \
 		echo -e "$(COLOR_YELLOW)⚠ Neither pandoc nor Docker available, skipping HTML generation$(COLOR_RESET)"; \
 	fi
+	@rm -rf $(DIST_DIR)/.tmp_docs
 	@if [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
 		echo -e "$(COLOR_GREEN)✓ HTML documentation generated: $(DIST_DIR)/oradba-user-guide.html$(COLOR_RESET)"; \
 		ls -lh $(DIST_DIR)/oradba-user-guide.html; \
 	fi
 
 .PHONY: docs-pdf
-docs-pdf: ## Generate PDF user guide from markdown (requires Docker)
+docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker)
 	@echo -e "$(COLOR_BLUE)Generating PDF documentation...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
+	@# Create temp directory with fixed markdown files
+	@mkdir -p $(DIST_DIR)/.tmp_docs
+	@cp $(USER_DOC_DIR)/*.md $(DIST_DIR)/.tmp_docs/
+	@# Fix .md links to use anchors and fix image paths
+	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
+		sed -i.bak -E 's/\]\(([0-9]{2}-[^)]+)\.md\)/](#\1)/g' "$$file"; \
+		sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "$$file"; \
+		rm "$$file.bak"; \
+	done
+	@cp -r $(SRV_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
 	@if command -v docker >/dev/null 2>&1; then \
-		cd $(USER_DOC_DIR) && \
-		docker run --rm -v $$(pwd):/workdir $(PANDOC_IMAGE) \
+		cd $(DIST_DIR)/.tmp_docs && \
+		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
 			??-*.md -o oradba-user-guide.pdf \
-			--metadata-file=metadata.yml \
+			--metadata-file=/doc/metadata.yml \
 			--toc --toc-depth=3 \
 			--pdf-engine=xelatex \
 			-N --listings 2>&1 | grep -v "Missing character" || true; \
-		mv oradba-user-guide.pdf ../../$(DIST_DIR)/ 2>/dev/null || true; \
+		mv oradba-user-guide.pdf ../ 2>/dev/null || true; \
 		cd - >/dev/null; \
 		if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ]; then \
 			echo -e "$(COLOR_GREEN)✓ PDF documentation generated: $(DIST_DIR)/oradba-user-guide.pdf$(COLOR_RESET)"; \
@@ -290,10 +319,12 @@ docs-pdf: ## Generate PDF user guide from markdown (requires Docker)
 			echo -e "$(COLOR_RED)✗ PDF generation failed$(COLOR_RESET)"; \
 			exit 1; \
 		fi; \
+		cd - >/dev/null; \
 	else \
 		echo -e "$(COLOR_YELLOW)⚠ Docker not available, skipping PDF generation$(COLOR_RESET)"; \
 		echo -e "$(COLOR_YELLOW)  Install Docker to generate PDF documentation$(COLOR_RESET)"; \
 	fi
+	@rm -rf $(DIST_DIR)/.tmp_docs
 
 .PHONY: docs-check
 docs-check: ## Check if documentation source files exist
@@ -301,6 +332,8 @@ docs-check: ## Check if documentation source files exist
 	@if [ ! -f "$(USER_DOC_METADATA)" ]; then \
 		echo -e "$(COLOR_RED)✗ Metadata file not found: $(USER_DOC_METADATA)$(COLOR_RESET)"; \
 		exit 1; \
+	else \
+		echo -e "$(COLOR_GREEN)✓ Metadata file found: $(USER_DOC_METADATA)$(COLOR_RESET)"; \
 	fi
 	@chapter_count=$$(ls -1 $(USER_DOC_DIR)/??-*.md 2>/dev/null | wc -l | xargs); \
 	if [ "$$chapter_count" -eq 0 ]; then \
@@ -316,7 +349,14 @@ docs-clean: ## Remove generated documentation
 	@rm -f $(DIST_DIR)/oradba-user-guide.pdf 2>/dev/null || true
 	@rm -f $(USER_DOC_DIR)/oradba-user-guide.html 2>/dev/null || true
 	@rm -f $(USER_DOC_DIR)/oradba-user-guide.pdf 2>/dev/null || true
+	@rm -rf $(DIST_DIR)/.tmp_docs 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Documentation cleaned$(COLOR_RESET)"
+
+.PHONY: docs-clean-images
+docs-clean-images: ## Remove images from srv/doc (after packaging)
+	@echo -e "$(COLOR_BLUE)Cleaning documentation images from srv/doc...$(COLOR_RESET)"
+	@rm -rf $(SRV_DIR)/doc/images 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Documentation images cleaned$(COLOR_RESET)"
 
 .PHONY: changelog
 changelog: ## Update CHANGELOG.md from git commits

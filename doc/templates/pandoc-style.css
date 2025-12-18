@@ -1,0 +1,434 @@
+/* Modern, responsive CSS template for Pandoc HTML output */
+/* Optimized for technical documentation with wide content support */
+
+:root {
+    --primary-color: #2563eb;
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --bg-color: #ffffff;
+    --bg-secondary: #f9fafb;
+    --border-color: #e5e7eb;
+    --code-bg: #f3f4f6;
+    --sidebar-width: 240px;
+    --content-max-width: 900px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --bg-color: #111827;
+        --bg-secondary: #1f2937;
+        --border-color: #374151;
+        --code-bg: #1f2937;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+body {
+    font-family: var(--font-sans);
+    color: var(--text-color);
+    background: var(--bg-color);
+    margin: 0;
+    padding: 0;
+}
+
+/* Main content container */
+#content, article, main {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 2rem 3rem;
+    background: var(--bg-color);
+}
+
+@media (max-width: 768px) {
+    #content, article, main {
+        padding: 1rem 1.5rem;
+    }
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+    color: var(--text-color);
+}
+
+h1 {
+    font-size: 2.5em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 2em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.25em;
+}
+
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1.1em; }
+h6 { font-size: 1em; color: var(--text-light); }
+
+p {
+    margin: 1em 0;
+    line-height: 1.7;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Lists */
+ul, ol {
+    margin: 1em 0;
+    padding-left: 2em;
+}
+
+li {
+    margin: 0.5em 0;
+}
+
+li > p {
+    margin: 0.5em 0;
+}
+
+/* Code blocks */
+code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1em;
+    overflow-x: auto;
+    line-height: 1.5;
+    margin: 1.5em 0;
+}
+
+pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.875em;
+    line-height: 1.6;
+}
+
+/* Wide code blocks - no line length limit */
+pre {
+    max-width: 100%;
+    white-space: pre;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid var(--primary-color);
+    margin: 1.5em 0;
+    padding: 0.5em 1em;
+    background: var(--bg-secondary);
+    color: var(--text-light);
+}
+
+blockquote p {
+    margin: 0.5em 0;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5em 0;
+    overflow-x: auto;
+    display: block;
+}
+
+@media (min-width: 768px) {
+    table {
+        display: table;
+    }
+}
+
+thead {
+    background: var(--bg-secondary);
+}
+
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 0.75em 1em;
+    text-align: left;
+}
+
+th {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+tr:nth-child(even) {
+    background: var(--bg-secondary);
+}
+
+/* Horizontal rules */
+hr {
+    border: none;
+    border-top: 2px solid var(--border-color);
+    margin: 2em 0;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1.5em auto;
+    border-radius: 6px;
+}
+
+/* Figure captions */
+figure {
+    margin: 1.5em 0;
+}
+
+figcaption {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin-top: 0.5em;
+}
+
+/* Table of Contents */
+#TOC, nav#TOC {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1.5em;
+    margin: 2em 0;
+}
+
+#TOC h2, nav#TOC h2 {
+    margin-top: 0;
+    font-size: 1.3em;
+    border: none;
+}
+
+#TOC ul, nav#TOC ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#TOC ul ul, nav#TOC ul ul {
+    padding-left: 1.5em;
+    margin-top: 0.5em;
+}
+
+#TOC li, nav#TOC li {
+    margin: 0.5em 0;
+}
+
+#TOC a, nav#TOC a {
+    color: var(--text-color);
+    display: block;
+    padding: 0.25em 0;
+}
+
+#TOC a:hover, nav#TOC a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+/* Floating TOC on left for wide screens */
+@media (min-width: 1200px) {
+    body {
+        padding-left: calc(var(--sidebar-width) + 6rem);
+    }
+    
+    #TOC, nav#TOC {
+        position: fixed;
+        left: 2rem;
+        top: 2rem;
+        width: var(--sidebar-width);
+        max-height: calc(100vh - 4rem);
+        overflow-y: auto;
+        margin: 0;
+        z-index: 100;
+    }
+    
+    #content, article, main {
+        margin: 0 auto;
+        max-width: var(--content-max-width);
+    }
+}
+
+@media (min-width: 1600px) {
+    body {
+        padding-left: max(2rem, calc((100vw - var(--content-max-width) - var(--sidebar-width) - 4rem) / 2 + var(--sidebar-width) + 4rem));
+    }
+}
+
+/* Definition lists */
+dt {
+    font-weight: 600;
+    margin-top: 1em;
+}
+
+dd {
+    margin-left: 2em;
+    margin-bottom: 1em;
+}
+
+/* Footnotes */
+.footnotes {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9em;
+}
+
+.footnote-ref {
+    font-weight: 600;
+}
+
+/* Print styles */
+@media print {
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+        color: #000;
+        background: #fff;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+    
+    pre, blockquote, table {
+        page-break-inside: avoid;
+    }
+    
+    a {
+        color: #000;
+        text-decoration: underline;
+    }
+    
+    #TOC, nav#TOC {
+        page-break-after: always;
+    }
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+
+/* Highlighting */
+mark {
+    background: #fef3c7;
+    padding: 0.1em 0.2em;
+    border-radius: 2px;
+}
+
+/* Document metadata */
+header.title-block {
+    margin-bottom: 3em;
+    padding-bottom: 1em;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.title {
+    margin-bottom: 0.5em;
+}
+
+.subtitle {
+    font-size: 1.5em;
+    color: var(--text-light);
+    margin-bottom: 1em;
+}
+
+.author, .date {
+    color: var(--text-light);
+    font-size: 0.9em;
+}
+
+/* Keyboard shortcuts */
+kbd {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--code-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    box-shadow: 0 1px 0 var(--border-color);
+}
+
+/* Badges/labels */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 0.75em;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Admonitions (notes, warnings, etc.) */
+.note, .warning, .tip, .important {
+    padding: 1em 1.5em;
+    margin: 1.5em 0;
+    border-left: 4px solid;
+    border-radius: 4px;
+}
+
+.note {
+    background: #dbeafe;
+    border-color: #2563eb;
+}
+
+.warning {
+    background: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.tip {
+    background: #d1fae5;
+    border-color: #10b981;
+}
+
+.important {
+    background: #fee2e2;
+    border-color: #ef4444;
+}

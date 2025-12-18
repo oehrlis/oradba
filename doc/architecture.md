@@ -7,31 +7,9 @@ oradba is designed as a modular toolset for Oracle Database administration with 
 
 ## System Architecture
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                         oradba System                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   oraenv.sh  │  │   Scripts    │  │   SQL/RMAN   │     │
-│  │  Environment │  │  Management  │  │   Scripts    │     │
-│  │    Setup     │  │              │  │              │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│         │                  │                  │             │
-│         └──────────────────┼──────────────────┘             │
-│                            │                                │
-│                   ┌────────▼────────┐                      │
-│                   │   common.sh     │                      │
-│                   │   Library       │                      │
-│                   └────────┬────────┘                      │
-│                            │                                │
-│                   ┌────────▼────────┐                      │
-│                   │  Configuration  │                      │
-│                   │   oradba.conf   │                      │
-│                   └─────────────────┘                      │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+![OraDBA System Architecture](images/architecture-system.png)
+
+The OraDBA system consists of multiple layers working together to provide comprehensive Oracle database administration capabilities.
 
 ## Core Components
 
@@ -48,21 +26,9 @@ oradba is designed as a modular toolset for Oracle Database administration with 
 
 **Flow**:
 
-```text
-User invokes oraenv.sh
-    ↓
-Parse arguments
-    ↓
-Locate oratab file
-    ↓
-Read SID configuration
-    ↓
-Validate ORACLE_HOME
-    ↓
-Set environment variables
-    ↓
-Display environment summary
-```
+![oraenv.sh Execution Flow](images/oraenv-flow.png)
+
+The oraenv.sh script follows a comprehensive validation and setup process to ensure a reliable Oracle environment.
 
 ### 2. Common Library (common.sh)
 
@@ -79,26 +45,23 @@ Display environment summary
 
 **Hierarchy**:
 
+![Configuration Hierarchy](images/config-hierarchy.png)
+
+Configuration flows through five levels, with each level overriding the previous:
+
 1. System defaults (`src/etc/oradba.conf`)
 2. User overrides (`~/.oradba_config`)
-3. Environment variables
-4. Command-line arguments
+3. SID-specific configuration (`sid.XXX.conf`)
+4. Environment variables
+5. Command-line arguments
 
 ### 4. Installation System
 
 **Build Process**:
 
-```text
-Source Files (src/)
-    ↓
-Tarball Creation
-    ↓
-Base64 Encoding
-    ↓
-Embed in Installer
-    ↓
-Self-Extracting Script
-```
+![Installation Process](images/installation-flow.png)
+
+The installation system creates a self-contained, self-extracting installer with embedded source files.
 
 ## Directory Structure
 
@@ -120,17 +83,12 @@ oradba/
 
 ## Data Flow
 
-### Environment Setup
+### Environment Setup Sequence
 
-```text
-User → oraenv.sh → oratab → ORACLE_HOME → Environment Variables → Shell
-```
+![Configuration Loading Sequence](images/config-sequence.png)
 
-### Script Execution
-
-```text
-Script → common.sh → Configuration → Validation → Execution → Logging
-```
+The environment setup follows a structured sequence, loading configuration from
+multiple sources and validating the Oracle environment before generating aliases.
 
 ## Design Principles
 

@@ -2,6 +2,20 @@
 
 This guide provides detailed information for developers working on oradba.
 
+## CI/CD Pipeline
+
+![CI/CD Pipeline](images/cicd-pipeline.png)
+
+The project uses GitHub Actions for continuous integration and automated releases.
+The CI workflow runs on every push and pull request, while the release workflow
+triggers on version tags.
+
+## Git Workflow
+
+![Development Workflow](images/dev-workflow.png)
+
+The project follows a feature branch workflow with pull requests for code review and automated testing before merging to main.
+
 ## Project Structure
 
 ```text
@@ -268,6 +282,11 @@ If integrity verification fails, the installer automatically:
 Backup location: `$PREFIX.backup.YYYYMMDD_HHMMSS`
 
 ## Testing Guide
+
+![Test Strategy](images/test-strategy.png)
+
+The project uses BATS (Bash Automated Testing System) for comprehensive testing,
+with unit tests for individual functions and integration tests for end-to-end workflows.
 
 ### BATS Testing Framework
 

@@ -13,6 +13,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.7.4] - 2025-12-18
+
+### Added
+
+- **Documentation Improvements** (#27):
+  - 9 professional diagrams (PNG format) for architecture, workflows, and processes
+  - Modern responsive CSS template for HTML documentation
+  - Left-floating table of contents (240px width) with fixed positioning
+  - Images now included in distribution package (srv/doc/images/)
+  - Diagram source files (Excalidraw format) for easy maintenance
+  - Images: system architecture, config hierarchy, oraenv flow, installation process, config sequence, alias generation, CI/CD pipeline, dev workflow, test strategy
+
+### Changed
+
+- **Documentation Build Process** (#27):
+  - Implemented temp directory approach for markdown processing
+  - Fixed cross-chapter links: converted .md references to # anchors for single-page HTML
+  - Fixed image paths: converted relative paths for proper embedding
+  - Moved metadata.yml from src/doc/ to doc/ (separate from user documentation)
+  - Updated pandoc flags: replaced deprecated --self-contained with --embed-resources
+  - Enhanced Makefile with docs-prepare and docs-clean-images targets
+  - Added SRV_DIR variable to Makefile for srv directory
+  - Updated .gitignore to exclude srv/doc/images/ (build-time only)
+
+### Fixed
+
+- **Documentation** (#27):
+  - CSS layout: TOC no longer overlaps content
+  - Image embedding: diagrams now appear in generated HTML/PDF
+  - Internal links: chapter cross-references work in single-page HTML
+  - Responsive design: proper layout on mobile, tablet, and desktop screens
+  - Makefile lint-markdown: now matches CI workflow pattern
+
 ## [0.7.3] - 2025-12-17
 
 ### Added
