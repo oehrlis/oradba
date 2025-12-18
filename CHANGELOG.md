@@ -51,13 +51,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Diagram source files (Excalidraw format) for easy maintenance
   - Images: system architecture, config hierarchy, oraenv flow, installation process, config sequence, alias
     generation, CI/CD pipeline, dev workflow, test strategy
+  - Images located in src/doc/images/ with Excalidraw sources
 
 ### Changed
 
 - **Documentation Build Process** (#27):
   - Implemented temp directory approach for markdown processing
   - Fixed cross-chapter links: converted .md references to # anchors for single-page HTML
-  - Fixed image paths: converted relative paths for proper embedding
+  - Fixed image paths: simplified to relative paths from source location
   - Moved metadata.yml from src/doc/ to doc/ (separate from user documentation)
   - Updated pandoc flags: replaced deprecated --self-contained with --embed-resources
   - Enhanced Makefile with docs-prepare and docs-clean-images targets

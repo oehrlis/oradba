@@ -244,7 +244,7 @@ docs: ## Generate all documentation (HTML and PDF)
 docs-prepare: ## Prepare documentation images for distribution
 	@echo -e "$(COLOR_BLUE)Preparing documentation images...$(COLOR_RESET)"
 	@mkdir -p $(SRV_DIR)/doc/images
-	@cp -r $(DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
+	@cp -r $(USER_DOC_DIR)/images/* $(SRV_DIR)/doc/images/ 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Images copied to $(SRV_DIR)/doc/images$(COLOR_RESET)"
 
 .PHONY: docs-html
