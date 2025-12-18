@@ -142,7 +142,7 @@ ls -l $ORACLE_HOME/bin/rman
 # Manually add to PATH
 export PATH=$ORACLE_HOME/bin:$PATH
 
-# Re-source oraenv
+# Re-source oraenv.sh (use .sh to avoid conflict with Oracle's oraenv)
 source oraenv.sh FREE
 ```
 
@@ -162,7 +162,7 @@ ls -l $ORACLE_HOME/lib/libclntsh.so
 # Add to LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
 
-# Re-source oraenv
+# Re-source oraenv.sh
 source oraenv.sh FREE
 ```
 
@@ -194,7 +194,7 @@ Enable detailed logging:
 # Enable debug
 export DEBUG=1
 
-# Run oraenv
+# Run oraenv.sh
 source oraenv.sh FREE
 
 # Check output for detailed information
@@ -218,7 +218,7 @@ source /opt/oradba/src/bin/oraenv.sh --help
 ### Verify Environment
 
 ```bash
-# After sourcing oraenv
+# After sourcing oraenv.sh
 echo "ORACLE_SID: $ORACLE_SID"
 echo "ORACLE_HOME: $ORACLE_HOME"
 echo "ORACLE_BASE: $ORACLE_BASE"

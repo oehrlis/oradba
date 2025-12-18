@@ -24,8 +24,7 @@ source oraenv.sh FREE --silent
 # Display only database status
 source oraenv.sh FREE --status
 
-# Using symbolic link (if created during installation)
-source oraenv FREE
+# Note: Always use oraenv.sh (not oraenv) to avoid conflict with Oracle's utility
 ```
 
 **Interactive Mode Features:**
@@ -203,13 +202,16 @@ export ORATAB_FILE="/custom/path/oratab"
 source oraenv.sh FREE
 ```
 
-### Scripting with oraenv
+### Scripting with oraenv.sh
+
+**Note:** Always use `oraenv.sh` (not just `oraenv`) to avoid conflicts with Oracle's
+own `/usr/local/bin/oraenv` utility.
 
 ```bash
 #!/usr/bin/env bash
 # Example script
 
-# Source oraenv
+# Source oraenv.sh
 ORADBA_PREFIX="/opt/oradba"
 source "$ORADBA_PREFIX/src/bin/oraenv.sh" FREE
 
@@ -281,7 +283,8 @@ sqlplus / as sysdba
 
 ## Best Practices
 
-1. **Always source oraenv before database operations**
+1. **Always source oraenv.sh before database operations**
+   - Use `oraenv.sh` (not `oraenv`) to avoid conflict with Oracle's `/usr/local/bin/oraenv`
 2. **Use full paths in scripts**
 3. **Verify environment with echo commands**
 4. **Use logging functions for scripts**

@@ -40,11 +40,15 @@ chmod +x oradba_install.sh
 Set your Oracle environment for a specific database:
 
 ```bash
-# Source environment for specific SID
+# Source environment for specific SID (use oraenv.sh to avoid conflict with Oracle's oraenv)
+source /opt/oradba/bin/oraenv.sh FREE
+
+# Or create an alias in your profile for easier access
+alias oraenv='source /opt/oradba/bin/oraenv.sh'
 source oraenv.sh FREE
 
 # Or use auto-generated aliases
-free              # Shortcut for: source oraenv.sh FREE
+free              # Shortcut for: source /opt/oradba/bin/oraenv.sh FREE
 
 # Interactive selection (displays numbered SID list)
 source oraenv.sh

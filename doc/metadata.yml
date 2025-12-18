@@ -42,7 +42,7 @@ footer-left: "Copyright © 2025 OraDBA. All rights reserved."
 titlepage: true
 titlepage-rule-height: 0
 titlepage-text-color: "000000"
-subtitle-color: 7500C0
+subtitle-color: 0000FF
 
 # - TOC Config -----------------------------------------------------------------
 toc: true

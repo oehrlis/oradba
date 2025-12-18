@@ -39,14 +39,14 @@ development databases.
 Use `oraenv.sh` to set up your Oracle environment:
 
 ```bash
-# Set environment for specific SID
+# Set environment for specific SID (always use oraenv.sh to avoid conflict with Oracle's oraenv)
 source oraenv.sh FREE
-
-# Using the symbolic link (if created during installation)
-source oraenv FREE
 
 # Or use the full path
 source /opt/oradba/bin/oraenv.sh FREE
+
+# For convenience, add an alias to your profile:
+alias oraenv='source /opt/oradba/bin/oraenv.sh'
 ```
 
 **Interactive Mode** (no SID specified):

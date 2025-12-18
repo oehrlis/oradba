@@ -964,8 +964,16 @@ extract_github_release() {
     # Determine download URL
     if [[ -z "$version" ]]; then
         log_info "Fetching latest release from GitHub..."
-        download_url="https://github.com/oehrlis/oradba/releases/latest/download/oradba.tar.gz"
-        tarball_name="oradba-latest.tar.gz"
+        # Get latest release version and construct download URL
+        local latest_version
+        latest_version=$(curl -sL https://api.github.com/repos/oehrlis/oradba/releases/latest | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+        if [[ -n "$latest_version" ]]; then
+            download_url="https://github.com/oehrlis/oradba/releases/latest/download/oradba-${latest_version}.tar.gz"
+            tarball_name="oradba-${latest_version}.tar.gz"
+        else
+            log_error "Failed to determine latest version"
+            return 1
+        fi
     else
         log_info "Fetching version ${version} from GitHub..."
         download_url="https://github.com/oehrlis/oradba/releases/download/v${version}/oradba-${version}.tar.gz"
@@ -1146,11 +1154,8 @@ if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$CONFIG_DIR" ]]; then
     fi
 fi
 
-# Create symbolic link for oraenv.sh
-if [[ -w "/usr/local/bin" ]] || [[ "$EUID" -eq 0 ]]; then
-    log_info "Creating symbolic link in /usr/local/bin"
-    ln -sf "$INSTALL_PREFIX/bin/oraenv.sh" /usr/local/bin/oraenv 2>/dev/null || true
-fi
+# Note: Not creating symlink to avoid conflict with Oracle's /usr/local/bin/oraenv
+# Users should explicitly use oraenv.sh or create their own aliases
 
 # Profile integration (issue #24)
 update_profile "$INSTALL_PREFIX"
@@ -1173,11 +1178,11 @@ else
     echo "oradba has been installed to: $INSTALL_PREFIX"
 fi
 echo ""
-echo "To use oraenv:"
+echo "To set Oracle environment (use oraenv.sh to avoid conflict with Oracle's oraenv):"
 echo "  source $INSTALL_PREFIX/bin/oraenv.sh [ORACLE_SID]"
 echo ""
-echo "Or if symbolic link was created:"
-echo "  source oraenv [ORACLE_SID]"
+echo "Or add to your profile for easier access:"
+echo "  alias oraenv='source $INSTALL_PREFIX/bin/oraenv.sh'"
 echo ""
 echo "Documentation: $INSTALL_PREFIX/README.md"
 echo ""

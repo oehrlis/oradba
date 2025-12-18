@@ -15,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.4] - 2025-12-18
 
+### Fixed (Post-Release)
+
+- **Naming Conflict**: Removed `/usr/local/bin/oraenv` symlink creation to avoid conflict with Oracle's
+  own `oraenv` utility. Users should always use `oraenv.sh` explicitly or create their own aliases.
+- **GitHub Installer**: Fixed download URL to fetch version-specific tarball (oradba-VERSION.tar.gz)
+  instead of non-existent oradba.tar.gz. Installer now queries GitHub API for latest version.
+- **Documentation**: Updated all references to emphasize using `oraenv.sh` (not `oraenv`) throughout
+  documentation and examples to avoid confusion with Oracle's utility.
+
+## [0.7.4] - 2025-12-18 (Original Release)
+
 ### Added
 
 - **Documentation Improvements** (#27):

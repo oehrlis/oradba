@@ -27,14 +27,14 @@ and can display database status.
 ### Setting Environment for Specific SID
 
 ```bash
-# Set environment for FREE database
+# Set environment for FREE database (always use oraenv.sh to avoid conflict with Oracle's oraenv)
 source oraenv.sh FREE
 
 # Using full path
 source /opt/oradba/bin/oraenv.sh FREE
 
-# Using symbolic link (if created)
-source oraenv FREE
+# For convenience, add an alias to your profile
+alias oraenv='source /opt/oradba/bin/oraenv.sh'
 ```
 
 ### Interactive SID Selection
