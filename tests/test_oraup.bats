@@ -127,8 +127,8 @@ setup() {
 
 @test "oraup.sh checks both uppercase and lowercase SID patterns" {
     # Verify the pattern includes both ${sid} and ${sid_lower}
-    grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q '\${sid}'
-    grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q '\${sid_lower}'
+    grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q "\${sid}"
+    grep "get_db_status" -A 10 "${ORAUP_SCRIPT}" | grep "grep -E" | grep -q "\${sid_lower}"
 }
 
 # ------------------------------------------------------------------------------
