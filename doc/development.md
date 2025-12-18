@@ -14,7 +14,8 @@ triggers on version tags.
 
 ![Development Workflow](images/dev-workflow.png)
 
-The project follows a feature branch workflow with pull requests for code review and automated testing before merging to main.
+The project follows a feature branch workflow with pull requests for code review and automated testing before
+merging to main.
 
 ## Project Structure
 
@@ -352,9 +353,9 @@ teardown() {
    }
    ```
 
-## CI/CD Pipeline
+## GitHub Actions Workflows
 
-### GitHub Actions Workflows
+### CI Workflow
 
 1. **CI Workflow** ([.github/workflows/ci.yml](.github/workflows/ci.yml))
    - Triggered on push/PR to main/develop

@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Left-floating table of contents (240px width) with fixed positioning
   - Images now included in distribution package (srv/doc/images/)
   - Diagram source files (Excalidraw format) for easy maintenance
-  - Images: system architecture, config hierarchy, oraenv flow, installation process, config sequence, alias generation, CI/CD pipeline, dev workflow, test strategy
+  - Images: system architecture, config hierarchy, oraenv flow, installation process, config sequence, alias
+    generation, CI/CD pipeline, dev workflow, test strategy
 
 ### Changed
 
