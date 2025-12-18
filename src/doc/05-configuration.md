@@ -1,0 +1,556 @@
+# Configuration System
+
+## Introduction
+
+OraDBA uses a hierarchical configuration system that allows flexible customization at multiple levels. This chapter explains how to configure OraDBA to match your environment and preferences.
+
+## Configuration Hierarchy
+
+Configuration files are loaded in a specific order, with later files overriding earlier settings:
+
+1. **oradba_core.conf** - Core system settings (required, don't modify)
+2. **oradba_standard.conf** - Standard environment and aliases (required, don't modify)  
+3. **oradba_customer.conf** - Your global custom settings (optional, **recommended for customization**)
+4. **sid._DEFAULT_.conf** - Default settings for all databases (optional)
+5. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created)
+
+This hierarchical approach means:
+- Base settings work everywhere
+- You can customize globally or per-database
+- Your customizations survive updates
+- Later configurations override earlier ones
+
+## Configuration Files
+
+### oradba_core.conf - Core System Settings
+
+**Location:** `${ORADBA_PREFIX}/etc/oradba_core.conf`
+
+**Purpose:** Core system settings that control OraDBA behavior
+
+**Key Settings:**
+
+```bash
+# Installation paths
+ORADBA_PREFIX="/opt/oradba"
+ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
+ORATAB_FILE="/etc/oratab"
+
+# Behavior control
+DEBUG="0"
+ORADBA_LOAD_ALIASES="true"
+ORADBA_SHOW_DB_STATUS="true"
+ORADBA_AUTO_CREATE_SID_CONFIG="true"
+
+# Directories
+LOG_DIR="${ORADBA_PREFIX}/logs"
+BACKUP_DIR="/backup"
+RECOVERY_DIR="${ORADBA_PREFIX}/rcv"
+```
+
+**When to Edit:** Rarely. Only modify if changing installation paths or core features. Most settings should be overridden in customer config instead.
+
+### oradba_standard.conf - Standard Settings
+
+**Location:** `${ORADBA_PREFIX}/etc/oradba_standard.conf`
+
+**Purpose:** Standard Oracle environment variables and simple aliases
+
+**Key Settings:**
+
+```bash
+# Oracle directories
+ORACLE_BASE="/u01/app/oracle"
+TNS_ADMIN=""  # Defaults to $ORACLE_HOME/network/admin
+
+# NLS settings
+NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
+NLS_TIMESTAMP_FORMAT="YYYY-MM-DD HH24:MI:SS.FF"
+
+# SQL*Plus paths
+SQLPATH="${ORADBA_PREFIX}/sql"
+ORACLE_PATH="${ORADBA_PREFIX}/sql"
+
+# rlwrap configuration
+RLWRAP_COMMAND="rlwrap"
+RLWRAP_OPTS="-i -c -f $ORACLE_HOME/bin/sqlplus"
+ORADBA_RLWRAP_FILTER="false"  # Enable password filtering
+
+# Simple aliases defined here
+alias sq='sqlplus / as sysdba'
+alias cdh='cd ${ORACLE_HOME}'
+# ... and 50+ more aliases
+```
+
+**When to Edit:** Not recommended. Override settings in `oradba_customer.conf` instead to preserve your changes during updates.
+
+### oradba_customer.conf - Your Customizations ⭐
+
+**Location:** `${ORADBA_PREFIX}/etc/oradba_customer.conf`
+
+**Template:** `${ORADBA_PREFIX}/etc/oradba_customer.conf.example`
+
+**Purpose:** **This is the recommended file for your customizations**
+
+**Example Configuration:**
+
+```bash
+# ==============================================================================
+# Customer Configuration
+# ==============================================================================
+# This file is loaded after core and standard configs, allowing you to
+# override defaults without modifying base files.
+
+# --- Oracle Environment ---
+
+# Override default Oracle base
+ORACLE_BASE="/u02/app/oracle"
+
+# Custom TNS_ADMIN location
+TNS_ADMIN="/u01/app/oracle/network/admin"
+
+# --- NLS Settings ---
+
+# Use German locale
+NLS_LANG="GERMAN_GERMANY.AL32UTF8"
+NLS_DATE_FORMAT="DD.MM.YYYY HH24:MI:SS"
+
+# --- Directories ---
+
+# Custom backup location
+BACKUP_DIR="/backup/oracle"
+LOG_DIR="/var/log/oracle"
+
+# --- Behavior ---
+
+# Disable automatic database status display
+ORADBA_SHOW_DB_STATUS="false"
+
+# Enable debug mode globally
+DEBUG="1"
+
+# Disable alias loading
+ORADBA_LOAD_ALIASES="false"
+
+# --- rlwrap ---
+
+# Enable password filtering
+ORADBA_RLWRAP_FILTER="true"
+
+# --- Custom Aliases ---
+
+# Development environment shortcuts
+alias sqdev='sqlplus username/password@devdb'
+alias cdarch='cd /backup/oracle/archive'
+alias mytail='tail -f /var/log/oracle/myapp.log'
+
+# Custom functions
+backup_config() {
+    cp ${ORADBA_ETC}/*.conf /backup/config/
+}
+
+# --- Custom Variables ---
+
+export CUSTOM_APP_HOME="/u01/app/custom"
+export PATH="${CUSTOM_APP_HOME}/bin:${PATH}"
+```
+
+**When to Edit:** This is where you should make all your customizations! Copy from the `.example` template:
+
+```bash
+cp ${ORADBA_PREFIX}/etc/oradba_customer.conf.example \
+   ${ORADBA_PREFIX}/etc/oradba_customer.conf
+
+# Edit with your settings
+vi ${ORADBA_PREFIX}/etc/oradba_customer.conf
+```
+
+### sid._DEFAULT_.conf - Database Defaults
+
+**Location:** `${ORADBA_PREFIX}/etc/sid._DEFAULT_.conf`
+
+**Purpose:** Default settings that apply to all databases (unless overridden per-SID)
+
+**Example Configuration:**
+
+```bash
+# ==============================================================================
+# Default Database Configuration
+# Applied to all SIDs unless overridden in sid.<ORACLE_SID>.conf
+# ==============================================================================
+
+# --- Database Identity ---
+ORADBA_DB_NAME="${ORACLE_SID}"
+ORADBA_DB_UNIQUE_NAME="${ORACLE_SID}"
+ORADBA_DB_ROLE="PRIMARY"
+ORADBA_CONNECT_TYPE="LOCAL"
+
+# --- Backup Settings ---
+ORADBA_DB_BACKUP_DIR="${BACKUP_DIR}/${ORACLE_SID}"
+ORADBA_BACKUP_RETENTION=7
+ORADBA_BACKUP_TYPE="INCREMENTAL"
+ORADBA_BACKUP_COMPRESSION="MEDIUM"
+
+# --- Diagnostic Settings ---
+ORADBA_DIAGNOSTIC_DEST="${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}"
+ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/${ORACLE_SID}"
+```
+
+**When to Edit:** Modify to set defaults that apply to all your databases. Individual databases can override in their own sid configs.
+
+### sid.<ORACLE_SID>.conf - Database-Specific Settings
+
+**Location:** `${ORADBA_PREFIX}/etc/sid.<ORACLE_SID>.conf`
+
+**Purpose:** Settings specific to one database, with auto-populated metadata
+
+**Auto-Creation:** Automatically created on first environment switch if `ORADBA_AUTO_CREATE_SID_CONFIG=true`
+
+**Example (sid.FREE.conf):**
+
+```bash
+# ==============================================================================
+# OraDBA SID Configuration: FREE
+# Auto-created: 2025-12-18 10:30:00
+# Last updated: 2025-12-18 10:30:00
+# ==============================================================================
+
+# --- Database Identity (Auto-populated from v$database) ---
+ORADBA_DB_NAME="FREE"
+ORADBA_DB_UNIQUE_NAME="FREE"
+ORADBA_DBID="3456789012"
+ORADBA_DB_ROLE="PRIMARY"
+ORADBA_DB_VERSION="19.0.0.0.0"
+ORADBA_DB_OPEN_MODE="READ WRITE"
+
+# --- Connection Settings ---
+ORADBA_TNS_ALIAS="FREE"
+ORADBA_CONNECT_TYPE="LOCAL"
+
+# --- Diagnostic Paths (Auto-populated from v$parameter) ---
+ORADBA_DIAGNOSTIC_DEST="/u01/app/oracle/diag/rdbms/free/FREE"
+ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/FREE"
+
+# --- Backup Settings (Can be customized) ---
+ORADBA_DB_BACKUP_DIR="/backup/FREE"
+ORADBA_BACKUP_RETENTION=7
+ORADBA_BACKUP_TYPE="INCREMENTAL"
+ORADBA_BACKUP_COMPRESSION="MEDIUM"
+
+# --- Custom Settings ---
+# Add your database-specific customizations here
+
+# Example: Special NLS settings for this database
+# NLS_LANG="GERMAN_GERMANY.AL32UTF8"
+
+# Example: Custom backup retention for production
+# ORADBA_BACKUP_RETENTION=30
+```
+
+**When to Edit:** Add database-specific customizations. The auto-populated metadata helps document your database but can be manually adjusted if needed.
+
+## Configuration Loading Process
+
+### When Configuration is Loaded
+
+Configuration files are loaded when you set your environment:
+
+```bash
+$ source oraenv.sh FREE
+
+# Loading sequence:
+# 1. oradba_core.conf (core settings)
+# 2. oradba_standard.conf (standard environment)
+# 3. oradba_customer.conf (your global settings)
+# 4. sid._DEFAULT_.conf (database defaults)
+# 5. sid.FREE.conf (FREE-specific settings)
+```
+
+### Debug Configuration Loading
+
+Enable debug mode to see exactly what's being loaded:
+
+```bash
+$ DEBUG=1 source oraenv.sh FREE
+
+[DEBUG] Loading OraDBA configuration for SID: FREE
+[DEBUG] Loading core config: /opt/oradba/etc/oradba_core.conf
+[DEBUG] Loading standard config: /opt/oradba/etc/oradba_standard.conf
+[DEBUG] Loading customer config: /opt/oradba/etc/oradba_customer.conf
+[DEBUG] Loading default SID config: /opt/oradba/etc/sid._DEFAULT_.conf
+[DEBUG] Loading SID config: /opt/oradba/etc/sid.FREE.conf
+[DEBUG] Configuration loading complete
+```
+
+## Auto-Created SID Configurations
+
+### How Auto-Creation Works
+
+When you switch to a new ORACLE_SID for the first time, OraDBA can automatically create a configuration file with database metadata.
+
+**Requirements:**
+- `ORADBA_AUTO_CREATE_SID_CONFIG=true` (default)
+- Database is accessible (OPEN or MOUNT mode)
+- Configuration file doesn't already exist
+
+**Database Metadata Queried:**
+
+From `v$database`:
+- `name` → ORADBA_DB_NAME
+- `db_unique_name` → ORADBA_DB_UNIQUE_NAME
+- `dbid` → ORADBA_DBID
+- `database_role` → ORADBA_DB_ROLE
+- `open_mode` → ORADBA_DB_OPEN_MODE
+
+From `v$instance`:
+- `version` → ORADBA_DB_VERSION
+
+From `v$parameter`:
+- `diagnostic_dest` → ORADBA_DIAGNOSTIC_DEST
+
+### Fallback Behavior
+
+If the database is not accessible:
+- Configuration file is still created
+- Metadata fields use defaults based on ORACLE_SID
+- You can manually update the file later
+
+### Manual Creation
+
+Create a SID configuration manually if needed:
+
+```bash
+# Copy from example
+cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example \
+   ${ORADBA_PREFIX}/etc/sid.MYDB.conf
+
+# Edit as needed
+vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
+```
+
+## Common Configuration Scenarios
+
+### Scenario 1: Custom Oracle Base
+
+**Problem:** Your Oracle base is not `/u01/app/oracle`
+
+**Solution:** Override in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+ORACLE_BASE="/u02/app/oracle"
+```
+
+### Scenario 2: Different NLS Settings
+
+**Problem:** Need German locale for all databases
+
+**Solution:** Override in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+NLS_LANG="GERMAN_GERMANY.AL32UTF8"
+NLS_DATE_FORMAT="DD.MM.YYYY HH24:MI:SS"
+NLS_TIMESTAMP_FORMAT="DD.MM.YYYY HH24:MI:SS.FF"
+```
+
+### Scenario 3: Production Backup Retention
+
+**Problem:** Production database needs 30-day backup retention, others need 7 days
+
+**Solution:** Set default in `sid._DEFAULT_.conf`:
+
+```bash
+# sid._DEFAULT_.conf
+ORADBA_BACKUP_RETENTION=7
+```
+
+Override in `sid.PRODDB.conf`:
+
+```bash
+# sid.PRODDB.conf
+ORADBA_BACKUP_RETENTION=30
+ORADBA_BACKUP_COMPRESSION="HIGH"
+```
+
+### Scenario 4: Custom oratab Location
+
+**Problem:** oratab is in non-standard location
+
+**Solution:** Override in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+ORATAB_FILE="/u01/app/oracle/oratab"
+```
+
+### Scenario 5: Disable Status Display
+
+**Problem:** Don't want automatic status display when switching databases
+
+**Solution:** Override in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+ORADBA_SHOW_DB_STATUS="false"
+```
+
+You can still manually run `oraup.sh` or `dbstatus.sh` when needed.
+
+### Scenario 6: Enable Password Filtering
+
+**Problem:** Want to hide passwords in rlwrap command history
+
+**Solution:** Enable in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+ORADBA_RLWRAP_FILTER="true"
+```
+
+See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
+
+## Configuration Variables Reference
+
+### Core System Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORADBA_PREFIX` | `/opt/oradba` | Installation base directory |
+| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc` | Configuration directory |
+| `ORATAB_FILE` | `/etc/oratab` | oratab file location |
+| `DEBUG` | `0` | Debug mode (0=off, 1=on) |
+| `LOG_DIR` | `${ORADBA_PREFIX}/logs` | Log directory |
+| `BACKUP_DIR` | `/backup` | Default backup directory |
+
+### Behavior Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORADBA_LOAD_ALIASES` | `true` | Load aliases and functions |
+| `ORADBA_SHOW_DB_STATUS` | `true` | Show database status on environment switch |
+| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true` | Auto-create SID configurations |
+| `ORADBA_RLWRAP_FILTER` | `false` | Enable password filtering in rlwrap |
+
+### Oracle Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORACLE_BASE` | `/u01/app/oracle` | Oracle base directory |
+| `TNS_ADMIN` | `$ORACLE_HOME/network/admin` | TNS configuration directory |
+| `NLS_LANG` | `AMERICAN_AMERICA.AL32UTF8` | NLS language and character set |
+| `NLS_DATE_FORMAT` | `YYYY-MM-DD HH24:MI:SS` | Date format |
+| `SQLPATH` | `${ORADBA_PREFIX}/sql` | SQL*Plus script path |
+
+### Database Metadata (SID-specific, auto-populated)
+
+| Variable | Source | Description |
+|----------|--------|-------------|
+| `ORADBA_DB_NAME` | `v$database.name` | Database name |
+| `ORADBA_DB_UNIQUE_NAME` | `v$database.db_unique_name` | Unique database name |
+| `ORADBA_DBID` | `v$database.dbid` | Database ID |
+| `ORADBA_DB_ROLE` | `v$database.database_role` | Database role (PRIMARY, STANDBY) |
+| `ORADBA_DB_VERSION` | `v$instance.version` | Database version |
+| `ORADBA_DIAGNOSTIC_DEST` | `v$parameter.diagnostic_dest` | Diagnostic directory |
+
+### Backup Variables (SID-specific, customizable)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORADBA_DB_BACKUP_DIR` | `${BACKUP_DIR}/${ORACLE_SID}` | Database backup directory |
+| `ORADBA_BACKUP_RETENTION` | `7` | Backup retention (days) |
+| `ORADBA_BACKUP_TYPE` | `INCREMENTAL` | Backup type |
+| `ORADBA_BACKUP_COMPRESSION` | `MEDIUM` | Compression level |
+
+## Troubleshooting
+
+### Configuration File Not Found
+
+```bash
+# Check if file exists
+ls -l ${ORADBA_PREFIX}/etc/oradba_customer.conf
+
+# Create from example
+cp ${ORADBA_PREFIX}/etc/oradba_customer.conf.example \
+   ${ORADBA_PREFIX}/etc/oradba_customer.conf
+```
+
+### Override Not Taking Effect
+
+**Problem:** Changed a setting but it's not applied
+
+**Solution:** Check the loading order. Later configs override earlier ones:
+
+```bash
+# This will NOT work (wrong file):
+# Edit oradba_standard.conf - will be overridden by customer config
+
+# This WILL work (correct file):
+# Edit oradba_customer.conf - loaded last, overrides standard
+```
+
+Enable debug mode to see which file sets the final value:
+
+```bash
+DEBUG=1 source oraenv.sh FREE | grep "MY_VARIABLE"
+```
+
+### SID Configuration Not Auto-Created
+
+**Check 1:** Is auto-creation enabled?
+
+```bash
+grep ORADBA_AUTO_CREATE_SID_CONFIG ${ORADBA_PREFIX}/etc/oradba_core.conf
+```
+
+**Check 2:** Is database accessible?
+
+```bash
+source oraenv.sh FREE
+sqlplus -S / as sysdba <<< "SELECT 1 FROM dual;"
+```
+
+**Check 3:** Does file already exist?
+
+```bash
+ls -l ${ORADBA_PREFIX}/etc/sid.FREE.conf
+```
+
+**Manual Creation:**
+
+```bash
+# Create manually
+vi ${ORADBA_PREFIX}/etc/sid.FREE.conf
+
+# Or copy from example
+cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example \
+   ${ORADBA_PREFIX}/etc/sid.FREE.conf
+```
+
+### Variables Not Persisting
+
+Configuration files are sourced, not exported. For custom variables to persist across shells:
+
+```bash
+# In oradba_customer.conf:
+export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
+```
+
+## Best Practices
+
+1. **Never modify core or standard configs** - Use customer config for overrides
+2. **Use oradba_customer.conf for global settings** - All your customizations in one place
+3. **Use sid.<SID>.conf for database-specific settings** - Per-database customization
+4. **Comment your customizations** - Explain why you changed defaults
+5. **Backup your configs** - Keep copies of customer and SID configs
+6. **Test configuration changes** - Use DEBUG=1 to verify loading
+7. **Use version control** - Track configuration changes over time
+8. **Document non-obvious settings** - Help future you understand decisions
+
+## Next Steps
+
+- **[Aliases](06-aliases.md)** - Explore 50+ convenient aliases  
+- **[PDB Aliases](07-pdb-aliases.md)** - Work with pluggable databases
+- **[Environment Management](04-environment.md)** - Understand oraenv.sh in depth
+- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
