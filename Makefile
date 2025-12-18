@@ -353,7 +353,7 @@ tools: ## Show installed development tools
 	@printf "%-20s %s\n" "git" "$$([ -n '$(GIT)' ] && echo -e '$(COLOR_GREEN)✓ installed$(COLOR_RESET)' || echo -e '$(COLOR_RED)✗ not found$(COLOR_RESET)')"
 	@echo ""
 	@echo -e "$(COLOR_YELLOW)Install missing tools:$(COLOR_RESET)"
-	@echo "  macOS:  brew install shellcheck shfmt bats-core markdownlint-cli""
+	@echo "  macOS:  brew install shellcheck shfmt bats-core markdownlint-cli"
 	@echo "  Linux:  apt-get install shellcheck shfmt bats"
 	@echo "          npm install -g markdownlint-cli"
 
