@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.14] - 2025-12-18
+
+### Fixed
+
+- **Auto-Create SID Config**: Fixed SID config auto-creation not working when sourcing database environment
+  - Config is now properly sourced after creation in `load_config()`
+  - Removed duplicate source calls within `create_sid_config()`
+  - Added clear user feedback with [INFO] messages
+  - Respects `ORADBA_AUTO_CREATE_SID_CONFIG=false` setting
+
+### Changed
+
+- **Test Cleanup**: Removed test-generated SID config files from repository
+  - Deleted `sid.FREE.conf`, `sid.CDB1.conf`, `sid.TESTDB.conf`
+  - Added test SID configs to `.gitignore`
+  - Prevents test artifacts from being committed or included in releases
+
+### Improved
+
+- Enhanced user messaging when SID config is auto-created
+- Shows ✓ checkmark on successful creation
+- More consistent log messages and error handling
+
 ## [0.7.13] - 2025-12-18
 
 ### Fixed

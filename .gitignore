@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Version....: v0.7.12
+# Version....: v0.7.14
 # Purpose....: Ignore transient build and local config artifacts.
 # Notes......: Tailor paths per stack; keep secrets and locals out of VCS.
 # Reference..: https://github.com/oehrlis/oci-labs-infra
@@ -52,5 +52,12 @@ test/test_results/
 # Environment specific
 .env
 .env.local
+
+# Test-generated SID config files (created during tests, should not be committed)
+src/etc/sid.FREE.conf
+src/etc/sid.CDB1.conf
+src/etc/sid.TESTDB.conf
+src/etc/sid.TESTDB1.conf
+src/etc/sid.TESTDB2.conf
+
 # --- EOF ----------------------------------------------------------------------
-src/doc/*.pdf

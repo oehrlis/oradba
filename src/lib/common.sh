@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.11
+# Revision...: 0.7.14
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -357,9 +357,13 @@ load_config() {
             
             # Auto-create SID config if enabled
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
-                log_info "SID config not found, attempting to auto-create: ${sid_config}"
                 if create_sid_config "${sid}"; then
-                    log_info "Successfully auto-created SID config: ${sid_config}"
+                    # Source the newly created config file
+                    if [[ -f "${sid_config}" ]]; then
+                        log_debug "Loading newly created SID config: ${sid_config}"
+                        # shellcheck source=/dev/null
+                        source "${sid_config}"
+                    fi
                 else
                     log_warn "Failed to auto-create SID config for ${sid}"
                 fi
@@ -389,23 +393,23 @@ create_sid_config() {
         return 1
     fi
     
-    echo "[INFO] Creating SID-specific configuration for ${sid}..."
+    # User-visible message
+    echo ""
+    echo "[INFO] Auto-creating SID configuration for ${sid}..."
     log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
     if [[ -f "${example_config}" ]]; then
-        log_info "Using template: ${example_config}"
+        log_debug "Using template: ${example_config}"
         # Copy example and replace ORCL with actual SID
-        sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
-            "${example_config}" > "${sid_config}"
-        
-        # Source the newly created config
-        if [[ -f "${sid_config}" ]]; then
-            echo "[INFO] Created SID configuration from template: ${sid_config}"
+        if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
+            "${example_config}" > "${sid_config}"; then
+            echo "[INFO] ✓ Created SID configuration: ${sid_config}"
             log_info "Created SID configuration from template: ${sid_config}"
-            # shellcheck source=/dev/null
-            source "${sid_config}"
             return 0
+        else
+            log_error "Failed to create config from template"
+            return 1
         fi
     fi
     
@@ -566,11 +570,8 @@ EOF
 EOF
     
     if [[ -f "${sid_config}" ]]; then
-        echo "[INFO] Created SID configuration from database metadata: ${sid_config}"
-        log_info "Created SID configuration: ${sid_config}"
-        # Source the newly created config
-        # shellcheck source=/dev/null
-        source "${sid_config}"
+        echo "[INFO] ✓ Created SID configuration: ${sid_config}"
+        log_info "Created SID configuration from database metadata: ${sid_config}"
         return 0
     else
         log_error "Failed to create SID configuration: ${sid_config}"
