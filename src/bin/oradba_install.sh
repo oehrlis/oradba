@@ -861,7 +861,8 @@ perform_update() {
         new_version=$(cat "$TEMP_DIR/VERSION" 2>/dev/null || echo "$INSTALLER_VERSION")
     elif [[ -n "$TEMP_DIR" ]]; then
         # Look for VERSION file in extracted directory structure
-        local extracted_version=$(find "$TEMP_DIR" -name "VERSION" -type f 2>/dev/null | head -1)
+        local extracted_version
+        extracted_version=$(find "$TEMP_DIR" -name "VERSION" -type f 2>/dev/null | head -1)
         if [[ -n "$extracted_version" ]]; then
             new_version=$(cat "$extracted_version" 2>/dev/null || echo "$INSTALLER_VERSION")
         fi
