@@ -4,7 +4,9 @@ Standard file header templates for OraDBA scripts and configuration files.
 
 ## Overview
 
-This directory contains header templates used by OraDBA scripts and build system. Templates ensure consistent documentation, attribution, and licensing across all project files.
+This directory contains header templates used by OraDBA scripts and build system.
+Templates ensure consistent documentation, attribution, and licensing across all
+project files.
 
 ## Available Templates
 
@@ -65,6 +67,7 @@ make lint
 ```
 
 **Includes:**
+
 - Shebang line
 - Project name and description
 - File metadata (name, description, author, version, date)
@@ -88,6 +91,7 @@ make lint
 ```
 
 **Includes:**
+
 - Project information
 - File metadata
 - Requirements/prerequisites
@@ -111,6 +115,7 @@ make lint
 ```
 
 **Includes:**
+
 - Project information
 - File metadata
 - Usage example
@@ -133,6 +138,7 @@ make lint
 ```
 
 **Includes:**
+
 - Project information
 - File metadata
 - Copyright and license

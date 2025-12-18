@@ -71,11 +71,14 @@ dbstatus.sh       # Comprehensive database information
 
 Complete user guides available in multiple formats:
 
-- **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** - Download complete guide
-- **[User Guide (HTML)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** - Single-page HTML
+- **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** -
+  Download complete guide
+- **[User Guide (HTML)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** -
+  Single-page HTML
 - **[Online Documentation](src/doc/README.md)** - Browse chapters individually
 
 **User Guide Contents:**
+
 - Introduction and features
 - Installation and quickstart
 - Environment management

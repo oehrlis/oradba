@@ -4,20 +4,22 @@ Main executable scripts for OraDBA operations and utilities.
 
 ## Overview
 
-This directory contains the core executable scripts that provide OraDBA's primary functionality. These scripts are typically added to `PATH` during installation and can be executed directly from the shell.
+This directory contains the core executable scripts that provide OraDBA's primary
+functionality. These scripts are typically added to `PATH` during installation
+and can be executed directly from the shell.
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| [oraenv.sh](oraenv.sh) | Set Oracle environment from oratab with interactive SID selection |
-| [oradba_check.sh](oradba_check.sh) | Check system prerequisites and configuration |
-| [oradba_install.sh](oradba_install.sh) | Install OraDBA to target directory |
-| [oradba_validate.sh](oradba_validate.sh) | Validate installation integrity |
-| [oradba_version.sh](oradba_version.sh) | Version management and update checking |
-| [oraup.sh](oraup.sh) | Update OraDBA from GitHub |
-| [dbstatus.sh](dbstatus.sh) | Display database instance status |
-| [sessionsql.sh](sessionsql.sh) | Launch SQL*Plus with session configuration |
+| Script                                   | Description                                                       |
+|------------------------------------------|-------------------------------------------------------------------|
+| [oraenv.sh](oraenv.sh)                   | Set Oracle environment from oratab with interactive SID selection |
+| [oradba_check.sh](oradba_check.sh)       | Check system prerequisites and configuration                      |
+| [oradba_install.sh](oradba_install.sh)   | Install OraDBA to target directory                                |
+| [oradba_validate.sh](oradba_validate.sh) | Validate installation integrity                                   |
+| [oradba_version.sh](oradba_version.sh)   | Version management and update checking                            |
+| [oraup.sh](oraup.sh)                     | Update OraDBA from GitHub                                         |
+| [dbstatus.sh](dbstatus.sh)               | Display database instance status                                  |
+| [sessionsql.sh](sessionsql.sh)           | Launch SQL*Plus with session configuration                        |
 
 **Total Scripts:** 8
 
@@ -42,6 +44,7 @@ source oraenv.sh free  # matches FREE, Free, or free
 ```
 
 **Features:**
+
 - Interactive numbered list for SID selection
 - Database status display
 - PDB detection and alias generation
