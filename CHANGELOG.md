@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.12] - 2025-12-18
+
+### Fixed
+
+- **oradba_version.sh**: Additional files now always displayed
+  - Previously only shown when integrity check passed
+  - Now shown regardless of integrity check result
+  - Helps identify custom files even when tracked files are modified
+
+### Changed
+
+- **File naming**: Renamed ALIAS_HELP.txt to alias_help.txt for consistency
+  - Updated all references in configs and documentation
+  - Updated alih alias definition
+  - Updated validation script
+  - Follows lowercase convention for consistency
+
 ## [0.7.11] - 2025-12-18
 
 ### Fixed

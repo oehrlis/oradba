@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.18
-# Revision...: 0.7.10
+# Revision...: 0.7.12
 # Purpose....: Version and integrity checking utility for OraDBA installation
 # Notes......: Provides version info, integrity verification, and update checking
 # Reference..: https://github.com/oehrlis/oradba
@@ -84,17 +84,15 @@ check_integrity() {
     verify_output=$(grep -v '\.install_info$' "${checksum_file}" | sha256sum -c - 2>&1)
     local verify_status=$?
     
+    local integrity_result=0
+    
     if [[ ${verify_status} -eq 0 ]]; then
         local file_count
         file_count=$(grep -v '^\.install_info$' "${checksum_file}" | grep -c '^[^#]')
         echo -e "${GREEN}✓ Installation integrity verified${NC}"
         echo "  All ${file_count} files match their checksums"
         echo "  (Excluding .install_info which is updated during installation)"
-        
-        # Check for additional files in managed directories
-        check_additional_files
-        
-        return 0
+        integrity_result=0
     else
         echo -e "${RED}✗ Installation integrity check FAILED${NC}"
         echo "  Files have been modified, corrupted, or are missing"
@@ -146,9 +144,13 @@ check_integrity() {
         [[ $modified_count -gt 0 ]] && echo "  Modified files: ${modified_count}"
         [[ $missing_count -gt 0 ]] && echo "  Missing files:  ${missing_count}"
         echo "  Total issues:   $((modified_count + missing_count))"
-        
-        return 1
+        integrity_result=1
     fi
+    
+    # Always check for additional files regardless of integrity check result
+    check_additional_files
+    
+    return ${integrity_result}
 }
 
 # ------------------------------------------------------------------------------

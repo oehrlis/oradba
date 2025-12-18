@@ -381,7 +381,7 @@ See [PDB Aliases](07-pdb-aliases.md) for complete documentation.
 
 | Alias     | Description         | Command                                 |
 |-----------|---------------------|-----------------------------------------|
-| `alih`    | Display alias help  | `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt` |
+| `alih`    | Display alias help  | `cat $ORADBA_PREFIX/doc/alias_help.txt` |
 | `alig`    | Search aliases      | `alias \| grep -i`                      |
 | `version` | Show OraDBA version | `oradba_version.sh -i`                  |
 

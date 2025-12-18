@@ -322,7 +322,7 @@ Now that you're familiar with basic operations, explore these topics:
 If you encounter issues:
 
 - Check the **[Troubleshooting Guide](12-troubleshooting.md)**
-- View alias help: `alih` or `cat $ORADBA_PREFIX/doc/ALIAS_HELP.txt`
+- View alias help: `alih` or `cat $ORADBA_PREFIX/doc/alias_help.txt`
 - Check version info: `oradba_version.sh --info`
 - Review logs in `$ORADBA_PREFIX/log/`
 - Open an issue on [GitHub](https://github.com/oehrlis/oradba/issues)
