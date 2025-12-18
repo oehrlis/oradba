@@ -740,7 +740,8 @@ configure_sqlpath() {
     fi
     
     # Build colon-separated SQLPATH, removing duplicates while preserving order
-    export SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd:)
+    SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd:)
+    export SQLPATH
     
     log_debug "SQLPATH configured: ${SQLPATH}"
 }

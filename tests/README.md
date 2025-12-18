@@ -1,65 +1,315 @@
-# OraDBA Test Suite
+# Test Suite
 
 BATS (Bash Automated Testing System) test suite for OraDBA functionality.
 
+## Overview
+
+The OraDBA test suite provides comprehensive testing of shell scripts, library functions, and utilities. Tests use BATS framework and are organized by component, with unit tests for libraries and integration tests for scripts.
+
 ## Test Files
 
-- **[test_common.bats](test_common.bats)** - Common library functions (11 tests)
-- **[test_db_functions.bats](test_db_functions.bats)** - Database operations
-  (23 tests)
-- **[test_oraenv.bats](test_oraenv.bats)** - Environment setup (25 tests)
-- **[test_installer.bats](test_installer.bats)** - Build and install (3 tests)
-- **[test_oradba_version.bats](test_oradba_version.bats)** - Version management
-  (12 tests)
+| Test File | Component | Tests | Description |
+|-----------|-----------|-------|-------------|
+| [test_common.bats](test_common.bats) | lib/common.sh | 11 | Core utility functions |
+| [test_db_functions.bats](test_db_functions.bats) | lib/db_functions.sh | 23 | Database operations |
+| [test_oraenv.bats](test_oraenv.bats) | bin/oraenv.sh | 25 | Environment setup |
+| [test_installer.bats](test_installer.bats) | Installation | 3 | Build and install |
+| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12 | Version management |
 
-**Total: 78 tests** (3 skipped integration tests)
+**Total: 74 tests** (some integration tests may be skipped without database)
 
 ## Running Tests
 
-Run all tests:
+### All Tests
 
 ```bash
+# Via Makefile
 make test
+
+# Or directly
+./tests/run_tests.sh
+
+# Or via BATS
+bats tests/
 ```
 
-Run specific test file:
+### Specific Test File
 
 ```bash
-bats tests/test_oraenv.bats
+# Via test runner
 ./tests/run_tests.sh test_oraenv.bats
+
+# Or directly with BATS
+bats tests/test_oraenv.bats
 ```
 
-Run individual test:
+### Individual Test
 
 ```bash
+# Run test matching filter
 bats tests/test_common.bats --filter "log_info"
+
+# Run by line number
+bats tests/test_common.bats:45
+```
+
+### Test Output Options
+
+```bash
+# Verbose output (show all test names)
+bats --verbose tests/
+
+# Tap output format
+bats --tap tests/
+
+# Pretty formatting (default)
+bats --pretty tests/
+
+# Show timing
+bats --timing tests/
 ```
 
 ## Requirements
 
-- BATS framework (`brew install bats-core` or `apt install bats`)
-- Oracle Database (for db_functions integration tests)
-- Valid oratab entries (see `src/etc/oratab.example`)
+### Software
+
+- **BATS Core** - Testing framework
+  ```bash
+  # macOS
+  brew install bats-core
+  
+  # Debian/Ubuntu
+  apt install bats
+  
+  # RHEL/Oracle Linux
+  yum install bats
+  ```
+
+- **BATS Support Libraries** (optional, for enhanced features)
+  ```bash
+  brew tap kaos/shell
+  brew install bats-assert bats-support
+  ```
+
+### Oracle Database (Optional)
+
+Some integration tests require Oracle Database:
+
+- Oracle Database 12c or higher
+- Valid oratab entries
+- Database instance running
+- SQL*Plus available
+
+Tests requiring database are skipped if unavailable.
 
 ## Test Structure
 
-The test suite includes 106 tests across 6 test files:
+### Test Organization
 
-- **test_aliases.bats** (28 tests) - Dynamic alias generation functions
-- **test_common.bats** (11 tests) - Common library functions
-- **test_db_functions.bats** (35 tests) - Database interaction functions
-- **test_installer.bats** (3 tests) - Installer build validation
-- **test_oradba_version.bats** (15 tests) - Version management utility
-- **test_oraenv.bats** (26 tests) - Environment setup script
+```
+tests/
+├── test_common.bats           # Unit tests for lib/common.sh
+├── test_db_functions.bats     # Unit tests for lib/db_functions.sh
+├── test_oraenv.bats           # Integration tests for oraenv.sh
+├── test_installer.bats        # Build system tests
+├── test_oradba_version.bats   # Version utility tests
+└── run_tests.sh               # Test runner script
+```
 
-Tests use standard BATS format with `setup()` and `teardown()` functions.
-Each test file focuses on a specific module or script.
+### Test Format
+
+Each test file follows standard BATS structure:
+
+```bash
+#!/usr/bin/env bats
+# Test suite for component
+
+setup() {
+    # Run before each test
+    load test_helper
+    setup_test_environment
+}
+
+teardown() {
+    # Run after each test
+    cleanup_test_environment
+}
+
+@test "descriptive test name" {
+    # Test code
+    run command_to_test
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "expected" ]]
+}
+```
+
+## Test Categories
+
+### Unit Tests
+
+Test individual functions in isolation:
+
+- **test_common.bats** - Logging, oratab parsing, utilities
+- **test_db_functions.bats** - Database query functions
+- **test_installer.bats** - Build script validation
+
+### Integration Tests
+
+Test complete workflows:
+
+- **test_oraenv.bats** - Environment sourcing, alias generation
+- **test_oradba_version.bats** - Version checking, updates
+
+### Mocked Tests
+
+Tests that mock external dependencies:
+
+- Database connections (when DB unavailable)
+- File system operations
+- External commands
+
+## Test Coverage
+
+Current coverage by component:
+
+| Component | Functions | Tested | Coverage |
+|-----------|-----------|--------|----------|
+| common.sh | ~30 | 11 | 37% |
+| db_functions.sh | ~15 | 23 | 100%* |
+| oraenv.sh | Main script | 25 | High |
+| oradba_version.sh | Main script | 12 | High |
+| Installer | Build system | 3 | Basic |
+
+*Some tests skipped without database
+
+## Writing Tests
+
+### Test Template
+
+```bash
+#!/usr/bin/env bats
+# Tests for your_component
+
+load test_helper
+
+setup() {
+    # Setup test environment
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
+    source "${ORADBA_BASE}/src/lib/common.sh"
+}
+
+@test "function returns expected value" {
+    run your_function "arg1"
+    [ "$status" -eq 0 ]
+    [ "$output" = "expected output" ]
+}
+
+@test "function handles error correctly" {
+    run your_function "invalid"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Error" ]]
+}
+```
+
+### Best Practices
+
+1. **Descriptive names** - Test name explains what is being tested
+2. **Single assertion** - Each test checks one thing
+3. **Setup/teardown** - Clean environment for each test
+4. **Mock dependencies** - Isolate component under test
+5. **Test edge cases** - Empty inputs, invalid data, etc.
+6. **Skip gracefully** - Skip tests requiring unavailable resources
+
+### Assertions
+
+```bash
+# Status checks
+[ "$status" -eq 0 ]        # Success
+[ "$status" -ne 0 ]        # Failure
+
+# Output matching
+[ "$output" = "exact" ]    # Exact match
+[[ "$output" =~ "regex" ]] # Regex match
+[ -z "$output" ]           # Empty output
+[ -n "$output" ]           # Non-empty output
+
+# File checks
+[ -f "$file" ]             # File exists
+[ -d "$dir" ]              # Directory exists
+[ -x "$script" ]           # File executable
+
+# Variable checks
+[ "$var" = "value" ]       # String equality
+[ "$var" -eq 10 ]          # Numeric equality
+```
+
+## Continuous Integration
+
+Tests are run automatically on:
+
+- Every commit (GitHub Actions)
+- Pull requests
+- Release builds
+
+### CI Configuration
+
+See `.github/workflows/test.yml` for CI setup.
+
+## Troubleshooting
+
+### BATS Not Found
+
+```bash
+# Install BATS
+brew install bats-core  # macOS
+apt install bats        # Debian/Ubuntu
+```
+
+### Tests Fail with Database Errors
+
+Some tests require Oracle Database. Either:
+
+1. Install and start Oracle Database
+2. Configure oratab entries
+3. Or skip database tests (automatically skipped if DB unavailable)
+
+### Permission Errors
+
+```bash
+# Make test scripts executable
+chmod +x tests/*.bats
+chmod +x tests/run_tests.sh
+```
 
 ## Documentation
 
-See [DEVELOPMENT.md](../doc/DEVELOPMENT.md) for:
+- **[Development Guide](../doc/development.md)** - Coding standards and testing guidelines
+- **[BATS Documentation](https://bats-core.readthedocs.io/)** - BATS framework reference
+- **[Test Helpers](https://github.com/bats-core/bats-support)** - BATS support library
 
-- Writing new tests
-- Test coverage guidelines
-- CI/CD integration
-- Mocking strategies
+## Development
+
+### Adding New Tests
+
+1. Create new `.bats` file or add to existing
+2. Follow naming convention: `test_<component>.bats`
+3. Include setup and teardown functions
+4. Write tests with descriptive names
+5. Test locally before committing
+6. Update this README with test counts
+
+### Running Tests During Development
+
+```bash
+# Quick check
+bats tests/test_common.bats
+
+# Watch for changes (requires entr)
+find src tests -name '*.sh' -o -name '*.bats' | entr bats tests/
+
+# Run specific component tests
+make test-common
+make test-oraenv
+```
+
+See [development.md](../doc/development.md) for complete testing guidelines.
