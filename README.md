@@ -119,8 +119,14 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ### Quick User Guide
 
 ```bash
-# Install OraDBA
+# Install OraDBA (one-liner)
 curl -L https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh | bash
+
+# Or download first, then install
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+chmod +x oradba_install.sh
+./oradba_install.sh
 
 # Set Oracle environment for a database
 source oraenv.sh FREE           # Source for specific SID

@@ -99,13 +99,14 @@ The installer automatically:
 Best for: Air-gapped environments or offline installations
 
 ```bash
-# Step 1: Download release tarball
-curl -L -o oradba-0.7.4.tar.gz \
-  https://github.com/oehrlis/oradba/releases/download/v0.7.4/oradba-0.7.4.tar.gz
-
-# Step 2: Download installer script
+# Download latest installer (recommended)
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+chmod +x oradba_install.sh
+
+# Or download specific version
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/download/v0.8.1/oradba_install.sh
 chmod +x oradba_install.sh
 
 # Step 3: Install from local tarball
@@ -394,12 +395,13 @@ $PREFIX/bin/oradba_install.sh --update --github --version 0.7.4
 ### Update from Local Tarball
 
 ```bash
-# Download new version
-curl -L -o oradba-0.7.4.tar.gz \
-  https://github.com/oehrlis/oradba/releases/download/v0.7.4/oradba-0.7.4.tar.gz
+# Download latest version
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 
 # Update installation
-$PREFIX/bin/oradba_install.sh --update --local oradba-0.7.4.tar.gz
+chmod +x oradba_install.sh
+./oradba_install.sh --update
 ```
 
 ### Update Features

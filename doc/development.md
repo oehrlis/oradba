@@ -808,7 +808,8 @@ make ci
 
 ### Overview
 
-The release workflow ensures CI passes before creating releases. Releases are triggered by pushing version tags and can also be manually dispatched.
+The release workflow ensures CI passes before creating releases. Releases are
+triggered by pushing version tags and can also be manually dispatched.
 
 **Workflow Triggers:**
 
@@ -861,7 +862,8 @@ git push origin main
 # ✅ Wait for green checkmark before proceeding
 ```
 
-**Why wait?** The release workflow verifies that CI passed for the tagged commit. If you push the tag before CI completes, the release will fail.
+**Why wait?** The release workflow verifies that CI passed for the tagged
+commit. If you push the tag before CI completes, the release will fail.
 
 #### 4. Create and Push Tag
 
@@ -901,6 +903,19 @@ gh release view v0.8.2
 - `oradba_install.sh` - Self-contained installer
 - `oradba-user-guide.pdf` - PDF documentation
 - `oradba-user-guide.html` - HTML documentation
+
+**Download URLs:**
+
+```bash
+# Latest release (recommended for users)
+https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf
+https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html
+
+# Specific version
+https://github.com/oehrlis/oradba/releases/download/v0.8.2/oradba_install.sh
+https://github.com/oehrlis/oradba/releases/download/v0.8.2/oradba-0.8.2.tar.gz
+```
 
 ### Manual Release (Alternative)
 
@@ -976,7 +991,7 @@ make version
 
 ### Troubleshooting Releases
 
-**Release failed: "No CI run found"**
+**Release failed:** "No CI run found"
 
 Cause: Tag was pushed before CI completed.
 
@@ -989,7 +1004,7 @@ git tag -a v0.8.2 -m "..."
 git push origin v0.8.2
 ```
 
-**Documentation missing from release**
+**Documentation missing** from release
 
 The workflow generates documentation after building. If missing, check:
 
@@ -1004,7 +1019,7 @@ ls -lh dist/*.pdf dist/*.html
 gh release upload v0.8.2 dist/oradba-user-guide.pdf dist/oradba-user-guide.html
 ```
 
-**Manual release needed**
+**Manual release** needed
 
 ```bash
 # Trigger workflow manually with specific version
@@ -1015,7 +1030,7 @@ gh workflow run release.yml -f version=0.8.2
 
 ### Bash Scripting
 
-1. **Use strict mode**
+1. **Use strict** mode
 
    ```bash
    set -e  # Exit on error
@@ -1023,7 +1038,7 @@ gh workflow run release.yml -f version=0.8.2
    set -o pipefail  # Exit on pipe failure
    ```
 
-2. **Quote variables**
+2. **Quote** variables
 
    ```bash
    # Good
@@ -1033,7 +1048,7 @@ gh workflow run release.yml -f version=0.8.2
    echo $variable
    ```
 
-3. **Use local variables in functions**
+3. **Use local** variables in functions
 
    ```bash
    my_function() {
@@ -1042,7 +1057,7 @@ gh workflow run release.yml -f version=0.8.2
    }
    ```
 
-4. **Check command existence**
+4. **Check command** existence
 
    ```bash
    if command_exists "oracle"; then
