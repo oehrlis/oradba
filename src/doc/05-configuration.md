@@ -317,6 +317,7 @@ $ source oraenv.sh FREE
 ```
 
 **Debug Output Includes:**
+
 - Configuration file loading sequence
 - Template paths and file creation details
 - Dummy SID detection and skipping logic
@@ -333,6 +334,7 @@ When you switch to a new ORACLE_SID for the first time, OraDBA automatically
 creates a SID-specific configuration file from a template.
 
 **Default Behavior:**
+
 - **Enabled by default** (`ORADBA_AUTO_CREATE_SID_CONFIG=true`)
 - **Only for real SIDs** - Skips dummy SIDs (oratab entries with startup flag `D`)
 - **Template-based** - Uses `sid.ORACLE_SID.conf.example` as the base
@@ -350,6 +352,7 @@ $ free  # First time switching to FREE instance
 **What Gets Created:**
 
 The auto-creation process:
+
 1. Checks if SID is in `ORADBA_REALSIDLIST` (not a dummy SID)
 2. Copies `sid.ORACLE_SID.conf.example` template
 3. Replaces `ORCL` with actual SID name (uppercase and lowercase)
@@ -406,6 +409,7 @@ sed -i 's/ORCL/MYDB/g' ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 **Important:** The SID configuration file tracks only **static metadata** (values that rarely change):
 
 **Static (stored in SID config):**
+
 - Database name
 - DB unique name
 - DBID
@@ -414,6 +418,7 @@ sed -i 's/ORCL/MYDB/g' ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 - Backup/recovery paths
 
 **Dynamic (queried at runtime):**
+
 - Database role (PRIMARY/STANDBY)
 - Open mode (READ WRITE/READ ONLY/MOUNTED)
 - Instance status
@@ -535,24 +540,24 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 
 ### Core System Variables
 
-| Variable            | Default                 | Description                 |
-|---------------------|-------------------------|-----------------------------|
-| `ORADBA_PREFIX`     | `/opt/oradba`           | Installation base directory |
-| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc`  | Configuration directory     |
-| `ORATAB_FILE`       | `/etc/oratab`           | oratab file location        |
+| Variable            | Default                 | Description                               |
+|---------------------|-------------------------|-------------------------------------------|
+| `ORADBA_PREFIX`     | `/opt/oradba`           | Installation base directory               |
+| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc`  | Configuration directory                   |
+| `ORATAB_FILE`       | `/etc/oratab`           | oratab file location                      |
 | `DEBUG`             | `0`                     | Debug mode (deprecated, use ORADBA_DEBUG) |
-| `ORADBA_DEBUG`      | `false`                 | Debug mode for detailed output |
-| `LOG_DIR`           | `${ORADBA_PREFIX}/logs` | Log directory               |
-| `BACKUP_DIR`        | `/backup`               | Default backup directory    |
+| `ORADBA_DEBUG`      | `false`                 | Debug mode for detailed output            |
+| `LOG_DIR`           | `${ORADBA_PREFIX}/logs` | Log directory                             |
+| `BACKUP_DIR`        | `/backup`               | Default backup directory                  |
 
 ### Behavior Variables
 
-| Variable                        | Default | Description                                |
-|---------------------------------|---------|--------------------------------------------|
-| `ORADBA_LOAD_ALIASES`           | `true`  | Load aliases and functions                 |
-| `ORADBA_SHOW_DB_STATUS`         | `true`  | Show database status on environment switch |
+| Variable                        | Default | Description                                     |
+|---------------------------------|---------|-------------------------------------------------|
+| `ORADBA_LOAD_ALIASES`           | `true`  | Load aliases and functions                      |
+| `ORADBA_SHOW_DB_STATUS`         | `true`  | Show database status on environment switch      |
 | `ORADBA_AUTO_CREATE_SID_CONFIG` | `true`  | Auto-create SID configurations (real SIDs only) |
-| `ORADBA_RLWRAP_FILTER`          | `false` | Enable password filtering in rlwrap        |
+| `ORADBA_RLWRAP_FILTER`          | `false` | Enable password filtering in rlwrap             |
 
 ### Oracle Environment Variables
 
