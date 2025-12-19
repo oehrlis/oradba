@@ -10,38 +10,18 @@ on:
         description: 'Version to release (e.g., 0.1.0)'
         required: true
         type: string
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches: [ main ]
 
 jobs:
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install BATS
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bats
-      
-      - name: Run BATS tests
-        run: |
-          if [ -d "tests" ] && [ -n "$(find tests -name '*.bats' -type f)" ]; then
-            ./tests/run_tests.sh
-          else
-            echo "No BATS tests found, skipping..."
-          fi
-      
-      - name: Install shellcheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-      
-      - name: Run shellcheck
-        run: |
-          find . -type f -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck -e SC1091 || true
-
   build-and-release:
-    needs: test
+    # Only run if CI passed (for workflow_run trigger) or on manual/tag trigger
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     name: Build and Release
     runs-on: ubuntu-latest
     permissions:

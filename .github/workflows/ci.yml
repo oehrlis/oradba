@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Stream 1: Code quality, tests, and build
   lint:
-    name: Lint
+    name: Lint Shell Scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,25 +24,8 @@ jobs:
         run: |
           find . -type f -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck -e SC1091 || true
 
-  markdown:
-    name: Markdown Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install markdownlint-cli
-        run: npm install -g markdownlint-cli
-      
-      - name: Lint markdown files
-        run: markdownlint '**/*.md' --ignore node_modules --ignore dist --ignore build
-
   test:
-    name: Test
+    name: Run Tests
     runs-on: ubuntu-latest
     needs: lint
     steps:
@@ -60,44 +44,12 @@ jobs:
             echo "No BATS tests found, skipping..."
           fi
 
-  docs:
-    name: Generate Documentation
+  build:
+    name: Build Installer
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Generate documentation
-        run: |
-          docker pull oehrlis/pandoc:latest
-          make docs
-      
-      - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: oradba-documentation
-          path: |
-            dist/oradba-user-guide.pdf
-            dist/oradba-user-guide.html
-          retention-days: 90
-      
-      - name: Display documentation info
-        run: |
-          ls -lh dist/oradba-user-guide.*
-          echo "Documentation generated successfully"
-
-  build:
-    name: Build Installer
-    runs-on: ubuntu-latest
-    needs: [test, docs]
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: oradba-documentation
-          path: dist/
       
       - name: Build installer
         run: |
@@ -145,3 +97,47 @@ jobs:
           fi
           
           echo "Installation validation successful"
+
+  # Stream 2: Documentation
+  lint-markdown:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      
+      - name: Lint markdown files
+        run: markdownlint '**/*.md' --ignore node_modules --ignore dist --ignore build
+
+  docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    needs: lint-markdown
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate documentation
+        run: |
+          docker pull oehrlis/pandoc:latest
+          make docs
+      
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oradba-documentation
+          path: |
+            dist/oradba-user-guide.pdf
+            dist/oradba-user-guide.html
+          retention-days: 90
+      
+      - name: Display documentation info
+        run: |
+          ls -lh dist/oradba-user-guide.*
+          echo "Documentation generated successfully"

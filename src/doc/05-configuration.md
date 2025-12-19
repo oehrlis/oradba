@@ -43,7 +43,8 @@ ORADBA_BIN_DIR="${ORADBA_PREFIX}/bin"
 ORATAB_FILE="/etc/oratab"
 
 # Behavior control
-DEBUG="0"
+DEBUG="0"                                      # Legacy debug mode (use ORADBA_DEBUG instead)
+ORADBA_DEBUG="false"                           # Debug mode for detailed output
 ORADBA_LOAD_ALIASES="true"
 ORADBA_SHOW_DB_STATUS="true"
 ORADBA_AUTO_CREATE_SID_CONFIG="true"
@@ -145,11 +146,17 @@ LOG_DIR="/var/log/oracle"
 # Disable automatic database status display
 ORADBA_SHOW_DB_STATUS="false"
 
-# Enable debug mode globally
-DEBUG="1"
+# Enable debug mode (shows detailed configuration loading, SID creation, etc.)
+ORADBA_DEBUG="true"
+
+# Legacy debug mode (deprecated, use ORADBA_DEBUG)
+# DEBUG="1"
 
 # Disable alias loading
 ORADBA_LOAD_ALIASES="false"
+
+# Disable auto-creation of SID configurations
+# ORADBA_AUTO_CREATE_SID_CONFIG="false"
 
 # --- rlwrap ---
 
@@ -289,44 +296,131 @@ $ source oraenv.sh FREE
 
 ### Debug Configuration Loading
 
-Enable debug mode to see exactly what's being loaded:
+Enable debug mode to see detailed information about configuration loading and SID creation:
 
 ```bash
-$ DEBUG=1 source oraenv.sh FREE
+$ export ORADBA_DEBUG=true
+$ source oraenv.sh FREE
 
 [DEBUG] Loading OraDBA configuration for SID: FREE
 [DEBUG] Loading core config: /opt/oradba/etc/oradba_core.conf
 [DEBUG] Loading standard config: /opt/oradba/etc/oradba_standard.conf
 [DEBUG] Loading customer config: /opt/oradba/etc/oradba_customer.conf
 [DEBUG] Loading default SID config: /opt/oradba/etc/sid._DEFAULT_.conf
-[DEBUG] Loading SID config: /opt/oradba/etc/sid.FREE.conf
+[DEBUG] Auto-create enabled, config_dir=/opt/oradba/etc, template should be at: /opt/oradba/etc/sid.ORACLE_SID.conf.example
+[DEBUG] create_sid_config called with SID=FREE
+[DEBUG] Will create: /opt/oradba/etc/sid.FREE.conf from template: /opt/oradba/etc/sid.ORACLE_SID.conf.example
+[INFO] Auto-creating SID configuration for FREE...
+[INFO] ✓ Created SID configuration: /opt/oradba/etc/sid.FREE.conf
+[DEBUG] Loading newly created SID config: /opt/oradba/etc/sid.FREE.conf
 [DEBUG] Configuration loading complete
 ```
+
+**Debug Output Includes:**
+- Configuration file loading sequence
+- Template paths and file creation details
+- Dummy SID detection and skipping logic
+- Variable resolution and overrides
+
+**Legacy DEBUG Variable:**
+The old `DEBUG=1` variable still works but is deprecated. Use `ORADBA_DEBUG=true` for consistent boolean behavior.
 
 ## Auto-Created SID Configurations
 
 ### How Auto-Creation Works
 
-When you switch to a new ORACLE_SID for the first time, OraDBA can automatically
-create a configuration file with database metadata.
+When you switch to a new ORACLE_SID for the first time, OraDBA automatically
+creates a SID-specific configuration file from a template.
 
-**Requirements:**
+**Default Behavior:**
+- **Enabled by default** (`ORADBA_AUTO_CREATE_SID_CONFIG=true`)
+- **Only for real SIDs** - Skips dummy SIDs (oratab entries with startup flag `D`)
+- **Template-based** - Uses `sid.ORACLE_SID.conf.example` as the base
+- **No database queries** - Uses placeholders from template, not live data
 
-- `ORADBA_AUTO_CREATE_SID_CONFIG=true` (default)
-- Database is accessible (OPEN or MOUNT mode)
-- Configuration file doesn't already exist
+**Example Output:**
 
-**Database Metadata Queried:**
+```bash
+$ free  # First time switching to FREE instance
 
-From `v$database`:
+[INFO] Auto-creating SID configuration for FREE...
+[INFO] ✓ Created SID configuration: /opt/oracle/local/oradba/etc/sid.FREE.conf
+```
 
-- `name` → ORADBA_DB_NAME
-- `db_unique_name` → ORADBA_DB_UNIQUE_NAME
-- `dbid` → ORADBA_DBID
-- `database_role` → ORADBA_DB_ROLE
-- `open_mode` → ORADBA_DB_OPEN_MODE
+**What Gets Created:**
 
-From `v$instance`:
+The auto-creation process:
+1. Checks if SID is in `ORADBA_REALSIDLIST` (not a dummy SID)
+2. Copies `sid.ORACLE_SID.conf.example` template
+3. Replaces `ORCL` with actual SID name (uppercase and lowercase)
+4. Updates date stamp and creation timestamp
+5. Creates `sid.${ORACLE_SID}.conf` in the configuration directory
+
+**Dummy SID Support:**
+
+Dummy SIDs (used for environment setup before database creation) are automatically skipped:
+
+```bash
+# /etc/oratab
+FREE:/opt/oracle/product/19c/dbhome:N      # Real DB - config will be auto-created
+rdbms26:/opt/oracle/product/26ai/dbhome:D  # Dummy - skipped (only visible in debug mode)
+```
+
+**Template Content:**
+
+The template includes static metadata placeholders:
+
+- `ORADBA_DB_NAME="ORCL"` → Replaced with actual SID
+- `ORADBA_DB_UNIQUE_NAME="ORCL"` → Replaced with actual SID
+- `ORADBA_DBID=""` → Empty, can be filled manually
+- NLS settings and backup configuration defaults
+
+**Disabling Auto-Creation:**
+
+```bash
+# In oradba_customer.conf or environment
+export ORADBA_AUTO_CREATE_SID_CONFIG=false
+
+# Or temporarily:
+ORADBA_AUTO_CREATE_SID_CONFIG=false source oraenv.sh FREE
+```
+
+**Manual Creation:**
+
+You can also manually create SID configurations:
+
+```bash
+# Copy template
+cp ${ORADBA_PREFIX}/etc/sid.ORACLE_SID.conf.example \
+   ${ORADBA_PREFIX}/etc/sid.MYDB.conf
+
+# Edit with your settings
+vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
+
+# Update ORCL references to your SID
+sed -i 's/ORCL/MYDB/g' ${ORADBA_PREFIX}/etc/sid.MYDB.conf
+```
+
+### Static vs Dynamic Metadata
+
+**Important:** The SID configuration file tracks only **static metadata** (values that rarely change):
+
+**Static (stored in SID config):**
+- Database name
+- DB unique name
+- DBID
+- Database version
+- NLS settings
+- Backup/recovery paths
+
+**Dynamic (queried at runtime):**
+- Database role (PRIMARY/STANDBY)
+- Open mode (READ WRITE/READ ONLY/MOUNTED)
+- Instance status
+- Session counts
+- Memory sizes
+
+This design ensures configurations remain valid even when database state changes (e.g., Data Guard switchover).
 
 - `version` → ORADBA_DB_VERSION
 
@@ -446,7 +540,8 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 | `ORADBA_PREFIX`     | `/opt/oradba`           | Installation base directory |
 | `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc`  | Configuration directory     |
 | `ORATAB_FILE`       | `/etc/oratab`           | oratab file location        |
-| `DEBUG`             | `0`                     | Debug mode (0=off, 1=on)    |
+| `DEBUG`             | `0`                     | Debug mode (deprecated, use ORADBA_DEBUG) |
+| `ORADBA_DEBUG`      | `false`                 | Debug mode for detailed output |
 | `LOG_DIR`           | `${ORADBA_PREFIX}/logs` | Log directory               |
 | `BACKUP_DIR`        | `/backup`               | Default backup directory    |
 
@@ -456,7 +551,7 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 |---------------------------------|---------|--------------------------------------------|
 | `ORADBA_LOAD_ALIASES`           | `true`  | Load aliases and functions                 |
 | `ORADBA_SHOW_DB_STATUS`         | `true`  | Show database status on environment switch |
-| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true`  | Auto-create SID configurations             |
+| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true`  | Auto-create SID configurations (real SIDs only) |
 | `ORADBA_RLWRAP_FILTER`          | `false` | Enable password filtering in rlwrap        |
 
 ### Oracle Environment Variables
