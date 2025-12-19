@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2025-12-19
+
 ### Added
 
 - **Long Operations Monitoring**: New comprehensive monitoring tools for database operations
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `test_get_seps_pwd.bats`: 32 tests for wallet password utility
   - `test_sync_scripts.bats`: 56 tests for sync utilities
   - `test_job_wrappers.bats`: 39 tests for job monitoring wrappers
-  - Total: 147 new tests with 89% pass rate in CI environments
+  - Total: 153 new tests (390 total tests project-wide)
   - Tests skip Oracle-dependent features for CI compatibility
 
 ### Changed
