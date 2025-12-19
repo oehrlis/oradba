@@ -12,7 +12,36 @@ on:
         type: string
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+      
+      - name: Run BATS tests
+        run: |
+          if [ -d "tests" ] && [ -n "$(find tests -name '*.bats' -type f)" ]; then
+            ./tests/run_tests.sh
+          else
+            echo "No BATS tests found, skipping..."
+          fi
+      
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      
+      - name: Run shellcheck
+        run: |
+          find . -type f -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck -e SC1091 || true
+
   build-and-release:
+    needs: test
     name: Build and Release
     runs-on: ubuntu-latest
     permissions:
