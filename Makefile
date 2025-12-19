@@ -294,9 +294,21 @@ docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker
 	@# Create temp directory with fixed markdown files
 	@mkdir -p $(DIST_DIR)/.tmp_docs
 	@cp $(USER_DOC_DIR)/*.md $(DIST_DIR)/.tmp_docs/
-	@# Fix .md links to use anchors and fix image paths
+	@# Fix .md links to proper section anchors and fix image paths
 	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
-		sed -i.bak -E 's/\]\(([0-9]{2}-[^)]+)\.md\)/](#\1)/g' "$$file"; \
+		sed -i.bak -E 's|\]\(01-introduction\.md\)|](#introduction)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(02-installation\.md\)|](#installation)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(03-quickstart\.md\)|](#quick-start-guide)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(04-environment\.md\)|](#environment-management)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(05-configuration\.md\)|](#configuration-system)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(06-aliases\.md\)|](#alias-reference)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(07-pdb-aliases\.md\)|](#pdb-alias-reference)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(08-sql-scripts\.md\)|](#sql-scripts-reference)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(09-rman-scripts\.md\)|](#rman-script-templates)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(10-functions\.md\)|](#database-functions-library-db_functions.sh)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(11-rlwrap\.md\)|](#rlwrap-filter-configuration)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(12-troubleshooting\.md\)|](#troubleshooting-guide)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(13-reference\.md\)|](#quick-reference)|g' "$$file"; \
 		sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "$$file"; \
 		rm "$$file.bak"; \
 	done
