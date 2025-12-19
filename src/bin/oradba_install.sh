@@ -158,9 +158,12 @@ backup_modified_files() {
         # Skip .install_info (always modified during installation)
         [[ "$line" =~ \.install_info ]] && continue
         
-        # Parse checksum line: <hash> *<filepath>
-        local expected_hash="${line%% *}"
-        local filepath="${line#* \*}"
+        # Parse checksum line: <hash>  <filepath> (two spaces)
+        # Skip lines that don't match expected format
+        [[ "$line" =~ ^[a-f0-9]{64}\ \ .+ ]] || continue
+        
+        local expected_hash="${line%%  *}"
+        local filepath="${line#*  }"
         local fullpath="$install_prefix/$filepath"
         
         # Skip if file doesn't exist
@@ -184,7 +187,7 @@ backup_modified_files() {
                 log_warn "Backing up modified file: $filepath"
                 cp -p "$fullpath" "$fullpath.save"
                 echo "  → Saved as: ${filepath}.save"
-                ((backed_up_count++))
+                backed_up_count=$((backed_up_count + 1))
             fi
         fi
     done < "$checksum_file"
