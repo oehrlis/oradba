@@ -4,7 +4,9 @@
 #
 # SID             - Oracle System Identifier
 # ORACLE_HOME     - Path to Oracle home directory
-# STARTUP_FLAG    - Y/N whether to start on boot
+# STARTUP_FLAG    - Y: Auto-start on boot
+#                   N: Do not auto-start
+#                   D: Dummy SID (for env setup before DB creation)
 #
 
 # Oracle 19c instances
@@ -18,3 +20,6 @@ TEST21:/u01/app/oracle/product/21.0.0/dbhome_1:N
 
 # Oracle 23c instances (if available)
 #DEV23:/u01/app/oracle/product/23.0.0/dbhome_1:N
+# Dummy SIDs for environment setup (D flag - no auto-create of sid config)
+# Use these to set Oracle environment before database creation
+rdbms26:/u01/app/oracle/product/26.0.0/dbhome_1:D

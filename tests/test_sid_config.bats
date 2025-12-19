@@ -82,7 +82,7 @@ teardown() {
 @test "Created config file is valid bash syntax" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Try to source it
     bash -n "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -91,7 +91,7 @@ teardown() {
 @test "Created config preserves all settings" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Check key settings are present
     grep -q "ORADBA_DB_UNIQUE_NAME" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -107,7 +107,7 @@ teardown() {
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Date.......: .*/Date.......: ${today}/" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     grep -q "Date.......: ${today}" "${TEST_DIR}/etc/sid.${sid}.conf"
 }
@@ -119,7 +119,7 @@ teardown() {
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Auto-created on first environment switch/Auto-created: ${timestamp}/" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     grep -q "Auto-created:" "${TEST_DIR}/etc/sid.${sid}.conf"
 }
@@ -130,7 +130,7 @@ teardown() {
 }
 
 @test "create_sid_config function checks for template" {
-    grep -q "sid.ORCL.conf.example" "${TEST_DIR}/lib/common.sh"
+    grep -q "sid.ORACLE_SID.conf.example" "${TEST_DIR}/lib/common.sh"
 }
 
 @test "create_sid_config uses sed for replacement" {
@@ -141,7 +141,7 @@ teardown() {
 @test "Works with single-letter SID" {
     local sid="X"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"X\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -150,7 +150,7 @@ teardown() {
 @test "Works with long SID name" {
     local sid="VERYLONGSIDNAME"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"VERYLONGSIDNAME\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -159,7 +159,7 @@ teardown() {
 @test "Handles SID with numbers" {
     local sid="DB19C"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"DB19C\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -169,8 +169,20 @@ teardown() {
 @test "No residual ORCL values in created config" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Should not find ORCL except in comments/descriptions
     ! grep -E "^[^#]*=\".*ORCL" "${TEST_DIR}/etc/sid.${sid}.conf"
+}
+# Dummy SID tests
+@test "Dummy SID check works with ORADBA_REALSIDLIST" {
+    # Simulate having both real and dummy SIDs
+    export ORADBA_SIDLIST="FREE rdbms26 CDB1"
+    export ORADBA_REALSIDLIST="FREE CDB1"
+    
+    # Check that FREE is in REALSIDLIST (should auto-create)
+    [[ " ${ORADBA_REALSIDLIST} " =~ " FREE " ]]
+    
+    # Check that rdbms26 is NOT in REALSIDLIST (should skip auto-create)
+    ! [[ " ${ORADBA_REALSIDLIST} " =~ " rdbms26 " ]]
 }
