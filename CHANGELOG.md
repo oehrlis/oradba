@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Configuration Backup on Update**: Installer now backs up modified configuration files
+  - Similar to RPM behavior: creates `.save` copies of modified files before overwriting
+  - Automatically detects modifications using checksum comparison
+  - Only backs up configuration files in `etc/` and files with `.conf` or `.example` extensions
+  - Preserves file permissions when creating backups
+  - Clear logging shows which files were backed up and where
+  - User modifications are never lost during updates
+
+### Fixed
+
+- **Database Status Display**: Clean output when database is unavailable
+  - Shows only environment variables (ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, VERSION)
+  - Distinguishes between dummy SIDs and stopped databases
+  - Eliminates mangled SQL error messages in status output
+  - Proper detection of dummy SIDs using ORADBA_SIDLIST and ORADBA_REALSIDLIST
+
+### Improved
+
+- **Alias Documentation**: Enhanced ALIAS_HELP.txt for better organization
+  - Reorganized sections: separated RMAN, database operations, listener operations
+  - Added missing aliases: `sessionsql`, `sqa`, `cdc`, `cdr`, `cdtmp`, `vii`, `vildap`
+  - Fixed documentation reference from ALIASES.md to 06-aliases.md
+  - Clearer section grouping and descriptions
+
+- **Installation Checks**: Added crontab to optional tools verification
+  - Warns if crontab is not available (needed for save_cron alias)
+  - Non-blocking check, installation continues if missing
+
 ## [0.7.16] - 2025-12-19
 
 ### Changed

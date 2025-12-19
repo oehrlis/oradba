@@ -244,6 +244,30 @@ teardown() {
     fi
 }
 
+@test "installation backs up modified configuration files during update" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # First installation
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        
+        # Modify a configuration file
+        if [ -f "$TEST_INSTALL_DIR/etc/oradba_standard.conf" ]; then
+            echo "# User modification" >> "$TEST_INSTALL_DIR/etc/oradba_standard.conf"
+            
+            # Update installation
+            "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" --force >/dev/null 2>&1
+            
+            # Check that backup was created
+            [ -f "$TEST_INSTALL_DIR/etc/oradba_standard.conf.save" ]
+            grep -q "User modification" "$TEST_INSTALL_DIR/etc/oradba_standard.conf.save"
+        else
+            skip "Configuration file not found"
+        fi
+    else
+        skip "Built installer not found"
+    fi
+}
+
 @test "installation creates checksum file" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then

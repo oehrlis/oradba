@@ -133,6 +133,74 @@ cleanup() {
 
 trap cleanup EXIT
 
+# Backup modified configuration files before installation
+# Similar to RPM behavior: save modified files with .save extension
+backup_modified_files() {
+    local install_prefix="$1"
+    local temp_dir="$2"
+    local backed_up_count=0
+    
+    # Only relevant if this is an update/upgrade
+    if [[ ! -f "$install_prefix/.oradba.checksum" ]]; then
+        return 0
+    fi
+    
+    log_info "Checking for modified configuration files..."
+    
+    # Get list of files that should be checked
+    local checksum_file="$install_prefix/.oradba.checksum"
+    
+    # Check each file in the checksum
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^#.*$ ]] || [[ -z "$line" ]] && continue
+        
+        # Skip .install_info (always modified during installation)
+        [[ "$line" =~ \.install_info ]] && continue
+        
+        # Parse checksum line: <hash> *<filepath>
+        local expected_hash="${line%% *}"
+        local filepath="${line#* \*}"
+        local fullpath="$install_prefix/$filepath"
+        
+        # Skip if file doesn't exist
+        [[ ! -f "$fullpath" ]] && continue
+        
+        # Calculate current checksum
+        local current_hash
+        if command -v sha256sum >/dev/null 2>&1; then
+            current_hash=$(sha256sum "$fullpath" 2>/dev/null | awk '{print $1}')
+        elif command -v shasum >/dev/null 2>&1; then
+            current_hash=$(shasum -a 256 "$fullpath" 2>/dev/null | awk '{print $1}')
+        else
+            log_warn "Cannot verify checksums - no checksum tool available"
+            return 0
+        fi
+        
+        # If file is modified, create backup
+        if [[ "$current_hash" != "$expected_hash" ]]; then
+            # Only backup configuration files in etc/ and user-modifiable files
+            if [[ "$filepath" =~ ^etc/ ]] || [[ "$filepath" =~ \.conf$ ]] || [[ "$filepath" =~ \.example$ ]]; then
+                log_warn "Backing up modified file: $filepath"
+                cp -p "$fullpath" "$fullpath.save"
+                echo "  → Saved as: ${filepath}.save"
+                ((backed_up_count++))
+            fi
+        fi
+    done < "$checksum_file"
+    
+    if [[ $backed_up_count -gt 0 ]]; then
+        echo ""
+        log_info "Backed up $backed_up_count modified configuration file(s)"
+        log_info "Your changes are preserved in .save files"
+        echo ""
+    else
+        log_info "No modified configuration files found"
+    fi
+    
+    return 0
+}
+
 # Display usage
 usage() {
     cat <<EOF
@@ -288,6 +356,15 @@ check_optional_tools() {
     else
         log_warn "less not found (optional)"
         echo "  Some scripts use 'less' for paging output."
+        ((warnings++)) || true  # Prevent set -e from exiting on arithmetic
+    fi
+    
+    # Check for crontab (optional for save_cron alias)
+    if command -v crontab >/dev/null 2>&1; then
+        log_info "crontab found (cron job management)"
+    else
+        log_warn "crontab not found (optional)"
+        echo "  The 'save_cron' alias requires crontab to backup cron jobs."
         ((warnings++)) || true  # Prevent set -e from exiting on arithmetic
     fi
     
@@ -1096,6 +1173,9 @@ if [[ ! -d "$INSTALL_PREFIX" ]]; then
     log_info "Creating installation directory: $INSTALL_PREFIX"
     mkdir -p "$INSTALL_PREFIX"
 fi
+
+# Backup modified configuration files before overwriting
+backup_modified_files "$INSTALL_PREFIX" "$TEMP_DIR"
 
 # Copy files
 log_info "Installing files..."

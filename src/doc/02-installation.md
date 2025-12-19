@@ -27,6 +27,7 @@ This chapter covers the installation of OraDBA, from system prerequisites throug
 ### Optional Tools
 
 - `rlwrap` - Command history and line editing for SQL*Plus and RMAN
+- `crontab` - Cron job management (needed for save_cron alias)
 - `pandoc` - Documentation generation (if building from source)
 - `curl` or `wget` - Downloading releases
 
@@ -234,22 +235,30 @@ The installer performs these steps:
    - Preserves custom configurations
    - Stores in `${PREFIX}.backup.TIMESTAMP`
 
-3. **Extraction**
+3. **Configuration Protection** (for updates)
+   - Detects modified configuration files using checksums
+   - Automatically backs up modified files with `.save` extension
+   - Only backs up files in `etc/` and `.conf`/`.example` files
+   - Preserves file permissions in backup copies
+   - Similar to RPM package management behavior
+   - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
+
+4. **Extraction**
    - Creates directory structure
    - Extracts files from embedded payload or tarball
    - Sets ownership and permissions
 
-4. **Verification**
+5. **Verification**
    - Validates SHA256 checksums
    - Confirms all files present
    - Reports any discrepancies
 
-5. **Metadata**
+6. **Metadata**
    - Records installation date, version, method
    - Stores in `${PREFIX}/.install_info`
    - Used for update detection and verification
 
-6. **Profile Integration** (if enabled)
+7. **Profile Integration** (if enabled)
    - Detects shell profile file
    - Creates backup
    - Adds OraDBA sourcing

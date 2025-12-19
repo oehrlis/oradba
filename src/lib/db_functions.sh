@@ -281,12 +281,9 @@ format_uptime() {
 show_database_status() {
     # Check if we can connect
     if ! check_database_connection; then
-        # Database not accessible - show simple environment status
+        # Database not accessible - show simple environment status only
         echo ""
         echo "-------------------------------------------------------------------------------"
-        echo "Oracle Environment (Database not accessible)"
-        echo "-------------------------------------------------------------------------------"
-        printf "%-15s: %s\n" "ORACLE_SID" "${ORACLE_SID:-not set}"
         printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
         printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
         printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
@@ -294,14 +291,25 @@ show_database_status() {
         # Try to get version from Oracle Home
         local version=""
         if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
-            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
         fi
         printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
-        
         echo "-------------------------------------------------------------------------------"
         echo ""
-        echo "Note: Database instance is not available."
-        echo "      This may be a dummy SID (startup flag 'D' in oratab) or instance not started."
+        
+        # Check if this is a dummy SID (in ORADBA_SIDLIST but not in ORADBA_REALSIDLIST)
+        local is_dummy=false
+        if [[ -n "${ORADBA_SIDLIST}" ]] && [[ -n "${ORADBA_REALSIDLIST}" ]]; then
+            if [[ " ${ORADBA_SIDLIST} " == *" ${ORACLE_SID} "* ]] && [[ " ${ORADBA_REALSIDLIST} " != *" ${ORACLE_SID} "* ]]; then
+                is_dummy=true
+            fi
+        fi
+        
+        if [[ "${is_dummy}" == "true" ]]; then
+            echo "Database instance '${ORACLE_SID}' is a dummy SID (environment only)."
+        else
+            echo "Database instance '${ORACLE_SID}' is not available (may not be started)."
+        fi
         echo ""
         return 1
     fi
