@@ -342,9 +342,100 @@ bats tests/test_db_functions.bats
 bats tests/test_db_functions.bats -f "check_database_connection"
 ```
 
+## Utility Scripts
+
+### Long Operations Monitoring
+
+Monitor long-running database operations from v$session_longops:
+
+**longops.sh** - Generic monitoring with watch mode:
+
+```bash
+# Monitor all operations
+longops.sh
+
+# Filter by operation pattern
+longops.sh -o "RMAN%"          # RMAN operations only
+longops.sh -o "%EXP%"          # DataPump exports
+longops.sh -o "%IMP%"          # DataPump imports
+
+# Watch mode (continuous monitoring)
+longops.sh -w                  # Default 5-second refresh
+longops.sh -w -i 10            # 10-second refresh interval
+```
+
+**Convenience wrappers:**
+
+```bash
+rman_jobs.sh                   # Monitor RMAN operations
+rman_jobs.sh -w                # Continuous RMAN monitoring
+exp_jobs.sh                    # Monitor DataPump exports
+imp_jobs.sh -w                 # Monitor DataPump imports
+```
+
+### Wallet Password Utility
+
+Extract passwords from Oracle Wallet using mkstore:
+
+**get_seps_pwd.sh** - Wallet password extraction:
+
+```bash
+# Extract specific entry
+get_seps_pwd.sh -w /path/to/wallet -e entry_name
+
+# List all entries (debug mode)
+get_seps_pwd.sh -w /path/to/wallet -d
+
+# Use encoded password file
+get_seps_pwd.sh -w /path/to/wallet -e entry -f pwd.enc
+```
+
+### Peer Synchronization
+
+Distribute files across database peer hosts using rsync:
+
+**sync_to_peers.sh** - Distribute from local to peers:
+
+```bash
+# Sync file to all peers
+sync_to_peers.sh /opt/oracle/wallet/cwallet.sso
+
+# Sync directory (with trailing slash)
+sync_to_peers.sh /opt/oracle/network/admin/
+
+# Dry run with verbose output
+sync_to_peers.sh -n -v /etc/oracle/tnsnames.ora
+
+# Delete remote files not present locally
+sync_to_peers.sh -D /opt/oracle/wallet/
+```
+
+**sync_from_peers.sh** - Pull from peer and distribute:
+
+```bash
+# Sync from specific peer to all others
+sync_from_peers.sh -p db01 /opt/oracle/wallet
+
+# Specify remote base path
+sync_from_peers.sh -p db01 -r /tmp/backup /opt/oracle/admin
+
+# Dry run verbose mode
+sync_from_peers.sh -p db01 -n -v /etc/oracle/oratab
+```
+
+**Configuration:**
+
+Both sync scripts support configuration via:
+
+- Environment variables: `PEER_HOSTS`, `SSH_USER`, `SSH_PORT`
+- Config files: `${ORADBA_ETC}/sync_*.conf`
+- Command line: `-H "host1 host2"`, `-c config.conf`
+
 ## See Also
 
 - [USAGE.md](USAGE.md) - Usage guide including dbstatus.sh
 - [common.sh](../lib/common.sh) - Common library functions
 - [dbstatus.sh](../bin/dbstatus.sh) - Standalone status display script
 - [oraenv.sh](../bin/oraenv.sh) - Environment setup with status display
+- [longops.sh](../bin/longops.sh) - Long operations monitoring
+- [sync_to_peers.sh](../bin/sync_to_peers.sh) - Peer file synchronization

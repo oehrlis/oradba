@@ -20,8 +20,15 @@ and can be executed directly from the shell.
 | [oraup.sh](oraup.sh)                     | Update OraDBA from GitHub                                         |
 | [dbstatus.sh](dbstatus.sh)               | Display database instance status                                  |
 | [sessionsql.sh](sessionsql.sh)           | Launch SQL*Plus with session configuration                        |
+| [longops.sh](longops.sh)                 | Monitor long-running operations in v$session_longops              |
+| [rman_jobs.sh](rman_jobs.sh)             | Monitor RMAN backup and restore operations                        |
+| [exp_jobs.sh](exp_jobs.sh)               | Monitor DataPump export jobs                                      |
+| [imp_jobs.sh](imp_jobs.sh)               | Monitor DataPump import jobs                                      |
+| [get_seps_pwd.sh](get_seps_pwd.sh)       | Extract passwords from Oracle Wallet                              |
+| [sync_from_peers.sh](sync_from_peers.sh) | Sync files from remote peer to local and other peers              |
+| [sync_to_peers.sh](sync_to_peers.sh)     | Distribute files from local host to peer hosts                    |
 
-**Total Scripts:** 8
+**Total Scripts:** 15
 
 ## Usage
 
@@ -66,6 +73,64 @@ oradba_version.sh --verify
 
 # Show installation metadata
 oradba_version.sh --info
+```
+
+### Long Operations Monitoring (longops.sh)
+
+Monitor long-running database operations:
+
+```bash
+# Monitor all long operations
+longops.sh
+
+# Monitor RMAN operations
+longops.sh -o "RMAN%"
+
+# Watch mode with 10-second interval
+longops.sh -o "%EXP%" -w -i 10
+
+# Use convenience wrappers
+rman_jobs.sh -w    # Monitor RMAN jobs continuously
+exp_jobs.sh        # Monitor DataPump exports
+imp_jobs.sh -w     # Monitor DataPump imports
+```
+
+**Features:**
+
+- Real-time monitoring of v$session_longops
+- Operation pattern filtering (RMAN%, %EXP%, %IMP%)
+- Watch mode with configurable refresh intervals
+- Progress percentage and time remaining display
+- Convenience wrappers for common operations
+
+### Wallet Password Utility (get_seps_pwd.sh)
+
+Extract passwords from Oracle Wallet:
+
+```bash
+# Extract password for entry
+get_seps_pwd.sh -w /path/to/wallet -e entry_name
+
+# Search wallet for matching entries
+get_seps_pwd.sh -w /path/to/wallet -d
+
+# With encoded password file
+get_seps_pwd.sh -w /path/to/wallet -e entry -f pwd.enc
+```
+
+### Peer Synchronization (sync_*.sh)
+
+Synchronize files across peer hosts:
+
+```bash
+# Sync from peer to all others
+sync_from_peers.sh -p db01 -v /opt/oracle/wallet
+
+# Distribute file to all peers
+sync_to_peers.sh -v /etc/oracle/tnsnames.ora
+
+# Dry run with delete option
+sync_to_peers.sh -n -D /opt/oracle/network/admin/
 ```
 
 ### Database Status (dbstatus.sh)

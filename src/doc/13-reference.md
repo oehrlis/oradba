@@ -146,6 +146,34 @@ vii                            # vi $ORADBA_ETC/sid.$ORACLE_SID.conf
 @params                        -- Init parameters [DBA]
 ```
 
+## Monitoring and Operations
+
+```bash
+# Long operations monitoring
+longops.sh                     # Monitor all long-running operations
+longops.sh -o "RMAN%"          # Monitor RMAN operations
+longops.sh -o "%EXP%" -w       # Watch DataPump exports
+longops.sh -w -i 10            # Watch mode with 10-second interval
+
+# Convenience wrappers
+rman_jobs.sh                   # Monitor RMAN jobs
+rman_jobs.sh -w                # Continuous RMAN monitoring
+exp_jobs.sh                    # Monitor DataPump exports
+imp_jobs.sh -w                 # Monitor DataPump imports
+
+# Wallet utilities
+get_seps_pwd.sh -w /path/to/wallet -e entry_name
+                               # Extract password from wallet
+get_seps_pwd.sh -w /path/to/wallet -d
+                               # Display all wallet entries
+
+# Peer synchronization
+sync_to_peers.sh /path/to/file # Distribute file to peer hosts
+sync_to_peers.sh -n -v /path   # Dry-run with verbose output
+sync_from_peers.sh -p db01 /path
+                               # Sync from peer to all others
+```
+
 ## PDB Aliases (Multitenant)
 
 ```bash

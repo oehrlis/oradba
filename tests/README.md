@@ -10,15 +10,19 @@ with unit tests for libraries and integration tests for scripts.
 
 ## Test Files
 
-| Test File                                            | Component             | Tests | Description            |
-|------------------------------------------------------|-----------------------|-------|------------------------|
-| [test_common.bats](test_common.bats)                 | lib/common.sh         | 11    | Core utility functions |
-| [test_db_functions.bats](test_db_functions.bats)     | lib/db_functions.sh   | 23    | Database operations    |
-| [test_oraenv.bats](test_oraenv.bats)                 | bin/oraenv.sh         | 25    | Environment setup      |
-| [test_installer.bats](test_installer.bats)           | Installation          | 3     | Build and install      |
-| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12    | Version management     |
+| Test File                                            | Component             | Tests | Description                     |
+|------------------------------------------------------|-----------------------|-------|---------------------------------|
+| [test_common.bats](test_common.bats)                 | lib/common.sh         | 11    | Core utility functions          |
+| [test_db_functions.bats](test_db_functions.bats)     | lib/db_functions.sh   | 23    | Database operations             |
+| [test_oraenv.bats](test_oraenv.bats)                 | bin/oraenv.sh         | 25    | Environment setup               |
+| [test_installer.bats](test_installer.bats)           | Installation          | 3     | Build and install               |
+| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12    | Version management              |
+| [test_longops.bats](test_longops.bats)               | bin/longops.sh        | 26    | Long operations monitoring      |
+| [test_get_seps_pwd.bats](test_get_seps_pwd.bats)     | bin/get_seps_pwd.sh   | 32    | Wallet password utility         |
+| [test_sync_scripts.bats](test_sync_scripts.bats)     | bin/sync_*.sh         | 56    | Peer synchronization            |
+| [test_job_wrappers.bats](test_job_wrappers.bats)     | bin/*_jobs.sh         | 39    | Job monitoring wrappers         |
 
-**Total: 74 tests** (some integration tests may be skipped without database)
+**Total: 227 tests** (some integration tests may be skipped without database)
 
 ## Running Tests
 

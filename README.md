@@ -12,7 +12,10 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
 - **Hierarchical Configuration**: 5-level configuration system with flexible overrides
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and more
+- **Long Operations Monitoring**: Real-time tracking of RMAN, DataPump, and other operations
 - **Database Status Display**: Compact, comprehensive database information
+- **Peer Synchronization**: Distribute files across database peer hosts
+- **Wallet Utilities**: Extract passwords from Oracle Wallet
 - **Version Management**: Version checking, integrity verification, and update detection
 - **SQL & RMAN Scripts**: Ready-to-use administration scripts
 - **Self-Contained Installer**: Single executable, no external dependencies
@@ -63,10 +66,12 @@ taa               # tail -f alert.log
 alih              # Show all aliases with descriptions
 ```
 
-View database status:
+View database status and monitor operations:
 
 ```bash
 dbstatus.sh       # Comprehensive database information
+rman_jobs.sh -w   # Monitor RMAN operations in watch mode
+exp_jobs.sh       # Monitor DataPump export jobs
 ```
 
 ## Documentation

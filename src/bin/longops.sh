@@ -19,7 +19,8 @@ set -o pipefail
 
 # Script directory and sourcing common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+readonly SCRIPT_NAME
 
 # Source common functions if available
 if [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
