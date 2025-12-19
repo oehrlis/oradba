@@ -145,8 +145,12 @@ test(common): Add tests for logging functions
 
 1. Update VERSION file
 2. Update CHANGELOG.md
-3. Create and push tag: `git tag -a v0.1.0 -m "Release v0.1.0"`
-4. GitHub Actions will create the release automatically
+3. Commit and push to main branch
+4. **Verify CI passes on main branch**
+5. Create and push tag: `git tag -a v0.1.0 -m "Release v0.1.0" && git push origin v0.1.0`
+6. GitHub Actions will build and publish the release automatically
+
+See [Development Guide](doc/development.md#release-process) for detailed instructions.
 
 ## Questions?
 

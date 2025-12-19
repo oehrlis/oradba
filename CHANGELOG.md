@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Release Workflow**: Removed unstable CI status verification that caused release failures
+  - Simplified release process to just build and publish when tag is pushed
+  - Removed fragile CI status check that relied on commit timing
+  - Makes release workflow more stable and predictable
+  - Quality control now relies on manual verification or branch protection rules
+
 ## [0.8.2] - 2025-12-19
 
 ### Added

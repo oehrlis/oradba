@@ -808,8 +808,11 @@ make ci
 
 ### Overview
 
-The release workflow ensures CI passes before creating releases. Releases are
-triggered by pushing version tags and can also be manually dispatched.
+Releases are triggered by pushing version tags and can also be manually dispatched.
+The workflow builds and publishes release artifacts automatically.
+
+**Quality Control:** Ensure CI passes on the main branch before tagging for
+release. Consider using branch protection rules to enforce this automatically.
 
 **Workflow Triggers:**
 
@@ -822,6 +825,7 @@ Before creating a release, ensure:
 
 - [ ] All changes merged to `main` branch
 - [ ] Local `main` branch is up to date: `git pull origin main`
+- [ ] CI has passed on main: Check [CI workflow](https://github.com/oehrlis/oradba/actions/workflows/ci.yml)
 - [ ] All tests pass locally: `make ci`
 - [ ] CHANGELOG.md is updated with release notes
 
@@ -851,23 +855,23 @@ Changes:
 - Enhancement 3"
 ```
 
-#### 3. Push and Wait for CI
+#### 3. Push Changes
 
 ```bash
-# Push release commit to trigger CI
+# Push release commit
 git push origin main
 
-# ⏳ WAIT for CI to complete (2-3 minutes)
+# Verify CI passes (optional but recommended)
 # Check: https://github.com/oehrlis/oradba/actions/workflows/ci.yml
-# ✅ Wait for green checkmark before proceeding
 ```
 
-**Why wait?** The release workflow verifies that CI passed for the tagged
-commit. If you push the tag before CI completes, the release will fail.
+**Best Practice:** Wait for CI to pass before tagging to ensure you're releasing
+tested code. However, the release workflow no longer enforces this - you're
+responsible for verifying quality.
 
 #### 4. Create and Push Tag
 
-Only after CI passes:
+After verifying CI passed (or accepting the risk):
 
 ```bash
 # Create annotated tag with release notes
@@ -919,18 +923,13 @@ https://github.com/oehrlis/oradba/releases/download/v0.8.2/oradba-0.8.2.tar.gz
 
 ### Manual Release (Alternative)
 
-If automatic release fails or you prefer manual control:
+If you prefer to manually trigger the release workflow:
 
 ```bash
-# 1. Ensure commit is pushed and CI passed
+# 1. Ensure commit is pushed
 git push origin main
-# Wait for CI ✅
 
-# 2. Create and push tag
-git tag -a v0.8.2 -m "Release message..."
-git push origin v0.8.2
-
-# 3. Manually trigger release workflow
+# 2. Manually trigger release workflow (no tag needed)
 gh workflow run release.yml -f version=0.8.2
 
 # 4. Monitor execution
@@ -983,7 +982,7 @@ make version
 - [ ] VERSION file updated
 - [ ] CHANGELOG.md updated with release notes
 - [ ] Release commit created and pushed
-- [ ] CI workflow completed successfully ✅
+- [ ] **CI workflow passed on main branch ✅** (verify before tagging)
 - [ ] Version tag created and pushed
 - [ ] Release workflow completed successfully ✅
 - [ ] Release artifacts verified (tarball, installer, docs)
@@ -991,12 +990,12 @@ make version
 
 ### Troubleshooting Releases
 
-**Release failed:** "No CI run found"
+**Build or test failures in release workflow**
 
-Cause: Tag was pushed before CI completed.
+Cause: Code issues weren't caught before tagging.
 
 ```bash
-# Delete and recreate tag after CI passes
+# Fix the issues, then delete and recreate tag
 git tag -d v0.8.2
 git push origin :refs/tags/v0.8.2
 # Wait for CI to pass ✅
