@@ -51,12 +51,33 @@ jobs:
               // For tag push or manual dispatch, query latest CI run on main branch
               core.info(`${context.eventName} trigger - querying latest CI run on main branch`);
               
+              // Get the commit SHA for the tag or use main branch HEAD
+              let targetSha;
+              if (context.eventName === 'push' && context.ref.startsWith('refs/tags/')) {
+                // For tag pushes, get the commit SHA that the tag points to
+                const tagRef = context.ref;
+                core.info(`Getting commit for tag: ${tagRef}`);
+                try {
+                  const { data: ref } = await github.rest.git.getRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: tagRef.replace('refs/', '')
+                  });
+                  targetSha = ref.object.sha;
+                  core.info(`Tag ${tagRef} points to commit: ${targetSha}`);
+                } catch (error) {
+                  core.setFailed(`Failed to get commit SHA for tag: ${error.message}`);
+                  core.setOutput('passed', 'false');
+                  return;
+                }
+              }
+              
               const { data: runs } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'ci.yml',
                 branch: 'main',
-                per_page: 1,
+                per_page: 20,  // Get more runs to find the right commit
                 status: 'completed'
               });
               
@@ -66,15 +87,28 @@ jobs:
                 return;
               }
               
-              const latestRun = runs.workflow_runs[0];
-              conclusion = latestRun.conclusion;
-              runUrl = latestRun.html_url;
+              // Find CI run for the specific commit if we have a target SHA
+              let ciRun;
+              if (targetSha) {
+                ciRun = runs.workflow_runs.find(run => run.head_sha === targetSha);
+                if (!ciRun) {
+                  core.setFailed(`❌ No CI run found for commit ${targetSha}. Please ensure CI has run on this commit.`);
+                  core.setOutput('passed', 'false');
+                  return;
+                }
+              } else {
+                // For manual dispatch, use the latest run
+                ciRun = runs.workflow_runs[0];
+              }
               
-              core.info(`Latest CI run: ${latestRun.id} - Status: ${latestRun.status} - Conclusion: ${conclusion}`);
+              conclusion = ciRun.conclusion;
+              runUrl = ciRun.html_url;
+              
+              core.info(`CI run: ${ciRun.id} - Commit: ${ciRun.head_sha} - Status: ${ciRun.status} - Conclusion: ${conclusion}`);
               core.info(`Run URL: ${runUrl}`);
               
               if (conclusion !== 'success') {
-                core.setFailed(`❌ Latest CI run on main branch did not succeed. Status: ${conclusion}. View run: ${runUrl}`);
+                core.setFailed(`❌ CI run did not succeed. Status: ${conclusion}. View run: ${runUrl}`);
                 core.setOutput('passed', 'false');
                 return;
               }
