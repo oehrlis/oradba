@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2025-12-19
+
+### Fixed
+
+- **Installer Configuration Backup**: Fixed backup functionality during updates
+  - Corrected checksum file parsing to handle two-space delimiter format
+  - Added regex validation for checksum line format (64-char hex hash)
+  - Fixed arithmetic expansion compatibility with `set -e` mode
+  - Backup now correctly identifies and preserves modified configuration files
+
+- **SQL Script oh.sql**: Fixed multi-line HOST command syntax error
+  - Collapsed bash command to single line (SQL*Plus HOST doesn't support backslash continuations)
+  - Resolved SP2-0734 and SP2-0042 errors
+  - Script now works correctly when filtering help output
+
+- **SQL Script aud_config_show_aud.sql**: Restored proper content and formatting
+  - Fixed SET command spacing and SQL formatting
+  - Restored column definitions that were previously removed
+
+### Improved
+
+- **SQL Script Headers**: Completed Phase 3 standardization (100 additional files)
+  - Updated Date field to 2025.12.19 for all remaining SQL scripts
+  - Set Revision to 0.8.0 across all updated files
+  - Added Reference field where missing
+  - Total: 127 SQL files now have consistent, standardized headers
+  - Categories covered: audit (aud_*), TDE (tde_*), security (sec_*), utilities, password verification
+
+- **CI/CD Pipeline**: Enhanced release workflow with comprehensive status checks
+  - Added CI status validation before creating releases
+  - Improved error messages and run query limits
+  - Validates specific commits for tag pushes
+
 ## [0.8.0] - 2025-12-19
 
 ### Added
