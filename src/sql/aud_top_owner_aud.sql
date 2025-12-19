@@ -4,11 +4,12 @@
 --  Name......: aud_top_owner_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.07.06
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Show top unified audit events by object_schema for current DBID
 --  Notes.....:  
 --  Reference.: SYS (or grant manually to a DBA)
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

@@ -4,7 +4,8 @@
 --  Name......: aud_init_full_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.26.29
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Usage.....: aud_init_full_aud.sql <TABLESPACE NAME> <DATAFILE SIZE> <AUDIT RETENTION>
 --
 --              TABLESPACE NAME   Name of the audit tablespace. Default is AUDIT_DATA

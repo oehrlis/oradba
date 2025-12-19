@@ -5,12 +5,13 @@
 --  Name......: cdsec_credbarestrole.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.03.17
+--  Date......: 2025.12.19
 --  Usage.....: cdsec_credbarestrole.sql <ROLE NAME>
 --  Purpose...: Script to create a restricted DBA role inlcuding re-grant to
 --              existing users.
 --  Notes.....: 
 --  Reference.: 
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.10.24
---  Revision..:  
+--  Revision..: 0.8.0
 --  Purpose...: Table Average Row Length and Total Size Report
 --  Usage.....: @tab_size 
 --  Notes.....: 

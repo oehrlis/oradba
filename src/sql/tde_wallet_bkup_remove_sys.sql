@@ -4,8 +4,8 @@
 --  Name......: tde_wallet_bkup_remove_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.12.09
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Deletes the DBMS Scheduler objects created for backing up the
 --              Transparent Data Encryption (TDE) software keystore.
 --  Notes.....: This script removes the DBMS Scheduler job, schedule, and program
@@ -13,6 +13,7 @@
 --              or SYSKM privileges to execute. Ensure no backups are running before
 --              execution.
 --  Reference.: 
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

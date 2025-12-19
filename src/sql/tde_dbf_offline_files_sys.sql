@@ -4,13 +4,14 @@
 --  Name......: tde_dbf_offline_files_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2024.03.22
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: This PL/SQL script is designed to create shell scripts to encrypt
 --              or decrypt datafiles in offline mode. Files can be easially executed
 --              with nohup
 --
 --  Reference.: SYS (or grant manually to a DBA)
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

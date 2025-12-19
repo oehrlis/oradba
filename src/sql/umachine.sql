@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..:  
+--  Revision..: 0.8.0
 --  Purpose...: Show user sessions based on Machine name.
 --  Usage.....: @umachine <MACHINE>
 --  Notes.....: 

@@ -4,11 +4,12 @@
 --  Name......: aud_policies_drop_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.07.06
+--  Date......: 2025.12.19
 --  Usage.....: 
 --  Purpose...: Disable all audit policies and drop all non-Oracle maintained policies
 --  Notes.....: 
 --  Reference.: 
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

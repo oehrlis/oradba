@@ -4,8 +4,8 @@
 --  Name......: tde_dbf_offline_encrypt_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2024.03.05
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: This PL/SQL script is designed to process database files, specifically
 --              focusing on identifying files across different chunks based on their
 --              sizes and preparing them for encryption commands. It dynamically
@@ -35,6 +35,7 @@
 --                the client supports viewing the DBMS_OUTPUT buffer or use an
 --                alternative method to capture the output.
 --  Reference.: SYS (or grant manually to a DBA)
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

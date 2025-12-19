@@ -4,7 +4,8 @@
 -- Name......: aud_policies_create_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2023.07.06
+-- Date......: 2025.12.19
+--  Revision..: 0.8.0
 -- Usage.....: 
 -- Purpose...: Create custom local audit policies
 -- Notes.....: 

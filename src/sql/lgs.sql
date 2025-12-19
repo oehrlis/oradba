@@ -7,7 +7,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..:  
+--  Revision..: 0.8.0
 --  Purpose...: Report log swich per hour 30 days back		 	
 --  Usage.....: @lgs 
 --  Notes.....: 

@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..:  
+--  Revision..: 0.8.0
 --  Purpose...: Show APEX user sessions in database (no background procs)
 --  Usage.....: @Show APEX user sessions in database (no background procs)
 --  Notes.....: 

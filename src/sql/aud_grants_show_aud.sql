@@ -4,11 +4,12 @@
 --  Name......: aud_grants_show_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.12.14
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Show recently granted privileges
 --  Notes.....:  
 --  Reference.: Requires AUDIT_VIEWER or AUDIT_ADMIN role
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

@@ -4,7 +4,8 @@
 -- Name......: cssec_pwverify.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2023.12.12
+-- Date......: 2025.12.19
+--  Revision..: 0.8.0
 -- Usage.....: 
 -- Purpose...: Create custom password verify function. Configurable by internal
 --             variables / constants

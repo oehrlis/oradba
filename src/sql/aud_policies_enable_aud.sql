@@ -4,7 +4,7 @@
 -- Name......: aud_policies_enable_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.com
 -- Editor....: Stefan Oehrli
--- Date......: 2023.07.06
+-- Date......: 2025.12.19
 -- Revision..:  
 -- Purpose...: SQL script to enable custom local audit policies policies
 -- Notes.....:  

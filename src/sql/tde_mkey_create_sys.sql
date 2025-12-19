@@ -4,12 +4,13 @@
 --  Name......: tde_mkey_create_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.08.30
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Create master encryption key for TDE configured keystore must be
 --              set before hand. Works for CDB as well PDB.
 --  Notes.....:  
 --  Reference.: Requires SYS, SYSDBA or SYSKM privilege
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

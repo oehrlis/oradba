@@ -4,11 +4,12 @@
 --  Name......: tde_ops_show_dba.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2024.03.21
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Show TDE operations from V$SESSION_LONGOPS
 --  Notes.....:  
 --  Reference.: Requires access to V$SESSION_LONGOPS
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

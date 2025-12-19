@@ -4,13 +4,14 @@
 --  Name......: tde_wallet_create_sys_backup.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.12.09
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Automates the creation of a backup for the Transparent Data Encryption (TDE)
 --              software keystore in Oracle databases.
 --  Notes.....: Requires SYS, SYSDBA, or SYSKM privileges. The script sets up a DBMS scheduler
 --              job to regularly backup the TDE keystore. Ensure the backup directory exists.
 --  Reference.: 
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

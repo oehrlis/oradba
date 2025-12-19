@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..:  
+--  Revision..: 0.8.0
 --  Purpose...: search an object in DICT
 --  Notes.....:  
 --  Reference.: Idea based on a script from tanel@tanelpoder.com

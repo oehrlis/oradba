@@ -4,12 +4,13 @@
 --  Name......: aud_policies_gen_enable_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.06.05
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Generate statements to enable all audit policies as currently set
 --              in AUDIT_UNIFIED_ENABLED_POLICIES.
 --  Notes.....:  
 --  Reference.: SYS (or grant manually to a DBA)
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

@@ -4,12 +4,13 @@
 --  Name......: aud_policies_show_aud.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.07.06
+--  Date......: 2025.12.19
 --  Usage.....: 
 --  Purpose...: Show local audit policies policies. A join of the views
 --              AUDIT_UNIFIED_POLICIES and AUDIT_UNIFIED_ENABLED_POLICIES  
 --  Notes.....: 
 --  Reference.: 
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------

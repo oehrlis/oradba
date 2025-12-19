@@ -4,8 +4,8 @@
 --  Name......: tde_init_full_sys_pdbiso_keyadmin.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2023.08.29
---  Revision..:  
+--  Date......: 2025.12.19
+--  Revision..: 0.8.0
 --  Purpose...: Create the software keystore in PDB in isolation mode as SYSKM
 --              or PDBADMIN. Environment must be prepared before with
 --              tde_init_full_sys_pdbiso_prepare.sql
@@ -16,6 +16,7 @@
 --              - tde_info_dba.sql        show current TDE configuration
 --  Notes.....:  
 --  Reference.: Requires SYS, SYSDBA or SYSKM privilege
+--  Reference..: https://github.com/oehrlis/oradba
 --  License...: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------
