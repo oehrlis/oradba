@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD036 -->
 # Development Guide
 
 This guide provides detailed information for developers working on oradba.
@@ -808,11 +809,8 @@ make ci
 
 ### Overview
 
-Releases are triggered by pushing version tags and can also be manually dispatched.
-The workflow builds and publishes release artifacts automatically.
-
-**Quality Control:** Ensure CI passes on the main branch before tagging for
-release. Consider using branch protection rules to enforce this automatically.
+The release workflow ensures CI passes before creating releases. Releases are
+triggered by pushing version tags and can also be manually dispatched.
 
 **Workflow Triggers:**
 
@@ -825,7 +823,6 @@ Before creating a release, ensure:
 
 - [ ] All changes merged to `main` branch
 - [ ] Local `main` branch is up to date: `git pull origin main`
-- [ ] CI has passed on main: Check [CI workflow](https://github.com/oehrlis/oradba/actions/workflows/ci.yml)
 - [ ] All tests pass locally: `make ci`
 - [ ] CHANGELOG.md is updated with release notes
 
@@ -855,23 +852,23 @@ Changes:
 - Enhancement 3"
 ```
 
-#### 3. Push Changes
+#### 3. Push and Wait for CI
 
 ```bash
-# Push release commit
+# Push release commit to trigger CI
 git push origin main
 
-# Verify CI passes (optional but recommended)
+# ⏳ WAIT for CI to complete (2-3 minutes)
 # Check: https://github.com/oehrlis/oradba/actions/workflows/ci.yml
+# ✅ Wait for green checkmark before proceeding
 ```
 
-**Best Practice:** Wait for CI to pass before tagging to ensure you're releasing
-tested code. However, the release workflow no longer enforces this - you're
-responsible for verifying quality.
+**Why wait?** The release workflow verifies that CI passed for the tagged
+commit. If you push the tag before CI completes, the release will fail.
 
 #### 4. Create and Push Tag
 
-After verifying CI passed (or accepting the risk):
+Only after CI passes:
 
 ```bash
 # Create annotated tag with release notes
@@ -923,13 +920,18 @@ https://github.com/oehrlis/oradba/releases/download/v0.8.2/oradba-0.8.2.tar.gz
 
 ### Manual Release (Alternative)
 
-If you prefer to manually trigger the release workflow:
+If automatic release fails or you prefer manual control:
 
 ```bash
-# 1. Ensure commit is pushed
+# 1. Ensure commit is pushed and CI passed
 git push origin main
+# Wait for CI ✅
 
-# 2. Manually trigger release workflow (no tag needed)
+# 2. Create and push tag
+git tag -a v0.8.2 -m "Release message..."
+git push origin v0.8.2
+
+# 3. Manually trigger release workflow
 gh workflow run release.yml -f version=0.8.2
 
 # 4. Monitor execution
@@ -982,7 +984,7 @@ make version
 - [ ] VERSION file updated
 - [ ] CHANGELOG.md updated with release notes
 - [ ] Release commit created and pushed
-- [ ] **CI workflow passed on main branch ✅** (verify before tagging)
+- [ ] CI workflow completed successfully ✅
 - [ ] Version tag created and pushed
 - [ ] Release workflow completed successfully ✅
 - [ ] Release artifacts verified (tarball, installer, docs)
@@ -990,12 +992,12 @@ make version
 
 ### Troubleshooting Releases
 
-**Build or test failures in release workflow**
+**Release failed: "No CI run found"**
 
-Cause: Code issues weren't caught before tagging.
+Cause: Tag was pushed before CI completed.
 
 ```bash
-# Fix the issues, then delete and recreate tag
+# Delete and recreate tag after CI passes
 git tag -d v0.8.2
 git push origin :refs/tags/v0.8.2
 # Wait for CI to pass ✅
@@ -1003,7 +1005,7 @@ git tag -a v0.8.2 -m "..."
 git push origin v0.8.2
 ```
 
-**Documentation missing** from release
+**Documentation missing from release**
 
 The workflow generates documentation after building. If missing, check:
 
@@ -1018,7 +1020,7 @@ ls -lh dist/*.pdf dist/*.html
 gh release upload v0.8.2 dist/oradba-user-guide.pdf dist/oradba-user-guide.html
 ```
 
-**Manual release** needed
+**Manual release needed**
 
 ```bash
 # Trigger workflow manually with specific version
@@ -1029,7 +1031,7 @@ gh workflow run release.yml -f version=0.8.2
 
 ### Bash Scripting
 
-1. **Use strict** mode
+1. **Use strict mode**
 
    ```bash
    set -e  # Exit on error
@@ -1037,7 +1039,7 @@ gh workflow run release.yml -f version=0.8.2
    set -o pipefail  # Exit on pipe failure
    ```
 
-2. **Quote** variables
+2. **Quote variables**
 
    ```bash
    # Good
@@ -1047,7 +1049,7 @@ gh workflow run release.yml -f version=0.8.2
    echo $variable
    ```
 
-3. **Use local** variables in functions
+3. **Use local variables in functions**
 
    ```bash
    my_function() {
@@ -1056,7 +1058,7 @@ gh workflow run release.yml -f version=0.8.2
    }
    ```
 
-4. **Check command** existence
+4. **Check command existence**
 
    ```bash
    if command_exists "oracle"; then
