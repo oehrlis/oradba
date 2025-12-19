@@ -10,11 +10,6 @@ on:
         description: 'Version to release (e.g., 0.1.0)'
         required: true
         type: string
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches: [ main ]
 
 jobs:
   check-ci:
@@ -143,14 +138,6 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ inputs.version }}"
-          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
-            # For workflow_run, find the most recent tag or use VERSION file
-            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [ -n "$LATEST_TAG" ]; then
-              VERSION=${LATEST_TAG#v}
-            else
-              VERSION=$(cat VERSION)
-            fi
           else
             # For push events (tags)
             VERSION=${GITHUB_REF#refs/tags/v}
