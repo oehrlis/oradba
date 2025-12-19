@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.19
-# Revision...: 0.7.17
+# Revision...: 0.7.18
 # Purpose....: Development workflow automation for OraDBA project. Provides
 #              targets for testing, linting, formatting, building, and releasing.
 # Notes......: Use 'make help' to show all available targets

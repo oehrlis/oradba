@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.19
-# Revision...: 0.7.17
+# Revision...: 0.7.18
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -116,26 +116,26 @@ generate_sid_lists() {
     local real_sids=""
     
     # Parse oratab, skip comments and empty lines
-    while IFS=: read -r sid _oracle_home startup_flag; do
+    while IFS=: read -r oratab_sid _oracle_home startup_flag; do
         # Skip empty lines and comments
-        [[ -z "$sid" ]] && continue
-        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$oratab_sid" ]] && continue
+        [[ "$oratab_sid" =~ ^[[:space:]]*# ]] && continue
         
         # Skip ASM instances (start with +)
-        [[ "$sid" =~ ^\+ ]] && continue
+        [[ "$oratab_sid" =~ ^\+ ]] && continue
         
         # Add to all SIDs list
-        all_sids="${all_sids}${all_sids:+ }${sid}"
+        all_sids="${all_sids}${all_sids:+ }${oratab_sid}"
         
         # Add to real SIDs list if startup flag is Y or N (not D for DGMGRL dummy)
         if [[ "$startup_flag" =~ ^[YyNn] ]]; then
-            real_sids="${real_sids}${real_sids:+ }${sid}"
+            real_sids="${real_sids}${real_sids:+ }${oratab_sid}"
         fi
         
         # Create alias for this SID (lowercase)
-        local sid_lower="${sid,,}"
+        local sid_lower="${oratab_sid,,}"
         # shellcheck disable=SC2139
-        alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${sid}"
+        alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
         
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
     
