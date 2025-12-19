@@ -743,6 +743,274 @@ make b    # Build
 make c    # Clean
 ```
 
+## Running Tests and CI Locally
+
+### Run All Tests
+
+```bash
+# Run complete test suite
+make test
+
+# Or directly with BATS
+./tests/run_tests.sh
+
+# Run specific test file
+bats tests/test_common.bats
+bats tests/test_installer.bats
+```
+
+### Run Linters (CI Checks)
+
+```bash
+# Run all linters (what CI runs)
+make lint
+
+# Or individually
+make lint-shell      # ShellCheck on bash scripts
+make lint-markdown   # Markdownlint on .md files
+```
+
+### Build Locally
+
+```bash
+# Build distribution and installer
+make build
+
+# Output files:
+# - dist/oradba-X.Y.Z.tar.gz
+# - dist/oradba_install.sh
+```
+
+### Generate Documentation
+
+```bash
+# Build PDF and HTML documentation
+make docs
+
+# Or individually
+make docs-pdf        # Creates dist/oradba-user-guide.pdf
+make docs-html       # Creates dist/oradba-user-guide.html
+```
+
+### Complete CI Pipeline Locally
+
+```bash
+# Run everything CI runs
+make ci
+
+# This runs:
+# 1. Linting (shellcheck, markdownlint)
+# 2. Tests (BATS)
+# 3. Build (installer and docs)
+```
+
+## Release Process
+
+### Overview
+
+The release workflow ensures CI passes before creating releases. Releases are triggered by pushing version tags and can also be manually dispatched.
+
+**Workflow Triggers:**
+
+1. **Tag Push** - Automatic release when version tag pushed (e.g., `v0.8.1`)
+2. **Manual Dispatch** - Manual trigger via GitHub Actions UI
+
+### Prerequisites
+
+Before creating a release, ensure:
+
+- [ ] All changes merged to `main` branch
+- [ ] Local `main` branch is up to date: `git pull origin main`
+- [ ] All tests pass locally: `make ci`
+- [ ] CHANGELOG.md is updated with release notes
+
+### Release Steps
+
+#### 1. Update Version Files
+
+```bash
+# Update VERSION file
+echo "0.8.2" > VERSION
+
+# Update CHANGELOG.md with new version entry
+# Add [0.8.2] - YYYY-MM-DD section with changes
+```
+
+#### 2. Commit Release Changes
+
+```bash
+git add VERSION CHANGELOG.md
+git commit -m "chore: Release v0.8.2
+
+Version bump: 0.8.1 → 0.8.2
+
+Changes:
+- Feature 1
+- Bug fix 2
+- Enhancement 3"
+```
+
+#### 3. Push and Wait for CI
+
+```bash
+# Push release commit to trigger CI
+git push origin main
+
+# ⏳ WAIT for CI to complete (2-3 minutes)
+# Check: https://github.com/oehrlis/oradba/actions/workflows/ci.yml
+# ✅ Wait for green checkmark before proceeding
+```
+
+**Why wait?** The release workflow verifies that CI passed for the tagged commit. If you push the tag before CI completes, the release will fail.
+
+#### 4. Create and Push Tag
+
+Only after CI passes:
+
+```bash
+# Create annotated tag with release notes
+git tag -a v0.8.2 -m "OraDBA v0.8.2
+
+Summary of changes:
+- Feature 1
+- Bug fix 2  
+- Enhancement 3
+
+Full changelog: https://github.com/oehrlis/oradba/compare/v0.8.1...v0.8.2"
+
+# Push tag to trigger release workflow
+git push origin v0.8.2
+```
+
+#### 5. Verify Release
+
+```bash
+# Check release workflow status
+gh run list --workflow=release.yml --limit 1
+
+# View release when complete
+gh release view v0.8.2
+
+# Or visit:
+# https://github.com/oehrlis/oradba/releases
+```
+
+**Expected artifacts:**
+
+- `oradba-X.Y.Z.tar.gz` - Distribution tarball
+- `oradba_install.sh` - Self-contained installer
+- `oradba-user-guide.pdf` - PDF documentation
+- `oradba-user-guide.html` - HTML documentation
+
+### Manual Release (Alternative)
+
+If automatic release fails or you prefer manual control:
+
+```bash
+# 1. Ensure commit is pushed and CI passed
+git push origin main
+# Wait for CI ✅
+
+# 2. Create and push tag
+git tag -a v0.8.2 -m "Release message..."
+git push origin v0.8.2
+
+# 3. Manually trigger release workflow
+gh workflow run release.yml -f version=0.8.2
+
+# 4. Monitor execution
+gh run watch
+```
+
+### Build Release Locally
+
+To test release artifacts before pushing:
+
+```bash
+# Build everything locally
+make clean
+make build
+
+# Check artifacts
+ls -lh dist/
+
+# Expected files:
+# - dist/oradba-X.Y.Z.tar.gz
+# - dist/oradba_install.sh
+# - dist/oradba-user-guide.pdf
+# - dist/oradba-user-guide.html
+
+# Test installer
+./dist/oradba_install.sh --help
+```
+
+### Version Bumping
+
+Quick version bump commands:
+
+```bash
+# Patch release (0.8.1 → 0.8.2)
+make version-bump-patch
+
+# Minor release (0.8.2 → 0.9.0)
+make version-bump-minor
+
+# Major release (0.9.0 → 1.0.0)
+make version-bump-major
+
+# View current version
+make version
+```
+
+### Release Checklist
+
+- [ ] All tests passing locally (`make ci`)
+- [ ] VERSION file updated
+- [ ] CHANGELOG.md updated with release notes
+- [ ] Release commit created and pushed
+- [ ] CI workflow completed successfully ✅
+- [ ] Version tag created and pushed
+- [ ] Release workflow completed successfully ✅
+- [ ] Release artifacts verified (tarball, installer, docs)
+- [ ] Release notes reviewed on GitHub
+
+### Troubleshooting Releases
+
+**Release failed: "No CI run found"**
+
+Cause: Tag was pushed before CI completed.
+
+```bash
+# Delete and recreate tag after CI passes
+git tag -d v0.8.2
+git push origin :refs/tags/v0.8.2
+# Wait for CI to pass ✅
+git tag -a v0.8.2 -m "..."
+git push origin v0.8.2
+```
+
+**Documentation missing from release**
+
+The workflow generates documentation after building. If missing, check:
+
+```bash
+# Verify local build includes docs
+make clean
+make build
+make docs
+ls -lh dist/*.pdf dist/*.html
+
+# Then manually upload to release
+gh release upload v0.8.2 dist/oradba-user-guide.pdf dist/oradba-user-guide.html
+```
+
+**Manual release needed**
+
+```bash
+# Trigger workflow manually with specific version
+gh workflow run release.yml -f version=0.8.2
+```
+
 ## Best Practices
 
 ### Bash Scripting
