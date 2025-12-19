@@ -15,6 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Makes release workflow more stable and predictable
   - Quality control now relies on manual verification or branch protection rules
 
+- **PDF Documentation**: Fixed LaTeX hyperreference warnings during PDF generation
+  - Corrected internal cross-reference anchors to match actual heading IDs
+  - Links between documentation sections now resolve properly in PDF
+  - Eliminates ~30 "Hyper reference not found" warnings during build
+
+### Changed
+
+- **Documentation**: Updated release process documentation
+  - Clarified that developers are responsible for verifying CI before tagging
+  - Updated workflow steps to reflect simplified release process
+  - Added best practices for ensuring quality before releases
+  - Updated troubleshooting section to reflect new workflow behavior
+
 ## [0.8.2] - 2025-12-19
 
 ### Added
