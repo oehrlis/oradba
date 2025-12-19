@@ -72,12 +72,14 @@ jobs:
                 }
               }
               
+              // Query CI workflow runs - use 'ci.yml' which matches this repo's CI workflow
+              const maxRuns = 50;  // Fetch enough runs to handle most scenarios
               const { data: runs } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'ci.yml',
                 branch: 'main',
-                per_page: 50,  // Fetch enough runs to handle busy repos
+                per_page: maxRuns,
                 status: 'completed'
               });
               
@@ -92,9 +94,11 @@ jobs:
               if (targetSha) {
                 ciRun = runs.workflow_runs.find(run => run.head_sha === targetSha);
                 if (!ciRun) {
+                  const searchedCount = runs.workflow_runs.length;
                   core.setFailed(
                     `❌ No CI run found for commit ${targetSha}.\n` +
-                    `Please ensure CI has completed on this commit before creating a release.\n` +
+                    `Searched ${searchedCount} most recent completed CI runs on main branch.\n` +
+                    `Please ensure CI has completed successfully on this commit before creating a release.\n` +
                     `Check: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/ci.yml`
                   );
                   core.setOutput('passed', 'false');
