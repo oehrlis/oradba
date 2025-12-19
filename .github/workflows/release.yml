@@ -77,7 +77,7 @@ jobs:
                 repo: context.repo.repo,
                 workflow_id: 'ci.yml',
                 branch: 'main',
-                per_page: 20,  // Get more runs to find the right commit
+                per_page: 50,  // Fetch enough runs to handle busy repos
                 status: 'completed'
               });
               
@@ -92,7 +92,11 @@ jobs:
               if (targetSha) {
                 ciRun = runs.workflow_runs.find(run => run.head_sha === targetSha);
                 if (!ciRun) {
-                  core.setFailed(`❌ No CI run found for commit ${targetSha}. Please ensure CI has run on this commit.`);
+                  core.setFailed(
+                    `❌ No CI run found for commit ${targetSha}.\n` +
+                    `Please ensure CI has completed on this commit before creating a release.\n` +
+                    `Check: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/ci.yml`
+                  );
                   core.setOutput('passed', 'false');
                   return;
                 }
