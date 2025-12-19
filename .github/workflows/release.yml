@@ -163,14 +163,14 @@ jobs:
           echo "VERSION file content: $(cat VERSION)"
           echo "Detected version: ${{ steps.version.outputs.version }}"
       
+      - name: Build distribution and installer
+        run: |
+          make build
+      
       - name: Generate documentation
         run: |
           docker pull oehrlis/pandoc:latest
           make docs-pdf docs-html || echo "Documentation generation failed, continuing..."
-      
-      - name: Build distribution and installer
-        run: |
-          make build
       
       - name: Generate release notes
         id: release_notes
