@@ -24,7 +24,7 @@ setup() {
     mkdir -p "${TEST_DIR}/lib"
     
     # Copy necessary files
-    cp "${PROJECT_ROOT}/src/etc/sid.ORCL.conf.example" "${TEST_DIR}/etc/"
+    cp "${PROJECT_ROOT}/src/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
@@ -40,20 +40,20 @@ teardown() {
 }
 
 # Basic template tests
-@test "sid.ORCL.conf.example template file exists" {
-    [[ -f "${TEST_DIR}/etc/sid.ORCL.conf.example" ]]
+@test "sid.ORACLE_SID.conf.example template file exists" {
+    [[ -f "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" ]]
 }
 
-@test "Template contains ORCL placeholders" {
-    grep -q "ORADBA_DB_NAME=\"ORCL\"" "${TEST_DIR}/etc/sid.ORCL.conf.example"
-    grep -q "ORADBA_TNS_ALIAS=\"ORCL\"" "${TEST_DIR}/etc/sid.ORCL.conf.example"
+@test "Template contains expected variables" {
+    grep -q "ORADBA_DB_NAME=\"ORCL\"" "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example"
+    grep -q "ORADBA_TNS_ALIAS=\"ORCL\"" "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example"
 }
 
 # SID replacement tests
 @test "sed correctly replaces ORCL with FREE" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"FREE\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -63,7 +63,7 @@ teardown() {
 @test "sed correctly replaces lowercase orcl with free" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Check for lowercase replacement in paths
     grep -q "rdbms/free/" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -72,7 +72,7 @@ teardown() {
 @test "sed works with different SID names" {
     for sid in "TEST" "PROD" "DEV123"; do
         sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-            "${TEST_DIR}/etc/sid.ORCL.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+            "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
         
         [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
         grep -q "ORADBA_DB_NAME=\"${sid}\"" "${TEST_DIR}/etc/sid.${sid}.conf"

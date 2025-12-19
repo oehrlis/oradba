@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
 # ------------------------------------------------------------------------------
-# Name.......: sid.ORCL.conf.example
+# Name.......: sid.ORACLE_SID.conf.example
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
@@ -24,17 +24,14 @@ ORADBA_DB_NAME="ORCL"
 # Database unique name from v$database.db_unique_name
 ORADBA_DB_UNIQUE_NAME="ORCL"
 
-# Database ID from v$database.dbid
+# Database ID from v$database.dbid (static metadata)
 ORADBA_DBID="1234567890"
 
-# Database role from v$database.database_role
-ORADBA_DB_ROLE="PRIMARY"
-
-# Database version from v$instance.version
+# Database version from v$instance.version (static metadata)
 ORADBA_DB_VERSION="19.0.0.0.0"
 
-# Database open mode from v$database.open_mode
-ORADBA_DB_OPEN_MODE="READ WRITE"
+# Note: DB_ROLE and OPEN_MODE are dynamic and queried at runtime
+# Do not configure them here - they change based on database state
 
 # ------------------------------------------------------------------------------
 # NLS Settings (override defaults for this database)

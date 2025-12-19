@@ -149,7 +149,7 @@ test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf'
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
 test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.conf' ]]"
 test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/oradba_customer.conf.example' ]]"
-test_item "sid.ORCL.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORCL.conf.example' ]]" "optional"
+test_item "sid.ORACLE_SID.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORACLE_SID.conf.example' ]]" "optional"
 
 echo ""
 

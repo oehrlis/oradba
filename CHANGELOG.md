@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.16] - 2025-12-19
+
+### Changed
+
+- **Template Renamed**: `sid.ORCL.conf.example` → `sid.ORACLE_SID.conf.example`
+  - More generic name that doesn't imply "ORCL" is special
+  - Clearer that it's a template for any SID
+  - All references updated in code, docs, and tests
+
+- **SID Config Simplification**: Only track static database metadata
+  - Removed dynamic fields: `ORADBA_DB_ROLE` and `ORADBA_DB_OPEN_MODE`
+  - These should be queried at runtime, not stored in config
+  - Keeps config files clean and eliminates stale data
+  - Template now documents this design decision
+
+### Fixed
+
+- **Auto-Create Robustness**: Template must exist for auto-creation
+  - Added explicit check and error message if template missing
+  - Prevents silent failures during SID config creation
+  - Clearer error messages to stderr
+
+### Removed
+
+- Removed ~170 lines of dead fallback code for database metadata querying
+- Simplified `create_sid_config()` function significantly
+- Template-based approach is now the only method
+
 ## [0.7.15] - 2025-12-18
 
 ### Fixed

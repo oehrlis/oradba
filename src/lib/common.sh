@@ -5,8 +5,8 @@
 # Name.......: common.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.18
-# Revision...: 0.7.15
+# Date.......: 2025.12.19
+# Revision...: 0.7.16
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -386,12 +386,14 @@ load_config() {
 }
 
 # Create SID-specific configuration file with database metadata
+# Only tracks static metadata: DB_NAME, DB_UNIQUE_NAME, DBID, DB_VERSION, NLS_LANG
+# Does not track dynamic state like DB_ROLE or OPEN_MODE
 # Usage: create_sid_config <ORACLE_SID>
 create_sid_config() {
     local sid="$1"
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
-    local example_config="${config_dir}/sid.ORCL.conf.example"
+    local example_config="${config_dir}/sid.ORACLE_SID.conf.example"
     
     # Check if config directory is writable
     if [[ ! -w "${config_dir}" ]]; then
@@ -407,183 +409,22 @@ create_sid_config() {
     log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
-    if [[ -f "${example_config}" ]]; then
-        log_debug "Using template: ${example_config}"
-        # Copy example and replace ORCL with actual SID
-        if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
-            "${example_config}" > "${sid_config}"; then
-            echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
-            log_info "Created SID configuration from template: ${sid_config}"
-            return 0
-        else
-            echo "[ERROR] Failed to create config from template" >&2
-            log_error "Failed to create config from template"
-            return 1
-        fi
+    if [[ ! -f "${example_config}" ]]; then
+        echo "[ERROR] Template not found: ${example_config}" >&2
+        log_error "Template not found: ${example_config}"
+        return 1
     fi
     
-    # Fallback: Create config from database metadata or defaults
-    log_debug "Template not found, creating from database metadata"
-    
-    # Initialize variables with defaults
-    local db_name="${sid}"
-    local db_unique_name="${sid}"
-    local dbid=""
-    local db_role="PRIMARY"
-    local open_mode="READ WRITE"
-    local diagnostic_dest="${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}"
-    
-    # Check if database is accessible before querying
-    local db_accessible=false
-    if command -v sqlplus >/dev/null 2>&1; then
-        local conn_test
-        conn_test=$(sqlplus -S / as sysdba <<'EOF' 2>&1
-SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
-SELECT 'OK' FROM dual;
-EXIT;
-EOF
-        )
-        if [[ "${conn_test}" == "OK" ]]; then
-            db_accessible=true
-        fi
-    fi
-    
-    # Query database for metadata only if accessible
-    if [[ "${db_accessible}" == "true" ]]; then
-        local db_info
-        db_info=$(sqlplus -S / as sysdba 2>&1 <<'EOF' | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | grep -v "^Help:" | grep -v "^Usage:" | grep -v "^where" | tr -d '\n'
-SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT SQL.SQLCODE
-WHENEVER OSERROR EXIT SQL.SQLCODE
-SELECT 
-    name || '|' || 
-    db_unique_name || '|' || 
-    dbid || '|' || 
-    database_role || '|' || 
-    open_mode
-FROM v$database;
-EXIT;
-EOF
-        )
-        
-        local diag_dest_query
-        diag_dest_query=$(sqlplus -S / as sysdba <<'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | tr -d '\n'
-SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
-SELECT value FROM v$parameter WHERE name = 'diagnostic_dest';
-EXIT;
-EOF
-        )
-        
-        # Parse database info only if query succeeded (contains pipe separator)
-        if [[ "${db_info}" == *"|"* ]]; then
-            IFS='|' read -r db_name db_unique_name dbid db_role open_mode <<< "${db_info}"
-            # Clean up values
-            db_name=$(echo "${db_name}" | tr -d '[:space:]')
-            db_unique_name=$(echo "${db_unique_name}" | tr -d '[:space:]')
-            dbid=$(echo "${dbid}" | tr -d '[:space:]')
-            db_role=$(echo "${db_role}" | tr -d '[:space:]')
-            open_mode=$(echo "${open_mode}" | tr -d '[:space:]')
-        fi
-        
-        # Update diagnostic_dest if query succeeded (check for errors and minimum length)
-        if [[ -n "${diag_dest_query}" ]] && [[ "${diag_dest_query}" != *"ERROR"* ]] && [[ "${diag_dest_query}" != *"ORA-"* ]] && [[ "${diag_dest_query}" != *"SP2-"* ]] && [[ ${#diag_dest_query} -gt 5 ]]; then
-            diagnostic_dest=$(echo "${diag_dest_query}" | tr -d '[:space:]')
-        fi
-    else
-        log_warn "Database not accessible, using default values for SID configuration"
-    fi
-    
-    # Create configuration file
-    cat > "${sid_config}" <<EOF
-#!/usr/bin/env bash
-# ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
-# ------------------------------------------------------------------------------
-# Name.......: sid.${sid}.conf
-# Auto-created: $(date '+%Y-%m-%d %H:%M:%S')
-# Purpose....: SID-specific configuration for ${sid} database
-# Notes......: Auto-generated from database metadata. Customize as needed.
-# ------------------------------------------------------------------------------
-
-# Database Identity (from v\$database)
-# Only set if successfully retrieved from database
-EOF
-
-    # Only add database metadata if successfully retrieved (no errors)
-    if [[ -n "${db_name}" ]] && [[ "${db_name}" != "ERROR:"* ]] && [[ "${db_name}" != *"ORA-"* ]]; then
-        cat >> "${sid_config}" <<EOF
-ORADBA_DB_NAME="${db_name}"
-EOF
-    fi
-    
-    if [[ -n "${db_unique_name}" ]] && [[ "${db_unique_name}" != "ERROR:"* ]] && [[ "${db_unique_name}" != *"ORA-"* ]]; then
-        cat >> "${sid_config}" <<EOF
-ORADBA_DB_UNIQUE_NAME="${db_unique_name}"
-EOF
-    fi
-    
-    if [[ -n "${dbid}" ]] && [[ "${dbid}" != "ERROR:"* ]] && [[ "${dbid}" != *"ORA-"* ]]; then
-        cat >> "${sid_config}" <<EOF
-ORADBA_DBID="${dbid}"
-EOF
-    fi
-    
-    # Only set role/mode if not default values (to keep config clean)
-    if [[ -n "${db_role}" ]] && [[ "${db_role}" != "PRIMARY" ]] && [[ "${db_role}" != "ERROR:"* ]]; then
-        cat >> "${sid_config}" <<EOF
-ORADBA_DB_ROLE="${db_role}"
-EOF
-    fi
-    
-    if [[ -n "${open_mode}" ]] && [[ "${open_mode}" != "READ WRITE" ]] && [[ "${open_mode}" != "READWRITE" ]] && [[ "${open_mode}" != "ERROR:"* ]]; then
-        cat >> "${sid_config}" <<EOF
-ORADBA_DB_OPEN_MODE="${open_mode}"
-EOF
-    fi
-    
-    # Only set diagnostic dest if successfully retrieved
-    if [[ -n "${diagnostic_dest}" ]] && [[ "${diagnostic_dest}" != "ERROR:"* ]] && [[ "${diagnostic_dest}" != *"ORA-"* ]] && [[ "${diagnostic_dest}" != *"SP2-"* ]]; then
-        cat >> "${sid_config}" <<EOF
-
-# Diagnostic destination (from v\$parameter)
-ORADBA_DIAGNOSTIC_DEST="${diagnostic_dest}"
-EOF
-    fi
-    
-    # Add NLS and backup settings
-    cat >> "${sid_config}" <<EOF
-
-# NLS Settings (customize if needed)
-# NLS_LANG="${NLS_LANG}"
-# NLS_DATE_FORMAT="${NLS_DATE_FORMAT}"
-
-# Backup settings (customize as needed)
-# ORADBA_DB_BACKUP_DIR="${ORACLE_BASE}/backup/${sid}"
-# ORADBA_BACKUP_RETENTION=7
-EOF
-    
-    if [[ -f "${sid_config}" ]]; then
-        echo "[INFO] ✓ Created SID configuration: ${sid_config}"
-        log_info "Created SID configuration from database metadata: ${sid_config}"
+    log_debug "Using template: ${example_config}"
+    # Copy example and replace ORCL with actual SID
+    if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
+        "${example_config}" > "${sid_config}"; then
+        echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
+        log_info "Created SID configuration from template: ${sid_config}"
         return 0
     else
-        log_error "Failed to create SID configuration: ${sid_config}"
+        echo "[ERROR] Failed to create config from template" >&2
+        log_error "Failed to create config from template"
         return 1
     fi
 }
