@@ -50,16 +50,16 @@ sqlplus / as sysdba @oh
 
 ## Common Aliases
 
-| Alias     | Target                        | Purpose                  |
-|-----------|-------------------------------|--------------------------|
-| `oh`      | `oh.sql`                      | Display help for SQL scripts |
-| `who`     | `sec_whoami_show.sql`         | Current session info     |
-| `audit`   | `aud_config_show_aud.sql`     | Audit configuration      |
-| `apol`    | `aud_policies_show_aud.sql`   | Audit policies           |
-| `logins`  | `aud_logins_show_aud.sql`     | Login events             |
-| `afails`  | `aud_logins_failed_aud.sql`   | Failed logins            |
-| `tde`     | `tde_info_dba.sql`            | TDE status               |
-| `tdeops`  | `tde_ops_show_dba.sql`        | TDE operations           |
+| Alias    | Target                      | Purpose                      |
+|----------|-----------------------------|------------------------------|
+| `oh`     | `oh.sql`                    | Display help for SQL scripts |
+| `who`    | `sec_whoami_show.sql`       | Current session info         |
+| `audit`  | `aud_config_show_aud.sql`   | Audit configuration          |
+| `apol`   | `aud_policies_show_aud.sql` | Audit policies               |
+| `logins` | `aud_logins_show_aud.sql`   | Login events                 |
+| `afails` | `aud_logins_failed_aud.sql` | Failed logins                |
+| `tde`    | `tde_info_dba.sql`          | TDE status                   |
+| `tdeops` | `tde_ops_show_dba.sql`      | TDE operations               |
 
 ## Script Categories
 

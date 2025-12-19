@@ -110,7 +110,7 @@ Scripts follow a consistent naming pattern for easy discovery:
 
 | Suffix | Privilege    | Example                | Required Access          |
 |--------|--------------|------------------------|--------------------------|
-| (none) | Regular User | `sec_whoami_show.sql`       | Minimal privileges       |
+| (none) | Regular User | `sec_whoami_show.sql`  | Minimal privileges       |
 | `_dba` | DBA Role     | `sec_users_dba.sql`    | DBA or SYSTEM            |
 | `_sys` | SYSDBA       | `tde_keystore_sys.sql` | SYSDBA/SYSKM/SYSBACKUP   |
 | `_aud` | Audit Admin  | `aud_config_aud.sql`   | AUDIT_ADMIN/AUDIT_VIEWER |
@@ -140,12 +140,12 @@ Most frequently used scripts for daily DBA tasks:
 
 Basic database and session information scripts:
 
-| Script             | Alias       | Privilege | Description                    |
-|--------------------|-------------|-----------|--------------------------------|
-| `db_info.sql`      | -           | Any       | Database name, version, status |
-| `sec_whoami_show.sql`   | `who.sql`   | Any       | Current session info           |
-| `mon_sessions.sql` | `sess.sql`  | Any       | Active database sessions       |
-| `mon_locks.sql`    | `locks.sql` | Any       | Current locks and blocking     |
+| Script                | Alias       | Privilege | Description                    |
+|-----------------------|-------------|-----------|--------------------------------|
+| `db_info.sql`         | -           | Any       | Database name, version, status |
+| `sec_whoami_show.sql` | `who.sql`   | Any       | Current session info           |
+| `mon_sessions.sql`    | `sess.sql`  | Any       | Active database sessions       |
+| `mon_locks.sql`       | `locks.sql` | Any       | Current locks and blocking     |
 
 **Usage Examples:**
 
@@ -185,7 +185,7 @@ User and privilege management:
 
 | Script                  | Alias       | Privilege | Description                        |
 |-------------------------|-------------|-----------|------------------------------------|
-| `sec_whoami_show.sql`        | `who.sql`   | Any       | Current session and user info      |
+| `sec_whoami_show.sql`   | `who.sql`   | Any       | Current session and user info      |
 | `sec_users.sql`         | `users.sql` | DBA       | List all database users            |
 | `sec_roles.sql`         | `roles.sql` | DBA       | Show role hierarchy and grants     |
 | `sec_privs.sql`         | `privs.sql` | Any       | Show privileges for current user   |
