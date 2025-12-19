@@ -1,0 +1,129 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: tnsnames.ora.template
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.19
+# Revision...: 0.1.0
+# Purpose....: TNS Names configuration template with connection descriptor examples
+# Notes......: Copy to $TNS_ADMIN/tnsnames.ora or $ORACLE_HOME/network/admin/tnsnames.ora
+#              Customize host, port, and service_name for your environment
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Basic connection to local database
+ORCL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+
+# Connection with failover (automatic failover to secondary node)
+ORCL_FO =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = node1.example.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = TCP)(HOST = node2.example.com)(PORT = 1521))
+      (FAILOVER = ON)
+      (LOAD_BALANCE = OFF)
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+      (FAILOVER_MODE =
+        (TYPE = SELECT)
+        (METHOD = BASIC)
+        (RETRIES = 3)
+        (DELAY = 5)
+      )
+    )
+  )
+
+# Connection with load balancing (distributes connections across nodes)
+ORCL_LB =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (LOAD_BALANCE = ON)
+      (ADDRESS = (PROTOCOL = TCP)(HOST = node1.example.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = TCP)(HOST = node2.example.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = TCP)(HOST = node3.example.com)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+
+# Secure connection with TCPS (SSL/TLS)
+ORCL_SECURE =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCPS)(HOST = dbserver.example.com)(PORT = 2484))
+    (CONNECT_DATA =
+      (SERVICE_NAME = orcl)
+      (SECURITY = 
+        (SSL_SERVER_CERT_DN = "CN=dbserver.example.com,OU=IT,O=Example Corp,C=US")
+      )
+    )
+  )
+
+# Connection to Pluggable Database (PDB)
+PDB1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = pdb1)
+    )
+  )
+
+# SCAN listener connection (RAC environments)
+ORCL_RAC =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = scan.example.com)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+
+# Connection with connection pooling
+ORCL_POOL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = POOLED)
+      (SERVICE_NAME = orcl)
+      (POOL_CONNECTION_CLASS = MYAPP)
+    )
+  )
+
+# Connect descriptor for Data Guard standby
+ORCL_STANDBY =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = standby.example.com)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl_standby)
+    )
+  )
+
+# Connection with specific connect timeout
+ORCL_TIMEOUT =
+  (DESCRIPTION =
+    (CONNECT_TIMEOUT = 5)
+    (TRANSPORT_CONNECT_TIMEOUT = 3)
+    (RETRY_COUNT = 3)
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+
+# --- EOF ----------------------------------------------------------------------

@@ -1,0 +1,72 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: sqlnet.ora.secure
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.19
+# Revision...: 0.1.0
+# Purpose....: Secure SQL*Net configuration template with encryption and checksums
+# Notes......: Enterprise security configuration for production environments
+#              Requires Oracle Advanced Security license for encryption features
+#              Copy to $TNS_ADMIN/sqlnet.ora or $ORACLE_HOME/network/admin/sqlnet.ora
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Naming configuration (removed HOSTNAME for security)
+NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
+
+# Network encryption (REQUIRED - enforces encryption for all connections)
+SQLNET.ENCRYPTION_CLIENT = REQUIRED
+SQLNET.ENCRYPTION_SERVER = REQUIRED
+SQLNET.ENCRYPTION_TYPES_CLIENT = (AES256, AES192, AES128)
+SQLNET.ENCRYPTION_TYPES_SERVER = (AES256, AES192, AES128)
+
+# Data integrity checksumming (REQUIRED - prevents data tampering)
+SQLNET.CRYPTO_CHECKSUM_CLIENT = REQUIRED
+SQLNET.CRYPTO_CHECKSUM_SERVER = REQUIRED
+SQLNET.CRYPTO_CHECKSUM_TYPES_CLIENT = (SHA256, SHA384, SHA512)
+SQLNET.CRYPTO_CHECKSUM_TYPES_SERVER = (SHA256, SHA384, SHA512)
+
+# Connection management
+SQLNET.EXPIRE_TIME = 10
+SQLNET.INBOUND_CONNECT_TIMEOUT = 60
+SQLNET.OUTBOUND_CONNECT_TIMEOUT = 120
+SQLNET.RECV_TIMEOUT = 30
+SQLNET.SEND_TIMEOUT = 30
+
+# Security features
+SQLNET.AUTHENTICATION_SERVICES = (TCPS, NTS)
+SEC_CASE_SENSITIVE_LOGON = TRUE
+
+# Allowed logon version (12 = Oracle 12c and higher)
+SQLNET.ALLOWED_LOGON_VERSION_SERVER = 12
+SQLNET.ALLOWED_LOGON_VERSION_CLIENT = 12
+
+# SSL/TLS Configuration (if using TCPS)
+# SSL_VERSION = 1.2
+# SSL_CLIENT_AUTHENTICATION = FALSE
+
+# Wallet location (required for TCPS and encrypted passwords)
+WALLET_LOCATION =
+  (SOURCE =
+    (METHOD = FILE)
+    (METHOD_DATA =
+      (DIRECTORY = ${ORACLE_BASE}/admin/${ORACLE_SID}/wallet)
+    )
+  )
+
+# Automatic Diagnostic Repository
+DIAG_ADR_ENABLED = ON
+
+# Tracing (enable for troubleshooting, disable in production)
+TRACE_LEVEL_CLIENT = OFF
+TRACE_LEVEL_SERVER = OFF
+
+# Log directories for security auditing
+# LOG_DIRECTORY_CLIENT = ${ORACLE_BASE}/diag/clients
+# LOG_DIRECTORY_SERVER = ${ORACLE_BASE}/diag/server
+
+# --- EOF ----------------------------------------------------------------------

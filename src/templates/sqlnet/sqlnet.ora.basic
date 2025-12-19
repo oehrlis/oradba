@@ -1,0 +1,57 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: sqlnet.ora.basic
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.19
+# Revision...: 0.1.0
+# Purpose....: Basic SQL*Net configuration template for development/test environments
+# Notes......: Copy to $TNS_ADMIN/sqlnet.ora or $ORACLE_HOME/network/admin/sqlnet.ora
+#              Supports variable substitution: ${ORACLE_BASE}, ${ORACLE_SID}
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Basic naming configuration
+NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT, HOSTNAME)
+
+# Automatic Diagnostic Repository
+DIAG_ADR_ENABLED = ON
+
+# Dead connection detection (10 minutes)
+SQLNET.EXPIRE_TIME = 10
+
+# Client authentication
+SQLNET.AUTHENTICATION_SERVICES = (NTS)
+
+# Connection timeout (60 seconds)
+SQLNET.INBOUND_CONNECT_TIMEOUT = 60
+SQLNET.OUTBOUND_CONNECT_TIMEOUT = 120
+
+# Receive and send timeouts
+SQLNET.RECV_TIMEOUT = 30
+SQLNET.SEND_TIMEOUT = 30
+
+# Tracing and logging (disabled by default)
+TRACE_LEVEL_CLIENT = OFF
+TRACE_LEVEL_SERVER = OFF
+
+# Log directories (adjust paths as needed)
+# LOG_DIRECTORY_CLIENT = ${ORACLE_BASE}/diag/clients
+# LOG_DIRECTORY_SERVER = ${ORACLE_BASE}/diag/server
+
+# Default domain (optional)
+# NAMES.DEFAULT_DOMAIN = example.com
+
+# Wallet location (if using Oracle Wallet)
+# WALLET_LOCATION =
+#   (SOURCE =
+#     (METHOD = FILE)
+#     (METHOD_DATA =
+#       (DIRECTORY = ${ORACLE_BASE}/admin/${ORACLE_SID}/wallet)
+#     )
+#   )
+
+# --- EOF ----------------------------------------------------------------------

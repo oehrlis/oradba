@@ -1,0 +1,61 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: ldap.ora.template
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.19
+# Revision...: 0.1.0
+# Purpose....: LDAP configuration template for centralized naming
+# Notes......: Copy to $TNS_ADMIN/ldap.ora or $ORACLE_HOME/network/admin/ldap.ora
+#              Configure for Oracle Internet Directory (OID) or Active Directory
+#              Requires LDAP server setup and network connectivity
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Default LDAP admin context
+DEFAULT_ADMIN_CONTEXT = "dc=example,dc=com"
+
+# LDAP directory servers (format: hostname:port:ssl_port)
+# Multiple servers can be specified, separated by commas
+DIRECTORY_SERVERS = (ldap1.example.com:389:636, ldap2.example.com:389:636)
+
+# Directory server type
+# Options: OID (Oracle Internet Directory), AD (Active Directory)
+DIRECTORY_SERVER_TYPE = OID
+
+# LDAP bind configuration (credentials for LDAP queries)
+# For anonymous bind, comment out these lines
+LDAP_BIND_DN = "cn=orcladmin,cn=Users,dc=example,dc=com"
+# LDAP_BIND_PASSWORD = <encrypted_password>
+
+# SSL configuration for secure LDAP (LDAPS)
+# Uncomment to use SSL/TLS for LDAP connections
+# SSL_VERSION = 1.2
+# SSL_CLIENT_AUTHENTICATION = FALSE
+
+# Wallet location for LDAP SSL certificates
+# WALLET_LOCATION =
+#   (SOURCE =
+#     (METHOD = FILE)
+#     (METHOD_DATA =
+#       (DIRECTORY = ${ORACLE_BASE}/admin/${ORACLE_SID}/wallet)
+#     )
+#   )
+
+# LDAP query timeout (seconds)
+# LDAP_DIRECTORY_TIMEOUT = 15
+
+# Cache configuration for LDAP lookups
+# NAMES.LDAP_CACHE_ENABLE = TRUE
+# NAMES.LDAP_CACHE_SIZE = 1000
+
+# Alternative: Active Directory configuration example
+# DEFAULT_ADMIN_CONTEXT = "dc=corp,dc=example,dc=com"
+# DIRECTORY_SERVERS = (ad1.corp.example.com:389:636)
+# DIRECTORY_SERVER_TYPE = AD
+# LDAP_BIND_DN = "CN=OracleService,OU=Service Accounts,DC=corp,DC=example,DC=com"
+
+# --- EOF ----------------------------------------------------------------------
