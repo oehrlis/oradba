@@ -358,7 +358,7 @@ load_config() {
             # Auto-create SID config if enabled (but only for real SIDs, not dummy ones)
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
-                if [[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]; then
+                if [[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]; then
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
                     log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then

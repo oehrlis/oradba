@@ -137,7 +137,6 @@ trap cleanup EXIT
 # Similar to RPM behavior: save modified files with .save extension
 backup_modified_files() {
     local install_prefix="$1"
-    local temp_dir="$2"
     local backed_up_count=0
     
     # Only relevant if this is an update/upgrade
@@ -1178,7 +1177,7 @@ if [[ ! -d "$INSTALL_PREFIX" ]]; then
 fi
 
 # Backup modified configuration files before overwriting
-backup_modified_files "$INSTALL_PREFIX" "$TEMP_DIR"
+backup_modified_files "$INSTALL_PREFIX"
 
 # Copy files
 log_info "Installing files..."
