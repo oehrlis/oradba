@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.19
-# Revision...: 0.7.18
+# Revision...: 0.7.19
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -359,7 +359,7 @@ load_config() {
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 if [[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]; then
-                    echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
+                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
                     log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
                     # Source the newly created config file
@@ -377,7 +377,7 @@ load_config() {
                 fi
                 else
                     log_debug "SID ${sid} is a dummy SID (not in ORADBA_REALSIDLIST), skipping auto-create"
-                    echo "[INFO] Skipping auto-create for dummy SID: ${sid}" >&2
+                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Skipping auto-create for dummy SID: ${sid}" >&2
                 fi
             else
                 log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
@@ -398,11 +398,11 @@ load_config() {
 # Usage: create_sid_config <ORACLE_SID>
 create_sid_config() {
     local sid="$1"
-    echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
+    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
     local example_config="${config_dir}/sid.ORACLE_SID.conf.example"
-    echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
+    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
     
     # Check if config directory is writable
     if [[ ! -w "${config_dir}" ]]; then
@@ -415,7 +415,6 @@ create_sid_config() {
     # User-visible message (write to stderr to bypass any redirections)
     echo "" >&2
     echo "[INFO] Auto-creating SID configuration for ${sid}..." >&2
-    log_info "Creating SID-specific configuration: ${sid_config}"
     
     # Check if example template exists - use it as base
     if [[ ! -f "${example_config}" ]]; then
@@ -429,7 +428,7 @@ create_sid_config() {
     if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
         "${example_config}" > "${sid_config}"; then
         echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
-        log_info "Created SID configuration from template: ${sid_config}"
+        log_info "Created SID configuration: ${sid_config}"
         return 0
     else
         echo "[ERROR] Failed to create config from template" >&2
