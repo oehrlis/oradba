@@ -1,16 +1,17 @@
 -- ------------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- ------------------------------------------------------------------------------
--- Name.......: whoami.sql
+-- Name.......: tde.sql
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
 -- Date.......: 2025.12.19
 -- Revision...: 0.8.0
--- Purpose....: Alias for spsec_usrinf.sql - shows current user information
--- Notes......: Simple wrapper script that calls ssec_usrinf.sql
+-- Purpose....: Alias for tde_info_dba.sql
+-- Notes......: Simple wrapper script for TDE status information
+-- Usage......: @tde
 -- Reference..: https://github.com/oehrlis/oradba
 -- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
 -- ------------------------------------------------------------------------------
-@spsec_usrinf.sql
+@tde_info_dba.sql
 -- EOF -------------------------------------------------------------------------

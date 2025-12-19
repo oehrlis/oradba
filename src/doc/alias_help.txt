@@ -28,26 +28,37 @@
  sqh             --> SQL*Plus as SYSDBA with rlwrap (history + tab completion)
  sqlplush        --> SQL*Plus /nolog with rlwrap (history + tab completion)
  sqoh            --> SQL*Plus as SYSOPER with rlwrap (history + tab completion)
+ sessionsql      --> Show active database sessions (script)
 
  RMAN ALIASES
  -------------------------------------------------------------------------------
  rman            --> RMAN target /
- rmanc           --> RMAN target / catalog
+ rmanc           --> RMAN target / catalog (uses ORADBA_RMAN_CATALOG_CONNECTION)
  rmanh           --> RMAN target / with rlwrap (history + tab completion)
  rmanch          --> RMAN target / catalog with rlwrap
- lsnr            --> lsnrctl command
- lsnrh           --> lsnrctl with rlwrap (history + tab completion)
- adrcih          --> ADRCI with rlwrap (history + tab completion)
 
- DATABASE OPERATIONS
+ DATABASE STATUS & MONITORING
  -------------------------------------------------------------------------------
- sta             --> Show database status
+ sta             --> Show database status (dbstatus.sh)
  oraup           --> Show Oracle environment overview (all DBs/listeners)
  u               --> Short alias for oraup
+ pmon            --> Show running Oracle processes (grep pmon)
+ sqa             --> Show SQLPATH directories
+
+ LISTENER OPERATIONS
+ -------------------------------------------------------------------------------
+ lsnr            --> lsnrctl command
+ lsnrh           --> lsnrctl with rlwrap (history + tab completion)
  lstat           --> Listener status
  lstart          --> Start listener
  lstop           --> Stop listener
- pmon            --> Show running Oracle processes (grep pmon)
+
+ DIAGNOSTIC TOOLS
+ -------------------------------------------------------------------------------
+ adrcih          --> ADRCI with rlwrap (history + tab completion)
+
+ CONFIGURATION FILES
+ -------------------------------------------------------------------------------
  oratab          --> Display oratab file
  tns             --> Display tnsnames.ora
 
@@ -56,38 +67,38 @@
  cdh             --> cd $ORACLE_HOME
  cdob            --> cd $ORACLE_BASE
  cdbn            --> cd $ORACLE_HOME/bin
- cdn             --> cd $TNS_ADMIN parent directory
  cdt             --> cd $TNS_ADMIN
+ cdn             --> cd $TNS_ADMIN parent directory
+ cdr             --> cd $ORACLE_HOME/rdbms/admin
 
  DIRECTORY ALIASES - ORADBA
  -------------------------------------------------------------------------------
  cdb             --> cd $ORADBA_PREFIX
  cde             --> cd directory containing oratab
- cdr             --> cd $ORACLE_HOME/rdbms/admin
+ cdl             --> cd $ORACLE_BASE/local
  cdlog           --> cd $ORADBA_LOG
  cdtmp           --> cd $ORADBA_TEMP
- cdl             --> cd $ORACLE_BASE/local
  etc             --> cd $ORADBA_ETC
  log             --> cd $ORADBA_LOG
 
  DIRECTORY ALIASES - SID SPECIFIC (Dynamic)
  -------------------------------------------------------------------------------
  cda             --> cd $ORADBA_ORA_ADMIN_SID (admin directory)
- cdc             --> cd $ORADBA_ORA_ADMIN_SID/create
+ cdc             --> cd $ORADBA_ORA_ADMIN_SID/create (SQL scripts)
  cdd             --> cd $ORADBA_ORA_DIAG_SID (diagnostic_dest)
- cdda            --> cd diagnostic_dest/alert
- cddt            --> cd diagnostic_dest/trace
+ cdda            --> cd diagnostic_dest/alert (alert log directory)
+ cddt            --> cd diagnostic_dest/trace (trace file directory)
 
- VI ALIASES - Edit specific files
+ VI ALIASES - Edit Configuration Files
  -------------------------------------------------------------------------------
  vio             --> vi oratab file
  vit             --> vi tnsnames.ora
  vil             --> vi listener.ora
  visql           --> vi sqlnet.ora
  vildap          --> vi ldap.ora
- vis             --> vi sid.$ORACLE_SID.conf
- vic             --> vi oradba_customer.conf
- vii             --> vi init$ORACLE_SID.ora (pfile)
+ vis             --> vi sid.$ORACLE_SID.conf (SID-specific config)
+ vic             --> vi oradba_customer.conf (customer config)
+ vii             --> vi init$ORACLE_SID.ora (pfile in admin directory)
  via             --> vi alert log (SID-specific, dynamic)
 
  VI/VIEW/TAIL ALERT LOG (Dynamic, SID-specific)
@@ -98,14 +109,14 @@
 
  CONVENIENCE VARIABLES
  -------------------------------------------------------------------------------
- cdh             --> $ORACLE_HOME
- cda             --> $ORADBA_ORA_ADMIN_SID
- cdob            --> $ORACLE_BASE
- cdl             --> $ORACLE_BASE/local
- cdd             --> $ORADBA_ORA_DIAG_SID
- etc             --> $ORADBA_ETC
- log             --> $ORADBA_LOG
- cdn             --> $TNS_ADMIN parent
+ $cdh            --> $ORACLE_HOME
+ $cda            --> $ORADBA_ORA_ADMIN_SID
+ $cdob           --> $ORACLE_BASE
+ $cdl            --> $ORACLE_BASE/local
+ $cdd            --> $ORADBA_ORA_DIAG_SID
+ $etc            --> $ORADBA_ETC
+ $log            --> $ORADBA_LOG
+ $cdn            --> $TNS_ADMIN parent
 
- Full documentation: $ORADBA_PREFIX/doc/ALIASES.md
+ Full documentation: $ORADBA_PREFIX/doc/06-aliases.md
 -------------------------------------------------------------------------------

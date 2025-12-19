@@ -41,6 +41,23 @@ sqlplus / as sysdba @$SQLPATH/db_info.sql
 sessionsql @who.sql
 ```
 
+### Getting Help
+
+Use the `oh.sql` script to discover available SQL scripts:
+
+```sql
+-- List all available scripts with their purposes
+SQL> @oh
+
+-- Filter by category
+SQL> @oh aud      -- Show audit scripts
+SQL> @oh tde      -- Show TDE scripts  
+SQL> @oh sec      -- Show security scripts
+```
+
+The help script reads headers from all SQL files in `$SQLPATH` and displays
+their names and purposes in a sorted, formatted list.
+
 ### login.sql
 
 The `login.sql` script is automatically executed when SQL*Plus starts (via SQLPATH configuration). It provides:
@@ -93,7 +110,7 @@ Scripts follow a consistent naming pattern for easy discovery:
 
 | Suffix | Privilege    | Example                | Required Access          |
 |--------|--------------|------------------------|--------------------------|
-| (none) | Regular User | `sec_whoami.sql`       | Minimal privileges       |
+| (none) | Regular User | `sec_whoami_show.sql`       | Minimal privileges       |
 | `_dba` | DBA Role     | `sec_users_dba.sql`    | DBA or SYSTEM            |
 | `_sys` | SYSDBA       | `tde_keystore_sys.sql` | SYSDBA/SYSKM/SYSBACKUP   |
 | `_aud` | Audit Admin  | `aud_config_aud.sql`   | AUDIT_ADMIN/AUDIT_VIEWER |
@@ -105,13 +122,6 @@ Most frequently used scripts for daily DBA tasks:
 ```sql
 -- User & Session Info
 @who                    -- Current session and user information
-@users                  -- List all database users [DBA]
-@sess                   -- Show active sessions
-
--- Security & Privileges
-@privs                  -- Show privileges for current user
-@roles                  -- Show role hierarchy [DBA]
-@objgr                  -- Show object grants
 
 -- Audit
 @audit                  -- Recent audit events [AUDIT_ADMIN]
@@ -121,16 +131,7 @@ Most frequently used scripts for daily DBA tasks:
 
 -- Encryption (TDE)
 @tde                    -- TDE configuration status [DBA]
-@keys                   -- Master encryption keys [SYSDBA]
-@wallets                -- Keystore status [DBA]
 @tdeops                 -- TDE operations progress [DBA]
-
--- Database Administration
-@space                  -- Tablespace usage [DBA]
-@temp                   -- Temp space usage [DBA]
-@locks                  -- Current locks & blocking
-@jobs                   -- Scheduler jobs status [DBA]
-@params                 -- Init parameters (including hidden) [DBA]
 ```
 
 ## Script Categories
@@ -142,7 +143,7 @@ Basic database and session information scripts:
 | Script             | Alias       | Privilege | Description                    |
 |--------------------|-------------|-----------|--------------------------------|
 | `db_info.sql`      | -           | Any       | Database name, version, status |
-| `sec_whoami.sql`   | `who.sql`   | Any       | Current session info           |
+| `sec_whoami_show.sql`   | `who.sql`   | Any       | Current session info           |
 | `mon_sessions.sql` | `sess.sql`  | Any       | Active database sessions       |
 | `mon_locks.sql`    | `locks.sql` | Any       | Current locks and blocking     |
 
@@ -184,7 +185,7 @@ User and privilege management:
 
 | Script                  | Alias       | Privilege | Description                        |
 |-------------------------|-------------|-----------|------------------------------------|
-| `sec_whoami.sql`        | `who.sql`   | Any       | Current session and user info      |
+| `sec_whoami_show.sql`        | `who.sql`   | Any       | Current session and user info      |
 | `sec_users.sql`         | `users.sql` | DBA       | List all database users            |
 | `sec_roles.sql`         | `roles.sql` | DBA       | Show role hierarchy and grants     |
 | `sec_privs.sql`         | `privs.sql` | Any       | Show privileges for current user   |

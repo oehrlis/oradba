@@ -1,142 +1,101 @@
-# SQL Scripts
-
-SQL scripts for Oracle Database administration and diagnostics.
+# OraDBA SQL Scripts
+<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD024 -->
 
 ## Overview
 
-This directory contains SQL scripts for database queries, user information, and
-session management. These scripts are designed to be executed directly from
-SQL*Plus or SQLcl, and can be used standalone or invoked by OraDBA aliases.
+This directory contains SQL scripts for Oracle database administration, security,
+auditing, and encryption management.
 
-## Available Scripts
+**For detailed documentation, see:** [08-sql-scripts.md](../doc/08-sql-scripts.md)
 
-| Script                             | Description                                    |
-|------------------------------------|------------------------------------------------|
-| [db_info.sql](db_info.sql)         | Database instance and version information      |
-| [login.sql](login.sql)             | SQL*Plus login script (glogin.sql replacement) |
-| [sessionsql.sql](sessionsql.sql)   | Session query and diagnostic script            |
-| [ssec_usrinf.sql](ssec_usrinf.sql) | Security user information report               |
-| [whoami.sql](whoami.sql)           | Current user and session details               |
-
-**Total Scripts:** 5
-
-## Usage
-
-### From SQL*Plus/SQLcl
-
-```sql
--- Run whoami script
-SQL> @${ORADBA_BASE}/sql/whoami.sql
-
--- Or use short path if SQLPATH is configured
-SQL> @whoami
-```
-
-### From Shell (via aliases)
+## Quick Start
 
 ```bash
-# Use the 'sql' alias to run SQL scripts
-sql @whoami
+# Set environment
+source oraenv.sh FREE
 
-# Or invoke directly
-sqlplus / as sysdba @$ORADBA_BASE/sql/db_info.sql
+# Run a script
+sqlplus / as sysdba @db_info.sql
+
+# Common aliases work automatically
+@who    # Current session info
+@audit  # Audit configuration
+@tde    # TDE status
 ```
 
-### Login Script
+## Naming Convention
 
-The `login.sql` script is automatically executed when starting SQL*Plus if `SQLPATH` includes the sql directory:
+Scripts follow the format: `<domain>_<action>_<object>[_scope][_priv].sql`
+
+- **Domains:** `sec`, `aud`, `tde`, `dba`, `mon`, `net`, `util`
+- **Actions:** `show`, `create`, `enable`, `disable`, `drop`, `gen`, `init`
+- **Privilege:** `_dba`, `_sys`, `_aud` (optional suffix)
+
+**See full naming convention details in:** [08-sql-scripts.md](../doc/08-sql-scripts.md#naming-convention)
+
+## Getting Help
+
+Use the `oh.sql` script to explore available SQL scripts:
 
 ```bash
-export SQLPATH=$ORADBA_BASE/sql:$SQLPATH
-sqlplus / as sysdba
-# login.sql runs automatically, setting up formatting and aliases
+# List all SQL scripts with their purposes
+sqlplus / as sysdba @oh
+
+# Filter by category
+@oh aud      # Show audit scripts
+@oh tde      # Show TDE scripts
+@oh sec      # Show security scripts
 ```
 
-## Script Features
+## Common Aliases
 
-### Database Information (db_info.sql)
+| Alias     | Target                        | Purpose                  |
+|-----------|-------------------------------|--------------------------|
+| `oh`      | `oh.sql`                      | Display help for SQL scripts |
+| `who`     | `sec_whoami_show.sql`         | Current session info     |
+| `audit`   | `aud_config_show_aud.sql`     | Audit configuration      |
+| `apol`    | `aud_policies_show_aud.sql`   | Audit policies           |
+| `logins`  | `aud_logins_show_aud.sql`     | Login events             |
+| `afails`  | `aud_logins_failed_aud.sql`   | Failed logins            |
+| `tde`     | `tde_info_dba.sql`            | TDE status               |
+| `tdeops`  | `tde_ops_show_dba.sql`        | TDE operations           |
 
-- Database name and version
-- Instance details
-- Startup time and status
-- Character set information
-- Database options installed
+## Script Categories
 
-### Session Information (whoami.sql)
+### Security Scripts
 
-- Current user and schema
-- Session ID and serial#
-- Connection details
-- Privilege information
-- Current container (for CDB/PDB)
+Security-related scripts for users, roles, profiles, and permissions.
 
-### User Security Report (ssec_usrinf.sql)
+**See:** [08-sql-scripts.md - Security Section](../doc/08-sql-scripts.md#script-categories)
 
-- User account status
-- Password profile
-- Granted roles and privileges
-- Last login information
-- Account expiry details
+### Audit Scripts
 
-## Customization
+Unified and traditional audit scripts for monitoring and compliance.
 
-### Adding Custom Scripts
+**See:** [08-sql-scripts.md - Audit Section](../doc/08-sql-scripts.md#script-categories)
 
-1. Place SQL scripts in this directory
-2. Follow naming convention (lowercase, descriptive)
-3. Include header comment with description
-4. Test with different privilege levels
+### TDE / Encryption Scripts
 
-### Login Script Customization
+Transparent Data Encryption setup, management, and monitoring.
 
-Create `~/.sqlplus/login.sql` for user-specific settings that override the default `login.sql`.
+**See:** [08-sql-scripts.md - TDE Section](../doc/08-sql-scripts.md#script-categories)
 
-## Integration
+## Notes
 
-### SQLPATH Configuration
-
-OraDBA automatically configures `SQLPATH` to include this directory:
-
-```bash
-SQLPATH=$ORADBA_BASE/sql:$ORACLE_HOME/sqlplus/admin
-```
-
-This allows running scripts by name without full path:
-
-```sql
-SQL> @whoami
-```
-
-### Alias Integration
-
-Several OraDBA aliases invoke these scripts:
-
-- `sql` - Start SQL*Plus with configured SQLPATH
-- `sqls` - SQL*Plus as SYSDBA
-- Custom aliases can reference scripts in this directory
-
-## Documentation
-
-- **[SQL Scripts](../doc/08-sql-scripts.md)** - Detailed script documentation
-- **[Configuration](../doc/05-configuration.md)** - SQLPATH configuration
-- **[Aliases](../doc/06-aliases.md)** - Shell aliases for SQL scripts
-
-## Development
-
-### Script Guidelines
-
-1. **Header**: Include standard header with purpose, author, version
-2. **Comments**: Document parameters and requirements
-3. **Privileges**: Note minimum required privileges
-4. **Output**: Format output for readability
-5. **Errors**: Handle common error conditions gracefully
-
-### Testing
-
-Test scripts with different:
-
-- Privilege levels (regular user, DBA, SYSDBA)
-- Database versions (12c, 19c, 21c, 23ai)
-- Container contexts (CDB$ROOT, PDB)
-
-See [development.md](../../doc/development.md) for coding standards.
+- All detailed script documentation has been moved to [08-sql-scripts.md](../doc/08-sql-scripts.md)
+- For SQL Developer reports, see `unified_audit_reports.xml`
+- Legacy scripts with old naming (e.g., `sdsec_`, `cssec_`) are being migrated to new convention
+| [tde_init_full_sys_pdbiso_keyadmin.sql](tde_init_full_sys_pdbiso_keyadmin.sql) | Create the software keystore in PDB in isolation mode as SYSKM Environment must be prepared before with tde_init_full_sys_pdbiso_prepare.sql                                                                                                                       |
+| [tde_init_full_sys_pdbiso.sql](tde_init_full_sys_pdbiso.sql)                   | Initialize TDE in a PDB in isolation mode i.e., with a dedicated wallet in WALLET_ROOT for this pdb. The CDB must be configured for TDE beforehand. This scripts does use several other scripts to enable TDE and it also includes **restart** of the pdb. |
+| [tde_init_full_sys_pdbuni.sql](tde_init_full_sys_pdbuni.sql)                   | Initialize TDE in a PDB in united mode i.e., with a common wallet of the CDB in WALLET_ROOT. The CDB must be configured for TDE beforehand. This scripts does use several other scripts to enable TDE and it also includes **restart** of the pdb.         |
+| [tde_init_full_sys.sql](tde_init_full_sys.sql)                                 | Initialize TDE for a single tenant or container database. This scripts does use several other scripts to enable TDE and it also includes **restart** of the database.                                                                                      |
+| [tde_info_dba.sql](tde_info_dba.sql)                               | Show information about the TDE Configuration                                                                                                                                                                                                               |
+| [tde_wallet_create_sys_backup.sql](tde_wallet_create_sys_backup.sql)     | Create DBMS_SCHEDULER program, schedule and job for TDE software keystore backups. Backup path and directory can be specified. Default is set to WALLET_ROOT/backup                                                                                        |
+| [tde_wallet_bkup_remove_sys.sql](tde_wallet_bkup_remove_sys.sql)     | Delete DBMS_SCHEDULER program, schedule and job for TDE software keystore backups created with [tde_wallet_create_sys_backup.sql](tde_wallet_create_sys_backup.sql)                                                                                                  |
+| [tde_wallet_bkup_show_sys.sql](tde_wallet_bkup_show_sys.sql)     | Show DBMS_SCHEDULER program, schedule and job for TDE software keystore backups                                                                                                                                                                            |
+| [tde_dbf_offline_decrypt_sys.sql](tde_dbf_offline_decrypt_sys.sql)                 | Generate chunks to offline encrypt datafiles                                                                                                                                                                                                               |
+| [tde_dbf_offline_encrypt_sys.sql](tde_dbf_offline_encrypt_sys.sql)                 | Generate chunks to offline decrypt datafiles                                                                                                                                                                                                               |
+| [tde_ops_show_dba_csv.sql](tde_ops_show_dba_csv.sql)                   | Show TDE operations from V$SESSION_LONGOPS as CSV                                                                                                                                                                                                          |
+| [tde_ops_show_dba_run.sql](tde_ops_show_dba_run.sql)                   | Show TDE running operations from V$SESSION_LONGOPS                                                                                                                                                                                                         |
+| [tde_ops_show_dba.sql](tde_ops_show_dba.sql)                           | Show TDE operations from V$SESSION_LONGOPS                                                                                                                                                                                                                 |

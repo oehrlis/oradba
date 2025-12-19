@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-12-19
+
 ### Added
 
 - **Configuration Backup on Update**: Installer now backs up modified configuration files
@@ -16,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Preserves file permissions when creating backups
   - Clear logging shows which files were backed up and where
   - User modifications are never lost during updates
+
+- **SQL Scripts Help** (Issue #1): New consolidated help script
+  - Created `oh.sql` (OraDBA Help) - unified help system for SQL scripts
+  - Extracts script names and purposes from file headers dynamically
+  - Works from any directory using $SQLPATH
+  - Supports optional filtering: `@oh`, `@oh aud`, `@oh tde`
+  - Replaced old `help.sql` and `help_topics.sql` with better implementation
+  - Shows sorted list with actual Purpose field from headers
 
 ### Fixed
 
@@ -36,6 +46,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Installation Checks**: Added crontab to optional tools verification
   - Warns if crontab is not available (needed for save_cron alias)
   - Non-blocking check, installation continues if missing
+
+- **SQL Scripts Documentation** (Issue #1)
+  - Simplified src/sql/README.md to avoid redundancy with 08-sql-scripts.md
+  - Removed duplicate tables and lengthy descriptions
+  - Added clear references to comprehensive documentation
+  - Documented naming convention with examples
+  - Kept only essential quick reference information
+  - Comprehensive header analysis completed (127 SQL files reviewed)
+  - Identified 125 files needing header updates for future cleanup
+  - Added notes about legacy scripts migration path
+
+- **SQL Script Headers Standardization** (Issue #1 - Phase 1 & 2)
+  - **Phase 1**: Updated 8 critical files with missing/incorrect headers
+    - Fixed: help.sql, help_topics.sql (now removed, replaced by oh.sql)
+    - Fixed: init.sql (added third-party attribution for Tanel Poder)
+    - Fixed: rowid.sql, create_password_hash.sql, verify_password_hash.sql
+    - Fixed: aud_config_show_aud.sql (restored proper audit trail content)
+  - **Phase 2**: Updated 12 alias files with standardized headers
+    - Updated minimal alias files: who.sql, audit.sql, apol.sql, logins.sql, afails.sql, tde.sql, tdeops.sql
+    - Updated existing alias files: whoami.sql, hip.sql
+    - Updated target files: ssa_hip.sql, sdsec_sysobj.sql, spsec_usrinf.sql
+  - All updated files now have Date: 2025.12.19 and Revision: 0.8.0
+  - Consistent OraDBA header format across all modified files
 
 ## [0.7.16] - 2025-12-19
 
