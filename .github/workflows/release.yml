@@ -143,15 +143,25 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ inputs.version }}"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # For workflow_run, find the most recent tag or use VERSION file
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LATEST_TAG" ]; then
+              VERSION=${LATEST_TAG#v}
+            else
+              VERSION=$(cat VERSION)
+            fi
           else
+            # For push events (tags)
             VERSION=${GITHUB_REF#refs/tags/v}
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
       
-      - name: Update VERSION file
+      - name: Verify VERSION file
         run: |
-          echo "${{ steps.version.outputs.version }}" > VERSION
+          echo "VERSION file content: $(cat VERSION)"
+          echo "Detected version: ${{ steps.version.outputs.version }}"
       
       - name: Generate documentation
         run: |
