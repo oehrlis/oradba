@@ -1,0 +1,82 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba.logrotate
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.22
+# Version....: v0.9.0
+# Purpose....: Logrotate configuration for OraDBA system logs
+# Notes......: Install to /etc/logrotate.d/oradba
+#              Manages rotation of OraDBA installation and operational logs
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# OraDBA installation logs
+# Location: /var/log/oradba/
+# Retention: 12 months
+# Schedule: Monthly rotation
+/var/log/oradba/install.log {
+    monthly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 oracle oinstall
+}
+
+# OraDBA operational logs (script execution, validation, etc.)
+# Location: $ORADBA_BASE/logs/ or /opt/oradba/logs/
+# Retention: 8 weeks
+# Schedule: Weekly rotation
+/opt/oradba/logs/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 oracle oinstall
+    sharedscripts
+    postrotate
+        # Optional: Send notification on log rotation
+        # Uncomment and customize for your environment
+        # echo "OraDBA logs rotated on $(hostname) at $(date)" | \
+        #     mail -s "OraDBA Log Rotation - $(hostname)" dba@example.com
+    endscript
+}
+
+# User-specific OraDBA logs in home directories
+# Location: $HOME/oradba/logs/
+# Retention: 4 weeks
+# Schedule: Weekly rotation
+# Note: nocreate used as user may not have permissions
+/home/*/oradba/logs/*.log {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+}
+
+# OraDBA backup logs (if centralized backup logging is used)
+# Location: $ORADBA_BASE/logs/backup/
+# Retention: 12 weeks (3 months)
+# Schedule: Weekly rotation
+/opt/oradba/logs/backup/*.log {
+    weekly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 oracle oinstall
+    size 10M
+}
+
+# --- EOF ----------------------------------------------------------------------

@@ -1,0 +1,88 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oracle-alert.logrotate
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.22
+# Version....: v0.9.0
+# Purpose....: Logrotate configuration for Oracle Database alert logs
+# Notes......: Install to /etc/logrotate.d/oracle-alert
+#              Uses copytruncate as Oracle keeps alert log file open
+#              Adjust paths based on your diagnostic_dest
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Oracle Database Alert Logs
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/alert_<SID>.log
+# Retention: 30 days
+# Schedule: Daily rotation
+# Method: copytruncate (safe for open files)
+
+# Example for specific database (customize for your environment)
+# Uncomment and adjust paths for your databases
+#/u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log {
+#    daily
+#    rotate 30
+#    compress
+#    delaycompress
+#    missingok
+#    notifempty
+#    nocreate
+#    copytruncate
+#    size 100M
+#}
+
+# Generic pattern for all databases (if diagnostic_dest structure is consistent)
+# This will match all alert logs in standard Oracle 11g+ ADR structure
+/u01/app/oracle/diag/rdbms/*/*/trace/alert_*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 100M
+    # Rotate when file exceeds 100MB OR daily, whichever comes first
+}
+
+# Alternative approach using Oracle's built-in mechanism
+# If you prefer to use Oracle's ALTER SYSTEM ARCHIVE LOG CURRENT
+# instead of copytruncate, use this postrotate script:
+#
+# /u01/app/oracle/diag/rdbms/*/*/trace/alert_*.log {
+#     daily
+#     rotate 30
+#     compress
+#     delaycompress
+#     missingok
+#     notifempty
+#     nocreate
+#     sharedscripts
+#     postrotate
+#         # Archive current log and create new one
+#         # Note: Requires Oracle database to be running
+#         for sid in $(ps -ef | grep pmon | grep -v grep | awk '{print $NF}' | cut -d_ -f3); do
+#             su - oracle -c "export ORACLE_SID=${sid}; echo 'ALTER SYSTEM ARCHIVE LOG CURRENT;' | sqlplus -s / as sysdba" >/dev/null 2>&1
+#         done
+#     endscript
+# }
+
+# Oracle 12.2+ JSON-formatted alert log (if enabled)
+/u01/app/oracle/diag/rdbms/*/*/alert/log.xml {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 100M
+}
+
+# --- EOF ----------------------------------------------------------------------

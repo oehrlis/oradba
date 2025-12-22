@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Log Management System**: Automated log rotation for OraDBA and Oracle Database (#9)
+  - Five production-ready logrotate templates:
+    - `oradba.logrotate`: OraDBA system logs (install, ops, user, backup logs)
+    - `oracle-alert.logrotate`: Database alert logs with copytruncate
+    - `oracle-trace.logrotate`: Diagnostic trace files cleanup with maxage
+    - `oracle-audit.logrotate`: Audit logs with compliance considerations
+    - `oracle-listener.logrotate`: Listener logs and traces
+  - `oradba_logrotate.sh` v0.9.0: Full-featured management script
+    - Install/uninstall logrotate configurations (requires root)
+    - Test configurations with dry-run mode (`--test`)
+    - Force rotation for testing (`--force`)
+    - Generate customized configs (`--customize`) with auto-detection
+    - List installed configurations (`--list`)
+    - Template-specific operations with `--template` option
+  - Compliance support for industry standards:
+    - PCI-DSS: 1 year audit retention
+    - HIPAA: 6 years healthcare data retention
+    - SOX: 7 years financial records
+    - GDPR: Configurable data retention
+  - Safe defaults:
+    - copytruncate for active logs (alert, listener)
+    - maxage for trace file cleanup
+    - Delayed compression to prevent corruption
+    - Permission preservation and error handling
+  - Environment-specific customization:
+    - Auto-detects ORACLE_BASE from oratab
+    - Per-SID configuration generation
+    - Replaces wildcards with actual paths
+    - Ready-to-deploy configurations
+
+- **Documentation**: Complete log management guide
+  - Chapter 15: Log Management and Rotation (src/doc/15-log-management.md)
+  - Template reference with features and use cases
+  - Compliance requirements matrix
+  - Customization guide for different environments
+  - Integration with monitoring systems
+  - Troubleshooting guide for common issues
+  - Security considerations and best practices
+  - Template documentation in src/templates/logrotate/README.md
+
 - **SQL*Net Configuration Management**: Comprehensive centralized configuration system (#10)
   - `oradba_sqlnet.sh` v0.2.0: Full-featured SQL*Net management tool
   - Centralized TNS_ADMIN structure under `$ORACLE_BASE/network/{sid}/`

@@ -1,0 +1,131 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oracle-audit.logrotate
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.22
+# Version....: v0.9.0
+# Purpose....: Logrotate configuration for Oracle Database audit logs
+# Notes......: Install to /etc/logrotate.d/oracle-audit
+#              Manages cleanup of XML and traditional audit files
+#              Retention based on compliance requirements (adjust as needed)
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Oracle XML Audit Files
+# Location: $ORACLE_BASE/admin/<SID>/adump/
+# Pattern: *.aud (XML format audit files)
+# Retention: 90 days (adjust based on compliance requirements)
+# Schedule: Weekly rotation
+# Note: PCI-DSS requires 1 year, HIPAA requires 6 years - adjust accordingly
+/u01/app/oracle/admin/*/adump/*.aud {
+    weekly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 90
+    size 100M
+    # Rotate when file exceeds 100MB OR weekly
+    sharedscripts
+    postrotate
+        # Optional: Archive to long-term storage before deletion
+        # Uncomment and customize for your archival solution
+        # find /u01/app/oracle/admin/*/adump/ -name "*.aud.*.gz" -mtime +30 -exec \
+        #     cp {} /archive/oracle/audit/ \; 2>/dev/null
+    endscript
+}
+
+# Oracle Traditional Audit Files (OS)
+# Location: $ORACLE_BASE/admin/<SID>/adump/
+# Pattern: *.txt (traditional audit trail format)
+# Retention: 90 days
+# Schedule: Weekly rotation
+/u01/app/oracle/admin/*/adump/*.txt {
+    weekly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 90
+    size 50M
+}
+
+# Unified Audit Trail Spillover Files (12c+)
+# Location: $ORACLE_BASE/audit/<SID>/
+# Pattern: UNIFIED_AUDIT_TRAIL* (when UNIFIED_AUDIT_TRAIL is full)
+# Retention: 90 days
+# Schedule: Weekly rotation
+/u01/app/oracle/audit/*/UNIFIED_AUDIT_TRAIL* {
+    weekly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 90
+}
+
+# Fine Grained Auditing (FGA) Log Files
+# Location: $ORACLE_BASE/admin/<SID>/adump/
+# Pattern: *FGA*.aud
+# Retention: 180 days (FGA often has stricter requirements)
+# Schedule: Weekly rotation
+/u01/app/oracle/admin/*/adump/*FGA*.aud {
+    weekly
+    rotate 26
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 180
+    size 100M
+}
+
+# Database Vault Audit Records (if Database Vault is enabled)
+# Location: $ORACLE_BASE/admin/<SID>/adump/
+# Pattern: *DV*.aud
+# Retention: 180 days (Database Vault requires extended retention)
+# Schedule: Weekly rotation
+/u01/app/oracle/admin/*/adump/*DV*.aud {
+    weekly
+    rotate 26
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 180
+    size 100M
+}
+
+# IMPORTANT COMPLIANCE NOTES:
+# ===========================
+# The default 90-day retention may NOT meet your compliance requirements:
+#
+# - PCI-DSS: Requires 1 year of audit data (365 days)
+#   Adjust: rotate 52, maxage 365
+#
+# - HIPAA: Requires 6 years of audit data (2190 days)
+#   Adjust: rotate 312, maxage 2190
+#
+# - SOX: Requires 7 years of audit data (2555 days)
+#   Adjust: rotate 364, maxage 2555
+#
+# - GDPR: Varies by data type, typically 6 months to 2 years
+#   Adjust: rotate 26-104, maxage 180-730
+#
+# Always consult your organization's compliance requirements before deploying.
+# Consider implementing archival to long-term storage (tape, S3 Glacier, etc.)
+# before purging audit files.
+
+# --- EOF ----------------------------------------------------------------------

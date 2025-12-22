@@ -1,0 +1,118 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oracle-trace.logrotate
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.22
+# Version....: v0.9.0
+# Purpose....: Logrotate configuration for Oracle Database trace files
+# Notes......: Install to /etc/logrotate.d/oracle-trace
+#              Manages cleanup of background and user trace files
+#              Uses maxage to remove old files automatically
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Oracle Background Process Trace Files (.trc)
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: *_ora_*.trc (e.g., orcl_ora_12345.trc)
+# Retention: 30 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/rdbms/*/*/trace/*_ora_*.trc {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+    # Remove files older than 30 days
+    size 10M
+    # Also rotate if file exceeds 10MB
+}
+
+# Oracle Trace Metadata Files (.trm)
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: *_ora_*.trm (metadata for trace files)
+# Retention: 14 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/rdbms/*/*/trace/*_ora_*.trm {
+    weekly
+    rotate 2
+    compress
+    missingok
+    notifempty
+    nocreate
+    maxage 14
+    # Remove files older than 14 days
+}
+
+# Oracle User Session Trace Files
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: <SID>_ora_*.trc (user trace files)
+# Retention: 30 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/rdbms/*/*/trace/ora_*.trc {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+    size 10M
+}
+
+# Oracle Core Dumps (if any)
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: core_*
+# Retention: 7 days (aggressive - these are large)
+# Schedule: Daily cleanup
+/u01/app/oracle/diag/rdbms/*/*/trace/core_* {
+    daily
+    rotate 1
+    compress
+    missingok
+    notifempty
+    nocreate
+    maxage 7
+    # Core dumps are large, keep only 7 days
+}
+
+# RMAN Trace Files
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: *rman*.trc
+# Retention: 30 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/rdbms/*/*/trace/*rman*.trc {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+}
+
+# Data Pump Trace Files
+# Location: $ORACLE_BASE/diag/rdbms/<db_name>/<SID>/trace/
+# Pattern: *dm*.trc, *dp*.trc
+# Retention: 30 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/rdbms/*/*/trace/*dm*.trc /u01/app/oracle/diag/rdbms/*/*/trace/*dp*.trc {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+}
+
+# --- EOF ----------------------------------------------------------------------

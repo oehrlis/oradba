@@ -1,0 +1,133 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oracle-listener.logrotate
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.12.22
+# Version....: v0.9.0
+# Purpose....: Logrotate configuration for Oracle Listener logs
+# Notes......: Install to /etc/logrotate.d/oracle-listener
+#              Manages rotation of listener logs and trace files
+#              Uses copytruncate as listener keeps log file open
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Oracle Listener Log Files
+# Location: $ORACLE_BASE/diag/tnslsnr/<hostname>/<listener_name>/trace/
+# Pattern: listener.log (main listener log)
+# Retention: 30 days
+# Schedule: Daily rotation
+# Method: copytruncate (listener keeps file open)
+/u01/app/oracle/diag/tnslsnr/*/listener/trace/listener.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 100M
+    # Rotate when file exceeds 100MB OR daily, whichever comes first
+}
+
+# Additional listener logs (if multiple listeners)
+# Pattern: <listener_name>.log
+/u01/app/oracle/diag/tnslsnr/*/*/trace/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 100M
+}
+
+# Oracle Listener Trace Files
+# Location: $ORACLE_BASE/diag/tnslsnr/<hostname>/<listener_name>/trace/
+# Pattern: *.trc (listener trace files)
+# Retention: 30 days
+# Schedule: Weekly rotation
+/u01/app/oracle/diag/tnslsnr/*/*/trace/*.trc {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+    size 10M
+}
+
+# Oracle Listener Alert Logs (11g+ ADR)
+# Location: $ORACLE_BASE/diag/tnslsnr/<hostname>/<listener_name>/alert/
+# Pattern: log.xml (XML-formatted alert log)
+# Retention: 30 days
+# Schedule: Daily rotation
+/u01/app/oracle/diag/tnslsnr/*/*/alert/log.xml {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 50M
+}
+
+# Listener Incident Dumps (ADR)
+# Location: $ORACLE_BASE/diag/tnslsnr/<hostname>/<listener_name>/incident/
+# Pattern: All files in incident directory
+# Retention: 30 days
+# Schedule: Weekly cleanup
+/u01/app/oracle/diag/tnslsnr/*/*/incident/* {
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+    nocreate
+    maxage 30
+}
+
+# Oracle Connection Manager Logs (if CMAN is used)
+# Location: $ORACLE_BASE/diag/netcman/<hostname>/cman/trace/
+# Pattern: cman.log
+# Retention: 30 days
+# Schedule: Daily rotation
+/u01/app/oracle/diag/netcman/*/cman/trace/cman.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    nocreate
+    copytruncate
+    size 100M
+}
+
+# Legacy Listener Logs (pre-11g, non-ADR)
+# Location: $ORACLE_HOME/network/log/ or $TNS_ADMIN/
+# Pattern: listener.log, sqlnet.log
+# Note: Only needed for Oracle 10g and earlier
+#/u01/app/oracle/product/10.2.0/db_1/network/log/listener.log {
+#    daily
+#    rotate 30
+#    compress
+#    delaycompress
+#    missingok
+#    notifempty
+#    nocreate
+#    copytruncate
+#    size 100M
+#}
+
+# --- EOF ----------------------------------------------------------------------
