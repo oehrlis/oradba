@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-12-22
+
 ### Added
 
 - **Log Management System**: Automated log rotation for OraDBA and Oracle Database (#9)

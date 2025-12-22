@@ -403,7 +403,7 @@ EOF
     
     # Symlink should point to centralized location
     local target
-    target=$(readlink "${ORACLE_HOME}/network/admin/sqlnet.ora}")
+    target=$(readlink "${ORACLE_HOME}/network/admin/sqlnet.ora")
     [[ "${target}" == "${ORACLE_BASE}/network/TESTDB/admin/sqlnet.ora" ]]
 }
 
