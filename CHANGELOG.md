@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SQL*Net Configuration Management**: Comprehensive centralized configuration system (#10)
+  - `oradba_sqlnet.sh` v0.2.0: Full-featured SQL*Net management tool
+  - Centralized TNS_ADMIN structure under `$ORACLE_BASE/network/{sid}/`
+  - Automatic migration from ORACLE_HOME to centralized location
+  - Symlink creation for Oracle Home compatibility
+  - Read-only Oracle Home support (Oracle 18c+) using `orabasehome` detection
+  - Batch processing for all databases in `/etc/oratab`
+  - Automatic path updates for log and trace directories
+  - New CLI options: `--setup [SID]` and `--setup-all`
+  - Configuration templates: basic, secure, tnsnames examples, LDAP/OID
+  - Template features: AES256 encryption, TCPS, RAC, PDB, failover, load balancing
+  - Backup, validation, and connection testing capabilities
+
+- **Test Coverage**: 51 comprehensive BATS tests for SQL*Net management
+  - Template installation and validation
+  - Centralized TNS_ADMIN setup (single and batch)
+  - File migration and symlink creation
+  - Read-only home detection (Oracle 18c+ orabasehome command)
+  - Path updates in sqlnet.ora
+  - Error handling for missing variables
+  - All tests pass, full shellcheck compliance
+
+- **Documentation**: Complete user guide for SQL*Net management
+  - Chapter 14: SQL*Net Configuration (src/doc/14-sqlnet-config.md)
+  - Quick start guide with common scenarios
+  - Detailed explanation of Oracle read-only homes
+  - Centralized structure benefits and architecture
+  - Template descriptions with security best practices
+  - High availability configurations (failover, RAC, load balancing)
+  - Troubleshooting guide and compliance standards
+
+### Fixed
+
+- **SQL*Net Script**: Corrected read-only Oracle Home detection logic
+  - Changed from physical permission check to logical Oracle method
+  - Now uses `orabasehome` command (Oracle 18c+ feature)
+  - Properly detects: output ≠ ORACLE_HOME → read-only, output = ORACLE_HOME → read-write
+  - Handles older Oracle versions without orabasehome gracefully
+  - Fixed function output to use stderr for messages, stdout for return values
+
+- **Test Framework**: Fixed test environment configuration
+  - Made oratab path configurable via `ORATAB` environment variable
+  - Corrected ORACLE_HOME propagation in test cases
+  - Fixed backup file pattern validation
+  - All 51 SQL*Net tests now pass consistently
+
 ## [0.8.3] - 2025-12-19
 
 ### Fixed

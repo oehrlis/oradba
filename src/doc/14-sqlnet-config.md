@@ -1,10 +1,14 @@
+<!-- markdownlint-disable MD036 -->
 # SQL*Net Configuration
 
-This chapter covers managing Oracle SQL*Net configuration using OraDBA templates and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
+This chapter covers managing Oracle SQL*Net configuration using OraDBA templates
+and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
 
 ## Overview
 
-OraDBA provides comprehensive SQL*Net configuration templates and management tools to simplify Oracle network setup, improve security, and ensure consistent configurations across environments.
+OraDBA provides comprehensive SQL*Net configuration templates and management tools
+to simplify Oracle network setup, improve security, and ensure consistent
+configurations across environments.
 
 **Key Features:**
 
@@ -54,6 +58,114 @@ oradba_sqlnet.sh --test PRODDB
 oradba_sqlnet.sh --list
 ```
 
+## Centralized TNS_ADMIN Setup
+
+OraDBA v0.2.0+ supports centralized SQL*Net configuration management, particularly useful for:
+
+- **Multiple Oracle Homes** - Manage configurations independently per database
+- **Read-Only Oracle Homes** - Oracle 18c+ feature with logically read-only ORACLE_HOME
+- **Simplified Administration** - Single location for all SQL*Net configurations
+- **Better Logging** - Separate log/trace directories per database
+
+### Understanding Read-Only Oracle Homes
+
+Oracle 18c introduced the read-only Oracle Home feature, where:
+
+- `ORACLE_HOME` is logically read-only (configuration immutable)
+- `ORACLE_BASE_HOME` stores writable Oracle Home files
+- `ORACLE_BASE_CONFIG` stores configuration files
+- Use `orabasehome` command to detect mode:
+  - If output = `$ORACLE_HOME` → Read-Write mode
+  - If output = `$ORACLE_BASE/homes/HOME_NAME` → Read-Only mode
+
+```bash
+# Check if Oracle Home is read-only
+cd $ORACLE_HOME/bin
+./orabasehome
+# Output: /u01/app/oracle/homes/OraDB19Home1 (read-only mode)
+# Output: /u01/app/oracle/product/19c/dbhome_1 (read-write mode)
+```
+
+**Note:** If `orabasehome` command doesn't exist, your Oracle version doesn't support read-only homes.
+
+### Centralized Structure
+
+OraDBA creates this directory structure:
+
+```text
+$ORACLE_BASE/network/
+├── SID1/
+│   ├── admin/       # Configuration files (sqlnet.ora, tnsnames.ora, etc.)
+│   ├── log/         # SQL*Net client logs
+│   └── trace/       # SQL*Net client traces
+├── SID2/
+│   ├── admin/
+│   ├── log/
+│   └── trace/
+└── ...
+```
+
+### Setup Single Database
+
+```bash
+# Setup centralized TNS_ADMIN for specific database
+oradba_sqlnet.sh --setup PRODDB
+```
+
+This will:
+
+1. Create directory structure: `$ORACLE_BASE/network/PRODDB/{admin,log,trace}`
+2. Migrate existing files from `$ORACLE_HOME/network/admin`:
+   - sqlnet.ora
+   - tnsnames.ora
+   - ldap.ora
+   - listener.ora (if exists)
+3. Backup original files with timestamp
+4. Create symlinks in `$ORACLE_HOME/network/admin` → centralized location
+5. Update sqlnet.ora with correct LOG_DIRECTORY and TRACE_DIRECTORY paths
+
+### Setup All Databases
+
+```bash
+# Setup centralized TNS_ADMIN for all databases in /etc/oratab
+oradba_sqlnet.sh --setup-all
+```
+
+Processes all databases defined in `/etc/oratab`, creating centralized structures for each.
+
+### Benefits
+
+**For Read-Only Homes:**
+
+- Configuration stored outside ORACLE_HOME (required)
+- Complies with Oracle 18c+ architecture
+- Enables patching without configuration impact
+
+**For Multiple Homes:**
+
+- Independent configurations per database
+- No configuration conflicts
+- Easier troubleshooting (separate logs per database)
+
+**For All Environments:**
+
+- Centralized backup location
+- Simplified configuration management
+- Clear separation: code vs. configuration
+- Version control friendly (config outside ORACLE_HOME)
+
+### Environment Variables
+
+After setup, set TNS_ADMIN in your profile:
+
+```bash
+# In .bash_profile or similar
+export ORACLE_SID=PRODDB
+export TNS_ADMIN=$ORACLE_BASE/network/$ORACLE_SID/admin
+```
+
+Or source OraDBA environment scripts which set TNS_ADMIN automatically.
+
 ## Available Templates
 
 ### sqlnet.ora Templates
@@ -64,6 +176,7 @@ oradba_sqlnet.sh --list
 **Use Case:** Development and test environments
 
 Features:
+
 - TNSNAMES, EZCONNECT, and HOSTNAME naming methods
 - Basic timeout settings (60s inbound, 120s outbound)
 - ADR diagnostics enabled
@@ -71,7 +184,8 @@ Features:
 - Commented wallet configuration
 
 Example content:
-```
+
+```text
 NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT, HOSTNAME)
 DIAG_ADR_ENABLED = ON
 SQLNET.EXPIRE_TIME = 10
@@ -85,6 +199,7 @@ SQLNET.OUTBOUND_CONNECT_TIMEOUT = 120
 **Use Case:** Production environments requiring encryption
 
 Features:
+
 - **Network Encryption:** AES256/192/128 (REQUIRED)
 - **Data Integrity:** SHA256/384/512 checksums (REQUIRED)
 - **Authentication:** TCPS and NTS support
@@ -92,7 +207,8 @@ Features:
 - **Wallet:** Pre-configured for credential storage
 
 Example content:
-```
+
+```text
 SQLNET.ENCRYPTION_CLIENT = REQUIRED
 SQLNET.ENCRYPTION_SERVER = REQUIRED
 SQLNET.ENCRYPTION_TYPES_CLIENT = (AES256, AES192, AES128)
@@ -110,7 +226,8 @@ SQLNET.CRYPTO_CHECKSUM_SERVER = REQUIRED
 Includes examples for:
 
 1. **Basic Connection**
-   ```
+
+   ```text
    ORCL =
      (DESCRIPTION =
        (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
@@ -163,6 +280,7 @@ Includes examples for:
 **Use Case:** LDAP directory naming
 
 Features:
+
 - Oracle Internet Directory (OID) configuration
 - Active Directory (AD) support
 - SSL/TLS for secure LDAP
@@ -170,7 +288,8 @@ Features:
 - Cache configuration
 
 Example content:
-```
+
+```text
 DEFAULT_ADMIN_CONTEXT = "dc=example,dc=com"
 DIRECTORY_SERVERS = (ldap.example.com:389:636)
 DIRECTORY_SERVER_TYPE = OID
@@ -190,17 +309,29 @@ oradba_sqlnet.sh [OPTIONS]
 
 #### Options
 
-| Option | Description |
-|--------|-------------|
-| `-i, --install TYPE` | Install template (basic\|secure) |
-| `-g, --generate SID` | Generate tnsnames entry for SID |
-| `-v, --validate` | Validate current configuration |
-| `-b, --backup` | Backup current configuration |
-| `-t, --test ALIAS` | Test TNS alias connection |
-| `-l, --list` | List all TNS aliases |
-| `-h, --help` | Show help message |
+| Option               | Description                                 |
+|----------------------|---------------------------------------------|
+| `-i, --install TYPE` | Install template (basic\|secure)            |
+| `-g, --generate SID` | Generate tnsnames entry for SID             |
+| `-v, --validate`     | Validate current configuration              |
+| `-b, --backup`       | Backup current configuration                |
+| `-t, --test ALIAS`   | Test TNS alias connection                   |
+| `-l, --list`         | List all TNS aliases                        |
+| `-s, --setup [SID]`  | Setup centralized TNS_ADMIN structure       |
+| `-a, --setup-all`    | Setup TNS_ADMIN for all databases in oratab |
+| `-h, --help`         | Show help message                           |
 
 #### Examples
+
+**Setup Centralized Configuration**
+
+```bash
+# Setup for specific database
+oradba_sqlnet.sh --setup PRODDB
+
+# Setup for all databases in /etc/oratab
+oradba_sqlnet.sh --setup-all
+```
 
 **Install Templates**
 
@@ -279,7 +410,7 @@ oradba_sqlnet.sh --list
 
 Configuration files are stored in `$TNS_ADMIN` or `$ORACLE_HOME/network/admin`:
 
-```
+```text
 $TNS_ADMIN/
 ├── sqlnet.ora       # Network configuration
 ├── tnsnames.ora     # Connection descriptors
@@ -296,14 +427,15 @@ OraDBA automatically detects the correct location:
 
 Templates support environment variable substitution:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `${ORACLE_BASE}` | Oracle base directory | /u01/app/oracle |
-| `${ORACLE_SID}` | Database SID | PRODDB |
-| `${ORACLE_HOME}` | Oracle home | /u01/app/oracle/product/19c |
+| Variable         | Description           | Example                     |
+|------------------|-----------------------|-----------------------------|
+| `${ORACLE_BASE}` | Oracle base directory | /u01/app/oracle             |
+| `${ORACLE_SID}`  | Database SID          | PRODDB                      |
+| `${ORACLE_HOME}` | Oracle home           | /u01/app/oracle/product/19c |
 
 Example template:
-```
+
+```text
 WALLET_LOCATION =
   (SOURCE =
     (METHOD = FILE)
@@ -314,7 +446,8 @@ WALLET_LOCATION =
 ```
 
 After substitution:
-```
+
+```text
 WALLET_LOCATION =
   (SOURCE =
     (METHOD = FILE)
@@ -331,7 +464,8 @@ WALLET_LOCATION =
 The secure template enables Oracle Advanced Security features:
 
 **Encryption Settings:**
-```
+
+```text
 SQLNET.ENCRYPTION_CLIENT = REQUIRED
 SQLNET.ENCRYPTION_SERVER = REQUIRED
 SQLNET.ENCRYPTION_TYPES_CLIENT = (AES256, AES192, AES128)
@@ -339,11 +473,13 @@ SQLNET.ENCRYPTION_TYPES_SERVER = (AES256, AES192, AES128)
 ```
 
 **Encryption Levels:**
+
 - `REQUIRED` - Connections must be encrypted (recommended for production)
 - `REQUESTED` - Encryption preferred but not mandatory
 - `ACCEPTED` - Accept encrypted or unencrypted
 
 **Cipher Suites:**
+
 - **AES256** - Strongest encryption (recommended)
 - **AES192** - Strong encryption
 - **AES128** - Standard encryption
@@ -352,7 +488,7 @@ SQLNET.ENCRYPTION_TYPES_SERVER = (AES256, AES192, AES128)
 
 Checksumming prevents data tampering:
 
-```
+```text
 SQLNET.CRYPTO_CHECKSUM_CLIENT = REQUIRED
 SQLNET.CRYPTO_CHECKSUM_SERVER = REQUIRED
 SQLNET.CRYPTO_CHECKSUM_TYPES_CLIENT = (SHA256, SHA384, SHA512)
@@ -360,6 +496,7 @@ SQLNET.CRYPTO_CHECKSUM_TYPES_SERVER = (SHA256, SHA384, SHA512)
 ```
 
 **Hash Algorithms:**
+
 - **SHA512** - Strongest integrity protection
 - **SHA384** - Strong integrity protection
 - **SHA256** - Standard integrity protection
@@ -367,11 +504,12 @@ SQLNET.CRYPTO_CHECKSUM_TYPES_SERVER = (SHA256, SHA384, SHA512)
 ### Authentication
 
 **Supported Methods:**
+
 - **NTS** - Native network services
 - **TCPS** - TCP with SSL/TLS
 - **KERBEROS5** - Kerberos authentication
 
-```
+```text
 SQLNET.AUTHENTICATION_SERVICES = (TCPS, NTS)
 ```
 
@@ -379,7 +517,7 @@ SQLNET.AUTHENTICATION_SERVICES = (TCPS, NTS)
 
 For SSL/TLS encrypted connections:
 
-```
+```text
 ORCL_SECURE =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCPS)(HOST = db.example.com)(PORT = 2484))
@@ -393,6 +531,7 @@ ORCL_SECURE =
 ```
 
 **Requirements:**
+
 - Oracle Wallet with certificates
 - Server certificate configuration
 - Port 2484 (default TCPS port)
@@ -403,7 +542,7 @@ ORCL_SECURE =
 
 Automatic client failover to secondary nodes:
 
-```
+```text
 ORCL_FO =
   (DESCRIPTION =
     (ADDRESS_LIST =
@@ -425,10 +564,12 @@ ORCL_FO =
 ```
 
 **Failover Types:**
+
 - **SESSION** - Reconnect after connection loss
 - **SELECT** - Reconnect and restore SELECT state
 
 **Failover Methods:**
+
 - **BASIC** - Failover on connection failure
 - **PRECONNECT** - Maintain backup connection
 
@@ -436,7 +577,7 @@ ORCL_FO =
 
 Distribute connections across multiple nodes:
 
-```
+```text
 ORCL_LB =
   (DESCRIPTION =
     (ADDRESS_LIST =
@@ -452,6 +593,7 @@ ORCL_LB =
 ```
 
 **Benefits:**
+
 - Even distribution of client connections
 - Better resource utilization
 - Improved scalability
@@ -460,7 +602,7 @@ ORCL_LB =
 
 Oracle RAC SCAN listener:
 
-```
+```text
 ORCL_RAC =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = scan.example.com)(PORT = 1521))
@@ -471,6 +613,7 @@ ORCL_RAC =
 ```
 
 **Best Practices:**
+
 - Use SCAN address for RAC clusters
 - Single entry for entire cluster
 - Automatic load balancing and failover
@@ -514,6 +657,7 @@ ORCL_RAC =
 ### Backup and Recovery
 
 1. **Always backup before changes:**
+
    ```bash
    oradba_sqlnet.sh --backup
    ```
@@ -521,6 +665,7 @@ ORCL_RAC =
 2. **Test changes in non-production first**
 
 3. **Keep backup files for rollback:**
+
    ```bash
    # Restore from backup
    cp sqlnet.ora.20251219_143022.bak sqlnet.ora
@@ -531,17 +676,20 @@ ORCL_RAC =
 ### Validation
 
 1. **Validate after changes:**
+
    ```bash
    oradba_sqlnet.sh --validate
    ```
 
 2. **Test connections:**
+
    ```bash
    oradba_sqlnet.sh --test PRODDB
    tnsping PRODDB
    ```
 
 3. **Check syntax with tnsping:**
+
    ```bash
    tnsping <alias> 3
    ```
@@ -553,6 +701,7 @@ ORCL_RAC =
 **Problem:** Cannot connect to database
 
 **Solution:**
+
 ```bash
 # 1. Validate configuration
 oradba_sqlnet.sh --validate
@@ -568,6 +717,7 @@ lsnrctl status
 ```
 
 **Common Causes:**
+
 - TNS alias not defined
 - Wrong host/port in tnsnames.ora
 - Listener not running
@@ -581,6 +731,7 @@ lsnrctl status
 **Cause:** Client and server encryption settings don't match
 
 **Solution:**
+
 ```bash
 # 1. Check encryption settings on both sides
 grep ENCRYPTION sqlnet.ora
@@ -598,6 +749,7 @@ SQLNET.ENCRYPTION_CLIENT = REQUESTED
 **Cause:** TNS alias not found in tnsnames.ora
 
 **Solution:**
+
 ```bash
 # 1. List available aliases
 oradba_sqlnet.sh --list
@@ -619,20 +771,23 @@ ls -l $TNS_ADMIN/tnsnames.ora
 **Causes and Solutions:**
 
 1. **High timeout values:**
-   ```
+
+   ```text
    # Reduce timeouts
    SQLNET.INBOUND_CONNECT_TIMEOUT = 30
    SQLNET.OUTBOUND_CONNECT_TIMEOUT = 30
    ```
 
 2. **HOSTNAME naming overhead:**
-   ```
+
+   ```text
    # Remove HOSTNAME from naming methods
    NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
    ```
 
 3. **Network latency:**
-   ```
+
+   ```text
    # Enable TCP_NODELAY
    TCP.NODELAY = YES
    ```
@@ -642,6 +797,7 @@ ls -l $TNS_ADMIN/tnsnames.ora
 **Problem:** Cannot access wallet
 
 **Solution:**
+
 ```bash
 # 1. Check wallet location
 grep WALLET_LOCATION sqlnet.ora
@@ -657,7 +813,7 @@ mkstore -wrl $WALLET_LOCATION -list
 
 **Enable tracing for troubleshooting:**
 
-```
+```text
 # In sqlnet.ora
 TRACE_LEVEL_CLIENT = 16
 TRACE_LEVEL_SERVER = 16
@@ -666,7 +822,8 @@ LOG_DIRECTORY_CLIENT = /tmp/oracle_log
 ```
 
 **After troubleshooting, disable tracing:**
-```
+
+```text
 TRACE_LEVEL_CLIENT = OFF
 TRACE_LEVEL_SERVER = OFF
 ```
@@ -689,7 +846,8 @@ echo $TNS_ADMIN
 ### With oradba_install.sh
 
 Templates are installed to:
-```
+
+```text
 /usr/local/oradba/templates/sqlnet/
 ```
 
@@ -749,7 +907,7 @@ TNS_ADMIN=/custom/path sqlplus user/pass@PRODDB
 
 Optimize application connections:
 
-```
+```text
 PRODDB_POOL =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = db.example.com)(PORT = 1521))
@@ -789,4 +947,4 @@ NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 - [Net Services Reference](https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/)
 
 ---
-*Part of the OraDBA project - https://github.com/oehrlis/oradba*
+*Part of the OraDBA project - <https://github.com/oehrlis/oradba>*

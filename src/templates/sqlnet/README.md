@@ -2,21 +2,53 @@
 
 This directory contains Oracle SQL*Net configuration templates for various use cases and security requirements.
 
+## Management Tool
+
+Use `oradba_sqlnet.sh` for SQL*Net configuration management:
+
+```bash
+# Setup centralized TNS_ADMIN structure (recommended)
+oradba_sqlnet.sh --setup PRODDB          # Single database
+oradba_sqlnet.sh --setup-all             # All databases in /etc/oratab
+
+# Install templates
+oradba_sqlnet.sh --install basic         # Development/test
+oradba_sqlnet.sh --install secure        # Production with encryption
+
+# Generate and test connections
+oradba_sqlnet.sh --generate ORCL         # Add TNS entry
+oradba_sqlnet.sh --test ORCL             # Test connection
+oradba_sqlnet.sh --validate              # Validate config
+```
+
+## Centralized TNS_ADMIN Setup
+
+OraDBA v0.2.0+ supports centralized SQL*Net configuration:
+
+- **Location**: `$ORACLE_BASE/network/{sid}/admin`
+- **Structure**: Separate admin, log, and trace directories per database
+- **Read-Only Homes**: Full support for Oracle 18c+ read-only Oracle Homes
+- **Migration**: Automatic migration from ORACLE_HOME/network/admin
+- **Symlinks**: Maintains compatibility via symbolic links
+- **Benefits**: Independent configs, easier troubleshooting, version control friendly
+
+See [Chapter 14: SQL*Net Configuration](../../doc/14-sqlnet-config.md) for complete documentation.
+
 ## Available Templates
 
 ### sqlnet.ora Templates
 
-| Template | Purpose | Use Case |
-|----------|---------|----------|
-| `sqlnet.ora.basic` | Basic configuration | Development/test environments |
-| `sqlnet.ora.secure` | Enterprise security | Production with encryption |
+| Template            | Purpose             | Use Case                      |
+|---------------------|---------------------|-------------------------------|
+| `sqlnet.ora.basic`  | Basic configuration | Development/test environments |
+| `sqlnet.ora.secure` | Enterprise security | Production with encryption    |
 
 ### Connection Descriptor Templates
 
-| Template | Purpose | Use Case |
-|----------|---------|----------|
+| Template                | Purpose             | Use Case                     |
+|-------------------------|---------------------|------------------------------|
 | `tnsnames.ora.template` | Connection examples | Various connection scenarios |
-| `ldap.ora.template` | LDAP naming | Centralized directory naming |
+| `ldap.ora.template`     | LDAP naming         | Centralized directory naming |
 
 ## Quick Start
 
@@ -126,7 +158,7 @@ Variables are substituted during template installation.
 
 Configuration files are installed to `$TNS_ADMIN` or `$ORACLE_HOME/network/admin`:
 
-```
+```text
 $TNS_ADMIN/
 ├── sqlnet.ora     # Network configuration
 ├── tnsnames.ora   # Connection descriptors
@@ -212,7 +244,7 @@ export TNS_ADMIN=${ORACLE_BASE}/admin/${ORACLE_SID}/network/admin
 
 Templates are installed to:
 
-```
+```text
 /usr/local/oradba/templates/sqlnet/
 ```
 
@@ -226,8 +258,8 @@ Templates are installed to:
 
 For issues or questions:
 
-- GitHub: https://github.com/oehrlis/oradba/issues
-- Email: stefan.oehrli@oradba.ch
+- GitHub: <https://github.com/oehrlis/oradba/issues>
+- Email: <stefan.oehrli@oradba.ch>
 
 ---
-*Part of the OraDBA project - https://github.com/oehrlis/oradba*
+*Part of the OraDBA project - <https://github.com/oehrlis/oradba>*
