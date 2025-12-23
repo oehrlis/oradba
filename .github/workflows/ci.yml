@@ -17,6 +17,7 @@ jobs:
       tests: ${{ steps.filter.outputs.tests }}
       markdown: ${{ steps.filter.outputs.markdown }}
       docs: ${{ steps.filter.outputs.docs }}
+      build: ${{ steps.filter.outputs.build }}
       config: ${{ steps.filter.outputs.config }}
     steps:
       - uses: actions/checkout@v4
@@ -43,11 +44,18 @@ jobs:
               - 'src/doc/**'
               - 'doc/**'
               - '**/images/**'
+            build:
+              - 'src/bin/**'
+              - 'src/lib/**'
+              - 'src/etc/**'
+              - 'src/sql/**'
+              - 'src/rcv/**'
+              - 'src/templates/**'
+              - 'scripts/**'
               - 'Makefile'
             config:
               - '.github/workflows/**'
               - 'Makefile'
-              - 'VERSION'
 
   # Stream 1: Code quality, tests, and build
   lint:
@@ -104,6 +112,7 @@ jobs:
     needs: [changes, test]
     if: |
       always() &&
+      needs.changes.outputs.build == 'true' &&
       (needs.test.result == 'success' || needs.test.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
@@ -130,6 +139,7 @@ jobs:
     needs: [changes, build]
     if: |
       always() &&
+      needs.changes.outputs.build == 'true' &&
       (needs.build.result == 'success' || needs.build.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
