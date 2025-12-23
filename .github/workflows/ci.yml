@@ -8,10 +8,53 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Determine which jobs to run based on changed files
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      scripts: ${{ steps.filter.outputs.scripts }}
+      tests: ${{ steps.filter.outputs.tests }}
+      markdown: ${{ steps.filter.outputs.markdown }}
+      docs: ${{ steps.filter.outputs.docs }}
+      config: ${{ steps.filter.outputs.config }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            scripts:
+              - 'src/bin/**/*.sh'
+              - 'src/lib/**/*.sh'
+              - 'scripts/**/*.sh'
+              - 'tests/**/*.sh'
+              - 'tests/**/*.bats'
+            tests:
+              - 'src/bin/**/*.sh'
+              - 'src/lib/**/*.sh'
+              - 'tests/**'
+            markdown:
+              - '**/*.md'
+              - '.markdownlint.json'
+            docs:
+              - 'VERSION'
+              - 'src/doc/**'
+              - 'doc/**'
+              - '**/images/**'
+              - 'Makefile'
+            config:
+              - '.github/workflows/**'
+              - 'Makefile'
+              - 'VERSION'
+
   # Stream 1: Code quality, tests, and build
   lint:
     name: Lint Shell Scripts
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.scripts == 'true'
     steps:
       - uses: actions/checkout@v4
       
@@ -23,11 +66,22 @@ jobs:
       - name: Run shellcheck on bash scripts
         run: |
           find . -type f -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck -e SC1091 || true
+      
+      - name: Check for #!/bin/sh usage
+        run: |
+          if grep -r "^#!/bin/sh" src/ scripts/ 2>/dev/null; then
+            echo "ERROR: Found #!/bin/sh usage. Use #!/usr/bin/env bash instead"
+            exit 1
+          fi
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [changes, lint]
+    if: |
+      always() && 
+      needs.changes.outputs.tests == 'true' &&
+      (needs.lint.result == 'success' || needs.lint.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
       
@@ -47,7 +101,10 @@ jobs:
   build:
     name: Build Installer
     runs-on: ubuntu-latest
-    needs: test
+    needs: [changes, test]
+    if: |
+      always() &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
       
@@ -70,7 +127,10 @@ jobs:
   validate:
     name: Validate Installation
     runs-on: ubuntu-latest
-    needs: build
+    needs: [changes, build]
+    if: |
+      always() &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
       
@@ -102,6 +162,8 @@ jobs:
   lint-markdown:
     name: Lint Markdown
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.markdown == 'true'
     steps:
       - uses: actions/checkout@v4
       
@@ -119,7 +181,11 @@ jobs:
   docs:
     name: Generate Documentation
     runs-on: ubuntu-latest
-    needs: lint-markdown
+    needs: [changes, lint-markdown]
+    if: |
+      always() &&
+      needs.changes.outputs.docs == 'true' &&
+      (needs.lint-markdown.result == 'success' || needs.lint-markdown.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
       
