@@ -31,7 +31,9 @@ PROMPT OraDBA SQL Scripts Help
 PROMPT ================================================================================
 
 -- Use HOST command to extract script info from headers
-HOST bash -c 'sqlpath="${SQLPATH:-$PWD}"; filter="&filter_pattern"; echo ""; echo "Location: $sqlpath"; if [ -n "$filter" ]; then echo "Filter: *${filter}*"; fi; echo ""; printf "%-30s %s\n" "Script" "Purpose"; printf "%-30s %s\n" "------------------------------" "------------------------------------------------------------"; cd "$sqlpath" && for f in *.sql; do if [ -f "$f" ]; then if [ -z "$filter" ] || echo "$f" | grep -qi "$filter"; then purpose=$(head -20 "$f" | grep -i "^--.*Purpose" | head -1 | sed "s/.*Purpose[.:]*//;s/^[[:space:]]*//;s/[[:space:]]*$//" | cut -c1-60); if [ -n "$purpose" ]; then printf "%-30s %s\n" "$f" "$purpose"; fi; fi; fi; done | sort'
+-- Note: Using CONCAT to avoid && being interpreted as SQL*Plus variable
+SET DEFINE ON
+HOST bash -c 'sqlpath="${SQLPATH:-$PWD}"; filter="&filter_pattern"; echo ""; echo "Location: $sqlpath"; if [ -n "$filter" ]; then echo "Filter: *${filter}*"; fi; echo ""; printf "%-30s %s\n" "Script" "Purpose"; printf "%-30s %s\n" "------------------------------" "------------------------------------------------------------"; cd "$sqlpath"; for f in *.sql; do if [ -f "$f" ]; then if [ -z "$filter" ] || echo "$f" | grep -qi "$filter"; then purpose=$(head -20 "$f" | grep -i "^--.*Purpose" | head -1 | sed "s/.*Purpose[.:]*//;s/^[[:space:]]*//;s/[[:space:]]*$//" | cut -c1-60); if [ -n "$purpose" ]; then printf "%-30s %s\n" "$f" "$purpose"; fi; fi; fi; done | sort'
 
 PROMPT
 PROMPT ================================================================================
