@@ -5,8 +5,8 @@
 # Name.......: oradba_install.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.18
-# Revision...: 0.7.13
+# Date.......: 2025.12.24
+# Revision...: 0.9.1
 # Purpose....: Universal installer for oradba toolset
 # Notes......: Can install from embedded payload, local tarball, or GitHub releases.
 #              When distributed with embedded payload, provides self-extracting installer.

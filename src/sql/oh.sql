@@ -4,8 +4,8 @@
 -- Name.......: oh.sql (OraDBA Help)
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.19
--- Revision...: 0.8.0
+-- Date.......: 2025.12.24
+-- Revision...: 0.9.1
 -- Purpose....: Display available SQL scripts with names and purposes
 -- Notes......: Reads script headers to extract names and purposes from SQLPATH
 -- Usage......: @oh [filter]
