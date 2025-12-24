@@ -5,8 +5,8 @@
 # Name.......: oradba_sqlnet.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.20
-# Revision...: 0.2.0
+# Date.......: 2025.12.24
+# Revision...: 0.9.0
 # Purpose....: Manage SQL*Net configuration files (sqlnet.ora, tnsnames.ora, ldap.ora)
 # Notes......: Provides installation, generation, validation, and testing of SQL*Net configs
 # Reference..: https://github.com/oehrlis/oradba
