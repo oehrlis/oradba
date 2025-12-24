@@ -741,11 +741,37 @@ fi
 if [[ "$INSTALL_MODE" == "auto" ]]; then
     # Check if payload marker exists in this script
     if grep -q "^__PAYLOAD_BEGINS__" "$0" 2>/dev/null; then
-        INSTALL_MODE="embedded"
-        log_info "Detected embedded payload"
+        # Verify there's actual payload data after the marker
+        payload_line=$(awk '/^__PAYLOAD_BEGINS__/ {print NR + 1; exit 0; }' "$0")
+        payload_lines=$(tail -n +"${payload_line}" "$0" 2>/dev/null | wc -l)
+        
+        if [[ ${payload_lines} -gt 10 ]]; then
+            INSTALL_MODE="embedded"
+            log_info "Detected embedded payload"
+        else
+            log_error "Payload marker found but no payload data present"
+            log_error "This installer requires a source for installation:"
+            log_error ""
+            log_error "  Option 1: Use a local tarball"
+            log_error "    $0 --local /path/to/oradba-x.y.z.tar.gz"
+            log_error ""
+            log_error "  Option 2: Download from GitHub"
+            log_error "    $0 --github [--version x.y.z]"
+            log_error ""
+            log_error "For more information, run: $0 --help"
+            exit 1
+        fi
     else
         log_error "No embedded payload found and no installation mode specified"
-        log_error "Use --local or --github to specify installation source"
+        log_error "This installer requires a source for installation:"
+        log_error ""
+        log_error "  Option 1: Use a local tarball"
+        log_error "    $0 --local /path/to/oradba-x.y.z.tar.gz"
+        log_error ""
+        log_error "  Option 2: Download from GitHub"
+        log_error "    $0 --github [--version x.y.z]"
+        log_error ""
+        log_error "For more information, run: $0 --help"
         exit 1
     fi
 fi
@@ -1004,14 +1030,18 @@ extract_embedded_payload() {
     
     if [[ -z "$payload_line" ]]; then
         log_error "Payload marker not found in installer"
+        log_error "Use --local or --github to specify installation source"
         return 1
     fi
     
     # Decode base64 (use --decode for cross-platform compatibility)
-    tail -n +${payload_line} "$0" | base64 --decode | tar -xz -C "$TEMP_DIR"
-    
-    if [[ $? -ne 0 ]]; then
+    if ! tail -n +"${payload_line}" "$0" | base64 --decode | tar -xz -C "$TEMP_DIR" 2>/dev/null; then
         log_error "Failed to extract embedded payload"
+        log_error "The payload may be missing or corrupted"
+        log_error ""
+        log_error "Alternative installation methods:"
+        log_error "  1. Download from GitHub: $0 --github"
+        log_error "  2. Use local tarball: $0 --local /path/to/oradba-x.y.z.tar.gz"
         return 1
     fi
     
