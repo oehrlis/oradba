@@ -240,10 +240,13 @@ docs: ## Generate all documentation (HTML and PDF)
 .PHONY: docs-prepare
 docs-prepare: ## Prepare documentation images for distribution
 	@echo -e "$(COLOR_BLUE)Preparing documentation images...$(COLOR_RESET)"
+	@# Clean any existing images first
+	@rm -rf $(USER_DOC_DIR)/images $(SRC_DIR)/doc/images
 	@mkdir -p $(USER_DOC_DIR)/images
 	@mkdir -p $(SRC_DIR)/doc/images
-	@cp -r $(DOC_DIR)/images/* $(USER_DOC_DIR)/images/ 2>/dev/null || true
-	@cp -r $(DOC_DIR)/images/* $(SRC_DIR)/doc/images/ 2>/dev/null || true
+	@# Copy PNG images only, exclude README.md and source subfolder
+	@find $(DOC_DIR)/images -maxdepth 1 -name "*.png" -exec cp {} $(USER_DOC_DIR)/images/ \; 2>/dev/null || true
+	@find $(DOC_DIR)/images -maxdepth 1 -name "*.png" -exec cp {} $(SRC_DIR)/doc/images/ \; 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Images copied for documentation build$(COLOR_RESET)"
 
 .PHONY: docs-html

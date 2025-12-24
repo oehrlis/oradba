@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Installer**: Improved error handling for missing embedded payload
+  - Clear error messages with installation options when payload is absent
+  - Prevents running installer from within installation directory
+  - Better guidance for using `--local` or `--github` options
+- **Tests**: Fixed SQL*Net permissions test for cross-platform compatibility
+  - Proper OS detection for stat command (macOS vs Linux)
+  - Prevents false failures in CI environment
+- **Documentation**: Improved documentation structure and build process
+  - Renamed `USAGE.md` to `16-usage.md` for consistency
+  - Renamed `alias_help.txt` to `ALIAS_HELP.txt` (uppercase)
+  - Fixed image copying to exclude source files (.excalidraw)
+  - Build now copies only PNG images, not README.md or source subfolder
+  - Prevents additional files in installation checksum verification
+
 ## [0.9.0] - 2025-12-22
 
 ### Added
