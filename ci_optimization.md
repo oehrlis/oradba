@@ -2,13 +2,16 @@
 
 ## Changes Made
 
-The CI workflow has been optimized to run jobs only when relevant files are modified, significantly reducing unnecessary compute time and improving workflow efficiency.
+The CI workflow has been optimized to run jobs only when relevant files are
+modified, significantly reducing unnecessary compute time and improving
+workflow efficiency.
 
 ### New Features
 
 #### 1. Path-Based Job Filtering
 
-Added a `changes` job that detects which files have been modified and sets outputs to control downstream job execution:
+Added a `changes` job that detects which files have been modified and sets
+outputs to control downstream job execution:
 
 **Filter Categories:**
 
@@ -43,26 +46,32 @@ Added a `changes` job that detects which files have been modified and sets outpu
 #### 2. Conditional Job Execution
 
 **Lint Job:**
+
 - Runs ONLY when shell scripts are modified
 - Includes additional check for `#!/bin/sh` usage (enforces bash)
 
 **Test Job:**
+
 - Runs ONLY when tests or source code changes
 - Depends on lint (runs after lint succeeds or is skipped)
 
 **Build Job:**
+
 - Runs when tests pass or are skipped
 - Always produces installer for validation
 
 **Validate Job:**
+
 - Runs after build succeeds or is skipped
 - Tests installation in clean environment
 
 **Lint-Markdown Job:**
+
 - Runs ONLY when markdown files are modified
 - Independent from code quality stream
 
 **Docs Job:**
+
 - Runs ONLY when documentation files or VERSION changes
 - Depends on markdown linting
 
@@ -78,6 +87,7 @@ if: |
 ```
 
 This ensures:
+
 - Jobs run when relevant files change
 - Jobs don't fail if dependencies are skipped
 - Jobs fail if dependencies fail
@@ -85,6 +95,7 @@ This ensures:
 ### Release Workflow (Already Optimized)
 
 The release workflow already includes:
+
 - ✅ Documentation generation (PDF + HTML)
 - ✅ Installer build with version substitution
 - ✅ Distribution tarball creation
@@ -97,13 +108,13 @@ The release workflow already includes:
 
 #### Performance Improvements
 
-| Scenario | Before | After | Savings |
-|----------|--------|-------|---------|
-| README.md only change | All jobs | Markdown lint + docs | ~70% |
-| Source code change | All jobs | Lint + tests + build + validate | 0% (needed) |
-| Documentation change | All jobs | Markdown lint + docs | ~50% |
-| Test-only change | All jobs | Lint + tests (no docs) | ~30% |
-| No relevant changes | All jobs | Only changes detection | ~95% |
+| Scenario                 | Before   | After                       | Savings      |
+|--------------------------|----------|-----------------------------|--------------|
+| README.md only change    | All jobs | Markdown lint + docs        | ~70%         |
+| Source code change       | All jobs | Lint + tests + build + val  | 0% (needed)  |
+| Documentation change     | All jobs | Markdown lint + docs        | ~50%         |
+| Test-only change         | All jobs | Lint + tests (no docs)      | ~30%         |
+| No relevant changes      | All jobs | Only changes detection      | ~95%         |
 
 #### Resource Optimization
 
@@ -122,7 +133,9 @@ The release workflow already includes:
 ### Additional Optimizations
 
 #### 1. Enhanced Shellcheck
+
 Added check for `#!/bin/sh` usage to enforce bash:
+
 ```yaml
 - name: Check for #!/bin/sh usage
   run: |
@@ -133,11 +146,14 @@ Added check for `#!/bin/sh` usage to enforce bash:
 ```
 
 #### 2. Artifact Retention
+
 - **Installers**: 30 days (development builds)
 - **Documentation**: 90 days (longer retention for reference)
 
 #### 3. Job Isolation
+
 Two parallel streams:
+
 - **Stream 1**: Code quality → Tests → Build → Validate
 - **Stream 2**: Markdown lint → Documentation
 
@@ -146,44 +162,54 @@ Streams run independently, maximizing parallelization.
 ### Usage Examples
 
 #### Example 1: Documentation Update
+
 ```bash
 # Edit README.md
 git commit -m "docs: update installation instructions"
 git push
 ```
+
 **Result**: Only runs `changes` → `lint-markdown` → `docs`
 
 #### Example 2: Bug Fix
+
 ```bash
 # Fix bug in src/lib/common.sh
 git commit -m "fix: resolve path issue"
 git push
 ```
+
 **Result**: Runs `changes` → `lint` → `test` → `build` → `validate`
 
 #### Example 3: Add New Test
+
 ```bash
 # Add test_new_feature.bats
 git commit -m "test: add tests for new feature"
 git push
 ```
+
 **Result**: Runs `changes` → `lint` → `test` (skips build if no code changes)
 
 #### Example 4: Release
+
 ```bash
 git tag v0.9.0
 git push --tags
 ```
+
 **Result**: Release workflow runs ALL steps (docs, build, upload)
 
 ### Migration Notes
 
 #### For Developers
+
 - **No action required**: Workflow changes are transparent
 - **PR checks**: May complete faster for doc-only changes
 - **Local development**: Use `workflow_dispatch` to manually trigger if needed
 
 #### For Maintainers
+
 - **Monitor**: Check Actions tab to verify jobs run correctly
 - **Adjust filters**: Modify `.github/workflows/ci.yml` if new paths need tracking
 - **Release process**: Unchanged - all assets still generated
@@ -224,7 +250,7 @@ git push --tags
 
 ### Workflow Diagram
 
-```
+```text
 ┌──────────────┐
 │   changes    │  Detect modified files
 └──────┬───────┘
@@ -255,6 +281,7 @@ git push --tags
 ### Testing the Workflow
 
 #### Test Path Filters
+
 ```bash
 # Test script changes trigger
 echo "# comment" >> src/bin/oraenv.sh
@@ -270,6 +297,7 @@ git commit -m "test: trigger doc jobs"
 ```
 
 #### Verify Job Skipping
+
 1. Create PR with only README.md changes
 2. Check Actions tab - should skip lint, test, build, validate
 3. Should run: changes, lint-markdown, docs
@@ -277,6 +305,7 @@ git commit -m "test: trigger doc jobs"
 ### Rollback Plan
 
 If issues arise:
+
 ```bash
 # Restore original workflow
 git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
@@ -287,6 +316,7 @@ git push
 ### Support
 
 For issues with the CI workflow:
+
 1. Check Actions tab for job details
 2. Review job logs for error messages
 3. Use `workflow_dispatch` to manually trigger
