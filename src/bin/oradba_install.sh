@@ -661,6 +661,26 @@ run_preflight_checks() {
     echo ""
 }
 
+# Check if running from within an oradba installation directory
+# This prevents the script from overwriting itself during installation
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -f "${SCRIPT_DIR}/../VERSION" ]] && [[ -d "${SCRIPT_DIR}/../etc" ]] && [[ -d "${SCRIPT_DIR}/../lib" ]]; then
+    SCRIPT_INSTALL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+    if [[ "$(pwd)" == "${SCRIPT_INSTALL_DIR}"* ]]; then
+        log_error "Cannot run installer from within an OraDBA installation directory"
+        log_error "Current directory: $(pwd)"
+        log_error "Installation directory: ${SCRIPT_INSTALL_DIR}"
+        log_error ""
+        log_error "Please change to a different directory (e.g., \$HOME or /tmp):"
+        log_error "  cd \$HOME && ${SCRIPT_INSTALL_DIR}/bin/oradba_install.sh $*"
+        log_error ""
+        log_error "Or copy the installer elsewhere first:"
+        log_error "  cp ${SCRIPT_INSTALL_DIR}/bin/oradba_install.sh /tmp/"
+        log_error "  cd /tmp && ./oradba_install.sh $*"
+        exit 1
+    fi
+fi
+
 # Parse arguments
 INSTALL_PREFIX="$DEFAULT_PREFIX"
 INSTALL_USER=""
