@@ -311,8 +311,12 @@ teardown() {
     "${SCRIPT}" --install basic
     
     local perms
-    perms=$(stat -f "%OLp" "${TEST_TNS_ADMIN}/sqlnet.ora" 2>/dev/null || stat -c "%a" "${TEST_TNS_ADMIN}/sqlnet.ora" 2>/dev/null)
-    echo "DEBUG: Actual permissions: ${perms}" >&3
+    # Use different stat commands for macOS vs Linux
+    if [[ "$(uname)" == "Darwin" ]]; then
+        perms=$(stat -f "%OLp" "${TEST_TNS_ADMIN}/sqlnet.ora")
+    else
+        perms=$(stat -c "%a" "${TEST_TNS_ADMIN}/sqlnet.ora")
+    fi
     [[ "${perms}" == "644" ]]
 }
 
