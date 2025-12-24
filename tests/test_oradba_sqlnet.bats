@@ -312,6 +312,7 @@ teardown() {
     
     local perms
     perms=$(stat -f "%OLp" "${TEST_TNS_ADMIN}/sqlnet.ora" 2>/dev/null || stat -c "%a" "${TEST_TNS_ADMIN}/sqlnet.ora" 2>/dev/null)
+    echo "DEBUG: Actual permissions: ${perms}" >&3
     [[ "${perms}" == "644" ]]
 }
 
