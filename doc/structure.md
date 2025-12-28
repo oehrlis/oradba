@@ -75,19 +75,19 @@ src/
 │   ├── TDE scripts (tde_*.sql)
 │   ├── Verification scripts (verify_*.sql)
 │   └── Various utility scripts
-├── rcv/                    # RMAN recovery scripts (1 script)
+├── rcv/                    # RMAN recovery scripts
 │   ├── backup_full.rman   # Full backup script
 │   └── README.md          # RMAN documentation
 ├── templates/              # Configuration templates
 │   ├── script_template.sh # Bash script template
-│   ├── logrotate/         # Log rotation templates (5 files)
+│   ├── logrotate/         # Log rotation templates
 │   │   ├── oradba.logrotate
 │   │   ├── oracle-alert.logrotate
 │   │   ├── oracle-audit.logrotate
 │   │   ├── oracle-listener.logrotate
 │   │   ├── oracle-trace.logrotate
 │   │   └── README.md
-│   ├── sqlnet/            # SQL*Net templates (4 files)
+│   ├── sqlnet/            # SQL*Net templates
 │   │   ├── sqlnet.ora.basic
 │   │   ├── sqlnet.ora.secure
 │   │   ├── tnsnames.ora.template
