@@ -199,35 +199,17 @@ oraup.sh
 
 ## Configuration Loading Sequence
 
-When you source `oraenv.sh`, it loads configurations in this order:
+When you source `oraenv.sh`, OraDBA loads configuration files in a hierarchical order:
 
-1. **Core Configuration** (`oradba_core.conf`)
-   - Base OraDBA variables
-   - Essential functions
-   - Prefix and directory setup
+1. Core configuration (system defaults)
+2. Standard configuration (aliases and environment)
+3. Customer configuration (your global customizations)
+4. Default SID configuration (database defaults)
+5. SID-specific configuration (per-database settings)
 
-2. **Standard Configuration** (`oradba_standard.conf`)
-   - Oracle environment variables
-   - Standard aliases
-   - SID list generation
-   - PDB alias generation
+This allows default settings to work everywhere while enabling customization at multiple levels.
 
-3. **SID-Specific Configuration** (`sid.$ORACLE_SID.conf`)
-   - Custom settings for specific database
-   - Optional - only if file exists
-   - Overrides standard settings
-
-4. **Customer Configuration** (`oradba_customer.conf`)
-   - Your custom global settings
-   - Optional - only if file exists
-   - Final overrides
-
-This hierarchical approach allows:
-
-- Default settings that work everywhere
-- Database-specific customization
-- Personal preferences
-- Easy maintenance
+For complete details on the configuration hierarchy, files, and variables, see [Configuration System](05-configuration.md).
 
 ## Scripting with oraenv.sh
 

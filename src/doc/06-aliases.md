@@ -336,50 +336,24 @@ ADRCI> show alert -tail 50
 
 ## PDB Aliases (Auto-Generated)
 
-For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database:
+For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database (PDB). 
 
-### PDB Alias Format
+Each PDB gets two aliases:
+- Simple form (e.g., `pdb1`) - Connect directly to PDB1
+- Prefixed form (e.g., `pdbpdb1`) - Same with 'pdb' prefix for clarity
 
-| Format   | Example   | Description            |
-|----------|-----------|------------------------|
-| Simple   | `pdb1`    | Connect to PDB1        |
-| Prefixed | `pdbpdb1` | Same with 'pdb' prefix |
-
-**Usage Examples:**
+**Quick Example:**
 
 ```bash
 # List available PDBs
 echo $ORADBA_PDBLIST
-# Output: PDB1 PDB2 PDB3
 
 # Connect to PDB1
 pdb1
 SQL> show con_name
-CON_NAME
-------------------------------
-PDB1
-
-# Prompt shows: [CDB1.PDB1]
 ```
 
-**How It Works:**
-
-```bash
-# For a PDB named "PDB1", OraDBA creates:
-alias pdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
-alias pdbpdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
-```
-
-### Disable PDB Aliases
-
-To disable automatic PDB alias generation:
-
-```bash
-# In oradba_customer.conf or sid.*.conf
-export ORADBA_NO_PDB_ALIASES="true"
-```
-
-See [PDB Aliases](07-pdb-aliases.md) for complete documentation.
+For complete PDB alias documentation, configuration options, troubleshooting, and advanced usage, see [PDB Alias Reference](07-pdb-aliases.md).
 
 ## Help and Information Aliases
 
