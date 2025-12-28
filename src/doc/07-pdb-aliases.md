@@ -1,24 +1,19 @@
 # PDB Alias Reference
 
+**Purpose:** Complete guide to pluggable database (PDB) aliases in Oracle Multitenant environments - the canonical reference for PDB-specific functionality.
+
+**Audience:** Users working with Container Databases (CDB) and Pluggable Databases (PDB).
+
+**Prerequisites:**
+- Oracle Database 12c or higher (Multitenant architecture)
+- Container Database (CDB) environment
+- SYSDBA privileges to query `v$pdbs`
+
 ## Introduction
 
 OraDBA automatically generates aliases for Pluggable Databases (PDBs) in Oracle
 Multitenant environments. These aliases provide quick access to connect to
 specific PDBs, making it easy to work with containerized databases.
-
-**Key Features:**
-
-- Automatic PDB discovery from `v$pdbs`
-- Lowercase aliases for each PDB
-- Optional prefixed aliases for clarity
-- Integration with PS1 prompt
-- Configurable per-CDB
-
-## Prerequisites
-
-- Oracle Database 12c or higher (Multitenant architecture)
-- Container Database (CDB) environment
-- SYSDBA privileges to query `v$pdbs`
 
 ## How It Works
 
@@ -490,16 +485,14 @@ export ORADBA_NO_PDB_ALIASES="true"
 - **Lowercase Only** - Aliases are lowercase regardless of PDB name case
 - **No Parameters** - Aliases don't accept parameters (fixed to SYSDBA connection)
 
-## Next Steps
+## See Also
 
-- **[Aliases](06-aliases.md)** - Complete alias reference
-- **[Configuration](05-configuration.md)** - Customize OraDBA settings
-- **[Environment Management](04-environment.md)** - Understanding oraenv.sh
-- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
+- [Aliases](06-aliases.md) - Complete alias reference
+- [Configuration](05-configuration.md) - Disabling PDB aliases
+- [Environment Management](04-environment.md) - How PDB aliases are generated
+- [Troubleshooting](12-troubleshooting.md) - PDB alias issues
 
-## Further Reading
+## Navigation
 
-- [Oracle Multitenant Documentation](https://docs.oracle.com/en/database/oracle/oracle-database/23/multi/)
-- Oracle SQL Reference: ALTER SESSION
-- Oracle Database Reference: V$PDBS
-- Oracle Database Administrator's Guide: Managing a Multitenant Environment
+**Previous:** [Alias Reference](06-aliases.md)  
+**Next:** [SQL Scripts](08-sql-scripts.md)

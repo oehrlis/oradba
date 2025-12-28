@@ -1,16 +1,17 @@
 # Quick Start Guide
 
+**Purpose:** Get started quickly with OraDBA after installation - learn to set up oratab, switch databases, and perform common tasks.
+
+**Prerequisites:**
+- OraDBA installed (see [Installation](02-installation.md))
+- Oracle Database installed
+- Shell profile configured
+
 ## Introduction
 
 This guide helps you get started with OraDBA quickly after installation. You'll
 learn how to set up your oratab file, switch between databases, and perform
 common tasks.
-
-## Prerequisites
-
-- OraDBA installed (see [Installation Guide](02-installation.md))
-- Oracle Database installed
-- Shell profile configured (typically done automatically during installation)
 
 ## First Steps
 
@@ -353,3 +354,15 @@ dbstatus.sh / sta        # Database status
 oradba_version.sh --check          # Current version
 oradba_version.sh --update-check   # Check for updates
 ```
+
+## See Also
+
+- [Environment Management](04-environment.md) - Detailed oraenv.sh usage
+- [Aliases](06-aliases.md) - Complete alias reference
+- [Configuration](05-configuration.md) - Customizing OraDBA
+- [Usage Examples](16-usage.md) - More usage scenarios
+
+## Navigation
+
+**Previous:** [Installation](02-installation.md)  
+**Next:** [Environment Management](04-environment.md)

@@ -1,5 +1,9 @@
 # Alias Reference
 
+**Purpose:** Complete reference for OraDBA's 50+ shell aliases - the canonical location for all alias documentation.
+
+**Audience:** All users who want to streamline database administration tasks.
+
 ## Introduction
 
 OraDBA provides 50+ shell aliases to streamline Oracle database administration
@@ -651,9 +655,14 @@ This displays a condensed list of the most commonly used aliases.
 5. **Check alias definitions** - Use `type alias_name` to see what it does
 6. **Document custom aliases** - Comment your aliases in customer config
 
-## Next Steps
+## See Also
 
-- **[PDB Aliases](07-pdb-aliases.md)** - Working with pluggable databases
-- **[rlwrap Filter](11-rlwrap.md)** - Configure password filtering
-- **[Configuration](05-configuration.md)** - Customize OraDBA settings
-- **[SQL Scripts](08-sql-scripts.md)** - Database administration scripts
+- [PDB Aliases](07-pdb-aliases.md) - Pluggable database shortcuts
+- [rlwrap Configuration](11-rlwrap.md) - Password filtering and completion
+- [Configuration](05-configuration.md) - Customizing aliases
+- [Quick Reference](13-reference.md) - Condensed alias list
+
+## Navigation
+
+**Previous:** [Configuration System](05-configuration.md)  
+**Next:** [PDB Alias Reference](07-pdb-aliases.md)

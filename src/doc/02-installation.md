@@ -1,6 +1,8 @@
 # Installation
 
-This chapter covers the installation of OraDBA, from system prerequisites through post-installation verification.
+**Purpose:** Complete installation guide for OraDBA, covering prerequisites, installation methods, and post-installation verification.
+
+**Audience:** System administrators and DBAs setting up OraDBA for the first time.
 
 ## System Requirements
 
@@ -510,6 +512,13 @@ rm -f /opt/oradba/etc/sid.*.conf
 
 **Note:** Always backup custom configurations before uninstalling.
 
-## Next Steps
+## See Also
 
-Installation complete! Continue to [Quick Start](03-quickstart.md) for your first steps with OraDBA.
+- [Quick Start](03-quickstart.md) - Getting started with OraDBA
+- [Configuration](05-configuration.md) - Customizing your installation
+- [Troubleshooting](12-troubleshooting.md) - Solving installation issues
+
+## Navigation
+
+**Previous:** [Introduction](01-introduction.md)  
+**Next:** [Quick Start](03-quickstart.md)
