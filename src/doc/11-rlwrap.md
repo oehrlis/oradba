@@ -1,5 +1,13 @@
 # rlwrap Filter Configuration
 
+**Purpose:** Guide to optional password filtering for rlwrap-enabled Oracle tool aliases.
+
+**Audience:** Users concerned with command history security.
+
+**Prerequisites:**
+- rlwrap installed
+- Perl with RlwrapFilter module
+
 ## Introduction
 
 OraDBA supports optional password filtering for rlwrap-enabled aliases. When
@@ -334,9 +342,13 @@ source oraenv.sh FREE
 
 Aliases will continue to use rlwrap but without password filtering.
 
-## Next Steps
+## See Also
 
-- **[Aliases](06-aliases.md)** - Complete alias reference
-- **[Configuration](05-configuration.md)** - Customize OraDBA settings
-- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
-- [rlwrap GitHub](https://github.com/hanslub42/rlwrap) - Official rlwrap documentation
+- [Aliases](06-aliases.md) - Complete alias reference with rlwrap
+- [Configuration](05-configuration.md) - Setting ORADBA_RLWRAP_FILTER
+- [Troubleshooting](12-troubleshooting.md) - rlwrap issues
+
+## Navigation
+
+**Previous:** [Database Functions Library](10-functions.md)  
+**Next:** [Troubleshooting Guide](12-troubleshooting.md)

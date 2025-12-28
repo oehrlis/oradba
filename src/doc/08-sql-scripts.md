@@ -1,5 +1,9 @@
 # SQL Scripts Reference
 
+**Purpose:** Complete reference for OraDBA's SQL scripts collection for database administration, security, audit, and encryption tasks.
+
+**Audience:** DBAs needing ready-to-use SQL scripts for common database tasks.
+
 ## Introduction
 
 OraDBA includes a comprehensive collection of SQL scripts for database
@@ -456,9 +460,14 @@ SQL> SET PAGESIZE 100
 SQL> @my_script
 ```
 
-## Next Steps
+## See Also
 
-- **[RMAN Scripts](09-rman-scripts.md)** - Backup and recovery templates
-- **[Functions Reference](10-functions.md)** - Database functions
-- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
-- **[Quick Start](03-quickstart.md)** - Getting started guide
+- [RMAN Scripts](09-rman-scripts.md) - Backup and recovery templates
+- [Functions Reference](10-functions.md) - Database functions library
+- [Quick Reference](13-reference.md) - Common SQL script examples
+- [Troubleshooting](12-troubleshooting.md) - Solving script issues
+
+## Navigation
+
+**Previous:** [PDB Alias Reference](07-pdb-aliases.md)  
+**Next:** [RMAN Script Templates](09-rman-scripts.md)

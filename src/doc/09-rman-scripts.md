@@ -1,5 +1,9 @@
 # RMAN Script Templates
 
+**Purpose:** RMAN (Recovery Manager) script templates for common backup and recovery operations.
+
+**Audience:** DBAs implementing backup strategies.
+
 ## Introduction
 
 OraDBA includes RMAN (Recovery Manager) script templates for common backup and
@@ -244,9 +248,14 @@ mkdir -p /backup
 chown oracle:oinstall /backup
 ```
 
-## Next Steps
+## See Also
 
-- **[SQL Scripts](08-sql-scripts.md)** - Database administration scripts
-- **[Functions](10-functions.md)** - Database functions reference
-- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
-- Oracle RMAN Documentation
+- [SQL Scripts](08-sql-scripts.md) - Database administration scripts
+- [Functions](10-functions.md) - Database functions reference
+- [Configuration](05-configuration.md) - Setting ORADBA_RMAN_CATALOG
+- [Troubleshooting](12-troubleshooting.md) - RMAN issues
+
+## Navigation
+
+**Previous:** [SQL Scripts Reference](08-sql-scripts.md)  
+**Next:** [Database Functions Library](10-functions.md)

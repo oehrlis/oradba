@@ -1,6 +1,15 @@
 <!-- markdownlint-disable MD013 -->
 # Database Functions Library (db_functions.sh)
 
+**Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views.
+
+**Audience:** Script developers and advanced users.
+
+**Prerequisites:**
+- ORACLE_HOME and ORACLE_SID environment variables set
+- Oracle SQL*Plus available
+- `common.sh` library sourced
+
 ## Overview
 
 The `db_functions.sh` library provides reusable functions to query Oracle database information from v$ views. Functions are designed to work gracefully with databases in different states: NOMOUNT, MOUNT, and OPEN.
@@ -433,9 +442,11 @@ Both sync scripts support configuration via:
 
 ## See Also
 
-- [USAGE.md](USAGE.md) - Usage guide including dbstatus.sh
-- [common.sh](../lib/common.sh) - Common library functions
-- [dbstatus.sh](../bin/dbstatus.sh) - Standalone status display script
-- [oraenv.sh](../bin/oraenv.sh) - Environment setup with status display
-- [longops.sh](../bin/longops.sh) - Long operations monitoring
-- [sync_to_peers.sh](../bin/sync_to_peers.sh) - Peer file synchronization
+- [Usage Guide](16-usage.md) - Including dbstatus.sh usage
+- [Environment Management](04-environment.md) - Environment setup with status
+- [Configuration](05-configuration.md) - Function behavior settings
+
+## Navigation
+
+**Previous:** [RMAN Script Templates](09-rman-scripts.md)  
+**Next:** [rlwrap Filter Configuration](11-rlwrap.md)

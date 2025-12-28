@@ -1,8 +1,14 @@
 # Quick Reference
 
-## OraDBA Quick Reference Card
+**Purpose:** Condensed reference card for essential OraDBA commands and aliases - quick lookup for daily operations.
+
+**Audience:** All users - especially useful for beginners and quick reference.
+
+## Introduction
 
 Essential commands and aliases for daily Oracle database administration with OraDBA.
+
+## OraDBA Quick Reference Card
 
 ## Environment Setup
 
@@ -321,28 +327,41 @@ alias | grep -E '^(cd|sq|rm|via|taa)'
 ls -l /opt/oradba/doc/
 ```
 
+## See Also
+
+- [Aliases](06-aliases.md) - Detailed alias documentation
+- [Environment Management](04-environment.md) - Complete environment guide
+- [Configuration](05-configuration.md) - Detailed configuration options
+- [Usage Examples](16-usage.md) - Practical usage scenarios
+
 ## Further Reading
 
-Full documentation available in `$ORADBA_PREFIX/doc/`:
+Full documentation chapters:
+1. [Introduction](01-introduction.md) - What is OraDBA
+2. [Installation](02-installation.md) - Installation guide
+3. [Quick Start](03-quickstart.md) - Getting started
+4. [Environment Management](04-environment.md) - Environment setup
+5. [Configuration](05-configuration.md) - Configuration system
+6. [Aliases](06-aliases.md) - Complete alias reference
+7. [PDB Aliases](07-pdb-aliases.md) - PDB-specific aliases
+8. [SQL Scripts](08-sql-scripts.md) - SQL scripts
+9. [RMAN Scripts](09-rman-scripts.md) - RMAN templates
+10. [Functions](10-functions.md) - Database functions
+11. [rlwrap](11-rlwrap.md) - rlwrap configuration
+12. [Troubleshooting](12-troubleshooting.md) - Problem solving
+13. [Quick Reference](13-reference.md) - This reference
+14. [SQLNet Config](14-sqlnet-config.md) - SQLNet configuration
+15. [Log Management](15-log-management.md) - Log handling
+16. [Usage Examples](16-usage.md) - Usage guide
 
-1. **README.md** - Project overview
-2. **01-introduction.md** - What is OraDBA
-3. **02-installation.md** - Installation guide
-4. **03-quickstart.md** - Getting started
-5. **04-environment.md** - Environment management
-6. **05-configuration.md** - Configuration system
-7. **06-aliases.md** - Complete alias reference
-8. **07-pdb-aliases.md** - PDB alias reference
-9. **08-sql-scripts.md** - SQL scripts reference
-10. **09-rman-scripts.md** - RMAN scripts
-11. **10-functions.md** - Database functions
-12. **11-rlwrap.md** - rlwrap configuration
-13. **12-troubleshooting.md** - Troubleshooting guide
-14. **13-reference.md** - This quick reference
+## Navigation
+
+**Previous:** [Troubleshooting Guide](12-troubleshooting.md)  
+**Next:** [SQLNet Configuration](14-sqlnet-config.md)
 
 ---
 
-**OraDBA** - Oracle Database Administration Toolset
+**OraDBA** - Oracle Database Administration Toolset  
 <https://github.com/oehrlis/oradba>
 
 For issues and contributions: <https://github.com/oehrlis/oradba/issues>
