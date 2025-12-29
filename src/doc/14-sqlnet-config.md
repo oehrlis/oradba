@@ -6,6 +6,7 @@
 **Audience:** DBAs configuring Oracle network connectivity.
 
 **Prerequisites:**
+
 - TNS_ADMIN directory configured
 - Appropriate permissions to modify network configuration files
 

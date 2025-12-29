@@ -1,6 +1,7 @@
 # Environment Management
 
-**Purpose:** Comprehensive guide to `oraenv.sh` - OraDBA's core component for managing Oracle database environments, setting variables, and switching between databases.
+**Purpose:** Comprehensive guide to `oraenv.sh` - OraDBA's core component for managing Oracle database environments,
+setting variables, and switching between databases.
 
 **Audience:** All users - essential for daily OraDBA use.
 

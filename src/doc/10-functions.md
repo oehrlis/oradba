@@ -6,6 +6,7 @@
 **Audience:** Script developers and advanced users.
 
 **Prerequisites:**
+
 - ORACLE_HOME and ORACLE_SID environment variables set
 - Oracle SQL*Plus available
 - `common.sh` library sourced

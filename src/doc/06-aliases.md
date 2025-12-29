@@ -336,9 +336,10 @@ ADRCI> show alert -tail 50
 
 ## PDB Aliases (Auto-Generated)
 
-For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database (PDB). 
+For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database (PDB).
 
 Each PDB gets two aliases:
+
 - Simple form (e.g., `pdb1`) - Connect directly to PDB1
 - Prefixed form (e.g., `pdbpdb1`) - Same with 'pdb' prefix for clarity
 
