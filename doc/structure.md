@@ -283,7 +283,7 @@ make ci
 
 1. Create in appropriate src/bin/ directory
 2. Use header template from doc/templates/header.sh
-3. Add tests to tests/ (e.g., test_<script>.bats)
+3. Add tests to tests/ (e.g., test_scriptname.bats)
 4. Update documentation in src/doc/
 5. Run `make lint` to validate
 
