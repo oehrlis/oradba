@@ -5,6 +5,7 @@
 **Audience:** System administrators and DBAs managing log files.
 
 **Prerequisites:**
+
 - logrotate installed (standard on most Linux distributions)
 - Root access for logrotate configuration
 - Understanding of log file locations

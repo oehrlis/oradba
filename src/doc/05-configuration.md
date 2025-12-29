@@ -1,6 +1,7 @@
 # Configuration System
 
-**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system - the canonical reference for all configuration files, variables, and customization options.
+**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system - the canonical reference for all
+configuration files, variables, and customization options.
 
 **Audience:** Users who need to customize OraDBA behavior, paths, or database-specific settings.
 

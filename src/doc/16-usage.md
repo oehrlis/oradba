@@ -6,6 +6,7 @@
 **Audience:** All users - practical examples and workflows.
 
 **Prerequisites:**
+
 - OraDBA installed and configured
 - Basic familiarity with OraDBA concepts
 

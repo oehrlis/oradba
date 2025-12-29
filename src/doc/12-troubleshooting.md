@@ -6,7 +6,8 @@
 
 ## Introduction
 
-This guide provides structured solutions to common OraDBA issues. Each entry follows a consistent pattern: Symptom → Cause → Check → Fix → Related Chapters.
+This guide provides structured solutions to common OraDBA issues. Each entry follows a consistent pattern: Symptom →
+Cause → Check → Fix → Related Chapters.
 
 ## Common Issues and Solutions
 
@@ -72,6 +73,7 @@ source oraenv.sh FREE
 **Symptom:** SID not found when setting environment
 
 **Likely Cause:**
+
 1. Typo in SID name (case-sensitive)
 2. Entry missing from oratab
 3. Using wrong oratab file location

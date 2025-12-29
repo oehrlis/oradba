@@ -337,6 +337,7 @@ ls -l /opt/oradba/doc/
 ## Further Reading
 
 Full documentation chapters:
+
 1. [Introduction](01-introduction.md) - What is OraDBA
 2. [Installation](02-installation.md) - Installation guide
 3. [Quick Start](03-quickstart.md) - Getting started

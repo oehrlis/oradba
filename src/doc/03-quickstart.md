@@ -1,8 +1,10 @@
 # Quick Start Guide
 
-**Purpose:** Get started quickly with OraDBA after installation - learn to set up oratab, switch databases, and perform common tasks.
+**Purpose:** Get started quickly with OraDBA after installation - learn to set up oratab, switch databases, and perform
+common tasks.
 
 **Prerequisites:**
+
 - OraDBA installed (see [Installation](02-installation.md))
 - Oracle Database installed
 - Shell profile configured

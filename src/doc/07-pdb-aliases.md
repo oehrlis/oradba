@@ -1,10 +1,12 @@
 # PDB Alias Reference
 
-**Purpose:** Complete guide to pluggable database (PDB) aliases in Oracle Multitenant environments - the canonical reference for PDB-specific functionality.
+**Purpose:** Complete guide to pluggable database (PDB) aliases in Oracle Multitenant environments - the canonical
+reference for PDB-specific functionality.
 
 **Audience:** Users working with Container Databases (CDB) and Pluggable Databases (PDB).
 
 **Prerequisites:**
+
 - Oracle Database 12c or higher (Multitenant architecture)
 - Container Database (CDB) environment
 - SYSDBA privileges to query `v$pdbs`

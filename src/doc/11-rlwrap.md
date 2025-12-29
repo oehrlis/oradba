@@ -5,6 +5,7 @@
 **Audience:** Users concerned with command history security.
 
 **Prerequisites:**
+
 - rlwrap installed
 - Perl with RlwrapFilter module
 
