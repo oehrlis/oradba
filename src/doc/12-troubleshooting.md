@@ -1,49 +1,84 @@
 # Troubleshooting Guide
 
+**Purpose:** Solutions to common OraDBA issues - the canonical location for troubleshooting patterns and solutions.
+
+**Audience:** All users encountering problems with OraDBA.
+
+## Introduction
+
+This guide provides structured solutions to common OraDBA issues. Each entry follows a consistent pattern: Symptom →
+Cause → Check → Fix → Related Chapters.
+
 ## Common Issues and Solutions
 
 ### Issue: "oraenv.sh: command not found"
 
-**Symptom**: Shell cannot find oraenv.sh
+**Symptom:** Shell cannot find oraenv.sh when trying to source it.
 
-**Solution**:
+**Likely Cause:** OraDBA bin directory not in PATH, or incorrect path specified.
+
+**Check:**
+
+```bash
+# Check if oraenv.sh exists
+ls -l /opt/oradba/bin/oraenv.sh
+
+# Check current PATH
+echo $PATH | grep oradba
+```
+
+**Fix:**
 
 ```bash
 # Add to PATH
-export PATH="/opt/oradba/src/bin:$PATH"
+export PATH="/opt/oradba/bin:$PATH"
 
 # Or use full path
-source /opt/oradba/src/bin/oraenv.sh FREE
+source /opt/oradba/bin/oraenv.sh FREE
+
+# Or add alias to your profile
+alias oraenv='source /opt/oradba/bin/oraenv.sh'
 ```
+
+**Related Chapters:** [Installation](02-installation.md), [Quick Start](03-quickstart.md)
 
 ### Issue: "This script must be sourced, not executed"
 
-**Symptom**: Error when running oraenv.sh directly
+**Symptom:** Error when running oraenv.sh directly with `./oraenv.sh`
 
-**Solution**: Use `source` or `.` instead of executing:
+**Likely Cause:** Attempting to execute script instead of sourcing it. Environment variables only persist when sourced.
+
+**Check:**
 
 ```bash
-# Correct
+# Wrong way - creates subshell
+./oraenv.sh FREE
+bash oraenv.sh FREE
+```
+
+**Fix:**
+
+```bash
+# Correct - runs in current shell
 source oraenv.sh FREE
 
-# Or
+# Or use POSIX syntax
 . oraenv.sh FREE
-
-# Incorrect
-./oraenv.sh FREE  # This will fail
 ```
+
+**Related Chapters:** [Environment Management](04-environment.md), [Quick Start](03-quickstart.md)
 
 ### Issue: "ORACLE_SID not found in oratab"
 
-**Symptom**: SID not found when setting environment
+**Symptom:** SID not found when setting environment
 
-**Possible Causes**:
+**Likely Cause:**
 
-1. Typo in SID name
-2. Entry not in oratab
-3. Wrong oratab file
+1. Typo in SID name (case-sensitive)
+2. Entry missing from oratab
+3. Using wrong oratab file location
 
-**Solutions**:
+**Check:**
 
 ```bash
 # Check oratab content
@@ -56,40 +91,78 @@ grep "FREE:" /etc/oratab
 cat /var/opt/oracle/oratab
 cat $HOME/.oratab
 
-# Use custom oratab location
+# Check which oratab OraDBA is using
+echo $ORATAB_FILE
+```
+
+**Fix:**
+
+```bash
+# Add missing entry to oratab
+echo "FREE:/u01/app/oracle/product/19.0.0/dbhome_1:N" | sudo tee -a /etc/oratab
+
+# Or use custom oratab location
 export ORATAB_FILE="/path/to/oratab"
 source oraenv.sh FREE
 ```
 
+**Related Chapters:** [Quick Start](03-quickstart.md), [Configuration](05-configuration.md)
+
 ### Issue: "ORACLE_HOME directory does not exist"
 
-**Symptom**: Error about missing ORACLE_HOME
+**Symptom:** Error about missing ORACLE_HOME directory
 
-**Solutions**:
+**Likely Cause:** Incorrect path in oratab, or Oracle not installed at expected location
+
+**Check:**
 
 ```bash
 # Verify ORACLE_HOME in oratab
 grep "FREE:" /etc/oratab
 # Should show: FREE:/correct/path:N
 
-# Check directory exists
+# Check if directory exists
 ls -ld /u01/app/oracle/product/19.0.0/dbhome_1
 
-# Fix oratab entry
-sudo vim /etc/oratab
+# Check for Oracle binaries
+ls -l /u01/app/oracle/product/*/dbhome*/bin/sqlplus
 ```
+
+**Fix:**
+
+```bash
+# Fix oratab entry with correct path
+sudo vim /etc/oratab
+
+# Or create symlink if Oracle is in different location
+sudo ln -s /actual/oracle/location /expected/oracle/location
+```
+
+**Related Chapters:** [Installation](02-installation.md), [Quick Start](03-quickstart.md)
 
 ### Issue: "Permission denied"
 
-**Symptom**: Cannot read oratab or access directories
+**Symptom:** Cannot read oratab or access Oracle directories
 
-**Solutions**:
+**Likely Cause:** Insufficient file permissions on oratab or Oracle directories
+
+**Check:**
 
 ```bash
 # Check oratab permissions
 ls -l /etc/oratab
 
-# Make readable
+# Check Oracle installation permissions
+ls -ld $ORACLE_HOME
+
+# Check current user and groups
+id
+```
+
+**Fix:**
+
+```bash
+# Make oratab readable
 sudo chmod 644 /etc/oratab
 
 # Check Oracle installation permissions
@@ -300,27 +373,48 @@ If you cannot resolve the issue:
 Check log files for errors:
 
 ```bash
-# oradba logs
-ls -l $ORADBA_PREFIX/logs/
+# OraDBA logs
+ls -l $ORADBA_PREFIX/log/
 
-# Oracle alert log
+# Oracle alert log (use alias)
+taa  # tail alert log
+
+# Or manually
 tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert_*.log
 ```
+
+**Related Chapters:** [Aliases](06-aliases.md), [Environment Management](04-environment.md)
 
 ## Reinstallation
 
 If all else fails, try reinstalling:
 
 ```bash
+# Backup customizations first
+cp $ORADBA_PREFIX/etc/oradba_customer.conf ~/oradba_customer.conf.backup
+cp $ORADBA_PREFIX/etc/sid.*.conf ~/
+
 # Remove old installation
 sudo rm -rf /opt/oradba
 
 # Reinstall
 sudo ./oradba_install.sh --prefix /opt/oradba
+
+# Restore customizations
+cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 ```
+
+**Related Chapters:** [Installation](02-installation.md), [Configuration](05-configuration.md)
 
 ## See Also
 
-- [USAGE.md](USAGE.md) - Usage guide
-- [SCRIPTS.md](SCRIPTS.md) - Script reference
-- [EXAMPLES.md](EXAMPLES.md) - Examples
+- [Environment Management](04-environment.md) - Detailed environment setup
+- [Configuration](05-configuration.md) - Configuration issues
+- [Aliases](06-aliases.md) - Alias loading problems
+- [PDB Aliases](07-pdb-aliases.md) - PDB alias issues
+- [Installation](02-installation.md) - Reinstallation guide
+
+## Navigation
+
+**Previous:** [rlwrap Filter Configuration](11-rlwrap.md)  
+**Next:** [Quick Reference](13-reference.md)

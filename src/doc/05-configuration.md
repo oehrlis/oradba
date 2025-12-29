@@ -1,5 +1,10 @@
 # Configuration System
 
+**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system - the canonical reference for all
+configuration files, variables, and customization options.
+
+**Audience:** Users who need to customize OraDBA behavior, paths, or database-specific settings.
+
 ## Introduction
 
 OraDBA uses a hierarchical configuration system that allows flexible
@@ -675,9 +680,14 @@ export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 7. **Use version control** - Track configuration changes over time
 8. **Document non-obvious settings** - Help future you understand decisions
 
-## Next Steps
+## See Also
 
-- **[Aliases](06-aliases.md)** - Explore 50+ convenient aliases  
-- **[PDB Aliases](07-pdb-aliases.md)** - Work with pluggable databases
-- **[Environment Management](04-environment.md)** - Understand oraenv.sh in depth
-- **[Troubleshooting](12-troubleshooting.md)** - Solve common issues
+- [Environment Management](04-environment.md) - How oraenv.sh loads configurations
+- [Aliases](06-aliases.md) - Configuring and customizing aliases
+- [PDB Aliases](07-pdb-aliases.md) - PDB-specific configuration
+- [Troubleshooting](12-troubleshooting.md) - Configuration issues
+
+## Navigation
+
+**Previous:** [Environment Management](04-environment.md)  
+**Next:** [Alias Reference](06-aliases.md)
