@@ -65,7 +65,7 @@ See [Quick Start Guide](03-quickstart.md) for detailed first steps.
 ## 📁 Additional Resources
 
 - **SQL Scripts** - [../sql/](../sql/) - Database queries and information scripts
-- **RMAN Scripts** - [../rcv/](../rcv/) - Backup and recovery templates  
+- **RMAN Scripts** - [../rcv/](../rcv/) - Backup and recovery templates
 - **Configuration** - [../etc/](../etc/) - Example configurations and templates
 - **Binaries** - [../bin/](../bin/) - Core scripts and utilities
 - **Libraries** - [../lib/](../lib/) - Shared shell function libraries
