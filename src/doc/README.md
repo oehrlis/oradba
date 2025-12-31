@@ -6,191 +6,86 @@ Complete user guides and reference materials for the Oracle Database Administrat
 
 **For Developers:** See [Developer Documentation](../../doc/README.md) for contribution guides and technical details.
 
-## 📖 Complete User Guide
+## 📖 Documentation Formats
 
 The complete OraDBA user documentation is available in multiple formats:
 
-- **[PDF User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** -
+- **[PDF User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)**  
   Download for offline use
-- **[HTML User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** -
+- **[HTML User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)**  
   Single-page HTML version
 - **Browse Online** - Individual chapters below
 
-## Documentation Overview
-
-This documentation is organized to take you from installation through advanced usage:
+## 📚 Documentation Chapters
 
 ### Getting Started
 
-- **[USAGE.md](USAGE.md)** - Complete usage guide
-  - Installation and setup
-  - Environment configuration with `oraenv.sh`
-  - Using shell aliases
-  - Database status and version management
-  - Common administrative tasks
+- **[Introduction](01-introduction.md)** - Overview, features, benefits, and design philosophy
+- **[Installation](02-installation.md)** - Prerequisites, installation methods, verification
+- **[Quick Start](03-quickstart.md)** - First steps, oratab setup, common tasks
+- **[Environment Management](04-environment.md)** - Using oraenv.sh, environment variables, modes
 
-### Reference Materials
+### Configuration & Customization
 
-- **[DB_FUNCTIONS.md](DB_FUNCTIONS.md)** - Database function reference
-  - Available database functions
-  - Usage examples and parameters
-  - Return values and error handling
+- **[Configuration System](05-configuration.md)** - Hierarchical configuration, files, variables
+- **[Aliases](06-aliases.md)** - Complete reference for 50+ shell aliases
+- **[PDB Aliases](07-pdb-aliases.md)** - Pluggable database aliases for multitenant
 
-### Troubleshooting
+### Scripts & Tools
 
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
-  - Installation problems
-  - Environment setup issues
-  - Configuration troubleshooting
-  - Known issues and workarounds
+- **[SQL Scripts](08-sql-scripts.md)** - Database administration SQL scripts
+- **[RMAN Scripts](09-rman-scripts.md)** - Backup and recovery templates
+- **[Database Functions](10-functions.md)** - Shell functions for database queries
+- **[rlwrap Filter](11-rlwrap.md)** - Password filtering for command history
 
-## Quick Start
+### Operations & Reference
 
-### Installation
+- **[Troubleshooting](12-troubleshooting.md)** - Common issues and solutions
+- **[Quick Reference](13-reference.md)** - Command reference card for daily use
+- **[SQL*Net Configuration](14-sqlnet-config.md)** - Managing SQL*Net with templates
+- **[Log Management](15-log-management.md)** - Log rotation and management
+- **[Usage Guide](16-usage.md)** - Practical examples and integration patterns
+
+## 🚀 Quick Start
 
 ```bash
-# Download and run installer
+# Install
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
-chmod +x oradba_install.sh
-./oradba_install.sh
-```
+chmod +x oradba_install.sh && ./oradba_install.sh
 
-### First Steps
-
-```bash
-# Set environment for a specific database
-source oraenv.sh FREE
-
-# Or use auto-generated alias
-free
-
-# Show database status
-dbstatus.sh
-
-# List all available aliases
-alih
-```
-
-## Key Features
-
-### Intelligent Environment Setup
-
-OraDBA automatically configures your Oracle environment:
-
-- Sets `ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`
-- Updates `PATH` and library paths
-- Configures `TNS_ADMIN` and NLS settings
-- Generates 50+ administrative aliases
-- Loads hierarchical configuration (5 levels)
-
-### Shell Aliases
-
-Quick access to common tasks:
-
-```bash
+# Set environment and start working
+source /opt/oradba/bin/oraenv.sh FREE
 sq          # sqlplus / as sysdba
-cdh         # cd $ORACLE_HOME
-taa         # tail -f alert.log
 alih        # Show all aliases
 ```
 
-See [USAGE.md](USAGE.md) for complete alias documentation.
+See [Quick Start Guide](03-quickstart.md) for detailed first steps.
 
-### Configuration System
+## 📁 Additional Resources
 
-Flexible 5-level configuration hierarchy:
+- **SQL Scripts** - [../sql/](../sql/) - Database queries and information scripts
+- **RMAN Scripts** - [../rcv/](../rcv/) - Backup and recovery templates  
+- **Configuration** - [../etc/](../etc/) - Example configurations and templates
+- **Binaries** - [../bin/](../bin/) - Core scripts and utilities
+- **Libraries** - [../lib/](../lib/) - Shared shell function libraries
 
-1. `oradba_core.conf` - Core system settings
-2. `oradba_standard.conf` - Standard aliases and variables
-3. `oradba_customer.conf` - Customer overrides (optional)
-4. `sid._DEFAULT_.conf` - Default SID settings
-5. `sid.<SID>.conf` - Per-SID configuration (auto-created)
+## 🔍 Finding What You Need
 
-Later levels override earlier settings for complete customization.
+- **First time user?** → [Introduction](01-introduction.md) → [Installation](02-installation.md) → [Quick Start](03-quickstart.md)
+- **Need to customize?** → [Configuration System](05-configuration.md)
+- **Looking for aliases?** → [Aliases](06-aliases.md) or run `alih` command
+- **Having problems?** → [Troubleshooting](12-troubleshooting.md)
+- **Quick lookup?** → [Quick Reference](13-reference.md)
+- **Practical examples?** → [Usage Guide](16-usage.md)
 
-### Database Status
+## 💬 Support
 
-```bash
-dbstatus.sh
-```
+- **Issues & Bugs:** <https://github.com/oehrlis/oradba/issues>
+- **Discussions & Questions:** <https://github.com/oehrlis/oradba/discussions>
+- **Source Code:** <https://github.com/oehrlis/oradba>
 
-Displays comprehensive information:
-
-- Instance and database status
-- Memory allocation (SGA/PGA)
-- Datafile locations and sizes
-- PDB information (for multitenant)
-- Archive log mode and status
-
-## Additional Resources
-
-### Scripts and Templates
-
-- **SQL Scripts** - Located in `../sql/` directory
-  - Database information queries
-  - Session management
-  - User information displays
-  - See [../sql/README.md](../sql/README.md) for details
-
-- **RMAN Scripts** - Located in `../rcv/` directory
-  - Backup templates
-  - Recovery procedures
-  - See [../rcv/README.md](../rcv/README.md) for details
-
-### Configuration
-
-- **Example Configurations** - Located in `../etc/` directory
-  - `oratab.example` - Sample oratab format
-  - `oradba_customer.conf.example` - Customer configuration template
-  - `sid.ORCL.conf.example` - SID-specific configuration example
-  - See [../etc/README.md](../etc/README.md) for details
-
-## Getting Help
-
-### Documentation Hierarchy
-
-1. **Start here** - This README and USAGE.md
-2. **Function reference** - DB_FUNCTIONS.md
-3. **Problems?** - TROUBLESHOOTING.md
-4. **Developer info** - ../../doc/README.md
-
-### Support Channels
-
-- **GitHub Issues:** <https://github.com/oehrlis/oradba/issues>
-  - Bug reports
-  - Feature requests
-  - Installation problems
-
-- **GitHub Discussions:** <https://github.com/oehrlis/oradba/discussions>
-  - Usage questions
-  - Best practices
-  - Community support
-
-- **Project Repository:** <https://github.com/oehrlis/oradba>
-  - Source code
-  - Latest releases
-  - Documentation
-
-## Version Information
-
-Check your installed version:
-
-```bash
-oradba_version.sh --check      # Show installed version
-oradba_version.sh --verify     # Verify integrity
-oradba_version.sh --update-check   # Check for updates
-```
-
-## Contributing
-
-Found an issue or want to improve the documentation?
-
-- Report issues: <https://github.com/oehrlis/oradba/issues>
-- Submit pull requests: <https://github.com/oehrlis/oradba/pulls>
-- See contribution guidelines: [CONTRIBUTING.md](../../CONTRIBUTING.md)
-
-## License
+## 📄 License
 
 Copyright © 2025 Stefan Oehrli
 
