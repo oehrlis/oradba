@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-01-01
+
+### Fixed
+
+- **Database Status Display**: Comprehensive improvements to dbstatus.sh for all database states
+  - **Dummy Database Detection**: Check oratab `:D` flag before attempting SQL queries
+    - Prevents unnecessary connection attempts to dummy SIDs
+    - Shows environment info only with clear "Dummy Database" status
+    - No SQL errors for intentional dummy entries
+  - **NOT STARTED Detection**: Changed connection check from `dual` to `v$instance`
+    - `SELECT FROM dual` can succeed even when instance is down
+    - Now queries `v$instance` which requires running instance
+    - Properly detects and displays "NOT STARTED" status
+  - **MOUNT State Display**: Extended to show complete database information
+    - Changed from `nls_database_parameters` to `v$nls_parameters` (fixed view)
+    - Fixed character set query (ORA-01219: not accessible in MOUNT state)
+    - Now displays: DATABASE, DATAFILE_SIZE, LOG_MODE, CHARACTERSET
+    - Added USERS/SESSIONS via `v$session` (works in MOUNT)
+    - Added PDB info via `v$pdbs` (works in MOUNT)
+    - STATUS now shows role: "MOUNTED / PRIMARY" (matching OPEN format)
+  - **Display Order**: Reorganized for consistency across all states
+    - Environment (BASE, HOME, TNS_ADMIN, VERSION)
+    - Database identity (DATABASE/DB_NAME/DB_UNIQUE_NAME with DBID)
+    - Memory (MEMORY_SIZE with SGA/PGA)
+    - Storage (FRA_SIZE, DATAFILE_SIZE)
+    - Runtime (UPTIME, STATUS with role, USERS/SESSIONS)
+    - Details (LOG_MODE, CHARACTERSET, PDB)
+  - **Error Handling**: Improved SQL error filtering and output parsing
+    - Removed `WHENEVER SQLERROR EXIT FAILURE` from query functions
+    - Changed from `2>/dev/null` to `2>&1` with explicit grep filtering
+    - Filters out SP2-, ORA-, ERROR lines before parsing results
+    - Fixed whitespace handling in numeric results
+  - MOUNT and OPEN states now have nearly identical information layout
+  - NOMOUNT shows environment and instance status only
+  - Dummy and NOT STARTED databases show environment with clear status
+
+### Added
+
+- **Common Library**: Added `is_dummy_sid()` function
+  - Checks oratab for `:D` flag to identify dummy SIDs
+  - Returns 0 if dummy, 1 if real or cannot determine
+  - Used by dbstatus.sh to avoid SQL queries on dummy entries
+
 ## [0.9.3] - 2026-01-01
 
 ### Fixed

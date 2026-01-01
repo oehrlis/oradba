@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.9.3
+# Revision...: 0.9.4
 # Purpose....: Database query and status functions for Oracle databases
 # Notes......: This library provides reusable functions to query database
 #              information from v$ views at different database states.

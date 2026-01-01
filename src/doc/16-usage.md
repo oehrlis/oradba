@@ -339,12 +339,24 @@ Options:
 
 **Status Information Displayed:**
 
-- Database open mode (NOMOUNT, MOUNT, OPEN)
-- Instance status and uptime
-- Database name and log mode (MOUNT+)
-- Datafile size and memory usage (OPEN)
-- Session information (OPEN)
-- PDB information if applicable (OPEN)
+- **All States:**
+  - Oracle environment (ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, VERSION)
+  - Instance status and uptime
+- **MOUNT and OPEN:**
+  - Database name, unique name, DBID
+  - Datafile size (total GB)
+  - Memory allocation (SGA/PGA targets)
+  - FRA size
+  - Status with database role (MOUNTED / PRIMARY, OPEN / PRIMARY)
+  - Session information (user/oracle counts)
+  - Log mode and character set
+  - PDB information if applicable
+- **OPEN Only:**
+  - Current memory usage (actual SGA/PGA in use)
+- **Special Handling:**
+  - Dummy databases: Shows environment only
+  - NOT STARTED: Shows environment with clear status
+  - No error messages for non-running or dummy databases
 
 ### Environment Verification
 

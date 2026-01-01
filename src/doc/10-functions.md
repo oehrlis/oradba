@@ -202,25 +202,35 @@ fi
 
 #### show_database_status()
 
-Display comprehensive database status information. Automatically adjusts output based on database state.
+Display comprehensive database status information. Automatically adjusts output based on database state and handles dummy/non-running databases gracefully.
 
-**Available at:** All states (NOMOUNT, MOUNT, OPEN)
+**Available at:** All states (NOMOUNT, MOUNT, OPEN) plus dummy/not-started detection
 
 **Output includes:**
 
-- Database open mode
-- Instance information (NOMOUNT+)
-  - Instance name, host, version
-  - Startup time and uptime
-  - Status and role
-- Database information (MOUNT+)
-  - Database name and unique name
-  - Log mode and open mode
-  - Datafile size
-- Performance information (OPEN)
-  - Memory usage (SGA/PGA)
-  - Session counts
-  - PDB information if applicable
+- **Environment (all states):**
+  - ORACLE_BASE, ORACLE_HOME, TNS_ADMIN
+  - Oracle version
+- **Instance information (NOMOUNT+):**
+  - Instance name and startup time
+  - Uptime calculation
+  - Status (STARTED/MOUNTED/OPEN)
+- **Database information (MOUNT+):**
+  - Database name, unique name, DBID
+  - Database role (PRIMARY/STANDBY)
+  - Datafile size (total GB)
+  - Log mode (ARCHIVELOG/NOARCHIVELOG)
+  - Character set
+  - Session information (user counts)
+  - PDB information if CDB
+- **Memory information:**
+  - SGA/PGA targets (all states)
+  - Current SGA/PGA usage (OPEN only)
+  - FRA size
+- **Special handling:**
+  - Dummy databases (oratab :D flag): Shows environment only
+  - NOT STARTED: Shows environment with clear status
+  - No error messages displayed for non-running databases
 
 ```bash
 show_database_status
@@ -239,8 +249,8 @@ The library automatically handles different database states:
 | query_database_info       | ✗       | ✓     | ✓    |
 | query_datafile_size       | ✗       | ✓     | ✓    |
 | query_memory_usage        | ✗       | ✗     | ✓    |
-| query_sessions_info       | ✗       | ✗     | ✓    |
-| query_pdb_info            | ✗       | ✗     | ✓    |
+| query_sessions_info       | ✗       | ✓     | ✓    |
+| query_pdb_info            | ✗       | ✓     | ✓    |
 | show_database_status      | ✓       | ✓     | ✓    |
 
 ## Error Handling
