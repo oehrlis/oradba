@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Directory Structure**: Renamed log directory from `logs/` to `log/` for consistency
+  - Updated `LOG_DIR` default from `${ORADBA_PREFIX}/logs` to `${ORADBA_PREFIX}/log`
+  - Updated all references in installer, configuration, documentation, and logrotate templates
+  - Updated `.gitignore` to ignore `log/` instead of `logs/`
+  - Maintains consistency with singular naming convention (bin, lib, etc, sql, rcv, doc)
 - **Documentation**: Reverted alias_help.txt filename to lowercase for consistency
   - Changed from `ALIAS_HELP.txt` back to `alias_help.txt`
   - All references updated (documentation, validation script, configuration)

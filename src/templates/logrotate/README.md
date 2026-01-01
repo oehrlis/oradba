@@ -50,9 +50,9 @@ oradba_logrotate.sh --customize
 Manages OraDBA system logs:
 
 - **Installation logs**: `/var/log/oradba/` - Monthly, 12 months retention
-- **Operational logs**: `/opt/oradba/logs/*.log` - Weekly, 8 weeks retention
-- **User logs**: `$HOME/oradba/logs/*.log` - Weekly, 4 weeks retention
-- **Backup logs**: `/opt/oradba/logs/backup/*.log` - Weekly, 12 weeks retention
+- **Operational logs**: `/opt/oradba/log/*.log` - Weekly, 8 weeks retention
+- **User logs**: `$HOME/oradba/log/*.log` - Weekly, 4 weeks retention
+- **Backup logs**: `/opt/oradba/log/backup/*.log` - Weekly, 12 weeks retention
 
 ### oracle-alert.logrotate
 
@@ -206,7 +206,7 @@ sudo chown root:root /etc/logrotate.d/oradba*
 sudo chmod 644 /etc/logrotate.d/oradba*
 
 # Ensure oracle user can write to log directories
-sudo chown -R oracle:oinstall /opt/oradba/logs
+sudo chown -R oracle:oinstall /opt/oradba/log
 ```
 
 ### Logs Not Rotating

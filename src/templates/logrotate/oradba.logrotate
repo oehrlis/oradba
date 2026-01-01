@@ -29,10 +29,10 @@
 }
 
 # OraDBA operational logs (script execution, validation, etc.)
-# Location: $ORADBA_BASE/logs/ or /opt/oradba/logs/
+# Location: $ORADBA_BASE/log/ or /opt/oradba/log/
 # Retention: 8 weeks
 # Schedule: Weekly rotation
-/opt/oradba/logs/*.log {
+/opt/oradba/log/*.log {
     weekly
     rotate 8
     compress
@@ -50,11 +50,11 @@
 }
 
 # User-specific OraDBA logs in home directories
-# Location: $HOME/oradba/logs/
+# Location: $HOME/oradba/log/
 # Retention: 4 weeks
 # Schedule: Weekly rotation
 # Note: nocreate used as user may not have permissions
-/home/*/oradba/logs/*.log {
+/home/*/oradba/log/*.log {
     weekly
     rotate 4
     compress
@@ -65,10 +65,10 @@
 }
 
 # OraDBA backup logs (if centralized backup logging is used)
-# Location: $ORADBA_BASE/logs/backup/
+# Location: $ORADBA_BASE/log/backup/
 # Retention: 12 weeks (3 months)
 # Schedule: Weekly rotation
-/opt/oradba/logs/backup/*.log {
+/opt/oradba/log/backup/*.log {
     weekly
     rotate 12
     compress

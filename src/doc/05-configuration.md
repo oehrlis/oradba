@@ -55,7 +55,7 @@ ORADBA_SHOW_DB_STATUS="true"
 ORADBA_AUTO_CREATE_SID_CONFIG="true"
 
 # Directories
-LOG_DIR="${ORADBA_PREFIX}/logs"
+LOG_DIR="${ORADBA_PREFIX}/log"
 BACKUP_DIR="/backup"
 RECOVERY_DIR="${ORADBA_PREFIX}/rcv"
 ```
@@ -552,7 +552,7 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 | `ORATAB_FILE`       | `/etc/oratab`           | oratab file location                      |
 | `DEBUG`             | `0`                     | Debug mode (deprecated, use ORADBA_DEBUG) |
 | `ORADBA_DEBUG`      | `false`                 | Debug mode for detailed output            |
-| `LOG_DIR`           | `${ORADBA_PREFIX}/logs` | Log directory                             |
+| `LOG_DIR`           | `${ORADBA_PREFIX}/log` | Log directory                             |
 | `BACKUP_DIR`        | `/backup`               | Default backup directory                  |
 
 ### Behavior Variables

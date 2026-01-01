@@ -165,7 +165,7 @@ DEBUG=0
 # Default directories
 ORACLE_BASE="/u01/app/oracle"
 BACKUP_DIR="/backup"
-LOG_DIR="$ORADBA_PREFIX/logs"
+LOG_DIR="$ORADBA_PREFIX/log"
 ```
 
 ### User Configuration

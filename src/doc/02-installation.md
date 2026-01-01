@@ -379,7 +379,7 @@ ${PREFIX}/
 │   └── ...
 ├── templates/              # Script templates
 │   └── script_template.sh
-├── logs/                   # Log directory
+├── log/                    # Log directory
 └── .install_info          # Installation metadata
 ```
 

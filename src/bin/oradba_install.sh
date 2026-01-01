@@ -1238,8 +1238,8 @@ cp -r "$TEMP_DIR"/* "$INSTALL_PREFIX/"
 # Also copy hidden files (like .oradba.checksum)
 cp -r "$TEMP_DIR"/.[!.]* "$INSTALL_PREFIX/" 2>/dev/null || true
 
-# Create logs directory
-mkdir -p "$INSTALL_PREFIX/logs"
+# Create log directory
+mkdir -p "$INSTALL_PREFIX/log"
 
 # Create installation metadata
 log_info "Creating installation metadata..."
