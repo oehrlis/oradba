@@ -1,0 +1,128 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba.service
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.01
+# Revision...: 0.1.0
+# Purpose....: systemd unit file for Oracle database services
+# Notes......: Template for managing Oracle databases and listeners via systemd
+# Usage......: Copy to /etc/systemd/system/oradba.service
+#              systemctl daemon-reload
+#              systemctl enable oradba.service
+#              systemctl start oradba.service
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+[Unit]
+Description=Oracle Database Services (OraDBA)
+Documentation=https://github.com/oehrlis/oradba
+After=network.target remote-fs.target
+# Optional: Add dependency on specific mount points if databases are on separate filesystems
+# After=data.mount
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+
+# Environment
+Environment="ORADBA_BASE=/opt/oradba"
+Environment="ORACLE_USER=oracle"
+Environment="ORADBA_LOG=/var/log/oracle"
+
+# Service execution
+ExecStart=/opt/oradba/bin/oradba_services_root.sh start
+ExecStop=/opt/oradba/bin/oradba_services_root.sh stop
+ExecReload=/opt/oradba/bin/oradba_services_root.sh restart
+
+# Timeouts
+TimeoutStartSec=15min
+TimeoutStopSec=15min
+
+# Restart behavior
+Restart=no
+RestartSec=10s
+
+# Process priority
+# Nice=-10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oradba
+
+# Security (adjust as needed)
+# User=root
+# Group=root
+
+[Install]
+WantedBy=multi-user.target
+
+# ------------------------------------------------------------------------------
+# Installation Instructions
+# ------------------------------------------------------------------------------
+#
+# 1. Copy this file to systemd directory:
+#    sudo cp oradba.service /etc/systemd/system/
+#
+# 2. Adjust paths if OraDBA is installed in a different location:
+#    sudo vi /etc/systemd/system/oradba.service
+#    (Edit ORADBA_BASE environment variable)
+#
+# 3. Reload systemd daemon:
+#    sudo systemctl daemon-reload
+#
+# 4. Enable service to start on boot:
+#    sudo systemctl enable oradba.service
+#
+# 5. Start service immediately:
+#    sudo systemctl start oradba.service
+#
+# 6. Check service status:
+#    sudo systemctl status oradba.service
+#
+# 7. View logs:
+#    sudo journalctl -u oradba.service -f
+#    tail -f /var/log/oracle/oradba_services_root.log
+#
+# ------------------------------------------------------------------------------
+# Service Management Commands
+# ------------------------------------------------------------------------------
+#
+# Start:    sudo systemctl start oradba.service
+# Stop:     sudo systemctl stop oradba.service
+# Restart:  sudo systemctl restart oradba.service
+# Status:   sudo systemctl status oradba.service
+# Enable:   sudo systemctl enable oradba.service
+# Disable:  sudo systemctl disable oradba.service
+# Logs:     sudo journalctl -u oradba.service
+#
+# ------------------------------------------------------------------------------
+# Customization Options
+# ------------------------------------------------------------------------------
+#
+# Specific databases only:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set SPECIFIC_DBS="ORCL CDB1"
+#
+# Custom startup order:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set STARTUP_ORDER="listener,database"
+#
+# Open PDBs automatically:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set DB_OPTIONS="--open-pdbs"
+#
+# Custom shutdown timeout:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set DB_OPTIONS="--timeout 300"
+#
+# Mount dependencies:
+#   Add After= directive: After=network.target remote-fs.target data.mount
+#   Useful if databases are on separate filesystems
+#
+# ------------------------------------------------------------------------------
+# EOF

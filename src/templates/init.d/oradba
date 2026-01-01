@@ -1,0 +1,248 @@
+#!/bin/bash
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.01
+# Revision...: 0.1.0
+# Purpose....: Init.d/chkconfig script for Oracle database services
+# Notes......: Template for managing Oracle databases and listeners via init.d
+# Usage......: Copy to /etc/init.d/oradba
+#              chmod +x /etc/init.d/oradba
+#              chkconfig --add oradba
+#              chkconfig oradba on
+#              service oradba start
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+#
+# chkconfig: 2345 99 10
+# description: Oracle Database Services managed by OraDBA
+#
+### BEGIN INIT INFO
+# Provides:          oradba
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Oracle Database Services
+# Description:       Start/Stop Oracle databases and listeners using OraDBA
+### END INIT INFO
+
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
+ORADBA_BASE="${ORADBA_BASE:-/opt/oradba}"
+ORACLE_USER="${ORACLE_USER:-oracle}"
+SERVICES_ROOT="${ORADBA_BASE}/bin/oradba_services_root.sh"
+LOCKFILE="/var/lock/subsys/oradba"
+LOGFILE="/var/log/oracle/oradba_init.log"
+
+# ------------------------------------------------------------------------------
+# Functions
+# ------------------------------------------------------------------------------
+
+# Log message
+log_message() {
+    local message="$@"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
+    echo "[${timestamp}] ${message}" >> "${LOGFILE}"
+    echo "${message}"
+}
+
+# Check if services script exists
+check_script() {
+    if [[ ! -f "${SERVICES_ROOT}" ]]; then
+        log_message "ERROR: Services script not found: ${SERVICES_ROOT}"
+        exit 1
+    fi
+}
+
+# Start services
+start() {
+    log_message "Starting Oracle services..."
+    
+    check_script
+    
+    # Check if already running
+    if [[ -f "${LOCKFILE}" ]]; then
+        log_message "Oracle services are already started (lockfile exists)"
+        return 0
+    fi
+    
+    # Start services
+    "${SERVICES_ROOT}" start
+    RETVAL=$?
+    
+    if [[ ${RETVAL} -eq 0 ]]; then
+        touch "${LOCKFILE}"
+        log_message "Oracle services started successfully"
+        return 0
+    else
+        log_message "ERROR: Failed to start Oracle services"
+        return 1
+    fi
+}
+
+# Stop services
+stop() {
+    log_message "Stopping Oracle services..."
+    
+    check_script
+    
+    # Check if running
+    if [[ ! -f "${LOCKFILE}" ]]; then
+        log_message "Oracle services are not running (no lockfile)"
+        return 0
+    fi
+    
+    # Stop services
+    "${SERVICES_ROOT}" stop
+    RETVAL=$?
+    
+    if [[ ${RETVAL} -eq 0 ]]; then
+        rm -f "${LOCKFILE}"
+        log_message "Oracle services stopped successfully"
+        return 0
+    else
+        log_message "ERROR: Failed to stop Oracle services"
+        return 1
+    fi
+}
+
+# Restart services
+restart() {
+    log_message "Restarting Oracle services..."
+    stop
+    sleep 5
+    start
+}
+
+# Show status
+status() {
+    check_script
+    
+    "${SERVICES_ROOT}" status
+    RETVAL=$?
+    
+    if [[ -f "${LOCKFILE}" ]]; then
+        echo "Lockfile: ${LOCKFILE} exists"
+    else
+        echo "Lockfile: ${LOCKFILE} does not exist"
+    fi
+    
+    return ${RETVAL}
+}
+
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
+case "$1" in
+    start)
+        start
+        RETVAL=$?
+        ;;
+    stop)
+        stop
+        RETVAL=$?
+        ;;
+    restart|reload|force-reload)
+        restart
+        RETVAL=$?
+        ;;
+    status)
+        status
+        RETVAL=$?
+        ;;
+    condrestart|try-restart)
+        if [[ -f "${LOCKFILE}" ]]; then
+            restart
+            RETVAL=$?
+        else
+            log_message "Oracle services not running, nothing to restart"
+            RETVAL=0
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status|condrestart|try-restart}"
+        RETVAL=2
+        ;;
+esac
+
+exit ${RETVAL}
+
+# ------------------------------------------------------------------------------
+# Installation Instructions
+# ------------------------------------------------------------------------------
+#
+# 1. Copy this script to init.d:
+#    sudo cp oradba /etc/init.d/
+#
+# 2. Make executable:
+#    sudo chmod +x /etc/init.d/oradba
+#
+# 3. For Red Hat/CentOS (chkconfig):
+#    sudo chkconfig --add oradba
+#    sudo chkconfig oradba on
+#
+# 4. For Debian/Ubuntu (update-rc.d):
+#    sudo update-rc.d oradba defaults
+#    sudo update-rc.d oradba enable
+#
+# 5. Start service:
+#    sudo service oradba start
+#    # or
+#    sudo /etc/init.d/oradba start
+#
+# 6. Check status:
+#    sudo service oradba status
+#
+# 7. View logs:
+#    tail -f /var/log/oracle/oradba_init.log
+#    tail -f /var/log/oracle/oradba_services_root.log
+#
+# ------------------------------------------------------------------------------
+# Service Management Commands
+# ------------------------------------------------------------------------------
+#
+# Start:    sudo service oradba start
+# Stop:     sudo service oradba stop
+# Restart:  sudo service oradba restart
+# Status:   sudo service oradba status
+#
+# Remove from runlevels (Red Hat/CentOS):
+#   sudo chkconfig oradba off
+#   sudo chkconfig --del oradba
+#
+# Remove from runlevels (Debian/Ubuntu):
+#   sudo update-rc.d oradba disable
+#   sudo update-rc.d oradba remove
+#
+# ------------------------------------------------------------------------------
+# Customization Options
+# ------------------------------------------------------------------------------
+#
+# Adjust ORADBA_BASE if installed elsewhere:
+#   Edit this file and change ORADBA_BASE variable
+#
+# Specific databases only:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set SPECIFIC_DBS="ORCL CDB1"
+#
+# Custom startup order:
+#   Edit /opt/oradba/etc/oradba_services.conf
+#   Set STARTUP_ORDER="listener,database"
+#
+# Custom runlevels:
+#   Edit chkconfig line at top of file:
+#   # chkconfig: 2345 99 10
+#   Format: runlevels start-priority stop-priority
+#
+# ------------------------------------------------------------------------------
+# EOF
