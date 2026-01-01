@@ -5,8 +5,8 @@
 # Name.......: db_functions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.3.2
+# Date.......: 2026.01.01
+# Revision...: 0.9.3
 # Purpose....: Database query and status functions for Oracle databases
 # Notes......: This library provides reusable functions to query database
 #              information from v$ views at different database states.
@@ -62,12 +62,15 @@ EOF
 # Returns.: Tab-separated values: INSTANCE_NAME|STATUS|STARTUP_TIME|VERSION|...
 # ------------------------------------------------------------------------------
 query_instance_info() {
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT 
     i.instance_name || '|' ||
     i.status || '|' ||
@@ -86,6 +89,14 @@ SELECT
 FROM v$instance i;
 EXIT;
 EOF
+)
+    
+    # Only output if we got valid data (contains pipe separators)
+    if [[ "$result" =~ \| ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -101,12 +112,15 @@ query_database_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT 
     d.name || '|' ||
     d.db_unique_name || '|' ||
@@ -120,6 +134,14 @@ SELECT
 FROM v$database d;
 EXIT;
 EOF
+)
+    
+    # Only output if we got valid data (contains pipe separators)
+    if [[ "$result" =~ \| ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -135,16 +157,27 @@ query_datafile_size() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT ROUND(SUM(bytes)/1024/1024/1024, 2)
 FROM v$datafile;
 EXIT;
 EOF
+)
+    
+    # Only output if we got a valid number
+    if [[ "$result" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -160,12 +193,15 @@ query_memory_usage() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT 
     ROUND(SUM(CASE WHEN name = 'sga' THEN value ELSE 0 END)/1024/1024/1024, 2) || '|' ||
     ROUND(SUM(CASE WHEN name = 'pga' THEN value ELSE 0 END)/1024/1024/1024, 2)
@@ -176,6 +212,14 @@ FROM (
 );
 EXIT;
 EOF
+)
+    
+    # Only output if we got valid data (contains pipe separator)
+    if [[ "$result" =~ \| ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -191,12 +235,15 @@ query_sessions_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT 
     COUNT(DISTINCT CASE WHEN username IS NULL THEN sid END) || '|' ||
     COUNT(CASE WHEN username IS NULL THEN sid END) || '|' ||
@@ -206,6 +253,14 @@ FROM v$session
 WHERE type = 'USER';
 EXIT;
 EOF
+)
+    
+    # Only output if we got valid data (contains pipe separators)
+    if [[ "$result" =~ \| ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -221,12 +276,15 @@ query_pdb_info() {
         return 1
     fi
     
-    sqlplus -s / as sysdba << 'EOF' 2>&1 | grep -v "^Connected" | grep -v "^Elapsed:" | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-"
+    local result
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
 SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
 SELECT LISTAGG(
     name || '(' || 
     CASE open_mode 
@@ -241,6 +299,14 @@ SELECT LISTAGG(
 FROM v$pdbs;
 EXIT;
 EOF
+)
+    
+    # Output only if we got data (not empty)
+    if [[ -n "$result" ]]; then
+        echo "$result"
+        return 0
+    fi
+    return 1
 }
 
 # ------------------------------------------------------------------------------

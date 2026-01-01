@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Database Functions**: Fixed error handling in database query functions
+  - All query functions now properly suppress SQL*Plus errors (redirect stderr to /dev/null)
+  - Added `WHENEVER SQLERROR/OSERROR EXIT FAILURE` to SQL blocks
+  - Validate output data before returning (check for expected format)
+  - Prevents display of error messages like "ORA-01034" in dbstatus.sh output
+  - Clean output for databases that are down or in dummy environments
 - **SQL Scripts**: Fixed oh.sql to iterate through SQLPATH directories correctly
   - Previous version tried to cd to colon-separated path string
   - Now splits SQLPATH by colon and processes each directory individually
