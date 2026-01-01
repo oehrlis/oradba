@@ -4,7 +4,7 @@
 --  Name......: tde_drop_admin_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
+--  Date......: 2026.01.01
 --  Usage.....: SQL*Plus script to delete Transparent Data Encryption (TDE) settings 
 --              and drop TDE administration user and role in Oracle 19c and newer.
 --  Purpose...: Automates the decommissioning of TDE in Oracle databases, including the deletion

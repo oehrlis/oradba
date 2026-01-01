@@ -1,18 +1,18 @@
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Name.......: ssa_hip.sql
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.19
--- Revision...: 0.8.0
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
 -- Purpose....: Show all (hidden and regular) initialization parameters
 -- Notes......: Requires DBA role or access to x$ksppi, x$ksppcv, x$ksppsv, v$parameter
 -- Usage......: @ssa_hip <PARAMETER> or % for all
 -- Reference..: https://github.com/oehrlis/oradba
 -- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 COL Parameter for a40
 COL Session for a9
 COL Instance for a30

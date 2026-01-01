@@ -5,7 +5,7 @@
 --  Name......: create_dba_restricted_role.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
+--  Date......: 2026.01.01
 --  Usage.....: create_dba_restricted_role.sql <ROLE NAME>
 --  Purpose...: Script to create a restricted DBA role inlcuding re-grant to
 --              existing users.

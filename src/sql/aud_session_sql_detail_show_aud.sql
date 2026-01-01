@@ -4,8 +4,8 @@
 --  Name......: aud_session_detail_show_audsql.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
---  Revision..: 0.8.0
+--  Date......: 2026.01.01
+-- Revision...: 0.9.5
 --  Purpose...: Show entries of a particular audit session with SQL_TEXT
 --  Notes.....:  
 --  Reference.: SYS (or grant manually to a DBA)

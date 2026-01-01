@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..: 0.8.0
+-- Revision...: 0.9.5
 --  Purpose...: Check if user in sys.user$ has a weak password
 --  Usage.....: @verify_passwords SHOW USER TIMOUT
 --              SHOW     TRUE or FALSE depending if passwords should be displayed

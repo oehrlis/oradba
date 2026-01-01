@@ -1,24 +1,18 @@
-----------------------------------------------------------------------------
---     $Id: reg.sql 21 2009-09-16 09:11:28Z soe $
-----------------------------------------------------------------------------
---     Trivadis AG, Infrastructure Managed Services
---     Europa-Strasse 5, 8152 Glattbrugg, Switzerland
-----------------------------------------------------------------------------
---     File-Name........:  reg.sql
---     Author...........:  Stefan Oehrli (oes) stefan.oehrli@trivadis.com
---     Editor...........:  $LastChangedBy: soe $
---     Date.............:  $LastChangedDate: 2009-09-16 11:11:28 +0200 (Mi, 16 Sep 2009) $
---     Revision.........:  $LastChangedRevision: 21 $
---     Purpose..........:  List DBA Registry		 
---     Usage............:  @reg
---     Group/Privileges.:  select catalog
---     Input parameters.:  none
---     Called by........:  as DBA or user with access to dba_registry
---     Restrictions.....:  unknown
---     Notes............:--
-----------------------------------------------------------------------------
---		 Revision history.:      see svn log
-----------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name.......: reg.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
+-- Purpose....: Display Oracle Database Registry information
+-- Notes......: Simple wrapper script for dba_registry query
+-- Usage......: @reg
+-- Reference..: https://github.com/oehrlis/oradba
+-- License....: Apache License Version 2.0, January 2004 as shown
+--              at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 col reg_comp_name head "Component Name" for a50
 col reg_version head "Version" for a15

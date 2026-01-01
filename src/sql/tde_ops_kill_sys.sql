@@ -4,8 +4,8 @@
 --  Name......: tde_ops_kill_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
---  Revision..: 0.8.0
+--  Date......: 2026.01.01
+-- Revision...: 0.9.5
 --  Purpose...: Kill running TDE operations based on V$SESSION_LONGOPS
 --  Notes.....:  
 --  Reference.: Requires access to V$SESSION_LONGOPS

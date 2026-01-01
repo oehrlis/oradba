@@ -1,17 +1,17 @@
 --------------------------------------------------------------------------------
 --  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 --------------------------------------------------------------------------------
--- Name......: cssec_pwverify.sql
--- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor....: Stefan Oehrli
--- Date......: 2025.12.19
---  Revision..: 0.8.0
--- Usage.....: 
--- Purpose...: Create custom password verify function. Configurable by internal
---             variables / constants
--- Notes.....: 
--- Reference.: 
--- License...: Apache License Version 2.0, January 2004 as shown
+-- Name.......: cssec_pwverify.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
+-- Usage......: 
+-- Purpose....: Create custom password verify function. Configurable by internal
+--              variables / constants
+-- Notes......: 
+-- Reference..: 
+-- License....: Apache License Version 2.0, January 2004 as shown
 --             at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------
 

@@ -2,16 +2,16 @@
 -- Accenture, Data Platforms
 -- Saegereistrasse 29, 8152 Glattbrugg, Switzerland
 --------------------------------------------------------------------------------
--- Name......: sssec_pwverify_test.sql
--- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor....: Stefan Oehrli
--- Date......: 2025.12.19
---  Revision..: 0.8.0
--- Usage.....: 
--- Purpose...: Test the password verify function
--- Notes.....: 
--- Reference.: 
--- License...: Apache License Version 2.0, January 2004 as shown
+-- Name.......: sssec_pwverify_test.sql
+-- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor.....: Stefan Oehrli
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
+-- Usage......: 
+-- Purpose....: Test the password verify function
+-- Notes......: 
+-- Reference..: 
+-- License....: Apache License Version 2.0, January 2004 as shown
 --             at http://www.apache.org/licenses/
 --------------------------------------------------------------------------------
 set serveroutput on

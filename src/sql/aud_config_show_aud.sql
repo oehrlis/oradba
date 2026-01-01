@@ -1,18 +1,18 @@
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Name.......: aud_config_show_aud.sql
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.19
--- Revision...: 0.8.0
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
 -- Purpose....: Show audit trail configuration and information
 -- Notes......: Requires AUDIT_ADMIN or AUDIT_VIEWER role
 -- Usage......: @aud_config_show_aud
 -- Reference..: https://github.com/oehrlis/oradba
 -- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 SET LINESIZE 200
 SET PAGESIZE 66  HEADING ON  VERIFY OFF
 SET FEEDBACK OFF  SQLCASE UPPER  NEWPAGE 1

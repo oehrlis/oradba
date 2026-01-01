@@ -1,18 +1,18 @@
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Name.......: sdsec_sysobj.sql
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.19
--- Revision...: 0.8.0
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
 -- Purpose....: Show and create a list of granted SYS object privileges
 -- Notes......: Requires DBA role or appropriate grants
 -- Usage......: @sdsec_sysobj
 -- Reference..: https://github.com/oehrlis/oradba
 -- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- assign default value for parameter if argument 1 is empty
 SET FEEDBACK OFF

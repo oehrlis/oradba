@@ -43,11 +43,13 @@ sqlplus / as sysdba @aud_policies_show_aud.sql
 ```
 
 **Log File Format:**
+
 - `scriptname`: Name of the SQL script (e.g., aud_policies_show_aud)
 - `sid`: Database instance name in lowercase (e.g., proddb)
 - `timestamp`: Execution time in YYYYMMDD_HH24MISS format
 
 **Benefits:**
+
 - Centralized log management when ORADBA_LOG is set
 - Unique filenames prevent overwrites
 - Easy identification of database and execution time

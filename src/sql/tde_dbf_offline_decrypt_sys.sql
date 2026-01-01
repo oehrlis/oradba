@@ -4,8 +4,8 @@
 --  Name......: tde_dbf_offline_decrypt_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
---  Revision..: 0.8.0
+--  Date......: 2026.01.01
+-- Revision...: 0.9.5
 --  Purpose...: This PL/SQL script is designed to process database files, specifically
 --              focusing on identifying files across different chunks based on their
 --              sizes and preparing them for encryption commands. It dynamically

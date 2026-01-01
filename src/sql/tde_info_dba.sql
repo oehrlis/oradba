@@ -4,8 +4,8 @@
 --  Name......: tde_info_dba.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
---  Revision..: 0.8.0
+--  Date......: 2026.01.01
+-- Revision...: 0.9.5
 --  Purpose...: Show information about the TDE Configuration 
 --  Notes.....:  
 --  Reference.: Requires SYS, SYSDBA or SYSKM privilege

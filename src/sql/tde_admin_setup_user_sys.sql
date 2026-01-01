@@ -4,7 +4,7 @@
 --  Name......: tde_admin_setup_sys_user.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
+--  Date......: 2026.01.01
 --  Usage.....: SQL*Plus script to configure Transparent Data Encryption (TDE) settings 
 --              and create TDE administration user and role in Oracle 19c and newer.
 --  Purpose...: Automates the setup of TDE in Oracle databases, including the creation

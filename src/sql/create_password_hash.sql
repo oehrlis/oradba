@@ -1,18 +1,18 @@
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Name.......: create_password_hash.sql
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.19
--- Revision...: 0.8.0
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.5
 -- Purpose....: Calculate Oracle 10g Password Hash from Username and Password
 -- Notes......: Requires execute on DBMS_CRYPTO
 -- Usage......: @create_password_hash username password
 -- Reference..: https://github.com/oehrlis/oradba
 -- License....: Apache License Version 2.0, January 2004 as shown
 --              at http://www.apache.org/licenses/
--- ------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Get parameters
 define  oh_user="&1"
 define  oh_password="&2"

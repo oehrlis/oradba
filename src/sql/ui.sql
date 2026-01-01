@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.12.11
---  Revision..: 0.8.0
+-- Revision...: 0.9.5
 --  Purpose...: Show user inactive sessions in database (no background procs)
 --  Usage.....: @ui
 --  Notes.....: 

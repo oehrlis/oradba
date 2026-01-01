@@ -4,8 +4,8 @@
 --  Name......: tde_wallet_create_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.12.19
---  Revision..: 0.8.0
+--  Date......: 2026.01.01
+-- Revision...: 0.9.5
 --  Purpose...: Create TDE software keystore and master encryption key in CDB$ROOT
 --              in the WALLET_ROOT directory.
 --  Notes.....:  

@@ -4,7 +4,7 @@
 --  Name......: util_schema_create_sys.sql
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
---  Date......: 2025.08.26
+--  Date......: 2026.01.01
 --  Usage.....: util_schema_create_sys.sql <SCHEMA_NAME>
 --              SCHEMA_NAME - utility schema name (default: ORADBA)
 --  Purpose...: 

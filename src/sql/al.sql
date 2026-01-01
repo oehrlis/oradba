@@ -5,7 +5,7 @@
 --  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 --  Editor....: Stefan Oehrli
 --  Date......: 2018.10.24
---  Revision..: 0.8.0
+-- Revision...: 0.9.5
 --  Purpose...: List/query alert log
 --  Usage.....: @al <STRING> or % for all
 --  Notes.....:  
