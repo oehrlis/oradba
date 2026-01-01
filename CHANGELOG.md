@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SQL Script Log Management**: Central logging for all SQL scripts with SPOOL ([#33](https://github.com/oehrlis/oradba/issues/33))
+  - 53 SQL scripts now support `$ORADBA_LOG` environment variable
+  - Log files include database SID and timestamp: `scriptname_sid_timestamp.log`
+  - Automatic fallback to current directory if `$ORADBA_LOG` not set
+  - Portable across SQL*Plus, SQL Developer, Windows, and Unix/Linux
+  - Silent error handling via `WHENEVER OSERROR CONTINUE`
+  - Enables centralized log management and cleanup strategies
+
 ### Changed
 
 - **RMAN Aliases**: Refactored to avoid conflicts with Oracle's rman binary
