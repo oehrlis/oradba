@@ -1,4 +1,14 @@
-# Chapter 15: Log Management and Rotation
+# Log Management and Rotation
+
+**Purpose:** Guide to automated log rotation for OraDBA system logs and Oracle Database logs using logrotate integration.
+
+**Audience:** System administrators and DBAs managing log files.
+
+**Prerequisites:**
+
+- logrotate installed (standard on most Linux distributions)
+- Root access for logrotate configuration
+- Understanding of log file locations
 
 ## Overview
 
@@ -8,12 +18,11 @@ automated log rotation for both OraDBA system logs and Oracle Database logs.
 
 Proper log management is critical for:
 
-- **Disk Space Management**: Prevent uncontrolled log growth that can fill
-  filesystems
+- **Disk Space Management**: Prevent uncontrolled log growth
 - **System Performance**: Reduce I/O overhead from excessive logging
 - **Compliance**: Meet retention requirements (PCI-DSS, HIPAA, SOX, GDPR)
-- **Security**: Maintain audit trails without compromising system availability
-- **Troubleshooting**: Keep relevant historical data while managing storage
+- **Security**: Maintain audit trails
+- **Troubleshooting**: Keep relevant historical data
 
 ## Quick Start
 
@@ -545,9 +554,9 @@ Each template includes:
 ### OraDBA Documentation
 
 - [README](../../README.md): Project overview
-- [Installation Guide](02-installation.md): OraDBA setup
-- [Configuration](05-configuration.md): General configuration
-- [Troubleshooting](12-troubleshooting.md): Common issues
+- [Installation](02-installation.md) - OraDBA setup
+- [Configuration](05-configuration.md) - General configuration
+- [Troubleshooting](12-troubleshooting.md) - Common issues
 
 ## Summary
 
@@ -565,3 +574,8 @@ your compliance requirements and disk space constraints.
 
 Remember: Test configurations before production deployment, monitor rotation
 execution, and review policies regularly to ensure they meet your evolving needs.
+
+## Navigation
+
+**Previous:** [SQLNet Configuration](14-sqlnet-config.md)  
+**Next:** [Usage Guide](16-usage.md)

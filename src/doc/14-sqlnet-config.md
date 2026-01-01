@@ -1,23 +1,23 @@
 <!-- markdownlint-disable MD036 -->
 # SQL*Net Configuration
 
-This chapter covers managing Oracle SQL*Net configuration using OraDBA templates
-and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
+**Purpose:** Guide to managing Oracle SQL*Net configuration using OraDBA templates and tools.
+
+**Audience:** DBAs configuring Oracle network connectivity.
+
+**Prerequisites:**
+
+- TNS_ADMIN directory configured
+- Appropriate permissions to modify network configuration files
 
 ## Overview
+
+This chapter covers managing Oracle SQL*Net configuration using OraDBA templates
+and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
 
 OraDBA provides comprehensive SQL*Net configuration templates and management tools
 to simplify Oracle network setup, improve security, and ensure consistent
 configurations across environments.
-
-**Key Features:**
-
-- Pre-configured templates for various use cases
-- Security best practices built-in
-- Command-line management tools
-- Variable substitution for environment-specific values
-- Backup and validation functionality
-- Connection testing and troubleshooting
 
 ## Quick Start
 
@@ -936,15 +936,12 @@ NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 
 ## See Also
 
-- [Environment Management](04-environment.md) - oraenv.sh configuration
+- [Environment Management](04-environment.md) - TNS_ADMIN configuration
 - [Configuration](05-configuration.md) - OraDBA configuration system
-- [Troubleshooting](12-troubleshooting.md) - General troubleshooting guide
+- [Aliases](06-aliases.md) - Network configuration file aliases (vit, vil, visql)
+- [Troubleshooting](12-troubleshooting.md) - Network troubleshooting
 
-## References
+## Navigation
 
-- [Oracle Net Services Administrator's Guide](https://docs.oracle.com/en/database/oracle/oracle-database/19/netag/)
-- [Oracle Advanced Security Guide](https://docs.oracle.com/en/database/oracle/oracle-database/19/asoag/)
-- [Net Services Reference](https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/)
-
----
-*Part of the OraDBA project - <https://github.com/oehrlis/oradba>*
+**Previous:** [Quick Reference](13-reference.md)  
+**Next:** [Log Management](15-log-management.md)

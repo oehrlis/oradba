@@ -1,5 +1,9 @@
 # Introduction
 
+**Purpose:** Overview of OraDBA, its features, and benefits for Oracle database administration in lab and engineering environments.
+
+**Audience:** Database administrators, development teams, test engineers, and anyone managing Oracle databases.
+
 ## What is OraDBA?
 
 OraDBA is a comprehensive toolset for Oracle Database administration and
@@ -146,3 +150,13 @@ OraDBA is designed for lab and engineering environments, not production:
 Ready to install? Continue to [Installation](02-installation.md) for detailed setup instructions.
 
 Already installed? Jump to [Quick Start](03-quickstart.md) for your first steps.
+
+## See Also
+
+- [Installation](02-installation.md) - Detailed setup instructions
+- [Quick Start](03-quickstart.md) - Getting started quickly
+- [Configuration](05-configuration.md) - Customizing OraDBA
+
+## Navigation
+
+**Next:** [Installation](02-installation.md)

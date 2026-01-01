@@ -1,5 +1,14 @@
 <!-- markdownlint-disable MD013 -->
-# oradba Usage Guide
+# Usage Guide
+
+**Purpose:** Practical usage guide covering common scenarios, best practices, and integration examples.
+
+**Audience:** All users - practical examples and workflows.
+
+**Prerequisites:**
+
+- OraDBA installed and configured
+- Basic familiarity with OraDBA concepts
 
 ## Introduction
 
@@ -352,6 +361,12 @@ parse_oratab "FREE"
 
 ## See Also
 
-- [SCRIPTS.md](SCRIPTS.md) - Script reference
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Problem solving
-- [EXAMPLES.md](EXAMPLES.md) - More examples
+- [Environment Management](04-environment.md) - Detailed oraenv.sh usage
+- [Configuration](05-configuration.md) - Configuration options
+- [Quick Reference](13-reference.md) - Quick command reference
+- [Troubleshooting](12-troubleshooting.md) - Problem solving
+
+## Navigation
+
+**Previous:** [Log Management](15-log-management.md)  
+**Home:** [Introduction](01-introduction.md)

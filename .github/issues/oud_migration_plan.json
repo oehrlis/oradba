@@ -1,0 +1,6 @@
+{
+  "title": "Create a Migration Plan for Existing OUDBase Users",
+  "body": "Document steps for switching from `oudbase` to the unified `oradba`. Provide example scenarios for migrating configurations or environments.",
+  "milestone": "Integrate OUD Features",
+  "labels": ["documentation"]
+}
