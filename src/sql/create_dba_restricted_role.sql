@@ -41,10 +41,12 @@ DEFINE LOGDIR = '.'
 DEFINE TIMESTAMP = 'UNKNOWN'
 DEFINE DBSID = 'UNKNOWN'
 
--- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
+-- Try to get log directory from environment (silently fall back to current dir)
+WHENEVER OSERROR CONTINUE
 HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_${USER}.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_${USER}.sql
-@/tmp/oradba_logdir_${USER}.sql
+@@/tmp/oradba_logdir_${USER}.sql
 HOST rm -f /tmp/oradba_logdir_${USER}.sql
+WHENEVER OSERROR EXIT FAILURE
 
 -- Get timestamp and database SID
 COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
@@ -52,6 +54,7 @@ COLUMN logsid NEW_VALUE DBSID NOPRINT
 SELECT TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') AS logts,
        LOWER(SYS_CONTEXT('USERENV', 'INSTANCE_NAME')) AS logsid
 FROM DUAL;
+
 
 SPOOL &LOGDIR./create_dba_restricted_role_&DBSID._&TIMESTAMP..log
 --------------------------------------------------------------------------------
