@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **GitHub Pages Documentation**: Online documentation site at https://oehrlis.github.io/oradba
+  - MkDocs with Material theme for modern, searchable documentation
+  - Automatic deployment on release and documentation changes
+  - Mobile-responsive design with dark mode support
+  - Mermaid diagram support
+  - Git revision dates for each page
+  - Cross-linked navigation and search
+
 ### Changed
+
+- **Validation Script**: Enhanced output format and checks
+  - Regular mode: Clean, concise output without separator lines
+  - Verbose mode: Detailed test results with all separators
+  - Added `.install_info` and `.oradba.checksum` validation
+  - File modification detection with summary count
+  - Improved validation summary with modification status
 
 - **Smart Test Selection**: Improved fallback behavior for non-code changes
   - When only images, documentation, or other non-code files change, runs only

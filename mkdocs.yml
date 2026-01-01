@@ -1,0 +1,149 @@
+site_name: OraDBA Documentation
+site_url: https://oehrlis.github.io/oradba
+site_description: Oracle Database Administration Toolset - Complete user guides and reference materials
+site_author: Stefan Oehrli
+copyright: Copyright &copy; 2025 Stefan Oehrli
+
+# Repository
+repo_url: https://github.com/oehrlis/oradba
+repo_name: oehrlis/oradba
+edit_uri: edit/main/src/doc/
+
+# Documentation directory
+docs_dir: src/doc
+site_dir: site
+
+# Theme configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  font:
+    text: Roboto
+    code: Roboto Mono
+  
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - toc.follow
+  
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - def_list
+  - tables
+  - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      title: On this page
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+
+# Navigation structure
+nav:
+  - Home: index.md
+  
+  - Getting Started:
+    - Introduction: 01-introduction.md
+    - Installation: 02-installation.md
+    - Quick Start: 03-quickstart.md
+    - Environment Management: 04-environment.md
+  
+  - Configuration:
+    - Configuration System: 05-configuration.md
+    - Aliases Reference: 06-aliases.md
+    - PDB Aliases: 07-pdb-aliases.md
+  
+  - Scripts & Tools:
+    - SQL Scripts: 08-sql-scripts.md
+    - RMAN Scripts: 09-rman-scripts.md
+    - Database Functions: 10-functions.md
+    - rlwrap Filter: 11-rlwrap.md
+  
+  - Operations:
+    - Troubleshooting: 12-troubleshooting.md
+    - Quick Reference: 13-reference.md
+    - SQL*Net Configuration: 14-sqlnet-config.md
+    - Log Management: 15-log-management.md
+    - Usage Guide: 16-usage.md
+    - Service Management: 17-service-management.md
+
+# Extra configuration
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/oehrlis/oradba
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/u/oehrlis
+  generator: false
+
+# Additional CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Additional JavaScript
+extra_javascript:
+  - javascripts/extra.js

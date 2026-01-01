@@ -107,8 +107,12 @@ $(date)
 EOF
 
 # Check basic installation
-echo "Checking OraDBA Installation..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo "Checking OraDBA Installation..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking OraDBA Installation..."
+fi
 
 test_item "OraDBA base directory exists" "[[ -d '${ORADBA_BASE}' ]]"
 test_item "bin directory exists" "[[ -d '${ORADBA_BASE}/bin' ]]"
@@ -117,11 +121,14 @@ test_item "lib directory exists" "[[ -d '${ORADBA_BASE}/lib' ]]"
 test_item "doc directory exists" "[[ -d '${ORADBA_BASE}/doc' ]]"
 test_item "sql directory exists" "[[ -d '${ORADBA_BASE}/sql' ]]"
 
-echo ""
-
 # Check core scripts
-echo "Checking Core Scripts..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Core Scripts..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Core Scripts..."
+fi
 
 test_item "oraenv.sh exists" "[[ -f '${ORADBA_BASE}/bin/oraenv.sh' ]]"
 test_item "oradba_version.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
@@ -132,21 +139,27 @@ test_item "oradba_dbctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_dbctl.sh' ]
 test_item "oradba_lsnrctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_lsnrctl.sh' ]]" "optional"
 test_item "oradba_services.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_services.sh' ]]" "optional"
 
-echo ""
-
 # Check libraries
-echo "Checking Library Files..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Library Files..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Library Files..."
+fi
 
 test_item "common.sh exists" "[[ -f '${ORADBA_BASE}/lib/common.sh' ]]"
 test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/aliases.sh' ]]"
 test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/db_functions.sh' ]]" "optional"
 
-echo ""
-
 # Check configuration files
-echo "Checking Configuration Files..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Configuration Files..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Configuration Files..."
+fi
 
 test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf' ]]"
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
@@ -155,31 +168,94 @@ test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/oradb
 test_item "sid.ORCL.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORCL.conf.example' ]]" "optional"
 test_item "oradba_services.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_services.conf' ]]" "optional"
 
-echo ""
-
 # Check documentation
-echo "Checking Documentation..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Documentation..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Documentation..."
+fi
 
 test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]" "optional"
 test_item "06-aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/06-aliases.md' ]]"
 test_item "05-configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/05-configuration.md' ]]" "optional"
 test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
 
-echo ""
-
 # Check SQL files
-echo "Checking SQL Files..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking SQL Files..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking SQL Files..."
+fi
 
 test_item "login.sql exists" "[[ -f '${ORADBA_BASE}/sql/login.sql' ]]"
 test_item "db_info.sql exists" "[[ -f '${ORADBA_BASE}/sql/db_info.sql' ]]" "optional"
 
-echo ""
+# Check installation metadata
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Installation Metadata..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Installation Metadata..."
+fi
+
+test_item ".install_info exists" "[[ -f '${ORADBA_BASE}/.install_info' ]]" "optional"
+test_item ".oradba.checksum exists" "[[ -f '${ORADBA_BASE}/.oradba.checksum' ]]" "optional"
+
+# Check for file modifications if checksum exists
+if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
+    MODIFIED_COUNT=0
+    while IFS= read -r line; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        
+        # Parse checksum line: hash filename
+        expected_hash=$(echo "$line" | awk '{print $1}')
+        file_path=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
+        full_path="${ORADBA_BASE}/${file_path}"
+        
+        if [[ -f "$full_path" ]]; then
+            if command -v sha256sum >/dev/null 2>&1; then
+                actual_hash=$(sha256sum "$full_path" 2>/dev/null | awk '{print $1}')
+            elif command -v shasum >/dev/null 2>&1; then
+                actual_hash=$(shasum -a 256 "$full_path" 2>/dev/null | awk '{print $1}')
+            else
+                continue
+            fi
+            
+            if [[ "$expected_hash" != "$actual_hash" ]]; then
+                MODIFIED_COUNT=$((MODIFIED_COUNT + 1))
+                if [[ "${VERBOSE}" == "true" ]]; then
+                    echo -e "${YELLOW}⚠${NC} Modified: ${file_path}"
+                fi
+            fi
+        fi
+    done < "${ORADBA_BASE}/.oradba.checksum"
+    
+    if [[ $MODIFIED_COUNT -gt 0 ]]; then
+        if [[ "${VERBOSE}" == "false" ]]; then
+            echo -e "${YELLOW}⚠${NC} $MODIFIED_COUNT file(s) modified since installation"
+        fi
+        WARNINGS=$((WARNINGS + MODIFIED_COUNT))
+    else
+        if [[ "${VERBOSE}" == "true" ]]; then
+            echo -e "${GREEN}✓${NC} No files modified"
+        fi
+    fi
+fi
 
 # Check if environment can be sourced
-echo "Checking Environment Setup..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Environment Setup..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Environment Setup..."
+fi
 
 if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
     # Check bash syntax without executing
@@ -196,11 +272,14 @@ if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
     fi
 fi
 
-echo ""
-
 # Check Oracle prerequisites (optional)
-echo "Checking Oracle Environment (optional)..."
-echo "-------------------------------------------------------------------------------"
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Oracle Environment (optional)..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Oracle Environment (optional)..."
+fi
 
 test_item "ORACLE_HOME is set" "[[ -n '${ORACLE_HOME}' ]]" "optional"
 test_item "ORACLE_BASE is set" "[[ -n '${ORACLE_BASE}' ]]" "optional"
@@ -208,21 +287,37 @@ test_item "ORACLE_SID is set" "[[ -n '${ORACLE_SID}' ]]" "optional"
 test_item "oratab file exists" "[[ -f '/etc/oratab' || -f '/var/opt/oracle/oratab' ]]" "optional"
 test_item "sqlplus command available" "command -v sqlplus >/dev/null" "optional"
 
-echo ""
+# Print validation summary
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+fi
 
-# Summary
 echo "==============================================================================="
 echo "Validation Summary"
 echo "==============================================================================="
 echo ""
 echo "  Total Tests:     ${TOTAL}"
-echo -e "  ${GREEN}Passed:${NC}          ${PASSED}"
+echo "  Passed:          ${PASSED}"
+
 if [[ ${WARNINGS} -gt 0 ]]; then
-    echo -e "  ${YELLOW}Warnings:${NC}        ${WARNINGS} (optional components)"
+    echo "  Warnings:        ${WARNINGS} (optional components)"
 fi
+
 if [[ ${FAILED} -gt 0 ]]; then
-    echo -e "  ${RED}Failed:${NC}          ${FAILED}"
+    echo "  Failed:          ${FAILED}"
 fi
+
+# Show modification status
+if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
+    if [[ ${MODIFIED_COUNT:-0} -gt 0 ]]; then
+        echo "  Modified:        ${MODIFIED_COUNT} file(s)"
+    else
+        echo "  Modified:        0 files"
+    fi
+else
+    echo "  Modified:        unknown (no checksum file)"
+fi
+
 echo ""
 
 # Final result

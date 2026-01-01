@@ -21,6 +21,9 @@ src/doc/*.pdf
 src/doc/*.html
 src/doc/images/
 
+# MkDocs build output
+site/
+
 # Archives
 *.tar.gz
 *.zip
