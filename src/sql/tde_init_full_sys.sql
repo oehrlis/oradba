@@ -65,9 +65,9 @@ DEFINE TIMESTAMP = 'UNKNOWN'
 DEFINE DBSID = 'UNKNOWN'
 
 -- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
-HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_$$.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_$$.sql
-@/tmp/oradba_logdir_$$.sql
-HOST rm -f /tmp/oradba_logdir_$$.sql
+HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_${USER}.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_${USER}.sql
+@/tmp/oradba_logdir_${USER}.sql
+HOST rm -f /tmp/oradba_logdir_${USER}.sql
 
 -- Get timestamp and database SID
 COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
