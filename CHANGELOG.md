@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **RMAN Aliases**: Refactored to avoid conflicts with Oracle's rman binary
+  - Removed `rman` alias to prevent overriding Oracle's native command
+  - `rmanc`: No rlwrap, uses ORADBA_RMAN_CATALOG_CONNECTION or fallback to `target /`
+  - `rmanh`: Just rlwrap wrapper, no automatic connection (user connects manually)
+  - `rmanch`: rlwrap with catalog connection, fallback to `target /` if not configured
+  - Provides more flexibility for different connection types and workflows
+
 ## [0.9.4] - 2026-01-01
 
 ### Fixed

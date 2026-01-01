@@ -67,27 +67,29 @@ sqoh
 
 Recovery Manager connection shortcuts:
 
-| Alias    | Description                | Command                            |
-|----------|----------------------------|------------------------------------|
-| `rman`   | RMAN target connection     | `rman target /`                    |
-| `rmanh`  | RMAN with rlwrap           | `rlwrap rman target /`             |
-| `rmanc`  | RMAN with catalog          | `rman target / catalog ...`        |
-| `rmanch` | RMAN with catalog (rlwrap) | `rlwrap rman target / catalog ...` |
+| Alias    | Description                       | Command                          |
+|----------|-----------------------------------|----------------------------------|
+| `rmanc`  | RMAN with catalog/fallback        | `rman target / [catalog ...]`    |
+| `rmanh`  | RMAN with rlwrap (manual connect) | `rlwrap rman`                    |
+| `rmanch` | RMAN with rlwrap + catalog        | `rlwrap rman target / [catalog]` |
+
+**Note:** The `rman` command itself is not aliased to avoid conflicts with Oracle's native binary.
 
 **Usage Examples:**
 
 ```bash
-# Basic RMAN connection
-rman
-
-# With command history
-rmanh
-
-# With recovery catalog (uses ORADBA_RMAN_CATALOG if configured)
+# Direct RMAN with catalog or fallback to target /
 rmanc
 
-# With catalog and command history
+# RMAN with rlwrap - connect manually at prompt
+rmanh
+RMAN> connect target /
+
+# RMAN with rlwrap and catalog (uses ORADBA_RMAN_CATALOG if configured)
 rmanch
+
+# Standard Oracle RMAN command (not aliased)
+rman target /
 ```
 
 **Catalog Configuration:**
@@ -95,10 +97,22 @@ Configure `ORADBA_RMAN_CATALOG` in `oradba_customer.conf` or `sid.<SID>.conf`:
 
 ```bash
 # Global catalog (in oradba_customer.conf)
-ORADBA_RMAN_CATALOG="catalog rman/password@catdb"
+ORADBA_RMAN_CATALOG="rman_user/password@catdb"
 
 # Per-database catalog (in sid.PRODDB.conf)
-ORADBA_RMAN_CATALOG="catalog rman/password@prodcat"
+ORADBA_RMAN_CATALOG="rman_user@prodcat"
+```
+
+**Connection Flexibility:**
+
+```bash
+# Use rmanh for flexible connections
+rmanh
+RMAN> connect target /
+RMAN> connect catalog rman@catdb
+
+# Or specify at command line
+rmanh target / catalog rman@catdb
 ```
 
 ## Directory Navigation Aliases

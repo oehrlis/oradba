@@ -188,11 +188,18 @@ sqlplus / as sysdba @script.sql param1 param2
 # Set environment
 source oraenv.sh FREE
 
-# Run RMAN (using alias)
-rman            # Same as: rman target /
+# Run RMAN with catalog (or fallback to target /)
+rmanc
 
-# With rlwrap for command history
-rmanh           # Same as: rlwrap rman target /
+# With rlwrap for command history (manual connection)
+rmanh
+RMAN> connect target /
+
+# With rlwrap and catalog
+rmanch
+
+# Standard Oracle RMAN command (not aliased)
+rman target /
 
 # Run RMAN script
 rman target / @$ORADBA_PREFIX/rcv/backup_full.rman

@@ -32,10 +32,9 @@
 
  RMAN ALIASES
  -------------------------------------------------------------------------------
- rman            --> RMAN target /
  rmanc           --> RMAN target / catalog (uses ORADBA_RMAN_CATALOG_CONNECTION)
- rmanh           --> RMAN target / with rlwrap (history + tab completion)
- rmanch          --> RMAN target / catalog with rlwrap
+ rmanh           --> RMAN with rlwrap (no auto-connect, manual connection)
+ rmanch          --> RMAN with rlwrap and catalog/fallback to target /
 
  DATABASE STATUS & MONITORING
  -------------------------------------------------------------------------------

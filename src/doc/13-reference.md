@@ -39,11 +39,11 @@ sessionsql                     # SQL*Plus with terminal width detection
 ## RMAN Connections
 
 ```bash
-# RMAN connections
-rman                           # rman target /
-rmanh                          # rman target / (with rlwrap)
-rmanc                          # rman target / catalog (uses ORADBA_RMAN_CATALOG)
-rmanch                         # rman target / catalog (with rlwrap)
+# RMAN connections (note: 'rman' is not aliased)
+rman target /                  # Standard Oracle RMAN command
+rmanc                          # rman target / [catalog] (fallback)
+rmanh                          # rlwrap rman (manual connection)
+rmanch                         # rlwrap rman target / [catalog]
 ```
 
 ## Directory Navigation
