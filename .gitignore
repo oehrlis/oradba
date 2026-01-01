@@ -27,7 +27,8 @@ src/doc/images/
 
 # Logs
 *.log
-log/
+src/log/*
+!src/log/README.md
 
 # OS files
 .DS_Store
