@@ -127,7 +127,7 @@ SELECT
     d.log_mode || '|' ||
     d.database_role || '|' ||
     NVL(
-        (SELECT value FROM nls_database_parameters WHERE parameter = 'NLS_CHARACTERSET'),
+        (SELECT value FROM v$nls_parameters WHERE parameter = 'NLS_CHARACTERSET'),
         'UNKNOWN'
     )
 FROM v$database d;
