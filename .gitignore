@@ -50,6 +50,10 @@ test/test_results/
 *.bak
 *.old
 
+# Excel temp files and docs
+doc/~$scripts.xlsx
+doc/scripts.xlsx
+
 # Environment specific
 .env
 .env.local
@@ -62,3 +66,4 @@ src/etc/sid.TESTDB1.conf
 src/etc/sid.TESTDB2.conf
 
 # --- EOF ----------------------------------------------------------------------
+
