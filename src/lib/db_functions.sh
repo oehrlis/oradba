@@ -172,11 +172,11 @@ EXIT;
 EOF
 )
     
-    # Filter out any SQL errors and get only numeric result
-    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | grep -E "^[0-9]" | head -1)
+    # Filter out any SQL errors, trim whitespace, and get numeric result
+    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | tr -d '[:space:]')
     
     # Only output if we got a valid number
-    if [[ "$result" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    if [[ -n "$result" ]] && [[ "$result" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
         echo "$result"
         return 0
     fi
@@ -457,7 +457,7 @@ show_database_status() {
     # Datafile size (for MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" ]]; then
         local df_size
-        df_size=$(query_datafile_size "$open_mode" | tr -d '[:space:]')
+        df_size=$(query_datafile_size "$open_mode")
         if [[ -n "$df_size" ]]; then
             printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
         fi
