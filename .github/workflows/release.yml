@@ -40,22 +40,22 @@ jobs:
           echo "VERSION file content: $(cat VERSION)"
           echo "Detected version: ${{ steps.version.outputs.version }}"
       
-      - name: Install BATS for testing
+      - name: Install BATS and linting tools
         run: |
           sudo apt-get update
           sudo apt-get install -y bats shellcheck
+      
+      - name: Run linting
+        run: |
+          echo "Running linters (fail fast)..."
+          make lint
+          echo "Linting passed ✓"
       
       - name: Run full test suite
         run: |
           echo "Running complete test suite before release..."
           make test-full
           echo "All tests passed ✓"
-      
-      - name: Run linting
-        run: |
-          echo "Running linters..."
-          make lint
-          echo "Linting passed ✓"
       
       - name: Build distribution and installer
         run: |

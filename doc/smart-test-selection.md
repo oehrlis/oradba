@@ -70,7 +70,7 @@ Would execute 4 test file(s):
 - test_service_management.bats (mapped)
 ```
 
-**Scenario 3**: You modify only documentation (`*.md` files)
+**Scenario 3**: You modify only documentation or images (`*.md`, `*.png`, `*.excalidraw` files)
 
 ```bash
 $ make test DRY_RUN=1
@@ -78,6 +78,8 @@ Would execute 3 test file(s):
 - test_installer.bats (always run)
 - test_oradba_version.bats (always run)
 - test_oraenv.bats (always run)
+
+# Only always-run tests are executed (no full test fallback)
 ```
 
 ## CI/CD Integration

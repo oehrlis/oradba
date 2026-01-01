@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Smart Test Selection**: Improved fallback behavior for non-code changes
+  - When only images, documentation, or other non-code files change, runs only
+    always-run tests (3 tests) instead of full suite (492 tests)
+  - More efficient for diagram updates, documentation improvements, and asset changes
+  - Reduces unnecessary test execution time for non-functional changes
+
+- **Release Workflow**: Reordered validation steps for faster failure detection
+  - Now runs linting before full test suite
+  - Fails fast on code quality issues (seconds vs minutes)
+  - More efficient use of CI resources
+
 ## [0.10.1] - 2026-01-02
 
 ### Fixed

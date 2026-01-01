@@ -230,8 +230,14 @@ select_tests() {
     
     if [[ ${#changed_files[@]} -eq 0 ]]; then
         log_warn "No changed files detected"
-        log_warn "Running full test suite as fallback"
-        return 1
+        log_info "Running only always-run tests (no code changes)"
+        # Only run always-run tests, not full suite
+        while IFS= read -r test; do
+            if [[ -n "$test" ]]; then
+                echo "$test"
+            fi
+        done < <(get_always_run_tests)
+        return 0
     fi
     
     log_info "Found ${#changed_files[@]} changed file(s)"
@@ -334,12 +340,13 @@ while IFS= read -r test; do
     selected_tests+=("$test")
 done < <(select_tests)
 
-# Fallback to full suite if selection failed or no tests selected
+# Fallback to always-run tests if no tests selected (e.g., only images/docs changed)
 if [[ ${#selected_tests[@]} -eq 0 ]]; then
-    log_warn "No tests selected, running full test suite as fallback"
+    log_warn "No tests selected (likely only non-code files changed)"
+    log_info "Running only always-run tests as fallback"
     while IFS= read -r test; do
         selected_tests+=("$test")
-    done < <(get_all_tests)
+    done < <(get_always_run_tests)
 fi
 
 # Output results
