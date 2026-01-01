@@ -31,12 +31,13 @@ check_database_connection() {
     local result
     result=$(sqlplus -s / as sysdba << 'EOF' 2>/dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0
-SELECT 'CONNECTED' FROM dual;
+SELECT status FROM v$instance;
 EXIT;
 EOF
 )
     
-    if [[ "$result" =~ CONNECTED ]]; then
+    # If we got any status (STARTED, MOUNTED, OPEN), instance is accessible
+    if [[ -n "$result" ]] && [[ "$result" =~ ^(STARTED|MOUNTED|OPEN) ]]; then
         return 0
     else
         return 1
@@ -113,14 +114,12 @@ query_database_info() {
     fi
     
     local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
+    result=$(sqlplus -s / as sysdba << 'EOF' 2>&1
 SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
 SELECT 
     d.name || '|' ||
     d.db_unique_name || '|' ||
@@ -135,6 +134,9 @@ FROM v$database d;
 EXIT;
 EOF
 )
+    
+    # Filter out any SQL errors and get only the data line
+    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | grep "|" | head -1)
     
     # Only output if we got valid data (contains pipe separators)
     if [[ "$result" =~ \| ]]; then
@@ -158,19 +160,20 @@ query_datafile_size() {
     fi
     
     local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
+    result=$(sqlplus -s / as sysdba << 'EOF' 2>&1
 SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
 SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
 SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
 SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
 SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
 SELECT ROUND(SUM(bytes)/1024/1024/1024, 2)
 FROM v$datafile;
 EXIT;
 EOF
 )
+    
+    # Filter out any SQL errors and get only numeric result
+    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | grep -E "^[0-9]" | head -1)
     
     # Only output if we got a valid number
     if [[ "$result" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
