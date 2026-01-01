@@ -24,6 +24,35 @@ sqlplus / as sysdba @db_info.sql
 @tde    # TDE status
 ```
 
+## Log File Management
+
+SQL scripts that produce output automatically spool to log files with the format:
+`scriptname_sid_timestamp.log`
+
+**Log Directory Configuration:**
+
+```bash
+# Option 1: Use ORADBA_LOG environment variable (recommended)
+export ORADBA_LOG=/var/log/oracle
+sqlplus / as sysdba @aud_policies_show_aud.sql
+# Creates: /var/log/oracle/aud_policies_show_aud_proddb_20260101_143045.log
+
+# Option 2: Without ORADBA_LOG (fallback to current directory)
+sqlplus / as sysdba @aud_policies_show_aud.sql
+# Creates: ./aud_policies_show_aud_proddb_20260101_143045.log
+```
+
+**Log File Format:**
+- `scriptname`: Name of the SQL script (e.g., aud_policies_show_aud)
+- `sid`: Database instance name in lowercase (e.g., proddb)
+- `timestamp`: Execution time in YYYYMMDD_HH24MISS format
+
+**Benefits:**
+- Centralized log management when ORADBA_LOG is set
+- Unique filenames prevent overwrites
+- Easy identification of database and execution time
+- Supports log rotation and cleanup strategies
+
 ## Naming Convention
 
 Scripts follow the format: `<domain>_<action>_<object>[_scope][_priv].sql`
