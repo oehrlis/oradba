@@ -1,21 +1,21 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_walletroot_init_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Initialize init.ora parameter WALLET_ROOT based on value of
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_walletroot_init_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Initialize init.ora parameter WALLET_ROOT based on value of
 --              AUDIT_FILE_DEST to setup TDE with software keystore. This
 --              script should run in CDB$ROOT. A manual restart
 --              of the database is mandatory to activate WALLET_ROOT
---  Notes.....:
---  Reference.: Requires SYS, SYSDBA or DBA privilege
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Notes.....:
+-- Reference.: Requires SYS, SYSDBA or DBA privilege
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 SET FEEDBACK OFF
 SET VERIFY OFF
 -- define default values

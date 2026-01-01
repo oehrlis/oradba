@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: verify_passwords.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.12.11
--- Revision...: 0.9.5
---  Purpose...: Check if user in sys.user$ has a weak password
---  Usage.....: @verify_passwords SHOW USER TIMOUT
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: verify_passwords.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.12.11
+-- Revision..: 0.9.5
+-- Purpose...: Check if user in sys.user$ has a weak password
+-- Usage.....: @verify_passwords SHOW USER TIMOUT
 --              SHOW     TRUE or FALSE depending if passwords should be displayed
 --              USER     Limit to certain users
 --              TIMEOUT  A timeout for the proceedure
---  Notes.....: 
---  Reference.: requires execute on dbms_crypto
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Notes.....: 
+-- Reference.: requires execute on dbms_crypto
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 ----------------------------------------------------------------------------
 --  Modified..:
 --  see git revision history for more information on changes/updates

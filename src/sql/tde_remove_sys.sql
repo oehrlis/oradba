@@ -1,12 +1,12 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_remove_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Remove TDE and software keystore configuration in a single tenant
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_remove_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Remove TDE and software keystore configuration in a single tenant
 --              or container database. This scripts does use several other scripts
 --              to remove TDE and it also includes restart of the database. 
 --
@@ -16,12 +16,12 @@
 --              - tde_walletroot_drop_sys.sql       reset init.ora parameter for TDE
 --              - restart database
 --              - tde_info_dba.sql        show current TDE configuration
---  Notes.....:  
---  Reference.: Requires SYS, SYSDBA or SYSKM privilege
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Notes.....:  
+-- Reference.: Requires SYS, SYSDBA or SYSKM privilege
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 SET FEEDBACK OFF
 SET VERIFY OFF
 -- define default values

@@ -1,18 +1,18 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- -----------------------------------------------------------------------------
--- Name.......: oh.sql (OraDBA Help)
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Purpose....: Display available SQL scripts with names and purposes
--- Notes......: Reads script headers to extract names and purposes from SQLPATH
--- Usage......: @oh [filter]
+-- Name......: oh.sql (OraDBA Help)
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Display available SQL scripts with names and purposes
+-- Notes.....: Reads script headers to extract names and purposes from SQLPATH
+-- Usage.....: @oh [filter]
 --              filter - optional pattern to match script names (e.g., 'aud' or 'tde')
--- Reference..: https://github.com/oehrlis/oradba
--- License....: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 -- -----------------------------------------------------------------------------
 SET FEEDBACK OFF
 SET VERIFY OFF

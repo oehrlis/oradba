@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_dbf_offline_files_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: This PL/SQL script is designed to create shell scripts to encrypt
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_dbf_offline_files_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: This PL/SQL script is designed to create shell scripts to encrypt
 --              or decrypt datafiles in offline mode. Files can be easially executed
 --              with nohup
 --
---  Reference.: SYS (or grant manually to a DBA)
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: SYS (or grant manually to a DBA)
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 -- ALTER SYSTEM SET "_disable_directory_link_check"=TRUE
 --              COMMENT='  - Directory SymLink Desupport- March 22, 2024 by Stefan'
 --              SCOPE=SPFILE;

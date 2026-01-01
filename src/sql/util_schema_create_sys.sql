@@ -1,29 +1,30 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: util_schema_create_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
---  Usage.....: util_schema_create_sys.sql <SCHEMA_NAME>
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: util_schema_create_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: util_schema_create_sys.sql <SCHEMA_NAME>
 --              SCHEMA_NAME - utility schema name (default: ORADBA)
---  Purpose...: 
+-- Purpose...: 
 --              - Creates the schema if it does not exist (NO AUTHENTICATION).
 --              - Grants: CREATE SESSION, CREATE TABLE, CREATE PROCEDURE, CREATE JOB,
 --                SELECT_CATALOG_ROLE, PURGE DBA_RECYCLEBIN.
 --              - Safe to run multiple times; re-grants are harmless.
 --  Requires..: SYSDBA (or DBA with CREATE USER), Oracle 12c+.
---  Notes.....: 
+-- Notes.....: 
 --              - In a **CDB** environment, run this in the **PDB** (recommended).
 --                If you must create a common user in CDB$ROOT, use a name like C##XYZ_DBA.
 --              - NO AUTHENTICATION is suitable for a job-owning utility schema created by
 --                a DBA and not used for end-user logins. Adjust to an auth method you
 --                prefer (IDENTIFIED BY, EXTERNALLY, etc.) if needed.
 --  Exit codes: Exits with Oracle SQLCODE on error (WHENEVER SQLERROR).
---  Reference.: 
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: 
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 -- Fail fast in automation -----------------------------------------------------
 WHENEVER SQLERROR EXIT SQL.SQLCODE
@@ -96,13 +97,13 @@ BEGIN
 END;
 /
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 --  Section...: Create RECYCLEBIN_PURGE_LOG + indexes + housekeeping
---  Purpose...: Logging table for recycle bin purge procedure/job, with:
+-- Purpose...: Logging table for recycle bin purge procedure/job, with:
 --              - Monthly interval partitioning on LOG_TS
 --              - Indexes for common lookups
 --              - Housekeeping proc + scheduler job to purge old logs
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
 -- Create (or recreate) the table ----------------------------------------------
 DECLARE

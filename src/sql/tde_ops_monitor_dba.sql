@@ -1,18 +1,18 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_ops_show_dba_run.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Show TDE running operations from V$SESSION_LONGOPS
---  Notes.....:  
---  Reference.: Requires access to V$SESSION_LONGOPS
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_ops_show_dba_run.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Show TDE running operations from V$SESSION_LONGOPS
+-- Notes.....:  
+-- Reference.: Requires access to V$SESSION_LONGOPS
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 -- start to spool
 -- Configure spool directory and filename components

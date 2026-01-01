@@ -1,18 +1,18 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: rj.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.12.11
--- Revision...: 0.9.5
---  Purpose...: List the runing rman_jobs	
---  Usage.....: @rj <ORACLE_SID>
---  Notes.....: 
---  Reference.: Called as DBA or user with access to v$session_longops
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: rj.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.12.11
+-- Revision..: 0.9.5
+-- Purpose...: List the runing rman_jobs	
+-- Usage.....: @rj <ORACLE_SID>
+-- Notes.....: 
+-- Reference.: Called as DBA or user with access to v$session_longops
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 COLUMN rj_sid HEAD "SID" FORMAT 999999
 COLUMN rj_serial HEAD "Serial" FORMAT 999999
 COLUMN rj_context HEAD "Context" FORMAT 999999

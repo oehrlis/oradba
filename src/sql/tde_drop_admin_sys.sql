@@ -1,21 +1,22 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_drop_admin_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
---  Usage.....: SQL*Plus script to delete Transparent Data Encryption (TDE) settings 
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_drop_admin_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: SQL*Plus script to delete Transparent Data Encryption (TDE) settings 
 --              and drop TDE administration user and role in Oracle 19c and newer.
---  Purpose...: Automates the decommissioning of TDE in Oracle databases, including the deletion
+-- Purpose...: Automates the decommissioning of TDE in Oracle databases, including the deletion
 --              of necessary roles and users, resetting TDE-specific initialization parameters.
---  Notes.....: Ensure that Oracle Wallet or Keystore is properly configured before running
+-- Notes.....: Ensure that Oracle Wallet or Keystore is properly configured before running
 --              this script. The script should be executed by a user with SYSDBA privileges.
---  Reference.: 
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: 
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 -- define default values
 DEFINE _def_tde_admin_role   = 'TDE_ADMIN'
 DEFINE _def_tde_admin_user   = 'SEC_ADMIN'
@@ -59,7 +60,7 @@ FROM DUAL;
 
 
 SPOOL &LOGDIR./tde_drop_admin_sys_&DBSID._&TIMESTAMP..log
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block to reset TDE parameter and delete the admin user
 -- This block performs the following actions:
 --   1. Determines if the database is a Container Database (CDB) and sets relevant variables.
@@ -67,7 +68,7 @@ SPOOL &LOGDIR./tde_drop_admin_sys_&DBSID._&TIMESTAMP..log
 --   3. Drop a TDE admin role.
 --   4. Drop a TDE admin user.
 --   5. Handles exceptions and outputs relevant information and error messages.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 DECLARE
     -- Types
     SUBTYPE text_type IS VARCHAR2(512 CHAR); -- NOSONAR G-2120 keep function independent

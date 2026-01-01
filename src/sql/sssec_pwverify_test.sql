@@ -1,27 +1,27 @@
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Accenture, Data Platforms
 -- Saegereistrasse 29, 8152 Glattbrugg, Switzerland
---------------------------------------------------------------------------------
--- Name.......: sssec_pwverify_test.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Usage......: 
--- Purpose....: Test the password verify function
--- Notes......: 
--- Reference..: 
--- License....: Apache License Version 2.0, January 2004 as shown
+-- -----------------------------------------------------------------------------
+-- Name......: sssec_pwverify_test.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: 
+-- Purpose...: Test the password verify function
+-- Notes.....: 
+-- Reference.: 
+-- License...: Apache License Version 2.0, January 2004 as shown
 --             at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 set serveroutput on
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- create a temporary type
 CREATE OR REPLACE TYPE table_varchar AS
     TABLE OF VARCHAR2(128 char)
 /
  
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block to test the password function
 DECLARE
     l_username VARCHAR2(128 CHAR)       := 'john_doe';
@@ -55,7 +55,7 @@ BEGIN
 END;
 /
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- drop temporary created type
 DROP TYPE table_varchar
 /

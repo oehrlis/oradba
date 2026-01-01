@@ -1,12 +1,12 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_dbf_offline_decrypt_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: This PL/SQL script is designed to process database files, specifically
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_dbf_offline_decrypt_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: This PL/SQL script is designed to process database files, specifically
 --              focusing on identifying files across different chunks based on their
 --              sizes and preparing them for encryption commands. It dynamically
 --              groups files into chunks, excluding files from specified tablespaces,
@@ -25,7 +25,7 @@
 --                in gigabytes. Default is set to 5 GB.
 --              - l_excluded_tablespaces (VARCHAR2): Comma-separated list of
 --                tablespaces to exclude from processing.
---  Notes.....: - Ensure that the Oracle environment has the v$datafile and
+-- Notes.....: - Ensure that the Oracle environment has the v$datafile and
 --                v$tablespace views accessible with the necessary permissions.
 --              - This script generates commands for encryption but does not
 --                execute them. It's essential to review these commands before
@@ -34,11 +34,11 @@
 --              - The script uses DBMS_OUTPUT for displaying results. Ensure that
 --                the client supports viewing the DBMS_OUTPUT buffer or use an
 --                alternative method to capture the output.
---  Reference.: SYS (or grant manually to a DBA)
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: SYS (or grant manually to a DBA)
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block to configure audit environment
 SET SERVEROUTPUT ON
 SET LINESIZE 160 PAGESIZE 200

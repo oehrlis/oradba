@@ -1,25 +1,18 @@
-----------------------------------------------------------------------------
---     $Id: iux.sql 21 2009-09-16 09:11:28Z soe $
-----------------------------------------------------------------------------
---     Trivadis AG, Infrastructure Managed Services
---     Europa-Strasse 5, 8152 Glattbrugg, Switzerland
-----------------------------------------------------------------------------
---     File-Name........:  i.sql
---     Author...........:  tanel@tanelpoder.com
---     Editor...........:  Stefan Oehrli stefan.oehrli@trivadis.com
---     Date.............:  $LastChangedDate: 2009-09-16 11:11:28 +0200 (Mi, 16 Sep 2009) $
---     Revision.........:  $LastChangedRevision: 21 $
---     Purpose..........:  initialize environment
---     Usage............:  @i
---     Group/Privileges.:  n/a
---     Input parameters.:  n/a
---     Called by........:  --
---     Restrictions.....:  --
---     Notes............:  --
-----------------------------------------------------------------------------
---     Revision history.:      see svn log
-----------------------------------------------------------------------------
- 
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: iux.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...:	Show instance and user session information
+-- Notes.....: Script to show instance and user session information
+-- Usage.....: @iux
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 def   mysid="NA"
 def _i_spid="NA"
 def _i_cpid="NA"

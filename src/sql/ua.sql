@@ -1,17 +1,17 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: ua.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.12.11
--- Revision...: 0.9.5
---  Purpose...: Show active user sessions in database (no background procs)
---  Usage.....: @ua
---  Notes.....: 
---  Reference.: Idea based on a script from tanel@tanelpoder.com
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: ua.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.12.11
+-- Revision..: 0.9.5
+-- Purpose...: Show active user sessions in database (no background procs)
+-- Usage.....: @ua
+-- Notes.....: 
+-- Reference.: Idea based on a script from tanel@tanelpoder.com
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 ----------------------------------------------------------------------------
 --  Modified..:
 --  see git revision history for more information on changes/updates

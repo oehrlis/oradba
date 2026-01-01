@@ -1,19 +1,19 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: uspid.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.12.11
--- Revision...: 0.9.5
---  Purpose...: Show User sessions based on Server PID 
---  Usage.....: @uspid <SPID>
---  Notes.....: 
---  Reference.: Idea based on a script from tanel@tanelpoder.com
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: uspid.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.12.11
+-- Revision..: 0.9.5
+-- Purpose...: Show User sessions based on Server PID 
+-- Usage.....: @uspid <SPID>
+-- Notes.....: 
+-- Reference.: Idea based on a script from tanel@tanelpoder.com
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 col u_username head USERNAME for a23
 col u_sid head SID for a14 
 col u_audsid head AUDSID for 9999999999

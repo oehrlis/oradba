@@ -1,20 +1,20 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- -----------------------------------------------------------------------------
--- Name.......: init.sql
--- Author.....: Tanel Poder (original TPT scripts)
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Purpose....: Initialize SQL*Plus variables for 156+ character terminal
--- Notes......: Third-party script from Tanel Poder's TPT scripts collection
+-- Name......: init.sql
+-- Author....: Tanel Poder (original TPT scripts)
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Initialize SQL*Plus variables for 156+ character terminal
+-- Notes.....: Third-party script from Tanel Poder's TPT scripts collection
 --              Original copyright: (c) http://www.tanelpoder.com
 --              Some settings Windows specific
 --              Assumes SQLPATH variable set to point to script directory
--- Reference..: https://github.com/oehrlis/oradba
+-- Reference.: https://github.com/oehrlis/oradba
 --              https://github.com/tanelpoder/tpt-oracle
--- License....: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 -- -----------------------------------------------------------------------------
 
 -- set SQLPATH variable to either Unix or Windows format

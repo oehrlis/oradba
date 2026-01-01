@@ -1,19 +1,19 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: sp.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.10.24
--- Revision...: 0.9.5
---  Purpose...: List user with certain system privileges granted directly or
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: sp.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.10.24
+-- Revision..: 0.9.5
+-- Purpose...: List user with certain system privileges granted directly or
 --              through roles
---  Usage.....: @sq <SYSTEM PRIVILEGE> or %FOR all
---  Notes.....: Called as DBA or user with access to dba_ts_quotas dba_sys_privs,
+-- Usage.....: @sq <SYSTEM PRIVILEGE> or %FOR all
+-- Notes.....: Called as DBA or user with access to dba_ts_quotas dba_sys_privs,
 --              dba_role_privs,dba_users
---  Reference.: SYS (or grant manually to a DBA)
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Reference.: SYS (or grant manually to a DBA)
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 ----------------------------------------------------------------------------
 --  Modified..:
 --  see git revision history for more information on changes/updates

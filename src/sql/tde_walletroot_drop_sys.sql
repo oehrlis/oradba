@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_walletroot_drop_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Reset init.ora parameter WALLET_ROOT for TDE. This script should
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_walletroot_drop_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Reset init.ora parameter WALLET_ROOT for TDE. This script should
 --              run in CDB$ROOT. A manual restart of the database is mandatory to
 --              activate WALLET_ROOT.
---  Notes.....:  
---  Reference.: Requires SYS, SYSDBA or DBA privilege
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Notes.....:  
+-- Reference.: Requires SYS, SYSDBA or DBA privilege
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 -- format SQLPlus output and behavior
 SET LINESIZE 160 PAGESIZE 200
 SET HEADING ON

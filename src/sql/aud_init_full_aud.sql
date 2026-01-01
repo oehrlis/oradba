@@ -1,12 +1,12 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: aud_init_full_aud.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Usage.....: aud_init_full_aud.sql <TABLESPACE NAME> <DATAFILE SIZE> <AUDIT RETENTION>
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: aud_init_full_aud.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: aud_init_full_aud.sql <TABLESPACE NAME> <DATAFILE SIZE> <AUDIT RETENTION>
 --
 --              TABLESPACE NAME   Name of the audit tablespace. Default is AUDIT_DATA
 --              DATAFILE SIZE     Initial size of datafile. Default 20480K
@@ -16,13 +16,13 @@
 --                                awailable on the system. This amount of DAY
 --                                is also the fallback when the AVAGENT does not CREATE
 --                                timestamps. Default 30 days
---  Purpose...: Initialize Audit environment. Create Tablespace, reorganize Audit
+-- Purpose...: Initialize Audit environment. Create Tablespace, reorganize Audit
 --              tables and create jobs
---  Notes.....: 
---  Reference.: 
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Notes.....: 
+-- Reference.: 
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 -- define default values
 DEFINE _tablespace_name = 'AUDIT_DATA'

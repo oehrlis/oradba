@@ -1,16 +1,17 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: sec_profiles_show_dba.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2019.08.19
---  Usage.....: @sec_profiles_show_dba
---  Purpose...: Displays information about lockdown profiles.
---  Notes.....: 
---  Reference.: https://oracle-base.com/dba/script?category=18c&file=lockdown_profiles.sql
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: sec_profiles_show_dba.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: @sec_profiles_show_dba
+-- Purpose...: Displays information about lockdown profiles.
+-- Notes.....: 
+-- Reference.: https://oracle-base.com/dba/script?category=18c&file=lockdown_profiles.sql
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 ----------------------------------------------------------------------------
 --  Modified..:
 --  see git revision history for more information on changes/updates

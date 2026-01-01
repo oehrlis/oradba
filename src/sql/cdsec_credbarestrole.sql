@@ -1,25 +1,25 @@
---------------------------------------------------------------------------------
---  Trivadis - Part of Accenture, Platform Factory - Data Platforms
---  Saegereistrasse 29, 8152 Glattbrugg, Switzerland
---------------------------------------------------------------------------------
---  Name......: cdsec_credbarestrole.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
---  Usage.....: cdsec_credbarestrole.sql <ROLE NAME>
---  Purpose...: Script to create a restricted DBA role inlcuding re-grant to
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: cdsec_credbarestrole.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: cdsec_credbarestrole.sql <ROLE NAME>
+-- Purpose...: Script to create a restricted DBA role inlcuding re-grant to
 --              existing users.
---  Notes.....: 
---  Reference.: 
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+-- Notes.....: 
+-- Reference.: 
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- define default values
 DEFINE _role_name = 'DBA_RESTRICTED'
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- assign default value for parameter if argument 1 is empty
 SET FEEDBACK OFF
 SET VERIFY OFF
@@ -29,7 +29,7 @@ DEFINE role_name    = &1 &_role_name
 COLUMN role_name NEW_VALUE role_name NOPRINT
 SELECT upper('&role_name') role_name FROM dual;
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Define SQLPlus configuration
 SET SERVEROUTPUT ON
 SET LINESIZE 160 PAGESIZE 200
@@ -54,13 +54,13 @@ FROM DUAL;
 
 
 SPOOL &LOGDIR./cdsec_credbarestrole_&DBSID._&TIMESTAMP..log
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- create a temporary type
 CREATE OR REPLACE TYPE table_varchar AS
     TABLE OF VARCHAR2(128)
 /
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block to configure restricted dba role
 DECLARE
     -- black list of system privileges
@@ -325,7 +325,7 @@ EXCEPTION
 END;
 /
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- drop temporary created type
 DROP TYPE table_varchar
 /

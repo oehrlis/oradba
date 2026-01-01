@@ -1,17 +1,17 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- -----------------------------------------------------------------------------
--- Name.......: audit.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Purpose....: Alias for aud_config_show_aud.sql
--- Notes......: Simple wrapper script for audit trail configuration
--- Usage......: @audit
--- Reference..: https://github.com/oehrlis/oradba
--- License....: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Name......: audit.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Alias for aud_config_show_aud.sql
+-- Notes.....: Simple wrapper script for audit trail configuration
+-- Usage.....: @audit
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 -- -----------------------------------------------------------------------------
 @aud_config_show_aud.sql
 -- EOF -------------------------------------------------------------------------

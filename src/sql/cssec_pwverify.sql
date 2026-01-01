@@ -1,21 +1,21 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
--- Name.......: cssec_pwverify.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Usage......: 
--- Purpose....: Create custom password verify function. Configurable by internal
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: cssec_pwverify.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: 
+-- Purpose...: Create custom password verify function. Configurable by internal
 --              variables / constants
--- Notes......: 
--- Reference..: 
--- License....: Apache License Version 2.0, January 2004 as shown
+-- Notes.....: 
+-- Reference.: 
+-- License...: Apache License Version 2.0, January 2004 as shown
 --             at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Function..........: oradba_verify_function
 -- Version...........: 1.0
 -- Purpose...........: This PL/SQL function is designed to validate password 
@@ -51,16 +51,16 @@
 -- Output parameters.: Returns TRUE if the password meets all the specified
 --                     criteria. Raises an error with a specific message if any
 --                     criteria are not met.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION oradba_verify_function ( -- NOSONAR skip G-7410 as this function must be standalone
     in_username     IN VARCHAR2,
     in_password     IN VARCHAR2,
     in_old_password IN VARCHAR2
 ) RETURN BOOLEAN DETERMINISTIC IS
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Begin of Customization ------------------------------------------------------
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
     -- Constants for Password Policy
     co_cust_differ        CONSTANT INTEGER := 5;      -- The minimum number of different characters required between the old and new passwords.
     co_cust_chars_min     CONSTANT INTEGER := 12;     -- The minimum length of the password.
@@ -71,9 +71,9 @@ CREATE OR REPLACE FUNCTION oradba_verify_function ( -- NOSONAR skip G-7410 as th
     co_cust_digit         CONSTANT INTEGER := 1;      -- The required number of digits in the password.
     co_cust_special       CONSTANT INTEGER := 0;      -- null or more characters, default 1
     co_check_alphanumeric CONSTANT BOOLEAN := FALSE;  -- Controls whether to check for alphanumeric-only passwords. Valid only if co_cust_special is 0.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- End of Customization --------------------------------------------------------
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
  
     -- Constants for misc literals
     co_regex_nocase       CONSTANT VARCHAR2(1 CHAR) := 'i';       -- case-insensitive regex NOSONAR
@@ -97,7 +97,7 @@ CREATE OR REPLACE FUNCTION oradba_verify_function ( -- NOSONAR skip G-7410 as th
     l_lang                VARCHAR2(512 CHAR);                               -- local variable for error message language NOSONAR
     l_sql                 VARCHAR2(512 CHAR);                               -- local variable for sql used in EXECUTE IMMEDIATE NOSONAR
 
-    --------------------------------------------------------------------------------
+    -- -----------------------------------------------------------------------------
     -- Procedure.....: raise_error_with_message
     -- Purpose.......: This procedure attempts to retrieve a custom error message
     --                 using the sys.utl_lms.get_message function. If successful,

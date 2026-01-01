@@ -1,17 +1,17 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- -----------------------------------------------------------------------------
--- Name.......: db_info.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......:2026.01.01
--- Revision...: 0.9.5
--- Purpose....: Display comprehensive database information
--- Notes......: Shows database name, instance details, and datafile information.
+-- Name......: db_info.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......:2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Display comprehensive database information
+-- Notes.....: Shows database name, instance details, and datafile information.
 --              Run as: sqlplus / as sysdba @db_info.sql
--- Reference..: https://github.com/oehrlis/oradba
--- License....: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 -- -----------------------------------------------------------------------------
 
 SET PAGESIZE 1000

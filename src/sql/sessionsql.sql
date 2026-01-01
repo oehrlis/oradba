@@ -1,15 +1,15 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
 -- -----------------------------------------------------------------------------
--- Name.......: sessionsql.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Purpose....: Configure SQL*Plus session with dynamic terminal width
--- Notes......: Sets LINESIZE and PAGESIZE based on current terminal dimensions
--- Usage......: @sessionsql.sql or via sessionsql alias
--- Reference..: Uses tput cols/lines to detect terminal size
+-- Name......: sessionsql.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Configure SQL*Plus session with dynamic terminal width
+-- Notes.....: Sets LINESIZE and PAGESIZE based on current terminal dimensions
+-- Usage.....: @sessionsql.sql or via sessionsql alias
+-- Reference.: Uses tput cols/lines to detect terminal size
 -- -----------------------------------------------------------------------------
 
 -- Detect terminal width and set LINESIZE accordingly

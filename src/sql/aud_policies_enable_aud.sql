@@ -1,17 +1,17 @@
 -- -----------------------------------------------------------------------------
 -- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 -- -----------------------------------------------------------------------------
--- Name.......: aud_policies_enable_aud.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Purpose....: SQL script to enable custom local audit policies policies
--- Notes......: Simple script to enable the SecBench local audit policies
--- Usage......: @aud_policies_enable_aud
--- Reference..: https://github.com/oehrlis/oradba
--- License....: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- Name......: aud_policies_enable_aud.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: SQL script to enable custom local audit policies policies
+-- Notes.....: Simple script to enable the SecBench local audit policies
+-- Usage.....: @aud_policies_enable_aud
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 -- -----------------------------------------------------------------------------
 -- setup SQLPlus environment
 SET SERVEROUTPUT ON

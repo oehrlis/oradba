@@ -1,17 +1,17 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: al.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2018.10.24
--- Revision...: 0.9.5
---  Purpose...: List/query alert log
---  Usage.....: @al <STRING> or % for all
---  Notes.....:  
---  Reference.: SYS (or grant manually to a DBA)
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: al.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2018.10.24
+-- Revision..: 0.9.5
+-- Purpose...: List/query alert log
+-- Usage.....: @al <STRING> or % for all
+-- Notes.....:  
+-- Reference.: SYS (or grant manually to a DBA)
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
 ----------------------------------------------------------------------------
 --  Modified..:
 --  see git revision history for more information on changes/updates

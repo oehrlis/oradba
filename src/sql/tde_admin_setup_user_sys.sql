@@ -1,22 +1,23 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_admin_setup_sys_user.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
---  Usage.....: SQL*Plus script to configure Transparent Data Encryption (TDE) settings 
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_admin_setup_sys_user.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: SQL*Plus script to configure Transparent Data Encryption (TDE) settings 
 --              and create TDE administration user and role in Oracle 19c and newer.
---  Purpose...: Automates the setup of TDE in Oracle databases, including the creation
+-- Purpose...: Automates the setup of TDE in Oracle databases, including the creation
 --              of necessary roles and users, setting TDE-specific initialization parameters,
 --              and granting necessary privileges.
---  Notes.....: Ensure that Oracle Wallet or Keystore is properly configured before running
+-- Notes.....: Ensure that Oracle Wallet or Keystore is properly configured before running
 --              this script. The script should be executed by a user with SYSDBA privileges.
---  Reference.: 
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: 
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 -- define default values
 DEFINE _def_tde_admin_role   = 'TDE_ADMIN'
 DEFINE _def_tde_admin_user   = 'SEC_ADMIN'
@@ -60,7 +61,7 @@ FROM DUAL;
 
 
 SPOOL &LOGDIR./tde_admin_setup_user_sys_&DBSID._&TIMESTAMP..log
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block to configure TDE parameter and admin user
 -- This block performs the following actions:
 --   1. Determines if the database is a Container Database (CDB) and sets relevant variables.
@@ -68,16 +69,16 @@ SPOOL &LOGDIR./tde_admin_setup_user_sys_&DBSID._&TIMESTAMP..log
 --   3. Creates a TDE admin role with required system and object privileges.
 --   4. Creates a TDE admin user and grants necessary roles and privileges.
 --   5. Handles exceptions and outputs relevant information and error messages.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 DECLARE
 
     -- Types
     SUBTYPE text_type IS VARCHAR2(512 CHAR); -- NOSONAR G-2120 keep function independent
     TYPE t_table_varchar_type IS TABLE OF text_type;
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Begin of Customization ------------------------------------------------------
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
     -- table with system privieges granted to TDE admin
     t_system_privileges t_table_varchar_type := t_table_varchar_type(
         'CREATE SESSION',
@@ -101,9 +102,9 @@ DECLARE
         'gv_$parameter',
         'v_$parameter',
         'gv_$parameter');
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- End of Customization --------------------------------------------------------
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
     -- Local variables
     l_tda_admin_role        dbms_id :='&tde_admin_role';  -- TDE admin role

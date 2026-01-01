@@ -1,12 +1,12 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_init_full_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Initialize TDE for a single tenant or container database. This
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_init_full_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Initialize TDE for a single tenant or container database. This
 --              scripts does use several other scripts to enable TDE and it
 --              also includes restart of the database. 
 --
@@ -17,12 +17,12 @@
 --              - tde_mkey_create_sys.sql      create master encryption key
 --              - restart database
 --              - tde_info_dba.sql        show current TDE configuration
---  Notes.....:  
---  Reference.: Requires SYS, SYSDBA or SYSKM privilege
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Notes.....:  
+-- Reference.: Requires SYS, SYSDBA or SYSKM privilege
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 SET FEEDBACK OFF
 SET VERIFY OFF
 -- define default values for wallet password

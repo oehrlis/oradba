@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_wallet_create_sys_backup.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Automates the creation of a backup for the Transparent Data Encryption (TDE)
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_wallet_create_sys_backup.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Automates the creation of a backup for the Transparent Data Encryption (TDE)
 --              software keystore in Oracle databases.
---  Notes.....: Requires SYS, SYSDBA, or SYSKM privileges. The script sets up a DBMS scheduler
+-- Notes.....: Requires SYS, SYSDBA, or SYSKM privileges. The script sets up a DBMS scheduler
 --              job to regularly backup the TDE keystore. Ensure the backup directory exists.
---  Reference.: 
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: 
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 -- define default values
 DEFINE def_backup_dir   = 'backup'
@@ -67,7 +67,7 @@ FROM DUAL;
 
 
 SPOOL &LOGDIR./tde_wallet_bkup_create_sys_&DBSID._&TIMESTAMP..log
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Anonymous PL/SQL Block: TDE Software Keystore Backup Configuration
 -- This block performs the following actions:
 --   1. Creates a DBMS Scheduler Program ('TDE_Backup_Keystore') to execute the
@@ -78,7 +78,7 @@ SPOOL &LOGDIR./tde_wallet_bkup_create_sys_&DBSID._&TIMESTAMP..log
 --      program with the schedule.
 --   4. Outputs information about the creation of the scheduler objects and reminds
 --      to create the necessary backup directory.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 DECLARE
     l_exists  INTEGER;
 

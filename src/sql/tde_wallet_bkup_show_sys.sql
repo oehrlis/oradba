@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
---  Name......: tde_wallet_bkup_show_sys.sql
---  Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
---  Editor....: Stefan Oehrli
---  Date......: 2026.01.01
--- Revision...: 0.9.5
---  Purpose...: Displays the configuration and status of the TDE software keystore backup 
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: tde_wallet_bkup_show_sys.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Purpose...: Displays the configuration and status of the TDE software keystore backup 
 --              components created in the Oracle database.
---  Notes.....: This script queries the DBMS Scheduler objects related to TDE keystore backup, 
+-- Notes.....: This script queries the DBMS Scheduler objects related to TDE keystore backup, 
 --              including programs, schedules, and jobs. Requires SYS, SYSDBA, or SYSKM privileges.
---  Reference.: 
---  Reference..: https://github.com/oehrlis/oradba
---  License...: Apache License Version 2.0, January 2004 as shown
---              at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- Reference.: 
+-- Reference.: https://github.com/oehrlis/oradba
+-- License...: Apache License Version 2.0, January 2004 as shown
+--             at http://www.apache.org/licenses/
+-- -----------------------------------------------------------------------------
 
 -- format SQLPlus output and behavior
 SET LINESIZE 200 PAGESIZE 200
@@ -54,14 +54,14 @@ FROM DUAL;
 
 
 SPOOL &LOGDIR./tde_wallet_bkup_show_sys_&DBSID._&TIMESTAMP..log
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- SQL Queries: TDE Software Keystore Backup Scheduler Objects Information
 -- This section queries the following DBMS Scheduler objects:
 --   1. Scheduler Programs: Lists all TDE-related programs including their attributes.
 --   2. Scheduler Schedules: Displays the schedules configured for TDE backups.
 --   3. Scheduler Jobs: Shows the details of the jobs set up for performing the backups.
 --   4. Outputs include program actions, schedule timings, job execution history, etc.
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
 -- Query Scheduler Programs related to TDE
 SELECT program_name, program_type, enabled, comments 

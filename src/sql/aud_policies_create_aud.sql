@@ -1,18 +1,18 @@
---------------------------------------------------------------------------------
---  OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
---------------------------------------------------------------------------------
--- Name.......: aud_policies_create_aud.sql
--- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
--- Editor.....: Stefan Oehrli
--- Date.......: 2026.01.01
--- Revision...: 0.9.5
--- Usage......: 
--- Purpose....: Create custom local audit policies
--- Notes......: 
--- Reference..: 
--- License....: Apache License Version 2.0, January 2004 as shown
+-- -----------------------------------------------------------------------------
+-- OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+-- -----------------------------------------------------------------------------
+-- Name......: aud_policies_create_aud.sql
+-- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+-- Editor....: Stefan Oehrli
+-- Date......: 2026.01.01
+-- Revision..: 0.9.5
+-- Usage.....: 
+-- Purpose...: Create custom local audit policies
+-- Notes.....: 
+-- Reference.: 
+-- License...: Apache License Version 2.0, January 2004 as shown
 --             at http://www.apache.org/licenses/
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
 SET SERVEROUTPUT ON
 SET linesize 160 pagesize 200
@@ -42,7 +42,7 @@ FROM DUAL;
 
 SPOOL &LOGDIR./aud_policies_create_aud_&DBSID._&TIMESTAMP..log
 SHOW con_name
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all action for privileged users
 CREATE AUDIT POLICY oradba_loc_all_act_priv_usr
     ACTIONS ALL
@@ -51,7 +51,7 @@ CREATE AUDIT POLICY oradba_loc_all_act_priv_usr
 COMMENT ON AUDIT POLICY oradba_loc_all_act_priv_usr IS
     'OraDBA local audit policy to audit all actions by priviledged users';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all action by users with direct access
 CREATE AUDIT POLICY oradba_loc_all_act_direct_acc
     ACTIONS ALL
@@ -61,7 +61,7 @@ CREATE AUDIT POLICY oradba_loc_all_act_direct_acc
 COMMENT ON AUDIT POLICY oradba_loc_all_act_direct_acc IS
     'OraDBA local audit policy to audit all actions through direct access';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all action by users with direct access
 CREATE AUDIT POLICY oradba_loc_all_act_proxy_usr
 ACTIONS ALL
@@ -72,7 +72,7 @@ ACTIONS ALL
 COMMENT ON AUDIT POLICY oradba_loc_all_act_proxy_usr IS
     'OraDBA local audit policy to audit all actions of proxy user access';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all action by users with direct access
 CREATE AUDIT POLICY oradba_loc_all_act_named_usr
     ACTIONS ALL
@@ -81,7 +81,7 @@ CREATE AUDIT POLICY oradba_loc_all_act_named_usr
 COMMENT ON AUDIT POLICY oradba_loc_all_act_named_usr IS
     'OraDBA local audit policy to audit all actions of specific named users';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all logon events
 CREATE AUDIT POLICY oradba_loc_all_logon_events
     ACTIONS
@@ -91,7 +91,7 @@ CREATE AUDIT POLICY oradba_loc_all_logon_events
 COMMENT ON AUDIT POLICY oradba_loc_all_logon_events IS
     'OraDBA local audit policy to audit all logon events';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all datapump events
 CREATE AUDIT POLICY oradba_loc_all_dp_events
     ACTIONS COMPONENT = datapump export, import;
@@ -99,7 +99,7 @@ CREATE AUDIT POLICY oradba_loc_all_dp_events
 COMMENT ON AUDIT POLICY oradba_loc_all_dp_events IS
     'OraDBA local audit policy to audit all datapump events';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all directory access events
 CREATE AUDIT POLICY oradba_loc_dir_acc
     ACTIONS READ DIRECTORY, WRITE DIRECTORY, EXECUTE DIRECTORY
@@ -108,7 +108,7 @@ CREATE AUDIT POLICY oradba_loc_dir_acc
 COMMENT ON AUDIT POLICY oradba_loc_dir_acc IS
     'OraDBA local audit policy to audit all directory access events';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit account management actions
 CREATE AUDIT POLICY oradba_loc_acc_mgmt
     ACTIONS
@@ -122,7 +122,7 @@ CREATE AUDIT POLICY oradba_loc_acc_mgmt
 COMMENT ON AUDIT POLICY oradba_loc_acc_mgmt IS
     'OraDBA local audit policy to audit account management actions';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit instance configuration
 CREATE AUDIT POLICY oradba_loc_inst_config
     ACTIONS
@@ -134,7 +134,7 @@ CREATE AUDIT POLICY oradba_loc_inst_config
 COMMENT ON AUDIT POLICY oradba_loc_inst_config IS
     'OraDBA local audit policy to audit instance configuration';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit secure configuration
 CREATE AUDIT POLICY oradba_loc_secure_config
     PRIVILEGES
@@ -152,7 +152,7 @@ CREATE AUDIT POLICY oradba_loc_secure_config
 COMMENT ON AUDIT POLICY oradba_loc_secure_config IS
     'OraDBA local audit policy to audit secure configuration';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all critical database activity
 CREATE AUDIT POLICY oradba_loc_critical_db_act
     PRIVILEGES
@@ -182,7 +182,7 @@ CREATE AUDIT POLICY oradba_loc_critical_db_act
 COMMENT ON AUDIT POLICY oradba_loc_critical_db_act IS
     'OraDBA audit policy to audit all critical database activity';
 
---------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Create audit policy to audit all database schema changes
 CREATE AUDIT POLICY oradba_loc_db_schema_changes
     PRIVILEGES
