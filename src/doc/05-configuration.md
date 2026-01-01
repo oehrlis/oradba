@@ -545,15 +545,15 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 
 ### Core System Variables
 
-| Variable            | Default                 | Description                               |
-|---------------------|-------------------------|-------------------------------------------|
-| `ORADBA_PREFIX`     | `/opt/oradba`           | Installation base directory               |
-| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc`  | Configuration directory                   |
-| `ORATAB_FILE`       | `/etc/oratab`           | oratab file location                      |
-| `DEBUG`             | `0`                     | Debug mode (deprecated, use ORADBA_DEBUG) |
-| `ORADBA_DEBUG`      | `false`                 | Debug mode for detailed output            |
+| Variable            | Default                | Description                               |
+|---------------------|------------------------|-------------------------------------------|
+| `ORADBA_PREFIX`     | `/opt/oradba`          | Installation base directory               |
+| `ORADBA_CONFIG_DIR` | `${ORADBA_PREFIX}/etc` | Configuration directory                   |
+| `ORATAB_FILE`       | `/etc/oratab`          | oratab file location                      |
+| `DEBUG`             | `0`                    | Debug mode (deprecated, use ORADBA_DEBUG) |
+| `ORADBA_DEBUG`      | `false`                | Debug mode for detailed output            |
 | `LOG_DIR`           | `${ORADBA_PREFIX}/log` | Log directory                             |
-| `BACKUP_DIR`        | `/backup`               | Default backup directory                  |
+| `BACKUP_DIR`        | `/backup`              | Default backup directory                  |
 
 ### Behavior Variables
 
