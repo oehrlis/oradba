@@ -4,8 +4,8 @@
 -- Name.......: oh.sql (OraDBA Help)
 -- Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor.....: Stefan Oehrli
--- Date.......: 2025.12.24
--- Revision...: 0.9.1
+-- Date.......: 2026.01.01
+-- Revision...: 0.9.3
 -- Purpose....: Display available SQL scripts with names and purposes
 -- Notes......: Reads script headers to extract names and purposes from SQLPATH
 -- Usage......: @oh [filter]
@@ -33,7 +33,7 @@ PROMPT =========================================================================
 -- Use HOST command to extract script info from headers
 -- Note: Using CONCAT to avoid && being interpreted as SQL*Plus variable
 SET DEFINE ON
-HOST bash -c 'sqlpath="${SQLPATH:-$PWD}"; filter="&filter_pattern"; echo ""; echo "Location: $sqlpath"; if [ -n "$filter" ]; then echo "Filter: *${filter}*"; fi; echo ""; printf "%-30s %s\n" "Script" "Purpose"; printf "%-30s %s\n" "------------------------------" "------------------------------------------------------------"; cd "$sqlpath"; for f in *.sql; do if [ -f "$f" ]; then if [ -z "$filter" ] || echo "$f" | grep -qi "$filter"; then purpose=$(head -20 "$f" | grep -i "^--.*Purpose" | head -1 | sed "s/.*Purpose[.:]*//;s/^[[:space:]]*//;s/[[:space:]]*$//" | cut -c1-60); if [ -n "$purpose" ]; then printf "%-30s %s\n" "$f" "$purpose"; fi; fi; fi; done | sort'
+HOST bash -c 'sqlpath="${SQLPATH:-$PWD}"; filter="&filter_pattern"; echo ""; echo "Location: $sqlpath"; if [ -n "$filter" ]; then echo "Filter: *${filter}*"; fi; echo ""; printf "%-30s %s\n" "Script" "Purpose"; printf "%-30s %s\n" "------------------------------" "------------------------------------------------------------"; IFS=":"; for dir in $sqlpath; do if [ -d "$dir" ]; then cd "$dir" 2>/dev/null || continue; for f in *.sql; do if [ -f "$f" ]; then if [ -z "$filter" ] || echo "$f" | grep -qi "$filter"; then purpose=$(head -20 "$f" | grep -i "^--.*Purpose" | head -1 | sed "s/.*Purpose[.:]*//;s/^[[:space:]]*//;s/[[:space:]]*$//" | cut -c1-60); if [ -n "$purpose" ]; then printf "%-30s %s\n" "$f" "$purpose"; fi; fi; fi; done; fi; done | sort -u'
 
 PROMPT
 PROMPT ================================================================================

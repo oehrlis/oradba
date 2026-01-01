@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **SQL Scripts**: Fixed oh.sql to iterate through SQLPATH directories correctly
+  - Previous version tried to cd to colon-separated path string
+  - Now splits SQLPATH by colon and processes each directory individually
+  - Adds `-u` flag to sort to avoid duplicate entries from multiple paths
+  - Properly handles directories that don't exist
+
 ### Changed
 
 - **Directory Structure**: Renamed log directory from `logs/` to `log/` for consistency
