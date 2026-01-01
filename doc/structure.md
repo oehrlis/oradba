@@ -111,7 +111,7 @@ src/
     ├── 14-sqlnet-config.md # SQL*Net configuration
     ├── 15-log-management.md # Log management
     ├── 16-usage.md        # Usage guide
-    ├── ALIAS_HELP.txt     # Alias help text
+    ├── alias_help.txt     # Alias help text
     └── README.md          # Documentation index
 ```
 

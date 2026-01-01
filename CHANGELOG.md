@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Documentation**: Reverted alias_help.txt filename to lowercase for consistency
+  - Changed from `ALIAS_HELP.txt` back to `alias_help.txt`
+  - All references updated (documentation, validation script, configuration)
+  - Maintains consistency with other configuration files
+
 ## [0.9.2] - 2026-01-01
 
 ### Fixed
@@ -29,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents false failures in CI environment
 - **Documentation**: Improved documentation structure and build process
   - Renamed `USAGE.md` to `16-usage.md` for consistency
-  - Renamed `alias_help.txt` to `ALIAS_HELP.txt` (uppercase)
+  - Documentation structure improvements
   - Fixed image copying to exclude source files (.excalidraw)
   - Build now copies only PNG images, not README.md or source subfolder
   - Prevents additional files in installation checksum verification
