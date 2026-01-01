@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-01-01
+
 ### Fixed
 
+- **RMAN Aliases**: Fixed rmanc and rmanch to use fallback when catalog is not configured
+  - When `ORADBA_RMAN_CATALOG_CONNECTION` is set: uses catalog connection
+  - When not set: falls back to `rman target /` (no catalog keyword)
+  - Prevents unwanted prompts for catalog connection info
+  - Users can add catalog connection interactively if needed
+  - All aliases (rman, rmanc, rmanh, rmanch) are always available
 - **Database Functions**: Fixed error handling in database query functions
   - All query functions now properly suppress SQL*Plus errors (redirect stderr to /dev/null)
   - Added `WHENEVER SQLERROR/OSERROR EXIT FAILURE` to SQL blocks
