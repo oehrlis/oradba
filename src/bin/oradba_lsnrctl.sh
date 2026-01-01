@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.1.0
+# Revision...: 0.10.0
 # Purpose....: Oracle listener start/stop control script
 # Notes......: Can be used interactively or in runlevel/systemd scripts
 #              Supports multiple listeners across different Oracle homes
@@ -81,8 +81,9 @@ EOF
 log_message() {
     local level="$1"
     shift
-    local message="$@"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local message="$*"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     # Ensure log directory exists
     mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
@@ -109,7 +110,8 @@ get_first_oracle_home() {
     fi
     
     # Get first valid Oracle home
-    local oracle_home=$(grep -v '^#' "${oratab_file}" | grep -v '^$' | grep -v ':D$' | head -1 | cut -d: -f2)
+    local oracle_home
+    oracle_home=$(grep -v '^#' "${oratab_file}" | grep -v '^$' | grep -v ':D$' | head -1 | cut -d: -f2)
     
     if [[ -z "${oracle_home}" ]]; then
         log_message ERROR "No Oracle home found in oratab"
@@ -122,9 +124,10 @@ get_first_oracle_home() {
 # Set Oracle environment for listener operations
 set_listener_env() {
     local listener_name="$1"
+    local oracle_home
     
     # Get Oracle home - try from listener configuration or use first from oratab
-    local oracle_home=$(get_first_oracle_home)
+    oracle_home=$(get_first_oracle_home)
     
     if [[ -z "${oracle_home}" ]]; then
         log_message ERROR "Cannot determine Oracle home"

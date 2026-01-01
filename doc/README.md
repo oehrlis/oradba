@@ -22,9 +22,18 @@ Start here if you're new to OraDBA development:
   - Project structure and components
   - Development workflow and Git practices
   - Testing with BATS framework
+  - Smart test selection for fast feedback
   - Code quality and linting
   - Building and releasing
   - Contribution guidelines
+
+- **[smart-test-selection.md](smart-test-selection.md)** - Smart Test Selection
+  - Overview and how it works
+  - Usage examples and scenarios
+  - Performance comparisons
+  - Configuration and test mapping
+  - CI/CD integration
+  - Troubleshooting guide
 
 ### Architecture & Design
 

@@ -101,6 +101,54 @@ Main configuration file: [src/etc/oradba.conf](src/etc/oradba.conf)
 - `LOG_DIR` - Log directory
 - `BACKUP_DIR` - Backup location
 
+## Available Make Targets
+
+OraDBA uses Make for development automation. Run `make help` to see all available targets.
+
+**Common Commands:**
+
+```bash
+# Testing
+make test              # Smart test selection (fast, ~1-3 min)
+make test-full         # All tests (comprehensive, ~8-10 min)
+make test DRY_RUN=1    # Preview which tests would run
+
+# Quality Checks
+make lint              # Run all linters
+make lint-shell        # ShellCheck only
+make lint-markdown     # Markdown lint only
+make format            # Auto-format shell scripts
+
+# Building
+make build             # Build installer and tarball
+make docs              # Generate documentation
+make docs-pdf          # PDF documentation
+make docs-html         # HTML documentation
+
+# Development Workflows
+make pre-commit        # Quick checks before commit (smart tests + lint)
+make ci                # Full CI pipeline (all tests + docs + build)
+make clean             # Remove build artifacts
+
+# Validation
+make validate          # Validate configuration files
+```
+
+**Test-Related Targets:**
+
+| Target            | Tests Run               | Duration  | Use Case                |
+|-------------------|-------------------------|-----------|-------------------------|
+| `make test`       | Smart selection (~5-50) | 1-3 min   | During development      |
+| `make test-full`  | All 492 tests           | 8-10 min  | Before commits/releases |
+| `make pre-commit` | Smart + lint            | 2-4 min   | Pre-commit hook         |
+| `make ci`         | Full suite + build      | 10-15 min | Complete validation     |
+
+**Environment Variables:**
+
+- `DRY_RUN=1` - Preview without execution
+- `VERBOSE=1` - Show detailed output
+- `FULL=1` - Force full test run (alternative to `make test-full`)
+
 ## Development Workflow
 
 ### 1. Making Changes
@@ -112,32 +160,89 @@ git checkout -b feature/my-feature
 # Make changes
 vim src/bin/oraenv.sh
 
-# Test changes
-./test/run_tests.sh
+# Test changes (smart selection)
+make test
+
+# See what tests would run
+make test DRY_RUN=1
 ```
 
 ### 2. Testing
 
-```bash
-# Run all tests
-./tests/run_tests.sh
+**Quick Testing (Recommended for development):**
 
+```bash
+# Smart test selection - runs only affected tests
+make test
+
+# Preview what would run
+make test DRY_RUN=1
+
+# Output:
+# Selected 5 test file(s):
+#   - test_installer.bats (always run)
+#   - test_oradba_version.bats (always run)
+#   - test_oraenv.bats (always run)
+#   - test_common.bats (affected by your changes)
+#   - test_aliases.bats (affected by your changes)
+```
+
+**Full Testing (Before commits/releases):**
+
+```bash
+# Run complete test suite (492 tests)
+make test-full
+
+# Pre-commit checks (smart tests + linting)
+make pre-commit
+
+# Complete CI pipeline (full tests + docs + build)
+make ci
+```
+
+**Manual Testing:**
+
+```bash
 # Run specific test file
 bats tests/test_common.bats
 
 # Run with debug output
 DEBUG=1 bats tests/test_common.bats
+
+# Run legacy test runner
+./tests/run_tests.sh
+```
+
+**Test Development:**
+
+When adding new functionality:
+
+1. Add test file: `tests/test_myfeature.bats`
+2. Update `.testmap.yml` to map source files to your test
+3. Verify mapping: `./scripts/select_tests.sh --dry-run --verbose`
+
+Example mapping:
+
+```yaml
+mappings:
+  src/bin/myfeature.sh:
+    - test_myfeature.bats
 ```
 
 ### 3. Linting
 
 ```bash
-# Install shellcheck
-brew install shellcheck  # macOS
-sudo apt-get install shellcheck  # Ubuntu
+# Run all linters
+make lint
 
-# Lint all scripts
-find . -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck
+# Individual linters
+make lint-shell      # ShellCheck for bash scripts
+make lint-markdown   # Markdownlint for documentation
+
+# Install tools if needed
+brew install shellcheck markdownlint-cli  # macOS
+sudo apt-get install shellcheck           # Ubuntu
+npm install -g markdownlint-cli           # Markdown linting
 ```
 
 ### 4. Building
@@ -290,6 +395,66 @@ Backup location: `$PREFIX.backup.YYYYMMDD_HHMMSS`
 The project uses BATS (Bash Automated Testing System) for comprehensive testing,
 with unit tests for individual functions and integration tests for end-to-end workflows.
 
+### Smart Test Selection
+
+OraDBA implements smart test selection to accelerate development by running only tests
+affected by your changes.
+
+**Quick Start:**
+
+```bash
+# Smart selection (default) - runs only affected tests
+make test
+
+# Show what would run without executing
+make test DRY_RUN=1
+
+# Run all tests
+make test-full
+
+# Pre-commit checks (smart tests + linting)
+make pre-commit
+```
+
+**How It Works:**
+
+1. Detects changed files using `git diff origin/main`
+2. Consults `.testmap.yml` for source-to-test mappings
+3. Always includes core tests (installer, version, oraenv)
+4. Runs only selected test files
+5. Falls back to full suite if detection fails
+
+**Performance:**
+
+| Scenario             | Full Suite        | Smart Selection   | Time Saved  |
+|----------------------|-------------------|-------------------|-------------|
+| Single script change | 492 tests (8 min) | ~10 tests (1 min) | 7 minutes   |
+| Library change       | 492 tests (8 min) | ~50 tests (2 min) | 6 minutes   |
+| Documentation only   | 492 tests (8 min) | 3 tests (30 sec)  | 7.5 minutes |
+
+**Configuration:**
+
+Edit `.testmap.yml` to adjust mappings:
+
+```yaml
+# Always run these tests
+always_run:
+  - test_installer.bats
+  - test_oradba_version.bats
+  - test_oraenv.bats
+
+# Map source files to test files
+mappings:
+  src/lib/common.sh:
+    - test_common.bats
+    - test_aliases.bats
+  
+  src/bin/oradba_dbctl.sh:
+    - test_service_management.bats
+```
+
+See [Smart Test Selection Guide](smart-test-selection.md) for complete documentation.
+
 ### BATS Testing Framework
 
 BATS (Bash Automated Testing System) is used for all tests.
@@ -358,39 +523,117 @@ teardown() {
 
 ### CI Workflow
 
-1. **CI Workflow** ([.github/workflows/ci.yml](.github/workflows/ci.yml))
-   - Triggered on push/PR to main/develop
-   - Runs shellcheck linting
-   - Executes BATS tests
-   - Builds installer
-   - Validates installation
+The CI workflow ([.github/workflows/ci.yml](.github/workflows/ci.yml)) is optimized
+for fast feedback with smart test selection:
 
-2. **Release Workflow** ([.github/workflows/release.yml](.github/workflows/release.yml))
-   - Triggered on version tags (v*.*.*)
-   - Builds installer
-   - Creates GitHub release
+**Trigger:** Push/PR to main/develop branches
+
+**Steps:**
+
+1. **Change Detection**
+   - Uses `dorny/paths-filter` to detect changed files
+   - Determines which jobs need to run
+   - Skips unnecessary steps for faster execution
+
+2. **Linting**
+   - ShellCheck for bash scripts
+   - Markdownlint for documentation
+   - Detects `#!/bin/sh` usage (requires `#!/usr/bin/env bash`)
+
+3. **Smart Test Execution**
+   - Runs only tests affected by changes
+   - Uses `.testmap.yml` for mapping
+   - Typically runs 5-50 tests instead of 492
+   - Fast feedback in 1-3 minutes
+
+4. **Build Validation**
+   - Builds installer package
+   - Verifies distribution files
    - Uploads artifacts
 
-3. **Dependency Review**
-   - Runs on pull requests
-   - Security scanning
+**Example Output:**
+
+```text
+Detecting changed files...
+Scripts changed: true
+
+Selecting tests to run...
+Selected 5 test file(s):
+- test_db_functions.bats
+- test_installer.bats
+- test_oradba_version.bats
+- test_oraenv.bats
+- test_service_management.bats
+
+Running selected tests...
+✓ All tests passed (67% reduction from full suite)
+```
+
+### Release Workflow
+
+The release workflow ([.github/workflows/release.yml](.github/workflows/release.yml))
+runs comprehensive validation before creating a release:
+
+**Trigger:** Version tags (v*.*.*)
+
+**Steps:**
+
+1. **Full Test Suite** ⚠️
+   - Runs all 492 tests (no smart selection)
+   - Ensures complete validation
+   - Comprehensive quality check
+
+2. **Linting**
+   - Complete shellcheck validation
+   - Markdown linting
+
+3. **Build & Documentation**
+   - Builds installer with version injection
+   - Generates PDF/HTML documentation
+   - Creates distribution tarball
+
+4. **GitHub Release**
+   - Creates release with artifacts
+   - Uploads installer, docs, tarball
+   - Auto-generates release notes
+
+**Key Difference from CI:**
+
+- CI uses **smart test selection** for speed
+- Release uses **full test suite** for quality
+
+### Dependency Review
+
+- Runs on pull requests
+- Security scanning
+- Dependency vulnerability checks
 
 ### Creating a Release
 
 ```bash
 # Update version
-echo "0.2.0" > VERSION
+echo "0.10.0" > VERSION
 
 # Update changelog
 vim CHANGELOG.md
 
+# Update file headers (revision numbers)
+# Update documentation
+
 # Commit changes
-git add VERSION CHANGELOG.md
-git commit -m "chore: Bump version to 0.2.0"
+git add VERSION CHANGELOG.md src/ doc/
+git commit -m "chore: release v0.10.0"
 
 # Create and push tag
-git tag -a v0.2.0 -m "Release v0.2.0"
+git tag -a v0.10.0 -m "Release v0.10.0"
 git push origin main --tags
+
+# GitHub Actions will:
+# 1. Run full test suite (492 tests)
+# 2. Run all linters
+# 3. Build installer and docs
+# 4. Create GitHub release
+# 5. Upload all artifacts
 ```
 
 ## Installer Architecture

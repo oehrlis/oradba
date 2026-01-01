@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.1.0
+# Revision...: 0.10.0
 # Purpose....: Orchestrate Oracle database and listener services
 # Notes......: Uses oradba_dbctl.sh and oradba_lsnrctl.sh for operations
 #              Can be configured via oradba_services.conf
@@ -95,8 +95,9 @@ EOF
 log_message() {
     local level="$1"
     shift
-    local message="$@"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local message="$*"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     # Ensure log directory exists
     mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
@@ -117,6 +118,7 @@ log_message() {
 load_config() {
     if [[ -f "${CONFIG_FILE}" ]]; then
         log_message INFO "Loading configuration from ${CONFIG_FILE}"
+        # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
     else
         log_message INFO "No configuration file found, using defaults"

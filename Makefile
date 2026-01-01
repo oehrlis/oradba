@@ -102,8 +102,33 @@ help: ## Show this help message
 # ==============================================================================
 
 .PHONY: test
-test: ## Run all tests
-	@echo -e "$(COLOR_BLUE)Running tests...$(COLOR_RESET)"
+test: ## Run smart test selection (only tests affected by changes)
+	@if [ -z "$(BATS)" ]; then \
+		echo -e "$(COLOR_RED)Error: bats not found. Install with: brew install bats-core$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@if [ "$(DRY_RUN)" = "1" ]; then \
+		echo -e "$(COLOR_BLUE)Dry run: showing which tests would execute...$(COLOR_RESET)"; \
+		$(SCRIPTS_DIR)/select_tests.sh --dry-run --verbose; \
+	else \
+		echo -e "$(COLOR_BLUE)Running smart test selection...$(COLOR_RESET)"; \
+		selected_tests=$$($(SCRIPTS_DIR)/select_tests.sh); \
+		if [ -z "$$selected_tests" ]; then \
+			echo -e "$(COLOR_YELLOW)No tests selected, running all tests$(COLOR_RESET)"; \
+			$(BATS) $(TEST_DIR)/*.bats; \
+		else \
+			test_count=$$(echo "$$selected_tests" | wc -l | tr -d ' '); \
+			echo -e "$(COLOR_GREEN)Running $$test_count selected test file(s)$(COLOR_RESET)"; \
+			echo "$$selected_tests" | while read -r test_file; do \
+				echo -e "$(COLOR_BLUE)  - $$test_file$(COLOR_RESET)"; \
+			done; \
+			cd $(TEST_DIR) && echo "$$selected_tests" | xargs $(BATS); \
+		fi; \
+	fi
+
+.PHONY: test-full
+test-full: ## Run all tests (no smart selection)
+	@echo -e "$(COLOR_BLUE)Running full test suite (492 tests)...$(COLOR_RESET)"
 	@if [ -n "$(BATS)" ]; then \
 		$(BATS) $(TEST_DIR)/*.bats; \
 	else \
@@ -516,11 +541,11 @@ setup-dev: ## Setup development environment
 # ==============================================================================
 
 .PHONY: ci
-ci: clean lint test docs build ## Run CI pipeline locally (includes docs)
+ci: clean lint test-full docs build ## Run CI pipeline locally (full test suite + docs)
 	@echo -e "$(COLOR_GREEN)✓ CI pipeline completed successfully$(COLOR_RESET)"
 
 .PHONY: pre-commit
-pre-commit: format lint ## Run pre-commit checks
+pre-commit: format lint test ## Run pre-commit checks (smart test selection)
 	@echo -e "$(COLOR_GREEN)✓ Pre-commit checks passed$(COLOR_RESET)"
 
 .PHONY: pre-push

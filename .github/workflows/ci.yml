@@ -83,7 +83,7 @@ jobs:
           fi
 
   test:
-    name: Run Tests
+    name: Run Tests (Smart Selection)
     runs-on: ubuntu-latest
     needs: [changes, lint]
     if: |
@@ -92,19 +92,39 @@ jobs:
       (needs.lint.result == 'success' || needs.lint.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for git diff
       
       - name: Install BATS
         run: |
           sudo apt-get update
           sudo apt-get install -y bats
       
-      - name: Run BATS tests
+      - name: Select and run tests
         run: |
-          if [ -d "tests" ] && [ -n "$(find tests -name '*.bats' -type f)" ]; then
-            ./tests/run_tests.sh
-          else
-            echo "No BATS tests found, skipping..."
+          echo "::group::Detecting changed files"
+          # Use dorny/paths-filter output or git diff
+          if [ -n "${{ needs.changes.outputs.scripts }}" ]; then
+            echo "Scripts changed: ${{ needs.changes.outputs.scripts }}"
           fi
+          echo "::endgroup::"
+          
+          echo "::group::Selecting tests to run"
+          chmod +x scripts/select_tests.sh
+          ./scripts/select_tests.sh --verbose > selected_tests.txt
+          test_count=$(wc -l < selected_tests.txt | tr -d ' ')
+          echo "Selected $test_count test file(s):"
+          cat selected_tests.txt
+          echo "::endgroup::"
+          
+          echo "::group::Running selected tests"
+          if [ -s selected_tests.txt ]; then
+            cd tests && cat ../selected_tests.txt | xargs bats
+          else
+            echo "No tests selected, running all tests"
+            ./tests/run_tests.sh
+          fi
+          echo "::endgroup::"
 
   build:
     name: Build Installer

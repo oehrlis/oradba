@@ -11,15 +11,16 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
 - **Hierarchical Configuration**: 5-level configuration system with flexible overrides
-- **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and more
+- **Service Management**: Enterprise-grade database and listener lifecycle control with systemd/init.d integration
+- **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management
 - **Long Operations Monitoring**: Real-time tracking of RMAN, DataPump, and other operations
-- **Database Status Display**: Compact, comprehensive database information
+- **Database Status Display**: Compact, comprehensive database information for all states (OPEN/MOUNT/NOMOUNT)
 - **Peer Synchronization**: Distribute files across database peer hosts
 - **Wallet Utilities**: Extract passwords from Oracle Wallet
 - **Version Management**: Version checking, integrity verification, and update detection
-- **SQL & RMAN Scripts**: Ready-to-use administration scripts
+- **SQL & RMAN Scripts**: Ready-to-use administration scripts with central logging
 - **Self-Contained Installer**: Single executable, no external dependencies
-- **Comprehensive Testing**: BATS test suite with CI/CD integration
+- **Comprehensive Testing**: BATS test suite with 490+ tests and CI/CD integration
 
 ## Quick Start
 
@@ -64,6 +65,26 @@ sq                # sqlplus / as sysdba
 cdh               # cd $ORACLE_HOME
 taa               # tail -f alert.log
 alih              # Show all aliases with descriptions
+orastart          # Start all Oracle services (listeners + databases)
+dbstatus.sh       # Comprehensive database information
+```
+
+Manage Oracle services:
+
+```bash
+# Start/stop individual databases
+dbstart           # Start databases (honors :Y flag in oratab)
+dbstop            # Stop databases
+dbctl status      # Show database status
+
+# Manage listeners
+lsnrstart         # Start listener
+lsnrstop          # Stop listener
+
+# Combined service management
+orastart          # Start all services (listeners then databases)
+orastop           # Stop all services (databases then listeners)
+orastatus         # Show status of all services
 ```
 
 View database status and monitor operations:
@@ -95,6 +116,7 @@ Complete user guides available in multiple formats:
 - Shell aliases reference
 - PDB alias management
 - SQL and RMAN scripts
+- Service management (databases and listeners)
 - rlwrap integration
 - Troubleshooting guide
 - Complete reference

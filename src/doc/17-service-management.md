@@ -1,6 +1,7 @@
 # Oracle Service Management
 
-OraDBA provides comprehensive service management tools for Oracle databases and listeners, suitable for interactive use, automation, and integration with systemd or init.d.
+OraDBA provides comprehensive service management tools for Oracle databases and listeners, suitable for interactive
+use, automation, and integration with systemd or init.d.
 
 ## Overview
 
@@ -261,7 +262,7 @@ LSNR_OPTIONS=""
 
 ### Configuration Examples
 
-**Example 1: Production with PDBs**
+#### Example 1: Production with PDBs
 
 ```bash
 STARTUP_ORDER="listener,database"
@@ -271,7 +272,7 @@ SPECIFIC_LISTENERS="LISTENER_PROD"
 DB_OPTIONS="--open-pdbs --timeout 300"
 ```
 
-**Example 2: Development (all databases)**
+#### Example 2: Development (all databases)
 
 ```bash
 STARTUP_ORDER="listener,database"
@@ -281,7 +282,7 @@ SPECIFIC_LISTENERS=""
 DB_OPTIONS="--open-pdbs"
 ```
 
-**Example 3: Custom order with multiple DBs**
+#### Example 3: Custom order with multiple DBs
 
 ```bash
 STARTUP_ORDER="listener,database"
@@ -361,7 +362,7 @@ All service management operations are logged to:
 
 ### Log Format
 
-```
+```text
 [2026-01-01 14:30:45] [INFO] Starting database ORCL...
 [2026-01-01 14:30:50] [INFO] Database ORCL started successfully
 ```

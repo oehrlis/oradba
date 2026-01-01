@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.1.0
+# Revision...: 0.10.0
 # Purpose....: Database start/stop control script for Oracle instances
 # Notes......: Can be used interactively or in runlevel/systemd scripts
 #              Honors oratab :Y flag by default, supports explicit SID override
@@ -92,8 +92,9 @@ EOF
 log_message() {
     local level="$1"
     shift
-    local message="$@"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local message="$*"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     # Ensure log directory exists
     mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
@@ -132,8 +133,9 @@ get_databases() {
 should_autostart() {
     local sid="$1"
     local oratab_file="${ORATAB:-/etc/oratab}"
+    local flag
     
-    local flag=$(grep "^${sid}:" "${oratab_file}" | cut -d: -f3)
+    flag=$(grep "^${sid}:" "${oratab_file}" | cut -d: -f3)
     [[ "${flag}" == "Y" ]]
 }
 
@@ -186,7 +188,8 @@ start_database() {
     fi
     
     # Check if database is already running
-    local status=$(sqlplus -s / as sysdba << EOF
+    local status
+    status=$(sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
@@ -255,7 +258,8 @@ stop_database() {
     fi
     
     # Check if database is running
-    local status=$(sqlplus -s / as sysdba << EOF
+    local status
+    status=$(sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
@@ -317,7 +321,8 @@ show_status() {
     fi
     
     # Get database status
-    local status=$(sqlplus -s / as sysdba << EOF
+    local status
+    status=$(sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;

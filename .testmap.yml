@@ -1,0 +1,144 @@
+# ------------------------------------------------------------------------------
+# OraDBA Test Mapping Configuration
+# ------------------------------------------------------------------------------
+# Defines which test files should run when specific source files change.
+# Used by scripts/select_tests.sh for smart test selection.
+# ------------------------------------------------------------------------------
+
+# Tests that always run regardless of changes (core functionality)
+always_run:
+  - test_installer.bats
+  - test_oradba_version.bats
+  - test_oraenv.bats
+
+# Mapping: source file/pattern -> test files
+# When a source file changes, run the associated tests
+mappings:
+  # Core libraries - affect multiple tests
+  src/lib/common.sh:
+    - test_common.bats
+    - test_aliases.bats
+    - test_db_functions.bats
+    - test_oraenv.bats
+    - test_oradba_check.bats
+    - test_service_management.bats
+    - test_sid_config.bats
+  
+  src/lib/aliases.sh:
+    - test_aliases.bats
+  
+  src/lib/db_functions.sh:
+    - test_db_functions.bats
+    - test_oraenv.bats
+  
+  # Binaries - direct mapping
+  src/bin/oradba_check.sh:
+    - test_oradba_check.bats
+  
+  src/bin/oradba_version.sh:
+    - test_oradba_version.bats
+  
+  src/bin/oraenv.sh:
+    - test_oraenv.bats
+  
+  src/bin/oraup.sh:
+    - test_oraup.bats
+  
+  src/bin/dbstatus.sh:
+    - test_db_functions.bats
+  
+  src/bin/oradba_sqlnet.sh:
+    - test_oradba_sqlnet.bats
+  
+  # Service management scripts
+  src/bin/oradba_dbctl.sh:
+    - test_service_management.bats
+  
+  src/bin/oradba_lsnrctl.sh:
+    - test_service_management.bats
+  
+  src/bin/oradba_services.sh:
+    - test_service_management.bats
+  
+  src/bin/oradba_services_root.sh:
+    - test_service_management.bats
+  
+  src/etc/oradba_services.conf:
+    - test_service_management.bats
+  
+  # Job wrapper scripts
+  src/bin/rman_jobs.sh:
+    - test_job_wrappers.bats
+  
+  src/bin/exp_jobs.sh:
+    - test_job_wrappers.bats
+  
+  src/bin/imp_jobs.sh:
+    - test_job_wrappers.bats
+  
+  src/bin/longops.sh:
+    - test_longops.bats
+    - test_job_wrappers.bats
+  
+  src/bin/get_seps_pwd.sh:
+    - test_get_seps_pwd.bats
+  
+  # Sync scripts
+  src/bin/sync_from_peers.sh:
+    - test_sync_scripts.bats
+  
+  src/bin/sync_to_peers.sh:
+    - test_sync_scripts.bats
+  
+  # Configuration files
+  src/etc/oradba_core.conf:
+    - test_common.bats
+  
+  src/etc/oradba_standard.conf:
+    - test_aliases.bats
+  
+  src/etc/sid.ORCL.conf.example:
+    - test_sid_config.bats
+  
+  # Installer changes
+  scripts/build_installer.sh:
+    - test_installer.bats
+  
+  src/bin/oradba_install.sh:
+    - test_installer.bats
+
+# Pattern-based mappings (regex)
+# If source file matches pattern, run associated tests
+patterns:
+  # Any test file change runs itself
+  - pattern: "^tests/test_(.+)\\.bats$"
+    tests:
+      - "test_$1.bats"
+  
+  # Documentation changes don't require tests
+  - pattern: "^(doc|src/doc)/.*\\.md$"
+    tests: []
+  
+  # SQL scripts don't have dedicated tests yet
+  - pattern: "^src/sql/.*\\.sql$"
+    tests: []
+  
+  # RMAN scripts don't have dedicated tests yet
+  - pattern: "^src/rcv/.*\\.rman$"
+    tests: []
+  
+  # Template changes might affect installer
+  - pattern: "^src/templates/"
+    tests:
+      - test_service_management.bats
+  
+  # Makefile changes might affect build
+  - pattern: "^Makefile$"
+    tests:
+      - test_installer.bats
+  
+  # VERSION file changes
+  - pattern: "^VERSION$"
+    tests:
+      - test_installer.bats
+      - test_oradba_version.bats

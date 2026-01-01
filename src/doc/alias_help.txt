@@ -52,6 +52,22 @@
  lstart          --> Start listener
  lstop           --> Stop listener
 
+ SERVICE MANAGEMENT (Database & Listener Control)
+ -------------------------------------------------------------------------------
+ dbctl           --> Database control script (start/stop/restart/status)
+ dbstart         --> Start databases (honors :Y flag in oratab)
+ dbstop          --> Stop databases
+ dbrestart       --> Restart databases
+ lsnrctl         --> Listener control script
+ lsnrstart       --> Start listener
+ lsnrstop        --> Stop listener
+ lsnrrestart     --> Restart listener
+ lsnrstatus      --> Show listener status
+ orastart        --> Start all Oracle services (listeners + databases)
+ orastop         --> Stop all Oracle services (databases + listeners)
+ orarestart      --> Restart all Oracle services
+ orastatus       --> Show status of all Oracle services
+
  DIAGNOSTIC TOOLS
  -------------------------------------------------------------------------------
  adrcih          --> ADRCI with rlwrap (history + tab completion)

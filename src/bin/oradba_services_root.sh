@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.1.0
+# Revision...: 0.10.0
 # Purpose....: Root wrapper for Oracle service management
 # Notes......: Executes oradba_services.sh as oracle user
 #              Used by systemd/init.d for service startup
@@ -36,8 +36,9 @@ LOGFILE="/var/log/oracle/oradba_services_root.log"
 log_message() {
     local level="$1"
     shift
-    local message="$@"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local message="$*"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     # Ensure log directory exists
     mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null

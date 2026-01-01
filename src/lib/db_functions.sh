@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.01
-# Revision...: 0.9.4
+# Revision...: 0.10.0
 # Purpose....: Database query and status functions for Oracle databases
 # Notes......: This library provides reusable functions to query database
 #              information from v$ views at different database states.
@@ -185,14 +185,15 @@ EOF
 
 # ------------------------------------------------------------------------------
 # Function: query_memory_usage
-# Purpose.: Query current memory usage (available in OPEN)
+# Purpose.: Query current memory usage (available in MOUNT and OPEN)
 # Returns.: SGA|PGA in GB
 # ------------------------------------------------------------------------------
 query_memory_usage() {
     local open_mode="$1"
     
-    # Only query if database is OPEN
-    if [[ "$open_mode" != "OPEN" ]]; then
+    # Query v$sga and v$pgastat - works in MOUNT and OPEN states
+    # Skip only for STARTED (NOMOUNT)
+    if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
@@ -227,7 +228,7 @@ EOF
 
 # ------------------------------------------------------------------------------
 # Function: query_sessions_info
-# Purpose.: Query session information (available in OPEN)
+# Purpose.: Query session information (available in MOUNT and OPEN)
 # Returns.: NON_ORACLE_USERS|NON_ORACLE_SESSIONS|ORACLE_USERS|ORACLE_SESSIONS
 # ------------------------------------------------------------------------------
 query_sessions_info() {
@@ -408,7 +409,7 @@ show_database_status() {
     fi
     
     # Parse instance info
-    IFS='|' read -r instance_name status startup_time version _ sga_target pga_target fra_size <<< "$instance_info"
+    IFS='|' read -r instance_name db_status startup_time version _ sga_target pga_target fra_size <<< "$instance_info"
     
     # Start output
     echo ""
@@ -418,6 +419,7 @@ show_database_status() {
     printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
     printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
     printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
+    printf "%-15s: %s\n" "DB_STATUS" "$db_status"
     echo "-------------------------------------------------------------------------------"
     
     # Query database info if MOUNTED or OPEN

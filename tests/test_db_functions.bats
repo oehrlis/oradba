@@ -97,15 +97,15 @@ setup() {
     [ "$status" -eq 1 ]
 }
 
-# Test: query_memory_usage returns error for non-OPEN mode
-@test "query_memory_usage returns error for MOUNTED mode" {
-    run query_memory_usage "MOUNTED"
+# Test: query_memory_usage works for MOUNTED mode (v$sga and v$pgastat available)
+@test "query_memory_usage returns error for STARTED mode" {
+    run query_memory_usage "STARTED"
     [ "$status" -eq 1 ]
 }
 
-# Test: query_sessions_info returns error for non-OPEN mode
-@test "query_sessions_info returns error for MOUNTED mode" {
-    run query_sessions_info "MOUNTED"
+# Test: query_sessions_info returns error for STARTED mode
+@test "query_sessions_info returns error for STARTED mode" {
+    run query_sessions_info "STARTED"
     [ "$status" -eq 1 ]
 }
 

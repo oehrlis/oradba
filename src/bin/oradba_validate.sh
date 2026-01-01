@@ -157,10 +157,10 @@ echo ""
 echo "Checking Documentation..."
 echo "-------------------------------------------------------------------------------"
 
-test_item "README.md exists" "[[ -f '${ORADBA_BASE}/../README.md' ]]"
-test_item "ALIASES.md exists" "[[ -f '${ORADBA_BASE}/../doc/ALIASES.md' ]]"
-test_item "CONFIGURATION.md exists" "[[ -f '${ORADBA_BASE}/../doc/CONFIGURATION.md' ]]" "optional"
-test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/../doc/alias_help.txt' ]]"
+test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]"
+test_item "06-aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/06-aliases.md' ]]"
+test_item "05-configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/05-configuration.md' ]]" "optional"
+test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
 
 echo ""
 

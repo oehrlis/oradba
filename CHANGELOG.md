@@ -7,6 +7,141 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-01-01
+
+### Added
+
+- **Smart Test Selection**: Intelligent test execution based on changed files
+  - Runs only tests affected by code changes instead of all 492 tests
+  - Configuration-based mapping via `.testmap.yml`
+  - Always-run core tests: installer, version, oraenv
+  - Pattern matching for flexible test selection
+  - Git-based change detection (local: `git diff origin/main`, CI: `dorny/paths-filter`)
+  - Fallback to full test suite with warning if changes can't be determined
+  - **Performance Improvements**:
+    - Single script change: ~10 tests (1 min) vs 492 tests (8 min) - 7 min saved
+    - Library change: ~50 tests (2 min) vs 492 tests (8 min) - 6 min saved
+    - Documentation only: 3 tests (30 sec) vs 492 tests (8 min) - 7.5 min saved
+  - **New Make Targets**:
+    - `make test`: Smart selection (default, fast feedback)
+    - `make test-full`: All tests (comprehensive validation)
+    - `make test DRY_RUN=1`: Preview which tests would run
+    - `make pre-commit`: Smart tests + linting
+  - **CI/CD Integration**:
+    - Regular CI uses smart selection for fast feedback (1-3 minutes)
+    - Release workflow uses full test suite for quality assurance (8-10 minutes)
+  - **New Files**:
+    - `.testmap.yml`: Test mapping configuration
+    - `scripts/select_tests.sh`: Smart test selection script
+    - `doc/smart-test-selection.md`: Complete documentation
+
+- **Mermaid Diagrams**: Created comprehensive Mermaid diagram definitions
+  - `doc/images/source/diagrams-mermaid.md`: 11 Mermaid diagrams for documentation
+  - **Updated Diagrams** (PNG and Excalidraw sources):
+    - CI/CD Pipeline: Smart test selection vs full test suite workflows
+    - Test Strategy: Architecture of smart test selection system
+    - Development Workflow: Developer decision tree with test options
+    - Architecture System: Complete layered system architecture
+    - oraenv.sh Flow: Environment setup process
+    - Configuration Hierarchy: 5-level override system
+    - Configuration Sequence: Config loading sequence diagram
+    - Installation Flow: Self-extracting installer process
+    - Alias Generation: Dynamic alias creation with PDB support
+    - Performance Comparison: Time savings visualization
+    - Test Selection Decision: Simplified test selection logic
+  - Text-based diagrams for version control and GitHub rendering
+  - Can be imported into Excalidraw for visual editing
+  - Reflects smart test selection and service management features
+
+- **Oracle Service Management**: Complete enterprise-grade service management toolkit
+  - `oradba_dbctl.sh`: Database lifecycle management (start/stop/restart/status)
+    - Honors `:Y` flag in oratab for auto-start configuration
+    - Configurable shutdown timeout (default 180s) with abort escalation
+    - Optional PDB opening with `--open-pdbs` flag
+    - Force mode for non-interactive automation
+    - Justification logging for audit trails
+    - Continue-on-error to process all databases
+  - `oradba_lsnrctl.sh`: Listener management across Oracle homes
+    - Automatic discovery of first Oracle home from oratab
+    - Support for multiple listeners with explicit names
+    - Status reporting for all running listeners
+  - `oradba_services.sh`: Orchestrated database and listener management
+    - Configurable startup/shutdown order via config file
+    - Default order: start listeners→databases, stop databases→listeners
+    - Support for specific databases and listeners
+    - Pass-through options to underlying scripts
+    - Unified status reporting
+  - `oradba_services_root.sh`: Root wrapper for system integration
+    - Executes services as oracle user from root context
+    - Automatic --force flag for unattended operation
+    - Used by systemd and init.d service templates
+  - **System Integration Templates**:
+    - systemd unit file (`oradba.service`) with proper dependencies and timeouts
+    - init.d/chkconfig script for Red Hat and Debian systems
+    - Complete installation instructions for both service managers
+  - **Configuration**: `oradba_services.conf` for service orchestration
+    - STARTUP_ORDER and SHUTDOWN_ORDER variables
+    - SPECIFIC_DBS and SPECIFIC_LISTENERS for targeted control
+    - DB_OPTIONS and LSNR_OPTIONS for pass-through parameters
+  - **Convenience Aliases** (11 new aliases):
+    - Database: `dbctl`, `dbstart`, `dbstop`, `dbrestart`
+    - Listener: `lsnrctl`, `lsnrstart`, `lsnrstop`, `lsnrrestart`, `lsnrstatus`
+    - Combined: `orastart`, `orastop`, `orarestart`, `orastatus`
+  - **Comprehensive Documentation**: 17-service-management.md (657 lines)
+    - Quick start guide with examples
+    - Detailed usage for all components
+    - systemd and init.d installation procedures
+    - Logging, error handling, and security considerations
+    - Troubleshooting guide and advanced usage patterns
+  - **Complete Test Coverage**: 51 BATS automated tests + interactive test suite
+    - Script existence, permissions, and syntax validation
+    - Help output and configuration validation
+    - Template structure verification
+    - Alias and documentation completeness checks
+    - Integration point validation
+
+### Changed
+
+- **CI Workflow**: Updated to use smart test selection for faster feedback
+  - Fetches full git history for proper diff comparison
+  - Groups output for better readability
+  - Falls back to full suite if selection fails
+
+- **Release Workflow**: Ensures comprehensive validation
+  - Always runs full test suite (492 tests) before release
+  - Added explicit test and lint steps
+  - Guarantees 100% test coverage for releases
+
+- **Makefile**: Enhanced with smart test selection targets
+  - `test` target now uses smart selection by default
+  - `test-full` for complete test runs
+  - `ci` target uses full tests for comprehensive validation
+  - `pre-commit` uses smart tests for quick feedback
+
+- **Development Documentation**: Updated with smart test selection
+  - Added "Available Make Targets" section
+  - Expanded testing guide with smart selection examples
+  - Updated GitHub Actions workflow explanations
+  - Added performance comparisons and configuration examples
+
+- **Code Quality**: Fixed all shellcheck warnings for production readiness
+  - Separated variable declarations from assignments (SC2155)
+  - Changed `"$@"` to `"$*"` for string concatenation (SC2124)
+  - Added shellcheck directives for dynamic source and config files
+  - Proper variable usage in db_functions.sh (SC2034)
+
+### Fixed
+
+- **Session Info Query**: Corrected `query_sessions_info()` to work in MOUNT and OPEN states
+  - v$session is available in MOUNT mode, not just OPEN
+  - Only skips STARTED (NOMOUNT) state as intended
+  - Updated test to check for STARTED instead of MOUNTED
+
+- **Memory Usage Query**: Corrected `query_memory_usage()` to work in MOUNT and OPEN states
+  - v$sga and v$pgastat are available in MOUNT mode, not just OPEN
+  - Only skips STARTED (NOMOUNT) state as intended
+  - Updated test to check for STARTED instead of MOUNTED
+
 ## [0.9.5] - 2026-01-01
 
 ### Added
