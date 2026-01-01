@@ -347,7 +347,7 @@ format_uptime() {
 show_database_status() {
     # Check if we can connect
     if ! check_database_connection; then
-        # Database not accessible - show simple environment status only
+        # Database not accessible - show environment status
         echo ""
         echo "-------------------------------------------------------------------------------"
         printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
@@ -361,7 +361,6 @@ show_database_status() {
         fi
         printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
         echo "-------------------------------------------------------------------------------"
-        echo ""
         
         # Check if this is a dummy SID (in ORADBA_SIDLIST but not in ORADBA_REALSIDLIST)
         local is_dummy=false
@@ -372,12 +371,13 @@ show_database_status() {
         fi
         
         if [[ "${is_dummy}" == "true" ]]; then
-            echo "Database instance '${ORACLE_SID}' is a dummy SID (environment only)."
+            printf "%-15s: %s\n" "STATUS" "Dummy Database (environment only)"
         else
-            echo "Database instance '${ORACLE_SID}' is not available (may not be started)."
+            printf "%-15s: %s\n" "STATUS" "NOT STARTED"
         fi
+        echo "-------------------------------------------------------------------------------"
         echo ""
-        return 1
+        return 0
     fi
     
     # Get open mode first
@@ -447,8 +447,18 @@ show_database_status() {
     # Uptime
     printf "%-15s: %s\n" "UPTIME" "$(format_uptime "$startup_time")"
     
-    # Instance and open mode status (combined)
-    printf "%-15s: %s / %s\n" "STATUS" "$status" "$open_mode"
+    # Status display - format depends on open_mode
+    if [[ "$open_mode" == "OPEN" ]]; then
+        # For OPEN: show open_mode and database role
+        if [[ -n "$db_role" ]]; then
+            printf "%-15s: %s / %s\n" "STATUS" "$open_mode" "$db_role"
+        else
+            printf "%-15s: %s\n" "STATUS" "$open_mode"
+        fi
+    else
+        # For STARTED (NOMOUNT) and MOUNTED: show single status
+        printf "%-15s: %s\n" "STATUS" "$open_mode"
+    fi
     
     # Session info if OPEN
     if [[ "$open_mode" == "OPEN" ]]; then
@@ -461,11 +471,10 @@ show_database_status() {
         fi
     fi
     
-    # Database role and log mode (MOUNT and higher)
-    if [[ "$open_mode" != "STARTED" && -n "$db_role" ]]; then
-        printf "%-15s: %s\n" "DATABASE_ROLE" "$db_role"
+    # Database details (MOUNT and OPEN)
+    if [[ "$open_mode" != "STARTED" && -n "$log_mode" ]]; then
         printf "%-15s: %s\n" "LOG_MODE" "$log_mode"
-        printf "%-15s: %s\n" "CHARACTERSET" "$charset"
+        printf "%-15s: %s\n" "CHARACTERSET" "${charset:-N/A}"
     fi
     
     # PDB info (OPEN only)
