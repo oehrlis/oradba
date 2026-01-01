@@ -233,8 +233,9 @@ EOF
 query_sessions_info() {
     local open_mode="$1"
     
-    # Only query if database is OPEN
-    if [[ "$open_mode" != "OPEN" ]]; then
+    # Query v$session - works in MOUNT and OPEN states
+    # Skip only for STARTED (NOMOUNT)
+    if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
@@ -274,8 +275,9 @@ EOF
 query_pdb_info() {
     local open_mode="$1"
     
-    # Only query if database is OPEN
-    if [[ "$open_mode" != "OPEN" ]]; then
+    # Query v$pdbs - works in MOUNT and OPEN states
+    # Skip only for STARTED (NOMOUNT)
+    if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
@@ -434,13 +436,6 @@ show_database_status() {
                 printf "%-15s: %s (DBID: %s)\n" "DB_NAME" "$db_name" "$dbid"
                 printf "%-15s: %s (Instance: %s)\n" "DB_UNIQUE_NAME" "$db_unique_name" "$instance_name"
             fi
-            
-            # Get datafile size
-            local df_size
-            df_size=$(query_datafile_size "$open_mode" | tr -d '[:space:]')
-            if [[ -n "$df_size" && "$df_size" != "0" ]]; then
-                printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
-            fi
         else
             log_debug "query_database_info returned empty for open_mode: $open_mode"
         fi
@@ -459,24 +454,33 @@ show_database_status() {
     # FRA size
     printf "%-15s: %sG\n" "FRA_SIZE" "${fra_size:-0}"
     
+    # Datafile size (for MOUNT and OPEN)
+    if [[ "$open_mode" != "STARTED" ]]; then
+        local df_size
+        df_size=$(query_datafile_size "$open_mode" | tr -d '[:space:]')
+        if [[ -n "$df_size" ]]; then
+            printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
+        fi
+    fi
+    
     # Uptime
     printf "%-15s: %s\n" "UPTIME" "$(format_uptime "$startup_time")"
     
     # Status display - format depends on open_mode
-    if [[ "$open_mode" == "OPEN" ]]; then
-        # For OPEN: show open_mode and database role
+    if [[ "$open_mode" == "STARTED" ]]; then
+        # For NOMOUNT: show single status
+        printf "%-15s: %s\n" "STATUS" "$open_mode"
+    else
+        # For MOUNTED and OPEN: show status with database role
         if [[ -n "$db_role" ]]; then
             printf "%-15s: %s / %s\n" "STATUS" "$open_mode" "$db_role"
         else
             printf "%-15s: %s\n" "STATUS" "$open_mode"
         fi
-    else
-        # For STARTED (NOMOUNT) and MOUNTED: show single status
-        printf "%-15s: %s\n" "STATUS" "$open_mode"
     fi
     
-    # Session info if OPEN
-    if [[ "$open_mode" == "OPEN" ]]; then
+    # Session info (for MOUNT and OPEN)
+    if [[ "$open_mode" != "STARTED" ]]; then
         local session_info
         session_info=$(query_sessions_info "$open_mode")
         if [[ -n "$session_info" ]]; then
@@ -492,8 +496,8 @@ show_database_status() {
         printf "%-15s: %s\n" "CHARACTERSET" "${charset:-N/A}"
     fi
     
-    # PDB info (OPEN only)
-    if [[ "$open_mode" == "OPEN" ]]; then
+    # PDB info (for MOUNT and OPEN)
+    if [[ "$open_mode" != "STARTED" ]]; then
         local pdb_info
         pdb_info=$(query_pdb_info "$open_mode" | tr -d '[:space:]')
         if [[ -n "$pdb_info" ]]; then
