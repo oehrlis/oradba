@@ -46,6 +46,22 @@ log_debug() {
     fi
 }
 
+# Check if current ORACLE_SID is a dummy database (oratab flag :D)
+# Returns: 0 if dummy, 1 if not dummy or can't determine
+is_dummy_sid() {
+    local sid="${ORACLE_SID}"
+    local oratab_file="${ORATAB:-/etc/oratab}"
+    
+    [[ -z "$sid" ]] && return 1
+    [[ ! -f "$oratab_file" ]] && return 1
+    
+    # Check if SID exists in oratab with :D flag
+    if grep -q "^${sid}:.*:D" "$oratab_file" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
 # Check if a command exists
 command_exists() {
     command -v "$1" > /dev/null 2>&1

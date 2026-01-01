@@ -345,7 +345,29 @@ format_uptime() {
 # Parameters: None (uses current ORACLE_SID environment)
 # ------------------------------------------------------------------------------
 show_database_status() {
-    # Check if we can connect
+    # Check if this is a dummy SID BEFORE attempting connection
+    if is_dummy_sid; then
+        # Dummy database - show environment only, no SQL queries
+        echo ""
+        echo "-------------------------------------------------------------------------------"
+        printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
+        printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
+        printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
+        
+        # Try to get version from Oracle Home
+        local version=""
+        if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
+            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
+        fi
+        printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
+        echo "-------------------------------------------------------------------------------"
+        printf "%-15s: %s\n" "STATUS" "Dummy Database (environment only)"
+        echo "-------------------------------------------------------------------------------"
+        echo ""
+        return 0
+    fi
+    
+    # Check if we can connect (for real SIDs)
     if ! check_database_connection; then
         # Database not accessible - show environment status
         echo ""
@@ -361,20 +383,7 @@ show_database_status() {
         fi
         printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
         echo "-------------------------------------------------------------------------------"
-        
-        # Check if this is a dummy SID (in ORADBA_SIDLIST but not in ORADBA_REALSIDLIST)
-        local is_dummy=false
-        if [[ -n "${ORADBA_SIDLIST}" ]] && [[ -n "${ORADBA_REALSIDLIST}" ]]; then
-            if [[ " ${ORADBA_SIDLIST} " == *" ${ORACLE_SID} "* ]] && [[ " ${ORADBA_REALSIDLIST} " != *" ${ORACLE_SID} "* ]]; then
-                is_dummy=true
-            fi
-        fi
-        
-        if [[ "${is_dummy}" == "true" ]]; then
-            printf "%-15s: %s\n" "STATUS" "Dummy Database (environment only)"
-        else
-            printf "%-15s: %s\n" "STATUS" "NOT STARTED"
-        fi
+        printf "%-15s: %s\n" "STATUS" "NOT STARTED"
         echo "-------------------------------------------------------------------------------"
         echo ""
         return 0
@@ -407,8 +416,9 @@ show_database_status() {
     echo "-------------------------------------------------------------------------------"
     
     # Query database info if MOUNTED or OPEN
+    local db_info=""
+    local db_name="" db_unique_name="" dbid="" log_mode="" db_role="" charset=""
     if [[ "$open_mode" != "STARTED" ]]; then
-        local db_info
         db_info=$(query_database_info "$open_mode")
         
         if [[ -n "$db_info" ]]; then
@@ -428,6 +438,8 @@ show_database_status() {
             if [[ -n "$df_size" && "$df_size" != "0" ]]; then
                 printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
             fi
+        else
+            log_debug "query_database_info returned empty for open_mode: $open_mode"
         fi
     fi
     
