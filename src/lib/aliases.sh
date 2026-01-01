@@ -116,6 +116,30 @@ generate_sid_aliases() {
         # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
         alias sqh="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
     fi
+    
+    # ------------------------------------------------------------------------------
+    # Service Management Aliases
+    # ------------------------------------------------------------------------------
+    # Convenient shortcuts for Oracle service management
+    
+    # Database control aliases
+    alias dbctl='${ORADBA_BIN}/oradba_dbctl.sh'
+    alias dbstart='${ORADBA_BIN}/oradba_dbctl.sh start'
+    alias dbstop='${ORADBA_BIN}/oradba_dbctl.sh stop'
+    alias dbrestart='${ORADBA_BIN}/oradba_dbctl.sh restart'
+    
+    # Listener control aliases
+    alias lsnrctl='${ORADBA_BIN}/oradba_lsnrctl.sh'
+    alias lsnrstart='${ORADBA_BIN}/oradba_lsnrctl.sh start'
+    alias lsnrstop='${ORADBA_BIN}/oradba_lsnrctl.sh stop'
+    alias lsnrrestart='${ORADBA_BIN}/oradba_lsnrctl.sh restart'
+    alias lsnrstatus='${ORADBA_BIN}/oradba_lsnrctl.sh status'
+    
+    # Combined services aliases
+    alias orastart='${ORADBA_BIN}/oradba_services.sh start'
+    alias orastop='${ORADBA_BIN}/oradba_services.sh stop'
+    alias orarestart='${ORADBA_BIN}/oradba_services.sh restart'
+    alias orastatus='${ORADBA_BIN}/oradba_services.sh status'
 }
 
 # ------------------------------------------------------------------------------
