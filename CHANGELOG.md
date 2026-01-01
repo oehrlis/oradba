@@ -23,6 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validate output data before returning (check for expected format)
   - Prevents display of error messages like "ORA-01034" in dbstatus.sh output
   - Clean output for databases that are down or in dummy environments
+- **Database Status Display**: Improved dbstatus.sh output formatting and information
+  - **Not Started/Dummy DBs**: Show environment info with clear status instead of errors
+    - Displays ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, ORACLE_VERSION
+    - STATUS shows "NOT STARTED" for real databases or "Dummy Database (environment only)" for dummy SIDs
+    - No more error messages for non-running databases
+  - **Status Field**: Fixed duplicate status display
+    - NOMOUNT: Shows "STATUS: STARTED" (single field)
+    - MOUNT: Shows "STATUS: MOUNTED" (single field)
+    - OPEN: Shows "STATUS: OPEN / READ WRITE" (two fields: open mode and database role)
+  - **MOUNT State**: Now displays database information similar to OPEN state
+    - Shows database name, DBID, datafile size, LOG_MODE, CHARACTERSET
+    - Provides useful information for databases in MOUNT state
+    - Skips PDB info (not queryable in MOUNT state)
 - **SQL Scripts**: Fixed oh.sql to iterate through SQLPATH directories correctly
   - Previous version tried to cd to colon-separated path string
   - Now splits SQLPATH by colon and processes each directory individually

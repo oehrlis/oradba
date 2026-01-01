@@ -135,18 +135,36 @@ sync_to_peers.sh -n -D /opt/oracle/network/admin/
 
 ### Database Status (dbstatus.sh)
 
-Display current database information:
+Display comprehensive database status information:
 
 ```bash
 # Show database status
 dbstatus.sh
 
-# Output includes:
-# - Instance name and version
-# - Database status (OPEN, MOUNTED, etc.)
-# - PDB information (if CDB)
-# - Memory and session statistics
+# Or use alias
+sta
 ```
+
+**Output Information:**
+
+- **Environment**: ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, version
+- **Database State**:
+  - STARTED (NOMOUNT): Single status field
+  - MOUNTED: Single status field with database details
+  - OPEN: Status with database role (e.g., "OPEN / PRIMARY")
+- **Instance Details**: Name, uptime, memory usage (SGA/PGA)
+- **Database Info**: Name, DBID, datafile size, log mode, character set
+- **Sessions**: User and Oracle session counts (when OPEN)
+- **PDBs**: Pluggable database list (when OPEN)
+- **Not Started**: Shows environment with "NOT STARTED" status
+- **Dummy Databases**: Identified as "Dummy Database (environment only)"
+
+**Database States Supported:**
+
+- Database not started (shows environment only)
+- NOMOUNT/STARTED (instance only)
+- MOUNT (instance + database info, no PDBs)
+- OPEN (full information including PDBs)
 
 ### Installation Scripts
 

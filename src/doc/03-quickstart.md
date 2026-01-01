@@ -214,12 +214,15 @@ u               # Same as: oraup.sh (shows all databases)
 
 The status display shows:
 
-- Database open mode (NOMOUNT, MOUNT, OPEN)
-- Instance status and uptime
-- Database name and log mode
-- Datafile size and memory usage
-- Active sessions
-- PDB information (if applicable)
+- **Database State**: STARTED (NOMOUNT), MOUNTED, or OPEN with role
+- **Environment**: ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, version
+- **Instance Info**: Name, uptime, status
+- **Database Info**: Name, DBID, datafile size, log mode, character set
+- **Memory Usage**: SGA/PGA allocation
+- **Sessions**: Active user and Oracle sessions (when OPEN)
+- **PDB Information**: Pluggable databases (when OPEN)
+- **Not Started**: Shows environment info with "NOT STARTED" status
+- **Dummy Databases**: Identified as "Dummy Database (environment only)"
 
 ### Navigating Oracle Directories
 
