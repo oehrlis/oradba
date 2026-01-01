@@ -49,8 +49,24 @@ COLUMN creator_pdbname      FORMAT A10
 COLUMN activation_time      FORMAT A20
 COLUMN activating_pdbname   FORMAT A10
 ALTER SESSION SET nls_timestamp_tz_format='DD.MM.YYYY HH24:MI:SS';
-SPOOL tde_info_dba.log
+-- Configure spool directory and filename components
+DEFINE LOGDIR = '.'
+DEFINE TIMESTAMP = 'UNKNOWN'
+DEFINE DBSID = 'UNKNOWN'
 
+-- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
+HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_$$.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_$$.sql
+@/tmp/oradba_logdir_$$.sql
+HOST rm -f /tmp/oradba_logdir_$$.sql
+
+-- Get timestamp and database SID
+COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
+COLUMN logsid NEW_VALUE DBSID NOPRINT
+SELECT TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') AS logts,
+       LOWER(SYS_CONTEXT('USERENV', 'INSTANCE_NAME')) AS logsid
+FROM DUAL;
+
+SPOOL &LOGDIR./tde_info_dba_&DBSID._&TIMESTAMP..log
 -- list pending parameter init.ora parameter for TDE information i.e., parameter
 -- which are set in SPFILE but not yet active in memory
 PROMPT == Pending parameter for the TDE configuration in SPFILE ================ 

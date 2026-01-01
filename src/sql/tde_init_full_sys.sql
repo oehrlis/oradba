@@ -59,8 +59,24 @@ SET VERIFY ON
 SET FEEDBACK ON
 
 -- start to spool
-SPOOL tde_init_full_sys.log
+-- Configure spool directory and filename components
+DEFINE LOGDIR = '.'
+DEFINE TIMESTAMP = 'UNKNOWN'
+DEFINE DBSID = 'UNKNOWN'
 
+-- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
+HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_$$.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_$$.sql
+@/tmp/oradba_logdir_$$.sql
+HOST rm -f /tmp/oradba_logdir_$$.sql
+
+-- Get timestamp and database SID
+COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
+COLUMN logsid NEW_VALUE DBSID NOPRINT
+SELECT TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') AS logts,
+       LOWER(SYS_CONTEXT('USERENV', 'INSTANCE_NAME')) AS logsid
+FROM DUAL;
+
+SPOOL &LOGDIR./tde_init_full_sys_&DBSID._&TIMESTAMP..log
 -- configure WALLET_ROOT parameter
 @tde_walletroot_init_sys.sql &wallet_root_base
 

@@ -33,7 +33,24 @@ COLUMN condition_eval_opt   FORMAT A7 WRAP HEADING "Eval"
 COLUMN audit_only_toplevel  FORMAT A3 WRAP HEADING "TOP"
 COLUMN success              FORMAT A3 WRAP HEADING "FAL"
 COLUMN failure              FORMAT A3 WRAP HEADING "SUC"
-SPOOL aud_policies_show_aud.log
+-- Configure spool directory and filename components
+DEFINE LOGDIR = '.'
+DEFINE TIMESTAMP = 'UNKNOWN'
+DEFINE DBSID = 'UNKNOWN'
+
+-- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
+HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_$$.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_$$.sql
+@/tmp/oradba_logdir_$$.sql
+HOST rm -f /tmp/oradba_logdir_$$.sql
+
+-- Get timestamp and database SID
+COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
+COLUMN logsid NEW_VALUE DBSID NOPRINT
+SELECT TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') AS logts,
+       LOWER(SYS_CONTEXT('USERENV', 'INSTANCE_NAME')) AS logsid
+FROM DUAL;
+
+SPOOL &LOGDIR./aud_policies_show_aud_&DBSID._&TIMESTAMP..log
 SELECT
     nvl(u.policy_name, a.policy_name)                 AS policy_name,
     decode(a.policy_name, u.policy_name, 'YES', 'NO') AS active,

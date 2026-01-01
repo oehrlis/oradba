@@ -44,7 +44,24 @@ DEFINE audit_retention    = &3 &_audit_retention
 COLUMN tablespace_name NEW_VALUE tablespace_name NOPRINT
 SELECT upper('&tablespace_name') tablespace_name FROM dual;
 
-SPOOL aud_init_full_aud.log
+-- Configure spool directory and filename components
+DEFINE LOGDIR = '.'
+DEFINE TIMESTAMP = 'UNKNOWN'
+DEFINE DBSID = 'UNKNOWN'
+
+-- Get log directory from environment variable ORADBA_LOG (fallback to current dir)
+HOST echo "DEFINE LOGDIR = '${ORADBA_LOG:-.}'" > /tmp/oradba_logdir_$$.sql 2>/dev/null || echo "DEFINE LOGDIR = '.'" > /tmp/oradba_logdir_$$.sql
+@/tmp/oradba_logdir_$$.sql
+HOST rm -f /tmp/oradba_logdir_$$.sql
+
+-- Get timestamp and database SID
+COLUMN logts NEW_VALUE TIMESTAMP NOPRINT
+COLUMN logsid NEW_VALUE DBSID NOPRINT
+SELECT TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') AS logts,
+       LOWER(SYS_CONTEXT('USERENV', 'INSTANCE_NAME')) AS logsid
+FROM DUAL;
+
+SPOOL &LOGDIR./aud_init_full_aud_&DBSID._&TIMESTAMP..log
 -- Anonymous PL/SQL Block to configure audit environment
 SET SERVEROUTPUT ON
 SET LINESIZE 160 PAGESIZE 200
