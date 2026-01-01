@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-01-01
+
+### Fixed
+
+- **Installer**: Fix command substitution parsing in download completion message
+  - Separated command substitution from log_info string to avoid potential quoting issues
+  - Addresses "ath | cut -f1): command not found" error in certain environments
+  - Uses intermediate variable for cleaner, more robust code
+
 ## [0.9.1] - 2025-12-24
 
 ### Fixed

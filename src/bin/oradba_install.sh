@@ -5,8 +5,8 @@
 # Name.......: oradba_install.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.24
-# Revision...: 0.9.1
+# Date.......: 2026.01.01
+# Revision...: 0.9.2
 # Purpose....: Universal installer for oradba toolset
 # Notes......: Can install from embedded payload, local tarball, or GitHub releases.
 #              When distributed with embedded payload, provides self-extracting installer.
@@ -1152,7 +1152,10 @@ extract_github_release() {
         fi
     fi
     
-    log_info "Download completed: $(du -h "$tarball_path" | cut -f1)"
+    # Get file size for logging
+    local tarball_size
+    tarball_size=$(du -h "$tarball_path" 2>/dev/null | cut -f1)
+    log_info "Download completed: ${tarball_size}"
     
     # Extract downloaded tarball
     log_info "Extracting downloaded tarball..."
