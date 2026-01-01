@@ -131,7 +131,10 @@ setup() {
     export -f sqlplus
     
     run show_database_status
-    [ "$status" -eq 1 ]
+    # Should return 0 (success) because it shows environment info with NOT STARTED status
+    [ "$status" -eq 0 ]
+    # Verify output contains NOT STARTED or Dummy Database status
+    [[ "$output" =~ "NOT STARTED"|"Dummy Database" ]]
     
     unset -f sqlplus
 }
