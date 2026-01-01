@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-01-01
+
 ### Added
 
 - **SQL Script Log Management**: Central logging for all SQL scripts with SPOOL ([#33](https://github.com/oehrlis/oradba/issues/33))
@@ -25,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `rmanh`: Just rlwrap wrapper, no automatic connection (user connects manually)
   - `rmanch`: rlwrap with catalog connection, fallback to `target /` if not configured
   - Provides more flexibility for different connection types and workflows
+- **Project Validation**: Updated validation script to reflect current project structure
+  - Corrected documentation filenames and added new doc files
+  - Added checks for important binaries and configuration files
+  - Updated test file validation to include all current test suites
 
 ## [0.9.4] - 2026-01-01
 
