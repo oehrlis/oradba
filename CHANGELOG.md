@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-01-02
+
+### Fixed
+
+- **Validation Script**: Fixed `oradba_validate.sh` to properly validate current installation
+  - Fixed oraenv.sh syntax check: Now uses `bash -n` instead of attempting to source with --help
+  - Updated config file checks: Changed from `sid.ORACLE_SID.conf.example` to `sid.ORCL.conf.example`
+  - Added service management checks: Now validates `oradba_dbctl.sh`, `oradba_lsnrctl.sh`, `oradba_services.sh`
+  - Added `oradba_services.conf` configuration file check
+  - Made README.md check optional (lives in project root, not src/)
+  - Updated revision to 0.10.0
+
+- **Configuration Hierarchy Diagram**: Updated diagram to reflect current configuration system
+  - Updated `doc/images/source/config-hierarchy.excalidraw`
+  - Updated `doc/images/config-hierarchy.png`
+
 ## [0.10.0] - 2026-01-01
 
 ### Added

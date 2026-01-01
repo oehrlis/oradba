@@ -5,8 +5,8 @@
 # Name.......: oradba_validate.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.5.0
+# Date.......: 2026.01.02
+# Revision...: 0.10.0
 # Purpose....: Validation script for OraDBA installation
 # Notes......: Run this after installation to verify setup
 # Usage......: oradba_validate.sh [-h|--help] [-v|--verbose]
@@ -128,6 +128,9 @@ test_item "oradba_version.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_version.s
 test_item "oradba_version.sh is executable" "[[ -x '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
 test_item "dbstatus.sh exists" "[[ -f '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
 test_item "dbstatus.sh is executable" "[[ -x '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
+test_item "oradba_dbctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_dbctl.sh' ]]" "optional"
+test_item "oradba_lsnrctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_lsnrctl.sh' ]]" "optional"
+test_item "oradba_services.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_services.sh' ]]" "optional"
 
 echo ""
 
@@ -149,7 +152,8 @@ test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf'
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
 test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.conf' ]]"
 test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/oradba_customer.conf.example' ]]"
-test_item "sid.ORACLE_SID.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORACLE_SID.conf.example' ]]" "optional"
+test_item "sid.ORCL.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORCL.conf.example' ]]" "optional"
+test_item "oradba_services.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_services.conf' ]]" "optional"
 
 echo ""
 
@@ -157,7 +161,7 @@ echo ""
 echo "Checking Documentation..."
 echo "-------------------------------------------------------------------------------"
 
-test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]"
+test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]" "optional"
 test_item "06-aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/06-aliases.md' ]]"
 test_item "05-configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/05-configuration.md' ]]" "optional"
 test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
@@ -178,12 +182,12 @@ echo "Checking Environment Setup..."
 echo "-------------------------------------------------------------------------------"
 
 if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
-    # Try to source in a subshell
-    if bash -c "source '${ORADBA_BASE}/bin/oraenv.sh' --help" >/dev/null 2>&1; then
+    # Check bash syntax without executing
+    if bash -n "${ORADBA_BASE}/bin/oraenv.sh" 2>/dev/null; then
         TOTAL=$((TOTAL + 1))
         PASSED=$((PASSED + 1))
         if [[ "${VERBOSE}" == "true" ]]; then
-            echo -e "${GREEN}✓${NC} oraenv.sh can be sourced"
+            echo -e "${GREEN}✓${NC} oraenv.sh has valid syntax"
         fi
     else
         TOTAL=$((TOTAL + 1))
