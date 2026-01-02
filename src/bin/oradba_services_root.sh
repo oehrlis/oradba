@@ -117,7 +117,10 @@ Description:
     
 Environment Variables:
     ORACLE_USER     Oracle OS user (default: oracle)
-    ORADBA_BASE     OraDBA installation directory (default: /opt/oradba)
+
+Configuration:
+    ORADBA_BASE     Automatically detected from script installation directory
+                    Current: ${ORADBA_BASE}
 
 Examples:
     ${SCRIPT_NAME} start    # Start all Oracle services
