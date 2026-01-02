@@ -38,6 +38,9 @@ mappings:
   src/bin/oradba_version.sh:
     - test_oradba_version.bats
   
+  src/bin/oradba_help.sh:
+    - test_oradba_help.bats
+  
   src/bin/oraenv.sh:
     - test_oraenv.bats
   

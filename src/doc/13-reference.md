@@ -20,9 +20,15 @@ oraup.sh                       # Show all database statuses
 u                              # Short alias for oraup.sh
 
 # Version and help
+oradba help                    # OraDBA help system menu
+oradba help aliases            # Show alias help
+oradba help scripts            # List available scripts
+oradba help variables          # Show environment variables
+oradba help config             # Configuration system
+oradba help sql                # SQL script help
 oradba_version.sh --check      # Check OraDBA version
 oradba_version.sh --verify     # Verify installation integrity
-alih                           # This help / alias reference
+alih                           # Alias help reference
 ```
 
 ## SQL*Plus Connections
