@@ -57,14 +57,22 @@ jobs:
           make test-full
           echo "All tests passed ✓"
       
-      - name: Build distribution and installer
-        run: |
-          make build
-      
       - name: Generate documentation
         run: |
           docker pull oehrlis/pandoc:latest
           make docs-pdf docs-html || echo "Documentation generation failed, continuing..."
+      
+      - name: Include PDF in distribution
+        run: |
+          if [ -f "dist/oradba-user-guide.pdf" ]; then
+            echo "Copying PDF to src/doc/ for inclusion in distribution"
+            cp dist/oradba-user-guide.pdf src/doc/
+          fi
+      
+      - name: Build distribution with documentation
+        run: |
+          echo "Rebuilding distribution to include PDF..."
+          make build
       
       - name: Generate release notes
         id: release_notes
