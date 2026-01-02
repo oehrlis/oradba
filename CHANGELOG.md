@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration variables: `ORADBA_AUTO_DISCOVER_EXTENSIONS`, `ORADBA_EXTENSION_PATHS`, `ORADBA_EXTENSIONS_IN_COEXIST`
   - Respects coexistence mode (extensions not loaded with BasEnv unless forced)
   - **Test Suite**: 31 comprehensive BATS tests covering all extension functionality
+  - **Management Tool**: `oradba_extension.sh` command-line utility for managing extensions
+    - `list` - Show all extensions with status, version, priority
+    - `info` - Display detailed information about specific extension
+    - `validate` - Validate extension structure and configuration
+    - `validate-all` - Validate all discovered extensions
+    - `discover` - Show auto-discovered extensions
+    - `paths` - Display extension search paths
+    - `enabled` - List only enabled extensions
+    - `disabled` - List only disabled extensions
 
 ### Fixed
 

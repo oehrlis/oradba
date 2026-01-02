@@ -244,13 +244,18 @@ cdemyext       # cd /opt/oracle/local/myext
 
 ## Managing Extensions
 
+OraDBA provides the `oradba_extension.sh` command-line tool for managing extensions.
+
 ### List Extensions
 
 ```bash
-# Show all extensions
-oradba_version.sh --extensions     # (planned feature)
+# Show all extensions with status and version
+oradba_extension.sh list
 
-# Or use library function
+# Show detailed information for all extensions
+oradba_extension.sh list --verbose
+
+# Or use library function directly
 source ${ORADBA_PREFIX}/lib/extensions.sh
 list_extensions
 ```
@@ -258,6 +263,10 @@ list_extensions
 ### Show Extension Details
 
 ```bash
+# Using management tool (recommended)
+oradba_extension.sh info customer
+
+# Or use library function
 source ${ORADBA_PREFIX}/lib/extensions.sh
 show_extension_info customer
 ```
@@ -265,8 +274,34 @@ show_extension_info customer
 ### Validate Extension
 
 ```bash
+# Validate a specific extension
+oradba_extension.sh validate customer
+
+# Validate all extensions
+oradba_extension.sh validate-all
+
+# Or use library function
 source ${ORADBA_PREFIX}/lib/extensions.sh
 validate_extension /opt/oracle/local/customer
+```
+
+### Other Management Commands
+
+```bash
+# Show auto-discovered extensions
+oradba_extension.sh discover
+
+# Display extension search paths
+oradba_extension.sh paths
+
+# List only enabled extensions
+oradba_extension.sh enabled
+
+# List only disabled extensions
+oradba_extension.sh disabled
+
+# Show help
+oradba_extension.sh help
 ```
 
 ### Disable Extension
