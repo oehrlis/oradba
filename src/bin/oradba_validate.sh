@@ -177,9 +177,10 @@ else
     echo "Checking Documentation..."
 fi
 
-test_item "README.md exists" "[[ -f '${ORADBA_BASE}/README.md' ]]" "optional"
+test_item "README.md exists" "[[ -f '${ORADBA_BASE}/../README.md' ]]" "optional"
 test_item "06-aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/06-aliases.md' ]]"
 test_item "05-configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/05-configuration.md' ]]" "optional"
+test_item "index.md exists" "[[ -f '${ORADBA_BASE}/doc/index.md' ]]"
 test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
 
 # Check SQL files

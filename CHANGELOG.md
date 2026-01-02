@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Library, template, test, and build script conventions
   - References existing SQL script naming documentation
 
+- **Log Rotation User Mode**: Added non-root operation support for logrotate
+  - New `--install-user` option: Sets up user-specific configurations
+  - New `--run-user` option: Runs logrotate as non-root user
+  - New `--cron` option: Generates crontab entry for automation
+  - User configs stored in `~/.oradba/logrotate`
+  - State files managed in `~/.oradba/logrotate/state`
+  - Supports manual execution and cron-based scheduling
+
 ### Fixed
 
 - **Documentation Workflow**: Now triggers automatically on version tags

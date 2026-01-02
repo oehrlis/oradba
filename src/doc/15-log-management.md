@@ -26,7 +26,7 @@ Proper log management is critical for:
 
 ## Quick Start
 
-### Installation
+### System-Wide Installation (Traditional)
 
 ```bash
 # Install all logrotate templates (requires root)
@@ -34,6 +34,19 @@ sudo oradba_logrotate.sh --install
 
 # Or install specific templates
 sudo oradba_logrotate.sh --install --template oracle-alert
+```
+
+### User-Mode Installation (Non-Root)
+
+```bash
+# Set up user-specific logrotate configurations
+oradba_logrotate.sh --install-user
+
+# Run manually
+oradba_logrotate.sh --run-user
+
+# Generate crontab entry for automation
+oradba_logrotate.sh --cron
 ```
 
 ### Testing
@@ -120,30 +133,67 @@ Rotates Oracle Net listener logs:
 
 ### oradba_logrotate.sh
 
-Central management tool for logrotate configurations.
+Central management tool for logrotate configurations with support for both
+system-wide (root) and user-mode (non-root) operation.
 
 #### Options
 
+**System-wide (requires root):**
+
 ```bash
--i, --install             Install logrotate configurations
--u, --uninstall          Remove logrotate configurations
--l, --list               List installed configurations
--t, --test               Test configurations (dry run)
+-i, --install             Install logrotate configurations to /etc/logrotate.d
+-u, --uninstall          Remove system-wide configurations
 -f, --force              Force rotation (for testing)
--c, --customize          Generate customized configs
-    --template NAME      Specify template (with install/test)
--v, --version            Show version
--h, --help               Show help
 ```
 
-#### Examples
+**User-mode (non-root):**
+
+```bash
+--install-user           Set up user-specific logrotate configurations
+--run-user               Run logrotate with user-specific configurations
+**System-Wide (Root) Mode:**
 
 ```bash
 # Install all templates
 sudo oradba_logrotate.sh --install
 
-# Install specific template
-sudo oradba_logrotate.sh --install --template oracle-alert
+# Test all configurations
+oradba_logrotate.sh --test
+
+# Force rotation (testing only)
+sudo oradba_logrotate.sh --force
+
+# List installed configs
+oradba_logrotate.sh --list
+
+# Uninstall
+sudo oradba_logrotate.sh --uninstall
+```
+
+**User-Mode (Non-Root):**
+
+```bash
+# Initial setup
+oradba_logrotate.sh --install-user
+
+# Test user-mode configuration
+oradba_logrotate.sh --test
+
+# Run rotation manually
+oradba_logrotate.sh --run-user
+
+# Generate crontab entry
+oradba_logrotate.sh --cron
+
+# Add to crontab
+crontab -e  # Then paste the generated entry
+```
+
+**Customization:**
+
+```bash
+# Generate customized configs
+oradba_logrotate.sh --customize-install --template oracle-alert
 
 # Test all configurations
 oradba_logrotate.sh --test
@@ -162,6 +212,81 @@ oradba_logrotate.sh --list
 ```
 
 ## Configuration Customization
+
+### User-Mode Operation
+
+OraDBA supports non-root logrotate operation for environments where root access
+is restricted or per-user log management is preferred.
+
+#### Benefits
+
+- **No root access required**: DBAs can manage logs without sudo
+- **User-specific state**: Each user has independent rotation tracking
+- **Flexible scheduling**: Run manually or via user's crontab
+- **Isolated from system**: Doesn't interfere with system-wide logrotate
+
+#### Setup Process
+
+1. **Initialize user-mode configuration:**
+
+   ```bash
+   oradba_logrotate.sh --install-user
+   ```
+
+   This creates:
+   - `~/.oradba/logrotate/` - Configuration directory
+   - `~/.oradba/logrotate/state/` - State files directory
+   - `oracle-alert.logrotate` - Alert log configuration
+   - `oracle-trace.logrotate` - Trace files configuration
+   - `oracle-listener.logrotate` - Listener log configuration
+
+2. **Review and customize configurations:**
+
+   ```bash
+   ls -l ~/.oradba/logrotate/
+   vi ~/.oradba/logrotate/oracle-alert.logrotate
+   ```
+
+3. **Test the configuration:**
+
+   ```bash
+   oradba_logrotate.sh --test
+   ```
+
+4. **Run manually:**
+
+   ```bash
+   oradba_logrotate.sh --run-user
+   ```
+
+5. **Automate with cron:**
+
+   ```bash
+   # Generate crontab entry
+   oradba_logrotate.sh --cron
+   
+   # Add to crontab
+   crontab -e
+   # Paste: 0 2 * * * /path/to/oradba_logrotate.sh --run-user >/dev/null 2>&1
+   ```
+
+#### User-Mode vs System-Wide
+
+| Aspect             | User-Mode               | System-Wide          |
+|--------------------|-------------------------|----------------------|
+| **Privileges**     | No root required        | Requires root        |
+| **Installation**   | `~/.oradba/logrotate/`  | `/etc/logrotate.d/`  |
+| **State files**    | `~/.oradba/logrotate/state/` | `/var/lib/logrotate/` |
+| **Execution**      | Manual or user crontab  | System cron          |
+| **Scope**          | User's Oracle logs      | All system logs      |
+| **Management**     | Self-service            | System admin         |
+
+#### User-Mode Limitations
+
+- Requires `logrotate` binary accessible in PATH
+- Cannot rotate logs owned by other users (unless permissions allow)
+- State tracking is per-user (different users track rotation independently)
+- Not integrated with system's logrotate.d scheduling
 
 ### Environment-Specific Configuration
 
