@@ -49,9 +49,9 @@ dbrestart       # Restart databases
 
 # Listener control
 listener        # Alias for oradba_lsnrctl.sh
-lsnrstart       # Start listeners
-lsnrstop        # Stop listeners
-lsnrstatus      # Listener status
+lsnrstart       # Start listeners (oradba_lsnrctl.sh wrapper)
+lsnrstop        # Stop listeners (oradba_lsnrctl.sh wrapper)
+lsnrstatus      # Listener status (oradba_lsnrctl.sh wrapper)
 
 # Combined services
 orastart        # Start all Oracle services

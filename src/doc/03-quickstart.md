@@ -264,8 +264,11 @@ taa             # tail -f alert log
 vaa             # view alert log (less)
 via             # edit alert log (vi)
 
-# Listener status
-lstat           # lsnrctl status
+# Listener control
+listener        # Listener control (oradba_lsnrctl.sh wrapper)
+lstat           # lsnrctl status (Oracle native)
+lstart          # lsnrctl start (Oracle native)
+lstop           # lsnrctl stop (Oracle native)
 ```
 
 ## Silent Mode (for Scripts)
