@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-01-02
+
+### Added
+
+- **Command-Line Help System**: Quick access to all help resources (fixes #18)
+  - New `oradba help` command as unified help entry point
+  - Topic-based help: aliases, scripts, variables, config, sql, online
+  - Shows currently set environment variables
+  - Lists available scripts with descriptions from headers
+  - Configuration file status with visual indicators
+  - No redundant content - routes to existing help resources
+  - 12 comprehensive BATS tests
+
+- **PDF Documentation in Distribution**: User guide PDF now included in installation
+  - Automatically copied to `${ORADBA_PREFIX}/doc/oradba-user-guide.pdf`
+  - Offline documentation available after installation
+  - Referenced in help system
+
+### Changed
+
+- **Release Workflow**: Reordered build process for documentation inclusion
+  - Build → Generate docs → Copy PDF → Rebuild
+  - Ensures PDF is included in distribution tarball
+
 ## [0.10.2] - 2026-01-02
 
 ### Added

@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.02
-# Version....: v0.10.2
+# Version....: v0.10.3
 # Purpose....: Quick help system showing available help resources
 # Notes......: Routes to existing help commands and documentation
 # Reference..: https://github.com/oehrlis/oradba
@@ -15,7 +15,7 @@
 
 # Script metadata
 readonly SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_VERSION="0.10.2"
+readonly SCRIPT_VERSION="0.10.3"
 
 # Color definitions
 readonly COLOR_RESET='\033[0m'
