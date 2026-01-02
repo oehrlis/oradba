@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.5] - 2026-01-02
+
+### Added
+
+- **Log Rotation User Mode**: Non-root operation support for oradba_logrotate.sh
+  - New `--install-user` option: Sets up user-specific configurations
+  - New `--run-user` option: Runs logrotate as non-root user
+  - New `--cron` option: Generates crontab entry for automation
+  - User configs stored in `~/.oradba/logrotate`
+  - State files managed in `~/.oradba/logrotate/state`
+  - Supports manual execution and cron-based scheduling
+  - Documentation integrated into [15-log-management.md](src/doc/15-log-management.md)
+
+- **Naming Conventions Documentation**: Comprehensive naming conventions (fixes #4)
+  - Bash script patterns: `oradba_*`, `*_jobs.sh`, utility scripts
+  - Configuration files: `oradba_*.conf`, `sid.*.conf`
+  - Library, template, test, and build script conventions
+  - References existing SQL script naming documentation
+
 ### Changed
 
 - **SQL*Net Authentication**: Changed authentication service from NTS to BEQ
@@ -21,27 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Preserved: `lsnr` and `lsnrh` still call Oracle's native `lsnrctl`
   - Clarified: `lsnrstart`, `lsnrstop`, `lsnrrestart`, `lsnrstatus` use OraDBA wrapper
 
-### Added
-
-- **Naming Conventions Documentation**: Comprehensive naming conventions (fixes #4)
-  - Bash script patterns: `oradba_*`, `*_jobs.sh`, utility scripts
-  - Configuration files: `oradba_*.conf`, `sid.*.conf`
-  - Library, template, test, and build script conventions
-  - References existing SQL script naming documentation
-
-- **Log Rotation User Mode**: Added non-root operation support for logrotate
-  - New `--install-user` option: Sets up user-specific configurations
-  - New `--run-user` option: Runs logrotate as non-root user
-  - New `--cron` option: Generates crontab entry for automation
-  - User configs stored in `~/.oradba/logrotate`
-  - State files managed in `~/.oradba/logrotate/state`
-  - Supports manual execution and cron-based scheduling
-
 ### Fixed
 
 - **Documentation Workflow**: Now triggers automatically on version tags
   - Added tag trigger for `v*.*.*` pattern
   - No longer reliant on release published event timing
+
+- **Validation Script**: Fixed documentation path checks
+  - Now correctly checks `src/doc/index.md` instead of `doc/README.md`
+  - All validation tests passing
 
 ## [0.10.4] - 2026-01-02
 
