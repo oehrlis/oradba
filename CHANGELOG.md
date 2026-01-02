@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-01-02
+
+### Fixed
+
+- **Help Command Argument Parsing**: Fixed `oradba help <topic>` command format
+  - Now properly handles both `oradba help aliases` and `oradba aliases` formats
+  - Detects 'help' keyword and shifts to process actual topic
+  - All 12 help system tests passing
+
 ## [0.10.3] - 2026-01-02
 
 ### Added
