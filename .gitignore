@@ -70,3 +70,4 @@ src/etc/sid.TESTDB2.conf
 
 # --- EOF ----------------------------------------------------------------------
 
+src/etc/basenv_standard.conf
