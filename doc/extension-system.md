@@ -68,15 +68,15 @@ provides:
 
 ### Metadata Fields
 
-| Field         | Required | Description                                   |
-|---------------|----------|-----------------------------------------------|
-| `name`        | No       | Extension name (defaults to directory name)   |
-| `version`     | No       | Version string (for tracking)                 |
-| `description` | No       | Brief description                             |
-| `author`      | No       | Author or team name                           |
-| `enabled`     | No       | Whether to load (default: true)               |
-| `priority`    | No       | Load order (lower = first, default: 50)      |
-| `provides`    | No       | Which directories are present                 |
+| Field         | Required | Description                                 |
+|---------------|----------|---------------------------------------------|
+| `name`        | No       | Extension name (defaults to directory name) |
+| `version`     | No       | Version string (for tracking)               |
+| `description` | No       | Brief description                           |
+| `author`      | No       | Author or team name                         |
+| `enabled`     | No       | Whether to load (default: true)             |
+| `priority`    | No       | Load order (lower = first, default: 50)     |
+| `provides`    | No       | Which directories are present               |
 
 **Note**: Extensions work without a `.extension` file. The file is optional and only
 provides additional metadata for tracking and management.
@@ -158,7 +158,8 @@ tools    (priority 50) → loaded third (alphabetical after acme)
 
 ### Coexistence Mode
 
-Extensions are **not loaded** when OraDBA runs in coexistence mode with TVD BasEnv, since `oraenv.sh` is not sourced in that scenario.
+Extensions are **not loaded** when OraDBA runs in coexistence mode with
+TVD BasEnv, since `oraenv.sh` is not sourced in that scenario.
 
 To force loading (not recommended):
 
@@ -448,33 +449,33 @@ See `doc/examples/extensions/` for complete examples:
 
 ### Environment Variables (Core Config)
 
-| Variable                          | Default | Description                                  |
-|-----------------------------------|---------|----------------------------------------------|
-| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions                     |
-| `ORADBA_EXTENSION_PATHS`          | `""`    | Additional extension paths (`:` separated)   |
-| `ORADBA_EXTENSIONS_IN_COEXIST`    | `false` | Load in coexistence mode                     |
+| Variable                          | Default | Description                                |
+|-----------------------------------|---------|--------------------------------------------|
+| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions                   |
+| `ORADBA_EXTENSION_PATHS`          | `""`    | Additional extension paths (`:` separated) |
+| `ORADBA_EXTENSIONS_IN_COEXIST`    | `false` | Load in coexistence mode                   |
 
 ### Environment Variables (Per-Extension)
 
-| Variable                      | Example                                  | Description    |
-|-------------------------------|------------------------------------------|----------------|
-| `ORADBA_EXT_<NAME>_ENABLED`  | `ORADBA_EXT_CUSTOMER_ENABLED="false"`  | Enable/disable |
-| `ORADBA_EXT_<NAME>_PRIORITY` | `ORADBA_EXT_CUSTOMER_PRIORITY="10"`    | Load priority  |
-| `ORADBA_EXT_<NAME>_PATH`     | Set automatically                        | Extension path |
+| Variable                     | Example                               | Description    |
+|------------------------------|---------------------------------------|----------------|
+| `ORADBA_EXT_<NAME>_ENABLED`  | `ORADBA_EXT_CUSTOMER_ENABLED="false"` | Enable/disable |
+| `ORADBA_EXT_<NAME>_PRIORITY` | `ORADBA_EXT_CUSTOMER_PRIORITY="10"`   | Load priority  |
+| `ORADBA_EXT_<NAME>_PATH`     | Set automatically                     | Extension path |
 
 ### Functions (lib/extensions.sh)
 
-| Function                              | Description                              |
-|---------------------------------------|------------------------------------------|
-| `discover_extensions()`               | Find all extensions in ORADBA_LOCAL_BASE |
-| `load_extensions()`                   | Load all enabled extensions              |
-| `load_extension <path>`               | Load single extension                    |
-| `list_extensions [--verbose]`         | List all extensions                      |
-| `show_extension_info <name>`          | Show extension details                   |
-| `validate_extension <path>`           | Validate extension structure             |
-| `get_extension_name <path>`           | Get extension name                       |
-| `get_extension_version <path>`        | Get extension version                    |
-| `get_extension_priority <path>`       | Get load priority                        |
+| Function                             | Description                              |
+|--------------------------------------|------------------------------------------|
+| `discover_extensions()`              | Find all extensions in ORADBA_LOCAL_BASE |
+| `load_extensions()`                  | Load all enabled extensions              |
+| `load_extension <path>`              | Load single extension                    |
+| `list_extensions [--verbose]`        | List all extensions                      |
+| `show_extension_info <name>`         | Show extension details                   |
+| `validate_extension <path>`          | Validate extension structure             |
+| `get_extension_name <path>`          | Get extension name                       |
+| `get_extension_version <path>`       | Get extension version                    |
+| `get_extension_priority <path>`      | Get load priority                        |
 | `is_extension_enabled <name> <path>` | Check if enabled                         |
 
 ## See Also
