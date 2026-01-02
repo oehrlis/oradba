@@ -5,8 +5,8 @@
 # Name.......: oraenv.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.5.0
+# Date.......: 2026.01.02
+# Revision...: 0.11.0
 # Purpose....: Set Oracle environment for a specific ORACLE_SID
 # Notes......: This script sets up the Oracle environment based on the oratab
 #              file and hierarchical configuration files. Must be sourced.
