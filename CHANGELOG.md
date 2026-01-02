@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Example extension: `doc/examples/extensions/customer/`
   - Configuration variables: `ORADBA_AUTO_DISCOVER_EXTENSIONS`, `ORADBA_EXTENSION_PATHS`, `ORADBA_EXTENSIONS_IN_COEXIST`
   - Respects coexistence mode (extensions not loaded with BasEnv unless forced)
+  - **Test Suite**: 31 comprehensive BATS tests covering all extension functionality
+
+### Fixed
+
+- **Extension Priority Sorting**: Fixed sort order to ensure high-priority extensions (lower number) appear first in PATH
+  - Extensions are now loaded in reverse priority order (high priority loaded last)
+  - Ensures high-priority bins override low-priority bins in PATH resolution
 
 ## [0.11.1] - 2026-01-02
 

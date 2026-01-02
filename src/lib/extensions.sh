@@ -244,8 +244,10 @@ sort_extensions_by_priority() {
         priorities+=("${priority}:${name}:${ext}")
     done
     
-    # Sort numerically by priority, then alphabetically by name
-    printf "%s\n" "${priorities[@]}" | sort -t: -k1,1n -k2,2 | cut -d: -f3-
+    # Sort numerically by priority (descending), then alphabetically by name (ascending)
+    # We reverse priority order because extensions are prepended to PATH
+    # So lower priority (50) loads first, higher priority (10) loads last and ends up first in PATH
+    printf "%s\n" "${priorities[@]}" | sort -t: -k1,1rn -k2,2 | cut -d: -f3-
 }
 
 # ------------------------------------------------------------------------------
