@@ -303,13 +303,14 @@ flowchart TB
     end
     
     subgraph Core["Core Libraries"]
-        L1[common.sh Logging, Validation]
+        L1[common.sh Logging, Validation, BasEnv Detection]
         L2[db_functions.sh DB Operations]
-        L3[aliases.sh Alias Generation]
+        L3[aliases.sh Safe Alias Generation]
     end
     
     subgraph Config["Configuration System"]
         CF1[System Defaults oradba_core.conf]
+        CF1A[Auto-Generated oradba_local.conf]
         CF2[Standard Settings oradba_standard.conf]
         CF3[Customer Overrides oradba_customer.conf]
         CF4[SID Configs sid.*.conf]
@@ -346,7 +347,8 @@ flowchart TB
     L2 --> Config
     L3 --> Config
     
-    CF1 -.->|Override| CF2
+    CF1 -.->|Override| CF1A
+    CF1A -.->|Override| CF2
     CF2 -.->|Override| CF3
     CF3 -.->|Override| CF4
     CF4 -.->|Override| CF5
@@ -397,7 +399,11 @@ flowchart TD
     N --> O[Load Configuration Files]
     
     O --> P[Load oradba_core.conf]
-    P --> Q[Load oradba_standard.conf]
+    P --> PA[Load oradba_local.conf]
+    PA --> PB{Coexist Mode Active?}
+    PB -->|Yes| PC[Enable BasEnv Coexistence]
+    PB -->|No| Q
+    PC --> Q[Load oradba_standard.conf]
     Q --> R[Load oradba_customer.conf]
     R --> S{SID Config Exists?}
     S -->|Yes| T[Load sid.SID.conf]
@@ -438,6 +444,10 @@ flowchart TB
         L1[oradba_core.conf Hardcoded defaults PREFIX, VERSION, etc.]
     end
     
+    subgraph Level1B["Level 1B: Auto-Detected"]
+        L1B[oradba_local.conf Coexistence mode BasEnv detection]
+    end
+    
     subgraph Level2["Level 2: Standard Settings"]
         L2[oradba_standard.conf Standard paths ORACLE_BASE patterns]
     end
@@ -458,18 +468,21 @@ flowchart TB
         R[Active Environment All variables resolved]
     end
     
-    L1 -->|Lowest Priority| L2
+    L1 -->|Lowest Priority| L1B
+    L1B --> L2
     L2 --> L3
     L3 --> L4
     L4 -->|Highest Priority| L5
     L5 --> R
     
-    L1 -.->|Can be overridden by| L2
+    L1 -.->|Can be overridden by| L1B
+    L1B -.->|Can be overridden by| L2
     L2 -.->|Can be overridden by| L3
     L3 -.->|Can be overridden by| L4
     L4 -.->|Can be overridden by| L5
     
     style L1 fill:#FFE4B5
+    style L1B fill:#F5DEB3
     style L2 fill:#F0E68C
     style L3 fill:#FFD700
     style L4 fill:#FFA500
@@ -500,6 +513,9 @@ sequenceDiagram
     
     oraenv.sh->>Config: Load oradba_core.conf
     Config-->>oraenv.sh: System defaults
+    
+    oraenv.sh->>Config: Load oradba_local.conf
+    Config-->>oraenv.sh: Coexistence mode (if detected)
     
     oraenv.sh->>Config: Load oradba_standard.conf
     Config-->>oraenv.sh: Standard settings
@@ -566,7 +582,13 @@ flowchart TD
     
     N -->|No| S{Prefix Exists?}
     S -->|Yes| T[❌ Already Installed]
-    S -->|No| U[Create Directories]
+    S -->|No| SA[Detect BasEnv Installation]
+    
+    SA --> SB{BasEnv Found?}
+    SB -->|Yes| SC[Enable Coexistence Mode]
+    SB -->|No| SD[Standalone Mode]
+    SC --> U[Create Directories]
+    SD --> U
     
     R --> V[Preserve Config Files]
     V --> W[Remove Old Installation]
@@ -593,7 +615,8 @@ flowchart TD
     AJ --> AK[❌ Installation Failed]
     
     AI -->|Yes| AL[Create .install_info]
-    AL --> AM[Generate Uninstall Script]
+    AL --> ALA[Generate oradba_local.conf]
+    ALA --> AM[Generate Uninstall Script]
     AM --> AN[Display Success Message]
     AN --> AO[✅ Installation Complete]
     
@@ -614,9 +637,17 @@ flowchart TD
     A[oraenv.sh Sourced] --> B[Environment Variables Set]
     B --> C[Source lib/aliases.sh]
     
-    C --> D[Load Standard Aliases]
+    C --> CA{Coexist Mode?}
+    CA -->|Yes| CB[Use safe_alias function]
+    CA -->|No| CC[Use standard alias]
+    CB --> D[Load Standard Aliases]
+    CC --> D
     D --> E[Generate SQL*Plus Aliases sq, sqh, sqlplush]
-    E --> F[Generate RMAN Aliases rmanc, rmanh, rmanch]
+    E --> EA{Alias Exists in BasEnv?}
+    EA -->|Yes & Coexist| EB[Skip Alias]
+    EA -->|No| F[Generate RMAN Aliases rmanc, rmanh, rmanch]
+    EA -->|Yes & Force| F
+    EB --> F
     F --> G[Generate Navigation Aliases cdh, cdo, cdn, cda]
     G --> H[Generate Diagnostic Aliases taa, tah, tal, tac]
     H --> I[Generate File Edit Aliases via, vio, vit, vip]
@@ -659,6 +690,9 @@ flowchart TD
     style AE fill:#90EE90
     style M fill:#87CEEB
     style S fill:#DDA0DD
+    style CA fill:#FFD700
+    style EA fill:#FFD700
+    style EB fill:#FFA500
 ```
 
 ## Diagram Sources
@@ -668,9 +702,9 @@ flowchart TD
 - **Development Workflow**: Developer decision tree for testing and releasing
 - **Performance Comparison**: Visual time savings comparison
 - **Test Selection Decision**: Simplified logic for test selection
-- **Architecture System**: OraDBA layered system architecture
-- **oraenv.sh Flow**: Complete environment setup process
-- **Configuration Hierarchy**: 5-level configuration override system
-- **Configuration Sequence**: Sequence diagram of config loading
-- **Installation Flow**: Self-extracting installer process
-- **Alias Generation**: Dynamic alias generation with PDB support
+- **Architecture System**: OraDBA layered system architecture with BasEnv coexistence
+- **oraenv.sh Flow**: Complete environment setup process with coexistence mode detection
+- **Configuration Hierarchy**: 6-level configuration override system with oradba_local.conf
+- **Configuration Sequence**: Sequence diagram of config loading including BasEnv detection
+- **Installation Flow**: Self-extracting installer process with BasEnv detection
+- **Alias Generation**: Dynamic alias generation with safe_alias() and coexistence mode

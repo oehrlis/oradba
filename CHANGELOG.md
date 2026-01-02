@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Coexistence Mode with TVD BasEnv/DB*Star**: Parallel installation support (fixes #19)
+  - Auto-detection during installation of BasEnv/DB*Star environments
+  - Checks for `.BE_HOME`, `.TVDPERL_HOME` files and `BE_HOME` variable
+  - New `oradba_local.conf`: Auto-generated configuration with detected mode
+  - Safe alias system: Skips OraDBA aliases when BasEnv versions exist
+  - New functions in `common.sh`: `detect_basenv()`, `alias_exists()`, `safe_alias()`
+  - All aliases converted to use `safe_alias()` function
+  - Configuration variables: `ORADBA_COEXIST_MODE`, `ORADBA_FORCE`
+  - Force mode: Set `ORADBA_FORCE=1` to override BasEnv aliases
+  - Respects BasEnv priority: Never modifies PS1, BE_HOME, or BasEnv variables
+  - Comprehensive documentation in installation and configuration guides
+  - Updated Mermaid diagrams: Architecture, installation flow, alias generation
+
 ## [0.10.5] - 2026-01-02
 
 ### Added
