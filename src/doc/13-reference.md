@@ -87,7 +87,7 @@ via                            # vi alert_$ORACLE_SID.log
 
 # Listener and diagnostics
 lsnr / lsnrh                   # lsnrctl (Oracle native, with rlwrap)
-listenerctl                    # Listener control wrapper (oradba_lsnrctl.sh)
+listener                       # Listener control wrapper (oradba_lsnrctl.sh)
 lstat                          # lsnrctl status
 lstart                         # lsnrctl start
 lstop                          # lsnrctl stop

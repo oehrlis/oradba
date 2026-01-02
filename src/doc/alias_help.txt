@@ -58,7 +58,7 @@
  dbstart         --> Start databases (honors :Y flag in oratab)
  dbstop          --> Stop databases
  dbrestart       --> Restart databases
- listenerctl     --> Listener control script (oradba_lsnrctl.sh wrapper)
+ listener        --> Listener control script (oradba_lsnrctl.sh wrapper)
  lsnrstart       --> Start listener
  lsnrstop        --> Stop listener
  lsnrrestart     --> Restart listener

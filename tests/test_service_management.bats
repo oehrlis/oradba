@@ -205,7 +205,7 @@ setup() {
 }
 
 @test "aliases.sh contains lsnrctl alias" {
-    grep -q "alias listenerctl=" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "alias listener=" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains orastart alias" {

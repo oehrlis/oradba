@@ -185,7 +185,7 @@ test_aliases() {
         print_fail "Database control aliases missing"
     fi
     
-    if grep -q "alias listenerctl=" "${PROJECT_ROOT}/src/lib/aliases.sh"; then
+    if grep -q "alias listener=" "${PROJECT_ROOT}/src/lib/aliases.sh"; then
         print_pass "Listener control aliases found"
     else
         print_fail "Listener control aliases missing"
