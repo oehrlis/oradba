@@ -71,6 +71,11 @@ The check validates:
 
 OraDBA offers three installation methods depending on your environment.
 
+![Installation Flow](images/installation-flow.png)
+
+The installation process automatically detects your environment, validates
+prerequisites, extracts files, and verifies integrity with SHA256 checksums.
+
 ### Method 1: Quick Install from GitHub (Recommended)
 
 Best for: Systems with internet access

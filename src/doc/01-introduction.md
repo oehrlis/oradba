@@ -12,6 +12,12 @@ provides an intelligent, hierarchical environment management system that
 simplifies daily database administration tasks through automation and consistent
 workflows.
 
+![OraDBA System Architecture](images/architecture-system.png)
+
+The architecture shows OraDBA's core components: the hierarchical configuration
+system, environment management, alias generation, and integration with Oracle
+Database tools.
+
 ## Key Features
 
 ### Intelligent Environment Setup

@@ -1315,6 +1315,36 @@ gh workflow run release.yml -f version=0.8.2
 2. Document function parameters and return values
 3. Update README.md for user-visible changes
 4. Keep CHANGELOG.md updated
+5. For releases, create release notes in `doc/releases/v<VERSION>.md`
+   - Follow format of existing release notes
+   - Include installation instructions, what's new, and assets
+   - Can be used to update GitHub releases: `gh release edit v<VERSION> --notes-file doc/releases/v<VERSION>.md`
+
+### Release Documentation
+
+Release notes are stored in `doc/releases/` for archival and easy GitHub release updates.
+
+**Creating release notes:**
+
+```bash
+# During release preparation
+cat > doc/releases/v0.10.2.md << 'EOF'
+# oradba v0.10.2
+...
+EOF
+
+# After release is published
+gh release edit v0.10.2 --notes-file doc/releases/v0.10.2.md
+```
+
+**Location:** `doc/releases/`
+
+**Files:**
+
+- `README.md` - Documentation about the releases directory
+- `v<MAJOR>.<MINOR>.<PATCH>.md` - Individual release notes
+
+See [doc/releases/README.md](releases/README.md) for details.
 
 ### Testing
 

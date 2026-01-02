@@ -7,15 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-01-02
+
 ### Added
 
 - **GitHub Pages Documentation**: Online documentation site at <https://oehrlis.github.io/oradba>
   - MkDocs with Material theme for modern, searchable documentation
   - Automatic deployment on release and documentation changes
-  - Mobile-responsive design with dark mode support
+  - Mobile-responsive design with default light mode
   - Mermaid diagram support
   - Git revision dates for each page
   - Cross-linked navigation and search
+  - Architecture and flow diagrams in user documentation
+
+- **Release Documentation**: Created `doc/releases/` directory for storing release notes
+  - Enables updating GitHub releases using `gh release edit` command
+  - Historical release notes preserved for v0.9.4, v0.9.5, v0.10.0, v0.10.1
 
 ### Changed
 
@@ -25,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `.install_info` and `.oradba.checksum` validation
   - File modification detection with summary count
   - Improved validation summary with modification status
+
+- **Documentation**: Added visual diagrams throughout user guides
+  - Architecture diagram in Introduction
+  - Installation flow diagram
+  - Environment management (oraenv.sh) flow diagram
+  - Configuration hierarchy and sequence diagrams
+  - Alias generation flow diagram
 
 - **Smart Test Selection**: Improved fallback behavior for non-code changes
   - When only images, documentation, or other non-code files change, runs only
@@ -36,6 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Now runs linting before full test suite
   - Fails fast on code quality issues (seconds vs minutes)
   - More efficient use of CI resources
+
+### Fixed
+
+- **Documentation Workflow**: Fixed MkDocs build process
+  - Images now copied from `doc/images/` to `src/doc/images/` during build
+  - Fixed broken links in documentation (LICENSE, relative paths)
+  - Removed pip cache requirement that caused build failures
+  - Documentation builds successfully in strict mode
 
 ## [0.10.1] - 2026-01-02
 
