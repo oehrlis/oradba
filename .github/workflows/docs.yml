@@ -11,8 +11,6 @@ on:
       - 'src/doc/**'
       - 'mkdocs.yml'
       - '.github/workflows/docs.yml'
-    tags:
-      - 'v*.*.*'
 
 permissions:
   contents: read
