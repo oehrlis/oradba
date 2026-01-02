@@ -226,7 +226,13 @@ show_online_help() {
 
 # Main
 main() {
+    # Handle 'oradba help <topic>' and 'oradba <topic>' formats
     local topic="${1:-}"
+    
+    # If first arg is 'help', shift to get actual topic
+    if [[ "$topic" == "help" ]]; then
+        topic="${2:-}"
+    fi
     
     case "$topic" in
         "")
