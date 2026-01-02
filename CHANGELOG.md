@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **GitHub Pages Documentation**: Online documentation site at https://oehrlis.github.io/oradba
+- **GitHub Pages Documentation**: Online documentation site at <https://oehrlis.github.io/oradba>
   - MkDocs with Material theme for modern, searchable documentation
   - Automatic deployment on release and documentation changes
   - Mobile-responsive design with dark mode support

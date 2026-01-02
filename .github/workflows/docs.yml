@@ -45,6 +45,13 @@ jobs:
             mkdocs-git-revision-date-localized-plugin \
             pymdown-extensions
       
+      - name: Prepare documentation images
+        run: |
+          echo "Copying images from doc/images/ to src/doc/images/"
+          mkdir -p src/doc/images
+          find doc/images -maxdepth 1 -name "*.png" -exec cp {} src/doc/images/ \;
+          ls -la src/doc/images/
+      
       - name: Build documentation
         run: mkdocs build --strict --verbose
       

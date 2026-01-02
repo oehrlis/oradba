@@ -553,7 +553,7 @@ Each template includes:
 
 ### OraDBA Documentation
 
-- [README](../../README.md): Project overview
+- [Project Repository](https://github.com/oehrlis/oradba): Source code and overview
 - [Installation](02-installation.md) - OraDBA setup
 - [Configuration](05-configuration.md) - General configuration
 - [Troubleshooting](12-troubleshooting.md) - Common issues
