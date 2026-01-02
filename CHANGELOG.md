@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-01-02
+
+### Fixed
+
+- **Documentation**: Fixed broken external links in extension guide (18-extensions.md) that caused
+  mkdocs build failures. Changed relative paths to GitHub URLs for developer documentation and examples.
+- **Extension Script**: Removed ANSI color codes from `oradba_extension.sh` usage output to match
+  standard OraDBA script formatting. Colors are still used in command output.
+
 ## [0.12.0] - 2026-01-02
 
 ### Added
