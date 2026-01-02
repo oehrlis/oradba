@@ -26,6 +26,7 @@ oradba/
 │   └── workflows/        # GitHub Actions CI/CD workflows
 │       ├── ci.yml        # Continuous integration
 │       ├── release.yml   # Release automation
+│       ├── docs.yml      # Documentation deployment
 │       └── dependency-review.yml
 ├── src/                  # Server/service files
 │   ├── bin/             # Executable scripts
@@ -756,6 +757,47 @@ runs comprehensive validation before creating a release:
 - Security scanning
 - Dependency vulnerability checks
 
+### Documentation Workflow
+
+The documentation workflow ([.github/workflows/docs.yml](.github/workflows/docs.yml))
+deploys the OraDBA documentation to GitHub Pages.
+
+**Trigger:** Push to main branch when:
+
+- Documentation files change (`src/doc/**`)
+- VERSION file changes (releases)
+- MkDocs configuration changes (`mkdocs.yml`)
+- Workflow itself changes
+
+**Steps:**
+
+1. **Build Documentation**
+   - Installs MkDocs Material theme
+   - Copies images from `doc/images/` to `src/doc/images/`
+   - Builds static site with `mkdocs build --strict`
+   - Uploads artifact for deployment
+
+2. **Deploy to GitHub Pages**
+   - Deploys only from main branch (not tags)
+   - GitHub Pages environment protection enforced
+   - Updates <https://oehrlis.github.io/oradba>
+
+**Key Points:**
+
+- ✅ Deploys when VERSION changes (releases)
+- ✅ Deploys when documentation content changes
+- ❌ Does NOT deploy from tags (GitHub Pages restriction)
+- ✅ Manual dispatch available for emergency updates
+
+**Release Documentation Flow:**
+
+```text
+1. Update VERSION → commit to main
+2. Push to main → triggers docs workflow → deploys
+3. Create & push tag → triggers release workflow
+4. Documentation is already live before release artifacts
+```
+
 ### Creating a Release
 
 ```bash
@@ -771,6 +813,9 @@ vim CHANGELOG.md
 # Commit changes
 git add VERSION CHANGELOG.md src/ doc/
 git commit -m "chore: release v0.10.0"
+git push origin main
+
+# Documentation deploys now (VERSION changed)
 
 # Create and push tag
 git tag -a v0.10.0 -m "Release v0.10.0"

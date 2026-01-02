@@ -4,7 +4,7 @@ This file contains Mermaid diagram definitions that can be imported into Excalid
 
 ## 1. CI/CD Pipeline
 
-Shows the GitHub Actions workflows with smart test selection for CI and full test suite for releases.
+Shows the GitHub Actions workflows with smart test selection for CI, full test suite for releases, and documentation deployment.
 
 ```mermaid
 flowchart TD
@@ -12,6 +12,7 @@ flowchart TD
     
     B -->|Push to main/develop| C[CI Workflow]
     B -->|Tag v*.*.*| D[Release Workflow]
+    B -->|Push to main VERSION/docs| E[Docs Workflow]
     
     C --> C1[Detect Changed Files]
     C1 --> C2[git diff origin/main]
@@ -53,13 +54,23 @@ flowchart TD
     D11 --> D12[Upload Artifacts]
     D12 --> D13[✅ Release Complete 8-10 min]
     
+    E --> E1{Triggered By?}
+    E1 -->|VERSION change| E2[Release Documentation]
+    E1 -->|Doc files change| E3[Updated Documentation]
+    E2 --> E4[Build with MkDocs]
+    E3 --> E4
+    E4 --> E5[Deploy to GitHub Pages]
+    E5 --> E6[✅ Docs Live 2-3 min]
+    
     style C15 fill:#90EE90
     style D13 fill:#90EE90
+    style E6 fill:#90EE90
     style C14 fill:#FFB6C6
     style D3 fill:#FFB6C6
     style D8 fill:#FFB6C6
     style C5 fill:#87CEEB
     style D5 fill:#FFD700
+    style E4 fill:#DDA0DD
 ```
 
 ## 2. Test Strategy
@@ -697,7 +708,7 @@ flowchart TD
 
 ## Diagram Sources
 
-- **CI/CD Pipeline**: Shows GitHub Actions workflows with smart vs full test selection
+- **CI/CD Pipeline**: Shows GitHub Actions workflows with smart vs full test selection and documentation deployment
 - **Test Strategy**: Architecture of smart test selection system with .testmap.yml
 - **Development Workflow**: Developer decision tree for testing and releasing
 - **Performance Comparison**: Visual time savings comparison
