@@ -567,12 +567,22 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 
 ### Behavior Variables
 
-| Variable                        | Default | Description                                     |
-|---------------------------------|---------|-------------------------------------------------|
-| `ORADBA_LOAD_ALIASES`           | `true`  | Load aliases and functions                      |
-| `ORADBA_SHOW_DB_STATUS`         | `true`  | Show database status on environment switch      |
-| `ORADBA_AUTO_CREATE_SID_CONFIG` | `true`  | Auto-create SID configurations (real SIDs only) |
-| `ORADBA_RLWRAP_FILTER`          | `false` | Enable password filtering in rlwrap             |
+| Variable                          | Default | Description                                     |
+|-----------------------------------|---------|-------------------------------------------------|
+| `ORADBA_LOAD_ALIASES`             | `true`  | Load aliases and functions                      |
+| `ORADBA_SHOW_DB_STATUS`           | `true`  | Show database status on environment switch      |
+| `ORADBA_AUTO_CREATE_SID_CONFIG`   | `true`  | Auto-create SID configurations (real SIDs only) |
+| `ORADBA_RLWRAP_FILTER`            | `false` | Enable password filtering in rlwrap             |
+| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions in standard locations  |
+
+### Extension System Variables
+
+For complete extension configuration details, see the [Extension System Guide](18-extensions.md).
+
+| Variable                          | Default | Description                                    |
+|-----------------------------------|---------|------------------------------------------------|
+| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions                       |
+| `ORADBA_EXTENSION_PATHS`          | (none)  | Colon-separated additional extension paths     |
 
 ### Oracle Environment Variables
 

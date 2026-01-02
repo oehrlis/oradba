@@ -201,6 +201,25 @@ pdbpdb1                        # Connect to PDB1 (prefixed)
 echo $ORADBA_PDBLIST           # Show all PDBs in current CDB
 ```
 
+## Extension Management
+
+```bash
+# List all extensions
+oradba_extension.sh list
+
+# Show extension details
+oradba_extension.sh info <name>
+
+# Enable/disable extension
+oradba_extension.sh enable <name>
+oradba_extension.sh disable <name>
+
+# Validate extension
+oradba_extension.sh validate <name>
+```
+
+For complete extension system documentation, see [Extension System Guide](18-extensions.md).
+
 ## Utility Aliases
 
 ```bash

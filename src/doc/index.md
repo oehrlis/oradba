@@ -63,6 +63,7 @@ See [Quick Start Guide](03-quickstart.md) for detailed first steps.
 | Get started quickly    | [Quick Start](03-quickstart.md)                  |
 | Customize your setup   | [Configuration System](05-configuration.md)      |
 | See available commands | [Aliases Reference](06-aliases.md) or run `alih` |
+| Extend functionality   | [Extension System](18-extensions.md)             |
 | Fix issues             | [Troubleshooting](12-troubleshooting.md)         |
 | Quick command lookup   | [Quick Reference](13-reference.md)               |
 | See practical examples | [Usage Guide](16-usage.md)                       |

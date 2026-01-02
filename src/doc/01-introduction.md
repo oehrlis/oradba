@@ -56,6 +56,19 @@ Over 50 pre-configured aliases for common tasks:
 
 All aliases integrate rlwrap for command history and line editing where applicable.
 
+### Extension System
+
+Modular plugin architecture for adding custom scripts without modifying core OraDBA:
+
+- **Auto-Discovery**: Automatically finds extensions in `${ORADBA_LOCAL_BASE}`
+- **Easy Integration**: Scripts automatically added to PATH and SQLPATH
+- **Priority Control**: Load order control with numeric priorities
+- **Management Tool**: `oradba_extension.sh` for listing, validating, and managing extensions
+- **No Core Modifications**: Add custom tools without touching base installation
+- **Configuration Overrides**: Per-extension enable/disable and priority settings
+
+See [Extension System](18-extensions.md) for complete guide.
+
 ### Database Status Display
 
 The `dbstatus.sh` utility provides compact, comprehensive database information:

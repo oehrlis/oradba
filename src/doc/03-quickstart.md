@@ -365,16 +365,44 @@ taa / vaa                # View alert log
 # Status
 dbstatus.sh / sta        # Database status
 
+# Extensions
+oradba_extension.sh list              # List all extensions
+oradba_extension.sh info customer     # Show extension details
+
 # Version
 oradba_version.sh --check          # Current version
 oradba_version.sh --update-check   # Check for updates
 ```
+
+## Extending OraDBA
+
+You can add custom scripts without modifying the core installation:
+
+```bash
+# Create extension directory
+mkdir -p /opt/oracle/local/customer/bin
+
+# Add your script
+cat > /opt/oracle/local/customer/bin/my_check.sh << 'EOF'
+#!/usr/bin/env bash
+echo "Custom check for ${ORACLE_SID}"
+EOF
+
+chmod +x /opt/oracle/local/customer/bin/my_check.sh
+
+# Next time you source oraenv, your script is available
+source oraenv.sh FREE
+my_check.sh              # Your script is now in PATH
+```
+
+See [Extension System](18-extensions.md) for complete guide.
 
 ## See Also
 
 - [Environment Management](04-environment.md) - Detailed oraenv.sh usage
 - [Aliases](06-aliases.md) - Complete alias reference
 - [Configuration](05-configuration.md) - Customizing OraDBA
+- [Extension System](18-extensions.md) - Adding custom scripts
 - [Usage Examples](16-usage.md) - More usage scenarios
 
 ## Navigation
