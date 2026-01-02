@@ -1241,6 +1241,52 @@ cp -r "$TEMP_DIR"/.[!.]* "$INSTALL_PREFIX/" 2>/dev/null || true
 # Create log directory
 mkdir -p "$INSTALL_PREFIX/log"
 
+# Detect TVD BasEnv / DB*Star coexistence
+log_info "Checking for TVD BasEnv / DB*Star..."
+BASENV_DETECTED="no"
+COEXIST_MODE="standalone"
+
+# Check for basenv markers
+if [[ -f "${HOME}/.BE_HOME" ]] || [[ -f "${HOME}/.TVDPERL_HOME" ]] || [[ -n "${BE_HOME}" ]]; then
+    BASENV_DETECTED="yes"
+    COEXIST_MODE="basenv"
+    log_info "TVD BasEnv / DB*Star detected - enabling coexistence mode"
+    log_info "OraDBA will not override existing basenv aliases and settings"
+    
+    # Show basenv details if available
+    if [[ -n "${BE_HOME}" ]]; then
+        log_info "  BE_HOME: ${BE_HOME}"
+    elif [[ -f "${HOME}/.BE_HOME" ]]; then
+        # shellcheck disable=SC1090
+        source "${HOME}/.BE_HOME" 2>/dev/null && log_info "  BE_HOME: ${BE_HOME}"
+    fi
+else
+    log_info "No TVD BasEnv / DB*Star detected - standalone mode"
+fi
+
+# Create or update oradba_local.conf with coexistence mode
+log_info "Configuring coexistence mode..."
+cat > "$INSTALL_PREFIX/etc/oradba_local.conf" <<LOCALCONF
+# ------------------------------------------------------------------------------
+# OraDBA Local Configuration
+# ------------------------------------------------------------------------------
+# This file is auto-generated during installation and contains local
+# system-specific settings. It overrides settings from oradba_core.conf.
+
+# Coexistence mode (auto-detected during installation)
+# Values: basenv, standalone
+export ORADBA_COEXIST_MODE="${COEXIST_MODE}"
+
+# Installation metadata
+ORADBA_INSTALL_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+ORADBA_INSTALL_VERSION="${INSTALLER_VERSION}"
+ORADBA_INSTALL_METHOD="${INSTALL_MODE}"
+ORADBA_BASENV_DETECTED="${BASENV_DETECTED}"
+
+# To force OraDBA aliases even in coexistence mode, uncomment:
+# export ORADBA_FORCE=1
+LOCALCONF
+
 # Create installation metadata
 log_info "Creating installation metadata..."
 cat > "$INSTALL_PREFIX/.install_info" <<METADATA
@@ -1249,6 +1295,8 @@ install_version=${INSTALLER_VERSION}
 install_method=${INSTALL_MODE}
 install_user=${INSTALL_USER:-${USER}}
 install_prefix=${INSTALL_PREFIX}
+coexist_mode=${COEXIST_MODE}
+basenv_detected=${BASENV_DETECTED}
 METADATA
 
 # Set ownership if user specified

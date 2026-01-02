@@ -67,6 +67,80 @@ command_exists() {
     command -v "$1" > /dev/null 2>&1
 }
 
+# ------------------------------------------------------------------------------
+# Coexistence Mode Functions (TVD BasEnv / DB*Star)
+# ------------------------------------------------------------------------------
+
+# Detect if TVD BasEnv or DB*Star is active
+# Checks for BE_HOME environment variable or .BE_HOME file in home directory
+# Returns: 0 if detected, 1 if not detected
+detect_basenv() {
+    # Check if BE_HOME is already set
+    if [[ -n "${BE_HOME}" ]]; then
+        return 0
+    fi
+    
+    # Check for .BE_HOME file in home directory
+    if [[ -f "${HOME}/.BE_HOME" ]]; then
+        return 0
+    fi
+    
+    # Check for .TVDPERL_HOME file (another basenv marker)
+    if [[ -f "${HOME}/.TVDPERL_HOME" ]]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Check if an alias or command already exists
+# Usage: alias_exists alias_name
+# Returns: 0 if exists, 1 if not
+alias_exists() {
+    local name="$1"
+    
+    # Check if it's an alias
+    if alias "${name}" &>/dev/null; then
+        return 0
+    fi
+    
+    # Check if it's a command in PATH
+    if command -v "${name}" &>/dev/null; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Safe alias creation - respects coexistence mode
+# Usage: safe_alias alias_name "alias_value"
+# Returns: 0 if created, 1 if skipped (coexist mode and exists), 2 if error
+safe_alias() {
+    local name="$1"
+    local value="$2"
+    
+    # If force mode is enabled, always create the alias
+    if [[ "${ORADBA_FORCE:-0}" == "1" ]]; then
+        # shellcheck disable=SC2139,SC2140
+        alias "${name}=${value}"
+        return 0
+    fi
+    
+    # In coexistence mode, skip if alias already exists
+    if [[ "${ORADBA_COEXIST_MODE}" == "basenv" ]]; then
+        if alias_exists "${name}"; then
+            # Silently skip (basenv has priority)
+            log_debug "Skipping alias '${name}' (exists in basenv, coexist mode active)"
+            return 1
+        fi
+    fi
+    
+    # Create the alias
+    # shellcheck disable=SC2139,SC2140
+    alias "${name}=${value}"
+    return 0
+}
+
 # Verify Oracle environment variables
 verify_oracle_env() {
     local required_vars=("ORACLE_SID" "ORACLE_HOME")

@@ -49,6 +49,12 @@ else
     return 1
 fi
 
+# Load local configuration (created during installation, contains coexistence mode)
+if [[ -f "${ORADBA_CONFIG_DIR}/oradba_local.conf" ]]; then
+    # shellcheck source=/dev/null
+    source "${ORADBA_CONFIG_DIR}/oradba_local.conf"
+fi
+
 # Source database functions library (optional, only if available)
 if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"

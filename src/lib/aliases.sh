@@ -87,34 +87,34 @@ generate_sid_aliases() {
         fi
         
         # Alert log aliases using ORADBA_SID_ALERTLOG
-        alias taa='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
-        alias vaa='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
-        alias via='if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        safe_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        safe_alias vaa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        safe_alias via 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
         
         # Diagnostic dest directory (cdd)
         # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-        alias cdd="cd ${diag_dest}"
+        safe_alias cdd "cd ${diag_dest}"
         
         # Trace directory (cddt)
         if [[ -d "${trace_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias cddt="cd ${trace_dir}"
+            safe_alias cddt "cd ${trace_dir}"
         fi
         
         # Alert directory (cdda)
         local alert_dir="${diag_dest}/alert"
         if [[ -d "${alert_dir}" ]]; then
             # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            alias cdda="cd ${alert_dir}"
+            safe_alias cdda "cd ${alert_dir}"
         fi
     fi
     
     # SQL*Plus with rlwrap if available
     if has_rlwrap; then
         # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
-        alias sq="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
+        safe_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
         # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
-        alias sqh="${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
+        safe_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
     fi
     
     # ------------------------------------------------------------------------------
@@ -123,23 +123,23 @@ generate_sid_aliases() {
     # Convenient shortcuts for Oracle service management
     
     # Database control aliases
-    alias dbctl='${ORADBA_BIN}/oradba_dbctl.sh'
-    alias dbstart='${ORADBA_BIN}/oradba_dbctl.sh start'
-    alias dbstop='${ORADBA_BIN}/oradba_dbctl.sh stop'
-    alias dbrestart='${ORADBA_BIN}/oradba_dbctl.sh restart'
+    safe_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
+    safe_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+    safe_alias dbstop '${ORADBA_BIN}/oradba_dbctl.sh stop'
+    safe_alias dbrestart '${ORADBA_BIN}/oradba_dbctl.sh restart'
     
     # Listener control wrapper (renamed to avoid conflict with Oracle's lsnrctl)
-    alias listener='${ORADBA_BIN}/oradba_lsnrctl.sh'
-    alias lsnrstart='${ORADBA_BIN}/oradba_lsnrctl.sh start'
-    alias lsnrstop='${ORADBA_BIN}/oradba_lsnrctl.sh stop'
-    alias lsnrrestart='${ORADBA_BIN}/oradba_lsnrctl.sh restart'
-    alias lsnrstatus='${ORADBA_BIN}/oradba_lsnrctl.sh status'
+    safe_alias listener '${ORADBA_BIN}/oradba_lsnrctl.sh'
+    safe_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
+    safe_alias lsnrstop '${ORADBA_BIN}/oradba_lsnrctl.sh stop'
+    safe_alias lsnrrestart '${ORADBA_BIN}/oradba_lsnrctl.sh restart'
+    safe_alias lsnrstatus '${ORADBA_BIN}/oradba_lsnrctl.sh status'
     
     # Combined services aliases
-    alias orastart='${ORADBA_BIN}/oradba_services.sh start'
-    alias orastop='${ORADBA_BIN}/oradba_services.sh stop'
-    alias orarestart='${ORADBA_BIN}/oradba_services.sh restart'
-    alias orastatus='${ORADBA_BIN}/oradba_services.sh status'
+    safe_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
+    safe_alias orastop '${ORADBA_BIN}/oradba_services.sh stop'
+    safe_alias orarestart '${ORADBA_BIN}/oradba_services.sh restart'
+    safe_alias orastatus '${ORADBA_BIN}/oradba_services.sh status'
 }
 
 # ------------------------------------------------------------------------------
