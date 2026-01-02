@@ -23,8 +23,9 @@ set -e
 # Configuration
 # ------------------------------------------------------------------------------
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ORADBA_BASE="$(dirname "${SCRIPT_DIR}")"
 ORACLE_USER="${ORACLE_USER:-oracle}"
-ORADBA_BASE="${ORADBA_BASE:-/opt/oradba}"
 SERVICES_SCRIPT="${ORADBA_BASE}/bin/oradba_services.sh"
 LOGFILE="/var/log/oracle/oradba_services_root.log"
 
