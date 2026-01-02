@@ -71,52 +71,51 @@ fi
 # ------------------------------------------------------------------------------
 usage() {
     cat << EOF
-${BOLD}USAGE${NC}
-    $(basename "$0") <command> [options]
+Usage: $(basename "$0") <command> [options]
 
-${BOLD}DESCRIPTION${NC}
+DESCRIPTION
     Management tool for OraDBA extensions. Provides commands to list, inspect,
     validate, and manage extensions in the OraDBA environment.
 
-${BOLD}COMMANDS${NC}
-    ${BOLD}list${NC} [--verbose|-v]
+COMMANDS
+    list [--verbose|-v]
         List all discovered extensions with their status, version, and priority.
         Use --verbose for detailed information including paths and metadata.
 
-    ${BOLD}info${NC} <extension-name>
+    info <extension-name>
         Display detailed information about a specific extension including:
         - Name, version, description
         - Path and directories
         - Priority and enabled status
         - Provided capabilities (bin, sql, rcv, etc, lib)
 
-    ${BOLD}validate${NC} <extension-name|path>
+    validate <extension-name|path>
         Validate the structure and configuration of an extension.
         Reports warnings for missing metadata, empty directories, or issues.
 
-    ${BOLD}validate-all${NC}
+    validate-all
         Validate all discovered extensions.
 
-    ${BOLD}discover${NC}
+    discover
         Show auto-discovered extensions in \${ORADBA_LOCAL_BASE}.
 
-    ${BOLD}paths${NC}
+    paths
         Display the search paths for extensions (auto-discovery and manual).
 
-    ${BOLD}enabled${NC}
+    enabled
         List only enabled extensions that will be loaded.
 
-    ${BOLD}disabled${NC}
+    disabled
         List only disabled extensions that will be skipped.
 
-    ${BOLD}help${NC}
+    help
         Display this help message.
 
-${BOLD}OPTIONS${NC}
+OPTIONS
     -v, --verbose       Show detailed information
     -h, --help          Display this help message
 
-${BOLD}ENVIRONMENT VARIABLES${NC}
+ENVIRONMENT VARIABLES
     ORADBA_BASE                     Base directory for OraDBA installation
     ORADBA_LOCAL_BASE               Base directory for local extensions
     ORADBA_AUTO_DISCOVER_EXTENSIONS Enable/disable auto-discovery (true/false)
@@ -124,7 +123,7 @@ ${BOLD}ENVIRONMENT VARIABLES${NC}
     ORADBA_EXT_<NAME>_ENABLED       Enable/disable specific extension (true/false)
     ORADBA_EXT_<NAME>_PRIORITY      Override priority for specific extension
 
-${BOLD}EXAMPLES${NC}
+EXAMPLES
     # List all extensions
     $(basename "$0") list
 
@@ -143,7 +142,7 @@ ${BOLD}EXAMPLES${NC}
     # Show enabled extensions
     $(basename "$0") enabled
 
-${BOLD}SEE ALSO${NC}
+SEE ALSO
     doc/extension-system.md - Complete extension system documentation
 
 EOF
