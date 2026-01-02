@@ -75,3 +75,28 @@
 
 # Custom backup alias
 # alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'
+
+# ------------------------------------------------------------------------------
+# Example: Extension System Configuration
+# ------------------------------------------------------------------------------
+
+# Disable auto-discovery of extensions
+# ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
+
+# Add manual extension paths (colon-separated)
+# ORADBA_EXTENSION_PATHS="/opt/custom/ext1:/data/extensions/ext2"
+
+# Disable specific extension
+# ORADBA_EXT_CUSTOMER_ENABLED="false"
+
+# Change extension load priority (lower = loaded first)
+# ORADBA_EXT_CUSTOMER_PRIORITY="5"
+# ORADBA_EXT_ACME_PRIORITY="20"
+
+# Load extensions even in coexistence mode (not recommended)
+# ORADBA_EXTENSIONS_IN_COEXIST="true"
+
+# Add custom aliases for extension tools (if needed)
+# Extensions get automatic navigation aliases (cde<name>)
+# Add tool aliases here if you want shortcuts:
+# alias customtool='${ORADBA_EXT_CUSTOMER_PATH}/bin/tool.sh'

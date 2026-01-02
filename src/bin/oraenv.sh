@@ -60,6 +60,11 @@ if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"
 fi
 
+# Source extension system library (optional, only if enabled)
+if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && [[ -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/extensions.sh"
+fi
+
 # Global variables - declared at script level so they persist across functions
 # shellcheck disable=SC2034  # Used across functions in _oraenv_parse_args and _oraenv_main
 SHOW_ENV=true
@@ -305,6 +310,13 @@ _oraenv_set_environment() {
     # Configure SQLPATH for SQL script discovery (#11)
     if [[ "${ORADBA_CONFIGURE_SQLPATH}" != "false" ]]; then
         configure_sqlpath
+    fi
+
+    # Load extensions (skip in coexistence mode unless forced) (#15)
+    if [[ "${ORADBA_COEXIST_MODE}" != "basenv" ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
+        if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &>/dev/null; then
+            load_extensions
+        fi
     fi
 
     log_debug "Oracle environment set for SID: $ORACLE_SID"

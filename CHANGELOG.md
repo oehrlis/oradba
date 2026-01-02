@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Extension System (#15)**: Modular plugin architecture for custom scripts
+  - Auto-discovery of extensions in `${ORADBA_LOCAL_BASE}` (e.g., `/opt/oracle/local/customer`)
+  - Support for `bin/`, `sql/`, `rcv/`, `etc/`, `lib/` directories in extensions
+  - Optional `.extension` metadata file (YAML-like format with name, version, priority)
+  - Priority-based loading (lower priority = loaded first)
+  - Configuration override per extension (enable/disable, change priority)
+  - Automatic PATH integration for extension bin/ directories
+  - Automatic SQLPATH integration for extension sql/ directories
+  - RMAN script path tracking via `ORADBA_RCV_PATHS`
+  - Navigation aliases: `cde<name>` for each extension
+  - New library: `src/lib/extensions.sh` with discovery, loading, and management functions
+  - Comprehensive documentation: `doc/extension-system.md`
+  - Example extension: `doc/examples/extensions/customer/`
+  - Configuration variables: `ORADBA_AUTO_DISCOVER_EXTENSIONS`, `ORADBA_EXTENSION_PATHS`, `ORADBA_EXTENSIONS_IN_COEXIST`
+  - Respects coexistence mode (extensions not loaded with BasEnv unless forced)
+
 ## [0.11.1] - 2026-01-02
 
 ### Added

@@ -1,0 +1,33 @@
+# ------------------------------------------------------------------------------
+# Name.......: customer_backup.rman
+# Purpose....: Example customer RMAN backup script
+# Usage......: rman target / cmdfile=customer_backup.rman
+# Notes......: This directory is added to ORADBA_RCV_PATHS when extension loads
+# ------------------------------------------------------------------------------
+
+# Example RMAN backup script
+# Replace with your own customer-specific backup strategy
+
+CONFIGURE RETENTION POLICY TO REDUNDANCY 2;
+CONFIGURE CONTROLFILE AUTOBACKUP ON;
+
+RUN {
+    ALLOCATE CHANNEL ch1 DEVICE TYPE DISK;
+    
+    # Backup database
+    BACKUP AS COMPRESSED BACKUPSET
+        DATABASE
+        PLUS ARCHIVELOG DELETE INPUT
+        TAG 'customer_backup';
+    
+    # Backup current controlfile
+    BACKUP CURRENT CONTROLFILE
+        TAG 'customer_ctlfile';
+    
+    RELEASE CHANNEL ch1;
+}
+
+# List backup summary
+LIST BACKUP SUMMARY;
+
+EXIT;

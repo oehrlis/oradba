@@ -1,0 +1,484 @@
+# Extension System
+
+The OraDBA extension system allows you to add custom scripts, SQL files, and RMAN
+scripts in a modular way without modifying the core OraDBA installation.
+
+## Overview
+
+Extensions are separate directories parallel to `ORADBA_BASE`, typically located in
+`${ORADBA_LOCAL_BASE}` (e.g., `/opt/oracle/local/customer`). Each extension can provide:
+
+- **bin/** - Scripts automatically added to PATH
+- **sql/** - SQL scripts automatically added to SQLPATH
+- **rcv/** - RMAN scripts added to RMAN search paths
+- **etc/** - Configuration examples (not auto-loaded)
+- **lib/** - Library files (not auto-loaded)
+
+Extensions are discovered automatically and loaded in priority order during environment setup.
+
+## Directory Structure
+
+### OraDBA Installation
+
+```text
+/opt/oracle/local/
+├── oradba/              # Core OraDBA installation (ORADBA_BASE)
+│   ├── bin/
+│   ├── sql/
+│   ├── rcv/
+│   ├── etc/
+│   ├── lib/
+│   └── log/             # Centralized logs (shared by extensions)
+│
+├── customer/            # Example extension
+│   ├── .extension       # Metadata file (optional)
+│   ├── README.md
+│   ├── bin/
+│   │   └── my_tool.sh
+│   ├── sql/
+│   │   └── custom_query.sql
+│   ├── rcv/
+│   │   └── custom_backup.rman
+│   └── etc/
+│       └── customer.conf.example
+│
+└── acme/                # Another extension
+    ├── .extension
+    ├── bin/
+    └── sql/
+```
+
+## Extension Metadata
+
+Extensions can optionally include a `.extension` metadata file in YAML-like format:
+
+```yaml
+name: customer
+version: 1.0.0
+description: Customer-specific Oracle scripts and tools
+author: DBA Team
+enabled: true
+priority: 10
+provides:
+  bin: true
+  sql: true
+  rcv: true
+  etc: false
+```
+
+### Metadata Fields
+
+| Field         | Required | Description                                   |
+|---------------|----------|-----------------------------------------------|
+| `name`        | No       | Extension name (defaults to directory name)   |
+| `version`     | No       | Version string (for tracking)                 |
+| `description` | No       | Brief description                             |
+| `author`      | No       | Author or team name                           |
+| `enabled`     | No       | Whether to load (default: true)               |
+| `priority`    | No       | Load order (lower = first, default: 50)      |
+| `provides`    | No       | Which directories are present                 |
+
+**Note**: Extensions work without a `.extension` file. The file is optional and only
+provides additional metadata for tracking and management.
+
+## Configuration
+
+### Auto-Discovery (Default)
+
+Extensions are automatically discovered in `${ORADBA_LOCAL_BASE}`:
+
+```bash
+# In oradba_core.conf (enabled by default)
+export ORADBA_AUTO_DISCOVER_EXTENSIONS="true"
+```
+
+Any directory in `${ORADBA_LOCAL_BASE}` (except `oradba` itself) that contains:
+
+- A `.extension` file, OR
+- A `bin/`, `sql/`, or `rcv/` directory
+
+...will be discovered and loaded automatically.
+
+### Manual Configuration
+
+You can explicitly configure extensions in `oradba_customer.conf`:
+
+```bash
+# Add additional extension paths (colon-separated)
+export ORADBA_EXTENSION_PATHS="/custom/path/ext1:/another/path/ext2"
+
+# Disable auto-discovery and use only manual paths
+export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
+```
+
+### Override Extension Settings
+
+Override extension behavior in `oradba_customer.conf`:
+
+```bash
+# Disable specific extension
+export ORADBA_EXT_CUSTOMER_ENABLED="false"
+
+# Change load priority (lower = first)
+export ORADBA_EXT_ACME_PRIORITY="5"
+```
+
+Variable naming: `ORADBA_EXT_<NAME>_<SETTING>` where `<NAME>` is the extension name in uppercase.
+
+## Loading Behavior
+
+### Load Order
+
+1. **Core OraDBA** - Always loaded first
+2. **Extensions** - Loaded in priority order, then alphabetically
+3. **ORACLE_HOME** - Oracle binaries
+4. **System PATH** - System commands
+
+### PATH Construction
+
+```bash
+# After loading 2 extensions (customer, acme):
+PATH="${ORADBA_BIN}:${CUSTOMER_BIN}:${ACME_BIN}:${ORACLE_HOME}/bin:${SYSTEM_PATH}"
+```
+
+### Priority Sorting
+
+Extensions are sorted by:
+
+1. Priority value (lower number = loaded first)
+2. Name (alphabetically if same priority)
+
+**Example**:
+
+```text
+customer (priority 10) → loaded first
+acme     (priority 50) → loaded second
+tools    (priority 50) → loaded third (alphabetical after acme)
+```
+
+### Coexistence Mode
+
+Extensions are **not loaded** when OraDBA runs in coexistence mode with TVD BasEnv, since `oraenv.sh` is not sourced in that scenario.
+
+To force loading (not recommended):
+
+```bash
+export ORADBA_EXTENSIONS_IN_COEXIST="true"
+```
+
+## Creating an Extension
+
+### Minimal Extension
+
+Create a directory with at least one content folder:
+
+```bash
+# Create extension structure
+mkdir -p /opt/oracle/local/myext/{bin,sql,rcv}
+
+# Add a script
+cat > /opt/oracle/local/myext/bin/mytool.sh << 'EOF'
+#!/bin/bash
+echo "My custom tool"
+EOF
+chmod +x /opt/oracle/local/myext/bin/mytool.sh
+
+# That's it! Extension will be auto-discovered on next login
+```
+
+### Extension with Metadata
+
+Recommended for better tracking:
+
+```bash
+# Create .extension file
+cat > /opt/oracle/local/myext/.extension << 'EOF'
+name: myext
+version: 1.0.0
+description: My custom Oracle extension
+author: John Doe
+enabled: true
+priority: 20
+provides:
+  bin: true
+  sql: true
+  rcv: true
+EOF
+```
+
+### Extension with Configuration
+
+If your extension needs configuration:
+
+```bash
+# Create example config
+mkdir -p /opt/oracle/local/myext/etc
+cat > /opt/oracle/local/myext/etc/myext.conf.example << 'EOF'
+# My Extension Configuration
+# Copy relevant settings to ${ORADBA_PREFIX}/etc/oradba_customer.conf
+
+# Custom setting
+export MYEXT_SETTING="value"
+
+# Custom aliases (add to oradba_customer.conf if needed)
+# alias mytool='mytool.sh --verbose'
+EOF
+```
+
+**Important**: Extension config files in `etc/` are **not automatically loaded**. Users must manually copy settings to `oradba_customer.conf`.
+
+## Navigation
+
+Each loaded extension automatically gets a navigation alias:
+
+```bash
+# Navigate to extension
+cde<name>
+
+# Examples:
+cdecustomer    # cd /opt/oracle/local/customer
+cdeacme        # cd /opt/oracle/local/acme
+cdemyext       # cd /opt/oracle/local/myext
+```
+
+## Managing Extensions
+
+### List Extensions
+
+```bash
+# Show all extensions
+oradba_version.sh --extensions     # (planned feature)
+
+# Or use library function
+source ${ORADBA_PREFIX}/lib/extensions.sh
+list_extensions
+```
+
+### Show Extension Details
+
+```bash
+source ${ORADBA_PREFIX}/lib/extensions.sh
+show_extension_info customer
+```
+
+### Validate Extension
+
+```bash
+source ${ORADBA_PREFIX}/lib/extensions.sh
+validate_extension /opt/oracle/local/customer
+```
+
+### Disable Extension
+
+Add to `oradba_customer.conf`:
+
+```bash
+export ORADBA_EXT_CUSTOMER_ENABLED="false"
+```
+
+## Best Practices
+
+### 1. Use Metadata Files
+
+Always create `.extension` files for proper tracking:
+
+- Makes extensions discoverable
+- Documents version and purpose
+- Enables proper load order control
+
+### 2. Version Your Extensions
+
+Include version info and maintain a changelog:
+
+```text
+myext/
+├── .extension         # version: 1.2.0
+├── CHANGELOG.md       # Version history
+└── README.md          # Documentation
+```
+
+### 3. Provide Documentation
+
+Each extension should have:
+
+- `README.md` - What it does, how to use it
+- `etc/*.conf.example` - Configuration examples
+- Comments in scripts
+
+### 4. Use Priority Wisely
+
+- **1-10**: Critical extensions that must load first
+- **10-30**: High priority extensions
+- **30-50**: Normal priority (default: 50)
+- **50+**: Lower priority extensions
+
+### 5. Test in Isolation
+
+Before adding to production:
+
+```bash
+# Test with only your extension
+export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
+export ORADBA_EXTENSION_PATHS="/path/to/myext"
+source oraenv.sh
+```
+
+### 6. Avoid Core Conflicts
+
+- Don't override core OraDBA commands
+- Use unique naming for scripts
+- Document any intentional overrides
+
+### 7. Handle Logging
+
+Extensions use centralized `${ORADBA_LOG}` by default. If you need extension-specific logs:
+
+```bash
+# In your extension script
+LOG_DIR="${ORADBA_EXT_MYEXT_PATH}/log"
+mkdir -p "${LOG_DIR}"
+```
+
+### 8. Configuration Pattern
+
+Don't auto-load extension configs. Instead:
+
+```bash
+# In myext/etc/myext.conf.example:
+# ============================================
+# My Extension Configuration
+# Copy required settings to:
+#   ${ORADBA_PREFIX}/etc/oradba_customer.conf
+# ============================================
+
+# Custom environment variable
+export MYEXT_DATABASE="PROD"
+
+# Custom alias (optional)
+# alias mydb='sqlplus myuser@${MYEXT_DATABASE}'
+```
+
+Users explicitly copy what they need to `oradba_customer.conf`.
+
+## Troubleshooting
+
+### Extension Not Loading
+
+1. **Check discovery**:
+
+```bash
+echo "${ORADBA_LOCAL_BASE}"    # Should show /opt/oracle/local or similar
+ls -la "${ORADBA_LOCAL_BASE}"  # Extension visible?
+```
+
+1. **Check .extension file** (if present):
+
+```bash
+cat /path/to/extension/.extension
+# Verify enabled: true
+```
+
+1. **Check configuration**:
+
+```bash
+echo "${ORADBA_AUTO_DISCOVER_EXTENSIONS}"  # Should be 'true'
+env | grep ORADBA_EXT_                     # Check for overrides
+```
+
+1. **Enable debug logging**:
+
+```bash
+export DEBUG=1
+source oraenv.sh
+# Look for extension loading messages
+```
+
+### Wrong Load Order
+
+Extensions load in priority order (lowest first), then alphabetically. To change:
+
+```bash
+# In oradba_customer.conf
+export ORADBA_EXT_MYEXT_PRIORITY="5"   # Load earlier
+export ORADBA_EXT_OTHER_PRIORITY="99"  # Load later
+```
+
+### Command Not Found
+
+If extension script not in PATH:
+
+1. **Check directory**:
+
+```bash
+ls -la /opt/oracle/local/myext/bin
+# Files should be executable
+```
+
+1. **Check PATH**:
+
+```bash
+echo "${PATH}"
+# Should include /opt/oracle/local/myext/bin
+```
+
+1. **Make executable**:
+
+```bash
+chmod +x /opt/oracle/local/myext/bin/*.sh
+```
+
+### Extension Warnings
+
+Extensions that fail validation are skipped with warnings. Check logs:
+
+```bash
+# Look for warnings during login
+source oraenv.sh 2>&1 | grep -i extension
+```
+
+## Examples
+
+See `doc/examples/extensions/` for complete examples:
+
+- **customer/** - Basic extension with bin/ and sql/
+- **acme/** - Extension with priority and metadata
+- **tools/** - Extension with RMAN scripts
+
+## Reference
+
+### Environment Variables (Core Config)
+
+| Variable                          | Default | Description                                  |
+|-----------------------------------|---------|----------------------------------------------|
+| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions                     |
+| `ORADBA_EXTENSION_PATHS`          | `""`    | Additional extension paths (`:` separated)   |
+| `ORADBA_EXTENSIONS_IN_COEXIST`    | `false` | Load in coexistence mode                     |
+
+### Environment Variables (Per-Extension)
+
+| Variable                      | Example                                  | Description    |
+|-------------------------------|------------------------------------------|----------------|
+| `ORADBA_EXT_<NAME>_ENABLED`  | `ORADBA_EXT_CUSTOMER_ENABLED="false"`  | Enable/disable |
+| `ORADBA_EXT_<NAME>_PRIORITY` | `ORADBA_EXT_CUSTOMER_PRIORITY="10"`    | Load priority  |
+| `ORADBA_EXT_<NAME>_PATH`     | Set automatically                        | Extension path |
+
+### Functions (lib/extensions.sh)
+
+| Function                              | Description                              |
+|---------------------------------------|------------------------------------------|
+| `discover_extensions()`               | Find all extensions in ORADBA_LOCAL_BASE |
+| `load_extensions()`                   | Load all enabled extensions              |
+| `load_extension <path>`               | Load single extension                    |
+| `list_extensions [--verbose]`         | List all extensions                      |
+| `show_extension_info <name>`          | Show extension details                   |
+| `validate_extension <path>`           | Validate extension structure             |
+| `get_extension_name <path>`           | Get extension name                       |
+| `get_extension_version <path>`        | Get extension version                    |
+| `get_extension_priority <path>`       | Get load priority                        |
+| `is_extension_enabled <name> <path>` | Check if enabled                         |
+
+## See Also
+
+- [Configuration System](05-configuration.md)
+- [Architecture](../architecture.md)
+- [Project Structure](../structure.md)
