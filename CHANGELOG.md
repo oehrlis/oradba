@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Build → Generate docs → Copy PDF → Rebuild
   - Ensures PDF is included in distribution tarball
 
+### Fixed
+
+- **Shellcheck Lint Issues**: Resolved all shellcheck warnings in oradba_help.sh
+  - Fixed SC2155: Separated declare and assign for command substitution
+  - Fixed SC2034: Added shellcheck disable for unused metadata variables
+
 ## [0.10.2] - 2026-01-02
 
 ### Added
