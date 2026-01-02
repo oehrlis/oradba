@@ -27,24 +27,24 @@ setup() {
 @test "oradba help shows main help menu" {
     run "$ORADBA_HELP"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "OraDBA Help System" ]]
-    [[ "$output" =~ "TOPICS" ]]
-    [[ "$output" =~ "aliases" ]]
-    [[ "$output" =~ "scripts" ]]
-    [[ "$output" =~ "variables" ]]
+    [[ "$output" =~ OraDBA\ Help\ System ]]
+    [[ "$output" =~ TOPICS ]]
+    [[ "$output" =~ aliases ]]
+    [[ "$output" =~ scripts ]]
+    [[ "$output" =~ variables ]]
 }
 
 @test "oradba help aliases shows alias help" {
     run "$ORADBA_HELP" aliases
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "OraDBA Aliases" ]]
+    [[ "$output" =~ OraDBA\ Aliases ]]
 }
 
 @test "oradba help scripts shows available scripts" {
     run "$ORADBA_HELP" scripts
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "OraDBA Scripts" ]]
-    [[ "$output" =~ "Available scripts" ]]
+    [[ "$output" =~ OraDBA\ Scripts ]]
+    [[ "$output" =~ Available\ scripts ]]
 }
 
 @test "oradba help variables shows environment variables" {
@@ -53,49 +53,49 @@ setup() {
     
     run "$ORADBA_HELP" variables
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Environment Variables" ]]
-    [[ "$output" =~ "ORADBA_PREFIX" ]]
+    [[ "$output" =~ Environment\ Variables ]]
+    [[ "$output" =~ ORADBA_PREFIX ]]
 }
 
 @test "oradba help config shows configuration system" {
     run "$ORADBA_HELP" config
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Configuration System" ]]
-    [[ "$output" =~ "oradba_core.conf" ]]
+    [[ "$output" =~ Configuration\ System ]]
+    [[ "$output" =~ oradba_core\.conf ]]
 }
 
 @test "oradba help sql shows SQL help" {
     run "$ORADBA_HELP" sql
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "SQL Scripts" ]]
+    [[ "$output" =~ SQL\ Scripts ]]
 }
 
 @test "oradba help with --help flag shows main menu" {
     run "$ORADBA_HELP" --help
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "OraDBA Help System" ]]
+    [[ "$output" =~ OraDBA\ Help\ System ]]
 }
 
 @test "oradba help with invalid topic shows error" {
     run "$ORADBA_HELP" invalid_topic
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "Unknown topic" ]]
+    [[ "$output" =~ Unknown\ topic ]]
 }
 
 @test "oradba help alias (singular) works" {
     run "$ORADBA_HELP" alias
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "OraDBA Aliases" ]]
+    [[ "$output" =~ OraDBA\ Aliases ]]
 }
 
 @test "oradba help vars (short form) works" {
     run "$ORADBA_HELP" vars
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Environment Variables" ]]
+    [[ "$output" =~ Environment\ Variables ]]
 }
 
 @test "oradba help conf (short form) works" {
     run "$ORADBA_HELP" conf
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Configuration System" ]]
+    [[ "$output" =~ Configuration\ System ]]
 }
