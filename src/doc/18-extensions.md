@@ -356,8 +356,10 @@ export ORADBA_EXT_OTHER_PRIORITY="50"      # Loads first (appears later in PATH)
 
 ## See Also
 
-- **[Extension System Documentation](../../doc/extension-system.md)** - Complete technical reference
-- **[Example Extension](../../doc/examples/extensions/customer/)** - Reference implementation
+- **[Extension System Documentation](https://github.com/oehrlis/oradba/blob/main/doc/extension-system.md)** -
+  Complete technical reference
+- **[Example Extension](https://github.com/oehrlis/oradba/tree/main/doc/examples/extensions/customer)** -
+  Reference implementation
 - **[Configuration Guide](05-configuration.md)** - Configuration hierarchy
 - **[Troubleshooting](12-troubleshooting.md)** - General troubleshooting
 
