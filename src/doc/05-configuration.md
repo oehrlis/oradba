@@ -679,6 +679,195 @@ across shells:
 export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 ```
 
+## Coexistence Mode
+
+### Overview
+
+OraDBA can be installed alongside TVD BasEnv and DB*Star toolsets. When both are present, OraDBA automatically operates in **coexistence mode** with BasEnv having priority.
+
+**Detection:** Auto-detected during installation by checking for:
+- `.BE_HOME` file in `${HOME}`
+- `.TVDPERL_HOME` file in `${HOME}`
+- `BE_HOME` environment variable
+
+**Behavior:** OraDBA becomes a non-invasive add-on, skipping aliases that already exist in BasEnv.
+
+### Configuration File
+
+Coexistence settings are stored in `etc/oradba_local.conf` (auto-generated during installation):
+
+```bash
+# ------------------------------------------------------------------------------
+# OraDBA Local Configuration
+# ------------------------------------------------------------------------------
+# Auto-generated during installation
+
+# Coexistence mode (auto-detected)
+export ORADBA_COEXIST_MODE="basenv"    # or "standalone"
+
+# Installation metadata
+ORADBA_INSTALL_DATE="2026-01-02T10:30:00Z"
+ORADBA_INSTALL_VERSION="0.10.5"
+ORADBA_INSTALL_METHOD="embedded"
+ORADBA_BASENV_DETECTED="yes"
+
+# Force mode: Override coexistence restrictions
+# Uncomment to create all OraDBA aliases even when they exist in BasEnv
+# Warning: May override BasEnv aliases - use with caution
+# export ORADBA_FORCE=1
+```
+
+### Coexistence Mode Values
+
+**`standalone` (default):**
+- No other toolsets detected
+- OraDBA has full control
+- All aliases and features enabled
+
+**`basenv`:**
+- TVD BasEnv / DB*Star detected
+- OraDBA skips conflicting aliases
+- BasEnv settings preserved (PS1, BE_HOME, etc.)
+- Minimal footprint
+
+### Alias Behavior
+
+In coexistence mode, OraDBA uses "safe alias creation":
+
+| Alias | Standalone Mode | Coexistence Mode |
+|-------|----------------|------------------|
+| `sq` | Created by OraDBA | Skipped (BasEnv has it) |
+| `taa` | Created by OraDBA | Skipped (BasEnv has it) |
+| `cdd` | Created by OraDBA | Skipped (BasEnv has it) |
+| `oradba` | Created by OraDBA | Created (OraDBA-specific) |
+| `dbctl` | Created by OraDBA | Created (OraDBA-specific) |
+| `listener` | Created by OraDBA | Created (OraDBA-specific) |
+
+**Result:** You get the best of both worlds - BasEnv's comprehensive aliases plus OraDBA's unique features.
+
+### Force Mode
+
+To override coexistence restrictions and create all OraDBA aliases:
+
+**Enable Force Mode:**
+
+```bash
+# Edit local configuration
+vi ${ORADBA_PREFIX}/etc/oradba_local.conf
+
+# Uncomment or add:
+export ORADBA_FORCE=1
+
+# Re-source environment
+source ${ORADBA_PREFIX}/bin/oraenv.sh
+```
+
+**When to Use:**
+- You prefer OraDBA's alias implementations
+- Specific OraDBA features needed
+- Testing OraDBA functionality
+
+**Warning:** Force mode may shadow BasEnv aliases. BasEnv commands may behave differently.
+
+### Environment Variables
+
+**Protected Variables (never modified):**
+- `BE_HOME` - BasEnv home directory
+- `TVDPERL_HOME` - BasEnv Perl location
+- `PS1` / `PS1BASH` - Shell prompt
+- `TVD_BASE` - BasEnv base directory
+- All other BasEnv-specific variables
+
+**OraDBA Variables (namespaced):**
+- `ORADBA_PREFIX` - OraDBA installation directory
+- `ORADBA_BASE` - Alias to ORADBA_PREFIX
+- `ORADBA_COEXIST_MODE` - Coexistence mode setting
+- `ORADBA_FORCE` - Force override flag
+- All other `ORADBA_*` variables
+
+### Installation Layout
+
+Both toolsets can share the same parent directory:
+
+```bash
+/opt/oracle/local/
+├── dba/                      # TVD BasEnv (BE_HOME)
+│   ├── bin/
+│   ├── etc/
+│   └── lib/
+└── oradba/                   # OraDBA (ORADBA_PREFIX)
+    ├── bin/
+    ├── etc/
+    └── lib/
+```
+
+**Benefits:**
+- Logical grouping of Oracle tools
+- Easy navigation with `cdl` alias
+- Shared backup/log directories possible
+- Independent updates and configurations
+
+### Checking Coexistence Status
+
+**View current mode:**
+
+```bash
+# Check configuration
+cat ${ORADBA_PREFIX}/etc/oradba_local.conf | grep COEXIST
+
+# Check environment
+echo $ORADBA_COEXIST_MODE
+
+# Check during installation
+grep "basenv detected" ${ORADBA_PREFIX}/.install_info
+```
+
+**Test alias behavior:**
+
+```bash
+# Check if alias exists
+type sq
+
+# Check alias definition
+alias sq
+
+# In coexistence mode with BasEnv:
+# sq would be BasEnv's version or not created by OraDBA
+```
+
+### Troubleshooting
+
+**Problem:** Aliases not working after installation
+
+```bash
+# Verify coexistence mode is correct
+cat ${ORADBA_PREFIX}/etc/oradba_local.conf
+
+# Check if force mode is needed
+export ORADBA_FORCE=1
+source ${ORADBA_PREFIX}/bin/oraenv.sh
+```
+
+**Problem:** Want to switch from coexistence to standalone
+
+```bash
+# Edit local config
+vi ${ORADBA_PREFIX}/etc/oradba_local.conf
+
+# Change:
+export ORADBA_COEXIST_MODE="standalone"
+
+# Re-source
+source ${ORADBA_PREFIX}/bin/oraenv.sh
+```
+
+**Problem:** Need to reinstall with different mode
+
+```bash
+# Reinstall will auto-detect current environment
+./oradba_install.sh --force --prefix /opt/oracle/local/oradba
+```
+
 ## Best Practices
 
 1. **Never modify core or standard configs** - Use customer config for overrides
@@ -689,9 +878,12 @@ export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 6. **Test configuration changes** - Use DEBUG=1 to verify loading
 7. **Use version control** - Track configuration changes over time
 8. **Document non-obvious settings** - Help future you understand decisions
+9. **Respect coexistence mode** - Use force mode sparingly to avoid conflicts
+10. **Keep oradba_local.conf intact** - Auto-generated, reflects installation state
 
 ## See Also
 
+- [Installation](02-installation.md#parallel-installation-with-tvd-basenv--dbstar) - Parallel installation guide
 - [Environment Management](04-environment.md) - How oraenv.sh loads configurations
 - [Aliases](06-aliases.md) - Configuring and customizing aliases
 - [PDB Aliases](07-pdb-aliases.md) - PDB-specific configuration

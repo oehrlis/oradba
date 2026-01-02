@@ -216,6 +216,70 @@ fi
 ./oradba_install.sh --force --prefix /opt/oradba
 ```
 
+### Parallel Installation with TVD BasEnv / DB*Star
+
+OraDBA supports parallel installation alongside TVD BasEnv and DB*Star. The installer automatically detects existing BasEnv installations and configures OraDBA to coexist peacefully.
+
+**Auto-Detection:**
+
+The installer checks for BasEnv markers during installation:
+
+- `.BE_HOME` file in user's home directory
+- `.TVDPERL_HOME` file in user's home directory  
+- `BE_HOME` environment variable
+
+If detected, OraDBA operates in **coexistence mode**:
+
+```bash
+# Installation automatically detects BasEnv
+./oradba_install.sh --prefix /opt/oracle/local/oradba
+
+# Output shows detection:
+# [INFO] TVD BasEnv / DB*Star detected - enabling coexistence mode
+# [INFO] OraDBA will not override existing basenv aliases and settings
+# [INFO]   BE_HOME: /opt/oracle/local/dba
+```
+
+**Coexistence Behavior:**
+
+- **BasEnv has priority** - OraDBA acts as a non-invasive add-on
+- **No alias conflicts** - OraDBA skips aliases that exist in BasEnv
+- **Preserved settings** - PS1 prompt, BE_HOME, and BasEnv variables unchanged
+- **Side-by-side installation** - Both toolsets work independently
+
+**Configuration:**
+
+Coexistence mode is recorded in `etc/oradba_local.conf`:
+
+```bash
+# Auto-detected coexistence mode
+export ORADBA_COEXIST_MODE="basenv"   # or "standalone"
+ORADBA_BASENV_DETECTED="yes"
+
+# Optional: Force OraDBA aliases (overrides BasEnv)
+# Uncomment to create all aliases even if they exist in BasEnv
+# export ORADBA_FORCE=1
+```
+
+**Force Mode:**
+
+If you need OraDBA aliases to take priority:
+
+```bash
+# Edit oradba_local.conf
+vi /opt/oracle/local/oradba/etc/oradba_local.conf
+
+# Uncomment:
+export ORADBA_FORCE=1
+
+# Re-source environment
+source /opt/oracle/local/oradba/bin/oraenv.sh
+```
+
+**Note:** Force mode may override BasEnv functionality - use with caution.
+
+See [Configuration - Coexistence Mode](05-configuration.md#coexistence-mode) for detailed configuration options.
+
 ### Information and Help
 
 ```bash
