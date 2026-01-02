@@ -92,7 +92,7 @@ Production-grade security configuration:
 
 - **Encryption**: AES256/192/128 (REQUIRED)
 - **Checksumming**: SHA256/384/512 (REQUIRED)
-- **Authentication**: TCPS, NTS
+- **Authentication**: TCPS, BEQ
 - **Case-sensitive logon**: Enabled
 - **Minimum version**: Oracle 12c
 - **Requires**: Oracle Advanced Security license

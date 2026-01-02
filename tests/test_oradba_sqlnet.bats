@@ -370,7 +370,7 @@ teardown() {
     # Create existing sqlnet.ora
     cat > "${ORACLE_HOME}/network/admin/sqlnet.ora" <<EOF
 NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
-SQLNET.AUTHENTICATION_SERVICES= (NTS)
+SQLNET.AUTHENTICATION_SERVICES= (BEQ)
 EOF
     
     # Run setup with ORACLE_HOME in environment

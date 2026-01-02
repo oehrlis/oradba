@@ -202,7 +202,7 @@ Features:
 
 - **Network Encryption:** AES256/192/128 (REQUIRED)
 - **Data Integrity:** SHA256/384/512 checksums (REQUIRED)
-- **Authentication:** TCPS and NTS support
+- **Authentication:** TCPS and BEQ support
 - **Security:** Case-sensitive logon, minimum Oracle 12c
 - **Wallet:** Pre-configured for credential storage
 
@@ -505,12 +505,12 @@ SQLNET.CRYPTO_CHECKSUM_TYPES_SERVER = (SHA256, SHA384, SHA512)
 
 **Supported Methods:**
 
-- **NTS** - Native network services
+- **BEQ** - for native operating system authentication for operating systems other than Microsoft Windows.
 - **TCPS** - TCP with SSL/TLS
 - **KERBEROS5** - Kerberos authentication
 
 ```text
-SQLNET.AUTHENTICATION_SERVICES = (TCPS, NTS)
+SQLNET.AUTHENTICATION_SERVICES = (TCPS, BEQ)
 ```
 
 ### Secure Connections (TCPS)

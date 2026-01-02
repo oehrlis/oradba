@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **SQL*Net Authentication**: Changed authentication service from NTS to BEQ
+  - BEQ for native OS authentication (Unix/Linux systems)
+  - NTS is Windows-specific (Native Network Services)
+  - Updated templates: sqlnet.ora.basic, sqlnet.ora.secure
+  - Updated documentation and tests
+
 - **Listener Alias Renamed**: Changed `lsnrctl` alias to `listener` to avoid conflict
   - Oracle's native `lsnrctl` command no longer shadowed by alias
   - New alias: `listener` calls `oradba_lsnrctl.sh` wrapper
