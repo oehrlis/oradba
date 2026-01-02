@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-01-02
+
+### Added
+
+- **Version Info Enhancement**: `oradba_version.sh -i` now displays coexistence mode
+  - Shows `coexist_mode` (standalone or basenv)
+  - Shows `basenv_detected` (yes or no)
+  - Information sourced from `.install_info` file
+
+### Fixed
+
+- **Test Compatibility**: Updated service management tests for safe_alias pattern
+  - Fixed 6 tests that were checking for old `alias name=` syntax
+  - Now correctly checks for `safe_alias name` pattern
+  - All tests passing with coexistence mode implementation
+
+- **Documentation Workflow**: Added version tag trigger to docs workflow
+  - Docs now deploy automatically when version tag is pushed
+  - Ensures documentation updates on every release
+  - No longer relies solely on release published event
+
 ## [0.11.0] - 2026-01-02
 
 ### Added
