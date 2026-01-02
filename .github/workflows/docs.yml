@@ -4,14 +4,13 @@ on:
   release:
     types: [published]
   push:
-    tags:
-      - 'v*.*.*'
     branches:
       - main
     paths:
       - 'src/doc/**'
       - 'mkdocs.yml'
       - '.github/workflows/docs.yml'
+      - 'VERSION'
   workflow_dispatch:
 
 permissions:
