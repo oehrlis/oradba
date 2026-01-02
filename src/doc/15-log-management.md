@@ -272,14 +272,14 @@ is restricted or per-user log management is preferred.
 
 #### User-Mode vs System-Wide
 
-| Aspect             | User-Mode               | System-Wide          |
-|--------------------|-------------------------|----------------------|
-| **Privileges**     | No root required        | Requires root        |
-| **Installation**   | `~/.oradba/logrotate/`  | `/etc/logrotate.d/`  |
-| **State files**    | `~/.oradba/logrotate/state/` | `/var/lib/logrotate/` |
-| **Execution**      | Manual or user crontab  | System cron          |
-| **Scope**          | User's Oracle logs      | All system logs      |
-| **Management**     | Self-service            | System admin         |
+| Aspect           | User-Mode                    | System-Wide           |
+|------------------|------------------------------|-----------------------|
+| **Privileges**   | No root required             | Requires root         |
+| **Installation** | `~/.oradba/logrotate/`       | `/etc/logrotate.d/`   |
+| **State files**  | `~/.oradba/logrotate/state/` | `/var/lib/logrotate/` |
+| **Execution**    | Manual or user crontab       | System cron           |
+| **Scope**        | User's Oracle logs           | All system logs       |
+| **Management**   | Self-service                 | System admin          |
 
 #### User-Mode Limitations
 
