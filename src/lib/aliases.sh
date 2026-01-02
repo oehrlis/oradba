@@ -128,8 +128,8 @@ generate_sid_aliases() {
     alias dbstop='${ORADBA_BIN}/oradba_dbctl.sh stop'
     alias dbrestart='${ORADBA_BIN}/oradba_dbctl.sh restart'
     
-    # Listener control aliases
-    alias lsnrctl='${ORADBA_BIN}/oradba_lsnrctl.sh'
+    # Listener control wrapper (renamed to avoid conflict with Oracle's lsnrctl)
+    alias listenerctl='${ORADBA_BIN}/oradba_lsnrctl.sh'
     alias lsnrstart='${ORADBA_BIN}/oradba_lsnrctl.sh start'
     alias lsnrstop='${ORADBA_BIN}/oradba_lsnrctl.sh stop'
     alias lsnrrestart='${ORADBA_BIN}/oradba_lsnrctl.sh restart'

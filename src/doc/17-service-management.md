@@ -48,7 +48,7 @@ dbstop          # Stop databases
 dbrestart       # Restart databases
 
 # Listener control
-lsnrctl         # Alias for oradba_lsnrctl.sh
+listenerctl     # Alias for oradba_lsnrctl.sh
 lsnrstart       # Start listeners
 lsnrstop        # Stop listeners
 lsnrstatus      # Listener status

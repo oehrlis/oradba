@@ -46,7 +46,7 @@
 
  LISTENER OPERATIONS
  -------------------------------------------------------------------------------
- lsnr            --> lsnrctl command
+ lsnr            --> lsnrctl command (Oracle native)
  lsnrh           --> lsnrctl with rlwrap (history + tab completion)
  lstat           --> Listener status
  lstart          --> Start listener
@@ -58,7 +58,7 @@
  dbstart         --> Start databases (honors :Y flag in oratab)
  dbstop          --> Stop databases
  dbrestart       --> Restart databases
- lsnrctl         --> Listener control script
+ listenerctl     --> Listener control script (oradba_lsnrctl.sh wrapper)
  lsnrstart       --> Start listener
  lsnrstop        --> Stop listener
  lsnrrestart     --> Restart listener
