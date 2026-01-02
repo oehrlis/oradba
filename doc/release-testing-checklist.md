@@ -43,6 +43,7 @@ cat /opt/oracle/local/oradba/.install_info
 ```
 
 Expected fields:
+
 - [ ] `install_date` present
 - [ ] `install_version` matches release version
 - [ ] `install_method=embedded`
@@ -151,6 +152,7 @@ cat /opt/oracle/local/oradba/.install_info
 ```
 
 Expected fields:
+
 - [ ] `install_date` present
 - [ ] `install_version` matches release version
 - [ ] `install_method=embedded`
@@ -380,13 +382,15 @@ Test with different Oracle versions:
 **Tested by:** ___________________  
 **Date:** ___________________  
 **Environments tested:**
+
 - [ ] Standalone: ___________________
 - [ ] BasEnv: ___________________
 
 **Release approved:** [ ] Yes [ ] No
 
 **Notes/Issues:**
-```
+
+```text
 _________________________________________________________________________
 _________________________________________________________________________
 _________________________________________________________________________
