@@ -13,9 +13,13 @@
 # License....: Apache License Version 2.0
 # ------------------------------------------------------------------------------
 
-# Script metadata
-readonly SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_VERSION="0.10.3"
+# Script metadata (unused but kept for consistency)
+# shellcheck disable=SC2034
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+# shellcheck disable=SC2034
+SCRIPT_VERSION="0.10.3"
+readonly SCRIPT_VERSION
 
 # Color definitions
 readonly COLOR_RESET='\033[0m'
@@ -94,9 +98,11 @@ show_scripts_help() {
         echo "Core Scripts:"
         for script in "$bin_dir"/*.sh; do
             if [[ -f "$script" ]]; then
-                local name=$(basename "$script")
+                local name
+                name=$(basename "$script")
                 # Extract purpose from header if available
-                local purpose=$(grep -m 1 "^# Purpose" "$script" | sed 's/^# Purpose\.*: *//' | cut -c1-60)
+                local purpose
+                purpose=$(grep -m 1 "^# Purpose" "$script" | sed 's/^# Purpose\.*: *//' | cut -c1-60)
                 printf "  ${COLOR_GREEN}%-25s${COLOR_RESET} %s\n" "$name" "$purpose"
             fi
         done
