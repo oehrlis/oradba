@@ -231,7 +231,7 @@ Format: `<action>_<category>_<object>[_priv].sql`
 - **action**: Operation verb (cr, dr, up, en, dis, gen) or omitted for queries
 - **category**: Topic area (sec, aud, tde, dba, mon)
 - **object**: What the script operates on
-- **priv**: Required privilege level (_dba, _sys, _aud) - optional
+- **priv**: Required privilege level (\_dba, \_sys, \_aud) - optional
 
 **Examples:**
 
@@ -283,10 +283,10 @@ BATS test files match the component they test:
 
 Format: `<action>_<object>.sh` or `<descriptive_name>.sh`
 
-| Script                | Purpose                    | Location    |
-|-----------------------|----------------------------|-------------|
+| Script                | Purpose                         | Location   |
+|-----------------------|---------------------------------|------------|
 | `build_installer.sh`  | Build self-extracting installer | `scripts/` |
-| `validate_project.sh` | Validate project structure | `scripts/`  |
+| `validate_project.sh` | Validate project structure      | `scripts/` |
 
 ### Naming Best Practices
 
