@@ -149,6 +149,154 @@ make validate          # Validate configuration files
 - `VERBOSE=1` - Show detailed output
 - `FULL=1` - Force full test run (alternative to `make test-full`)
 
+## Naming Conventions
+
+OraDBA follows consistent naming conventions for all files to ensure discoverability and maintainability.
+
+### Bash Scripts
+
+#### Core Utilities
+
+Format: `oradba_<function>.sh`
+
+Scripts that are part of the core OraDBA toolset use the `oradba_` prefix:
+
+| Script               | Purpose                    | Location         |
+|----------------------|----------------------------|------------------|
+| `oradba_install.sh`  | Installation script        | `src/bin/`       |
+| `oradba_check.sh`    | System checks              | `src/bin/`       |
+| `oradba_version.sh`  | Version information        | `src/bin/`       |
+| `oradba_validate.sh` | Installation validation    | `src/bin/`       |
+| `oradba_help.sh`     | Help system                | `src/bin/`       |
+
+#### Job Wrappers
+
+Format: `<tool>_jobs.sh` or `<purpose>.sh`
+
+Scripts that wrap or manage Oracle tools:
+
+| Script          | Purpose                    | Location   |
+|-----------------|----------------------------|------------|
+| `exp_jobs.sh`   | DataPump export monitor    | `src/bin/` |
+| `imp_jobs.sh`   | DataPump import monitor    | `src/bin/` |
+| `rman_jobs.sh`  | RMAN job wrapper           | `src/bin/` |
+| `longops.sh`    | Long operations monitor    | `src/bin/` |
+
+#### Utility Scripts
+
+Format: `<action>_<object>.sh` or `<descriptive_name>.sh`
+
+General utility scripts follow descriptive naming:
+
+| Script              | Purpose                    | Location   |
+|---------------------|----------------------------|------------|
+| `dbstatus.sh`       | Database status display    | `src/bin/` |
+| `oraenv.sh`         | Environment setup          | `src/bin/` |
+| `oraup.sh`          | Database status overview   | `src/bin/` |
+| `sessionsql.sh`     | Enhanced SQL*Plus          | `src/bin/` |
+| `get_seps_pwd.sh`   | Password extraction        | `src/bin/` |
+| `sync_to_peers.sh`  | Peer synchronization       | `src/bin/` |
+| `sync_from_peers.sh`| Peer synchronization       | `src/bin/` |
+
+#### Configuration Files
+
+Format: `<scope>_<purpose>.conf` or `sid.<SID>.conf`
+
+| File                           | Purpose                    | Location    |
+|--------------------------------|----------------------------|-------------|
+| `oradba_core.conf`             | Core system configuration  | `src/etc/`  |
+| `oradba_standard.conf`         | Standard configurations    | `src/etc/`  |
+| `oradba_customer.conf.example` | Customer overrides         | `src/etc/`  |
+| `sid.<SID>.conf`               | SID-specific config        | `src/etc/`  |
+| `sid._DEFAULT_.conf`           | Default SID template       | `src/etc/`  |
+
+#### Library Files
+
+Format: `<purpose>.sh`
+
+Shared function libraries:
+
+| File              | Purpose                    | Location   |
+|-------------------|----------------------------|------------|
+| `common.sh`       | Common utility functions   | `src/lib/` |
+| `aliases.sh`      | Alias generation           | `src/lib/` |
+| `db_functions.sh` | Database functions         | `src/lib/` |
+
+### SQL Scripts
+
+Format: `<action>_<category>_<object>[_priv].sql`
+
+**Components:**
+
+- **action**: Operation verb (cr, dr, up, en, dis, gen) or omitted for queries
+- **category**: Topic area (sec, aud, tde, dba, mon)
+- **object**: What the script operates on
+- **priv**: Required privilege level (_dba, _sys, _aud) - optional
+
+**Examples:**
+
+| Script                    | Purpose                           |
+|---------------------------|-----------------------------------|
+| `sec_users_dba.sql`       | Show users (requires DBA)         |
+| `cr_aud_policies.sql`     | Create audit policies             |
+| `aud_sessions.sql`        | Show audit sessions               |
+| `tde_keystore_sys.sql`    | TDE keystore info (requires SYS)  |
+| `gen_aud_stmts.sql`       | Generate audit statements         |
+
+**See full SQL naming conventions in:** [src/doc/08-sql-scripts.md](../src/doc/08-sql-scripts.md#naming-convention)
+
+### RMAN Scripts
+
+Format: `<action>_<scope>.rman`
+
+| Script            | Purpose                    | Location   |
+|-------------------|----------------------------|------------|
+| `backup_full.rman`| Full backup script         | `src/rcv/` |
+
+### Template Files
+
+Format: `<purpose>_template.<ext>` or `<name>.<ext>.template`
+
+| File                  | Purpose                    | Location          |
+|-----------------------|----------------------------|-------------------|
+| `script_template.sh`  | Bash script template       | `src/templates/`  |
+| `header.sh`           | Bash script header         | `doc/templates/`  |
+| `header.sql`          | SQL script header          | `doc/templates/`  |
+| `header.rman`         | RMAN script header         | `doc/templates/`  |
+| `header.conf`         | Config file header         | `doc/templates/`  |
+
+### Test Files
+
+Format: `test_<component>.bats`
+
+BATS test files match the component they test:
+
+| Test File                 | Tests                      | Location  |
+|---------------------------|----------------------------|-----------|
+| `test_common.bats`        | common.sh library          | `tests/`  |
+| `test_oraenv.bats`        | oraenv.sh script           | `tests/`  |
+| `test_aliases.bats`       | aliases.sh library         | `tests/`  |
+| `test_db_functions.bats`  | db_functions.sh library    | `tests/`  |
+| `test_oradba_help.bats`   | oradba_help.sh script      | `tests/`  |
+
+### Build Scripts
+
+Format: `<action>_<object>.sh` or `<descriptive_name>.sh`
+
+| Script                | Purpose                    | Location    |
+|-----------------------|----------------------------|-------------|
+| `build_installer.sh`  | Build self-extracting installer | `scripts/` |
+| `validate_project.sh` | Validate project structure | `scripts/`  |
+
+### Naming Best Practices
+
+1. **Be Descriptive**: Names should clearly indicate purpose
+2. **Use Snake Case**: `my_script.sh` not `myScript.sh` or `my-script.sh`
+3. **Prefix Core Tools**: Use `oradba_` for core utilities
+4. **Indicate Privilege**: Add `_dba`, `_sys`, `_aud` suffixes for SQL scripts requiring elevated privileges
+5. **Group by Category**: Use prefixes like `sec_`, `aud_`, `tde_` for SQL scripts in specific domains
+6. **Match Test Names**: Test files should match the component: `test_component.bats`
+
 ## Development Workflow
 
 ### 1. Making Changes
