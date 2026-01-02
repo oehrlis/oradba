@@ -59,8 +59,10 @@ discover_extensions() {
         fi
     done
     
-    # Output one per line
-    printf "%s\n" "${extensions[@]}"
+    # Output one per line (only if array is not empty)
+    if [[ ${#extensions[@]} -gt 0 ]]; then
+        printf "%s\n" "${extensions[@]}"
+    fi
 }
 
 # Get all extensions (auto-discovered + manually configured)
@@ -83,8 +85,10 @@ get_all_extensions() {
         done
     fi
     
-    # Remove duplicates while preserving order
-    printf "%s\n" "${extensions[@]}" | awk '!seen[$0]++'
+    # Remove duplicates while preserving order (only if array is not empty)
+    if [[ ${#extensions[@]} -gt 0 ]]; then
+        printf "%s\n" "${extensions[@]}" | awk '!seen[$0]++'
+    fi
 }
 
 # ------------------------------------------------------------------------------

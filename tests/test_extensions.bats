@@ -88,6 +88,40 @@ teardown() {
     [[ "${result}" != *"oradba"* ]]
 }
 
+@test "discover_extensions returns empty when only oradba directory exists (bug #53)" {
+    # Create only oradba directory (should be skipped)
+    mkdir -p "${TEST_TEMP_DIR}/oradba"
+    
+    # Discover - should return empty string
+    local result
+    result=$(discover_extensions)
+    
+    # Result should be completely empty
+    [[ -z "${result}" ]]
+    
+    # When converted to array, should have zero elements (not one empty element)
+    local extensions
+    mapfile -t extensions < <(discover_extensions)
+    [[ ${#extensions[@]} -eq 0 ]]
+}
+
+@test "get_all_extensions returns empty when no extensions exist (bug #53)" {
+    # Create only oradba directory
+    mkdir -p "${TEST_TEMP_DIR}/oradba"
+    
+    # Get all extensions - should return empty
+    local result
+    result=$(get_all_extensions)
+    
+    # Result should be completely empty
+    [[ -z "${result}" ]]
+    
+    # When converted to array, should have zero elements
+    local extensions
+    mapfile -t extensions < <(get_all_extensions)
+    [[ ${#extensions[@]} -eq 0 ]]
+}
+
 @test "discover_extensions finds multiple extensions" {
     # Create multiple extensions
     mkdir -p "${TEST_TEMP_DIR}/ext1/bin"
