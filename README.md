@@ -11,6 +11,7 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
 - **Hierarchical Configuration**: 5-level configuration system with flexible overrides
+- **Extension System**: Modular plugin architecture for custom scripts and tools
 - **Service Management**: Enterprise-grade database and listener lifecycle control with systemd/init.d integration
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management
 - **Long Operations Monitoring**: Real-time tracking of RMAN, DataPump, and other operations
@@ -94,6 +95,25 @@ dbstatus.sh       # Comprehensive database information
 rman_jobs.sh -w   # Monitor RMAN operations in watch mode
 exp_jobs.sh       # Monitor DataPump export jobs
 ```
+
+Extend OraDBA with custom scripts:
+
+```bash
+# Create extension directory
+mkdir -p /opt/oracle/local/customer/bin
+cp my_script.sh /opt/oracle/local/customer/bin/
+chmod +x /opt/oracle/local/customer/bin/my_script.sh
+
+# Next time you source oraenv, extension is auto-loaded
+source oraenv.sh FREE
+my_script.sh      # Now available in PATH
+
+# Manage extensions
+oradba_extension.sh list      # Show all extensions
+oradba_extension.sh info customer  # Detailed info
+```
+
+See [Extension System Guide](doc/extension-system.md) for complete documentation.
 
 ## Documentation
 

@@ -33,11 +33,12 @@ Files that get installed on target systems:
 
 ```text
 src/
-├── bin/                    # Executable scripts (17 scripts)
+├── bin/                    # Executable scripts (18 scripts)
 │   ├── oraenv.sh          # Core environment setup script
 │   ├── oradba_install.sh  # Installation script
 │   ├── oradba_version.sh  # Version management
 │   ├── oradba_check.sh    # Configuration validation
+│   ├── oradba_extension.sh # Extension management tool
 │   ├── oradba_sqlnet.sh   # SQL*Net configuration
 │   ├── oradba_logrotate.sh # Log rotation management
 │   ├── oradba_validate.sh # System validation
@@ -51,10 +52,11 @@ src/
 │   ├── exp_jobs.sh        # Export job wrapper
 │   ├── imp_jobs.sh        # Import job wrapper
 │   └── rman_jobs.sh       # RMAN job wrapper
-├── lib/                    # Shared libraries (3 libraries)
+├── lib/                    # Shared libraries (4 libraries)
 │   ├── common.sh          # Common utility functions
 │   ├── aliases.sh         # Alias generation library
-│   └── db_functions.sh    # Database functions library
+│   ├── db_functions.sh    # Database functions library
+│   └── extensions.sh      # Extension system library
 ├── etc/                    # Configuration files (13 files)
 │   ├── oradba_core.conf   # Core system configuration
 │   ├── oradba_standard.conf # Standard configuration
@@ -137,6 +139,7 @@ tests/
 ├── test_installer.bats     # Installer tests
 ├── test_aliases.bats       # Alias generation tests
 ├── test_db_functions.bats  # Database functions tests
+├── test_extensions.bats    # Extension system tests (31 tests)
 ├── test_oradba_version.bats # Version management tests
 ├── test_oradba_check.bats  # Configuration validation tests
 ├── test_oradba_sqlnet.bats # SQL*Net configuration tests
@@ -163,10 +166,23 @@ doc/
 ├── development.md          # Developer guide
 ├── architecture.md         # System architecture
 ├── api.md                  # API documentation
+├── extension-system.md     # Extension system guide
 ├── markdown-linting.md     # Markdown linting guide
 ├── version-management.md   # Version management guide
 ├── ci_optimization.md      # CI/CD optimization guide
 ├── metadata.yml            # Documentation metadata for Pandoc
+├── examples/               # Example configurations
+│   └── extensions/        # Extension examples
+│       └── customer/      # Customer extension example
+│           ├── .extension # Extension metadata
+│           ├── README.md
+│           ├── bin/       # Extension scripts
+│           ├── sql/       # Extension SQL scripts
+│           ├── rcv/       # Extension RMAN scripts
+│           └── etc/       # Extension configuration
+├── releases/              # Release notes
+│   ├── v0.12.0.md        # Version 0.12.0 release notes
+│   └── ...               # Previous release notes
 ├── images/                 # Documentation images
 │   ├── architecture-system.png
 │   ├── config-hierarchy.png
