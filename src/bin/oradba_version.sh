@@ -5,8 +5,8 @@
 # Name.......: oradba_version.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.18
-# Revision...: 0.7.12
+# Date.......: 2026.01.02
+# Revision...: 0.11.0
 # Purpose....: Version and integrity checking utility for OraDBA installation
 # Notes......: Provides version info, integrity verification, and update checking
 # Reference..: https://github.com/oehrlis/oradba
@@ -266,16 +266,22 @@ version_info() {
         while IFS='=' read -r key value; do
             case "${key}" in
                 install_date)
-                    echo "  Installed:   ${value}"
+                    echo "  Installed:     ${value}"
                     ;;
                 install_version)
-                    echo "  Installed:   ${value}"
+                    echo "  Version:       ${value}"
                     ;;
                 install_method)
-                    echo "  Method:      ${value}"
+                    echo "  Method:        ${value}"
                     ;;
                 install_user)
-                    echo "  User:        ${value}"
+                    echo "  User:          ${value}"
+                    ;;
+                coexist_mode)
+                    echo "  Coexist Mode:  ${value}"
+                    ;;
+                basenv_detected)
+                    echo "  BasEnv:        ${value}"
                     ;;
             esac
         done < "${install_info}"
