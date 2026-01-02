@@ -218,7 +218,9 @@ fi
 
 ### Parallel Installation with TVD BasEnv / DB*Star
 
-OraDBA supports parallel installation alongside TVD BasEnv and DB*Star. The installer automatically detects existing BasEnv installations and configures OraDBA to coexist peacefully.
+OraDBA supports parallel installation alongside TVD BasEnv and DB*Star. The
+installer automatically detects existing BasEnv installations and configures
+OraDBA to coexist peacefully.
 
 **Auto-Detection:**
 

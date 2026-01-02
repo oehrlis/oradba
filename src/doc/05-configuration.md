@@ -683,9 +683,12 @@ export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 
 ### Overview
 
-OraDBA can be installed alongside TVD BasEnv and DB*Star toolsets. When both are present, OraDBA automatically operates in **coexistence mode** with BasEnv having priority.
+OraDBA can be installed alongside TVD BasEnv and DB*Star toolsets. When both are
+present, OraDBA automatically operates in **coexistence mode** with BasEnv having
+priority.
 
 **Detection:** Auto-detected during installation by checking for:
+
 - `.BE_HOME` file in `${HOME}`
 - `.TVDPERL_HOME` file in `${HOME}`
 - `BE_HOME` environment variable
@@ -720,11 +723,13 @@ ORADBA_BASENV_DETECTED="yes"
 ### Coexistence Mode Values
 
 **`standalone` (default):**
+
 - No other toolsets detected
 - OraDBA has full control
 - All aliases and features enabled
 
 **`basenv`:**
+
 - TVD BasEnv / DB*Star detected
 - OraDBA skips conflicting aliases
 - BasEnv settings preserved (PS1, BE_HOME, etc.)
@@ -734,13 +739,13 @@ ORADBA_BASENV_DETECTED="yes"
 
 In coexistence mode, OraDBA uses "safe alias creation":
 
-| Alias | Standalone Mode | Coexistence Mode |
-|-------|----------------|------------------|
-| `sq` | Created by OraDBA | Skipped (BasEnv has it) |
-| `taa` | Created by OraDBA | Skipped (BasEnv has it) |
-| `cdd` | Created by OraDBA | Skipped (BasEnv has it) |
-| `oradba` | Created by OraDBA | Created (OraDBA-specific) |
-| `dbctl` | Created by OraDBA | Created (OraDBA-specific) |
+| Alias      | Standalone Mode   | Coexistence Mode          |
+|------------|-------------------|---------------------------|
+| `sq`       | Created by OraDBA | Skipped (BasEnv has it)   |
+| `taa`      | Created by OraDBA | Skipped (BasEnv has it)   |
+| `cdd`      | Created by OraDBA | Skipped (BasEnv has it)   |
+| `oradba`   | Created by OraDBA | Created (OraDBA-specific) |
+| `dbctl`    | Created by OraDBA | Created (OraDBA-specific) |
 | `listener` | Created by OraDBA | Created (OraDBA-specific) |
 
 **Result:** You get the best of both worlds - BasEnv's comprehensive aliases plus OraDBA's unique features.
@@ -763,6 +768,7 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 ```
 
 **When to Use:**
+
 - You prefer OraDBA's alias implementations
 - Specific OraDBA features needed
 - Testing OraDBA functionality
@@ -772,6 +778,7 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 ### Environment Variables
 
 **Protected Variables (never modified):**
+
 - `BE_HOME` - BasEnv home directory
 - `TVDPERL_HOME` - BasEnv Perl location
 - `PS1` / `PS1BASH` - Shell prompt
@@ -779,6 +786,7 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 - All other BasEnv-specific variables
 
 **OraDBA Variables (namespaced):**
+
 - `ORADBA_PREFIX` - OraDBA installation directory
 - `ORADBA_BASE` - Alias to ORADBA_PREFIX
 - `ORADBA_COEXIST_MODE` - Coexistence mode setting
@@ -802,6 +810,7 @@ Both toolsets can share the same parent directory:
 ```
 
 **Benefits:**
+
 - Logical grouping of Oracle tools
 - Easy navigation with `cdl` alias
 - Shared backup/log directories possible
