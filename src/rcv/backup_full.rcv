@@ -1,37 +1,38 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
-# Name.......: backup_full.rman
+# Name.......: backup_full.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.3.0
-# Purpose....: RMAN full database backup script
+# Date.......: 2026.01.02
+# Revision...: 0.13.0
+# Purpose....: RMAN full database backup script with template support
 # Notes......: Performs compressed full backup with archivelogs.
-#              Run as: rman target / @backup_full.rman
+#              Template tags: <ALLOCATE_CHANNELS>, <FORMAT>, <TAG>, <COMPRESSION>
+#              Run as: rman target / @backup_full.rcv
+#              Or via: oradba_rman.sh --sid DB01 --rcv backup_full.rcv
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 RUN {
-    # Allocate channels for backup
-    ALLOCATE CHANNEL ch1 DEVICE TYPE DISK;
-    ALLOCATE CHANNEL ch2 DEVICE TYPE DISK;
+    # Allocate channels for backup (replaced by template processor)
+<ALLOCATE_CHANNELS>
     
     # Backup database plus archivelog
-    BACKUP AS COMPRESSED BACKUPSET 
+    BACKUP <COMPRESSION>
         DATABASE 
         PLUS ARCHIVELOG
-        FORMAT '/backup/%d_%T_%U.bkp'
-        TAG 'FULL_BACKUP';
+        <FORMAT>
+        <TAG>;
     
     # Backup current controlfile
     BACKUP CURRENT CONTROLFILE 
-        FORMAT '/backup/%d_%T_controlfile_%U.bkp'
+        <FORMAT>
         TAG 'CONTROLFILE_BACKUP';
     
-    # Release channels
+    # Release channels (replaced by template processor)
     RELEASE CHANNEL ch1;
     RELEASE CHANNEL ch2;
 }

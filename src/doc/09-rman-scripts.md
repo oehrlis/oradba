@@ -10,6 +10,111 @@ OraDBA includes RMAN (Recovery Manager) script templates for common backup and
 recovery operations. These templates provide a starting point for database
 backup strategies.
 
+## RMAN Wrapper Script
+
+### oradba_rman.sh
+
+OraDBA provides a shell wrapper for executing RMAN scripts with enhanced features:
+
+```bash
+# Execute RMAN script for a single database
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
+
+# Execute for multiple databases in parallel
+oradba_rman.sh --sid "CDB1,CDB2,CDB3" --rcv backup_full.rcv --parallel 2
+
+# Override default settings
+oradba_rman.sh --sid FREE --rcv backup_full.rcv \
+    --channels 4 \
+    --compression HIGH \
+    --format "/backup/%d_%T_%U.bkp" \
+    --tag MONTHLY_BACKUP \
+    --notify dba@example.com
+```
+
+**Features:**
+
+- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>` tags
+- **Parallel Execution**: Run RMAN for multiple SIDs concurrently (background jobs or GNU parallel)
+- **Dual Logging**: Generic logs in `$ORADBA_LOG` + SID-specific logs in `$ORADBA_ORA_ADMIN_SID/log`
+- **Email Notifications**: Send alerts on success/failure via mail or sendmail
+- **Configuration**: SID-specific settings via `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`
+- **Dry Run Mode**: Test template processing without executing RMAN
+
+**Usage:**
+
+```bash
+oradba_rman.sh --sid <SID> --rcv <script.rcv> [OPTIONS]
+
+Required Arguments:
+  --sid SID[,SID,...]   Oracle SID(s), comma-separated for multiple
+  --rcv SCRIPT          RMAN script file (.rcv extension)
+
+Optional Arguments:
+  --channels N          Number of parallel channels (default: from config)
+  --format FORMAT       Backup format string (default: from config)
+  --tag TAG            Backup tag (default: from config)
+  --compression LEVEL   NONE|LOW|MEDIUM|HIGH (default: from config)
+  --catalog CONNECT    RMAN catalog connection string
+  --notify EMAIL       Send notifications to email address
+  --parallel N         Max parallel SID executions (default: 1)
+  --dry-run           Process templates without executing RMAN
+  --verbose           Enable verbose output
+  --help              Show detailed help
+```
+
+**Configuration:**
+
+Create SID-specific configuration in `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`:
+
+```bash
+# Copy example configuration
+cp $ORADBA_PREFIX/etc/oradba_rman.conf.example \
+   $ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf
+
+# Edit configuration
+export RMAN_CHANNELS=2
+export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
+export RMAN_TAG="AUTO_BACKUP"
+export RMAN_COMPRESSION="MEDIUM"
+export RMAN_CATALOG=""
+export RMAN_NOTIFY_EMAIL="dba@example.com"
+export RMAN_NOTIFY_ON_SUCCESS=false
+export RMAN_NOTIFY_ON_ERROR=true
+```
+
+**Template Tags:**
+
+RMAN scripts use template tags that are replaced at runtime:
+
+- `<ALLOCATE_CHANNELS>`: Generates `ALLOCATE CHANNEL` commands based on `--channels`
+- `<FORMAT>`: Substituted with `FORMAT` clause from `--format`
+- `<TAG>`: Substituted with `TAG` clause from `--tag`
+- `<COMPRESSION>`: Substituted with compression clause from `--compression`
+
+**Examples:**
+
+```bash
+# Single database with defaults from config
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
+
+# Multiple databases in parallel
+oradba_rman.sh --sid "CDB1,CDB2,CDB3" --rcv backup_full.rcv --parallel 3
+
+# High compression backup with notification
+oradba_rman.sh --sid PROD --rcv backup_full.rcv \
+    --compression HIGH \
+    --notify dba-team@example.com
+
+# Dry run to test template processing
+oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run
+
+# Custom format and tag
+oradba_rman.sh --sid FREE --rcv backup_full.rcv \
+    --format "/backup/monthly/%d_%T_%U.bkp" \
+    --tag MONTHLY_FULL_20260102
+```
+
 ## Location
 
 ```bash
@@ -25,17 +130,20 @@ cdr
 
 ## Available Scripts
 
-### backup_full.rman
+### backup_full.rcv
 
-Full database backup template:
+Full database backup template with dynamic substitution:
 
-```rman
-# Usage
-rman target / @$ORADBA_PREFIX/rcv/backup_full.rman
+```bash
+# Using wrapper script (recommended)
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
+
+# Direct execution with RMAN (static values)
+rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv
 
 # Or using alias
 rman
-RMAN> @backup_full.rman
+RMAN> @backup_full.rcv
 ```
 
 **What it does:**
@@ -47,14 +155,27 @@ RMAN> @backup_full.rman
 - Includes SPFILE
 - Archives current redo logs
 
-**Customization:**
-Edit the file to adjust:
+**Template Tags:**
 
-- Backup format and location
-- Compression level
-- Retention policy
-- Parallelism
-- Backup tags
+The script uses template tags that are dynamically replaced:
+
+- `<ALLOCATE_CHANNELS>`: Replaced with channel allocation commands
+- `<FORMAT>`: Replaced with FORMAT clause
+- `<TAG>`: Replaced with TAG clause  
+- `<COMPRESSION>`: Replaced with compression clause
+
+**Customization:**
+
+Option 1 - Use wrapper script with command-line arguments:
+
+```bash
+oradba_rman.sh --sid FREE --rcv backup_full.rcv \
+    --channels 4 --compression HIGH --format "/backup/%d_%T_%U.bkp"
+```
+
+Option 2 - Configure defaults in `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`
+
+Option 3 - Copy and edit the .rcv file directly for static values
 
 ## Using RMAN with OraDBA
 
@@ -90,11 +211,18 @@ rmanch
 ### Run RMAN Script from Shell
 
 ```bash
-# Run RMAN script non-interactively
-rman target / @$ORADBA_PREFIX/rcv/backup_full.rman
+# Using wrapper script (recommended)
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
 
-# With logging
-rman target / @$ORADBA_PREFIX/rcv/backup_full.rman log=/tmp/backup.log
+# Direct RMAN execution
+rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv
+
+# With logging (direct execution)
+rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv log=/tmp/backup.log
+
+# Wrapper provides automatic dual logging:
+# - $ORADBA_LOG/oradba_rman_TIMESTAMP.log (wrapper log)
+# - $ORADBA_ORA_ADMIN_SID/log/backup_full_TIMESTAMP.log (RMAN output)
 ```
 
 ## Creating Custom RMAN Scripts

@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.02
-# Revision...: 0.12.0
+# Revision...: 0.13.0
 # Purpose....: Extension system library for OraDBA
 # Notes......: Provides functions for discovering, loading, and managing
 #              OraDBA extensions. Extensions are directories parallel to
@@ -45,8 +45,11 @@ discover_extensions() {
         local dir_name
         dir_name="$(basename "${dir}")"
         
-        # Skip oradba itself
-        [[ "${dir_name}" == "oradba" ]] && continue
+        # Skip oradba itself (the main OraDBA installation)
+        if [[ "${dir_name}" == "oradba" ]] || [[ "${dir}" == "${ORADBA_BASE}" ]]; then
+            log_debug "Skipping main OraDBA directory: ${dir_name}"
+            continue
+        fi
         
         # Check for .extension marker file
         if [[ -f "${dir}/.extension" ]]; then

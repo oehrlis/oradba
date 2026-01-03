@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.02
-# Revision...: 0.12.1
+# Revision...: 0.13.0
 # Purpose....: Management tool for OraDBA extensions
 # Notes......: List, inspect, validate, and manage OraDBA extensions
 # Reference..: https://github.com/oehrlis/oradba

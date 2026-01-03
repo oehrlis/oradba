@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-01-02
+
+### Added
+
+- **RMAN Wrapper Script (#52)**: Automated RMAN execution with advanced features
+  - New script: `src/bin/oradba_rman.sh` (820+ lines)
+  - Template processing for dynamic RMAN scripts (`.rcv` extension)
+    - `<ALLOCATE_CHANNELS>`: Automatic channel allocation based on --channels parameter
+    - `<FORMAT>`: Dynamic backup format string substitution  
+    - `<TAG>`: Dynamic backup tag substitution
+    - `<COMPRESSION>`: Compression level (NONE|LOW|MEDIUM|HIGH)
+  - Parallel execution support for multiple databases
+    - Background jobs method (default)
+    - GNU parallel method (auto-detected if available)
+    - Configurable via `--parallel` option
+  - Dual logging strategy
+    - Generic wrapper log: `${ORADBA_LOG}/oradba_rman_TIMESTAMP.log`
+    - SID-specific RMAN output: `${ORADBA_ORA_ADMIN_SID}/log/<script>_TIMESTAMP.log`
+  - Email notifications (mail/sendmail)
+    - Configurable success/error notifications
+    - Per-SID notification settings
+  - SID-specific configuration: `${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf`
+  - Dry-run mode for template testing
+  - Comprehensive command-line interface
+    - Required: `--sid`, `--rcv`
+    - Optional: `--channels`, `--format`, `--tag`, `--compression`, `--notify`, `--parallel`, `--dry-run`, `--verbose`
+  - Example configuration: `src/etc/oradba_rman.conf.example`
+  - Updated backup script: `src/rcv/backup_full.rcv` (renamed from .rman with template tags)
+  - **Test Suite**: 36 comprehensive BATS tests (35 passing, 1 skipped)
+    - Full coverage of argument parsing, template processing, configuration, parallel execution
+  - **Documentation**: Comprehensive updates
+    - Updated `src/doc/09-rman-scripts.md` with wrapper usage
+    - Updated `src/rcv/README.md` with template documentation
+    - Updated `src/bin/README.md` with oradba_rman.sh reference
+    - Updated main `README.md` with RMAN wrapper examples
+
+- **Base Directory Aliases**: Navigation shortcuts for OraDBA directories
+  - `cdbase`: Change to `$ORADBA_BASE` directory
+  - `<extension>base` aliases for each extension (via existing `cde<name>` pattern)
+
+### Fixed
+
+- **Extension Discovery Bug**: Fixed extension list showing empty/invalid extensions
+  - Enhanced oradba directory exclusion in `discover_extensions()`
+  - Now properly skips main OraDBA installation directory
+  - Compares both directory name and full path to `${ORADBA_BASE}`
+  - Prevents false positives when OraDBA is installed in `${ORADBA_LOCAL_BASE}`
+
+### Changed
+
+- **RMAN Script Extension**: Changed from `.rman` to `.rcv` for template-enabled scripts
+  - `.rcv`: RMAN scripts with template tags (new standard)
+  - `.rman`: Static RMAN scripts (legacy, still supported)
+  - Updated all documentation to reflect new convention
+
 ## [0.12.1] - 2026-01-02
 
 ### Fixed

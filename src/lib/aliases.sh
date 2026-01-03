@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.02
-# Revision...: 0.11.0
+# Revision...: 0.13.0
 # Purpose....: Dynamic alias generation functions for OraDBA
 # Notes......: Sourced from oradba_standard.conf. Generates SID-specific aliases
 # ------------------------------------------------------------------------------
@@ -143,8 +143,26 @@ generate_sid_aliases() {
 }
 
 # ------------------------------------------------------------------------------
+# Base Directory Aliases
+# ------------------------------------------------------------------------------
+
+# Generate OraDBA base directory alias
+# Usage: generate_base_aliases
+# Creates: cdbase alias
+generate_base_aliases() {
+    # OraDBA base directory alias
+    if [[ -n "${ORADBA_BASE}" ]] && [[ -d "${ORADBA_BASE}" ]]; then
+        # shellcheck disable=SC2139  # Intentional: expand at definition
+        safe_alias cdbase "cd ${ORADBA_BASE}"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Auto-generate aliases on load
 # ------------------------------------------------------------------------------
+
+# Generate base aliases
+generate_base_aliases
 
 # Generate aliases for current ORACLE_SID if set
 if [[ -n "${ORACLE_SID}" ]]; then

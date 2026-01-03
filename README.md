@@ -14,6 +14,7 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 - **Extension System**: Modular plugin architecture for custom scripts and tools
 - **Service Management**: Enterprise-grade database and listener lifecycle control with systemd/init.d integration
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management
+- **RMAN Wrapper**: Automated backup execution with parallel processing, template substitution, and notifications
 - **Long Operations Monitoring**: Real-time tracking of RMAN, DataPump, and other operations
 - **Database Status Display**: Compact, comprehensive database information for all states (OPEN/MOUNT/NOMOUNT)
 - **Peer Synchronization**: Distribute files across database peer hosts
@@ -94,6 +95,20 @@ View database status and monitor operations:
 dbstatus.sh       # Comprehensive database information
 rman_jobs.sh -w   # Monitor RMAN operations in watch mode
 exp_jobs.sh       # Monitor DataPump export jobs
+```
+
+Execute RMAN backups with the wrapper:
+
+```bash
+# Single database backup
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
+
+# Multiple databases in parallel
+oradba_rman.sh --sid "CDB1,CDB2,CDB3" --rcv backup_full.rcv --parallel 2
+
+# Custom settings with notification
+oradba_rman.sh --sid PROD --rcv backup_full.rcv \
+    --channels 4 --compression HIGH --notify dba@example.com
 ```
 
 Extend OraDBA with custom scripts:

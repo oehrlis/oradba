@@ -17,6 +17,7 @@ and can be executed directly from the shell.
 | [oradba_install.sh](oradba_install.sh)   | Install OraDBA to target directory                                |
 | [oradba_validate.sh](oradba_validate.sh) | Validate installation integrity                                   |
 | [oradba_version.sh](oradba_version.sh)   | Version management and update checking                            |
+| [oradba_rman.sh](oradba_rman.sh)         | RMAN wrapper with parallel execution and template processing      |
 | [oraup.sh](oraup.sh)                     | Update OraDBA from GitHub                                         |
 | [dbstatus.sh](dbstatus.sh)               | Display database instance status                                  |
 | [sessionsql.sh](sessionsql.sh)           | Launch SQL*Plus with session configuration                        |
@@ -28,7 +29,7 @@ and can be executed directly from the shell.
 | [sync_from_peers.sh](sync_from_peers.sh) | Sync files from remote peer to local and other peers              |
 | [sync_to_peers.sh](sync_to_peers.sh)     | Distribute files from local host to peer hosts                    |
 
-**Total Scripts:** 15
+**Total Scripts:** 16
 
 ## Usage
 
@@ -181,6 +182,53 @@ oradba_validate.sh
 # Update from GitHub
 oraup.sh
 ```
+
+### RMAN Wrapper (oradba_rman.sh)
+
+Execute RMAN scripts with enhanced features:
+
+```bash
+# Execute RMAN script for single database
+oradba_rman.sh --sid FREE --rcv backup_full.rcv
+
+# Multiple databases in parallel
+oradba_rman.sh --sid "CDB1,CDB2,CDB3" --rcv backup_full.rcv --parallel 2
+
+# Custom settings with notification
+oradba_rman.sh --sid PROD --rcv backup_full.rcv \
+    --channels 4 \
+    --compression HIGH \
+    --format "/backup/%d_%T_%U.bkp" \
+    --tag MONTHLY_BACKUP \
+    --notify dba@example.com
+
+# Dry run mode (test template processing)
+oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run --verbose
+```
+
+**Features:**
+
+- **Template Processing**: Dynamic substitution of RMAN script templates
+- **Parallel Execution**: Run RMAN for multiple SIDs concurrently
+- **Dual Logging**: Generic wrapper log + SID-specific RMAN output logs
+- **Email Notifications**: Alert on backup success/failure via mail/sendmail
+- **Configuration**: SID-specific defaults via `oradba_rman.conf`
+- **Dry Run Mode**: Test template processing without executing RMAN
+
+**Configuration:**
+
+Create SID-specific configuration:
+
+```bash
+# Copy example config
+cp ${ORADBA_BASE}/etc/oradba_rman.conf.example \
+   ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
+
+# Edit configuration
+vi ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
+```
+
+See [RMAN Scripts Documentation](../doc/09-rman-scripts.md) for detailed usage.
 
 ## Script Integration
 

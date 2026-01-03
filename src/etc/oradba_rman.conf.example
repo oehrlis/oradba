@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# RMAN Configuration Example
+# ------------------------------------------------------------------------------
+# Location: ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
+# Purpose: SID-specific RMAN wrapper configuration
+# Usage: Copy and customize for each database SID
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# RMAN Execution Settings
+# ------------------------------------------------------------------------------
+
+# Number of parallel channels for backup/restore operations
+# Higher values can improve performance but increase resource usage
+export RMAN_CHANNELS=2
+
+# Backup format string
+# Variables: %d (database name), %T (timestamp), %U (unique identifier)
+export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
+
+# Default backup tag
+# Used to identify backup sets in RMAN catalog/controlfile
+export RMAN_TAG="AUTO_BACKUP"
+
+# Compression level: NONE, LOW, MEDIUM, HIGH
+# MEDIUM provides good balance of compression ratio and performance
+export RMAN_COMPRESSION="MEDIUM"
+
+# ------------------------------------------------------------------------------
+# RMAN Catalog Connection
+# ------------------------------------------------------------------------------
+
+# RMAN recovery catalog connection
+# Format: user/password@tnsalias or user@tnsalias (prompts for password)
+# Leave empty to use controlfile instead of catalog
+# Example: RMAN_CATALOG="rman_user/password@catdb"
+# Example: RMAN_CATALOG="rman_user@catdb"
+export RMAN_CATALOG=""
+
+# ------------------------------------------------------------------------------
+# Logging Configuration
+# ------------------------------------------------------------------------------
+
+# Log directory for RMAN operations
+# Default: ${ORADBA_ORA_ADMIN_SID}/log
+# Logs are named: <script_name>_YYYYMMDD_HHMMSS.log
+# export RMAN_LOG_DIR="${ORADBA_ORA_ADMIN_SID}/log"
+
+# ------------------------------------------------------------------------------
+# Notification Settings
+# ------------------------------------------------------------------------------
+
+# Email address for RMAN operation notifications
+# Leave empty to disable email notifications
+export RMAN_NOTIFY_EMAIL=""
+
+# Enable notification on successful completion
+export RMAN_NOTIFY_ON_SUCCESS=false
+
+# Enable notification on error
+export RMAN_NOTIFY_ON_ERROR=true
+
+# ------------------------------------------------------------------------------
+# Advanced Settings
+# ------------------------------------------------------------------------------
+
+# Custom RMAN options (advanced users only)
+# These will be added to the RMAN command line
+# RMAN_CUSTOM_OPTIONS=""
+
+# --- EOF ----------------------------------------------------------------------
