@@ -354,6 +354,137 @@ EOF
 }
 
 # ==============================================================================
+# get_extension_property() Tests (v0.13.3)
+# ==============================================================================
+
+@test "get_extension_property function exists" {
+    run type -t get_extension_property
+    [ "$status" -eq 0 ]
+    [ "$output" = "function" ]
+}
+
+@test "get_extension_property reads metadata property" {
+    # Create extension with metadata
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    cat > "${TEST_TEMP_DIR}/myext/.extension" << 'EOF'
+name: test_extension
+version: 1.2.3
+custom_field: custom_value
+EOF
+    
+    # Test reading various properties
+    name=$(get_extension_property "${TEST_TEMP_DIR}/myext" "name")
+    version=$(get_extension_property "${TEST_TEMP_DIR}/myext" "version")
+    custom=$(get_extension_property "${TEST_TEMP_DIR}/myext" "custom_field")
+    
+    [[ "${name}" == "test_extension" ]]
+    [[ "${version}" == "1.2.3" ]]
+    [[ "${custom}" == "custom_value" ]]
+}
+
+@test "get_extension_property returns fallback for missing property" {
+    # Create extension without metadata
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    
+    # Get property with fallback
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "nonexistent" "default_value")
+    
+    [[ "${result}" == "default_value" ]]
+}
+
+@test "get_extension_property returns empty for missing property without fallback" {
+    # Create extension without metadata
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    
+    # Get property without fallback
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "nonexistent")
+    
+    [[ -z "${result}" ]]
+}
+
+@test "get_extension_property checks config override when requested" {
+    # Create extension with metadata
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    cat > "${TEST_TEMP_DIR}/myext/.extension" << 'EOF'
+priority: 50
+EOF
+    
+    # Set config override
+    export ORADBA_EXT_MYEXT_PRIORITY="10"
+    
+    # Get priority with config check
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "priority" "50" "true")
+    
+    [[ "${result}" == "10" ]]
+    
+    unset ORADBA_EXT_MYEXT_PRIORITY
+}
+
+@test "get_extension_property ignores config override when not requested" {
+    # Create extension with metadata
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    cat > "${TEST_TEMP_DIR}/myext/.extension" << 'EOF'
+priority: 50
+EOF
+    
+    # Set config override
+    export ORADBA_EXT_MYEXT_PRIORITY="10"
+    
+    # Get priority without config check (should use metadata)
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "priority" "50" "false")
+    
+    [[ "${result}" == "50" ]]
+    
+    unset ORADBA_EXT_MYEXT_PRIORITY
+}
+
+@test "get_extension_property config override takes precedence over metadata" {
+    # Create extension
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    cat > "${TEST_TEMP_DIR}/myext/.extension" << 'EOF'
+custom: metadata_value
+EOF
+    
+    # Set config
+    export ORADBA_EXT_MYEXT_CUSTOM="config_value"
+    
+    # Should prefer config
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "custom" "" "true")
+    
+    [[ "${result}" == "config_value" ]]
+    
+    unset ORADBA_EXT_MYEXT_CUSTOM
+}
+
+@test "get_extension_property fallback works after config and metadata" {
+    # Create extension without the property
+    mkdir -p "${TEST_TEMP_DIR}/myext"
+    cat > "${TEST_TEMP_DIR}/myext/.extension" << 'EOF'
+name: test
+EOF
+    
+    # Get missing property with fallback and config check
+    result=$(get_extension_property "${TEST_TEMP_DIR}/myext" "missing" "fallback_value" "true")
+    
+    [[ "${result}" == "fallback_value" ]]
+}
+
+@test "migrated functions use get_extension_property internally" {
+    # Verify by checking the functions call get_extension_property
+    run grep -A 5 "^get_extension_name()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "get_extension_property" ]]
+    
+    run grep -A 5 "^get_extension_version()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "get_extension_property" ]]
+    
+    run grep -A 5 "^get_extension_priority()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "get_extension_property" ]]
+}
+
+# ==============================================================================
 # Priority Sorting Tests
 # ==============================================================================
 

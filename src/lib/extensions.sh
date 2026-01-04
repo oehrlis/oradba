@@ -5,8 +5,8 @@
 # Name.......: extensions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.13.0
+# Date.......: 2026.01.04
+# Revision...: 0.13.3
 # Purpose....: Extension system library for OraDBA
 # Notes......: Provides functions for discovering, loading, and managing
 #              OraDBA extensions. Extensions are directories parallel to
@@ -98,6 +98,46 @@ get_all_extensions() {
 # Extension Metadata Functions
 # ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+# Function: get_extension_property
+# Purpose.: Unified property accessor for extension metadata
+# Syntax..: get_extension_property <ext_path> <property> [fallback] [check_config]
+# Params..: ext_path      - Path to extension directory
+#           property      - Property name to retrieve (e.g., "name", "version", "priority")
+#           fallback      - Optional fallback value if property not found
+#           check_config  - Optional "true" to check ORADBA_EXT_<NAME>_<PROPERTY> override
+# Returns.: Property value from metadata, config override, or fallback
+# Note....: New in v0.13.3 - Eliminates metadata access duplication
+# ------------------------------------------------------------------------------
+get_extension_property() {
+    local ext_path="$1"
+    local property="$2"
+    local fallback="${3:-}"
+    local check_config="${4:-false}"
+    local metadata="${ext_path}/.extension"
+    local value=""
+    
+    # Check config override first (if requested)
+    if [[ "${check_config}" == "true" ]]; then
+        local ext_name
+        ext_name="$(basename "${ext_path}")"
+        local config_var="ORADBA_EXT_${ext_name^^}_${property^^}"
+        value="${!config_var}"
+    fi
+    
+    # Fall back to metadata file
+    if [[ -z "${value}" ]] && [[ -f "${metadata}" ]]; then
+        value=$(parse_extension_metadata "${metadata}" "${property}")
+    fi
+    
+    # Use fallback if still empty
+    if [[ -z "${value}" ]]; then
+        value="${fallback}"
+    fi
+    
+    echo "${value}"
+}
+
 # Parse extension metadata file
 # Usage: parse_extension_metadata <metadata_file> <key>
 # Returns: Value for the given key, or empty string if not found
@@ -122,20 +162,9 @@ parse_extension_metadata() {
 # Returns: Extension name (from metadata or directory name)
 get_extension_name() {
     local ext_path="$1"
-    local metadata="${ext_path}/.extension"
-    local name
-    
-    # Try metadata first
-    if [[ -f "${metadata}" ]]; then
-        name=$(parse_extension_metadata "${metadata}" "name")
-    fi
-    
-    # Fall back to directory name
-    if [[ -z "${name}" ]]; then
-        name="$(basename "${ext_path}")"
-    fi
-    
-    echo "${name}"
+    local fallback
+    fallback="$(basename "${ext_path}")"
+    get_extension_property "${ext_path}" "name" "${fallback}"
 }
 
 # Get extension version
@@ -143,14 +172,7 @@ get_extension_name() {
 # Returns: Version string or "unknown"
 get_extension_version() {
     local ext_path="$1"
-    local metadata="${ext_path}/.extension"
-    local version
-    
-    if [[ -f "${metadata}" ]]; then
-        version=$(parse_extension_metadata "${metadata}" "version")
-    fi
-    
-    echo "${version:-unknown}"
+    get_extension_property "${ext_path}" "version" "unknown"
 }
 
 # Get extension description
@@ -158,11 +180,7 @@ get_extension_version() {
 # Returns: Description string or empty
 get_extension_description() {
     local ext_path="$1"
-    local metadata="${ext_path}/.extension"
-    
-    if [[ -f "${metadata}" ]]; then
-        parse_extension_metadata "${metadata}" "description"
-    fi
+    get_extension_property "${ext_path}" "description"
 }
 
 # Get extension priority (for sorting)
@@ -170,22 +188,7 @@ get_extension_description() {
 # Returns: Priority number (lower = loaded first, default 50)
 get_extension_priority() {
     local ext_path="$1"
-    local ext_name
-    ext_name="$(basename "${ext_path}")"
-    local metadata="${ext_path}/.extension"
-    local priority config_var
-    
-    # Check config override first (highest priority)
-    config_var="ORADBA_EXT_${ext_name^^}_PRIORITY"
-    priority="${!config_var}"
-    
-    # Fall back to metadata
-    if [[ -z "${priority}" ]] && [[ -f "${metadata}" ]]; then
-        priority=$(parse_extension_metadata "${metadata}" "priority")
-    fi
-    
-    # Default priority
-    echo "${priority:-50}"
+    get_extension_property "${ext_path}" "priority" "50" "true"
 }
 
 # Check if extension is enabled
@@ -194,20 +197,9 @@ get_extension_priority() {
 is_extension_enabled() {
     local ext_name="$1"
     local ext_path="$2"
-    local metadata="${ext_path}/.extension"
-    local enabled config_var
-    
-    # Check config override first (highest priority)
-    config_var="ORADBA_EXT_${ext_name^^}_ENABLED"
-    enabled="${!config_var}"
-    
-    # Fall back to metadata
-    if [[ -z "${enabled}" ]] && [[ -f "${metadata}" ]]; then
-        enabled=$(parse_extension_metadata "${metadata}" "enabled")
-    fi
-    
-    # Default to true (enabled by default)
-    [[ "${enabled:-true}" == "true" ]]
+    local enabled
+    enabled=$(get_extension_property "${ext_path}" "enabled" "true" "true")
+    [[ "${enabled}" == "true" ]]
 }
 
 # Check what directories an extension provides

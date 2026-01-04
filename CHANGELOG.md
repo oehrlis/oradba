@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3] - 2026-01-04
+
+### Added
+
+- **Unified Extension Property Accessor (#56 Phase 3)**: Consolidated extension metadata access
+  - New function: `get_extension_property()` in `src/lib/extensions.sh`
+    - Signature: `get_extension_property <ext_path> <property> [fallback] [check_config]`
+    - Parameters:
+      - `ext_path` - Path to extension directory
+      - `property` - Property name to retrieve (e.g., "name", "version", "priority", "enabled")
+      - `fallback` - Optional fallback value if property not found (default: empty)
+      - `check_config` - Optional "true" to check `ORADBA_EXT_<NAME>_<PROPERTY>` environment variable override
+    - **Property precedence** applied automatically:
+      1. Environment variable override (if `check_config=true`)
+      2. Extension `.extension` metadata file
+      3. Fallback value
+      4. Empty string
+    - **Configuration override support**: `ORADBA_EXT_<NAME>_<PROPERTY>` environment variables
+    - **Metadata file parsing**: Reads YAML-like key-value pairs from `.extension` file
+    - Returns: Property value string to stdout
+  - **Test Suite**: 9 comprehensive BATS tests in `tests/test_extensions.bats` (42 total extension tests)
+    - Function existence and parameter handling
+    - Metadata property reading (name, version, custom fields)
+    - Fallback behavior (with and without values)
+    - Config override handling (enabled/disabled modes)
+    - Precedence verification (config > metadata > fallback)
+    - Migration verification (confirms functions use new implementation)
+    - All 42 tests passing with 0 failures
+
+### Changed
+
+- Updated `src/lib/extensions.sh` from v0.13.0 to v0.13.3
+  - Added `get_extension_property()` function (lines 104-142)
+- **Migrated 5 extension metadata functions** in `src/lib/extensions.sh` to use `get_extension_property()`
+  - Eliminated **~69 lines** of duplicated metadata access code
+  - All functions maintain 100% backward-compatible signatures
+  - Code reduction per function:
+    - `get_extension_name()`: 18 lines → 5 lines (72% reduction)
+    - `get_extension_version()`: 11 lines → 3 lines (73% reduction)
+    - `get_extension_description()`: 7 lines → 3 lines (57% reduction)
+    - `get_extension_priority()`: 17 lines → 3 lines (82% reduction)
+    - `is_extension_enabled()`: 16 lines → 4 lines (75% reduction)
+  - **Total boilerplate eliminated**: 69 lines → 18 lines (74% reduction)
+  - All functions now leverage unified metadata accessor with config override support
+
+### Documentation
+
+- Updated `doc/api.md` with comprehensive `get_extension_property()` documentation
+  - Function signature and parameter descriptions
+  - Property precedence explanation
+  - Usage examples (basic, with fallback, with config override)
+  - Configuration override naming conventions
+  - Convenience wrapper function documentation
+
+**Resolves:** #56 Phase 3 - Extension Metadata Standardization
+
 ## [0.13.2] - 2026-01-04
 
 ### Added

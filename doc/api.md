@@ -450,6 +450,105 @@ query_database_info() {
 }
 ```
 
+## Extension Functions
+
+### get_extension_property
+
+**New in v0.13.3**: Unified property accessor for extension metadata.
+
+Retrieve extension metadata properties with support for fallback values and
+configuration overrides. Eliminates metadata access duplication across extension
+management functions.
+
+**Syntax**: `get_extension_property <ext_path> <property> [fallback] [check_config]`
+
+**Parameters**:
+
+- `ext_path` - Path to extension directory
+- `property` - Property name to retrieve (e.g., "name", "version", "priority", "enabled")
+- `fallback` - Optional fallback value if property not found (default: empty)
+- `check_config` - Optional "true" to check `ORADBA_EXT_<NAME>_<PROPERTY>` environment variable override
+
+**Returns**:
+
+Property value from (in order of precedence):
+
+1. Environment variable override (if `check_config=true`)
+2. Extension `.extension` metadata file
+3. Fallback value
+4. Empty string
+
+**Metadata File Format**:
+
+Extension metadata is stored in `.extension` file (YAML-like key-value):
+
+```yaml
+name: my_extension
+version: 1.0.0
+description: Custom extension for special features
+priority: 30
+enabled: true
+```
+
+**Examples**:
+
+```bash
+# Get extension name with directory fallback
+ext_name=$(get_extension_property "/opt/extensions/myext" "name" "myext")
+
+# Get version with "unknown" fallback
+ext_version=$(get_extension_property "/opt/extensions/myext" "version" "unknown")
+
+# Get priority with config override support
+ext_priority=$(get_extension_property "/opt/extensions/myext" "priority" "50" "true")
+
+# Check if extension is enabled (with config override)
+enabled=$(get_extension_property "/opt/extensions/myext" "enabled" "true" "true")
+[[ "$enabled" == "true" ]] && echo "Extension enabled"
+
+# Get custom property
+custom_value=$(get_extension_property "/opt/extensions/myext" "custom_field")
+```
+
+**Configuration Overrides**:
+
+Extension properties can be overridden via environment variables:
+
+```bash
+# Override priority
+export ORADBA_EXT_MYEXTENSION_PRIORITY="10"
+
+# Override enabled status
+export ORADBA_EXT_MYEXTENSION_ENABLED="false"
+
+# Get with config check
+priority=$(get_extension_property "/path/to/myextension" "priority" "50" "true")
+# Returns: "10" (from environment variable)
+```
+
+**Convenience Wrappers**:
+
+These functions use `get_extension_property()` internally:
+
+- `get_extension_name <ext_path>` - Get extension name (fallback: directory name)
+- `get_extension_version <ext_path>` - Get version (fallback: "unknown")
+- `get_extension_description <ext_path>` - Get description
+- `get_extension_priority <ext_path>` - Get priority with config check (fallback: 50)
+- `is_extension_enabled <ext_name> <ext_path>` - Check if enabled with config check (fallback: true)
+
+**Example Using Wrappers**:
+
+```bash
+# Simpler API for common properties
+ext_name=$(get_extension_name "/opt/extensions/myext")
+ext_version=$(get_extension_version "/opt/extensions/myext")
+ext_priority=$(get_extension_priority "/opt/extensions/myext")
+
+if is_extension_enabled "myext" "/opt/extensions/myext"; then
+    echo "Extension $ext_name v$ext_version is enabled (priority: $ext_priority)"
+fi
+```
+
 ## Configuration Functions
 
 ### Configuration Hierarchy
