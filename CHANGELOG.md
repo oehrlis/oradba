@@ -7,6 +7,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-01-04
+
+### Added
+
+- **Unified SQL Query Executor (#56 Phase 2)**: Consolidated SQL*Plus query execution
+  - New function: `execute_db_query()` in `src/lib/common.sh`
+    - Signature: `execute_db_query <query> [format]`
+    - Parameters:
+      - `query` - SQL query to execute (can be multiline)
+      - `format` - Optional output format: `raw` (default) or `delimited`
+    - **Standardized SQL*Plus configuration** applied automatically:
+      - `SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON`
+      - `SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF`
+      - `SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL`
+      - `SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""`
+      - `SET SERVEROUTPUT OFF TERMOUT ON`
+      - `WHENEVER SQLERROR EXIT FAILURE`
+      - `WHENEVER OSERROR EXIT FAILURE`
+    - **Automatic error filtering**: Removes SP2-, ORA-, ERROR messages, and SQL*Plus banners
+    - **Format-specific processing**:
+      - `raw`: Direct SQL*Plus output with whitespace trimmed (default)
+      - `delimited`: Extract first pipe-delimited line
+    - Returns: 0 on success with output to stdout, 1 on failure
+  - **Test Suite**: 22 comprehensive BATS tests in `tests/test_execute_db_query.bats`
+    - Function existence and parameter validation
+    - Format acceptance (raw, delimited, default)
+    - Integration verification with all migrated functions
+    - Code quality checks (error logging, SQL*Plus settings, error filtering)
+    - Documentation presence
+    - Boilerplate elimination verification
+    - Backward compatibility validation
+
+### Changed
+
+- Updated `src/lib/common.sh` from v0.13.1 to v0.13.2
+  - Added `execute_db_query()` function (lines 130-198)
+- **Migrated 6 database query functions** in `src/lib/db_functions.sh` to use `execute_db_query()`
+  - Eliminated **~240 lines** of duplicated SQL*Plus boilerplate code
+  - All functions maintain 100% backward-compatible signatures
+  - Code reduction per function:
+    - `query_instance_info()`: 35 lines → 27 lines (23% reduction)
+    - `query_database_info()`: 42 lines → 30 lines (29% reduction)
+    - `query_datafile_size()`: 32 lines → 20 lines (38% reduction)
+    - `query_memory_usage()`: 38 lines → 27 lines (29% reduction)
+    - `query_sessions_info()`: 35 lines → 24 lines (31% reduction)
+    - `query_pdb_info()`: 38 lines → 32 lines (16% reduction)
+  - **Migrated Functions**:
+    - `query_instance_info()` - v$instance + v$parameter queries
+    - `query_database_info()` - v$database metadata
+    - `query_datafile_size()` - Total datafile size in GB
+    - `query_memory_usage()` - SGA/PGA memory usage
+    - `query_sessions_info()` - Session count statistics
+    - `query_pdb_info()` - Pluggable database information
+- Updated documentation for SQL query executor
+  - `doc/api.md`: Comprehensive `execute_db_query()` API documentation with examples
+  - `doc/development.md`: Added "Database Queries" best practices section
+    - Proper dollar sign escaping in SQL (`v\$database` not `v$database`)
+    - Quote handling (double quotes for queries with single quotes)
+    - Format selection guidance (raw vs delimited)
+    - Error handling patterns
+    - Migration examples (before/after patterns)
+  - `src/lib/README.md`: Updated function listings with version notes
+
+### Technical Notes
+
+**SQL Query Best Practices:**
+
+- **Always escape dollar signs**: Use `v\$database` not `v$database` in queries
+- **Use double-quoted strings**: For queries containing single quotes
+
+  ```bash
+  local query="SELECT name || '|' || status FROM v\$instance;"
+  ```
+
+- **Choose appropriate format**:
+  - `raw` - Multi-line output, single values, or no delimiters
+  - `delimited` - Pipe-separated values (extracts first line only)
+- **Handle failures**: Check return code or verify result is non-empty
+
+**Migration Pattern:**
+
+```bash
+# Before (old pattern - 40+ lines of boilerplate)
+query_database_info() {
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+...
+SELECT d.name FROM v$database d;
+EXIT;
+EOF
+)
+    echo "$result" | grep -v "^SP2-\|^ORA-"
+}
+
+# After (new pattern - 10-15 lines)
+query_database_info() {
+    local query="SELECT name FROM v\$database;"
+    execute_db_query "$query" "raw"
+}
+```
+
+Resolves: #56 (Phase 2 - SQL Query Consolidation)
+
 ## [0.13.1] - 2026-01-04
 
 ### Added

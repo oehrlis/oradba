@@ -42,7 +42,7 @@ setup() {
 @test "log INFO outputs to stderr" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[INFO]" ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Test message" ]]
 }
 
@@ -55,21 +55,21 @@ setup() {
 @test "log WARN outputs to stderr" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log WARN 'Warning message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[WARN]" ]]
+    [[ "$output" =~ \[WARN\] ]]
     [[ "$output" =~ "Warning message" ]]
 }
 
 @test "log ERROR outputs to stderr" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log ERROR 'Error message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[ERROR]" ]]
+    [[ "$output" =~ \[ERROR\] ]]
     [[ "$output" =~ "Error message" ]]
 }
 
 @test "log DEBUG outputs to stderr when DEBUG=1" {
     run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Debug message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[DEBUG]" ]]
+    [[ "$output" =~ \[DEBUG\] ]]
     [[ "$output" =~ "Debug message" ]]
 }
 
@@ -156,28 +156,28 @@ setup() {
 @test "log_info() wrapper still works" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log_info 'Info message' 2>&1"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[INFO]" ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Info message" ]]
 }
 
 @test "log_warn() wrapper still works" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log_warn 'Warn message' 2>&1"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[WARN]" ]]
+    [[ "$output" =~ \[WARN\] ]]
     [[ "$output" =~ "Warn message" ]]
 }
 
 @test "log_error() wrapper still works" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log_error 'Error message' 2>&1"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[ERROR]" ]]
+    [[ "$output" =~ \[ERROR\] ]]
     [[ "$output" =~ "Error message" ]]
 }
 
 @test "log_debug() wrapper still works" {
     run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && log_debug 'Debug message' 2>&1"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[DEBUG]" ]]
+    [[ "$output" =~ \[DEBUG\] ]]
     [[ "$output" =~ "Debug message" ]]
 }
 
@@ -244,7 +244,7 @@ setup() {
 @test "log() works with verify_oracle_env" {
     run bash -c "unset ORACLE_SID ORACLE_HOME && source ${PROJECT_ROOT}/src/lib/common.sh && verify_oracle_env 2>&1"
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "[ERROR]" ]]
+    [[ "$output" =~ \[ERROR\] ]]
     [[ "$output" =~ "Missing required Oracle environment variables" ]]
 }
 
@@ -252,6 +252,6 @@ setup() {
     # Test that existing common.sh functions using log_* still work
     run bash -c "unset ORACLE_HOME && source ${PROJECT_ROOT}/src/lib/common.sh && get_oracle_version 2>&1"
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "[ERROR]" ]]
+    [[ "$output" =~ \[ERROR\] ]]
     [[ "$output" =~ "ORACLE_HOME not set" ]]
 }

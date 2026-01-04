@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.04
-# Revision...: 0.13.1
+# Revision...: 0.13.2
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -125,6 +125,73 @@ log_error() {
 log_debug() {
     _show_deprecation_warning "log_debug" "log DEBUG"
     log DEBUG "$*"
+}
+
+# ------------------------------------------------------------------------------
+# Function: execute_db_query
+# Purpose.: Execute SQL*Plus query with standardized configuration and formatting
+# Syntax..: execute_db_query <query> [format]
+# Params..: query  - SQL query to execute (can be multiline)
+#           format - Output format: 'raw' (default) or 'delimited'
+# Returns.: Query results in specified format
+# Note....: New in v0.13.2 - Eliminates SQL*Plus boilerplate duplication
+# ------------------------------------------------------------------------------
+execute_db_query() {
+    local query="$1"
+    local format="${2:-raw}"
+    
+    # Validate parameters
+    if [[ -z "$query" ]]; then
+        log ERROR "execute_db_query: No query provided"
+        return 1
+    fi
+    
+    # Validate format
+    if [[ "$format" != "raw" ]] && [[ "$format" != "delimited" ]]; then
+        log ERROR "execute_db_query: Invalid format '$format' (must be 'raw' or 'delimited')"
+        return 1
+    fi
+    
+    # Execute query with standard SQL*Plus configuration
+    local result
+    result=$(sqlplus -s / as sysdba 2>&1 << EOF
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
+${query}
+EXIT;
+EOF
+)
+    
+    local exit_code=$?
+    
+    # Check for SQL*Plus errors
+    if [[ $exit_code -ne 0 ]]; then
+        log DEBUG "execute_db_query: SQL*Plus exited with code $exit_code"
+        return 1
+    fi
+    
+    # Filter out SQL*Plus noise (errors, warnings, empty lines)
+    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected\|^Connected to:")
+    
+    # Process based on format
+    case "$format" in
+        raw)
+            # Return raw output, trimmed
+            echo "$result" | sed '/^[[:space:]]*$/d'
+            ;;
+        delimited)
+            # Return pipe-delimited output, clean lines only
+            echo "$result" | grep "|" | head -1
+            ;;
+    esac
+    
+    # Return success if we got any output
+    [[ -n "$result" ]] && return 0 || return 1
 }
 
 # Check if current ORACLE_SID is a dummy database (oratab flag :D)

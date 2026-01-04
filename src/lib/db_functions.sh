@@ -60,50 +60,34 @@ EOF
 # ------------------------------------------------------------------------------
 # Function: query_instance_info
 # Purpose.: Query v$instance and v$parameter (available in NOMOUNT and higher)
-# Returns.: Tab-separated values: INSTANCE_NAME|STATUS|STARTUP_TIME|VERSION|...
+# Returns.: Pipe-separated values: INSTANCE_NAME|STATUS|STARTUP_TIME|VERSION|...
 # ------------------------------------------------------------------------------
 query_instance_info() {
-    local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
+    local query='
 SELECT 
-    i.instance_name || '|' ||
-    i.status || '|' ||
-    TO_CHAR(i.startup_time, 'YYYY-MM-DD HH24:MI:SS') || '|' ||
-    i.version || '|' ||
-    i.edition || '|' ||
+    i.instance_name || '\''|'\'' ||
+    i.status || '\''|'\'' ||
+    TO_CHAR(i.startup_time, '\''YYYY-MM-DD HH24:MI:SS'\'') || '\''|'\'' ||
+    i.version || '\''|'\'' ||
+    i.edition || '\''|'\'' ||
     ROUND(
-        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = 'sga_target'), 2
-    ) || '|' ||
+        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = '\''sga_target'\''), 2
+    ) || '\''|'\'' ||
     ROUND(
-        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = 'pga_aggregate_target'), 2
-    ) || '|' ||
+        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = '\''pga_aggregate_target'\''), 2
+    ) || '\''|'\'' ||
     ROUND(
-        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = 'db_recovery_file_dest_size'), 2
+        (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = '\''db_recovery_file_dest_size'\''), 2
     )
-FROM v$instance i;
-EXIT;
-EOF
-)
+FROM v$instance i;'
     
-    # Only output if we got valid data (contains pipe separators)
-    if [[ "$result" =~ \| ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "delimited"
 }
 
 # ------------------------------------------------------------------------------
 # Function: query_database_info
 # Purpose.: Query v$database (available in MOUNT and higher)
-# Returns.: Tab-separated values: DB_NAME|DB_UNIQUE_NAME|DBID|LOG_MODE|...
+# Returns.: Pipe-separated values: DB_NAME|DB_UNIQUE_NAME|DBID|LOG_MODE|...
 # ------------------------------------------------------------------------------
 query_database_info() {
     local open_mode="$1"
@@ -113,13 +97,7 @@ query_database_info() {
         return 1
     fi
     
-    local result
-    result=$(sqlplus -s / as sysdba << 'EOF' 2>&1
-SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
+    local query="
 SELECT 
     d.name || '|' ||
     d.db_unique_name || '|' ||
@@ -127,23 +105,12 @@ SELECT
     d.log_mode || '|' ||
     d.database_role || '|' ||
     NVL(
-        (SELECT value FROM v$nls_parameters WHERE parameter = 'NLS_CHARACTERSET'),
+        (SELECT value FROM v\$nls_parameters WHERE parameter = 'NLS_CHARACTERSET'),
         'UNKNOWN'
     )
-FROM v$database d;
-EXIT;
-EOF
-)
+FROM v\$database d;"
     
-    # Filter out any SQL errors and get only the data line
-    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | grep "|" | head -1)
-    
-    # Only output if we got valid data (contains pipe separators)
-    if [[ "$result" =~ \| ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "delimited"
 }
 
 # ------------------------------------------------------------------------------
@@ -159,28 +126,11 @@ query_datafile_size() {
         return 1
     fi
     
-    local result
-    result=$(sqlplus -s / as sysdba << 'EOF' 2>&1
-SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
+    local query='
 SELECT ROUND(SUM(bytes)/1024/1024/1024, 2)
-FROM v$datafile;
-EXIT;
-EOF
-)
+FROM v$datafile;'
     
-    # Filter out any SQL errors, trim whitespace, and get numeric result
-    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected" | tr -d '[:space:]')
-    
-    # Only output if we got a valid number
-    if [[ -n "$result" ]] && [[ "$result" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "raw"
 }
 
 # ------------------------------------------------------------------------------
@@ -191,39 +141,23 @@ EOF
 query_memory_usage() {
     local open_mode="$1"
     
-    # Query v$sga and v$pgastat - works in MOUNT and OPEN states
+    # Query v\$sga and v\$pgastat - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
-    local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-SET PAGESIZE 0 LINESIZE 200 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
+    local query="
 SELECT 
     ROUND(SUM(CASE WHEN name = 'sga' THEN value ELSE 0 END)/1024/1024/1024, 2) || '|' ||
     ROUND(SUM(CASE WHEN name = 'pga' THEN value ELSE 0 END)/1024/1024/1024, 2)
 FROM (
-    SELECT 'sga' name, SUM(value) value FROM v$sga
+    SELECT 'sga' name, SUM(value) value FROM v\$sga
     UNION ALL
-    SELECT 'pga' name, value FROM v$pgastat WHERE name = 'total PGA allocated'
-);
-EXIT;
-EOF
-)
+    SELECT 'pga' name, value FROM v\$pgastat WHERE name = 'total PGA allocated'
+);"
     
-    # Only output if we got valid data (contains pipe separator)
-    if [[ "$result" =~ \| ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "delimited"
 }
 
 # ------------------------------------------------------------------------------
@@ -234,38 +168,22 @@ EOF
 query_sessions_info() {
     local open_mode="$1"
     
-    # Query v$session - works in MOUNT and OPEN states
+    # Query v\$session - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
-    local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-SET PAGESIZE 0 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
+    local query="
 SELECT 
     COUNT(DISTINCT CASE WHEN username IS NULL THEN sid END) || '|' ||
     COUNT(CASE WHEN username IS NULL THEN sid END) || '|' ||
     COUNT(DISTINCT CASE WHEN username IS NOT NULL THEN username END) || '|' ||
     COUNT(CASE WHEN username IS NOT NULL THEN sid END)
-FROM v$session
-WHERE type = 'USER';
-EXIT;
-EOF
-)
+FROM v\$session
+WHERE type = 'USER';"
     
-    # Only output if we got valid data (contains pipe separators)
-    if [[ "$result" =~ \| ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "delimited"
 }
 
 # ------------------------------------------------------------------------------
@@ -276,21 +194,13 @@ EOF
 query_pdb_info() {
     local open_mode="$1"
     
-    # Query v$pdbs - works in MOUNT and OPEN states
+    # Query v\$pdbs - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
     
-    local result
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
+    local query="
 SELECT LISTAGG(
     name || '(' || 
     CASE open_mode 
@@ -302,17 +212,9 @@ SELECT LISTAGG(
     END || ')', 
     ', '
 ) WITHIN GROUP (ORDER BY name)
-FROM v$pdbs;
-EXIT;
-EOF
-)
+FROM v\$pdbs;"
     
-    # Output only if we got data (not empty)
-    if [[ -n "$result" ]]; then
-        echo "$result"
-        return 0
-    fi
-    return 1
+    execute_db_query "$query" "raw"
 }
 
 # ------------------------------------------------------------------------------

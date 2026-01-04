@@ -1531,6 +1531,91 @@ gh workflow run release.yml -f version=0.8.2
    fi
    ```
 
+### Database Queries
+
+**New in v0.13.2**: Use `execute_db_query()` for all SQL*Plus queries.
+
+1. **Use execute_db_query() instead of inline sqlplus**
+
+   ```bash
+   # Good (v0.13.2+)
+   query_database_name() {
+       local query="SELECT name FROM v\$database;"
+       execute_db_query "$query" "raw"
+   }
+   
+   # Bad (old pattern - avoid)
+   query_database_name() {
+       result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
+   SET PAGESIZE 0 LINESIZE 500...
+   SELECT name FROM v$database;
+   EOF
+   )
+       echo "$result" | grep -v "^SP2-"
+   }
+   ```
+
+2. **Always escape dollar signs in SQL**
+
+   ```bash
+   # Good
+   local query="SELECT name FROM v\$database;"
+   local query="SELECT * FROM v\$instance WHERE instance_name = 'DB1';"
+   
+   # Bad (bash will interpret $database as variable)
+   local query="SELECT name FROM v$database;"
+   ```
+
+3. **Use double quotes for queries with single quotes**
+
+   ```bash
+   # Good - double quotes, escape $
+   local query="
+   SELECT 
+       name || '|' || status 
+   FROM v\$instance 
+   WHERE status = 'OPEN';"
+   
+   # Bad - single quotes with complex escaping
+   local query='SELECT name || '\''|'\'' || status FROM v$instance'
+   ```
+
+4. **Choose appropriate format**
+
+   - Use `raw` for multi-line output or single values
+   - Use `delimited` for pipe-separated values (extracts first line only)
+
+   ```bash
+   # Raw format - get all output
+   datafile_size=$(execute_db_query "
+       SELECT ROUND(SUM(bytes)/1024/1024/1024, 2) 
+       FROM v\$datafile;" "raw")
+   
+   # Delimited format - get first pipe-delimited line
+   db_info=$(execute_db_query "
+       SELECT 
+           name || '|' || 
+           db_unique_name || '|' || 
+           dbid 
+       FROM v\$database;" "delimited")
+   ```
+
+5. **Handle query failures properly**
+
+   ```bash
+   if ! result=$(execute_db_query "$query" "raw"); then
+       log ERROR "Failed to query database"
+       return 1
+   fi
+   
+   # Or check result is non-empty
+   result=$(execute_db_query "$query" "raw")
+   if [[ -z "$result" ]]; then
+       log WARN "Query returned no results"
+       return 1
+   fi
+   ```
+
 ### Documentation
 
 1. Add header comments to all scripts

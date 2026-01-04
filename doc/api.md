@@ -336,6 +336,120 @@ export ORACLE_HOME="/u01/app/oracle/product/19.0.0/dbhome_1"
 export_oracle_base_env
 ```
 
+### execute_db_query
+
+**New in v0.13.2**: Unified SQL*Plus query executor with standardized
+configuration and formatting.
+
+Execute SQL queries against the local database with consistent SQL*Plus settings
+and automatic error filtering. Eliminates SQL*Plus boilerplate duplication across
+database query functions.
+
+**Syntax**: `execute_db_query <query> [format]`
+
+**Parameters**:
+
+- `query` - SQL query to execute (can be multiline)
+- `format` - Optional output format (default: `raw`)
+  - `raw` - Direct SQL*Plus output with whitespace trimmed
+  - `delimited` - Extract first pipe-delimited line
+
+**Returns**:
+
+- `0` - Query executed successfully (with output to stdout)
+- `1` - Query failed or no results
+
+**Standard SQL*Plus Configuration**:
+
+The function applies these SQL*Plus settings automatically:
+
+```sql
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
+SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
+SET SERVEROUTPUT OFF TERMOUT ON
+WHENEVER SQLERROR EXIT FAILURE
+WHENEVER OSERROR EXIT FAILURE
+```
+
+**Error Filtering**:
+
+Automatically filters out SQL*Plus noise:
+
+- `SP2-*` messages
+- `ORA-*` errors  
+- `ERROR` lines
+- `no rows selected`
+- `Connected to:` banners
+
+**Examples**:
+
+```bash
+# Simple query with raw format (default)
+result=$(execute_db_query "SELECT name FROM v\$database;" "raw")
+echo "Database name: $result"
+
+# Pipe-delimited output
+result=$(execute_db_query "
+    SELECT 
+        name || '|' || 
+        db_unique_name || '|' || 
+        dbid 
+    FROM v\$database;" "delimited")
+echo "DB info: $result"
+
+# Multi-line query
+query="
+SELECT 
+    i.instance_name,
+    i.status,
+    i.version
+FROM v\$instance i;"
+
+if result=$(execute_db_query "$query" "raw"); then
+    echo "$result"
+else
+    log ERROR "Query failed"
+fi
+
+# Using in functions
+query_database_name() {
+    local query="SELECT name FROM v\$database;"
+    execute_db_query "$query" "raw"
+}
+```
+
+**Important Notes**:
+
+- Must escape dollar signs in SQL: Use `v\$database` not `v$database`
+- Use double-quoted strings for queries containing single quotes
+- Connects as `/ as sysdba` (requires proper OS authentication)
+- Query failures return exit code 1 with empty output
+
+**Migration Example**:
+
+```bash
+# Before (old pattern with 40+ lines of boilerplate)
+query_database_info() {
+    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
+SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
+SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
+...
+SELECT d.name FROM v$database d;
+EXIT;
+EOF
+)
+    echo "$result" | grep -v "^SP2-\|^ORA-"
+}
+
+# After (new pattern with ~10 lines)
+query_database_info() {
+    local query="SELECT name FROM v\$database;"
+    execute_db_query "$query" "raw"
+}
+```
+
 ## Configuration Functions
 
 ### Configuration Hierarchy

@@ -59,11 +59,14 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 
 **Logging Functions:**
 
-- `log_info` - Information messages
-- `log_warn` - Warning messages
-- `log_error` - Error messages
-- `log_debug` - Debug messages (controlled by `ORADBA_LOG_LEVEL`)
-- `log_msg` - Generic logging with custom level
+**New in v0.13.1**: Unified logging with configurable levels
+
+- `log` - Unified logging function with level filtering (DEBUG|INFO|WARN|ERROR)
+- `log_info` - Information messages (deprecated, use `log INFO`)
+- `log_warn` - Warning messages (deprecated, use `log WARN`)
+- `log_error` - Error messages (deprecated, use `log ERROR`)
+- `log_debug` - Debug messages (deprecated, use `log DEBUG`)
+- `log_msg` - Generic logging with custom level (deprecated)
 
 **oratab Management:**
 
@@ -86,6 +89,15 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `get_config_value` - Get configuration parameter value
 - `set_sqlpath` - Configure SQL*Plus SQLPATH
 
+**Database Query Functions:**
+
+**New in v0.13.2**: Unified SQL*Plus query executor
+
+- `execute_db_query` - Execute SQL queries with standardized configuration
+  - Parameters: `<query>` `[format]` (format: raw|delimited)
+  - Returns: Query results or error code
+  - Eliminates SQL*Plus boilerplate duplication
+
 **Utility Functions:**
 
 - `is_sourced` - Check if script is being sourced
@@ -102,8 +114,16 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `get_db_version` - Get database version
 - `get_db_name` - Get database name
 
-**CDB/PDB Functions:**
+**Note**: These functions use `execute_db_query()` as of v0.13.2
 
+- `query_instance_info` - Get instance information (name, status, version, memory)
+- `query_database_info` - Get database information (name, DBID, log mode, role)
+- `query_datafile_size` - Get total datafile size in GB
+- `query_memory_usage` - Get SGA/PGA memory usage
+- `query_sessions_info` - Get session count statistics
+- `query_pdb_info` - Get PDB information (CDB only)
+- `sql_query` - Execute SQL query and return result (deprecated - use execute_db_query)
+- `sql_query_silent` - Execute SQL without output (deprecated)
 - `is_cdb` - Check if database is a container database
 - `get_pdb_list` - List all PDBs in CDB
 - `get_pdb_status` - Get PDB open mode
