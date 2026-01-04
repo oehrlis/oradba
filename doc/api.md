@@ -6,7 +6,68 @@ This document describes the public API of the oradba common library (`src/lib/co
 
 ## Logging Functions
 
+### log
+
+**New in v0.13.1**: Unified logging function with configurable levels.
+
+Output log message with specified level and timestamp. All messages are written to stderr with automatic filtering based on configured minimum log level.
+
+**Syntax**: `log <LEVEL> <message...>`
+
+**Parameters**:
+
+- `LEVEL` - Log level: `DEBUG`, `INFO`, `WARN`, or `ERROR` (case-insensitive)
+- `message` - Message to log (supports multiple arguments)
+
+**Environment**:
+
+- `ORADBA_LOG_LEVEL` - Minimum log level (default: `INFO`)
+  - `DEBUG` - Show all messages including DEBUG
+  - `INFO` - Show INFO, WARN, ERROR (default)
+  - `WARN` - Show only WARN and ERROR
+  - `ERROR` - Show only ERROR messages
+- `DEBUG` - Legacy support: Setting `DEBUG=1` enables DEBUG level
+
+**Examples**:
+
+```bash
+# Basic usage
+log INFO "Starting database backup"
+log WARN "Database not in archivelog mode"
+log ERROR "ORACLE_HOME not found"
+log DEBUG "Checking oratab entry"
+
+# Enable debug logging
+export ORADBA_LOG_LEVEL=DEBUG
+log DEBUG "This will now appear"
+
+# Legacy DEBUG=1 support
+export DEBUG=1
+log DEBUG "This also appears"
+
+# Filter to only warnings and errors
+export ORADBA_LOG_LEVEL=WARN
+log INFO "This is filtered out"
+log WARN "This appears"
+```
+
+**Output Format**:
+
+```text
+[LEVEL] YYYY-MM-DD HH:MM:SS - message
+```
+
+**Example Output**:
+
+```text
+[INFO] 2026-01-04 17:30:45 - Starting database backup
+[WARN] 2026-01-04 17:30:46 - Database not in archivelog mode
+[ERROR] 2026-01-04 17:30:47 - ORACLE_HOME not found
+```
+
 ### log_info
+
+**Deprecated**: Use `log INFO <message>` instead.
 
 Output informational message with timestamp.
 
@@ -16,10 +77,16 @@ Output informational message with timestamp.
 
 - `message` - Message to log
 
+**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log INFO <message>` instead. Enable deprecation warnings by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
+
 **Example**:
 
 ```bash
+# Old syntax (deprecated but still works)
 log_info "Starting database backup"
+
+# New syntax (recommended)
+log INFO "Starting database backup"
 ```
 
 **Output**:
@@ -30,6 +97,8 @@ log_info "Starting database backup"
 
 ### log_warn
 
+**Deprecated**: Use `log WARN <message>` instead.
+
 Output warning message to stderr with timestamp.
 
 **Syntax**: `log_warn <message>`
@@ -38,13 +107,21 @@ Output warning message to stderr with timestamp.
 
 - `message` - Warning message
 
+**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log WARN <message>` instead.
+
 **Example**:
 
 ```bash
+# Old syntax (deprecated but still works)
 log_warn "Database not in archivelog mode"
+
+# New syntax (recommended)
+log WARN "Database not in archivelog mode"
 ```
 
 ### log_error
+
+**Deprecated**: Use `log ERROR <message>` instead.
 
 Output error message to stderr with timestamp.
 
@@ -54,15 +131,23 @@ Output error message to stderr with timestamp.
 
 - `message` - Error message
 
+**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log ERROR <message>` instead.
+
 **Example**:
 
 ```bash
+# Old syntax (deprecated but still works)
 log_error "ORACLE_HOME not found"
+
+# New syntax (recommended)
+log ERROR "ORACLE_HOME not found"
 ```
 
 ### log_debug
 
-Output debug message when DEBUG=1.
+**Deprecated**: Use `log DEBUG <message>` instead.
+
+Output debug message when DEBUG=1 or ORADBA_LOG_LEVEL=DEBUG.
 
 **Syntax**: `log_debug <message>`
 
@@ -73,12 +158,20 @@ Output debug message when DEBUG=1.
 **Environment**:
 
 - `DEBUG` - Must be set to 1 to output debug messages
+- `ORADBA_LOG_LEVEL` - Set to DEBUG to enable debug output
+
+**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log DEBUG <message>` instead.
 
 **Example**:
 
 ```bash
+# Old syntax (deprecated but still works)
 export DEBUG=1
 log_debug "Checking oratab entry"
+
+# New syntax (recommended)
+export ORADBA_LOG_LEVEL=DEBUG
+log DEBUG "Checking oratab entry"
 ```
 
 ## Utility Functions

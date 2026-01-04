@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-01-04
+
+### Added
+
+- **Unified Logging System (#56 Phase 1)**: Consolidated logging with level-based filtering
+  - New unified `log()` function with single signature: `log <LEVEL> <message...>`
+    - Supported levels: `DEBUG`, `INFO`, `WARN`, `ERROR` (case-insensitive)
+    - All messages output to stderr with consistent format: `[LEVEL] YYYY-MM-DD HH:MM:SS - message`
+  - **Level-based filtering** via `ORADBA_LOG_LEVEL` environment variable
+    - `DEBUG` (0): Show all messages including DEBUG
+    - `INFO` (1): Show INFO, WARN, ERROR (default)
+    - `WARN` (2): Show only WARN and ERROR
+    - `ERROR` (3): Show only ERROR messages
+  - **Legacy DEBUG support**: `DEBUG=1` automatically enables DEBUG level for backward compatibility
+  - **Backward-compatible deprecation wrappers**:
+    - `log_info()`, `log_warn()`, `log_error()`, `log_debug()` still work
+    - Opt-in deprecation warnings via `ORADBA_SHOW_DEPRECATION_WARNINGS=true`
+    - Warnings shown once per function per session
+  - **Test Suite**: 28 comprehensive BATS tests covering:
+    - Basic functionality and output redirection
+    - Log level filtering (default, explicit, case-insensitive)
+    - DEBUG=1 backward compatibility
+    - Deprecated function wrappers
+    - Deprecation warnings (opt-in, session tracking)
+    - Message formatting (multiple arguments, variables, special characters)
+    - Integration with existing functions
+
+### Changed
+
+- Updated `src/lib/common.sh` from v0.11.0 to v0.13.1
+  - Replaced individual `log_*` implementations with unified `log()` function
+  - Deprecated functions now call `log()` internally for consistency
+- Updated documentation for new logging system
+  - `doc/api.md`: Comprehensive logging API documentation with migration guide
+  - `doc/development.md`: Updated coding standards with best practices
+  - `src/lib/README.md`: Updated examples showing new and legacy syntax
+
+### Migration Notes
+
+**New Code** should use the unified `log()` function:
+
+```bash
+log INFO "Database started successfully"
+log WARN "Archive log directory is 90% full"  
+log ERROR "Connection to database failed"
+log DEBUG "SQL query: ${sql_query}"
+```
+
+**Existing Code** continues to work without changes - legacy functions preserved:
+
+```bash
+log_info "Still works"   # Calls log INFO internally
+log_warn "Still works"   # Calls log WARN internally
+log_error "Still works"  # Calls log ERROR internally
+log_debug "Still works"  # Calls log DEBUG internally
+```
+
+**Enable deprecation warnings** (optional) to identify legacy usage:
+
+```bash
+export ORADBA_SHOW_DEPRECATION_WARNINGS=true
+```
+
 ## [0.13.0] - 2026-01-02
 
 ### Added

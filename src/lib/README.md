@@ -32,9 +32,13 @@ Source libraries at the beginning of your scripts:
 source "${ORADBA_BASE}/lib/common.sh"
 source "${ORADBA_BASE}/lib/db_functions.sh"
 
-# Use library functions
-log_info "Starting script..."
+# Use library functions (v0.13.1+ unified logging)
+log INFO "Starting script..."
 db_status=$(get_db_status)
+log INFO "Database status: ${db_status}"
+
+# Legacy logging functions still work (backward compatible)
+log_info "Starting script..."  # Still supported but deprecated
 log_info "Database status: ${db_status}"
 ```
 

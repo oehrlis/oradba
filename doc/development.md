@@ -84,11 +84,40 @@ Library of common functions used across scripts.
 
 **Key Functions:**
 
-- `log_info()`, `log_error()`, `log_warn()`, `log_debug()`
-- `command_exists()` - Check command availability
-- `verify_oracle_env()` - Validate Oracle environment
-- `parse_oratab()` - Parse oratab entries
-- `export_oracle_base_env()` - Set common Oracle variables
+- **Logging (v0.13.1+):**
+  - `log <LEVEL> <message>` - Unified logging function (NEW)
+  - `log_info()`, `log_warn()`, `log_error()`, `log_debug()` - Deprecated wrappers (backward compatible)
+- **Utilities:**
+  - `command_exists()` - Check command availability
+  - `verify_oracle_env()` - Validate Oracle environment
+  - `parse_oratab()` - Parse oratab entries
+  - `export_oracle_base_env()` - Set common Oracle variables
+
+**Logging Best Practices (v0.13.1+):**
+
+New code should use the unified `log` function:
+
+```bash
+# Recommended (new syntax)
+log INFO "Database started successfully"
+log WARN "Archive log directory is 90% full"
+log ERROR "Connection to database failed"
+log DEBUG "SQL query: ${sql_query}"
+
+# Configure log level
+export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
+export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
+```
+
+Legacy functions still work for backward compatibility:
+
+```bash
+# Legacy syntax (still supported, but deprecated)
+log_info "Database started"
+log_warn "Archive log warning"
+log_error "Connection failed"
+log_debug "Debug information"
+```
 
 ### Configuration
 

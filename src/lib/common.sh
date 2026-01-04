@@ -5,8 +5,8 @@
 # Name.......: common.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.11.0
+# Date.......: 2026.01.04
+# Revision...: 0.13.1
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -27,23 +27,104 @@ get_script_dir() {
     echo "$(cd -P "$(dirname "$source")" && pwd)"
 }
 
-# Logging functions
-log_info() {
-    echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $*"
-}
+# ------------------------------------------------------------------------------
+# Unified Logging System
+# ------------------------------------------------------------------------------
 
-log_warn() {
-    echo "[WARN] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
-}
-
-log_error() {
-    echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
-}
-
-log_debug() {
-    if [[ "${DEBUG:-0}" == "1" ]]; then
-        echo "[DEBUG] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+# Unified logging function with level-based filtering
+# Usage: log <LEVEL> <message>
+# Levels: DEBUG, INFO, WARN, ERROR
+# Environment variables:
+#   ORADBA_LOG_LEVEL - Minimum log level (DEBUG|INFO|WARN|ERROR, default: INFO)
+#   DEBUG=1 - Legacy support, enables DEBUG level
+# All output goes to stderr for clean separation from script output
+log() {
+    local level="$1"
+    shift
+    local message="$*"
+    
+    # Default log level is INFO if not set
+    local min_level="${ORADBA_LOG_LEVEL:-INFO}"
+    
+    # Legacy DEBUG=1 support - if DEBUG is set, enable DEBUG level
+    if [[ "${DEBUG:-0}" == "1" ]] && [[ "${min_level}" != "DEBUG" ]]; then
+        min_level="DEBUG"
     fi
+    
+    # Convert levels to numeric values for comparison
+    local level_value=0
+    local min_level_value=0
+    
+    case "${level^^}" in
+        DEBUG) level_value=0 ;;
+        INFO)  level_value=1 ;;
+        WARN)  level_value=2 ;;
+        ERROR) level_value=3 ;;
+        *) level_value=1 ;; # Default to INFO for unknown levels
+    esac
+    
+    case "${min_level^^}" in
+        DEBUG) min_level_value=0 ;;
+        INFO)  min_level_value=1 ;;
+        WARN)  min_level_value=2 ;;
+        ERROR) min_level_value=3 ;;
+        *) min_level_value=1 ;; # Default to INFO
+    esac
+    
+    # Only log if message level meets minimum threshold
+    if [[ ${level_value} -ge ${min_level_value} ]]; then
+        echo "[${level^^}] $(date '+%Y-%m-%d %H:%M:%S') - ${message}" >&2
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Deprecated Logging Functions (Backward Compatibility Wrappers)
+# ------------------------------------------------------------------------------
+# These functions are deprecated and will be removed in v0.14.0
+# Use: log INFO "message" instead of log_info "message"
+#      log WARN "message" instead of log_warn "message"
+#      log ERROR "message" instead of log_error "message"
+#      log DEBUG "message" instead of log_debug "message"
+# ------------------------------------------------------------------------------
+
+# Show deprecation warning if opt-in enabled
+_show_deprecation_warning() {
+    local func_name="$1"
+    local new_syntax="$2"
+    
+    # Only show warnings if explicitly enabled
+    if [[ "${ORADBA_SHOW_DEPRECATION_WARNINGS:-false}" == "true" ]]; then
+        # Track if we've already shown this warning in this session
+        local warning_var="ORADBA_DEPRECATION_SHOWN_${func_name}"
+        if [[ "${!warning_var}" != "true" ]]; then
+            echo "[WARN] $(date '+%Y-%m-%d %H:%M:%S') - ${func_name}() is deprecated, use ${new_syntax} instead (see CHANGELOG v0.13.1)" >&2
+            export "${warning_var}=true"
+        fi
+    fi
+}
+
+# Deprecated: log_info - use log INFO instead
+log_info() {
+    _show_deprecation_warning "log_info" "log INFO"
+    log INFO "$*"
+}
+
+# Deprecated: log_warn - use log WARN instead
+log_warn() {
+    _show_deprecation_warning "log_warn" "log WARN"
+    log WARN "$*"
+}
+
+# Deprecated: log_error - use log ERROR instead
+log_error() {
+    _show_deprecation_warning "log_error" "log ERROR"
+    log ERROR "$*"
+}
+
+# Deprecated: log_debug - use log DEBUG instead
+log_debug() {
+    _show_deprecation_warning "log_debug" "log DEBUG"
+    log DEBUG "$*"
 }
 
 # Check if current ORACLE_SID is a dummy database (oratab flag :D)
