@@ -10,7 +10,8 @@ This document describes the public API of the oradba common library (`src/lib/co
 
 **New in v0.13.1**: Unified logging function with configurable levels.
 
-Output log message with specified level and timestamp. All messages are written to stderr with automatic filtering based on configured minimum log level.
+Output log message with specified level and timestamp. All messages are written
+to stderr with automatic filtering based on configured minimum log level.
 
 **Syntax**: `log <LEVEL> <message...>`
 
@@ -77,7 +78,9 @@ Output informational message with timestamp.
 
 - `message` - Message to log
 
-**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log INFO <message>` instead. Enable deprecation warnings by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
+**Deprecation Note**: This function is maintained for backward compatibility.
+New code should use `log INFO <message>` instead. Enable deprecation warnings
+by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
 
 **Example**:
 
@@ -131,7 +134,8 @@ Output error message to stderr with timestamp.
 
 - `message` - Error message
 
-**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log ERROR <message>` instead.
+**Deprecation Note**: This function is maintained for backward compatibility.
+New code should use `log ERROR <message>` instead.
 
 **Example**:
 
@@ -160,7 +164,8 @@ Output debug message when DEBUG=1 or ORADBA_LOG_LEVEL=DEBUG.
 - `DEBUG` - Must be set to 1 to output debug messages
 - `ORADBA_LOG_LEVEL` - Set to DEBUG to enable debug output
 
-**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log DEBUG <message>` instead.
+**Deprecation Note**: This function is maintained for backward compatibility.
+New code should use `log DEBUG <message>` instead.
 
 **Example**:
 
