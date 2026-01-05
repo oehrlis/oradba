@@ -11,13 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔴 CRITICAL BUG FIXES
 
-- **RMAN Wrapper False Success Bug** (#56 Phase 6): Fixed critical production bug where `oradba_rman.sh` reported success even when RMAN backups failed
+- **RMAN Wrapper False Success Bug** (#56 Phase 6): Fixed critical production bug where
+  `oradba_rman.sh` reported success even when RMAN backups failed
   - **Root Cause**: RMAN always returns exit code 0, and piping to `tee` masked the exit code
   - **Solution**: Capture RMAN exit code using `${PIPESTATUS[0]}` before pipe masks it
   - **Error Detection**: Check log file for `RMAN-00569` error pattern (standard RMAN error indicator)
   - **Impact**: Prevents silent backup failures in production environments
   - **Example Failure**:
-    ```
+
+    ```text
     # Script incorrectly reported:
     [INFO] RMAN execution successful for FREE
     [INFO] Successful: 1, Failed: 0
@@ -99,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - **Updated RMAN Usage Examples**:
+
   ```bash
   # With backup path from config
   RMAN_BACKUP_PATH="/backup/prod"
@@ -149,7 +152,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced usage text with download instructions and comprehensive examples
   - Dynamic banner formatting supports any version length (0.7.0, 0.14.2, 10.15.234, etc.)
 
-### Changed
+### Files Updated
 
 - **Updated `oradba_check.sh`** from v0.7.0 to v0.13.7
   - Added base64 availability check to system tools validation
@@ -164,9 +167,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Summary
 
-Release 0.14.0 is a **critical update** addressing a production bug in RMAN wrapper that could allow backup failures to go undetected. All users running automated backups should upgrade immediately.
+Release 0.14.0 is a **critical update** addressing a production bug in RMAN wrapper that could
+allow backup failures to go undetected. All users running automated backups should upgrade
+immediately.
 
 **Key Changes**:
+
 - 🔴 Critical bug fix: RMAN false success reporting
 - ✨ 5 new RMAN features: backup path, enhanced dry-run, script preservation, cleanup control, error detection
 - ✅ Extension checksum verification
@@ -174,6 +180,7 @@ Release 0.14.0 is a **critical update** addressing a production bug in RMAN wrap
 - 🔍 Standalone prerequisites checker
 
 **Files Changed**: 4 files
+
 - `src/bin/oradba_rman.sh` (+76/-10 lines)
 - `src/bin/oradba_version.sh` (+86 lines)
 - `VERSION` (0.13.5 → 0.14.0)

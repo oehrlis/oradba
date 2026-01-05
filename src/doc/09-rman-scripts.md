@@ -34,8 +34,10 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv \
 
 **Features:**
 
-- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>`, `<BACKUP_PATH>` tags
-- **Error Detection**: Checks for RMAN-00569 error pattern to catch failures (RMAN returns exit code 0 even on errors)
+- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`,
+  `<COMPRESSION>`, `<BACKUP_PATH>` tags
+- **Error Detection**: Checks for RMAN-00569 error pattern to catch failures (RMAN returns exit
+  code 0 even on errors)
 - **Parallel Execution**: Run RMAN for multiple SIDs concurrently (background jobs or GNU parallel)
 - **Dual Logging**: Generic logs in `$ORADBA_LOG` + SID-specific logs in `$ORADBA_ORA_ADMIN_SID/log`
 - **Script Preservation**: Automatically saves processed .rcv scripts to log directory for troubleshooting
@@ -56,16 +58,16 @@ Required Arguments:
 Optional Arguments:
   --channels N          Number of parallel channels (default: from config)
   --format FORMAT       Backup format string (default: from config)
-  --tag TAG            Backup tag (default: from config)
+  --tag TAG             Backup tag (default: from config)
   --compression LEVEL   NONE|LOW|MEDIUM|HIGH (default: from config)
   --backup-path PATH    Backup destination path (default: from config)
-  --catalog CONNECT    RMAN catalog connection string
-  --notify EMAIL       Send notifications to email address
-  --parallel N         Max parallel SID executions (default: 1)
-  --dry-run           Show generated script and command without executing
-  --no-cleanup        Keep temporary files after execution (for debugging)
-  --verbose           Enable verbose output
-  --help              Show detailed help
+  --catalog CONNECT     RMAN catalog connection string
+  --notify EMAIL        Send notifications to email address
+  --parallel N          Max parallel SID executions (default: 1)
+  --dry-run             Show generated script and command without executing
+  --no-cleanup          Keep temporary files after execution (for debugging)
+  --verbose             Enable verbose output
+  --help                Show detailed help
 ```
 
 **Configuration:**

@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.05
-# Revision...: 0.13.7
+# Revision...: 0.14.0
 # Purpose....: System prerequisites and Oracle environment verification script
 # Notes......: Validates system readiness for OraDBA installation and usage.
 #              Can be run standalone BEFORE installation to verify prerequisites,

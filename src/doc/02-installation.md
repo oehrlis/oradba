@@ -69,19 +69,22 @@ The check validates:
 
 ## Installation Methods
 
-OraDBA offers three installation methods depending on your environment.
+OraDBA offers multiple installation methods to support different environments and use cases.
 
 ![Installation Flow](images/installation-flow.png)
 
-The installation process automatically detects your environment, validates
-prerequisites, extracts files, and verifies integrity with SHA256 checksums.
+The installation process automatically detects your environment, validates prerequisites, extracts
+files, and verifies integrity with SHA256 checksums.
 
-### Method 1: Quick Install from GitHub (Recommended)
+### Method 1: Quick Install with Embedded Payload (Recommended)
 
-Best for: Systems with internet access
+**Best for:** Standard installations with internet access
+
+The `oradba_install.sh` installer includes an embedded tarball payload, making it a single-file
+installation solution. Download and run - no separate package required.
 
 ```bash
-# Download latest release installer
+# Download installer (contains embedded payload)
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 chmod +x oradba_install.sh
@@ -91,86 +94,356 @@ chmod +x oradba_install.sh
 
 # Or specify custom installation directory
 ./oradba_install.sh --prefix /usr/local/oradba
-```
-
-The installer automatically:
-
-- Detects ORACLE_BASE and uses `$ORACLE_BASE/local/oradba` as default prefix
-- Falls back to `$HOME/local/oradba` if ORACLE_BASE not set
-- Creates directory structure
-- Extracts files with proper permissions
-- Verifies installation integrity with SHA256 checksums
-- Creates installation metadata
-
-### Method 2: From Local Tarball (Air-Gapped)
-
-Best for: Air-gapped environments or offline installations
-
-```bash
-# Download latest installer (recommended)
-curl -L -o oradba_install.sh \
-  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
-chmod +x oradba_install.sh
-
-# Or download specific version
-curl -L -o oradba_install.sh \
-  https://github.com/oehrlis/oradba/releases/download/v0.8.1/oradba_install.sh
-chmod +x oradba_install.sh
-
-# Step 3: Install from local tarball
-./oradba_install.sh --local oradba-0.7.4.tar.gz --prefix /opt/oradba
-```
-
-This method allows you to:
-
-- Download on a different system
-- Transfer files to air-gapped environments
-- Install without network access
-- Use custom tarballs
-
-### Method 3: Direct from GitHub
-
-Best for: Development environments, testing latest code
-
-```bash
-# Install latest version directly from GitHub
-./oradba_install.sh --github
 
 # Install specific version
-./oradba_install.sh --github --version 0.7.4
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/download/v0.14.0/oradba_install.sh
+chmod +x oradba_install.sh
+./oradba_install.sh --prefix /opt/oradba
 ```
 
-**Note:** This method requires `git` and `curl` or `wget`.
+**Key Features:**
 
-## Installation Options
+- **Single file download** - Installer includes complete OraDBA package as base64-encoded payload
+- **Auto-detection** - Detects ORACLE_BASE and uses `$ORACLE_BASE/local/oradba` as default prefix
+- **Fallback prefix** - Uses `$HOME/local/oradba` if ORACLE_BASE not set
+- **Integrity verification** - SHA256 checksums validate all extracted files
+- **Version flexibility** - Download any released version from GitHub
+- **Smart updates** - Detects existing installations and preserves configurations
 
-### Directory Options
+### Method 2: Air-Gapped Install with Embedded Payload
+
+**Best for:** Air-gapped, DMZ, or restricted network environments
+
+Use the same self-contained installer in environments without internet access.
 
 ```bash
-# Custom installation directory
+# On internet-connected system: Download installer
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+
+# Transfer oradba_install.sh to target system via approved method
+# (USB drive, secure file transfer, etc.)
+
+# On air-gapped system: Install
+chmod +x oradba_install.sh
 ./oradba_install.sh --prefix /opt/oradba
 
-# The prefix determines installation structure:
-# /opt/oradba/
-#   ├── bin/        # Executable scripts
-#   ├── lib/        # Libraries
-#   ├── etc/        # Configuration
-#   ├── sql/        # SQL scripts
-#   ├── rcv/        # RMAN scripts
-#   └── doc/        # Documentation
+# Or with sudo for system-wide installation
+sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
+```
+
+**Key Features:**
+
+- **No network required** - Complete package embedded in installer
+- **Transfer-friendly** - Single file simplifies approval and transfer processes
+- **Same installer** - Identical file used for online and offline installations
+- **Validation included** - Full integrity checking without external dependencies
+
+### Method 3: Air-Gapped Install with Separate Tarball
+
+**Best for:** Environments requiring separate payload verification or custom packages
+
+Download installer and tarball separately for maximum flexibility.
+
+```bash
+# Step 1: On internet-connected system, download both files
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+curl -L -o oradba-0.14.0.tar.gz \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba-0.14.0.tar.gz
+
+# Step 2: Verify checksums (optional but recommended)
+sha256sum oradba-0.14.0.tar.gz
+
+# Step 3: Transfer both files to target system
+
+# Step 4: Install from local tarball
+chmod +x oradba_install.sh
+./oradba_install.sh --local oradba-0.14.0.tar.gz --prefix /opt/oradba
+```
+
+**Key Features:**
+
+- **Separate verification** - Independently validate tarball before installation
+- **Custom packages** - Build and deploy your own tarball with extensions
+- **Policy compliance** - Supports environments requiring separate approval of payload
+- **Explicit versioning** - Tarball filename clearly indicates version
+
+### Method 4: Direct from GitHub Repository
+
+**Best for:** Development environments, testing unreleased features, contributors
+
+Install directly from GitHub repository for latest development code.
+
+```bash
+# Install latest development version from main branch
+./oradba_install.sh --github
+
+# Install specific version/tag
+./oradba_install.sh --github --version v0.14.0
+
+# Install from specific branch (development/testing)
+./oradba_install.sh --github --version dev-branch-name
+```
+
+**Requirements:** `git` and `curl` or `wget`
+
+**Key Features:**
+
+- **Latest code** - Access unreleased features and bug fixes
+- **Branch flexibility** - Install from any branch or tag
+- **Development workflow** - Perfect for testing and contribution
+- **Auto-build** - Clones repository and builds package on-the-fly
+
+**Warning:** Development branches may contain unstable code. Use stable releases for production.
+
+### Method 5: Ansible Automated Deployment
+
+**Best for:** Managing multiple Oracle servers, standardized deployments, infrastructure as code
+
+Automate OraDBA installation across your Oracle infrastructure using Ansible.
+
+```yaml
+# playbook: deploy-oradba.yml
+---
+- name: Deploy OraDBA to Oracle Database Servers
+  hosts: oracle_servers
+  become: yes
+  become_user: oracle
+  vars:
+    oradba_version: "0.14.0"
+    oradba_prefix: "/opt/oracle/local/oradba"
+    oradba_download_url: "https://github.com/oehrlis/oradba/releases/download/v{{ oradba_version }}/oradba_install.sh"
+    
+  tasks:
+    - name: Create temporary download directory
+      file:
+        path: /tmp/oradba-install
+        state: directory
+        mode: '0755'
+        
+    - name: Download OraDBA installer
+      get_url:
+        url: "{{ oradba_download_url }}"
+        dest: /tmp/oradba-install/oradba_install.sh
+        mode: '0755'
+      when: ansible_connection != 'local'  # Skip in air-gapped
+      
+    - name: Copy installer (air-gapped alternative)
+      copy:
+        src: files/oradba_install.sh
+        dest: /tmp/oradba-install/oradba_install.sh
+        mode: '0755'
+      when: ansible_connection == 'local'
+      
+    - name: Run OraDBA installer
+      command: >
+        /tmp/oradba-install/oradba_install.sh
+        --prefix {{ oradba_prefix }}
+        --update-profile
+        --quiet
+      args:
+        creates: "{{ oradba_prefix }}/bin/oraenv.sh"
+      register: install_result
+      
+    - name: Verify installation
+      command: "{{ oradba_prefix }}/bin/oradba_version.sh --verify"
+      register: verify_result
+      changed_when: false
+      
+    - name: Display installation summary
+      debug:
+        msg: "OraDBA {{ oradba_version }} installed successfully at {{ oradba_prefix }}"
+      when: verify_result.rc == 0
+      
+    - name: Clean up temporary files
+      file:
+        path: /tmp/oradba-install
+        state: absent
+```
+
+**Usage:**
+
+```bash
+# Deploy to all Oracle servers
+ansible-playbook -i inventory.ini deploy-oradba.yml
+
+# Deploy to specific group
+ansible-playbook -i inventory.ini deploy-oradba.yml --limit production
+
+# Check mode (dry-run)
+ansible-playbook -i inventory.ini deploy-oradba.yml --check
+
+# Update existing installations
+ansible-playbook -i inventory.ini deploy-oradba.yml -e "oradba_force_update=yes"
+```
+
+**Key Features:**
+
+- **Idempotent** - Safely re-run without reinstalling
+- **Scalable** - Deploy to hundreds of servers simultaneously
+- **Consistent** - Ensures identical configuration across all environments
+- **Versioned** - Pin to specific OraDBA versions for stability
+- **Air-gap ready** - Use local files when internet unavailable
+- **Integration** - Combine with Oracle installation playbooks
+
+**Air-Gapped Ansible Deployment:**
+
+```yaml
+# For air-gapped: Pre-download installer and place in playbook files/
+# playbook/
+#   ├── deploy-oradba.yml
+#   └── files/
+#       └── oradba_install.sh  # Pre-downloaded from GitHub releases
+```
+
+### Method 6: Parallel Installation with TVD BasEnv / DB*Star
+
+**Best for:** Environments using TVD BasEnv where OraDBA adds complementary features
+
+OraDBA can coexist with TVD BasEnv (DB*Star) without conflicts, operating as a non-invasive
+add-on.
+
+```bash
+# Standard installation - auto-detects BasEnv
+./oradba_install.sh --prefix /opt/oracle/local/oradba
+
+# Output shows detection:
+# [INFO] TVD BasEnv / DB*Star detected - enabling coexistence mode
+# [INFO] OraDBA will not override existing BasEnv aliases and settings
+# [INFO]   BE_HOME: /opt/oracle/local/dba
+```
+
+**Coexistence Behavior:**
+
+- **BasEnv has priority** - OraDBA acts as a non-invasive add-on
+- **No alias conflicts** - OraDBA skips aliases that exist in BasEnv
+- **Preserved settings** - PS1 prompt, BE_HOME, and BasEnv variables unchanged  
+- **Side-by-side operation** - Both toolsets work independently
+
+**Configuration File:** `etc/oradba_local.conf`
+
+```bash
+# Auto-configured during installation
+export ORADBA_COEXIST_MODE="basenv"   # or "standalone"
+ORADBA_BASENV_DETECTED="yes"
+
+# Optional: Force OraDBA aliases (overrides BasEnv)
+# Uncomment to create all aliases even if they exist in BasEnv
+# export ORADBA_FORCE=1
+```
+
+**Force Mode** (OraDBA aliases take priority):
+
+```bash
+# Edit configuration
+vi /opt/oracle/local/oradba/etc/oradba_local.conf
+
+# Uncomment:
+export ORADBA_FORCE=1
+
+# Re-source environment
+source /opt/oracle/local/oradba/bin/oraenv.sh
+```
+
+**Warning:** Force mode may override BasEnv functionality - use with caution.
+
+**See Also:** [Configuration - Coexistence Mode](05-configuration.md#coexistence-mode)
+
+## Installation Scenarios
+
+### New Installation
+
+First-time installation with default settings:
+
+```bash
+# Auto-detect ORACLE_BASE
+./oradba_install.sh
+
+# Custom prefix
+./oradba_install.sh --prefix /opt/oradba
+
+# With profile integration
+./oradba_install.sh --update-profile
+```
+
+### Update Existing Installation
+
+Upgrade OraDBA while preserving configurations:
+
+```bash
+# Update to latest version
+./oradba_install.sh --update
+
+# Update to specific version
+curl -L -o oradba_install.sh \
+  https://github.com/oehrlis/oradba/releases/download/v0.14.0/oradba_install.sh
+chmod +x oradba_install.sh
+./oradba_install.sh --update --prefix /opt/oradba
+
+# Force reinstall same version (repair)
+./oradba_install.sh --force --prefix /opt/oradba
+```
+
+**Update behavior:**
+
+- **Automatic backup** - Creates `${PREFIX}.backup.TIMESTAMP`
+- **Config preservation** - Detects modified files, saves as `.save` extension
+- **Rollback support** - Previous version available if issues occur
+- **Selective replacement** - Only updates core files, keeps customizations
+
+### Version Management
+
+Install multiple versions side-by-side:
+
+```bash
+# Production version
+./oradba_install.sh --prefix /opt/oradba-0.14.0
+
+# Testing version  
+./oradba_install.sh --prefix /opt/oradba-0.15.0
+
+# Switch versions via symlink or profile
+ln -sf /opt/oradba-0.14.0 /opt/oradba
+```
+
+### Custom Installation Prefix
+
+Install to non-standard location:
+
+```bash
+# User home directory
+./oradba_install.sh --prefix $HOME/tools/oradba
+
+# Shared tools directory
+./oradba_install.sh --prefix /usr/local/oradba
+
+# Project-specific location
+./oradba_install.sh --prefix /projects/oracle/oradba
 ```
 
 ### User and Permissions
 
+Control installation ownership:
+
 ```bash
-# Install as different user (requires sudo)
+# Install as oracle user (requires sudo)
 sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
 
-# The installer will:
-# - Create directories as specified user
-# - Set appropriate ownership
-# - Preserve execute permissions
+# Install with specific group
+sudo ./oradba_install.sh --prefix /opt/oradba --user oracle --group dba
+
+# User installation (no sudo needed)
+./oradba_install.sh --prefix $HOME/local/oradba
 ```
+
+**The installer will:**
+
+- Create directories with specified ownership
+- Set appropriate permissions (755 for directories, 644/755 for files)
+- Preserve execute permissions for scripts
+- Create installation metadata
 
 ### Shell Profile Integration
 
@@ -215,72 +488,6 @@ fi
 # Force reinstall (same version)
 ./oradba_install.sh --force --prefix /opt/oradba
 ```
-
-### Parallel Installation with TVD BasEnv / DB*Star
-
-OraDBA supports parallel installation alongside TVD BasEnv and DB*Star. The
-installer automatically detects existing BasEnv installations and configures
-OraDBA to coexist peacefully.
-
-**Auto-Detection:**
-
-The installer checks for BasEnv markers during installation:
-
-- `.BE_HOME` file in user's home directory
-- `.TVDPERL_HOME` file in user's home directory  
-- `BE_HOME` environment variable
-
-If detected, OraDBA operates in **coexistence mode**:
-
-```bash
-# Installation automatically detects BasEnv
-./oradba_install.sh --prefix /opt/oracle/local/oradba
-
-# Output shows detection:
-# [INFO] TVD BasEnv / DB*Star detected - enabling coexistence mode
-# [INFO] OraDBA will not override existing basenv aliases and settings
-# [INFO]   BE_HOME: /opt/oracle/local/dba
-```
-
-**Coexistence Behavior:**
-
-- **BasEnv has priority** - OraDBA acts as a non-invasive add-on
-- **No alias conflicts** - OraDBA skips aliases that exist in BasEnv
-- **Preserved settings** - PS1 prompt, BE_HOME, and BasEnv variables unchanged
-- **Side-by-side installation** - Both toolsets work independently
-
-**Configuration:**
-
-Coexistence mode is recorded in `etc/oradba_local.conf`:
-
-```bash
-# Auto-detected coexistence mode
-export ORADBA_COEXIST_MODE="basenv"   # or "standalone"
-ORADBA_BASENV_DETECTED="yes"
-
-# Optional: Force OraDBA aliases (overrides BasEnv)
-# Uncomment to create all aliases even if they exist in BasEnv
-# export ORADBA_FORCE=1
-```
-
-**Force Mode:**
-
-If you need OraDBA aliases to take priority:
-
-```bash
-# Edit oradba_local.conf
-vi /opt/oracle/local/oradba/etc/oradba_local.conf
-
-# Uncomment:
-export ORADBA_FORCE=1
-
-# Re-source environment
-source /opt/oracle/local/oradba/bin/oraenv.sh
-```
-
-**Note:** Force mode may override BasEnv functionality - use with caution.
-
-See [Configuration - Coexistence Mode](05-configuration.md#coexistence-mode) for detailed configuration options.
 
 ### Information and Help
 
