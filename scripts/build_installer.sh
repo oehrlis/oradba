@@ -55,6 +55,18 @@ cp -r src/* "$TEMP_TAR_DIR/"
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
+# Generate extension template tarballs
+echo "Generating extension template tarballs..."
+mkdir -p "$TEMP_TAR_DIR/templates/extensions"
+
+# Create tarball for customer extension example
+if [[ -d "doc/examples/extensions/customer" ]]; then
+    echo "  Creating customer-extension-template.tar.gz..."
+    (cd doc/examples/extensions && tar czf - customer) > "$TEMP_TAR_DIR/templates/extensions/customer-extension-template.tar.gz"
+else
+    echo "  Warning: doc/examples/extensions/customer not found"
+fi
+
 # Substitute version in installer
 echo "Substituting version ${VERSION} in oradba_install.sh..."
 sed -i.bak "s/__VERSION__/${VERSION}/g" "$TEMP_TAR_DIR/bin/oradba_install.sh"

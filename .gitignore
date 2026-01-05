@@ -16,6 +16,9 @@
 /dist/
 /build/
 
+# Extension templates (generated during build)
+src/templates/extensions/*.tar.gz
+
 # Generated documentation
 src/doc/*.pdf
 src/doc/*.html
