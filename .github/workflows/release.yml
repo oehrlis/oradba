@@ -23,6 +23,11 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Set up Node.js (for markdownlint)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
       - name: Determine version
         id: version
         run: |
@@ -44,6 +49,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bats shellcheck
+          npm install -g markdownlint-cli
       
       - name: Run linting
         run: |
