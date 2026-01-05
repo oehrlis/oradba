@@ -405,6 +405,7 @@ Additional convenience aliases:
 | `lsl`       | List recent 20 files    | `ls -lrt \| tail -n 20`              |
 | `psg`       | Search processes        | `ps -ef \| grep`                     |
 | `sqa`       | Show SQLPATH            | `show_sqlpath`                       |
+| `pth`       | Show PATH entries       | `show_path`                          |
 | `save_cron` | Backup crontab          | `crontab -l > ~/crontab.txt.$(date)` |
 
 ## rlwrap Integration
