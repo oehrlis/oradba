@@ -29,6 +29,7 @@ DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
 DIST_TARBALL="${DIST_DIR}/${PACKAGE_NAME}.tar.gz"
 INSTALLER_OUTPUT="${DIST_DIR}/oradba_install.sh"
+CHECK_SCRIPT_OUTPUT="${DIST_DIR}/oradba_check.sh"
 
 echo "========================================="
 echo "Building oradba installer v${VERSION}"
@@ -131,12 +132,31 @@ openssl base64 < "$DIST_TARBALL" >> "$INSTALLER_OUTPUT"
 # Make installer executable
 chmod +x "$INSTALLER_OUTPUT"
 
+# Copy standalone check script and prepare it
+echo "Preparing check script..."
+if [[ ! -f "src/bin/oradba_check.sh" ]]; then
+    echo "ERROR: src/bin/oradba_check.sh not found"
+    exit 1
+fi
+
+# Copy check script to output and inject version
+cp "src/bin/oradba_check.sh" "$CHECK_SCRIPT_OUTPUT"
+sed -i.bak "s/SCRIPT_VERSION=\"[^\"]*\"/SCRIPT_VERSION=\"${VERSION}\"/" "$CHECK_SCRIPT_OUTPUT"
+rm -f "${CHECK_SCRIPT_OUTPUT}.bak"
+
+# Make check script executable
+chmod +x "$CHECK_SCRIPT_OUTPUT"
+
 echo ""
 echo "========================================="
 echo "Build completed successfully!"
 echo "========================================="
 echo "Distribution: $DIST_TARBALL ($(du -h "$DIST_TARBALL" | cut -f1))"
 echo "Installer:    $INSTALLER_OUTPUT ($(du -h "$INSTALLER_OUTPUT" | cut -f1))"
+echo "Check Script: $CHECK_SCRIPT_OUTPUT ($(du -h "$CHECK_SCRIPT_OUTPUT" | cut -f1))"
+echo ""
+echo "To check system prerequisites:"
+echo "  $CHECK_SCRIPT_OUTPUT"
 echo ""
 echo "To install:"
 echo "  $INSTALLER_OUTPUT"
@@ -144,4 +164,5 @@ echo ""
 echo "For GitHub release, upload:"
 echo "  - $DIST_TARBALL"
 echo "  - $INSTALLER_OUTPUT"
+echo "  - $CHECK_SCRIPT_OUTPUT"
 echo ""

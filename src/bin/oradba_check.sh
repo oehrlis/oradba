@@ -5,12 +5,14 @@
 # Name.......: oradba_check.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
-# Revision...: 0.7.0
+# Date.......: 2026.01.05
+# Revision...: 0.13.7
 # Purpose....: System prerequisites and Oracle environment verification script
 # Notes......: Validates system readiness for OraDBA installation and usage.
+#              Can be run standalone BEFORE installation to verify prerequisites,
+#              or AFTER installation for environment troubleshooting.
 #              Checks system tools, disk space, Oracle environment, and connectivity.
-#              Can be run before installation or to troubleshoot existing setups.
+#              Available as standalone script from GitHub releases.
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
@@ -20,7 +22,7 @@ set -o pipefail
 
 # Script metadata
 SCRIPT_NAME="$(basename "$0")"
-SCRIPT_VERSION="0.7.0"
+SCRIPT_VERSION="0.13.7"
 
 # Colors for output
 if [[ -t 1 ]]; then
@@ -78,6 +80,7 @@ usage() {
 ${BOLD}OraDBA System Check${NC} - Version ${SCRIPT_VERSION}
 
 Validates system prerequisites and Oracle environment readiness.
+Can be run BEFORE installation or AFTER for troubleshooting.
 
 ${BOLD}USAGE:${NC}
     $SCRIPT_NAME [OPTIONS]
@@ -95,22 +98,33 @@ ${BOLD}EXIT CODES:${NC}
     2   Invalid usage or arguments
 
 ${BOLD}EXAMPLES:${NC}
+    # Pre-installation check (download from GitHub releases)
+    curl -sL https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh | bash
+
     # Basic system check
     $SCRIPT_NAME
 
     # Check with specific installation directory
     $SCRIPT_NAME --dir /opt/oradba
 
-    # Verbose output
+    # Verbose output for troubleshooting
     $SCRIPT_NAME --verbose
 
 ${BOLD}CHECKS PERFORMED:${NC}
-    - System tools and utilities
+    - System tools and utilities (bash, tar, awk, sed, grep)
+    - Checksum tools (sha256sum/shasum)
+    - Base64 encoder (for installer with embedded payload)
+    - Optional tools (rlwrap, curl/wget, less)
     - Disk space availability
-    - Oracle environment variables
-    - Oracle binaries and tools
-    - Database connectivity (if environment set)
-    - OS information and Oracle versions
+    - Oracle environment variables (ORACLE_HOME, ORACLE_BASE, etc.)
+    - Oracle binaries and tools (sqlplus, rman, lsnrctl)
+    - Database connectivity (if environment configured)
+    - Oracle version information
+    - OraDBA installation status
+
+${BOLD}DOWNLOAD:${NC}
+    Standalone version available from GitHub releases:
+    https://github.com/oehrlis/oradba/releases
 
 EOF
     exit 0
@@ -248,6 +262,14 @@ check_system_tools() {
     else
         log_fail "sha256sum/shasum missing - Checksum verification"
         tools_ok=false
+    fi
+    
+    # Check for base64 (needed for installer with embedded payload)
+    if command -v base64 >/dev/null 2>&1; then
+        log_pass "base64 - Payload decoding (installer)"
+    else
+        log_warn "base64 not found - Required for installer with embedded payload"
+        [[ "$VERBOSE" == "true" ]] && log_info "  Note: Not required for tarball installation"
     fi
     
     if [ "$tools_ok" = true ]; then
