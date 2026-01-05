@@ -199,7 +199,7 @@ teardown() {
     export ORADBA_AUTO_CREATE_SID_CONFIG=true
     
     # Load config for TESTDB - should trigger auto-creation
-    run load_config "TESTDB"
+    run bash -c "source ${TEST_DIR}/lib/common.sh && load_config 'TESTDB'"
     assert_success
     
     # Verify config was created
@@ -260,7 +260,7 @@ teardown() {
     rm -f "${TEST_DIR}/etc/sid.NEWDB.conf"
     
     # Load config - should trigger auto-creation
-    run load_config "NEWDB"
+    run bash -c "source ${TEST_DIR}/lib/common.sh && load_config 'NEWDB'"
     assert_success
     
     # Verify auto-creation was triggered
