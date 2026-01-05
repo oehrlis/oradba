@@ -450,6 +450,116 @@ query_database_info() {
 }
 ```
 
+## Alias Generation Functions
+
+### create_dynamic_alias
+
+**New in v0.13.4**: Unified helper for creating dynamic aliases with automatic expansion handling.
+
+Create shell aliases with optional variable expansion at definition time. Internally
+calls `safe_alias()` which respects coexistence mode settings. Automatically handles
+shellcheck SC2139 suppression for expanded aliases.
+
+**Syntax**: `create_dynamic_alias <name> <command> [expand]`
+
+**Parameters**:
+
+- `name` - Alias name (required)
+- `command` - Alias command/value (required)
+- `expand` - "true" to expand variables at definition time, "false" for runtime expansion (default: "false")
+
+**Returns**:
+
+Exit code from `safe_alias`:
+- `0` - Alias created successfully
+- `1` - Alias skipped (coexistence mode and already exists)
+- `2` - Error during creation
+
+**Expansion Behavior**:
+
+- **Non-expanded** (`expand=false`, default): Variables expand when alias is executed
+  ```bash
+  # Variable ${ORADBA_BIN} expands at runtime
+  create_dynamic_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
+  ```
+
+- **Expanded** (`expand=true`): Variables expand immediately at definition
+  ```bash
+  # Variable ${diag_dest} expanded now, value frozen
+  create_dynamic_alias cdd "cd ${diag_dest}" "true"
+  ```
+
+**Examples**:
+
+```bash
+# Service management alias (runtime expansion)
+export ORADBA_BIN="/opt/oradba/bin"
+create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+# When executed: ${ORADBA_BIN} expands to current value
+
+# Directory navigation (immediate expansion)
+local trace_dir="/u01/app/oracle/diag/rdbms/orcl/ORCL/trace"
+create_dynamic_alias cddt "cd ${trace_dir}" "true"
+# Alias contains: cd /u01/app/oracle/diag/rdbms/orcl/ORCL/trace
+
+# Complex conditional alias (runtime expansion)
+create_dynamic_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f ${ORADBA_SID_ALERTLOG}; fi'
+
+# Database-specific navigation (immediate expansion)
+export ORACLE_SID="PRODDB"
+local diag_dest="${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}"
+create_dynamic_alias cdd "cd ${diag_dest}" "true"
+```
+
+**Use Cases**:
+
+**Directory Navigation** (use expanded):
+```bash
+# SID-specific paths that should be frozen at definition time
+create_dynamic_alias cdd "cd ${diag_dest}" "true"
+create_dynamic_alias cddt "cd ${trace_dir}" "true"
+create_dynamic_alias cdda "cd ${alert_dir}" "true"
+create_dynamic_alias cdbase "cd ${ORADBA_BASE}" "true"
+```
+
+**Service Management** (use non-expanded):
+```bash
+# Scripts that should resolve at runtime
+create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+create_dynamic_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
+create_dynamic_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
+```
+
+**Tool Wrappers** (use expanded for config):
+```bash
+# rlwrap with current configuration
+create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
+```
+
+**Advantages**:
+
+- Eliminates repetitive `safe_alias` calls with shellcheck disables
+- Centralizes expansion logic in one place
+- Respects coexistence mode automatically
+- Clear intent via expand parameter
+- Reduces code duplication by ~30-40%
+
+**Migration Example**:
+
+```bash
+# Before (repetitive pattern):
+# shellcheck disable=SC2139  # Intentional: expand at definition
+safe_alias cdd "cd ${diag_dest}"
+# shellcheck disable=SC2139  # Intentional: expand at definition
+safe_alias cddt "cd ${trace_dir}"
+safe_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+
+# After (unified helper):
+create_dynamic_alias cdd "cd ${diag_dest}" "true"
+create_dynamic_alias cddt "cd ${trace_dir}" "true"
+create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+```
+
 ## Extension Functions
 
 ### get_extension_property

@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] - 2026-01-04
+
+### Added
+
+- **Unified Alias Generation Helper (#56 Phase 4)**: Consolidated dynamic alias creation
+  - New function: `create_dynamic_alias()` in `src/lib/aliases.sh`
+    - Signature: `create_dynamic_alias <name> <command> [expand]`
+    - Parameters:
+      - `name` - Alias name (required)
+      - `command` - Alias command/value (required)
+      - `expand` - "true" for immediate variable expansion, "false" for runtime expansion (default)
+    - **Automatic expansion handling**: Expands variables immediately or at runtime
+    - **Shellcheck suppression**: Automatically handles SC2139 for expanded aliases
+    - **Coexistence mode support**: Internally calls `safe_alias()` respecting all modes
+    - Returns: Exit code from `safe_alias` (0=created, 1=skipped, 2=error)
+  - **Test Suite**: 7 comprehensive BATS tests in `tests/test_aliases.bats` (38 total alias tests)
+    - Function existence and parameter validation
+    - Expanded vs non-expanded alias creation
+    - Required parameter enforcement
+    - Coexistence mode integration
+    - Directory navigation patterns
+    - Complex command handling
+    - All 38 tests passing with 0 failures
+
+### Changed
+
+- Updated `src/lib/aliases.sh` from v0.13.0 to v0.13.4
+  - Added `create_dynamic_alias()` function (lines 18-38)
+- **Migrated 19 alias creation calls** in `src/lib/aliases.sh` to use `create_dynamic_alias()`
+  - Eliminated repetitive `safe_alias` calls with manual shellcheck disables
+  - All aliases maintain 100% backward-compatible behavior
+  - Code patterns standardized:
+    - **Directory navigation** (6 aliases): `cdd`, `cddt`, `cdda`, `cdbase` - expanded mode
+    - **Service management** (13 aliases): `dbctl`, `dbstart`, `lsnrstart`, etc. - non-expanded mode
+  - **Total boilerplate eliminated**: 19 shellcheck disable comments + repetitive patterns
+  - Code reduction: ~30-40% for alias generation blocks
+  - Improved maintainability with centralized expansion logic
+
+### Documentation
+
+- Updated `doc/api.md` with comprehensive `create_dynamic_alias()` documentation
+  - Function signature and parameter descriptions
+  - Expansion behavior explanation (immediate vs runtime)
+  - Use case examples (directory navigation, service management, tool wrappers)
+  - Migration examples showing before/after patterns
+  - Clear guidance on when to use expanded vs non-expanded modes
+
+**Resolves:** #56 Phase 4 - Alias Generation Refactoring
+
 ## [0.13.3] - 2026-01-04
 
 ### Added

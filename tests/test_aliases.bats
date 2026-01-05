@@ -72,6 +72,84 @@ teardown() {
     type generate_sid_aliases
 }
 
+@test "create_dynamic_alias function exists" {
+    type create_dynamic_alias
+}
+
+# ------------------------------------------------------------------------------
+# create_dynamic_alias() Tests
+# ------------------------------------------------------------------------------
+
+@test "create_dynamic_alias creates non-expanded alias" {
+    export ORADBA_BIN="/usr/local/bin"
+    
+    # Create non-expanded alias (default behavior)
+    create_dynamic_alias test_alias '${ORADBA_BIN}/script.sh'
+    
+    # Check alias was created
+    run alias test_alias
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "ORADBA_BIN" ]]
+}
+
+@test "create_dynamic_alias creates expanded alias when requested" {
+    export ORADBA_BIN="/usr/local/bin"
+    
+    # Create expanded alias
+    create_dynamic_alias test_alias_exp "${ORADBA_BIN}/script.sh" "true"
+    
+    # Check alias was created with expanded value
+    run alias test_alias_exp
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ /usr/local/bin/script.sh ]]
+}
+
+@test "create_dynamic_alias requires alias name" {
+    # Should fail without name
+    run create_dynamic_alias
+    [ "$status" -ne 0 ]
+}
+
+@test "create_dynamic_alias requires alias command" {
+    # Should fail without command
+    run create_dynamic_alias test_name
+    [ "$status" -ne 0 ]
+}
+
+@test "create_dynamic_alias respects safe_alias coexistence mode" {
+    export ORADBA_COEXIST_MODE="basenv"
+    
+    # Create a fake existing alias
+    alias existing_alias="echo exists"
+    
+    # Try to create same alias (should be skipped)
+    run create_dynamic_alias existing_alias "echo new"
+    [ "$status" -eq 1 ]  # safe_alias returns 1 when skipped
+}
+
+@test "create_dynamic_alias works with directory navigation" {
+    local test_dir="/tmp/test_oradba"
+    
+    # Create expanded directory alias
+    create_dynamic_alias cdtest "cd ${test_dir}" "true"
+    
+    # Verify alias was created with expanded path
+    run alias cdtest
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "/tmp/test_oradba" ]]
+}
+
+@test "create_dynamic_alias works with complex commands" {
+    # Create non-expanded complex command
+    create_dynamic_alias complex_cmd 'if [ -f "${FILE}" ]; then cat "${FILE}"; else echo "not found"; fi'
+    
+    # Verify alias was created
+    run alias complex_cmd
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "FILE" ]]
+    [[ "$output" =~ "not found" ]]
+}
+
 # ------------------------------------------------------------------------------
 # has_rlwrap() Tests
 # ------------------------------------------------------------------------------

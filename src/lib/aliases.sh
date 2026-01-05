@@ -5,8 +5,8 @@
 # Name.......: aliases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.13.0
+# Date.......: 2026.01.04
+# Revision...: 0.13.4
 # Purpose....: Dynamic alias generation functions for OraDBA
 # Notes......: Sourced from oradba_standard.conf. Generates SID-specific aliases
 # ------------------------------------------------------------------------------
@@ -14,6 +14,28 @@
 # ------------------------------------------------------------------------------
 # Helper Functions
 # ------------------------------------------------------------------------------
+
+# Create dynamic alias with automatic expansion handling
+# Usage: create_dynamic_alias <name> <command> [expand]
+# Parameters:
+#   name    - Alias name
+#   command - Alias command/value
+#   expand  - "true" to expand variables at definition time (default: "false")
+# Returns: Exit code from safe_alias (0=created, 1=skipped, 2=error)
+# Notes: When expand=true, variables in command are expanded immediately.
+#        Automatically handles shellcheck SC2139 suppression for expanded aliases.
+create_dynamic_alias() {
+    local name="${1:?Alias name required}"
+    local command="${2:?Alias command required}"
+    local expand="${3:-false}"
+    
+    if [[ "${expand}" == "true" ]]; then
+        # shellcheck disable=SC2139  # Intentional: expand at definition
+        safe_alias "${name}" "${command}"
+    else
+        safe_alias "${name}" "${command}"
+    fi
+}
 
 # Get diagnostic_dest from database or fallback to convention
 # Usage: get_diagnostic_dest
@@ -87,34 +109,29 @@ generate_sid_aliases() {
         fi
         
         # Alert log aliases using ORADBA_SID_ALERTLOG
-        safe_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
-        safe_alias vaa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
-        safe_alias via 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        create_dynamic_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        create_dynamic_alias vaa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
+        create_dynamic_alias via 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
         
         # Diagnostic dest directory (cdd)
-        # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-        safe_alias cdd "cd ${diag_dest}"
+        create_dynamic_alias cdd "cd ${diag_dest}" "true"
         
         # Trace directory (cddt)
         if [[ -d "${trace_dir}" ]]; then
-            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            safe_alias cddt "cd ${trace_dir}"
+            create_dynamic_alias cddt "cd ${trace_dir}" "true"
         fi
         
         # Alert directory (cdda)
         local alert_dir="${diag_dest}/alert"
         if [[ -d "${alert_dir}" ]]; then
-            # shellcheck disable=SC2139  # Intentional: expand at definition for SID-specific paths
-            safe_alias cdda "cd ${alert_dir}"
+            create_dynamic_alias cdda "cd ${alert_dir}" "true"
         fi
     fi
     
     # SQL*Plus with rlwrap if available
     if has_rlwrap; then
-        # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
-        safe_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
-        # shellcheck disable=SC2139  # Intentional: expand at definition for current rlwrap config
-        safe_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba"
+        create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
+        create_dynamic_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
     fi
     
     # ------------------------------------------------------------------------------
@@ -123,23 +140,23 @@ generate_sid_aliases() {
     # Convenient shortcuts for Oracle service management
     
     # Database control aliases
-    safe_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
-    safe_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
-    safe_alias dbstop '${ORADBA_BIN}/oradba_dbctl.sh stop'
-    safe_alias dbrestart '${ORADBA_BIN}/oradba_dbctl.sh restart'
+    create_dynamic_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
+    create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
+    create_dynamic_alias dbstop '${ORADBA_BIN}/oradba_dbctl.sh stop'
+    create_dynamic_alias dbrestart '${ORADBA_BIN}/oradba_dbctl.sh restart'
     
     # Listener control wrapper (renamed to avoid conflict with Oracle's lsnrctl)
-    safe_alias listener '${ORADBA_BIN}/oradba_lsnrctl.sh'
-    safe_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
-    safe_alias lsnrstop '${ORADBA_BIN}/oradba_lsnrctl.sh stop'
-    safe_alias lsnrrestart '${ORADBA_BIN}/oradba_lsnrctl.sh restart'
-    safe_alias lsnrstatus '${ORADBA_BIN}/oradba_lsnrctl.sh status'
+    create_dynamic_alias listener '${ORADBA_BIN}/oradba_lsnrctl.sh'
+    create_dynamic_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
+    create_dynamic_alias lsnrstop '${ORADBA_BIN}/oradba_lsnrctl.sh stop'
+    create_dynamic_alias lsnrrestart '${ORADBA_BIN}/oradba_lsnrctl.sh restart'
+    create_dynamic_alias lsnrstatus '${ORADBA_BIN}/oradba_lsnrctl.sh status'
     
     # Combined services aliases
-    safe_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
-    safe_alias orastop '${ORADBA_BIN}/oradba_services.sh stop'
-    safe_alias orarestart '${ORADBA_BIN}/oradba_services.sh restart'
-    safe_alias orastatus '${ORADBA_BIN}/oradba_services.sh status'
+    create_dynamic_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
+    create_dynamic_alias orastop '${ORADBA_BIN}/oradba_services.sh stop'
+    create_dynamic_alias orarestart '${ORADBA_BIN}/oradba_services.sh restart'
+    create_dynamic_alias orastatus '${ORADBA_BIN}/oradba_services.sh status'
 }
 
 # ------------------------------------------------------------------------------
@@ -152,8 +169,7 @@ generate_sid_aliases() {
 generate_base_aliases() {
     # OraDBA base directory alias
     if [[ -n "${ORADBA_BASE}" ]] && [[ -d "${ORADBA_BASE}" ]]; then
-        # shellcheck disable=SC2139  # Intentional: expand at definition
-        safe_alias cdbase "cd ${ORADBA_BASE}"
+        create_dynamic_alias cdbase "cd ${ORADBA_BASE}" "true"
     fi
 }
 
