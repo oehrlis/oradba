@@ -22,15 +22,20 @@ setup() {
     # Create etc directory structure
     mkdir -p "${TEST_DIR}/etc"
     mkdir -p "${TEST_DIR}/lib"
+    mkdir -p "${TEST_DIR}/logs"
     
     # Copy necessary files
     cp "${PROJECT_ROOT}/src/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
+    cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
     export ORADBA_PREFIX="${TEST_DIR}"
+    export ORADBA_BASE="${TEST_DIR}"
     export ORADBA_CONFIG_DIR="${TEST_DIR}/etc"
+    export ORADBA_LOG="${TEST_DIR}/logs"
+    export ORADBA_DEBUG="false"
     
     # Source common.sh for tests that need functions
     source "${TEST_DIR}/lib/common.sh"
@@ -226,8 +231,9 @@ teardown() {
     # Don't set ORATAB (old wrong variable)
     unset ORATAB
     
-    # Call generate_sid_lists which should read ORATAB_FILE
-    generate_sid_lists
+    # Call generate_sid_lists with ORATAB_FILE
+    run generate_sid_lists "${ORATAB_FILE}"
+    [ "$status" -eq 0 ]
     
     # Verify REALSIDLIST was populated from ORATAB_FILE
     [[ "${ORADBA_REALSIDLIST}" == *"CUSTOM"* ]]
