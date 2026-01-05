@@ -152,10 +152,17 @@ done
 
 # Print banner
 if [[ "$QUIET" != "true" ]]; then
+    # Calculate padding for centered version text
+    version_text="Version ${SCRIPT_VERSION}"
+    box_width=60  # Inner width of the box
+    version_length=${#version_text}
+    padding=$(( (box_width - version_length) / 2 ))
+    version_line=$(printf "║%*s%s%*s║" $padding "" "$version_text" $((box_width - version_length - padding)) "")
+    
     echo ""
     echo -e "${BOLD}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BOLD}║          OraDBA System Prerequisites Check                 ║${NC}"
-    echo -e "${BOLD}║                    Version ${SCRIPT_VERSION}                           ║${NC}"
+    echo -e "${BOLD}${version_line}${NC}"
     echo -e "${BOLD}╚════════════════════════════════════════════════════════════╝${NC}"
 fi
 
