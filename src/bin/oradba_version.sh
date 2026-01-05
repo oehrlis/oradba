@@ -237,8 +237,6 @@ check_extension_checksums() {
     for checksum_file in "${checksum_files[@]}"; do
         local extension_dir
         extension_dir=$(dirname "${checksum_file}")
-        local extension_name
-        extension_name=$(basename "${extension_dir}")
         
         # Extract extension name from checksum filename (e.g., .myext.checksum -> myext)
         local checksum_basename

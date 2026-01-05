@@ -458,7 +458,7 @@ EOF
     export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
     run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
     [[ "$status" -eq 0 ]]
-    [[ "$output" =~ "Processed script saved to:" || "$output" =~ ".rcv" ]]
+    [[ "$output" =~ "Processed script saved to:" || "$output" =~ \.rcv ]]
 }
 
 @test "oradba_rman.sh loads RMAN_BACKUP_PATH from config" {
