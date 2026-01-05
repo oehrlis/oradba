@@ -1,11 +1,16 @@
 # OraDBA Script Templates
 
-Reusable templates for creating new OraDBA scripts.
+Reusable templates and skeletons for creating new OraDBA scripts and configs.
 
 ## Available Templates
 
 - **[script_template.sh](script_template.sh)** - Bash script template with
   standard structure
+- **extension/** - Stubs for site-specific extensions loaded via `oraenv`
+- **init.d/** - Legacy init scripts for environments without systemd
+- **systemd/** - Unit templates for listeners/databases
+- **logrotate/** - Log rotation snippets for OraDBA logs
+- **sqlnet/** - Baseline `sqlnet.ora` examples
 
 ## Usage
 
