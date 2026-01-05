@@ -30,6 +30,32 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ### Installation
 
+#### Prerequisites Check (Optional)
+
+Before installing, you can verify your system meets all prerequisites:
+
+```bash
+# Download and run the standalone check script
+curl -sL https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh | bash
+
+# Or download and run with verbose output
+curl -L -o oradba_check.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh
+chmod +x oradba_check.sh
+./oradba_check.sh --verbose
+```
+
+The check script validates:
+- Required system tools (bash, tar, awk, sed, grep, find, sort)
+- Checksum utilities (sha256sum or shasum)
+- Base64 encoder (for installer with embedded payload)
+- Optional tools (rlwrap for command history, curl/wget for updates)
+- Disk space availability (100MB minimum)
+- Oracle environment configuration (if exists)
+- Oracle binaries and tools (if installed)
+
+#### Install OraDBA
+
 Use the self-contained installer (see [Installation Guide](https://code.oradba.ch/oradba/02-installation/)
 for alternative methods):
 
@@ -132,6 +158,33 @@ oradba_extension.sh info customer  # Detailed info
 ```
 
 See [Extension System Guide](doc/extension-system.md) for complete documentation.
+
+## Troubleshooting
+
+If you experience issues with installation or environment setup:
+
+```bash
+# Run the diagnostic script (available after installation)
+oradba_check.sh --verbose
+
+# Or download the standalone version
+curl -sL https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh | bash -s -- --verbose
+```
+
+The check script validates:
+- System prerequisites and tools availability
+- Disk space for installation
+- Oracle environment configuration
+- Oracle binaries and database connectivity
+- OraDBA installation integrity
+
+Common issues:
+- **Missing tools**: Install required packages (tar, awk, sed, grep, find, base64)
+- **Insufficient disk space**: Ensure at least 100MB free in installation directory
+- **Oracle environment**: Set ORACLE_HOME, ORACLE_BASE, or configure oratab
+- **Permissions**: Ensure write access to installation directory
+
+For detailed troubleshooting, see the [User Guide](https://code.oradba.ch/oradba/12-troubleshooting/).
 
 ## Documentation
 
