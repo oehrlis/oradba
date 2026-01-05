@@ -22,8 +22,9 @@ and email notifications.
 | Script                             | Description                                     |
 |------------------------------------|-------------------------------------------------|
 | [backup_full.rcv](backup_full.rcv) | Full database backup template with archive logs |
+| [bck_ctl.rcv](bck_ctl.rcv)         | Control file and SPFILE backup template         |
 
-**Total Scripts:** 1
+**Total Scripts:** 2
 
 ## RMAN Wrapper Script
 

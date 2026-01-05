@@ -161,14 +161,14 @@ check_parallel_method() {
     if [[ "${OPT_PARALLEL}" == "gnu" ]]; then
         if command -v parallel >/dev/null 2>&1; then
             PARALLEL_METHOD="gnu_parallel"
-            log INFO "Using GNU parallel for execution"
+            oradba_log INFO "Using GNU parallel for execution"
         else
-            log WARN "GNU parallel not found, falling back to background jobs"
+            oradba_log WARN "GNU parallel not found, falling back to background jobs"
             PARALLEL_METHOD="background"
         fi
     else
         PARALLEL_METHOD="background"
-        log DEBUG "Using background jobs for execution"
+        oradba_log DEBUG "Using background jobs for execution"
     fi
 }
 
@@ -185,24 +185,24 @@ load_rman_config() {
     elif [[ -n "${ORACLE_BASE}" ]]; then
         config_file="${ORACLE_BASE}/admin/${sid}/etc/oradba_rman.conf"
     else
-        log WARN "Cannot determine admin directory for ${sid}, using defaults"
+        oradba_log WARN "Cannot determine admin directory for ${sid}, using defaults"
         return 1
     fi
     
     if [[ -f "${config_file}" ]]; then
-        log DEBUG "Loading RMAN configuration from: ${config_file}"
+        oradba_log DEBUG "Loading RMAN configuration from: ${config_file}"
         # shellcheck source=/dev/null
         source "${config_file}"
         
         # Set backup path if specified in config (CLI overrides config)
         if [[ -z "${OPT_BACKUP_PATH}" && -n "${RMAN_BACKUP_PATH}" ]]; then
             OPT_BACKUP_PATH="${RMAN_BACKUP_PATH}"
-            log DEBUG "Using backup path from config: ${OPT_BACKUP_PATH}"
+            oradba_log DEBUG "Using backup path from config: ${OPT_BACKUP_PATH}"
         fi
         
         return 0
     else
-        log DEBUG "No RMAN configuration file found: ${config_file}"
+        oradba_log DEBUG "No RMAN configuration file found: ${config_file}"
         return 1
     fi
 }
@@ -219,12 +219,12 @@ process_template() {
     local compression="${6:-${RMAN_COMPRESSION:-MEDIUM}}"
     local backup_path="${7:-${OPT_BACKUP_PATH}}"
     
-    log DEBUG "Processing template: ${input_file}"
-    log DEBUG "  Channels: ${channels}"
-    log DEBUG "  Format: ${format}"
-    log DEBUG "  Tag: ${tag}"
-    log DEBUG "  Compression: ${compression}"
-    [[ -n "${backup_path}" ]] && log DEBUG "  Backup Path: ${backup_path}"
+    oradba_log DEBUG "Processing template: ${input_file}"
+    oradba_log DEBUG "  Channels: ${channels}"
+    oradba_log DEBUG "  Format: ${format}"
+    oradba_log DEBUG "  Tag: ${tag}"
+    oradba_log DEBUG "  Compression: ${compression}"
+    [[ -n "${backup_path}" ]] && oradba_log DEBUG "  Backup Path: ${backup_path}"
     
     # Build channel allocation block
     local channel_block=""
@@ -258,7 +258,7 @@ process_template() {
         -e "s|<BACKUP_PATH>|${backup_path_clause}|g" \
         "${input_file}" > "${output_file}"
     
-    log DEBUG "Template processed successfully: ${output_file}"
+    oradba_log DEBUG "Template processed successfully: ${output_file}"
 }
 
 # ------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ execute_rman_for_sid() {
     local sid="$1"
     local rcv_script="$2"
     
-    log INFO "Processing SID: ${sid}"
+    oradba_log INFO "Processing SID: ${sid}"
     
     # Set Oracle environment
     export ORACLE_SID="${sid}"
@@ -285,7 +285,7 @@ execute_rman_for_sid() {
     
     # Validate ORACLE_HOME
     if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
-        log ERROR "ORACLE_HOME not set or invalid for SID: ${sid}"
+        oradba_log ERROR "ORACLE_HOME not set or invalid for SID: ${sid}"
         return 1
     fi
     
@@ -312,8 +312,8 @@ execute_rman_for_sid() {
     script_basename=$(basename "${rcv_script}" .rcv)
     local sid_log="${log_dir}/${script_basename}_${TIMESTAMP}.log"
     
-    log INFO "  ORACLE_HOME: ${ORACLE_HOME}"
-    log INFO "  Log file: ${sid_log}"
+    oradba_log INFO "  ORACLE_HOME: ${ORACLE_HOME}"
+    oradba_log INFO "  Log file: ${sid_log}"
     
     # Find RMAN script
     local rman_script=""
@@ -322,7 +322,7 @@ execute_rman_for_sid() {
     elif [[ -f "${ORADBA_BASE}/rcv/${rcv_script}" ]]; then
         rman_script="${ORADBA_BASE}/rcv/${rcv_script}"
     else
-        log ERROR "RMAN script not found: ${rcv_script}"
+        oradba_log ERROR "RMAN script not found: ${rcv_script}"
         return 1
     fi
     
@@ -338,7 +338,7 @@ execute_rman_for_sid() {
     # Add catalog if configured
     if [[ -n "${RMAN_CATALOG}" ]]; then
         rman_args+=" catalog ${RMAN_CATALOG}"
-        log DEBUG "  Using RMAN catalog: ${RMAN_CATALOG}"
+        oradba_log DEBUG "  Using RMAN catalog: ${RMAN_CATALOG}"
     fi
     
     # Dry run mode - enhanced with save and display
@@ -346,42 +346,42 @@ execute_rman_for_sid() {
         # Save processed script to log directory
         local saved_rcv="${log_dir}/${script_basename}_${TIMESTAMP}.rcv"
         cp "${processed_script}" "${saved_rcv}"
-        log INFO "DRY RUN: Processed script saved to: ${saved_rcv}"
-        log INFO ""
-        log INFO "========== Generated RMAN Script Content =========="
+        oradba_log INFO "DRY RUN: Processed script saved to: ${saved_rcv}"
+        oradba_log INFO ""
+        oradba_log INFO "========== Generated RMAN Script Content =========="
         cat "${processed_script}"
-        log INFO "===================================================="
-        log INFO ""
-        log INFO "DRY RUN: Would execute:"
-        log INFO "  ${rman_cmd} ${rman_args} @${processed_script} log=${sid_log}"
+        oradba_log INFO "===================================================="
+        oradba_log INFO ""
+        oradba_log INFO "DRY RUN: Would execute:"
+        oradba_log INFO "  ${rman_cmd} ${rman_args} @${processed_script} log=${sid_log}"
         return 0
     fi
     
     # Execute RMAN and capture output
-    log INFO "  Executing RMAN script..."
+    oradba_log INFO "  Executing RMAN script..."
     "${rman_cmd}" ${rman_args} @"${processed_script}" log="${sid_log}" 2>&1 | tee -a "${SCRIPT_LOG}"
     local rman_exit_code=${PIPESTATUS[0]}
     
     # Always save processed script to log directory for troubleshooting
     local saved_rcv="${log_dir}/${script_basename}_${TIMESTAMP}.rcv"
     cp "${processed_script}" "${saved_rcv}"
-    log DEBUG "Processed script saved to: ${saved_rcv}"
+    oradba_log DEBUG "Processed script saved to: ${saved_rcv}"
     
     # Check for RMAN errors in log file
     if grep -q "RMAN-00569" "${sid_log}"; then
-        log ERROR "  RMAN execution failed for ${sid}: RMAN-00569 error detected"
-        log ERROR "  Check log: ${sid_log}"
-        log ERROR "  Processed script: ${saved_rcv}"
+        oradba_log ERROR "  RMAN execution failed for ${sid}: RMAN-00569 error detected"
+        oradba_log ERROR "  Check log: ${sid_log}"
+        oradba_log ERROR "  Processed script: ${saved_rcv}"
         return 1
     elif [[ ${rman_exit_code} -ne 0 ]]; then
-        log ERROR "  RMAN execution failed for ${sid}: exit code ${rman_exit_code}"
-        log ERROR "  Check log: ${sid_log}"
-        log ERROR "  Processed script: ${saved_rcv}"
+        oradba_log ERROR "  RMAN execution failed for ${sid}: exit code ${rman_exit_code}"
+        oradba_log ERROR "  Check log: ${sid_log}"
+        oradba_log ERROR "  Processed script: ${saved_rcv}"
         return 1
     else
-        log INFO "  RMAN execution successful for ${sid}"
-        log INFO "  Log: ${sid_log}"
-        log INFO "  Processed script: ${saved_rcv}"
+        oradba_log INFO "  RMAN execution successful for ${sid}"
+        oradba_log INFO "  Log: ${sid_log}"
+        oradba_log INFO "  Processed script: ${saved_rcv}"
         return 0
     fi
 }
@@ -393,7 +393,7 @@ execute_parallel_background() {
     local -a sids=("$@")
     local -a pids=()
     
-    log INFO "Starting parallel execution (background jobs) for ${#sids[@]} SID(s)"
+    oradba_log INFO "Starting parallel execution (background jobs) for ${#sids[@]} SID(s)"
     
     # Start background job for each SID
     for sid in "${sids[@]}"; do
@@ -408,12 +408,12 @@ execute_parallel_background() {
     done
     
     # Wait for all jobs to complete
-    log INFO "Waiting for ${#pids[@]} background job(s) to complete..."
+    oradba_log INFO "Waiting for ${#pids[@]} background job(s) to complete..."
     for pid in "${pids[@]}"; do
         wait "${pid}"
     done
     
-    log INFO "All background jobs completed"
+    oradba_log INFO "All background jobs completed"
 }
 
 # ------------------------------------------------------------------------------
@@ -422,7 +422,7 @@ execute_parallel_background() {
 execute_parallel_gnu() {
     local -a sids=("$@")
     
-    log INFO "Starting parallel execution (GNU parallel) for ${#sids[@]} SID(s)"
+    oradba_log INFO "Starting parallel execution (GNU parallel) for ${#sids[@]} SID(s)"
     
     # Export function and variables for parallel
     export -f execute_rman_for_sid load_rman_config process_template
@@ -438,7 +438,7 @@ execute_parallel_gnu() {
         fi
     "
     
-    log INFO "GNU parallel execution completed"
+    oradba_log INFO "GNU parallel execution completed"
 }
 
 # ------------------------------------------------------------------------------
@@ -450,17 +450,17 @@ send_notification() {
     
     # Check if notifications are enabled
     if [[ -z "${email}" ]]; then
-        log DEBUG "No email configured, skipping notification"
+        oradba_log DEBUG "No email configured, skipping notification"
         return 0
     fi
     
     if [[ "${status}" == "SUCCESS" && "${RMAN_NOTIFY_ON_SUCCESS}" != "true" ]]; then
-        log DEBUG "Success notifications disabled"
+        oradba_log DEBUG "Success notifications disabled"
         return 0
     fi
     
     if [[ "${status}" == "ERROR" && "${RMAN_NOTIFY_ON_ERROR}" != "true" ]]; then
-        log DEBUG "Error notifications disabled"
+        oradba_log DEBUG "Error notifications disabled"
         return 0
     fi
     
@@ -490,7 +490,7 @@ send_notification() {
     # Send email using mail command
     if command -v mail >/dev/null 2>&1; then
         echo -e "${body}" | mail -s "${subject}" "${email}"
-        log INFO "Notification sent to: ${email}"
+        oradba_log INFO "Notification sent to: ${email}"
     elif command -v sendmail >/dev/null 2>&1; then
         {
             echo "To: ${email}"
@@ -498,9 +498,9 @@ send_notification() {
             echo ""
             echo -e "${body}"
         } | sendmail -t
-        log INFO "Notification sent to: ${email}"
+        oradba_log INFO "Notification sent to: ${email}"
     else
-        log WARN "No mail command available, cannot send notification"
+        oradba_log WARN "No mail command available, cannot send notification"
         return 1
     fi
 }
@@ -597,16 +597,16 @@ main() {
     }
     
     # Initialize log
-    log INFO "=========================================="
-    log INFO "OraDBA RMAN Wrapper Starting"
-    log INFO "=========================================="
-    log INFO "Script: ${OPT_RCV_SCRIPT}"
-    log INFO "SIDs: ${OPT_SIDS}"
-    log INFO "Timestamp: ${TIMESTAMP}"
-    [[ -n "${OPT_CHANNELS}" ]] && log INFO "Channels: ${OPT_CHANNELS}"
-    [[ -n "${OPT_TAG}" ]] && log INFO "Tag: ${OPT_TAG}"
-    [[ "${OPT_DRY_RUN}" == "true" ]] && log INFO "Mode: DRY RUN"
-    log INFO ""
+    oradba_log INFO "=========================================="
+    oradba_log INFO "OraDBA RMAN Wrapper Starting"
+    oradba_log INFO "=========================================="
+    oradba_log INFO "Script: ${OPT_RCV_SCRIPT}"
+    oradba_log INFO "SIDs: ${OPT_SIDS}"
+    oradba_log INFO "Timestamp: ${TIMESTAMP}"
+    [[ -n "${OPT_CHANNELS}" ]] && oradba_log INFO "Channels: ${OPT_CHANNELS}"
+    [[ -n "${OPT_TAG}" ]] && oradba_log INFO "Tag: ${OPT_TAG}"
+    [[ "${OPT_DRY_RUN}" == "true" ]] && oradba_log INFO "Mode: DRY RUN"
+    oradba_log INFO ""
     
     # Check parallel method
     check_parallel_method
@@ -636,16 +636,16 @@ main() {
     fi
     
     # Summary
-    log INFO ""
-    log INFO "=========================================="
-    log INFO "OraDBA RMAN Wrapper Summary"
-    log INFO "=========================================="
-    log INFO "Total SIDs: ${#SID_ARRAY[@]}"
-    log INFO "Successful: ${#SUCCESSFUL_SIDS[@]}"
-    log INFO "Failed: ${#FAILED_SIDS[@]}"
+    oradba_log INFO ""
+    oradba_log INFO "=========================================="
+    oradba_log INFO "OraDBA RMAN Wrapper Summary"
+    oradba_log INFO "=========================================="
+    oradba_log INFO "Total SIDs: ${#SID_ARRAY[@]}"
+    oradba_log INFO "Successful: ${#SUCCESSFUL_SIDS[@]}"
+    oradba_log INFO "Failed: ${#FAILED_SIDS[@]}"
     
     if [[ ${#FAILED_SIDS[@]} -gt 0 ]]; then
-        log INFO "Failed SIDs: ${FAILED_SIDS[*]}"
+        oradba_log INFO "Failed SIDs: ${FAILED_SIDS[*]}"
     fi
     
     # Send notification
@@ -657,17 +657,17 @@ main() {
     
     # Cleanup temporary directory (unless --no-cleanup flag is set)
     if [[ "${OPT_NO_CLEANUP}" == "true" ]]; then
-        log INFO "Temporary files preserved in: ${TEMP_DIR}"
+        oradba_log INFO "Temporary files preserved in: ${TEMP_DIR}"
     else
         rm -rf "${TEMP_DIR}"
     fi
     
     # Exit with appropriate code
     if [[ ${#FAILED_SIDS[@]} -gt 0 ]]; then
-        log INFO "Exiting with error code 1"
+        oradba_log INFO "Exiting with error code 1"
         exit 1
     else
-        log INFO "Exiting with success code 0"
+        oradba_log INFO "Exiting with success code 0"
         exit 0
     fi
 }

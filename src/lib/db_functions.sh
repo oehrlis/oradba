@@ -306,7 +306,7 @@ show_database_status() {
     instance_info=$(query_instance_info)
     
     if [[ -z "$instance_info" ]]; then
-        log ERROR "Unable to query instance information"
+        oradba_log ERROR "Unable to query instance information"
         return 1
     fi
     
@@ -341,7 +341,7 @@ show_database_status() {
                 printf "%-15s: %s (Instance: %s)\n" "DB_UNIQUE_NAME" "$db_unique_name" "$instance_name"
             fi
         else
-            log DEBUG "query_database_info returned empty for open_mode: $open_mode"
+            oradba_log DEBUG "query_database_info returned empty for open_mode: $open_mode"
         fi
     fi
     

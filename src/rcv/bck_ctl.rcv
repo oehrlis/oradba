@@ -15,6 +15,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+SHOW ALL;
 RUN {
     # Allocate channels for backup (replaced by template processor)
 <ALLOCATE_CHANNELS>
@@ -27,14 +28,13 @@ RUN {
     # Backup SPFILE for completeness
     BACKUP <COMPRESSION> SPFILE
         <FORMAT>
-        TAG 'SPFILE_BACKUP';
+        <TAG>;
     
     # Release channels (replaced by template processor)
     RELEASE CHANNEL ch1;
     RELEASE CHANNEL ch2;
 }
 
-# Crosscheck and report controlfile/SPFILE backups
-CROSSCHECK BACKUP OF CONTROLFILE;
-CROSSCHECK BACKUP OF SPFILE;
-LIST BACKUP SUMMARY;
+#<SPFILE_BACKUP>sql "create pfile=''<CTLFILE_PATH>init_<ORACLE_SID>_<START_DATE>'' from spfile";
+#sql "alter database backup controlfile to ''<CTLFILE_PATH>controlfile_<ORACLE_SID>_<START_DATE>''";
+#sql "alter database backup controlfile to trace as ''<CTLFILE_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>''";

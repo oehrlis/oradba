@@ -121,18 +121,18 @@ parse_args() {
 validate_environment() {
     # Check wallet directory
     if [[ ! -d "${WALLET_DIR}" ]]; then
-        log ERROR "Wallet directory '${WALLET_DIR}' does not exist."
+        oradba_log ERROR "Wallet directory '${WALLET_DIR}' does not exist."
         exit 1
     fi
     
     if [[ ! -r "${WALLET_DIR}" ]]; then
-        log ERROR "Wallet directory '${WALLET_DIR}' is not readable."
+        oradba_log ERROR "Wallet directory '${WALLET_DIR}' is not readable."
         exit 1
     fi
 
     # Check mkstore command
     if ! command -v mkstore &> /dev/null; then
-        log ERROR "mkstore command not found. Please ensure Oracle Client is installed."
+        oradba_log ERROR "mkstore command not found. Please ensure Oracle Client is installed."
         exit 1
     fi
 }
@@ -142,7 +142,7 @@ load_wallet_password() {
     # Try to load from encoded file
     if [[ -f "${WALLET_DIR}/.wallet_pwd" ]]; then
         WALLET_PASSWORD=$(base64 -d "${WALLET_DIR}/.wallet_pwd" 2>/dev/null)
-        log DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
+        oradba_log DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
     fi
 
     # Prompt if not loaded
@@ -161,10 +161,10 @@ search_wallet() {
     count=$(echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -list 2>/dev/null \
             | grep -c "oracle.security.client.connect_string")
     
-    log DEBUG "Found ${count} connect string entries in wallet."
+    oradba_log DEBUG "Found ${count} connect string entries in wallet."
     
     if [[ ${count} -eq 0 ]]; then
-        log ERROR "No connect strings found in wallet."
+        oradba_log ERROR "No connect strings found in wallet."
         exit 1
     fi
 
@@ -174,11 +174,11 @@ search_wallet() {
         alias=$(get_entry "oracle.security.client.connect_string${i}")
         
         if [[ "${alias,,}" == "${connect_string_lower}" ]]; then
-            should_log INFO && log INFO "Found connect string '${CONNECT_STRING}' in wallet."
+            should_log INFO && oradba_log INFO "Found connect string '${CONNECT_STRING}' in wallet."
             
             # Check mode - just verify existence
             if [[ "${CHECK}" == "true" ]]; then
-                should_log INFO && log INFO "Password exists for connect string '${CONNECT_STRING}'."
+                should_log INFO && oradba_log INFO "Password exists for connect string '${CONNECT_STRING}'."
                 return 0
             fi
             
@@ -190,15 +190,15 @@ search_wallet() {
             if [[ "${QUIET}" == "true" ]]; then
                 echo "${password}"
             else
-                should_log INFO && log INFO "Match found for connect string '${CONNECT_STRING}':"
-                should_log INFO && log INFO "  Password: ${password}"
+                should_log INFO && oradba_log INFO "Match found for connect string '${CONNECT_STRING}':"
+                should_log INFO && oradba_log INFO "  Password: ${password}"
             fi
             return 0
         fi
     done
 
     # No match found
-    should_log ERROR && log ERROR "Connect string '${CONNECT_STRING}' not found in wallet."
+    should_log ERROR && oradba_log ERROR "Connect string '${CONNECT_STRING}' not found in wallet."
     return 1
 }
 

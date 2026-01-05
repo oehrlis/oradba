@@ -59,12 +59,12 @@ EOF
 # Main function
 # ------------------------------------------------------------------------------
 main() {
-    log INFO "Starting ${SCRIPT_NAME}"
+    oradba_log INFO "Starting ${SCRIPT_NAME}"
     
     # Add your script logic here
     # Available log levels: DEBUG, INFO, WARN, ERROR, SUCCESS, FAILURE, SECTION
     
-    log SUCCESS "Completed successfully"
+    oradba_log SUCCESS "Completed successfully"
     return 0
 }
 
@@ -85,7 +85,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            log ERROR "Unknown option: $1"
+            oradba_log ERROR "Unknown option: $1"
             usage
             ;;
     esac

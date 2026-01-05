@@ -145,7 +145,7 @@ if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
 fi  # End of readonly variables guard
 
 # Unified logging function with level-based filtering
-# Usage: log <LEVEL> <message>
+# Usage: oradba_log <LEVEL> <message>
 # Levels: DEBUG, INFO, WARN, ERROR, SUCCESS, FAILURE, SECTION
 # Environment variables:
 #   ORADBA_LOG_LEVEL - Minimum log level (DEBUG|INFO|WARN|ERROR, default: INFO)
@@ -153,9 +153,7 @@ fi  # End of readonly variables guard
 #   ORADBA_NO_COLOR - Set to 1 to disable color output
 #   DEBUG=1 - Legacy support, enables DEBUG level
 # All output goes to stderr for clean separation from script output
-# Undefine alias if it exists (e.g., 'alias log=cd ${ORADBA_LOG}')
-unalias log 2>/dev/null || true
-log() {
+oradba_log() {
     local level="$1"
     shift
     local message="$*"
@@ -241,10 +239,10 @@ log() {
 # Deprecated Logging Functions (Backward Compatibility Wrappers)
 # ------------------------------------------------------------------------------
 # These functions are deprecated and will be removed in v0.14.0
-# Use: log INFO "message" instead of log_info "message"
-#      log WARN "message" instead of log_warn "message"
-#      log ERROR "message" instead of log_error "message"
-#      log DEBUG "message" instead of log_debug "message"
+# Use: oradba_log INFO "message" instead of log_info "message"
+#      oradba_log WARN "message" instead of log_warn "message"
+#      oradba_log ERROR "message" instead of log_error "message"
+#      oradba_log DEBUG "message" instead of log_debug "message"
 # ------------------------------------------------------------------------------
 
 # Show deprecation warning if opt-in enabled
@@ -263,28 +261,28 @@ _show_deprecation_warning() {
     fi
 }
 
-# Deprecated: log_info - use log INFO instead
+# Deprecated: log_info - use oradba_log INFO instead
 log_info() {
-    _show_deprecation_warning "log_info" "log INFO"
-    log INFO "$*"
+    _show_deprecation_warning "log_info" "oradba_log INFO"
+    oradba_log INFO "$*"
 }
 
-# Deprecated: log_warn - use log WARN instead
+# Deprecated: log_warn - use oradba_log WARN instead
 log_warn() {
-    _show_deprecation_warning "log_warn" "log WARN"
-    log WARN "$*"
+    _show_deprecation_warning "log_warn" "oradba_log WARN"
+    oradba_log WARN "$*"
 }
 
-# Deprecated: log_error - use log ERROR instead
+# Deprecated: log_error - use oradba_log ERROR instead
 log_error() {
-    _show_deprecation_warning "log_error" "log ERROR"
-    log ERROR "$*"
+    _show_deprecation_warning "log_error" "oradba_log ERROR"
+    oradba_log ERROR "$*"
 }
 
-# Deprecated: log_debug - use log DEBUG instead
+# Deprecated: log_debug - use oradba_log DEBUG instead
 log_debug() {
-    _show_deprecation_warning "log_debug" "log DEBUG"
-    log DEBUG "$*"
+    _show_deprecation_warning "log_debug" "oradba_log DEBUG"
+    oradba_log DEBUG "$*"
 }
 
 # ------------------------------------------------------------------------------
@@ -302,13 +300,13 @@ execute_db_query() {
     
     # Validate parameters
     if [[ -z "$query" ]]; then
-        log ERROR "execute_db_query: No query provided"
+        oradba_log ERROR "execute_db_query: No query provided"
         return 1
     fi
     
     # Validate format
     if [[ "$format" != "raw" ]] && [[ "$format" != "delimited" ]]; then
-        log ERROR "execute_db_query: Invalid format '$format' (must be 'raw' or 'delimited')"
+        oradba_log ERROR "execute_db_query: Invalid format '$format' (must be 'raw' or 'delimited')"
         return 1
     fi
     
@@ -331,7 +329,7 @@ EOF
     
     # Check for SQL*Plus errors
     if [[ $exit_code -ne 0 ]]; then
-        log DEBUG "execute_db_query: SQL*Plus exited with code $exit_code"
+        oradba_log DEBUG "execute_db_query: SQL*Plus exited with code $exit_code"
         return 1
     fi
     
@@ -438,7 +436,7 @@ safe_alias() {
     if [[ "${ORADBA_COEXIST_MODE}" == "basenv" ]]; then
         if alias_exists "${name}"; then
             # Silently skip (basenv has priority)
-            log DEBUG "Skipping alias '${name}' (exists in basenv, coexist mode active)"
+            oradba_log DEBUG "Skipping alias '${name}' (exists in basenv, coexist mode active)"
             return 1
         fi
     fi
@@ -461,7 +459,7 @@ verify_oracle_env() {
     done
 
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        log ERROR "Missing required Oracle environment variables: ${missing_vars[*]}"
+        oradba_log ERROR "Missing required Oracle environment variables: ${missing_vars[*]}"
         return 1
     fi
 
@@ -471,14 +469,14 @@ verify_oracle_env() {
 # Get Oracle version
 get_oracle_version() {
     if [[ -z "${ORACLE_HOME}" ]]; then
-        log ERROR "ORACLE_HOME not set"
+        oradba_log ERROR "ORACLE_HOME not set"
         return 1
     fi
 
     if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
         "${ORACLE_HOME}/bin/sqlplus" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
     else
-        log ERROR "sqlplus not found in ORACLE_HOME"
+        oradba_log ERROR "sqlplus not found in ORACLE_HOME"
         return 1
     fi
 }
@@ -489,7 +487,7 @@ parse_oratab() {
     local oratab_file="${2:-/etc/oratab}"
 
     if [[ ! -f "$oratab_file" ]]; then
-        log ERROR "oratab file not found: $oratab_file"
+        oradba_log ERROR "oratab file not found: $oratab_file"
         return 1
     fi
 
@@ -504,7 +502,7 @@ generate_sid_lists() {
     
     # Check if oratab exists
     if [[ ! -f "$oratab_file" ]]; then
-        log DEBUG "oratab file not found: $oratab_file"
+        oradba_log DEBUG "oratab file not found: $oratab_file"
         export ORADBA_SIDLIST=""
         export ORADBA_REALSIDLIST=""
         return 1
@@ -541,8 +539,8 @@ generate_sid_lists() {
     export ORADBA_SIDLIST="$all_sids"
     export ORADBA_REALSIDLIST="$real_sids"
     
-    log DEBUG "ORADBA_SIDLIST: $ORADBA_SIDLIST"
-    log DEBUG "ORADBA_REALSIDLIST: $ORADBA_REALSIDLIST"
+    oradba_log DEBUG "ORADBA_SIDLIST: $ORADBA_SIDLIST"
+    oradba_log DEBUG "ORADBA_REALSIDLIST: $ORADBA_REALSIDLIST"
     
     return 0
 }
@@ -552,13 +550,13 @@ generate_sid_lists() {
 generate_pdb_aliases() {
     # Skip if disabled
     if [[ "${ORADBA_NO_PDB_ALIASES}" == "true" ]]; then
-        log DEBUG "PDB aliases disabled (ORADBA_NO_PDB_ALIASES=true)"
+        oradba_log DEBUG "PDB aliases disabled (ORADBA_NO_PDB_ALIASES=true)"
         return 0
     fi
     
     # Skip if no database connection
     if ! check_database_connection 2>/dev/null; then
-        log DEBUG "No database connection, skipping PDB alias generation"
+        oradba_log DEBUG "No database connection, skipping PDB alias generation"
         return 0
     fi
     
@@ -573,7 +571,7 @@ EOF
 )
     
     if [[ "${is_cdb}" != "YES" ]]; then
-        log DEBUG "Not a CDB, skipping PDB alias generation"
+        oradba_log DEBUG "Not a CDB, skipping PDB alias generation"
         return 0
     fi
     
@@ -603,12 +601,12 @@ EOF
         # shellcheck disable=SC2139
         alias "pdb${pdb_lower}"="export ORADBA_PDB='${pdb_name}'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=${pdb_name};'"
         
-        log DEBUG "Created PDB alias: ${pdb_lower} -> ${pdb_name}"
+        oradba_log DEBUG "Created PDB alias: ${pdb_lower} -> ${pdb_name}"
     done <<< "$pdb_list"
     
     # Export the PDB list
     export ORADBA_PDBLIST="${pdb_list//$'\n'/ }"
-    log DEBUG "ORADBA_PDBLIST: $ORADBA_PDBLIST"
+    oradba_log DEBUG "ORADBA_PDBLIST: $ORADBA_PDBLIST"
     
     return 0
 }
@@ -622,11 +620,11 @@ EOF
 #           or catalog user@tnsalias (prompts for password)
 # ------------------------------------------------------------------------------
 load_rman_catalog_connection() {
-    log DEBUG "Checking RMAN catalog configuration"
+    oradba_log DEBUG "Checking RMAN catalog configuration"
     
     # Check if catalog is configured
     if [[ -z "${ORADBA_RMAN_CATALOG}" ]]; then
-        log DEBUG "No RMAN catalog configured (ORADBA_RMAN_CATALOG not set)"
+        oradba_log DEBUG "No RMAN catalog configured (ORADBA_RMAN_CATALOG not set)"
         export ORADBA_RMAN_CATALOG_CONNECTION=""
         return 1
     fi
@@ -634,15 +632,15 @@ load_rman_catalog_connection() {
     # Validate catalog connection string format
     # Expected: user/password@tnsalias or user@tnsalias
     if [[ ! "${ORADBA_RMAN_CATALOG}" =~ ^[a-zA-Z0-9_]+(@|/) ]]; then
-        log WARN "Invalid RMAN catalog format: ${ORADBA_RMAN_CATALOG}"
-        log WARN "Expected: user/password@tnsalias or user@tnsalias"
+        oradba_log WARN "Invalid RMAN catalog format: ${ORADBA_RMAN_CATALOG}"
+        oradba_log WARN "Expected: user/password@tnsalias or user@tnsalias"
         export ORADBA_RMAN_CATALOG_CONNECTION=""
         return 1
     fi
     
     # Build the full catalog connection string for RMAN
     export ORADBA_RMAN_CATALOG_CONNECTION="catalog ${ORADBA_RMAN_CATALOG}"
-    log DEBUG "RMAN catalog connection: ${ORADBA_RMAN_CATALOG_CONNECTION}"
+    oradba_log DEBUG "RMAN catalog connection: ${ORADBA_RMAN_CATALOG_CONNECTION}"
     
     return 0
 }
@@ -673,12 +671,12 @@ validate_directory() {
         if [[ "$create" == "true" ]]; then
             mkdir -p "$dir" 2> /dev/null
             if [[ $? -ne 0 ]]; then
-                log ERROR "Failed to create directory: $dir"
+                oradba_log ERROR "Failed to create directory: $dir"
                 return 1
             fi
-            log INFO "Created directory: $dir"
+            oradba_log INFO "Created directory: $dir"
         else
-            log ERROR "Directory does not exist: $dir"
+            oradba_log ERROR "Directory does not exist: $dir"
             return 1
         fi
     fi
@@ -702,16 +700,16 @@ load_config_file() {
     local required="${2:-false}"
     
     if [[ -f "${file_path}" ]]; then
-        log DEBUG "Loading config: ${file_path}"
+        oradba_log DEBUG "Loading config: ${file_path}"
         # shellcheck source=/dev/null
         source "${file_path}"
         return 0
     else
         if [[ "${required}" == "true" ]]; then
-            log ERROR "Required configuration not found: ${file_path}"
+            oradba_log ERROR "Required configuration not found: ${file_path}"
             return 1
         else
-            log DEBUG "Optional configuration not found: ${file_path}"
+            oradba_log DEBUG "Optional configuration not found: ${file_path}"
             return 0
         fi
     fi
@@ -725,7 +723,7 @@ load_config() {
     local sid="${1:-${ORACLE_SID}}"
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     
-    log DEBUG "Loading OraDBA configuration for SID: ${sid:-<none>}"
+    oradba_log DEBUG "Loading OraDBA configuration for SID: ${sid:-<none>}"
     
     # Enable auto-export of all variables (set -a)
     # This ensures all variables in config files are exported to environment
@@ -740,7 +738,7 @@ load_config() {
     
     # 2. Load standard configuration (required, but warn if missing)
     if ! load_config_file "${config_dir}/oradba_standard.conf"; then
-        log WARN "Standard configuration not found: ${config_dir}/oradba_standard.conf"
+        oradba_log WARN "Standard configuration not found: ${config_dir}/oradba_standard.conf"
     fi
     
     # 3. Load customer configuration (optional)
@@ -760,20 +758,20 @@ load_config() {
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 if [[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]; then
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
-                    log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
+                    oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
                         # Source the newly created config file
                         load_config_file "${sid_config}"
                     else
                         echo "[WARN] Failed to auto-create SID config for ${sid}" >&2
-                        log WARN "Failed to auto-create SID config for ${sid}"
+                        oradba_log WARN "Failed to auto-create SID config for ${sid}"
                     fi
                 else
-                    log DEBUG "SID ${sid} is a dummy SID (not in ORADBA_REALSIDLIST), skipping auto-create"
+                    oradba_log DEBUG "SID ${sid} is a dummy SID (not in ORADBA_REALSIDLIST), skipping auto-create"
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Skipping auto-create for dummy SID: ${sid}" >&2
                 fi
             else
-                log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
+                oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
             fi
         fi
     fi
@@ -781,7 +779,7 @@ load_config() {
     # Disable auto-export (set +a)
     set +a
     
-    log DEBUG "Configuration loading complete"
+    oradba_log DEBUG "Configuration loading complete"
     return 0
 }
 
@@ -800,8 +798,8 @@ create_sid_config() {
     # Check if config directory is writable
     if [[ ! -w "${config_dir}" ]]; then
         echo "[ERROR] Config directory is not writable: ${config_dir}" >&2
-        log ERROR "Config directory is not writable: ${config_dir}"
-        log ERROR "Cannot create SID configuration file. Run with appropriate permissions."
+        oradba_log ERROR "Config directory is not writable: ${config_dir}"
+        oradba_log ERROR "Cannot create SID configuration file. Run with appropriate permissions."
         return 1
     fi
     
@@ -812,20 +810,20 @@ create_sid_config() {
     # Check if example template exists - use it as base
     if [[ ! -f "${example_config}" ]]; then
         echo "[ERROR] Template not found: ${example_config}" >&2
-        log ERROR "Template not found: ${example_config}"
+        oradba_log ERROR "Template not found: ${example_config}"
         return 1
     fi
     
-    log DEBUG "Using template: ${example_config}"
+    oradba_log DEBUG "Using template: ${example_config}"
     # Copy example and replace ORCL with actual SID
     if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
         "${example_config}" > "${sid_config}"; then
         echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
-        log INFO "Created SID configuration: ${sid_config}"
+        oradba_log INFO "Created SID configuration: ${sid_config}"
         return 0
     else
         echo "[ERROR] Failed to create config from template" >&2
-        log ERROR "Failed to create config from template"
+        oradba_log ERROR "Failed to create config from template"
         return 1
     fi
 }
@@ -942,7 +940,7 @@ install_user=${USER}
 install_prefix=${ORADBA_BASE}
 EOF
     
-    log INFO "Created installation metadata: ${install_info}"
+    oradba_log INFO "Created installation metadata: ${install_info}"
 }
 
 # ------------------------------------------------------------------------------
@@ -1010,7 +1008,7 @@ configure_sqlpath() {
     SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd:)
     export SQLPATH
     
-    log DEBUG "SQLPATH configured: ${SQLPATH}"
+    oradba_log DEBUG "SQLPATH configured: ${SQLPATH}"
 }
 
 # Display current SQLPATH directories
@@ -1138,18 +1136,18 @@ add_to_sqlpath() {
     local new_path="${1}"
     
     if [[ -z "${new_path}" ]]; then
-        log ERROR "Directory path required"
+        oradba_log ERROR "Directory path required"
         return 1
     fi
     
     if [[ ! -d "${new_path}" ]]; then
-        log ERROR "Directory does not exist: ${new_path}"
+        oradba_log ERROR "Directory does not exist: ${new_path}"
         return 1
     fi
     
     # Check if already in SQLPATH
     if [[ ":${SQLPATH}:" == *":${new_path}:"* ]]; then
-        log INFO "Directory already in SQLPATH: ${new_path}"
+        oradba_log INFO "Directory already in SQLPATH: ${new_path}"
         return 0
     fi
     
@@ -1160,7 +1158,7 @@ add_to_sqlpath() {
         export SQLPATH="${SQLPATH}:${new_path}"
     fi
     
-    log INFO "Added to SQLPATH: ${new_path}"
+    oradba_log INFO "Added to SQLPATH: ${new_path}"
 }
 
 # Show version information

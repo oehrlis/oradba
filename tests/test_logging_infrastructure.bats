@@ -88,7 +88,7 @@ teardown() {
     
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && init_logging && echo \${ORADBA_LOG_FILE}"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "oradba.log" ]]
+    [[ "$output" =~ oradba\.log ]]
 }
 
 @test "init_logging() respects existing ORADBA_LOG_FILE setting" {
@@ -140,7 +140,7 @@ teardown() {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && init_session_log && ls -1 \${ORADBA_LOG_DIR}/session_*.log | head -1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "session_" ]]
-    [[ "$output" =~ ".log" ]]
+    [[ "$output" =~ \.log ]]
 }
 
 @test "init_session_log() creates log directory if not initialized" {
@@ -198,7 +198,7 @@ teardown() {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
     # Should contain caller information in format [file:line]
-    [[ "$output" =~ \[.*:[0-9]*\] ]] || [[ "$output" =~ "[::]" ]]
+    [[ "$output" =~ \[.*:[0-9]*\] ]] || [[ "$output" =~ \[\:\:\] ]]
 }
 
 @test "log() excludes caller info when ORADBA_LOG_SHOW_CALLER=false" {
@@ -208,8 +208,8 @@ teardown() {
     
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
-    [[ ! "$output" =~ "[bash:" ]]
-    [[ "$output" =~ "[INFO]" ]]
+    [[ ! "$output" =~ \[bash: ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Test message" ]]
 }
 
@@ -221,7 +221,7 @@ teardown() {
     # Should contain caller bracket notation even if empty in bash -c context
     [[ "$output" =~ \[.*\] ]]
     # Should have timestamp and message
-    [[ "$output" =~ "[INFO]" ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Test" ]]
 }
 
@@ -298,7 +298,7 @@ teardown() {
     # Don't call init_logging, just use log directly
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'No init test' 2>&1"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[INFO]" ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "No init test" ]]
 }
 
@@ -313,6 +313,6 @@ teardown() {
     "
     
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[INFO]" ]]
+    [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Legacy function test" ]]
 }

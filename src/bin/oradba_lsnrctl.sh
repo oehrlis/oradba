@@ -85,7 +85,7 @@ get_first_oracle_home() {
     local oratab_file="${ORATAB:-/etc/oratab}"
     
     if [[ ! -f "${oratab_file}" ]]; then
-        log ERROR "oratab file not found: ${oratab_file}"
+        oradba_log ERROR "oratab file not found: ${oratab_file}"
         return 1
     fi
     
@@ -94,7 +94,7 @@ get_first_oracle_home() {
     oracle_home=$(grep -v '^#' "${oratab_file}" | grep -v '^$' | grep -v ':D$' | head -1 | cut -d: -f2)
     
     if [[ -z "${oracle_home}" ]]; then
-        log ERROR "No Oracle home found in oratab"
+        oradba_log ERROR "No Oracle home found in oratab"
         return 1
     fi
     
@@ -110,7 +110,7 @@ set_listener_env() {
     oracle_home=$(get_first_oracle_home)
     
     if [[ -z "${oracle_home}" ]]; then
-        log ERROR "Cannot determine Oracle home"
+        oradba_log ERROR "Cannot determine Oracle home"
         return 1
     fi
     
@@ -153,15 +153,15 @@ ask_justification() {
     read -p "Please provide justification for this operation: " justification
     
     if [[ -z "${justification}" ]]; then
-        log ERROR "Operation cancelled: No justification provided"
+        oradba_log ERROR "Operation cancelled: No justification provided"
         return 1
     fi
     
-    log INFO "Justification for ${action} all listeners: ${justification}"
+    oradba_log INFO "Justification for ${action} all listeners: ${justification}"
     read -p "Continue with operation? (yes/no): " confirm
     
     if [[ "${confirm}" != "yes" ]]; then
-        log INFO "Operation cancelled by user"
+        oradba_log INFO "Operation cancelled by user"
         return 1
     fi
     
@@ -172,18 +172,18 @@ ask_justification() {
 start_listener() {
     local listener_name="$1"
     
-    log INFO "Starting listener ${listener_name}..."
+    oradba_log INFO "Starting listener ${listener_name}..."
     
     # Set environment
     if ! set_listener_env "${listener_name}"; then
-        log ERROR "Failed to set environment for ${listener_name}"
+        oradba_log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
     
     # Check if listener is already running
     lsnrctl status "${listener_name}" >/dev/null 2>&1
     if [[ $? -eq 0 ]]; then
-        log INFO "Listener ${listener_name} is already running"
+        oradba_log INFO "Listener ${listener_name} is already running"
         return 0
     fi
     
@@ -191,10 +191,10 @@ start_listener() {
     lsnrctl start "${listener_name}" >> "${LOGFILE}" 2>&1
     
     if [[ $? -eq 0 ]]; then
-        log INFO "Listener ${listener_name} started successfully"
+        oradba_log INFO "Listener ${listener_name} started successfully"
         return 0
     else
-        log ERROR "Failed to start listener ${listener_name}"
+        oradba_log ERROR "Failed to start listener ${listener_name}"
         return 1
     fi
 }
@@ -203,18 +203,18 @@ start_listener() {
 stop_listener() {
     local listener_name="$1"
     
-    log INFO "Stopping listener ${listener_name}..."
+    oradba_log INFO "Stopping listener ${listener_name}..."
     
     # Set environment
     if ! set_listener_env "${listener_name}"; then
-        log ERROR "Failed to set environment for ${listener_name}"
+        oradba_log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
     
     # Check if listener is running
     lsnrctl status "${listener_name}" >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-        log INFO "Listener ${listener_name} is not running"
+        oradba_log INFO "Listener ${listener_name} is not running"
         return 0
     fi
     
@@ -222,10 +222,10 @@ stop_listener() {
     lsnrctl stop "${listener_name}" >> "${LOGFILE}" 2>&1
     
     if [[ $? -eq 0 ]]; then
-        log INFO "Listener ${listener_name} stopped successfully"
+        oradba_log INFO "Listener ${listener_name} stopped successfully"
         return 0
     else
-        log ERROR "Failed to stop listener ${listener_name}"
+        oradba_log ERROR "Failed to stop listener ${listener_name}"
         return 1
     fi
 }
@@ -289,13 +289,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Log action
-log INFO "========== Starting ${ACTION} operation =========="
-log INFO "User: $(whoami), Host: $(hostname)"
+oradba_log INFO "========== Starting ${ACTION} operation =========="
+oradba_log INFO "User: $(whoami), Host: $(hostname)"
 
 # Determine which listeners to process
 if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     # No listeners specified, use default
-    log INFO "No listeners specified, using default LISTENER"
+    oradba_log INFO "No listeners specified, using default LISTENER"
     LISTENERS=("LISTENER")
     
     # For status, show all running listeners
@@ -307,7 +307,7 @@ if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     fi
 else
     # Explicit listeners provided
-    log INFO "Processing specified listeners: ${LISTENERS[*]}"
+    oradba_log INFO "Processing specified listeners: ${LISTENERS[*]}"
     
     # Ask for justification if multiple listeners
     if [[ ${#LISTENERS[@]} -gt 1 ]] && [[ "${ACTION}" != "status" ]]; then
@@ -352,16 +352,16 @@ done
 
 # Summary
 if [[ "${ACTION}" != "status" ]]; then
-    log INFO "========== Operation completed =========="
-    log INFO "Success: ${success_count}, Failures: ${failure_count}"
+    oradba_log INFO "========== Operation completed =========="
+    oradba_log INFO "Success: ${success_count}, Failures: ${failure_count}"
     
     if [[ ${failure_count} -gt 0 ]]; then
-        log WARN "Some listeners failed to ${ACTION}"
+        oradba_log WARN "Some listeners failed to ${ACTION}"
         exit 1
     fi
 fi
 
-log INFO "Done"
+oradba_log INFO "Done"
 exit 0
 
 # EOF -------------------------------------------------------------------------
