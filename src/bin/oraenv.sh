@@ -41,19 +41,13 @@ fi
 
 # Load core configuration (provides base settings for oratab, paths, etc.)
 # Note: Full hierarchical config (including SID-specific) is loaded after setting ORACLE_SID
-if [[ -f "${ORADBA_CONFIG_DIR}/oradba_core.conf" ]]; then
-    # shellcheck source=/dev/null
-    source "${ORADBA_CONFIG_DIR}/oradba_core.conf"
-else
-    echo "ERROR: Cannot find core configuration at ${ORADBA_CONFIG_DIR}/oradba_core.conf"
+# Use load_config_file from common.sh for unified config loading
+if ! load_config_file "${ORADBA_CONFIG_DIR}/oradba_core.conf" "true"; then
     return 1
 fi
 
 # Load local configuration (created during installation, contains coexistence mode)
-if [[ -f "${ORADBA_CONFIG_DIR}/oradba_local.conf" ]]; then
-    # shellcheck source=/dev/null
-    source "${ORADBA_CONFIG_DIR}/oradba_local.conf"
-fi
+load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf"
 
 # Source database functions library (optional, only if available)
 if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then

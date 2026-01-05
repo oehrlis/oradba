@@ -667,6 +667,87 @@ fi
 
 ## Configuration Functions
 
+### load_config_file
+
+Load a single configuration file with automatic logging and error handling.
+
+**Signature**: `load_config_file <file_path> [required]`
+
+**Parameters**:
+
+- `file_path` - Full path to configuration file (required)
+- `required` - "true" for required files (return error if missing), "false" for optional (default: "false")
+
+**Returns**:
+
+- `0` - File loaded successfully or skipped (optional file missing)
+- `1` - Required file not found
+
+**Example**:
+
+```bash
+# Load required config (fail if missing)
+load_config_file "${ORADBA_CONFIG_DIR}/oradba_core.conf" "true" || return 1
+
+# Load optional config (continue if missing)
+load_config_file "${ORADBA_CONFIG_DIR}/oradba_customer.conf"
+
+# Load optional with explicit false
+load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf" "false"
+```
+
+**Behavior**:
+
+- Automatically logs debug messages via `log_debug()`
+- Logs errors for missing required files via `log_error()`
+- Includes centralized `shellcheck source=/dev/null` directive
+- Used internally by `load_config()` function
+
+### load_config
+
+Load hierarchical configuration files for OraDBA environment.
+
+**Signature**: `load_config [ORACLE_SID]`
+
+**Parameters**:
+
+- `ORACLE_SID` - Optional Oracle SID for SID-specific configuration
+
+**Configuration Hierarchy** (later files override earlier settings):
+
+1. Core configuration: `oradba_core.conf` (required)
+2. Standard configuration: `oradba_standard.conf` (required)
+3. Customer configuration: `oradba_customer.conf` (optional)
+4. Default SID configuration: `sid._DEFAULT_.conf` (optional)
+5. SID-specific configuration: `sid.<ORACLE_SID>.conf` (optional, auto-created if enabled)
+
+**Returns**:
+
+- `0` - Configuration loaded successfully
+- `1` - Core configuration not found
+
+**Example**:
+
+```bash
+# Load configuration for current SID
+load_config
+
+# Load configuration for specific SID
+load_config "TESTDB"
+
+# Load and handle errors
+if ! load_config "${ORACLE_SID}"; then
+    echo "ERROR: Failed to load configuration"
+    return 1
+fi
+```
+
+**Auto-export Behavior**:
+
+- Temporarily enables `set -a` during loading
+- All variables in config files are automatically exported
+- Restores `set +a` after loading completes
+
 ### Configuration Hierarchy
 
 1. System configuration: `$ORADBA_PREFIX/src/etc/oradba.conf`

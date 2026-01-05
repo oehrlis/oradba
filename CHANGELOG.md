@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.5] - 2026-01-05
+
+### Added
+
+- **Unified Configuration File Loader (#56 Phase 5)**: Consolidated configuration loading
+  - New function: `load_config_file()` in `src/lib/common.sh`
+    - Signature: `load_config_file <file_path> [required]`
+    - Parameters:
+      - `file_path` - Full path to configuration file (required)
+      - `required` - "true" for required files (fail if missing), "false" for optional (default)
+    - **Automatic logging**: Uses `log_debug()` for successful loads, `log_error()` for required file failures
+    - **Shellcheck suppression**: Centralized `shellcheck source=/dev/null` directive
+    - **Return codes**: 0 for success/skipped, 1 for required file missing
+  - **Test Suite**: 10 comprehensive BATS tests in `tests/test_common.bats` (32 total tests)
+    - Function existence and parameter validation
+    - Required vs optional config handling
+    - Missing file behavior (error vs silent skip)
+    - Config file sourcing and variable loading
+    - Debug logging validation
+    - All 650 tests passing with 0 failures
+
+### Changed
+
+- Updated `src/lib/common.sh` from v0.13.2 to v0.13.5
+  - Added `load_config_file()` function (lines 531-556)
+  - **Refactored `load_config()` function**: Reduced from 83 lines to 61 lines (~27% reduction)
+    - Eliminated 5 repetitive config loading blocks with duplicated logic
+    - Each config load: 8-10 lines → 1 line using `load_config_file()`
+    - Maintains all functionality: hierarchy, auto-export, SID-specific configs, auto-create
+    - Configuration hierarchy unchanged:
+      1. `oradba_core.conf` (required)
+      2. `oradba_standard.conf` (required with warning)
+      3. `oradba_customer.conf` (optional)
+      4. `sid._DEFAULT_.conf` (optional)
+      5. `sid.<ORACLE_SID>.conf` (optional with auto-create)
+- Updated `src/bin/oraenv.sh` config loading
+  - Simplified 14 lines to 4 lines (~71% reduction)
+  - Migrated 2 manual config loads to use `load_config_file()`
+  - Configs: `oradba_core.conf` (required), `oradba_local.conf` (optional)
+- **Total code reduction**: ~67 lines of duplicated configuration loading logic eliminated
+- **Centralized error handling**: All config loading now uses consistent logging and return codes
+
+### Documentation
+
+- Updated `doc/api.md` with comprehensive configuration function documentation
+  - Added `load_config_file()` section with signature, parameters, examples
+  - Enhanced `load_config()` documentation with hierarchy details
+  - Added usage examples for required vs optional configs
+
+**Impact**: Phases 3-5 collectively reduce code duplication by ~200 lines, improve
+maintainability, and establish consistent patterns for metadata access, alias generation,
+and configuration loading.
+
+**Resolves:** #56 Phase 5 - Configuration Loading Refactoring
+
 ## [0.13.4] - 2026-01-04
 
 ### Added

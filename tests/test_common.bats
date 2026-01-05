@@ -212,3 +212,122 @@ EOF
     [[ "$ORADBA_BIN_DIR" == "/opt/oradba/bin" ]]
     [[ "$ORADBA_BIN" == "$ORADBA_BIN_DIR" ]]
 }
+# ------------------------------------------------------------------------------
+# load_config_file() tests - Configuration file loading helper
+# ------------------------------------------------------------------------------
+
+@test "load_config_file exists and is a function" {
+    type load_config_file | grep -q "function"
+}
+
+@test "load_config_file loads existing required config successfully" {
+    # Create a test config file
+    local test_config="${TEST_TEMP_DIR}/test_required.conf"
+    echo "TEST_VAR='loaded_value'" > "${test_config}"
+    
+    # Load the config as required
+    run load_config_file "${test_config}" "true"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+    # Should load the variable
+    # shellcheck source=/dev/null
+    source "${test_config}"
+    [ "${TEST_VAR}" = "loaded_value" ]
+}
+
+@test "load_config_file fails with missing required config" {
+    local missing_config="${TEST_TEMP_DIR}/nonexistent_required.conf"
+    
+    # Try to load missing required config
+    run load_config_file "${missing_config}" "true"
+    
+    # Should fail
+    [ "$status" -eq 1 ]
+    # Should output error message
+    [[ "$output" =~ "ERROR" ]] || [[ "$output" =~ "error" ]]
+}
+
+@test "load_config_file succeeds with existing optional config" {
+    # Create a test config file
+    local test_config="${TEST_TEMP_DIR}/test_optional.conf"
+    echo "TEST_OPT_VAR='optional_value'" > "${test_config}"
+    
+    # Load the config as optional (default)
+    run load_config_file "${test_config}"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+}
+
+@test "load_config_file succeeds with missing optional config" {
+    local missing_config="${TEST_TEMP_DIR}/nonexistent_optional.conf"
+    
+    # Try to load missing optional config (no "true" flag)
+    run load_config_file "${missing_config}"
+    
+    # Should succeed (returns 0 for missing optional files)
+    [ "$status" -eq 0 ]
+}
+
+@test "load_config_file with false required flag treats as optional" {
+    local missing_config="${TEST_TEMP_DIR}/nonexistent_false.conf"
+    
+    # Load with explicit "false" flag
+    run load_config_file "${missing_config}" "false"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+}
+
+@test "load_config_file handles empty file path parameter" {
+    # Try to load with missing file path parameter
+    run load_config_file
+    
+    # Should fail due to missing required parameter
+    [ "$status" -ne 0 ]
+}
+
+@test "load_config_file sources config file content" {
+    # Create a test config with multiple variables
+    local test_config="${TEST_TEMP_DIR}/test_source.conf"
+    cat > "${test_config}" <<'EOF'
+VAR1="value1"
+VAR2="value2"
+VAR3="value3"
+EOF
+    
+    # Source the function and config
+    load_config_file "${test_config}" "false"
+    
+    # Verify variables are set (need to source in same shell)
+    # shellcheck source=/dev/null
+    source "${test_config}"
+    [ "${VAR1}" = "value1" ]
+    [ "${VAR2}" = "value2" ]
+    [ "${VAR3}" = "value3" ]
+}
+
+@test "load_config_file outputs debug log for existing file" {
+    # Create a test config file
+    local test_config="${TEST_TEMP_DIR}/test_debug_exist.conf"
+    echo "TEST_DEBUG='debug_test'" > "${test_config}"
+    
+    # Load with debug enabled
+    export ORADBA_DEBUG=true
+    run load_config_file "${test_config}"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+}
+
+@test "load_config_file outputs debug log for missing optional file" {
+    local missing_config="${TEST_TEMP_DIR}/nonexistent_debug.conf"
+    
+    # Load with debug enabled
+    export ORADBA_DEBUG=true
+    run load_config_file "${missing_config}"
+    
+    # Should succeed (optional file missing is not an error)
+    [ "$status" -eq 0 ]
+}

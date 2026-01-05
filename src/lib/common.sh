@@ -5,8 +5,8 @@
 # Name.......: common.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.04
-# Revision...: 0.13.2
+# Date.......: 2026.01.05
+# Revision...: 0.13.5
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -530,6 +530,33 @@ validate_directory() {
 # Configuration Management
 # ------------------------------------------------------------------------------
 
+# Load single configuration file with automatic logging and error handling
+# Usage: load_config_file <file_path> [required]
+# Parameters:
+#   file_path - Full path to configuration file
+#   required  - "true" for required (return error if missing), "false" for optional (default: "false")
+# Returns: 0 if loaded successfully or skipped (optional), 1 if failed (required file missing)
+# Notes: Automatically logs debug messages and handles shellcheck source disable
+load_config_file() {
+    local file_path="${1:?Config file path required}"
+    local required="${2:-false}"
+    
+    if [[ -f "${file_path}" ]]; then
+        log_debug "Loading config: ${file_path}"
+        # shellcheck source=/dev/null
+        source "${file_path}"
+        return 0
+    else
+        if [[ "${required}" == "true" ]]; then
+            log_error "Required configuration not found: ${file_path}"
+            return 1
+        else
+            log_debug "Optional configuration not found: ${file_path}"
+            return 0
+        fi
+    fi
+}
+
 # Load hierarchical configuration files
 # Usage: load_config [ORACLE_SID]
 # Loads configuration in order: core -> standard -> customer -> default -> sid-specific
@@ -546,73 +573,41 @@ load_config() {
     set -a
     
     # 1. Load core configuration (required)
-    local core_config="${config_dir}/oradba_core.conf"
-    if [[ -f "${core_config}" ]]; then
-        log_debug "Loading core config: ${core_config}"
-        # shellcheck source=/dev/null
-        source "${core_config}"
-    else
-        log_error "Core configuration not found: ${core_config}"
+    if ! load_config_file "${config_dir}/oradba_core.conf" "true"; then
         set +a
         return 1
     fi
     
-    # 2. Load standard configuration (required)
-    local standard_config="${config_dir}/oradba_standard.conf"
-    if [[ -f "${standard_config}" ]]; then
-        log_debug "Loading standard config: ${standard_config}"
-        # shellcheck source=/dev/null
-        source "${standard_config}"
-    else
-        log_warn "Standard configuration not found: ${standard_config}"
+    # 2. Load standard configuration (required, but warn if missing)
+    if ! load_config_file "${config_dir}/oradba_standard.conf"; then
+        log_warn "Standard configuration not found: ${config_dir}/oradba_standard.conf"
     fi
     
     # 3. Load customer configuration (optional)
-    local customer_config="${config_dir}/oradba_customer.conf"
-    if [[ -f "${customer_config}" ]]; then
-        log_debug "Loading customer config: ${customer_config}"
-        # shellcheck source=/dev/null
-        source "${customer_config}"
-    fi
+    load_config_file "${config_dir}/oradba_customer.conf"
     
     # 4. Load default SID configuration (optional)
-    local default_config="${config_dir}/sid._DEFAULT_.conf"
-    if [[ -f "${default_config}" ]]; then
-        log_debug "Loading default SID config: ${default_config}"
-        # shellcheck source=/dev/null
-        source "${default_config}"
-    fi
+    load_config_file "${config_dir}/sid._DEFAULT_.conf"
     
     # 5. Load SID-specific configuration (optional)
     if [[ -n "${sid}" ]]; then
         local sid_config="${config_dir}/sid.${sid}.conf"
-        if [[ -f "${sid_config}" ]]; then
-            log_debug "Loading SID config: ${sid_config}"
-            # shellcheck source=/dev/null
-            source "${sid_config}"
-        else
-            log_debug "SID-specific config not found: ${sid_config}"
-            
-            # Auto-create SID config if enabled (but only for real SIDs, not dummy ones)
+        
+        # Try to load existing SID config
+        if ! load_config_file "${sid_config}"; then
+            # Config doesn't exist - check if we should auto-create it
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 if [[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]; then
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
                     log_debug "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
-                    # Source the newly created config file
-                    if [[ -f "${sid_config}" ]]; then
-                        log_debug "Loading newly created SID config: ${sid_config}"
-                        # shellcheck source=/dev/null
-                        source "${sid_config}"
+                        # Source the newly created config file
+                        load_config_file "${sid_config}"
                     else
-                        echo "[WARN] Config file was not created: ${sid_config}" >&2
-                        log_warn "Config file was not created after successful return: ${sid_config}"
+                        echo "[WARN] Failed to auto-create SID config for ${sid}" >&2
+                        log_warn "Failed to auto-create SID config for ${sid}"
                     fi
-                else
-                    echo "[WARN] Failed to auto-create SID config for ${sid}" >&2
-                    log_warn "Failed to auto-create SID config for ${sid}"
-                fi
                 else
                     log_debug "SID ${sid} is a dummy SID (not in ORADBA_REALSIDLIST), skipping auto-create"
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Skipping auto-create for dummy SID: ${sid}" >&2
