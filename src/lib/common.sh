@@ -117,8 +117,8 @@ EOF
 }
 
 # Color codes for TTY output (auto-detected)
-# Prevent re-initialization if already sourced
-if [[ -z "${ORADBA_COMMON_SOURCED:-}" ]]; then
+# Prevent re-initialization of readonly variables (check if already defined)
+if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
     export ORADBA_COMMON_SOURCED="true"
     
     if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
@@ -142,7 +142,7 @@ if [[ -z "${ORADBA_COMMON_SOURCED:-}" ]]; then
         readonly LOG_COLOR_SECTION=""
         readonly LOG_COLOR_RESET=""
     fi
-fi  # End of ORADBA_COMMON_SOURCED guard
+fi  # End of readonly variables guard
 
 # Unified logging function with level-based filtering
 # Usage: log <LEVEL> <message>
