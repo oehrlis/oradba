@@ -52,6 +52,8 @@ OPT_NOTIFY_EMAIL=""
 OPT_PARALLEL="background"
 OPT_DRY_RUN=false
 OPT_VERBOSE=false
+OPT_BACKUP_PATH=""
+OPT_NO_CLEANUP=false
 
 # ------------------------------------------------------------------------------
 # Usage information
@@ -74,9 +76,11 @@ OPTIONS
     --format <path>          Backup format string (default: from config)
     --tag <name>             Backup tag name (default: from config)
     --compression <level>    Compression level: LOW|MEDIUM|HIGH (default: from config)
+    --backup-path <path>     Backup destination path (default: from config)
     --notify <email>         Email address for notifications (default: from config)
     --parallel <method>      Parallel method: background|gnu (default: background)
     --dry-run                Show what would be executed without running
+    --no-cleanup             Keep temporary files after execution
     --verbose                Show detailed output
     -h, --help               Display this help message
 
@@ -88,6 +92,7 @@ CONFIGURATION
         RMAN_FORMAT            Backup format string
         RMAN_TAG               Default backup tag
         RMAN_COMPRESSION       Compression level
+        RMAN_BACKUP_PATH       Backup destination path (CLI overrides config)
         RMAN_CATALOG           RMAN catalog connection
         RMAN_LOG_DIR           Log directory (default: \${ORADBA_ORA_ADMIN_SID}/log)
         RMAN_NOTIFY_EMAIL      Email for notifications
@@ -101,6 +106,7 @@ TEMPLATE TAGS
     <FORMAT>                 Replaced with FORMAT clause
     <TAG>                    Replaced with TAG clause
     <COMPRESSION>            Replaced with COMPRESSED BACKUPSET clause
+    <BACKUP_PATH>            Replaced with backup destination path
 
 LOGGING
     Script log:  \${ORADBA_LOG}/oradba_rman_<timestamp>.log
@@ -122,8 +128,14 @@ EXAMPLES
     # With custom backup tag and notification
     ${SCRIPT_NAME} --sid PROD --rcv backup_full.rcv --tag DAILY --notify dba@example.com
 
-    # Dry run to see what would be executed
+    # With custom backup path
+    ${SCRIPT_NAME} --sid PROD --rcv backup_full.rcv --backup-path /backup/prod
+
+    # Dry run to see what would be executed (saves and displays script)
     ${SCRIPT_NAME} --sid DB01 --rcv backup_full.rcv --dry-run
+
+    # Keep temporary files for troubleshooting
+    ${SCRIPT_NAME} --sid DB01 --rcv backup_full.rcv --no-cleanup
 
     # Use GNU parallel if available
     ${SCRIPT_NAME} --sid DB01,DB02,DB03 --rcv backup_full.rcv --parallel gnu
@@ -186,6 +198,13 @@ load_rman_config() {
         log DEBUG "Loading RMAN configuration from: ${config_file}"
         # shellcheck source=/dev/null
         source "${config_file}"
+        
+        # Set backup path if specified in config (CLI overrides config)
+        if [[ -z "${OPT_BACKUP_PATH}" && -n "${RMAN_BACKUP_PATH}" ]]; then
+            OPT_BACKUP_PATH="${RMAN_BACKUP_PATH}"
+            log DEBUG "Using backup path from config: ${OPT_BACKUP_PATH}"
+        fi
+        
         return 0
     else
         log DEBUG "No RMAN configuration file found: ${config_file}"
@@ -203,12 +222,14 @@ process_template() {
     local format="${4:-${RMAN_FORMAT:-/backup/%d_%T_%U.bkp}}"
     local tag="${5:-${RMAN_TAG:-BACKUP}}"
     local compression="${6:-${RMAN_COMPRESSION:-MEDIUM}}"
+    local backup_path="${7:-${OPT_BACKUP_PATH}}"
     
     log DEBUG "Processing template: ${input_file}"
     log DEBUG "  Channels: ${channels}"
     log DEBUG "  Format: ${format}"
     log DEBUG "  Tag: ${tag}"
     log DEBUG "  Compression: ${compression}"
+    [[ -n "${backup_path}" ]] && log DEBUG "  Backup Path: ${backup_path}"
     
     # Build channel allocation block
     local channel_block=""
@@ -228,11 +249,18 @@ process_template() {
         compression_clause="AS COMPRESSED BACKUPSET"
     fi
     
+    # Build backup path clause (if specified)
+    local backup_path_clause=""
+    if [[ -n "${backup_path}" ]]; then
+        backup_path_clause="${backup_path}"
+    fi
+    
     # Process the template
     sed -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
         -e "s|<FORMAT>|${format_clause}|g" \
         -e "s|<TAG>|${tag_clause}|g" \
         -e "s|<COMPRESSION>|${compression_clause}|g" \
+        -e "s|<BACKUP_PATH>|${backup_path_clause}|g" \
         "${input_file}" > "${output_file}"
     
     log DEBUG "Template processed successfully: ${output_file}"
@@ -318,22 +346,48 @@ execute_rman_for_sid() {
         log DEBUG "  Using RMAN catalog: ${RMAN_CATALOG}"
     fi
     
-    # Dry run mode
+    # Dry run mode - enhanced with save and display
     if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+        # Save processed script to log directory
+        local saved_rcv="${log_dir}/${script_basename}_${TIMESTAMP}.rcv"
+        cp "${processed_script}" "${saved_rcv}"
+        log INFO "DRY RUN: Processed script saved to: ${saved_rcv}"
+        log INFO ""
+        log INFO "========== Generated RMAN Script Content =========="
+        cat "${processed_script}"
+        log INFO "===================================================="
+        log INFO ""
         log INFO "DRY RUN: Would execute:"
         log INFO "  ${rman_cmd} ${rman_args} @${processed_script} log=${sid_log}"
         return 0
     fi
     
-    # Execute RMAN
+    # Execute RMAN and capture output
     log INFO "  Executing RMAN script..."
-    if "${rman_cmd}" ${rman_args} @"${processed_script}" log="${sid_log}" 2>&1 | tee -a "${SCRIPT_LOG}"; then
-        log INFO "  RMAN execution successful for ${sid}"
-        return 0
-    else
-        log ERROR "  RMAN execution failed for ${sid}"
+    "${rman_cmd}" ${rman_args} @"${processed_script}" log="${sid_log}" 2>&1 | tee -a "${SCRIPT_LOG}"
+    local rman_exit_code=${PIPESTATUS[0]}
+    
+    # Always save processed script to log directory for troubleshooting
+    local saved_rcv="${log_dir}/${script_basename}_${TIMESTAMP}.rcv"
+    cp "${processed_script}" "${saved_rcv}"
+    log DEBUG "Processed script saved to: ${saved_rcv}"
+    
+    # Check for RMAN errors in log file
+    if grep -q "RMAN-00569" "${sid_log}"; then
+        log ERROR "  RMAN execution failed for ${sid}: RMAN-00569 error detected"
         log ERROR "  Check log: ${sid_log}"
+        log ERROR "  Processed script: ${saved_rcv}"
         return 1
+    elif [[ ${rman_exit_code} -ne 0 ]]; then
+        log ERROR "  RMAN execution failed for ${sid}: exit code ${rman_exit_code}"
+        log ERROR "  Check log: ${sid_log}"
+        log ERROR "  Processed script: ${saved_rcv}"
+        return 1
+    else
+        log INFO "  RMAN execution successful for ${sid}"
+        log INFO "  Log: ${sid_log}"
+        log INFO "  Processed script: ${saved_rcv}"
+        return 0
     fi
 }
 
@@ -495,8 +549,16 @@ main() {
                 OPT_PARALLEL="$2"
                 shift 2
                 ;;
+            --backup-path)
+                OPT_BACKUP_PATH="$2"
+                shift 2
+                ;;
             --dry-run)
                 OPT_DRY_RUN=true
+                shift
+                ;;
+            --no-cleanup)
+                OPT_NO_CLEANUP=true
                 shift
                 ;;
             --verbose)
@@ -593,8 +655,12 @@ main() {
         send_notification "SUCCESS" "${OPT_NOTIFY_EMAIL}"
     fi
     
-    # Cleanup
-    rm -rf "${TEMP_DIR}"
+    # Cleanup temporary directory (unless --no-cleanup flag is set)
+    if [[ "${OPT_NO_CLEANUP}" == "true" ]]; then
+        log INFO "Temporary files preserved in: ${TEMP_DIR}"
+    else
+        rm -rf "${TEMP_DIR}"
+    fi
     
     # Exit with appropriate code
     if [[ ${#FAILED_SIDS[@]} -gt 0 ]]; then
