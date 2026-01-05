@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.05
-# Revision...: 0.13.6
+# Revision...: 0.13.7
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -31,11 +31,36 @@ get_script_dir() {
 # Unified Logging System
 # ------------------------------------------------------------------------------
 
+# Color codes for TTY output (auto-detected)
+if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
+    # Colors enabled for TTY stderr
+    readonly LOG_COLOR_DEBUG="\033[0;36m"     # Cyan
+    readonly LOG_COLOR_INFO="\033[0;34m"      # Blue
+    readonly LOG_COLOR_WARN="\033[0;33m"      # Yellow
+    readonly LOG_COLOR_ERROR="\033[0;31m"     # Red
+    readonly LOG_COLOR_SUCCESS="\033[0;32m"   # Green
+    readonly LOG_COLOR_FAILURE="\033[1;31m"   # Bold Red
+    readonly LOG_COLOR_SECTION="\033[1;37m"   # Bold White
+    readonly LOG_COLOR_RESET="\033[0m"        # Reset
+else
+    # No colors for non-TTY or when disabled
+    readonly LOG_COLOR_DEBUG=""
+    readonly LOG_COLOR_INFO=""
+    readonly LOG_COLOR_WARN=""
+    readonly LOG_COLOR_ERROR=""
+    readonly LOG_COLOR_SUCCESS=""
+    readonly LOG_COLOR_FAILURE=""
+    readonly LOG_COLOR_SECTION=""
+    readonly LOG_COLOR_RESET=""
+fi
+
 # Unified logging function with level-based filtering
 # Usage: log <LEVEL> <message>
-# Levels: DEBUG, INFO, WARN, ERROR
+# Levels: DEBUG, INFO, WARN, ERROR, SUCCESS, FAILURE, SECTION
 # Environment variables:
 #   ORADBA_LOG_LEVEL - Minimum log level (DEBUG|INFO|WARN|ERROR, default: INFO)
+#   ORADBA_LOG_FILE - Optional log file path for persistent logging
+#   ORADBA_NO_COLOR - Set to 1 to disable color output
 #   DEBUG=1 - Legacy support, enables DEBUG level
 # All output goes to stderr for clean separation from script output
 log() {
@@ -56,10 +81,13 @@ log() {
     local min_level_value=0
     
     case "${level^^}" in
-        DEBUG) level_value=0 ;;
-        INFO)  level_value=1 ;;
-        WARN)  level_value=2 ;;
-        ERROR) level_value=3 ;;
+        DEBUG)   level_value=0 ;;
+        INFO)    level_value=1 ;;
+        WARN)    level_value=2 ;;
+        ERROR)   level_value=3 ;;
+        SUCCESS) level_value=1 ;; # Same as INFO
+        FAILURE) level_value=3 ;; # Same as ERROR
+        SECTION) level_value=1 ;; # Same as INFO
         *) level_value=1 ;; # Default to INFO for unknown levels
     esac
     
@@ -73,7 +101,34 @@ log() {
     
     # Only log if message level meets minimum threshold
     if [[ ${level_value} -ge ${min_level_value} ]]; then
-        echo "[${level^^}] $(date '+%Y-%m-%d %H:%M:%S') - ${message}" >&2
+        # Select color based on level
+        local color=""
+        case "${level^^}" in
+            DEBUG)   color="${LOG_COLOR_DEBUG}" ;;
+            INFO)    color="${LOG_COLOR_INFO}" ;;
+            WARN)    color="${LOG_COLOR_WARN}" ;;
+            ERROR)   color="${LOG_COLOR_ERROR}" ;;
+            SUCCESS) color="${LOG_COLOR_SUCCESS}" ;;
+            FAILURE) color="${LOG_COLOR_FAILURE}" ;;
+            SECTION) color="${LOG_COLOR_SECTION}" ;;
+        esac
+        
+        # Format log message
+        local timestamp
+        timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+        local log_line="[${level^^}] ${timestamp} - ${message}"
+        
+        # Output to stderr with color if enabled
+        if [[ -n "${color}" ]]; then
+            echo -e "${color}${log_line}${LOG_COLOR_RESET}" >&2
+        else
+            echo "${log_line}" >&2
+        fi
+        
+        # Optional file logging (without color codes)
+        if [[ -n "${ORADBA_LOG_FILE:-}" ]]; then
+            echo "${log_line}" >> "${ORADBA_LOG_FILE}"
+        fi
     fi
 }
 
@@ -865,6 +920,28 @@ show_sqlpath() {
     echo "==================="
     local count=1
     IFS=':' read -ra paths <<< "${SQLPATH}"
+    for path in "${paths[@]}"; do
+        if [[ -d "${path}" ]]; then
+            printf "%2d. %-60s [✓]\n" "${count}" "${path}"
+        else
+            printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
+        fi
+        ((count++))
+    done
+}
+
+# Display current PATH directories (mirrors show_sqlpath output)
+# Usage: show_path
+show_path() {
+    if [[ -z "${PATH}" ]]; then
+        echo "PATH is not set"
+        return 1
+    fi
+    
+    echo "PATH Directories:"
+    echo "================="
+    local count=1
+    IFS=':' read -ra paths <<< "${PATH}"
     for path in "${paths[@]}"; do
         if [[ -d "${path}" ]]; then
             printf "%2d. %-60s [✓]\n" "${count}" "${path}"
