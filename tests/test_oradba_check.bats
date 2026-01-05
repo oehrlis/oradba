@@ -19,6 +19,13 @@ setup() {
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
     CHECK_SCRIPT="${PROJECT_ROOT}/src/bin/oradba_check.sh"
     
+    # Read expected version from VERSION file
+    if [[ -f "${PROJECT_ROOT}/VERSION" ]]; then
+        EXPECTED_VERSION=$(head -1 "${PROJECT_ROOT}/VERSION")
+    else
+        EXPECTED_VERSION="0.0.0"
+    fi
+    
     TEST_TEMP_DIR="$(mktemp -d)"
 }
 
@@ -52,7 +59,8 @@ teardown() {
 @test "oradba_check.sh --version displays version" {
     run "$CHECK_SCRIPT" --version
     [ "$status" -eq 0 ]
-    [[ "$output" =~ 0.14 ]]
+    # Check that output contains the expected version from VERSION file
+    [[ "$output" =~ ${EXPECTED_VERSION} ]]
 }
 
 @test "oradba_check.sh handles invalid option" {
