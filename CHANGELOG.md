@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- add new alias *pth* using `show_path` to show PATH structure similar to *sqh* respectively `show_sqlpath`.
+
 ## [0.13.5] - 2026-01-05
 
 ### Added
