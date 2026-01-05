@@ -42,7 +42,12 @@
  oraup           --> Show Oracle environment overview (all DBs/listeners)
  u               --> Short alias for oraup
  pmon            --> Show running Oracle processes (grep pmon)
+
+ INFORMATION DISPLAY
+ -------------------------------------------------------------------------------
  sqa             --> Show SQLPATH directories
+ pth             --> Show PATH directories
+ cfg             --> Show OraDBA configuration hierarchy
 
  LISTENER OPERATIONS
  -------------------------------------------------------------------------------

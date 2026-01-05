@@ -234,6 +234,7 @@ psg                            # ps -ef | grep
 alig                           # alias | grep -i
 sqa                            # show_sqlpath
 pth                            # show_path
+cfg                            # show_config
 save_cron                      # Backup crontab
 ```
 

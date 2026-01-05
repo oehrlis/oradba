@@ -952,6 +952,81 @@ show_path() {
     done
 }
 
+# Display OraDBA configuration hierarchy and load order
+# Usage: show_config
+show_config() {
+    local sid="${ORACLE_SID:-<not set>}"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    
+    echo "OraDBA Configuration Hierarchy:"
+    echo "================================"
+    echo "SID: ${sid}"
+    echo "Config Directory: ${config_dir}"
+    echo ""
+    echo "Load Order (later configs override earlier):"
+    echo "---------------------------------------------"
+    
+    local count=1
+    local config_file
+    local status
+    
+    # 1. Core configuration (required)
+    config_file="${config_dir}/oradba_core.conf"
+    if [[ -f "${config_file}" ]]; then
+        status="[✓ loaded]"
+    else
+        status="[✗ MISSING - REQUIRED]"
+    fi
+    printf "%2d. %-50s %s\n" "${count}" "oradba_core.conf" "${status}"
+    ((count++))
+    
+    # 2. Standard configuration (required)
+    config_file="${config_dir}/oradba_standard.conf"
+    if [[ -f "${config_file}" ]]; then
+        status="[✓ loaded]"
+    else
+        status="[✗ MISSING - REQUIRED]"
+    fi
+    printf "%2d. %-50s %s\n" "${count}" "oradba_standard.conf" "${status}"
+    ((count++))
+    
+    # 3. Customer configuration (optional)
+    config_file="${config_dir}/oradba_customer.conf"
+    if [[ -f "${config_file}" ]]; then
+        status="[✓ loaded]"
+    else
+        status="[- not configured]"
+    fi
+    printf "%2d. %-50s %s\n" "${count}" "oradba_customer.conf (optional)" "${status}"
+    ((count++))
+    
+    # 4. Default SID configuration (optional)
+    config_file="${config_dir}/sid._DEFAULT_.conf"
+    if [[ -f "${config_file}" ]]; then
+        status="[✓ loaded]"
+    else
+        status="[- not configured]"
+    fi
+    printf "%2d. %-50s %s\n" "${count}" "sid._DEFAULT_.conf (optional)" "${status}"
+    ((count++))
+    
+    # 5. SID-specific configuration (optional)
+    if [[ "${sid}" != "<not set>" ]]; then
+        config_file="${config_dir}/sid.${sid}.conf"
+        if [[ -f "${config_file}" ]]; then
+            status="[✓ loaded]"
+        else
+            status="[- not configured]"
+        fi
+        printf "%2d. %-50s %s\n" "${count}" "sid.${sid}.conf (optional)" "${status}"
+    else
+        printf "%2d. %-50s %s\n" "${count}" "sid.<SID>.conf (optional)" "[- no SID set]"
+    fi
+    
+    echo ""
+    echo "For more information: oradba help config"
+}
+
 # Add directory to SQLPATH
 # Usage: add_to_sqlpath <directory>
 add_to_sqlpath() {

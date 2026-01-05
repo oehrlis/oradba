@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - add new alias *pth* using `show_path` to show PATH structure similar to *sqh* respectively `show_sqlpath`.
+- add new alias *cfg* using `show_config` to display OraDBA configuration hierarchy and load order
+  - Shows 5-level configuration hierarchy: core → standard → customer → default → SID-specific
+  - Validates which config files exist and were loaded
+  - Status indicators: `[✓ loaded]`, `[✗ MISSING - REQUIRED]`, `[- not configured]`
+  - Helps troubleshoot configuration precedence and missing files
+- **Consolidated Information Display Aliases**:
+  - Grouped `sqa` (SQLPATH), `pth` (PATH), and `cfg` (config) together
+  - All three use similar output format with validation markers
+  - Updated documentation with new "Information Display" section
 - **Standalone Prerequisites Check Script**: `oradba_check.sh` now available as release artifact
   - Can be downloaded and run BEFORE installation to validate system prerequisites
   - Available from GitHub releases: `oradba_check.sh`

@@ -348,6 +348,70 @@ ADRCI> set home diag/rdbms/free/FREE
 ADRCI> show alert -tail 50
 ```
 
+## Information Display Aliases
+
+OraDBA provides convenient aliases to display important paths and configuration hierarchy:
+
+### Path and Configuration Display
+
+| Alias | Description                   | Function       |
+|-------|-------------------------------|----------------|
+| `sqa` | Show SQLPATH directories      | `show_sqlpath` |
+| `pth` | Show PATH directories         | `show_path`    |
+| `cfg` | Show OraDBA config hierarchy  | `show_config`  |
+
+**Usage Examples:**
+
+```bash
+# Display SQLPATH directories with validation
+sqa
+# Output:
+# SQLPATH Directories:
+# ===================
+#  1. /opt/oracle/local/oradba/sql                            [✓]
+#  2. /opt/oracle/product/23ai/dbhome_1/sqlplus/admin         [✓]
+#  3. /opt/oracle/product/23ai/dbhome_1/rdbms/admin           [✓]
+
+# Display PATH directories
+pth
+# Output:
+# PATH Directories:
+# =================
+#  1. /opt/oracle/product/23ai/dbhome_1/bin                   [✓]
+#  2. /usr/local/bin                                          [✓]
+#  3. /usr/bin                                                [✓]
+
+# Display OraDBA configuration load order
+cfg
+# Output:
+# OraDBA Configuration Hierarchy:
+# ================================
+# SID: FREE
+# Config Directory: /opt/oracle/local/oradba/etc
+# 
+# Load Order (later configs override earlier):
+# ---------------------------------------------
+#  1. oradba_core.conf                                [✓ loaded]
+#  2. oradba_standard.conf                            [✓ loaded]
+#  3. oradba_customer.conf (optional)                 [- not configured]
+#  4. sid._DEFAULT_.conf (optional)                   [✓ loaded]
+#  5. sid.FREE.conf (optional)                        [✓ loaded]
+```
+
+**Features:**
+
+- **Validation**: Shows which directories/files exist with `[✓]` or are missing with `[✗]`
+- **Hierarchy**: `cfg` displays the 5-level configuration hierarchy and load order
+- **Status indicators**:
+  - `[✓ loaded]` - File exists and was loaded
+  - `[✗ MISSING - REQUIRED]` - Required file not found
+  - `[- not configured]` - Optional file not present
+
+These aliases help troubleshoot:
+- Path issues (missing directories in PATH/SQLPATH)
+- Configuration precedence (which config file will take priority)
+- Missing required configuration files
+
 ## PDB Aliases (Auto-Generated)
 
 For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database (PDB).
@@ -404,8 +468,9 @@ Additional convenience aliases:
 | `lr`        | List reverse time order | `ls -ltr`                            |
 | `lsl`       | List recent 20 files    | `ls -lrt \| tail -n 20`              |
 | `psg`       | Search processes        | `ps -ef \| grep`                     |
-| `sqa`       | Show SQLPATH            | `show_sqlpath`                       |
-| `pth`       | Show PATH entries       | `show_path`                          |
+| `sqa`       | Show SQLPATH directories | `show_sqlpath`                      |
+| `pth`       | Show PATH directories    | `show_path`                         |
+| `cfg`       | Show config hierarchy    | `show_config`                       |
 | `save_cron` | Backup crontab          | `crontab -l > ~/crontab.txt.$(date)` |
 
 ## rlwrap Integration
