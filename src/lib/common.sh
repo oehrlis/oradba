@@ -30,9 +30,6 @@ get_script_dir() {
 # ------------------------------------------------------------------------------
 # Unified Logging System
 # ------------------------------------------------------------------------------
-# Prevent re-initialization if already sourced
-if [[ -z "${ORADBA_COMMON_SOURCED:-}" ]]; then
-    export ORADBA_COMMON_SOURCED="true"
 
 # Initialize logging infrastructure
 # Creates log directory and sets up log file paths
@@ -92,7 +89,8 @@ init_session_log() {
     fi
     
     # Create session log file
-    local session_log="${log_dir}/session_$(date +%Y%m%d_%H%M%S)_$$.log"
+    local session_log
+    session_log="${log_dir}/session_$(date +%Y%m%d_%H%M%S)_$$.log"
     export ORADBA_SESSION_LOG="$session_log"
     
     # Write session header
@@ -119,27 +117,32 @@ EOF
 }
 
 # Color codes for TTY output (auto-detected)
-if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
-    # Colors enabled for TTY stderr
-    readonly LOG_COLOR_DEBUG="\033[0;36m"     # Cyan
-    readonly LOG_COLOR_INFO="\033[0;34m"      # Blue
-    readonly LOG_COLOR_WARN="\033[0;33m"      # Yellow
-    readonly LOG_COLOR_ERROR="\033[0;31m"     # Red
-    readonly LOG_COLOR_SUCCESS="\033[0;32m"   # Green
-    readonly LOG_COLOR_FAILURE="\033[1;31m"   # Bold Red
-    readonly LOG_COLOR_SECTION="\033[1;37m"   # Bold White
-    readonly LOG_COLOR_RESET="\033[0m"        # Reset
-else
-    # No colors for non-TTY or when disabled
-    readonly LOG_COLOR_DEBUG=""
-    readonly LOG_COLOR_INFO=""
-    readonly LOG_COLOR_WARN=""
-    readonly LOG_COLOR_ERROR=""
-    readonly LOG_COLOR_SUCCESS=""
-    readonly LOG_COLOR_FAILURE=""
-    readonly LOG_COLOR_SECTION=""
-    readonly LOG_COLOR_RESET=""
-fi
+# Prevent re-initialization if already sourced
+if [[ -z "${ORADBA_COMMON_SOURCED:-}" ]]; then
+    export ORADBA_COMMON_SOURCED="true"
+    
+    if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
+        # Colors enabled for TTY stderr
+        readonly LOG_COLOR_DEBUG="\033[0;36m"     # Cyan
+        readonly LOG_COLOR_INFO="\033[0;34m"      # Blue
+        readonly LOG_COLOR_WARN="\033[0;33m"      # Yellow
+        readonly LOG_COLOR_ERROR="\033[0;31m"     # Red
+        readonly LOG_COLOR_SUCCESS="\033[0;32m"   # Green
+        readonly LOG_COLOR_FAILURE="\033[1;31m"   # Bold Red
+        readonly LOG_COLOR_SECTION="\033[1;37m"   # Bold White
+        readonly LOG_COLOR_RESET="\033[0m"        # Reset
+    else
+        # No colors for non-TTY or when disabled
+        readonly LOG_COLOR_DEBUG=""
+        readonly LOG_COLOR_INFO=""
+        readonly LOG_COLOR_WARN=""
+        readonly LOG_COLOR_ERROR=""
+        readonly LOG_COLOR_SUCCESS=""
+        readonly LOG_COLOR_FAILURE=""
+        readonly LOG_COLOR_SECTION=""
+        readonly LOG_COLOR_RESET=""
+    fi
+fi  # End of ORADBA_COMMON_SOURCED guard
 
 # Unified logging function with level-based filtering
 # Usage: log <LEVEL> <message>
@@ -281,8 +284,6 @@ log_debug() {
     _show_deprecation_warning "log_debug" "log DEBUG"
     log DEBUG "$*"
 }
-
-fi  # End of ORADBA_COMMON_SOURCED guard
 
 # ------------------------------------------------------------------------------
 # Function: execute_db_query
