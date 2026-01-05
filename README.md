@@ -5,7 +5,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/oehrlis/oradba)](https://github.com/oehrlis/oradba/releases)
 
-A comprehensive toolset for Oracle Database administration and operations, designed for lab and engineering environments.
+A comprehensive toolset for Oracle Database administration and operations,
+designed for lab and engineering environments such as Oracle AI Database Free
+Docker containers, Oracle databases in VM environments, and OCI-based lab infrastructures.
 
 ## Features
 
@@ -28,7 +30,8 @@ A comprehensive toolset for Oracle Database administration and operations, desig
 
 ### Installation
 
-Download and run the self-contained installer:
+Use the self-contained installer (see [Installation Guide](https://code.oradba.ch/oradba/02-installation/)
+for alternative methods):
 
 ```bash
 # Install latest version (auto-detects ORACLE_BASE)
@@ -140,7 +143,7 @@ Complete user guides available in multiple formats:
   Download complete guide
 - **[User Guide (HTML)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** -
   Single-page HTML
-- **[Online Documentation](src/doc/README.md)** - Browse chapters individually
+- **[Online Documentation](https://code.oradba.ch/oradba)** - Browse chapters individually
 
 **User Guide Contents:**
 
@@ -205,7 +208,7 @@ dbstatus.sh
 ```
 
 See the **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** or
-**[online documentation](src/doc/README.md)** for complete features and usage.
+**[online documentation](https://code.oradba.ch/oradba)** for complete features and usage.
 
 ### Quick Development Commands
 
