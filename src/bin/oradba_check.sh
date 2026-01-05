@@ -22,7 +22,7 @@ set -o pipefail
 
 # Script metadata
 SCRIPT_NAME="$(basename "$0")"
-SCRIPT_VERSION="0.13.7"
+SCRIPT_VERSION="0.14.0"
 
 # Colors for output
 if [[ -t 1 ]]; then

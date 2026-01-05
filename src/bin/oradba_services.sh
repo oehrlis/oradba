@@ -5,8 +5,8 @@
 # Name.......: oradba_services.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
-# Revision...: 0.10.0
+# Date.......: 2026.01.05
+# Revision...: 0.14.0
 # Purpose....: Orchestrate Oracle database and listener services
 # Notes......: Uses oradba_dbctl.sh and oradba_lsnrctl.sh for operations
 #              Can be configured via oradba_services.conf
@@ -46,6 +46,50 @@ SPECIFIC_DBS=""
 SPECIFIC_LISTENERS=""
 DB_OPTIONS=""
 LSNR_OPTIONS=""
+
+# ------------------------------------------------------------------------------
+# Functions
+# ------------------------------------------------------------------------------
+
+# Show usage
+usage() {
+    cat << EOF
+Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS]
+
+Actions:
+    start       Start Oracle services (listener and/or database)
+    stop        Stop Oracle services (database and/or listener)
+    restart     Restart Oracle services
+    status      Show status of Oracle services
+
+Options:
+    -f, --force             Force operation without confirmation
+    -c, --config FILE       Use alternate configuration file
+    -h, --help              Show this help message
+
+Configuration:
+    Default config: ${ORADBA_BASE}/etc/oradba_services.conf
+    
+    Variables:
+        STARTUP_ORDER          Service startup order (default: listener,database)
+        SHUTDOWN_ORDER         Service shutdown order (default: database,listener)
+        SPECIFIC_DBS           Specific database SIDs to control
+        SPECIFIC_LISTENERS     Specific listeners to control
+        DB_OPTIONS             Additional options for database control
+        LSNR_OPTIONS           Additional options for listener control
+
+Examples:
+    ${SCRIPT_NAME} start                    # Start all services
+    ${SCRIPT_NAME} stop --force             # Stop all without confirmation
+    ${SCRIPT_NAME} restart                  # Restart all services
+    ${SCRIPT_NAME} status                   # Show status
+
+Environment Variables:
+    ORADBA_LOG                 Log directory (default: /var/log/oracle)
+
+EOF
+    exit 1
+}
 
 # ------------------------------------------------------------------------------
 # Logging setup
