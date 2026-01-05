@@ -25,11 +25,15 @@ setup() {
     
     # Copy necessary files
     cp "${PROJECT_ROOT}/src/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
+    cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
     export ORADBA_PREFIX="${TEST_DIR}"
     export ORADBA_CONFIG_DIR="${TEST_DIR}/etc"
+    
+    # Source common.sh for tests that need functions
+    source "${TEST_DIR}/lib/common.sh"
 }
 
 # Teardown function - runs after each test
@@ -199,7 +203,7 @@ teardown() {
     export ORADBA_AUTO_CREATE_SID_CONFIG=true
     
     # Load config for TESTDB - should trigger auto-creation
-    run bash -c "source ${TEST_DIR}/lib/common.sh && load_config 'TESTDB'"
+    run load_config "TESTDB"
     assert_success
     
     # Verify config was created
@@ -241,12 +245,9 @@ teardown() {
     [[ " ${ORADBA_REALSIDLIST} " =~ " PROD " ]]
     
     # Test partial match doesn't work (prevents false positives)
-    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " FRE " ]]'
-    assert_failure
-    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " CDB " ]]'
-    assert_failure
-    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " PRO " ]]'
-    assert_failure
+    ! [[ " ${ORADBA_REALSIDLIST} " =~ " FRE " ]]
+    ! [[ " ${ORADBA_REALSIDLIST} " =~ " CDB " ]]
+    ! [[ " ${ORADBA_REALSIDLIST} " =~ " PRO " ]]
 }
 
 @test "SID config auto-creation triggers when file doesn't exist" {
@@ -260,7 +261,7 @@ teardown() {
     rm -f "${TEST_DIR}/etc/sid.NEWDB.conf"
     
     # Load config - should trigger auto-creation
-    run bash -c "source ${TEST_DIR}/lib/common.sh && load_config 'NEWDB'"
+    run load_config "NEWDB"
     assert_success
     
     # Verify auto-creation was triggered
