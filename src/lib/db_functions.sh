@@ -5,8 +5,8 @@
 # Name.......: db_functions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
-# Revision...: 0.10.0
+# Date.......: 2026.01.05
+# Revision...: 0.13.6
 # Purpose....: Database query and status functions for Oracle databases
 # Notes......: This library provides reusable functions to query database
 #              information from v$ views at different database states.
@@ -306,7 +306,7 @@ show_database_status() {
     instance_info=$(query_instance_info)
     
     if [[ -z "$instance_info" ]]; then
-        log_error "Unable to query instance information"
+        log ERROR "Unable to query instance information"
         return 1
     fi
     
@@ -341,7 +341,7 @@ show_database_status() {
                 printf "%-15s: %s (Instance: %s)\n" "DB_UNIQUE_NAME" "$db_unique_name" "$instance_name"
             fi
         else
-            log_debug "query_database_info returned empty for open_mode: $open_mode"
+            log DEBUG "query_database_info returned empty for open_mode: $open_mode"
         fi
     fi
     

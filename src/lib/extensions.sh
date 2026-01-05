@@ -5,8 +5,8 @@
 # Name.......: extensions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.04
-# Revision...: 0.13.3
+# Date.......: 2026.01.05
+# Revision...: 0.13.6
 # Purpose....: Extension system library for OraDBA
 # Notes......: Provides functions for discovering, loading, and managing
 #              OraDBA extensions. Extensions are directories parallel to
@@ -31,11 +31,11 @@ discover_extensions() {
     local extensions=()
     
     if [[ ! -d "${base_dir}" ]]; then
-        log_debug "Extension base directory not found: ${base_dir}"
+        log DEBUG "Extension base directory not found: ${base_dir}"
         return 0
     fi
     
-    log_debug "Scanning for extensions in: ${base_dir}"
+    log DEBUG "Scanning for extensions in: ${base_dir}"
     
     # Find directories with .extension marker
     for dir in "${base_dir}"/*; do
@@ -47,18 +47,18 @@ discover_extensions() {
         
         # Skip oradba itself (the main OraDBA installation)
         if [[ "${dir_name}" == "oradba" ]] || [[ "${dir}" == "${ORADBA_BASE}" ]]; then
-            log_debug "Skipping main OraDBA directory: ${dir_name}"
+            log DEBUG "Skipping main OraDBA directory: ${dir_name}"
             continue
         fi
         
         # Check for .extension marker file
         if [[ -f "${dir}/.extension" ]]; then
             extensions+=("${dir}")
-            log_debug "Found extension with metadata: ${dir_name}"
+            log DEBUG "Found extension with metadata: ${dir_name}"
         elif [[ -d "${dir}/bin" ]] || [[ -d "${dir}/sql" ]] || [[ -d "${dir}/rcv" ]]; then
             # Also discover extensions without metadata if they have expected directories
             extensions+=("${dir}")
-            log_debug "Found extension without metadata: ${dir_name}"
+            log DEBUG "Found extension without metadata: ${dir_name}"
         fi
     done
     
@@ -259,7 +259,7 @@ load_extensions() {
     local extensions=()
     local ext_path
     
-    log_debug "Starting extension discovery and loading..."
+    log DEBUG "Starting extension discovery and loading..."
     
     # Get all extensions (discovered + manual)
     while IFS= read -r ext_path; do
@@ -268,18 +268,18 @@ load_extensions() {
     
     # Check if any extensions found
     if [[ ${#extensions[@]} -eq 0 ]]; then
-        log_debug "No extensions found"
+        log DEBUG "No extensions found"
         return 0
     fi
     
-    log_debug "Found ${#extensions[@]} extension(s)"
+    log DEBUG "Found ${#extensions[@]} extension(s)"
     
     # Sort by priority and load
     while IFS= read -r ext_path; do
         load_extension "${ext_path}"
     done < <(sort_extensions_by_priority "${extensions[@]}")
     
-    log_debug "Extension loading complete"
+    log DEBUG "Extension loading complete"
 }
 
 # Load single extension
@@ -291,7 +291,7 @@ load_extension() {
     
     # Validate path
     if [[ ! -d "${ext_path}" ]]; then
-        log_warn "Extension directory not found: ${ext_path}"
+        log WARN "Extension directory not found: ${ext_path}"
         return 1
     fi
     
@@ -300,17 +300,17 @@ load_extension() {
     
     # Check if disabled via config
     if ! is_extension_enabled "${ext_name}" "${ext_path}"; then
-        log_debug "Extension '${ext_name}' is disabled, skipping"
+        log DEBUG "Extension '${ext_name}' is disabled, skipping"
         return 0
     fi
     
-    log_debug "Loading extension: ${ext_name} (${ext_path})"
+    log DEBUG "Loading extension: ${ext_name} (${ext_path})"
     
     # Add to PATH (bin directory)
     if [[ -d "${ext_path}/bin" ]]; then
         # Add to beginning of PATH (after ORADBA_BIN)
         export PATH="${ext_path}/bin:${PATH}"
-        log_debug "  Added ${ext_name}/bin to PATH"
+        log DEBUG "  Added ${ext_name}/bin to PATH"
     fi
     
     # Add to SQLPATH (sql directory)
@@ -321,13 +321,13 @@ load_extension() {
         else
             export SQLPATH="${SQLPATH:+${SQLPATH}:}${ext_path}/sql"
         fi
-        log_debug "  Added ${ext_name}/sql to SQLPATH"
+        log DEBUG "  Added ${ext_name}/sql to SQLPATH"
     fi
     
     # Add RMAN search path (rcv directory)
     if [[ -d "${ext_path}/rcv" ]]; then
         export ORADBA_RCV_PATHS="${ORADBA_RCV_PATHS:+${ORADBA_RCV_PATHS}:}${ext_path}/rcv"
-        log_debug "  Added ${ext_name}/rcv to RMAN search paths"
+        log DEBUG "  Added ${ext_name}/rcv to RMAN search paths"
     fi
     
     # Create navigation alias (cd<extname> or cde<extname>)
@@ -341,9 +341,9 @@ load_extension() {
     local version
     version=$(get_extension_version "${ext_path}")
     if [[ "${version}" != "unknown" ]]; then
-        log_info "Loaded extension: ${ext_name} (v${version})"
+        log INFO "Loaded extension: ${ext_name} (v${version})"
     else
-        log_info "Loaded extension: ${ext_name}"
+        log INFO "Loaded extension: ${ext_name}"
     fi
     
     return 0
@@ -368,7 +368,7 @@ create_extension_alias() {
         alias "${alias_name}=cd '${ext_path}'"
     fi
     
-    log_debug "  Created alias: ${alias_name}"
+    log DEBUG "  Created alias: ${alias_name}"
 }
 
 # ------------------------------------------------------------------------------
@@ -444,7 +444,7 @@ show_extension_info() {
     local ext_path ext_name version desc author priority enabled
     
     if [[ -z "${ext_identifier}" ]]; then
-        log_error "Extension name or path required"
+        log ERROR "Extension name or path required"
         return 1
     fi
     
@@ -462,7 +462,7 @@ show_extension_info() {
     fi
     
     if [[ -z "${ext_path}" ]] || [[ ! -d "${ext_path}" ]]; then
-        log_error "Extension not found: ${ext_identifier}"
+        log ERROR "Extension not found: ${ext_identifier}"
         return 1
     fi
     
