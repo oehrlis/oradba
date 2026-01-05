@@ -9,6 +9,7 @@ This directory contains ready-to-use extension templates that can be extracted t
 A complete example extension demonstrating the OraDBA extension system.
 
 **Contents:**
+
 - `customer/bin/` - Example executable scripts (auto-added to PATH)
 - `customer/etc/` - Configuration files
 - `customer/sql/` - SQL scripts (auto-added to SQLPATH)
@@ -94,6 +95,7 @@ OraDBA automatically discovers extensions in:
 2. `${ORADBA_PREFIX}/extensions/` - System-wide extensions
 
 **Discovery rules:**
+
 - Looks for directories with `bin/`, `sql/`, `rcv/`, or `etc/` subdirectories
 - Reads `.extension` metadata file if present
 - Skips hidden directories (starting with `.`)
@@ -167,12 +169,13 @@ See `doc/examples/extensions/` in the OraDBA repository for complete working exa
 ## Documentation
 
 For more information about the extension system:
+
 - [Extension System Guide](../../doc/extension-system.md)
 - [API Documentation](../../doc/api.md#extension-system)
 - User Guide: `oradba help extensions`
 
 ## Support
 
-- GitHub: https://github.com/oehrlis/oradba
-- Documentation: https://code.oradba.ch/oradba
-- Issues: https://github.com/oehrlis/oradba/issues
+- GitHub: <https://github.com/oehrlis/oradba>
+- Documentation: <https://code.oradba.ch/oradba>
+- Issues: <https://github.com/oehrlis/oradba/issues>

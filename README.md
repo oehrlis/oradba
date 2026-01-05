@@ -46,6 +46,7 @@ chmod +x oradba_check.sh
 ```
 
 The check script validates:
+
 - Required system tools (bash, tar, awk, sed, grep, find, sort)
 - Checksum utilities (sha256sum or shasum)
 - Base64 encoder (for installer with embedded payload)
@@ -172,6 +173,7 @@ curl -sL https://github.com/oehrlis/oradba/releases/latest/download/oradba_check
 ```
 
 The check script validates:
+
 - System prerequisites and tools availability
 - Disk space for installation
 - Oracle environment configuration
@@ -179,6 +181,7 @@ The check script validates:
 - OraDBA installation integrity
 
 Common issues:
+
 - **Missing tools**: Install required packages (tar, awk, sed, grep, find, base64)
 - **Insufficient disk space**: Ensure at least 100MB free in installation directory
 - **Oracle environment**: Set ORACLE_HOME, ORACLE_BASE, or configure oratab

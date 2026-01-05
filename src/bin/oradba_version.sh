@@ -5,8 +5,8 @@
 # Name.......: oradba_version.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.11.0
+# Date.......: 2026.01.05
+# Revision...: 0.14.0
 # Purpose....: Version and integrity checking utility for OraDBA installation
 # Notes......: Provides version info, integrity verification, and update checking
 # Reference..: https://github.com/oehrlis/oradba
@@ -150,7 +150,16 @@ check_integrity() {
     # Always check for additional files regardless of integrity check result
     check_additional_files
     
-    return ${integrity_result}
+    # Check extension checksums if available
+    check_extension_checksums
+    local extension_status=$?
+    
+    # Return worst status (integrity or extension check failure)
+    if [[ ${integrity_result} -ne 0 ]] || [[ ${extension_status} -ne 0 ]]; then
+        return 1
+    fi
+    
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -195,6 +204,88 @@ check_additional_files() {
             echo "  ${file}"
         done
     fi
+}
+
+# ------------------------------------------------------------------------------
+# Check extension checksums if available
+# ------------------------------------------------------------------------------
+check_extension_checksums() {
+    local extensions_dir="${BASE_DIR}/extensions"
+    local checked_count=0
+    local failed_count=0
+    
+    # Check if extensions directory exists
+    if [[ ! -d "${extensions_dir}" ]]; then
+        return 0
+    fi
+    
+    # Look for extension checksum files
+    local checksum_files=()
+    while IFS= read -r -d '' checksum_file; do
+        checksum_files+=("${checksum_file}")
+    done < <(find "${extensions_dir}" -maxdepth 2 -type f -name ".*.checksum" -print0)
+    
+    # Return if no checksum files found
+    if [[ ${#checksum_files[@]} -eq 0 ]]; then
+        return 0
+    fi
+    
+    echo ""
+    echo -e "${BLUE}Extension Integrity Checks:${NC}"
+    
+    # Check each extension checksum file
+    for checksum_file in "${checksum_files[@]}"; do
+        local extension_dir
+        extension_dir=$(dirname "${checksum_file}")
+        local extension_name
+        extension_name=$(basename "${extension_dir}")
+        
+        # Extract extension name from checksum filename (e.g., .myext.checksum -> myext)
+        local checksum_basename
+        checksum_basename=$(basename "${checksum_file}")
+        local ext_name="${checksum_basename#.}"
+        ext_name="${ext_name%.checksum}"
+        
+        ((checked_count++))
+        
+        # Change to extension directory for relative paths
+        cd "${extension_dir}" || continue
+        
+        # Verify checksums
+        local verify_output
+        verify_output=$(sha256sum -c "${checksum_file}" 2>&1)
+        local verify_status=$?
+        
+        if [[ ${verify_status} -eq 0 ]]; then
+            local file_count
+            file_count=$(grep -c '^[^#]' "${checksum_file}")
+            echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
+        else
+            echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
+            ((failed_count++))
+            
+            # Show which files failed
+            while IFS= read -r line; do
+                if [[ "$line" =~ FAILED ]]; then
+                    local failed_file
+                    failed_file=$(echo "$line" | cut -d: -f1)
+                    echo "      ${failed_file}: MODIFIED or MISSING"
+                fi
+            done <<< "$verify_output"
+        fi
+    done
+    
+    # Return to base directory
+    cd "${BASE_DIR}" || return 1
+    
+    # Return status
+    if [[ ${failed_count} -gt 0 ]]; then
+        echo ""
+        echo -e "${YELLOW}⚠ ${failed_count} of ${checked_count} extensions failed integrity check${NC}"
+        return 1
+    fi
+    
+    return 0
 }
 
 # ------------------------------------------------------------------------------

@@ -7,19 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-01-05
+
+### 🔴 CRITICAL BUG FIXES
+
+- **RMAN Wrapper False Success Bug** (#56 Phase 6): Fixed critical production bug where `oradba_rman.sh` reported success even when RMAN backups failed
+  - **Root Cause**: RMAN always returns exit code 0, and piping to `tee` masked the exit code
+  - **Solution**: Capture RMAN exit code using `${PIPESTATUS[0]}` before pipe masks it
+  - **Error Detection**: Check log file for `RMAN-00569` error pattern (standard RMAN error indicator)
+  - **Impact**: Prevents silent backup failures in production environments
+  - **Example Failure**:
+    ```
+    # Script incorrectly reported:
+    [INFO] RMAN execution successful for FREE
+    [INFO] Successful: 1, Failed: 0
+    
+    # But log showed:
+    RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============
+    RMAN-00558: error encountered while parsing input commands
+    ```
+
 ### Added
 
-- add new alias *pth* using `show_path` to show PATH structure similar to *sqh* respectively `show_sqlpath`.
-- add new alias *cfg* using `show_config` to display OraDBA configuration hierarchy and load order
-  - Shows 5-level configuration hierarchy: core → standard → customer → default → SID-specific
-  - Validates which config files exist and were loaded
-  - Status indicators: `[✓ loaded]`, `[✗ MISSING - REQUIRED]`, `[- not configured]`
-  - Helps troubleshoot configuration precedence and missing files
-- **Consolidated Information Display Aliases**:
-  - Grouped `sqa` (SQLPATH), `pth` (PATH), and `cfg` (config) together
+- **RMAN Backup Path Configuration**: Add backup destination path support
+  - New config variable: `RMAN_BACKUP_PATH` in per-SID config files
+  - New CLI parameter: `--backup-path <path>` (overrides config)
+  - New template tag: `<BACKUP_PATH>` for RMAN scripts
+  - CLI parameter takes precedence over config file
+  - **Example**: `oradba_rman.sh --sid PROD --rcv backup_full.rcv --backup-path /backup/prod`
+
+- **Enhanced Dry-Run Mode** (`--dry-run`): Comprehensive preview of RMAN execution
+  - Saves processed `.rcv` script to log directory with timestamp
+  - Displays complete generated RMAN script content
+  - Shows exact RMAN command that would be executed
+  - Perfect for debugging template processing issues
+  - **Example**: `oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run`
+
+- **Automatic Script Preservation**: Always save processed RMAN scripts
+  - Every execution saves the processed `.rcv` to log directory
+  - Naming pattern: `<script>_YYYYMMDD_HHMMSS.rcv` (matches log files)
+  - Enables post-execution troubleshooting and analysis
+  - Path displayed in success/error messages
+  - **Example locations**:
+    - Log: `/u01/admin/FREE/log/backup_full_20260105_143022.log`
+    - RCV: `/u01/admin/FREE/log/backup_full_20260105_143022.rcv`
+
+- **Cleanup Control** (`--no-cleanup`): Preserve temp files for debugging
+  - New flag preserves temp directory after execution
+  - Default behavior unchanged (temp files still removed)
+  - Useful for debugging parallel execution and template processing
+  - Shows temp directory path when preserved
+  - **Example**: `oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup`
+
+- **Extension Checksum Verification**: Add integrity checking for extensions
+  - New function: `check_extension_checksums()` in `oradba_version.sh`
+  - Automatically detects and verifies `.{extension}.checksum` files in `extensions/` directory
+  - Integrated into `oradba_version.sh --verify` and `--info` commands
+  - Reports status for each extension:
+    - ✓ Extension verified (n files)
+    - ✗ Extension FAILED with list of modified/missing files
+  - Helps ensure custom extensions haven't been tampered with
+  - **Example**: `.customer.checksum` validates all files in customer extension
+
+### Changed
+
+- **Updated `src/bin/oradba_rman.sh`** from v0.13.7 to v0.14.0
+  - Added `OPT_BACKUP_PATH` and `OPT_NO_CLEANUP` global variables
+  - Enhanced `load_rman_config()` to load `RMAN_BACKUP_PATH` from config
+  - Updated `process_template()` to support `<BACKUP_PATH>` tag
+  - **Fixed `execute_rman_for_sid()` error detection logic**:
+    - Capture RMAN exit code before pipe: `rman_exit_code=${PIPESTATUS[0]}`
+    - Check log for RMAN-00569: `grep -q "RMAN-00569" "${sid_log}"`
+    - Report failure if either exit code non-zero OR error pattern found
+    - Always save processed script to log directory
+  - Enhanced dry-run mode with save + display functionality
+  - Added conditional cleanup based on `--no-cleanup` flag
+  - Updated `usage()` with new parameters and examples
+  - **Lines changed**: +76 insertions, -10 deletions
+
+- **Updated `src/bin/oradba_version.sh`** from v0.11.0 to v0.14.0
+  - Added `check_extension_checksums()` function for extension integrity verification
+  - Integrated extension checks into `check_integrity()` workflow
+  - Returns combined status of core + extension integrity checks
+
+- **Updated documentation**:
+  - Enhanced RMAN wrapper `usage()` with all new options
+  - Added comprehensive examples for each new feature
+  - Updated template tags documentation to include `<BACKUP_PATH>`
+  - Updated configuration variables list with `RMAN_BACKUP_PATH`
+
+### Documentation
+
+- **Updated RMAN Usage Examples**:
+  ```bash
+  # With backup path from config
+  RMAN_BACKUP_PATH="/backup/prod"
+  oradba_rman.sh --sid PROD --rcv backup_full.rcv
+  
+  # Override backup path via CLI
+  oradba_rman.sh --sid PROD --rcv backup_full.rcv --backup-path /backup/prod_daily
+  
+  # Dry-run to see generated script
+  oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run
+  
+  # Keep temp files for troubleshooting
+  oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
+  oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
+  ```
+
+- **Information Display Aliases** (#56 Phase 6): Consolidated configuration and environment inspection
+  - New alias `pth` using `show_path()` to display PATH structure similar to `sqa` (`show_sqlpath()`)
+  - New alias `cfg` using `show_config()` to display OraDBA configuration hierarchy and load order
+    - Shows 5-level configuration hierarchy: core → standard → customer → default → SID-specific
+    - Validates which config files exist and were loaded
+    - Status indicators: `[✓ loaded]`, `[✗ MISSING - REQUIRED]`, `[- not configured]`
+    - Helps troubleshoot configuration precedence and missing files
+  - Grouped `sqa` (SQLPATH), `pth` (PATH), and `cfg` (config) together in documentation
   - All three use similar output format with validation markers
   - Updated documentation with new "Information Display" section
-- **Standalone Prerequisites Check Script**: `oradba_check.sh` now available as release artifact
+
+- **Standalone Prerequisites Check Script** (#56 Phase 6): `oradba_check.sh` now available as release artifact
   - Can be downloaded and run BEFORE installation to validate system prerequisites
   - Available from GitHub releases: `oradba_check.sh`
   - Validates all installer requirements:
@@ -41,7 +148,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Post-installation: Available in `bin/` directory for troubleshooting
   - Enhanced usage text with download instructions and comprehensive examples
   - Dynamic banner formatting supports any version length (0.7.0, 0.14.2, 10.15.234, etc.)
-  - Addresses Issue #56 Phase 6 - makes system validation accessible early
 
 ### Changed
 
@@ -50,10 +156,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced script header documentation to clarify dual-use capability
   - Updated usage text with pre-installation example using curl piped to bash
   - Improved checks list with detailed descriptions of each validation
+
 - **Documentation updates**:
   - Added "Prerequisites Check" section to README before installation instructions
   - Added "Troubleshooting" section with common issues and solutions
   - Updated build output to list all 3 release artifacts
+
+### Summary
+
+Release 0.14.0 is a **critical update** addressing a production bug in RMAN wrapper that could allow backup failures to go undetected. All users running automated backups should upgrade immediately.
+
+**Key Changes**:
+- 🔴 Critical bug fix: RMAN false success reporting
+- ✨ 5 new RMAN features: backup path, enhanced dry-run, script preservation, cleanup control, error detection
+- ✅ Extension checksum verification
+- 📊 Information display aliases (cfg, pth)
+- 🔍 Standalone prerequisites checker
+
+**Files Changed**: 4 files
+- `src/bin/oradba_rman.sh` (+76/-10 lines)
+- `src/bin/oradba_version.sh` (+86 lines)
+- `VERSION` (0.13.5 → 0.14.0)
+- `CHANGELOG.md` (this file)
+
+**Upgrade Priority**: HIGH (critical bug fix)
 
 ## [0.13.5] - 2026-01-05
 

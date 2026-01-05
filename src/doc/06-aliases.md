@@ -408,6 +408,7 @@ cfg
   - `[- not configured]` - Optional file not present
 
 These aliases help troubleshoot:
+
 - Path issues (missing directories in PATH/SQLPATH)
 - Configuration precedence (which config file will take priority)
 - Missing required configuration files
@@ -459,19 +460,19 @@ version
 
 Additional convenience aliases:
 
-| Alias       | Description             | Command                              |
-|-------------|-------------------------|--------------------------------------|
-| `c`         | Clear screen            | `clear`                              |
-| `m`         | More                    | `more`                               |
-| `l`         | List all (long format)  | `ls -al`                             |
-| `ll`        | List all (detailed)     | `ls -alb`                            |
-| `lr`        | List reverse time order | `ls -ltr`                            |
-| `lsl`       | List recent 20 files    | `ls -lrt \| tail -n 20`              |
-| `psg`       | Search processes        | `ps -ef \| grep`                     |
-| `sqa`       | Show SQLPATH directories | `show_sqlpath`                      |
-| `pth`       | Show PATH directories    | `show_path`                         |
-| `cfg`       | Show config hierarchy    | `show_config`                       |
-| `save_cron` | Backup crontab          | `crontab -l > ~/crontab.txt.$(date)` |
+| Alias       | Description              | Command                              |
+|-------------|--------------------------|--------------------------------------|
+| `c`         | Clear screen             | `clear`                              |
+| `m`         | More                     | `more`                               |
+| `l`         | List all (long format)   | `ls -al`                             |
+| `ll`        | List all (detailed)      | `ls -alb`                            |
+| `lr`        | List reverse time order  | `ls -ltr`                            |
+| `lsl`       | List recent 20 files     | `ls -lrt \| tail -n 20`              |
+| `psg`       | Search processes         | `ps -ef \| grep`                     |
+| `sqa`       | Show SQLPATH directories | `show_sqlpath`                       |
+| `pth`       | Show PATH directories    | `show_path`                          |
+| `cfg`       | Show config hierarchy    | `show_config`                        |
+| `save_cron` | Backup crontab           | `crontab -l > ~/crontab.txt.$(date)` |
 
 ## rlwrap Integration
 

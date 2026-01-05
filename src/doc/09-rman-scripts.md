@@ -34,12 +34,15 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv \
 
 **Features:**
 
-- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>` tags
+- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>`, `<BACKUP_PATH>` tags
+- **Error Detection**: Checks for RMAN-00569 error pattern to catch failures (RMAN returns exit code 0 even on errors)
 - **Parallel Execution**: Run RMAN for multiple SIDs concurrently (background jobs or GNU parallel)
 - **Dual Logging**: Generic logs in `$ORADBA_LOG` + SID-specific logs in `$ORADBA_ORA_ADMIN_SID/log`
+- **Script Preservation**: Automatically saves processed .rcv scripts to log directory for troubleshooting
+- **Enhanced Dry-Run**: Saves and displays generated scripts, shows exact RMAN command
+- **Cleanup Control**: Optional `--no-cleanup` flag preserves temp files for debugging
 - **Email Notifications**: Send alerts on success/failure via mail or sendmail
 - **Configuration**: SID-specific settings via `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`
-- **Dry Run Mode**: Test template processing without executing RMAN
 
 **Usage:**
 
@@ -55,10 +58,12 @@ Optional Arguments:
   --format FORMAT       Backup format string (default: from config)
   --tag TAG            Backup tag (default: from config)
   --compression LEVEL   NONE|LOW|MEDIUM|HIGH (default: from config)
+  --backup-path PATH    Backup destination path (default: from config)
   --catalog CONNECT    RMAN catalog connection string
   --notify EMAIL       Send notifications to email address
   --parallel N         Max parallel SID executions (default: 1)
-  --dry-run           Process templates without executing RMAN
+  --dry-run           Show generated script and command without executing
+  --no-cleanup        Keep temporary files after execution (for debugging)
   --verbose           Enable verbose output
   --help              Show detailed help
 ```
@@ -77,6 +82,7 @@ export RMAN_CHANNELS=2
 export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
 export RMAN_TAG="AUTO_BACKUP"
 export RMAN_COMPRESSION="MEDIUM"
+export RMAN_BACKUP_PATH="/backup/prod"
 export RMAN_CATALOG=""
 export RMAN_NOTIFY_EMAIL="dba@example.com"
 export RMAN_NOTIFY_ON_SUCCESS=false
@@ -91,6 +97,7 @@ RMAN scripts use template tags that are replaced at runtime:
 - `<FORMAT>`: Substituted with `FORMAT` clause from `--format`
 - `<TAG>`: Substituted with `TAG` clause from `--tag`
 - `<COMPRESSION>`: Substituted with compression clause from `--compression`
+- `<BACKUP_PATH>`: Substituted with backup destination path from `--backup-path` or config
 
 **Examples:**
 
@@ -106,13 +113,37 @@ oradba_rman.sh --sid PROD --rcv backup_full.rcv \
     --compression HIGH \
     --notify dba-team@example.com
 
-# Dry run to test template processing
+# Custom backup destination path
+oradba_rman.sh --sid PROD --rcv backup_full.rcv \
+    --backup-path /backup/prod_daily
+
+# Dry run to test template processing (saves and displays script)
 oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run
+
+# Keep temp files for troubleshooting
+oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
 
 # Custom format and tag
 oradba_rman.sh --sid FREE --rcv backup_full.rcv \
     --format "/backup/monthly/%d_%T_%U.bkp" \
     --tag MONTHLY_FULL_20260102
+```
+
+**Troubleshooting:**
+
+When RMAN execution fails, the wrapper automatically saves the processed script
+for analysis:
+
+```bash
+# Check RMAN log
+cat /u01/admin/FREE/log/backup_full_20260105_143022.log
+
+# Examine processed RMAN script (template tags resolved)
+cat /u01/admin/FREE/log/backup_full_20260105_143022.rcv
+
+# Keep temp directory for debugging
+oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
+# Temp files preserved in: /tmp/oradba_rman_20260105_143022/
 ```
 
 ## Location

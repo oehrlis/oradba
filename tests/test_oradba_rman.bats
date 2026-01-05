@@ -6,8 +6,8 @@
 # Name.......: test_oradba_rman.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.13.0
+# Date.......: 2026.01.05
+# Revision...: 0.14.0
 # Purpose....: BATS tests for oradba_rman.sh RMAN wrapper script
 # Notes......: Tests argument parsing, template processing, and configuration
 # Reference..: https://github.com/oehrlis/oradba
@@ -429,4 +429,79 @@ EOF
     # Check that template was processed
     [[ "$output" =~ "Template processed successfully" ]]
     [[ "$output" =~ "Would execute:" ]]
+}
+# ------------------------------------------------------------------------------
+# New features tests (v0.14.0)
+# ------------------------------------------------------------------------------
+
+@test "oradba_rman.sh accepts --backup-path option" {
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --backup-path /backup/prod --dry-run --verbose
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ /backup/prod || "$output" =~ "Backup Path" ]]
+}
+
+@test "oradba_rman.sh accepts --no-cleanup flag" {
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --no-cleanup --dry-run
+    [[ "$status" -eq 0 ]]
+    # Script should complete successfully with --no-cleanup
+}
+
+@test "oradba_rman.sh enhanced dry-run displays script content" {
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Generated RMAN Script Content" || "$output" =~ "Would execute:" ]]
+    # Should show the RMAN command that would be executed
+    [[ "$output" =~ "rman target" ]]
+}
+
+@test "oradba_rman.sh enhanced dry-run saves processed script" {
+    export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Processed script saved to:" || "$output" =~ ".rcv" ]]
+}
+
+@test "oradba_rman.sh loads RMAN_BACKUP_PATH from config" {
+    # Add RMAN_BACKUP_PATH to config
+    echo 'export RMAN_BACKUP_PATH="/backup/config_path"' >> "$MOCK_CONFIG"
+    export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
+    
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ /backup/config_path || "$output" =~ "Backup Path" ]]
+}
+
+@test "oradba_rman.sh CLI --backup-path overrides config" {
+    # Add RMAN_BACKUP_PATH to config
+    echo 'export RMAN_BACKUP_PATH="/backup/config_path"' >> "$MOCK_CONFIG"
+    export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
+    
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --backup-path /backup/cli_path --dry-run --verbose
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ /backup/cli_path ]]
+    # Should NOT use config path
+    [[ ! "$output" =~ /backup/config_path ]]
+}
+
+@test "oradba_rman.sh --help shows new options" {
+    run "$RMAN_SCRIPT" --help
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "--backup-path" ]]
+    [[ "$output" =~ "--no-cleanup" ]]
+}
+
+@test "oradba_rman.sh template processing handles <BACKUP_PATH> tag" {
+    # Create RCV with BACKUP_PATH tag
+    BACKUP_PATH_RCV="${TEST_TEMP_DIR}/rcv/backup_path_test.rcv"
+    cat > "$BACKUP_PATH_RCV" <<'EOF'
+# Test RMAN script with BACKUP_PATH tag
+RUN {
+    <ALLOCATE_CHANNELS>
+    BACKUP DATABASE FORMAT '<BACKUP_PATH>/%d_%U.bkp';
+}
+EOF
+    
+    run "$RMAN_SCRIPT" --sid TEST --rcv "$BACKUP_PATH_RCV" --backup-path /backup/test --dry-run --verbose
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Backup Path: /backup/test" || "$output" =~ /backup/test ]]
 }
