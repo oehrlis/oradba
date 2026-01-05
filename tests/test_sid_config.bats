@@ -204,7 +204,7 @@ teardown() {
     
     # Load config for TESTDB - should trigger auto-creation
     run load_config "TESTDB"
-    assert_success
+    [ "$status" -eq 0 ]
     
     # Verify config was created
     [ -f "${TEST_DIR}/etc/sid.TESTDB.conf" ]
@@ -226,8 +226,8 @@ teardown() {
     # Don't set ORATAB (old wrong variable)
     unset ORATAB
     
-    # Source standard config which calls generate_sid_lists
-    source "${TEST_DIR}/etc/oradba_standard.conf"
+    # Call generate_sid_lists which should read ORATAB_FILE
+    generate_sid_lists
     
     # Verify REALSIDLIST was populated from ORATAB_FILE
     [[ "${ORADBA_REALSIDLIST}" == *"CUSTOM"* ]]
@@ -245,9 +245,9 @@ teardown() {
     [[ " ${ORADBA_REALSIDLIST} " =~ " PROD " ]]
     
     # Test partial match doesn't work (prevents false positives)
-    ! [[ " ${ORADBA_REALSIDLIST} " =~ " FRE " ]]
-    ! [[ " ${ORADBA_REALSIDLIST} " =~ " CDB " ]]
-    ! [[ " ${ORADBA_REALSIDLIST} " =~ " PRO " ]]
+    [[ ! " ${ORADBA_REALSIDLIST} " =~ " FRE " ]]
+    [[ ! " ${ORADBA_REALSIDLIST} " =~ " CDB " ]]
+    [[ ! " ${ORADBA_REALSIDLIST} " =~ " PRO " ]]
 }
 
 @test "SID config auto-creation triggers when file doesn't exist" {
@@ -262,7 +262,7 @@ teardown() {
     
     # Load config - should trigger auto-creation
     run load_config "NEWDB"
-    assert_success
+    [ "$status" -eq 0 ]
     
     # Verify auto-creation was triggered
     [ -f "${TEST_DIR}/etc/sid.NEWDB.conf" ]
