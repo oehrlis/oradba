@@ -335,8 +335,8 @@ teardown() {
     
     log_files=("${ORADBA_LOG}"/oradba_rman_*.log)
     if [[ -f "${log_files[0]}" ]]; then
-        # Log should contain timestamp format [YYYY-MM-DD HH:MM:SS]
-        grep -q '\[20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\]' "${log_files[0]}"
+        # Log should contain timestamp format [LEVEL] YYYY-MM-DD HH:MM:SS
+        grep -q '20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]' "${log_files[0]}"
     fi
 }
 
@@ -464,17 +464,19 @@ EOF
 @test "oradba_rman.sh loads RMAN_BACKUP_PATH from config" {
     # Add RMAN_BACKUP_PATH to config
     echo 'export RMAN_BACKUP_PATH="/backup/config_path"' >> "$MOCK_CONFIG"
-    export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
+    export ORADBA_ORA_ADMIN_SID="${TEST_TEMP_DIR}/admin/TEST"
     
     run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
     [[ "$status" -eq 0 ]]
-    [[ "$output" =~ /backup/config_path || "$output" =~ "Backup Path" ]]
+    # Check log file for backup path (logged as DEBUG output)
+    log_files=("${ORADBA_LOG}"/oradba_rman_*.log)
+    grep -q "Backup Path.*config_path" "${log_files[0]}"
 }
 
 @test "oradba_rman.sh CLI --backup-path overrides config" {
     # Add RMAN_BACKUP_PATH to config
     echo 'export RMAN_BACKUP_PATH="/backup/config_path"' >> "$MOCK_CONFIG"
-    export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
+    export ORADBA_ORA_ADMIN_SID="${TEST_TEMP_DIR}/admin/TEST"
     
     run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --backup-path /backup/cli_path --dry-run --verbose
     [[ "$status" -eq 0 ]]

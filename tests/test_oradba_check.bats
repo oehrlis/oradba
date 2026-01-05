@@ -52,7 +52,7 @@ teardown() {
 @test "oradba_check.sh --version displays version" {
     run "$CHECK_SCRIPT" --version
     [ "$status" -eq 0 ]
-    [[ "$output" =~ 0.7 ]]
+    [[ "$output" =~ 0.14 ]]
 }
 
 @test "oradba_check.sh handles invalid option" {

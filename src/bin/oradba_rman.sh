@@ -151,11 +151,6 @@ EOF
 # Logging setup
 # ------------------------------------------------------------------------------
 # Use common.sh's unified log() function with optional file logging
-# Enable verbose mode for DEBUG level logging
-if [[ "${OPT_VERBOSE}" == "true" ]]; then
-    export ORADBA_LOG_LEVEL=DEBUG
-fi
-
 # Enable file logging to script log
 export ORADBA_LOG_FILE="${SCRIPT_LOG}"
 
@@ -576,6 +571,11 @@ main() {
                 ;;
         esac
     done
+    
+    # Enable verbose mode for DEBUG level logging
+    if [[ "${OPT_VERBOSE}" == "true" ]]; then
+        export ORADBA_LOG_LEVEL=DEBUG
+    fi
     
     # Validate required arguments
     if [[ -z "${OPT_SIDS}" ]]; then
