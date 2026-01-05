@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Metadata header with user, host, PID, Oracle environment
     - Dual logging support (main log + session log)
     - Optional session-only logging via `ORADBA_SESSION_LOG_ONLY=true`
-  - Enhanced `log()` function:
+  - Enhanced `oradba_log()` function:
     - Optional caller information via `ORADBA_LOG_SHOW_CALLER=true`
     - Format: `[LEVEL] TIMESTAMP [file:line] - message`
     - Dual logging to both `ORADBA_LOG_FILE` and `ORADBA_SESSION_LOG`
@@ -33,9 +33,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Documentation**: Complete API docs in `doc/api.md`
     - `init_logging()` usage and examples
     - `init_session_log()` configuration options
-    - Enhanced `log()` function parameters
+    - Enhanced `oradba_log()` function parameters
+
+### Changed
+
+- **Function Rename (#16)**: Renamed `log()` to `oradba_log()` to avoid conflicts
+  - **Root Cause**: `log` alias (`cd ${ORADBA_LOG}`) in `oradba_standard.conf` caused
+    bash to expand the alias during function definition, turning `log() {` into
+    `cd ${ORADBA_LOG}() {` which is a syntax error
+  - **Solution**: Renamed function to `oradba_log()` for cleaner namespace separation
+  - **Impact**: All internal calls updated across 9 files
+  - **Backward Compatibility**: Deprecated wrapper functions remain (`log_info`, `log_warn`,
+    `log_error`, `log_debug`) - all now call `oradba_log()`
+  - **Documentation**: Updated all docs and examples to use `oradba_log()`
 
 ### Fixed
+
+- **SID Config Auto-Creation Broken (#16)**: Fixed regression from v0.13.5 refactoring
+  - **Bug 1**: Wrong variable in `oradba_standard.conf` line 67
+    - Was using: `generate_sid_lists "${ORATAB:-/etc/oratab}"`
+    - Should be: `generate_sid_lists "${ORATAB_FILE}"`
+    - Result: `ORADBA_REALSIDLIST` was empty, preventing auto-creation
+  - **Bug 2**: Wrong regex pattern in `common.sh` line 761
+    - Was using: `[[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]`
+    - Should be: `[[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]`
+    - Result: Pattern didn't match SIDs correctly (missing spaces)
+  - **Bug 3**: Logic error after unified config loader
+    - Was using: `if ! load_config_file "${sid_config}"; then`
+    - Problem: `load_config_file()` returns 0 for missing optional files
+    - Should be: `if [[ -f "${sid_config}" ]]; then`
+    - Result: Auto-creation block never triggered
+  - **Impact**: SID-specific config files were never auto-created on first use
+  - **Solution**: Fixed all three bugs - auto-creation now works as designed
 
 - Release workflow now installs `markdownlint-cli` to run Markdown linting instead of skipping with a warning
 

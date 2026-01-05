@@ -33,9 +33,9 @@ source "${ORADBA_BASE}/lib/common.sh"
 source "${ORADBA_BASE}/lib/db_functions.sh"
 
 # Use library functions (v0.13.1+ unified logging)
-log INFO "Starting script..."
+oradba_log INFO "Starting script..."
 db_status=$(get_db_status)
-log INFO "Database status: ${db_status}"
+oradba_log INFO "Database status: ${db_status}"
 
 # Legacy logging functions still work (backward compatible)
 log_info "Starting script..."  # Still supported but deprecated
@@ -62,10 +62,10 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 **New in v0.13.1**: Unified logging with configurable levels
 
 - `log` - Unified logging function with level filtering (DEBUG|INFO|WARN|ERROR)
-- `log_info` - Information messages (deprecated, use `log INFO`)
-- `log_warn` - Warning messages (deprecated, use `log WARN`)
-- `log_error` - Error messages (deprecated, use `log ERROR`)
-- `log_debug` - Debug messages (deprecated, use `log DEBUG`)
+- `log_info` - Information messages (deprecated, use `oradba_log INFO`)
+- `log_warn` - Warning messages (deprecated, use `oradba_log WARN`)
+- `log_error` - Error messages (deprecated, use `oradba_log ERROR`)
+- `log_debug` - Debug messages (deprecated, use `oradba_log DEBUG`)
 - `log_msg` - Generic logging with custom level (deprecated)
 
 **oratab Management:**

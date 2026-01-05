@@ -39,35 +39,35 @@ setup() {
     [[ "$output" == "function" ]]
 }
 
-@test "log INFO outputs to stderr" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1 >/dev/null"
+@test "oradba_log INFO outputs to stderr" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "Test message" ]]
 }
 
-@test "log INFO includes timestamp" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test' 2>&1"
+@test "oradba_log INFO includes timestamp" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ [0-9]{4}-[0-9]{2}-[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2} ]]
 }
 
-@test "log WARN outputs to stderr" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log WARN 'Warning message' 2>&1 >/dev/null"
+@test "oradba_log WARN outputs to stderr" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log WARN 'Warning message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[WARN\] ]]
     [[ "$output" =~ "Warning message" ]]
 }
 
-@test "log ERROR outputs to stderr" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log ERROR 'Error message' 2>&1 >/dev/null"
+@test "oradba_log ERROR outputs to stderr" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log ERROR 'Error message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[ERROR\] ]]
     [[ "$output" =~ "Error message" ]]
 }
 
-@test "log DEBUG outputs to stderr when DEBUG=1" {
-    run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Debug message' 2>&1 >/dev/null"
+@test "oradba_log DEBUG outputs to stderr when DEBUG=1" {
+    run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Debug message' 2>&1 >/dev/null"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[DEBUG\] ]]
     [[ "$output" =~ "Debug message" ]]
@@ -77,52 +77,52 @@ setup() {
 # Test: Log Level Filtering
 # ------------------------------------------------------------------------------
 
-@test "log DEBUG is filtered by default (no ORADBA_LOG_LEVEL)" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Should not appear' 2>&1"
+@test "oradba_log DEBUG is filtered by default (no ORADBA_LOG_LEVEL)" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Should not appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ "Should not appear" ]]
 }
 
-@test "log INFO is shown by default" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Should appear' 2>&1"
+@test "oradba_log INFO is shown by default" {
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Should appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Should appear" ]]
 }
 
 @test "ORADBA_LOG_LEVEL=DEBUG shows all messages" {
-    run bash -c "export ORADBA_LOG_LEVEL=DEBUG && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Debug msg' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=DEBUG && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Debug msg' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Debug msg" ]]
 }
 
 @test "ORADBA_LOG_LEVEL=INFO filters DEBUG" {
-    run bash -c "export ORADBA_LOG_LEVEL=INFO && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Should not appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=INFO && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Should not appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ "Should not appear" ]]
 }
 
 @test "ORADBA_LOG_LEVEL=WARN filters INFO and DEBUG" {
-    run bash -c "export ORADBA_LOG_LEVEL=WARN && source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Should not appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=WARN && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Should not appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ "Should not appear" ]]
     
-    run bash -c "export ORADBA_LOG_LEVEL=WARN && source ${PROJECT_ROOT}/src/lib/common.sh && log WARN 'Should appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=WARN && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log WARN 'Should appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Should appear" ]]
 }
 
 @test "ORADBA_LOG_LEVEL=ERROR filters everything except ERROR" {
-    run bash -c "export ORADBA_LOG_LEVEL=ERROR && source ${PROJECT_ROOT}/src/lib/common.sh && log WARN 'Should not appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=ERROR && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log WARN 'Should not appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ "Should not appear" ]]
     
-    run bash -c "export ORADBA_LOG_LEVEL=ERROR && source ${PROJECT_ROOT}/src/lib/common.sh && log ERROR 'Should appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=ERROR && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log ERROR 'Should appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Should appear" ]]
 }
 
 @test "log level is case-insensitive" {
-    run bash -c "export ORADBA_LOG_LEVEL=debug && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Test' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=debug && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Test' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Test" ]]
 }
@@ -132,19 +132,19 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "DEBUG=1 enables DEBUG level" {
-    run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Debug via DEBUG=1' 2>&1"
+    run bash -c "export DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Debug via DEBUG=1' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Debug via DEBUG=1" ]]
 }
 
 @test "DEBUG=1 overrides ORADBA_LOG_LEVEL" {
-    run bash -c "export ORADBA_LOG_LEVEL=ERROR DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Should appear' 2>&1"
+    run bash -c "export ORADBA_LOG_LEVEL=ERROR DEBUG=1 && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Should appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Should appear" ]]
 }
 
 @test "DEBUG=0 does not enable debug" {
-    run bash -c "export DEBUG=0 && source ${PROJECT_ROOT}/src/lib/common.sh && log DEBUG 'Should not appear' 2>&1"
+    run bash -c "export DEBUG=0 && source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log DEBUG 'Should not appear' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ "Should not appear" ]]
 }
@@ -196,7 +196,7 @@ setup() {
     [ "$status" -eq 0 ]
     [[ "$output" =~ "deprecated" ]]
     [[ "$output" =~ "log_info" ]]
-    [[ "$output" =~ "log INFO" ]]
+    [[ "$output" =~ "oradba_log INFO" ]]
 }
 
 @test "deprecation warning shown only once per function" {
@@ -220,19 +220,19 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "log() handles multiple arguments" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Message' 'with' 'multiple' 'parts' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Message' 'with' 'multiple' 'parts' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Message with multiple parts" ]]
 }
 
 @test "log() preserves variable expansion" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && VAR='test value' && log INFO \"Variable: \$VAR\" 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && VAR='test value' && oradba_log INFO \"Variable: \$VAR\" 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Variable: test value" ]]
 }
 
 @test "log() handles special characters" {
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test \$PATH and \${HOME}' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test \$PATH and \${HOME}' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Test" ]]
 }

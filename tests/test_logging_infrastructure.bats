@@ -195,7 +195,7 @@ teardown() {
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
     # Should contain caller information in format [file:line]
     [[ "$output" =~ \[.*:[0-9]*\] ]] || [[ "$output" =~ \[\:\:\] ]]
@@ -206,7 +206,7 @@ teardown() {
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="false"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test message' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ \[bash: ]]
     [[ "$output" =~ \[INFO\] ]]
@@ -216,7 +216,7 @@ teardown() {
 @test "log() caller info shows correct file and line format" {
     export ORADBA_LOG_SHOW_CALLER="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Test' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test' 2>&1"
     [ "$status" -eq 0 ]
     # Should contain caller bracket notation even if empty in bash -c context
     [[ "$output" =~ \[.*\] ]]
@@ -238,7 +238,7 @@ teardown() {
     touch "${TEST_LOG_DIR}/main.log"
     touch "${TEST_LOG_DIR}/session.log"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Dual log test'"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Dual log test'"
     [ "$status" -eq 0 ]
     
     # Check main log
@@ -257,7 +257,7 @@ teardown() {
     
     touch "${TEST_LOG_DIR}/same.log"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'Single entry'"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Single entry'"
     [ "$status" -eq 0 ]
     
     # Should appear only once
@@ -278,7 +278,7 @@ teardown() {
         source ${PROJECT_ROOT}/src/lib/common.sh
         init_logging
         init_session_log
-        log INFO 'Integration test message'
+        oradba_log INFO 'Integration test message'
         if [[ -f \"\${ORADBA_SESSION_LOG}\" ]]; then
             cat \"\${ORADBA_SESSION_LOG}\"
         else
@@ -296,7 +296,7 @@ teardown() {
 
 @test "Logging works without initialization (backward compatible)" {
     # Don't call init_logging, just use log directly
-    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && log INFO 'No init test' 2>&1"
+    run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'No init test' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "No init test" ]]

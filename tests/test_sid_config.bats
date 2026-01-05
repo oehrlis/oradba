@@ -186,3 +186,83 @@ teardown() {
     # Check that rdbms26 is NOT in REALSIDLIST (should skip auto-create)
     ! [[ " ${ORADBA_REALSIDLIST} " =~ " rdbms26 " ]]
 }
+
+@test "SID config auto-creation works end-to-end" {
+    # Setup: Create oratab with a SID
+    echo "TESTDB:/opt/oracle:Y" > "${TEST_DIR}/etc/oratab"
+    export ORATAB_FILE="${TEST_DIR}/etc/oratab"
+    
+    # Ensure SID config doesn't exist
+    rm -f "${TEST_DIR}/etc/sid.TESTDB.conf"
+    
+    # Enable auto-creation
+    export ORADBA_AUTO_CREATE_SID_CONFIG=true
+    
+    # Load config for TESTDB - should trigger auto-creation
+    run load_config "TESTDB"
+    assert_success
+    
+    # Verify config was created
+    [ -f "${TEST_DIR}/etc/sid.TESTDB.conf" ]
+    
+    # Verify it has the correct SID
+    grep -q "TESTDB" "${TEST_DIR}/etc/sid.TESTDB.conf"
+}
+
+@test "SID config auto-creation uses ORATAB_FILE not ORATAB" {
+    # This test verifies the fix for Issue #16 bug 1
+    # Bug: Was using ${ORATAB:-/etc/oratab} instead of ${ORATAB_FILE}
+    
+    # Setup oratab in custom location
+    echo "CUSTOM:/opt/oracle:Y" > "${TEST_DIR}/etc/custom_oratab"
+    
+    # Set ORATAB_FILE (correct variable)
+    export ORATAB_FILE="${TEST_DIR}/etc/custom_oratab"
+    
+    # Don't set ORATAB (old wrong variable)
+    unset ORATAB
+    
+    # Source standard config which calls generate_sid_lists
+    source "${TEST_DIR}/etc/oradba_standard.conf"
+    
+    # Verify REALSIDLIST was populated from ORATAB_FILE
+    [[ "${ORADBA_REALSIDLIST}" == *"CUSTOM"* ]]
+}
+
+@test "SID config auto-creation regex pattern works correctly" {
+    # This test verifies the fix for Issue #16 bug 2
+    # Bug: Was using =~ ${sid} instead of =~ " ${sid} "
+    
+    export ORADBA_REALSIDLIST="FREE CDB1 PROD"
+    
+    # Test exact match works (fixed pattern)
+    [[ " ${ORADBA_REALSIDLIST} " =~ " FREE " ]]
+    [[ " ${ORADBA_REALSIDLIST} " =~ " CDB1 " ]]
+    [[ " ${ORADBA_REALSIDLIST} " =~ " PROD " ]]
+    
+    # Test partial match doesn't work (prevents false positives)
+    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " FRE " ]]'
+    assert_failure
+    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " CDB " ]]'
+    assert_failure
+    run bash -c 'export ORADBA_REALSIDLIST="'"${ORADBA_REALSIDLIST}"'"; [[ " ${ORADBA_REALSIDLIST} " =~ " PRO " ]]'
+    assert_failure
+}
+
+@test "SID config auto-creation triggers when file doesn't exist" {
+    # This test verifies the fix for Issue #16 bug 3
+    # Bug: Was using 'if ! load_config_file' which returns 0 for missing optional files
+    
+    export ORADBA_AUTO_CREATE_SID_CONFIG=true
+    export ORADBA_REALSIDLIST="NEWDB"
+    
+    # Ensure config doesn't exist
+    rm -f "${TEST_DIR}/etc/sid.NEWDB.conf"
+    
+    # Load config - should trigger auto-creation
+    run load_config "NEWDB"
+    assert_success
+    
+    # Verify auto-creation was triggered
+    [ -f "${TEST_DIR}/etc/sid.NEWDB.conf" ]
+}

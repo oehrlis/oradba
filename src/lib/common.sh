@@ -759,7 +759,8 @@ load_config() {
             # Config doesn't exist - check if we should auto-create it
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
-                if [[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]; then
+                # Use word boundary regex pattern for proper matching
+                if [[ " ${ORADBA_REALSIDLIST} " =~ (^|[[:space:]])${sid}($|[[:space:]]) ]]; then
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then

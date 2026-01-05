@@ -99,10 +99,10 @@ New code should use the unified `log` function:
 
 ```bash
 # Recommended (new syntax)
-log INFO "Database started successfully"
-log WARN "Archive log directory is 90% full"
-log ERROR "Connection to database failed"
-log DEBUG "SQL query: ${sql_query}"
+oradba_log INFO "Database started successfully"
+oradba_log WARN "Archive log directory is 90% full"
+oradba_log ERROR "Connection to database failed"
+oradba_log DEBUG "SQL query: ${sql_query}"
 
 # Configure log level
 export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
@@ -1604,14 +1604,14 @@ gh workflow run release.yml -f version=0.8.2
 
    ```bash
    if ! result=$(execute_db_query "$query" "raw"); then
-       log ERROR "Failed to query database"
+       oradba_log ERROR "Failed to query database"
        return 1
    fi
    
    # Or check result is non-empty
    result=$(execute_db_query "$query" "raw")
    if [[ -z "$result" ]]; then
-       log WARN "Query returned no results"
+       oradba_log WARN "Query returned no results"
        return 1
    fi
    ```

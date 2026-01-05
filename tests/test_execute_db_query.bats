@@ -120,10 +120,10 @@ setup() {
 # =======================================================================
 
 @test "execute_db_query has proper error logging" {
-    # Check that function uses log ERROR for errors
+    # Check that function uses oradba_log ERROR for errors
     run grep -A 50 "^execute_db_query" "$REPO_ROOT/src/lib/common.sh"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "log ERROR" ]] || [[ "$output" =~ "log DEBUG" ]]
+    [[ "$output" =~ "oradba_log ERROR" ]] || [[ "$output" =~ "oradba_log DEBUG" ]]
 }
 
 @test "execute_db_query has parameter validation" {

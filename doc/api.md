@@ -114,15 +114,16 @@ init_session_log
 - Set `ORADBA_SESSION_LOG_ONLY=true` to write only to session log
 - Session logs named: `session_YYYYMMDD_HHMMSS_PID.log`
 
-### log
+### oradba_log
 
-**New in v0.13.1**: Unified logging function with configurable levels.
-**Enhanced in v0.14.0**: Added caller information and dual logging support.
+**New in v0.13.1**: Unified logging function with configurable levels.  
+**Enhanced in v0.14.0**: Added caller information and dual logging support.  
+**Renamed in v0.14.0**: Changed from `log()` to `oradba_log()` to avoid conflicts with the `log` alias.
 
 Output log message with specified level and timestamp. All messages are written
 to stderr with automatic filtering based on configured minimum log level.
 
-**Syntax**: `log <LEVEL> <message...>`
+**Syntax**: `oradba_log <LEVEL> <message...>`
 
 **Parameters**:
 
@@ -146,33 +147,33 @@ to stderr with automatic filtering based on configured minimum log level.
 
 ```bash
 # Basic usage
-log INFO "Starting database backup"
-log WARN "Database not in archivelog mode"
-log ERROR "ORACLE_HOME not found"
-log DEBUG "Checking oratab entry"
+oradba_log INFO "Starting database backup"
+oradba_log WARN "Database not in archivelog mode"
+oradba_log ERROR "ORACLE_HOME not found"
+oradba_log DEBUG "Checking oratab entry"
 
 # Enable debug logging
 export ORADBA_LOG_LEVEL=DEBUG
-log DEBUG "This will now appear"
+oradba_log DEBUG "This will now appear"
 
 # Enable caller information
 export ORADBA_LOG_SHOW_CALLER="true"
-log INFO "Message with caller info"
+oradba_log INFO "Message with caller info"
 
 # Complete logging setup
 init_logging
 init_session_log
 export ORADBA_SESSION_LOGGING="true"
-log INFO "Logged to both main and session logs"
+oradba_log INFO "Logged to both main and session logs"
 
 # Legacy DEBUG=1 support
 export DEBUG=1
-log DEBUG "This also appears"
+oradba_log DEBUG "This also appears"
 
 # Filter to only warnings and errors
 export ORADBA_LOG_LEVEL=WARN
-log INFO "This is filtered out"
-log WARN "This appears"
+oradba_log INFO "This is filtered out"
+oradba_log WARN "This appears"
 ```
 
 **Output Format**:
@@ -196,7 +197,7 @@ log WARN "This appears"
 
 ### log_info
 
-**Deprecated**: Use `log INFO <message>` instead.
+**Deprecated**: Use `oradba_log INFO <message>` instead.
 
 Output informational message with timestamp.
 
@@ -207,7 +208,7 @@ Output informational message with timestamp.
 - `message` - Message to log
 
 **Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `log INFO <message>` instead. Enable deprecation warnings
+New code should use `oradba_log INFO <message>` instead. Enable deprecation warnings
 by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
 
 **Example**:
@@ -217,7 +218,7 @@ by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
 log_info "Starting database backup"
 
 # New syntax (recommended)
-log INFO "Starting database backup"
+oradba_log INFO "Starting database backup"
 ```
 
 **Output**:
@@ -228,7 +229,7 @@ log INFO "Starting database backup"
 
 ### log_warn
 
-**Deprecated**: Use `log WARN <message>` instead.
+**Deprecated**: Use `oradba_log WARN <message>` instead.
 
 Output warning message to stderr with timestamp.
 
@@ -238,7 +239,8 @@ Output warning message to stderr with timestamp.
 
 - `message` - Warning message
 
-**Deprecation Note**: This function is maintained for backward compatibility. New code should use `log WARN <message>` instead.
+**Deprecation Note**: This function is maintained for backward compatibility.
+New code should use `oradba_log WARN <message>` instead.
 
 **Example**:
 
@@ -247,12 +249,12 @@ Output warning message to stderr with timestamp.
 log_warn "Database not in archivelog mode"
 
 # New syntax (recommended)
-log WARN "Database not in archivelog mode"
+oradba_log WARN "Database not in archivelog mode"
 ```
 
 ### log_error
 
-**Deprecated**: Use `log ERROR <message>` instead.
+**Deprecated**: Use `oradba_log ERROR <message>` instead.
 
 Output error message to stderr with timestamp.
 
@@ -263,7 +265,7 @@ Output error message to stderr with timestamp.
 - `message` - Error message
 
 **Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `log ERROR <message>` instead.
+New code should use `oradba_log ERROR <message>` instead.
 
 **Example**:
 
@@ -272,12 +274,12 @@ New code should use `log ERROR <message>` instead.
 log_error "ORACLE_HOME not found"
 
 # New syntax (recommended)
-log ERROR "ORACLE_HOME not found"
+oradba_log ERROR "ORACLE_HOME not found"
 ```
 
 ### log_debug
 
-**Deprecated**: Use `log DEBUG <message>` instead.
+**Deprecated**: Use `oradba_log DEBUG <message>` instead.
 
 Output debug message when DEBUG=1 or ORADBA_LOG_LEVEL=DEBUG.
 
@@ -293,7 +295,7 @@ Output debug message when DEBUG=1 or ORADBA_LOG_LEVEL=DEBUG.
 - `ORADBA_LOG_LEVEL` - Set to DEBUG to enable debug output
 
 **Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `log DEBUG <message>` instead.
+New code should use `oradba_log DEBUG <message>` instead.
 
 **Example**:
 
@@ -304,7 +306,7 @@ log_debug "Checking oratab entry"
 
 # New syntax (recommended)
 export ORADBA_LOG_LEVEL=DEBUG
-log DEBUG "Checking oratab entry"
+oradba_log DEBUG "Checking oratab entry"
 ```
 
 ## Utility Functions
@@ -538,7 +540,7 @@ FROM v\$instance i;"
 if result=$(execute_db_query "$query" "raw"); then
     echo "$result"
 else
-    log ERROR "Query failed"
+    oradba_log ERROR "Query failed"
 fi
 
 # Using in functions
@@ -1145,9 +1147,9 @@ Detect if TVD BasEnv / DB*Star is installed and configure coexistence mode.
 
 ```bash
 if detect_basenv; then
-    log INFO "Running in BasEnv coexistence mode"
+    oradba_log INFO "Running in BasEnv coexistence mode"
 else
-    log INFO "Running in standalone mode"
+    oradba_log INFO "Running in standalone mode"
 fi
 ```
 
@@ -1170,7 +1172,7 @@ Check if a shell alias already exists.
 
 ```bash
 if alias_exists "sqlplus"; then
-    log WARN "sqlplus alias already defined"
+    oradba_log WARN "sqlplus alias already defined"
 fi
 ```
 
@@ -1277,7 +1279,7 @@ setpdbPDB1  # Switches ORACLE_PDB_SID to PDB1
 
 ```bash
 if is_dummy_sid "$ORACLE_HOME" "D"; then
-    log DEBUG "Skipping dummy entry"
+    oradba_log DEBUG "Skipping dummy entry"
 fi
 ```
 
@@ -1342,9 +1344,9 @@ Check if version meets minimum requirement.
 
 ```bash
 if version_meets_requirement "$(get_oradba_version)" "0.13.0"; then
-    log INFO "Version requirement met"
+    oradba_log INFO "Version requirement met"
 else
-    log ERROR "OraDBA 0.13.0+ required"
+    oradba_log ERROR "OraDBA 0.13.0+ required"
     exit 1
 fi
 ```
@@ -1439,7 +1441,7 @@ Load RMAN catalog connection information from configuration.
 ```bash
 load_rman_catalog_connection
 if [[ -n "$RMAN_CATALOG_TNS" ]]; then
-    log INFO "Using RMAN catalog: $RMAN_CATALOG_TNS"
+    oradba_log INFO "Using RMAN catalog: $RMAN_CATALOG_TNS"
 fi
 ```
 
@@ -1483,9 +1485,9 @@ Check if database connection is available.
 
 ```bash
 if check_database_connection; then
-    log INFO "Database is accessible"
+    oradba_log INFO "Database is accessible"
 else
-    log ERROR "Cannot connect to database"
+    oradba_log ERROR "Cannot connect to database"
     exit 1
 fi
 ```
@@ -1842,7 +1844,7 @@ Load a single extension.
 
 ```bash
 if load_extension "/opt/oradba/extensions/myext"; then
-    log INFO "Extension loaded"
+    oradba_log INFO "Extension loaded"
 fi
 ```
 
@@ -1904,7 +1906,7 @@ Validate extension structure and metadata.
 
 ```bash
 if validate_extension "/opt/oradba/extensions/myext"; then
-    log INFO "Extension structure valid"
+    oradba_log INFO "Extension structure valid"
 fi
 ```
 
@@ -1923,7 +1925,7 @@ Check if extension provides a specific feature.
 
 ```bash
 if extension_provides "/opt/oradba/extensions/myext" "monitoring"; then
-    log INFO "Extension provides monitoring"
+    oradba_log INFO "Extension provides monitoring"
 fi
 ```
 
