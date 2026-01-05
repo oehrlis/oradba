@@ -751,12 +751,15 @@ load_config() {
     if [[ -n "${sid}" ]]; then
         local sid_config="${config_dir}/sid.${sid}.conf"
         
-        # Try to load existing SID config
-        if ! load_config_file "${sid_config}"; then
+        # Check if SID config exists
+        if [[ -f "${sid_config}" ]]; then
+            # Config exists - load it
+            load_config_file "${sid_config}"
+        else
             # Config doesn't exist - check if we should auto-create it
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
-                if [[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]; then
+                if [[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]; then
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
