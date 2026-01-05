@@ -471,6 +471,7 @@ shellcheck SC2139 suppression for expanded aliases.
 **Returns**:
 
 Exit code from `safe_alias`:
+
 - `0` - Alias created successfully
 - `1` - Alias skipped (coexistence mode and already exists)
 - `2` - Error during creation
@@ -478,12 +479,14 @@ Exit code from `safe_alias`:
 **Expansion Behavior**:
 
 - **Non-expanded** (`expand=false`, default): Variables expand when alias is executed
+
   ```bash
   # Variable ${ORADBA_BIN} expands at runtime
   create_dynamic_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
   ```
 
 - **Expanded** (`expand=true`): Variables expand immediately at definition
+
   ```bash
   # Variable ${diag_dest} expanded now, value frozen
   create_dynamic_alias cdd "cd ${diag_dest}" "true"
@@ -514,6 +517,7 @@ create_dynamic_alias cdd "cd ${diag_dest}" "true"
 **Use Cases**:
 
 **Directory Navigation** (use expanded):
+
 ```bash
 # SID-specific paths that should be frozen at definition time
 create_dynamic_alias cdd "cd ${diag_dest}" "true"
@@ -523,6 +527,7 @@ create_dynamic_alias cdbase "cd ${ORADBA_BASE}" "true"
 ```
 
 **Service Management** (use non-expanded):
+
 ```bash
 # Scripts that should resolve at runtime
 create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
@@ -531,6 +536,7 @@ create_dynamic_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
 ```
 
 **Tool Wrappers** (use expanded for config):
+
 ```bash
 # rlwrap with current configuration
 create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
