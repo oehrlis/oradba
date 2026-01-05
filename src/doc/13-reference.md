@@ -233,6 +233,7 @@ lsl                            # ls -lrt | tail -n 20
 psg                            # ps -ef | grep
 alig                           # alias | grep -i
 sqa                            # show_sqlpath
+pth                            # show_path
 save_cron                      # Backup crontab
 ```
 
