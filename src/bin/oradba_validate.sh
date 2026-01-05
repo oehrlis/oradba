@@ -5,8 +5,8 @@
 # Name.......: oradba_validate.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.10.0
+# Date.......: 2026.01.05
+# Revision...: 0.14.0
 # Purpose....: Validation script for OraDBA installation
 # Notes......: Run this after installation to verify setup
 # Usage......: oradba_validate.sh [-h|--help] [-v|--verbose]
@@ -131,13 +131,25 @@ else
 fi
 
 test_item "oraenv.sh exists" "[[ -f '${ORADBA_BASE}/bin/oraenv.sh' ]]"
+test_item "oradba_check.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_check.sh' ]]"
+test_item "oradba_check.sh is executable" "[[ -x '${ORADBA_BASE}/bin/oradba_check.sh' ]]"
 test_item "oradba_version.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
 test_item "oradba_version.sh is executable" "[[ -x '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
+test_item "oradba_help.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_help.sh' ]]" "optional"
 test_item "dbstatus.sh exists" "[[ -f '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
 test_item "dbstatus.sh is executable" "[[ -x '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
+test_item "oraup.sh exists" "[[ -f '${ORADBA_BASE}/bin/oraup.sh' ]]" "optional"
 test_item "oradba_dbctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_dbctl.sh' ]]" "optional"
 test_item "oradba_lsnrctl.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_lsnrctl.sh' ]]" "optional"
 test_item "oradba_services.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_services.sh' ]]" "optional"
+test_item "oradba_rman.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_rman.sh' ]]" "optional"
+test_item "oradba_extension.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_extension.sh' ]]" "optional"
+test_item "oradba_sqlnet.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_sqlnet.sh' ]]" "optional"
+test_item "get_seps_pwd.sh exists" "[[ -f '${ORADBA_BASE}/bin/get_seps_pwd.sh' ]]" "optional"
+test_item "sync_to_peers.sh exists" "[[ -f '${ORADBA_BASE}/bin/sync_to_peers.sh' ]]" "optional"
+test_item "rman_jobs.sh exists" "[[ -f '${ORADBA_BASE}/bin/rman_jobs.sh' ]]" "optional"
+test_item "exp_jobs.sh exists" "[[ -f '${ORADBA_BASE}/bin/exp_jobs.sh' ]]" "optional"
+test_item "longops.sh exists" "[[ -f '${ORADBA_BASE}/bin/longops.sh' ]]" "optional"
 
 # Check libraries
 if [[ "${VERBOSE}" == "true" ]]; then
@@ -151,6 +163,7 @@ fi
 test_item "common.sh exists" "[[ -f '${ORADBA_BASE}/lib/common.sh' ]]"
 test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/aliases.sh' ]]"
 test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/db_functions.sh' ]]" "optional"
+test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
 
 # Check configuration files
 if [[ "${VERBOSE}" == "true" ]]; then
@@ -167,6 +180,10 @@ test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.c
 test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/oradba_customer.conf.example' ]]"
 test_item "sid.ORCL.conf.example exists" "[[ -f '${ORADBA_BASE}/etc/sid.ORCL.conf.example' ]]" "optional"
 test_item "oradba_services.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_services.conf' ]]" "optional"
+test_item "rlwrap_sqlplus_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_sqlplus_completions' ]]" "optional"
+test_item "rlwrap_rman_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_rman_completions' ]]" "optional"
+test_item "rlwrap_lsnrctl_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_lsnrctl_completions' ]]" "optional"
+test_item "rlwrap_adrci_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_adrci_completions' ]]" "optional"
 
 # Check documentation
 if [[ "${VERBOSE}" == "true" ]]; then

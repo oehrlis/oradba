@@ -23,6 +23,8 @@ mappings:
     - test_oradba_check.bats
     - test_service_management.bats
     - test_sid_config.bats
+    - test_logging.bats
+    - test_execute_db_query.bats
   
   src/lib/aliases.sh:
     - test_aliases.bats
@@ -30,6 +32,10 @@ mappings:
   src/lib/db_functions.sh:
     - test_db_functions.bats
     - test_oraenv.bats
+  
+  src/lib/extensions.sh:
+    - test_extensions.bats
+    - test_common.bats
   
   # Binaries - direct mapping
   src/bin/oradba_check.sh:
@@ -52,6 +58,12 @@ mappings:
   
   src/bin/oradba_sqlnet.sh:
     - test_oradba_sqlnet.bats
+  
+  src/bin/oradba_extension.sh:
+    - test_extensions.bats
+  
+  src/bin/oradba_rman.sh:
+    - test_oradba_rman.bats
   
   # Service management scripts
   src/bin/oradba_dbctl.sh:
@@ -99,9 +111,14 @@ mappings:
   
   src/etc/oradba_standard.conf:
     - test_aliases.bats
+    - test_common.bats
   
   src/etc/sid.ORCL.conf.example:
     - test_sid_config.bats
+  
+  # RMAN configuration
+  src/rcv/*.rman:
+    - test_oradba_rman.bats
   
   # Installer changes
   scripts/build_installer.sh:
