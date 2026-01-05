@@ -100,6 +100,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **API Documentation** ([doc/api.md](doc/api.md)):
+  - Comprehensive expansion from 888 to 1,874 lines (+986 lines, +111% growth)
+  - Added 39 previously undocumented public functions (35% → 100% coverage)
+  - New sections:
+    - Information Display Functions (5 functions): `show_config`, `show_path`,
+      `show_sqlpath`, `configure_sqlpath`, `add_to_sqlpath`
+    - BasEnv Integration Functions (3 functions): `detect_basenv`, `alias_exists`,
+      `safe_alias`
+    - SID/PDB Management (3 functions): `generate_sid_lists`, `generate_pdb_aliases`,
+      `is_dummy_sid`
+    - Version Management Functions (4 functions): `get_oradba_version`, `version_compare`,
+      `version_meets_requirement`, `show_version_info`
+    - Installation Info Functions (3 functions): `get_install_info`, `set_install_info`,
+      `init_install_info`
+    - Database Functions (10 functions): Complete module documentation
+    - Alias Helper Functions (4 functions): `get_diagnostic_dest`, `has_rlwrap`,
+      `generate_sid_aliases`, `generate_base_aliases`
+    - Extension Management Functions (11 functions): Complete module documentation
+
+- **Installation Guide** ([src/doc/02-installation.md](src/doc/02-installation.md)):
+  - Added 6 comprehensive installation methods:
+    1. Direct Git Clone (single user)
+    2. Git Clone with Shared Installation (multi-user)
+    3. Release Archive (offline/restricted environments)
+    4. Ansible Deployment (infrastructure automation)
+    5. Manual Installation (maximum control)
+    6. Container/Docker Installation (development/testing)
+  - Complete Ansible deployment playbook with role structure
+  - Installation scenarios (new installation, updates, version management)
+  - Enhanced BasEnv coexistence documentation
+  - Production-ready examples (+600 lines)
+
+- **Test Documentation** ([tests/README.md](tests/README.md)):
+  - Updated test suite inventory: 9 → 20 test files
+  - Test coverage: 227 → 658 total tests (+189% growth)
+  - Added 11 previously undocumented test files:
+    - test_aliases.bats (38 tests)
+    - test_execute_db_query.bats (22 tests)
+    - test_extensions.bats (42 tests)
+    - test_logging.bats (28 tests)
+    - test_oradba_check.bats (24 tests)
+    - test_oradba_help.bats (12 tests)
+    - test_oradba_rman.bats (44 tests, includes 9 new v0.14.0 tests)
+    - test_oradba_sqlnet.bats (51 tests)
+    - test_oraup.bats (20 tests)
+    - test_service_management.bats (51 tests)
+    - test_sid_config.bats (17 tests)
+  - Updated all test counts to current values
+  - Added component mapping and descriptions for all test files
+
+- **Release Notes** ([doc/releases/v0.14.0.md](doc/releases/v0.14.0.md)):
+  - Created comprehensive 570-line release documentation
+  - Critical bug explanation with root cause analysis
+  - Migration guide for new features
+  - Testing instructions and verification steps
+  - Configuration examples and best practices
+
 - **Updated RMAN Usage Examples**:
 
   ```bash
@@ -114,7 +171,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run
   
   # Keep temp files for troubleshooting
-  oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
   oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
   ```
 

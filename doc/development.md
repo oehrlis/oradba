@@ -42,7 +42,7 @@ oradba/
 │   │   └── backup_full.rman
 │   └── templates/       # Template files
 │       └── script_template.sh
-├── test/                # BATS test files
+├── tests/               # BATS test files (658 tests across 20 files)
 │   ├── test_common.bats
 │   ├── test_oraenv.bats
 │   ├── test_installer.bats
@@ -1684,10 +1684,10 @@ chmod +x script.sh
 
 ```bash
 # Run with debug
-DEBUG=1 ./test/run_tests.sh
+DEBUG=1 ./tests/run_tests.sh
 
 # Run specific test
-bats -t test/test_common.bats
+bats -t tests/test_common.bats
 ```
 
 ## Resources

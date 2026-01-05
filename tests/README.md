@@ -10,19 +10,36 @@ with unit tests for libraries and integration tests for scripts.
 
 ## Test Files
 
-| Test File                                            | Component             | Tests | Description                     |
-|------------------------------------------------------|-----------------------|-------|---------------------------------|
-| [test_common.bats](test_common.bats)                 | lib/common.sh         | 11    | Core utility functions          |
-| [test_db_functions.bats](test_db_functions.bats)     | lib/db_functions.sh   | 23    | Database operations             |
-| [test_oraenv.bats](test_oraenv.bats)                 | bin/oraenv.sh         | 25    | Environment setup               |
-| [test_installer.bats](test_installer.bats)           | Installation          | 3     | Build and install               |
-| [test_oradba_version.bats](test_oradba_version.bats) | bin/oradba_version.sh | 12    | Version management              |
-| [test_longops.bats](test_longops.bats)               | bin/longops.sh        | 26    | Long operations monitoring      |
-| [test_get_seps_pwd.bats](test_get_seps_pwd.bats)     | bin/get_seps_pwd.sh   | 32    | Wallet password utility         |
-| [test_sync_scripts.bats](test_sync_scripts.bats)     | bin/sync_*.sh         | 56    | Peer synchronization            |
-| [test_job_wrappers.bats](test_job_wrappers.bats)     | bin/*_jobs.sh         | 39    | Job monitoring wrappers         |
+| Test File                                                    | Component             | Tests | Description                           |
+|--------------------------------------------------------------|-----------------------|-------|---------------------------------------|
+| [test_aliases.bats](test_aliases.bats)                       | lib/aliases.sh        | 38    | Alias generation and management       |
+| [test_common.bats](test_common.bats)                         | lib/common.sh         | 32    | Core utility functions                |
+| [test_db_functions.bats](test_db_functions.bats)             | lib/db_functions.sh   | 24    | Database query and status functions   |
+| [test_execute_db_query.bats](test_execute_db_query.bats)     | lib/common.sh         | 22    | SQL query execution                   |
+| [test_extensions.bats](test_extensions.bats)                 | lib/extensions.sh     | 42    | Extension discovery and loading       |
+| [test_get_seps_pwd.bats](test_get_seps_pwd.bats)             | bin/get_seps_pwd.sh   | 31    | Wallet password utility               |
+| [test_installer.bats](test_installer.bats)                   | bin/oradba_install.sh | 64    | Installation and updates              |
+| [test_job_wrappers.bats](test_job_wrappers.bats)             | bin/*_jobs.sh         | 39    | Job monitoring wrappers               |
+| [test_logging.bats](test_logging.bats)                       | lib/common.sh         | 28    | Unified logging system                |
+| [test_longops.bats](test_longops.bats)                       | bin/longops.sh        | 26    | Long operations monitoring            |
+| [test_oradba_check.bats](test_oradba_check.bats)             | bin/oradba_check.sh   | 24    | System prerequisites checking         |
+| [test_oradba_help.bats](test_oradba_help.bats)               | bin/oradba_help.sh    | 12    | Help system and documentation         |
+| [test_oradba_rman.bats](test_oradba_rman.bats)               | bin/oradba_rman.sh    | 44    | RMAN wrapper and backup management    |
+| [test_oradba_sqlnet.bats](test_oradba_sqlnet.bats)           | bin/oradba_sqlnet.sh  | 51    | SQL*Net configuration management      |
+| [test_oradba_version.bats](test_oradba_version.bats)         | bin/oradba_version.sh | 17    | Version and integrity checking        |
+| [test_oraenv.bats](test_oraenv.bats)                         | bin/oraenv.sh         | 25    | Environment setup and switching       |
+| [test_oraup.bats](test_oraup.bats)                           | bin/oraup.sh          | 20    | Environment status display            |
+| [test_service_management.bats](test_service_management.bats) | bin/oradba_dbctl.sh   | 51    | Database service lifecycle management |
+| [test_sid_config.bats](test_sid_config.bats)                 | Configuration         | 17    | SID-specific configuration loading    |
+| [test_sync_scripts.bats](test_sync_scripts.bats)             | bin/sync_*.sh         | 51    | Peer synchronization scripts          |
 
-**Total: 227 tests** (some integration tests may be skipped without database)
+**Total: 658 tests** (comprehensive coverage across all components)
+
+**Latest Updates (v0.14.0)**:
+
+- test_oradba_rman.bats: Added 9 tests for RMAN v0.14.0 features (backup path, dry-run, cleanup)
+- test_oradba_check.bats: Enhanced system prerequisites validation tests
+- test_oradba_version.bats: Added extension checksum verification tests
 
 ## Running Tests
 
