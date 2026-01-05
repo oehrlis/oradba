@@ -10,6 +10,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - add new alias *pth* using `show_path` to show PATH structure similar to *sqh* respectively `show_sqlpath`.
+- **Standalone Prerequisites Check Script**: `oradba_check.sh` now available as release artifact
+  - Can be downloaded and run BEFORE installation to validate system prerequisites
+  - Available from GitHub releases: `oradba_check.sh`
+  - Validates all installer requirements:
+    - System tools: bash, tar, awk, sed, grep, find, sort
+    - Checksum utilities: sha256sum or shasum
+    - Base64 encoder: base64 (required for installer with embedded payload)
+    - Optional tools: rlwrap, curl/wget, less
+    - Disk space: 100MB minimum for installation
+    - Oracle environment (if configured)
+    - Oracle binaries and database connectivity (if installed)
+  - **Build system updated**:
+    - `scripts/build_installer.sh` now creates 3 release artifacts:
+      - `oradba-X.Y.Z.tar.gz` (full package)
+      - `oradba_install.sh` (installer with embedded payload)
+      - `oradba_check.sh` (standalone prerequisites checker)
+    - Version automatically injected during build process
+  - **Usage modes**:
+    - Pre-installation: Download from releases and run to verify prerequisites
+    - Post-installation: Available in `bin/` directory for troubleshooting
+  - Enhanced usage text with download instructions and comprehensive examples
+  - Dynamic banner formatting supports any version length (0.7.0, 0.14.2, 10.15.234, etc.)
+  - Addresses Issue #56 Phase 6 - makes system validation accessible early
+
+### Changed
+
+- **Updated `oradba_check.sh`** from v0.7.0 to v0.13.7
+  - Added base64 availability check to system tools validation
+  - Enhanced script header documentation to clarify dual-use capability
+  - Updated usage text with pre-installation example using curl piped to bash
+  - Improved checks list with detailed descriptions of each validation
+- **Documentation updates**:
+  - Added "Prerequisites Check" section to README before installation instructions
+  - Added "Troubleshooting" section with common issues and solutions
+  - Updated build output to list all 3 release artifacts
 
 ## [0.13.5] - 2026-01-05
 
