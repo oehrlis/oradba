@@ -622,43 +622,20 @@ The installer uses this priority for default prefix:
 
 ### Directory Structure
 
-After installation:
+After installation (excerpt):
 
 ```text
 ${PREFIX}/
-├── bin/                    # Executable scripts
-│   ├── oraenv.sh          # Environment setup
-│   ├── dbstatus.sh        # Database status
-│   ├── oradba_version.sh  # Version management
-│   ├── oradba_validate.sh # Validation
-│   ├── oradba_check.sh    # System check
-│   └── oradba_install.sh  # Installer (for updates)
-├── lib/                    # Library files
-│   ├── common.sh          # Common functions
-│   └── aliases.sh         # Alias generation
-├── etc/                    # Configuration files
-│   ├── oradba_core.conf   # Core settings
-│   ├── oradba_standard.conf  # Standard config
-│   ├── oradba_customer.conf.example  # Customer template
-│   ├── sid._DEFAULT_.conf # Default SID template
-│   ├── sid.ORCL.conf.example  # SID example
-│   └── oratab.example     # oratab format example
-├── sql/                    # SQL scripts
-│   ├── db_info.sql
-│   ├── login.sql
-│   ├── sessionsql.sql
-│   └── README.md
-├── rcv/                    # RMAN scripts
-│   ├── backup_full.rman
-│   └── README.md
-├── doc/                    # User documentation
-│   ├── README.md
-│   ├── 01-introduction.md
-│   └── ...
-├── templates/              # Script templates
-│   └── script_template.sh
-├── log/                    # Log directory
-└── .install_info          # Installation metadata
+├── bin/        # Core utilities: oraenv.sh, oradba_version.sh, oradba_validate.sh,
+│               # oradba_check.sh, oradba_install.sh, oradba_rman.sh, oradba_dbctl.sh and others
+├── lib/        # Shared libraries
+├── etc/        # Configuration and examples (includes rlwrap completions)
+├── sql/        # README plus a few starter SQL scripts
+├── rcv/        # RMAN scripts
+├── doc/        # Documentation index and key chapters
+├── templates/  # Script/config templates
+├── log/        # Log directory
+└── .install_info  # Installation metadata
 ```
 
 ## Updating OraDBA
