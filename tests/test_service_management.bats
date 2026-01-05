@@ -193,27 +193,27 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "aliases.sh contains dbctl alias" {
-    grep -q "safe_alias dbctl" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias dbctl" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains dbstart alias" {
-    grep -q "safe_alias dbstart" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias dbstart" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains dbstop alias" {
-    grep -q "safe_alias dbstop" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias dbstop" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains lsnrctl alias" {
-    grep -q "safe_alias listener" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias listener" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains orastart alias" {
-    grep -q "safe_alias orastart" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias orastart" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 @test "aliases.sh contains orastop alias" {
-    grep -q "safe_alias orastop" "${PROJECT_ROOT}/src/lib/aliases.sh"
+    grep -q "create_dynamic_alias orastop" "${PROJECT_ROOT}/src/lib/aliases.sh"
 }
 
 # ------------------------------------------------------------------------------
