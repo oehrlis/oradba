@@ -153,6 +153,8 @@ fi  # End of readonly variables guard
 #   ORADBA_NO_COLOR - Set to 1 to disable color output
 #   DEBUG=1 - Legacy support, enables DEBUG level
 # All output goes to stderr for clean separation from script output
+# Undefine alias if it exists (e.g., 'alias log=cd ${ORADBA_LOG}')
+unalias log 2>/dev/null || true
 log() {
     local level="$1"
     shift
