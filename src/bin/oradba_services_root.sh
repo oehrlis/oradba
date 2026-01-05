@@ -29,27 +29,20 @@ ORACLE_USER="${ORACLE_USER:-oracle}"
 SERVICES_SCRIPT="${ORADBA_BASE}/bin/oradba_services.sh"
 LOGFILE="/var/log/oracle/oradba_services_root.log"
 
+# Source common functions
+if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+    source "${ORADBA_BASE}/lib/common.sh"
+else
+    echo "ERROR: Cannot find common.sh library"
+    exit 1
+fi
+
+# Enable file logging
+export ORADBA_LOG_FILE="${LOGFILE}"
+
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------
-
-# Log message
-log_message() {
-    local level="$1"
-    shift
-    local message="$*"
-    local timestamp
-    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    # Ensure log directory exists
-    mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
-    
-    # Log to file
-    echo "[${timestamp}] [${level}] ${message}" >> "${LOGFILE}" 2>/dev/null
-    
-    # Log to stdout
-    echo "[${level}] ${message}"
-}
 
 # Check if running as root
 check_root() {

@@ -153,10 +153,10 @@ done
 # Print banner
 if [[ "$QUIET" != "true" ]]; then
     echo ""
-    echo "${BOLD}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo "${BOLD}║          OraDBA System Prerequisites Check                ║${NC}"
-    echo "${BOLD}║                    Version ${SCRIPT_VERSION}                        ║${NC}"
-    echo "${BOLD}╚════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${BOLD}╔════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BOLD}║          OraDBA System Prerequisites Check                 ║${NC}"
+    echo -e "${BOLD}║                    Version ${SCRIPT_VERSION}                           ║${NC}"
+    echo -e "${BOLD}╚════════════════════════════════════════════════════════════╝${NC}"
 fi
 
 # =============================================================================

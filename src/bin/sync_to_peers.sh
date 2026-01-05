@@ -26,6 +26,14 @@ readonly SCRIPT_BASE
 readonly SCRIPT_ETC_DIR="${SCRIPT_BASE}/etc"
 readonly SCRIPT_CONF="${SCRIPT_ETC_DIR}/${SCRIPT_NAME%.sh}.conf"
 
+# Source common functions
+if [[ -f "${SCRIPT_BASE}/lib/common.sh" ]]; then
+    source "${SCRIPT_BASE}/lib/common.sh"
+else
+    echo "ERROR: Cannot find common.sh library"
+    exit 1
+fi
+
 # Default values
 PEER_HOSTS_DEFAULT=()
 SSH_USER_DEFAULT="oracle"
@@ -125,20 +133,12 @@ EOF
     exit 0
 }
 
-# Log message function
-log_message() {
+# Helper function to check if we should log
+should_log() {
     local level="$1"
-    local message="$2"
-    
-    [[ "${QUIET}" == "true" && "${level}" != "ERROR" ]] && return
-    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return
-
-    case "${level}" in
-        INFO)  echo -e "\033[32m[INFO]\033[0m ${message}" ;;
-        DEBUG) echo -e "\033[34m[DEBUG]\033[0m ${message}" ;;
-        ERROR) echo -e "\033[31m[ERROR]\033[0m ${message}" >&2 ;;
-        *)     echo "${message}" ;;
-    esac
+    [[ "${QUIET}" == "true" && "${level}" != "ERROR" ]] && return 1
+    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
+    return 0
 }
 
 # Parse command line arguments
@@ -170,13 +170,13 @@ parse_args() {
     
     # Check source exists
     if [[ ! -e "${SOURCE}" ]]; then
-        log_message ERROR "Source '${SOURCE}' does not exist."
+        should_log ERROR && log ERROR "Source '${SOURCE}' does not exist."
         exit 1
     fi
     
     # Validate peer hosts
     if [[ ${#PEER_HOSTS[@]} -eq 0 ]]; then
-        log_message ERROR "PEER_HOSTS is empty. Configure via environment, config file, or -H option."
+        should_log ERROR && log ERROR "PEER_HOSTS is empty. Configure via environment, config file, or -H option."
         exit 1
     fi
 }
@@ -198,13 +198,13 @@ perform_sync() {
     fi
     
     this_host=$(hostname -s)
-    log_message INFO "Starting sync of '${rsync_source}' from ${this_host} to peers..."
+    should_log INFO && log INFO "Starting sync of '${rsync_source}' from ${this_host} to peers..."
     
     # Sync to each peer host
     for host in "${PEER_HOSTS[@]}"; do
         # Skip self
         if [[ "${host}" == "${this_host}" ]]; then
-            log_message DEBUG "Skipping self (${this_host})"
+            should_log DEBUG && log DEBUG "Skipping self (${this_host})"
             continue
         fi
         
@@ -213,18 +213,18 @@ perform_sync() {
         [[ -z "${target_path}" ]] && target_path="${abs_source}"
         
         # Execute rsync
-        log_message INFO "Syncing to ${host}:${target_path} ..."
+        should_log INFO && log INFO "Syncing to ${host}:${target_path} ..."
         # shellcheck disable=SC2086
         if rsync ${RSYNC_OPTS} -e "ssh -p ${SSH_PORT}" "${rsync_source}" "${SSH_USER}@${host}:${target_path}"; then
-            log_message INFO "Sync to ${host} completed"
+            should_log INFO && log INFO "Sync to ${host} completed"
             SYNC_SUCCESS+=("${host}")
         else
-            log_message ERROR "Failed to sync to ${host}"
+            should_log ERROR && log ERROR "Failed to sync to ${host}"
             SYNC_FAILURE+=("${host}")
         fi
     done
     
-    log_message INFO "Sync operation finished."
+    should_log INFO && log INFO "Sync operation finished."
 }
 
 # Display summary
@@ -233,10 +233,10 @@ show_summary() {
         local this_host
         this_host=$(hostname -s)
         
-        log_message INFO "--- Sync Summary ---"
-        log_message INFO "Local  : ${this_host}"
-        log_message INFO "Success: ${SYNC_SUCCESS[*]:-none}"
-        log_message INFO "Failed : ${SYNC_FAILURE[*]:-none}"
+        should_log INFO && log INFO "--- Sync Summary ---"
+        should_log INFO && log INFO "Local  : ${this_host}"
+        should_log INFO && log INFO "Success: ${SYNC_SUCCESS[*]:-none}"
+        should_log INFO && log INFO "Failed : ${SYNC_FAILURE[*]:-none}"
     fi
 }
 

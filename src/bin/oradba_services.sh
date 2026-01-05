@@ -48,86 +48,25 @@ DB_OPTIONS=""
 LSNR_OPTIONS=""
 
 # ------------------------------------------------------------------------------
-# Functions
+# Logging setup
 # ------------------------------------------------------------------------------
-
-# Show usage
-usage() {
-    cat << EOF
-Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS]
-
-Actions:
-    start       Start all Oracle services (listeners and databases)
-    stop        Stop all Oracle services (databases and listeners)
-    restart     Restart all Oracle services
-    status      Show status of all Oracle services
-
-Options:
-    -f, --force             Force operation without confirmation
-    -c, --config FILE       Use alternate configuration file
-    -h, --help              Show this help message
-
-Configuration:
-    Configuration file: ${CONFIG_FILE}
-    
-    Variables:
-        STARTUP_ORDER       Order of service startup (default: listener,database)
-        SHUTDOWN_ORDER      Order of service shutdown (default: database,listener)
-        SPECIFIC_DBS        Space-separated list of specific databases
-        SPECIFIC_LISTENERS  Space-separated list of specific listeners
-        DB_OPTIONS          Additional options for oradba_dbctl.sh
-        LSNR_OPTIONS        Additional options for oradba_lsnrctl.sh
-
-Examples:
-    ${SCRIPT_NAME} start                # Start all Oracle services
-    ${SCRIPT_NAME} stop --force         # Stop all without confirmation
-    ${SCRIPT_NAME} status               # Show status of all services
-    ${SCRIPT_NAME} restart              # Restart all services
-
-Environment Variables:
-    ORADBA_LOG          Log directory (default: /var/log/oracle)
-
-EOF
-    exit 1
-}
-
-# Log message to file and stdout
-log_message() {
-    local level="$1"
-    shift
-    local message="$*"
-    local timestamp
-    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    # Ensure log directory exists
-    mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
-    
-    # Log to file
-    echo "[${timestamp}] [${level}] ${message}" >> "${LOGFILE}" 2>/dev/null
-    
-    # Log to stdout with color
-    case "${level}" in
-        INFO)  echo -e "\033[0;32m[INFO]\033[0m ${message}" ;;
-        WARN)  echo -e "\033[0;33m[WARN]\033[0m ${message}" ;;
-        ERROR) echo -e "\033[0;31m[ERROR]\033[0m ${message}" ;;
-        *)     echo "[${level}] ${message}" ;;
-    esac
-}
+# Enable file logging to service log
+export ORADBA_LOG_FILE="${LOGFILE}"
 
 # Load configuration file
 load_config() {
     if [[ -f "${CONFIG_FILE}" ]]; then
-        log_message INFO "Loading configuration from ${CONFIG_FILE}"
+        log INFO "Loading configuration from ${CONFIG_FILE}"
         # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
     else
-        log_message INFO "No configuration file found, using defaults"
+        log INFO "No configuration file found, using defaults"
     fi
 }
 
 # Start listeners
 start_listeners() {
-    log_message INFO "Starting Oracle listeners..."
+    log INFO "Starting Oracle listeners..."
     
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh start"
     
@@ -140,22 +79,22 @@ start_listeners() {
     # Add specific listeners if configured
     [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
     
-    log_message INFO "Executing: ${cmd}"
+    log INFO "Executing: ${cmd}"
     eval "${cmd}"
     
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
-        log_message INFO "Listeners started successfully"
+        log INFO "Listeners started successfully"
         return 0
     else
-        log_message ERROR "Failed to start listeners (exit code: ${rc})"
+        log ERROR "Failed to start listeners (exit code: ${rc})"
         return 1
     fi
 }
 
 # Stop listeners
 stop_listeners() {
-    log_message INFO "Stopping Oracle listeners..."
+    log INFO "Stopping Oracle listeners..."
     
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh stop"
     
@@ -168,22 +107,22 @@ stop_listeners() {
     # Add specific listeners if configured
     [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
     
-    log_message INFO "Executing: ${cmd}"
+    log INFO "Executing: ${cmd}"
     eval "${cmd}"
     
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
-        log_message INFO "Listeners stopped successfully"
+        log INFO "Listeners stopped successfully"
         return 0
     else
-        log_message ERROR "Failed to stop listeners (exit code: ${rc})"
+        log ERROR "Failed to stop listeners (exit code: ${rc})"
         return 1
     fi
 }
 
 # Start databases
 start_databases() {
-    log_message INFO "Starting Oracle databases..."
+    log INFO "Starting Oracle databases..."
     
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh start"
     
@@ -196,22 +135,22 @@ start_databases() {
     # Add specific databases if configured
     [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
     
-    log_message INFO "Executing: ${cmd}"
+    log INFO "Executing: ${cmd}"
     eval "${cmd}"
     
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
-        log_message INFO "Databases started successfully"
+        log INFO "Databases started successfully"
         return 0
     else
-        log_message ERROR "Failed to start databases (exit code: ${rc})"
+        log ERROR "Failed to start databases (exit code: ${rc})"
         return 1
     fi
 }
 
 # Stop databases
 stop_databases() {
-    log_message INFO "Stopping Oracle databases..."
+    log INFO "Stopping Oracle databases..."
     
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh stop"
     
@@ -224,15 +163,15 @@ stop_databases() {
     # Add specific databases if configured
     [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
     
-    log_message INFO "Executing: ${cmd}"
+    log INFO "Executing: ${cmd}"
     eval "${cmd}"
     
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
-        log_message INFO "Databases stopped successfully"
+        log INFO "Databases stopped successfully"
         return 0
     else
-        log_message ERROR "Failed to stop databases (exit code: ${rc})"
+        log ERROR "Failed to stop databases (exit code: ${rc})"
         return 1
     fi
 }
@@ -263,7 +202,7 @@ show_status() {
 
 # Start all services
 start_all() {
-    log_message INFO "========== Starting Oracle services =========="
+    log INFO "========== Starting Oracle services =========="
     
     local success=true
     
@@ -274,34 +213,34 @@ start_all() {
         case "${service}" in
             listener)
                 if ! start_listeners; then
-                    log_message ERROR "Listener startup failed"
+                    log ERROR "Listener startup failed"
                     success=false
                 fi
                 ;;
             database)
                 if ! start_databases; then
-                    log_message ERROR "Database startup failed"
+                    log ERROR "Database startup failed"
                     success=false
                 fi
                 ;;
             *)
-                log_message WARN "Unknown service in startup order: ${service}"
+                log WARN "Unknown service in startup order: ${service}"
                 ;;
         esac
     done
     
     if [[ "${success}" == "true" ]]; then
-        log_message INFO "All services started successfully"
+        log INFO "All services started successfully"
         return 0
     else
-        log_message ERROR "Some services failed to start"
+        log ERROR "Some services failed to start"
         return 1
     fi
 }
 
 # Stop all services
 stop_all() {
-    log_message INFO "========== Stopping Oracle services =========="
+    log INFO "========== Stopping Oracle services =========="
     
     local success=true
     
@@ -312,27 +251,27 @@ stop_all() {
         case "${service}" in
             listener)
                 if ! stop_listeners; then
-                    log_message ERROR "Listener shutdown failed"
+                    log ERROR "Listener shutdown failed"
                     success=false
                 fi
                 ;;
             database)
                 if ! stop_databases; then
-                    log_message ERROR "Database shutdown failed"
+                    log ERROR "Database shutdown failed"
                     success=false
                 fi
                 ;;
             *)
-                log_message WARN "Unknown service in shutdown order: ${service}"
+                log WARN "Unknown service in shutdown order: ${service}"
                 ;;
         esac
     done
     
     if [[ "${success}" == "true" ]]; then
-        log_message INFO "All services stopped successfully"
+        log INFO "All services stopped successfully"
         return 0
     else
-        log_message ERROR "Some services failed to stop"
+        log ERROR "Some services failed to stop"
         return 1
     fi
 }
@@ -384,37 +323,37 @@ done
 load_config
 
 # Log action
-log_message INFO "========== Starting ${ACTION} operation =========="
-log_message INFO "User: $(whoami), Host: $(hostname)"
-log_message INFO "Startup order: ${STARTUP_ORDER}"
-log_message INFO "Shutdown order: ${SHUTDOWN_ORDER}"
+log INFO "========== Starting ${ACTION} operation =========="
+log INFO "User: $(whoami), Host: $(hostname)"
+log INFO "Startup order: ${STARTUP_ORDER}"
+log INFO "Shutdown order: ${SHUTDOWN_ORDER}"
 
 # Execute action
 case "${ACTION}" in
     start)
         if start_all; then
-            log_message INFO "Oracle services startup completed successfully"
+            log INFO "Oracle services startup completed successfully"
             exit 0
         else
-            log_message ERROR "Oracle services startup completed with errors"
+            log ERROR "Oracle services startup completed with errors"
             exit 1
         fi
         ;;
     stop)
         if stop_all; then
-            log_message INFO "Oracle services shutdown completed successfully"
+            log INFO "Oracle services shutdown completed successfully"
             exit 0
         else
-            log_message ERROR "Oracle services shutdown completed with errors"
+            log ERROR "Oracle services shutdown completed with errors"
             exit 1
         fi
         ;;
     restart)
         if stop_all && sleep 5 && start_all; then
-            log_message INFO "Oracle services restart completed successfully"
+            log INFO "Oracle services restart completed successfully"
             exit 0
         else
-            log_message ERROR "Oracle services restart completed with errors"
+            log ERROR "Oracle services restart completed with errors"
             exit 1
         fi
         ;;

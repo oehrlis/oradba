@@ -77,35 +77,15 @@ EOF
     exit 1
 }
 
-# Log message to file and stdout
-log_message() {
-    local level="$1"
-    shift
-    local message="$*"
-    local timestamp
-    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    # Ensure log directory exists
-    mkdir -p "$(dirname "${LOGFILE}")" 2>/dev/null
-    
-    # Log to file
-    echo "[${timestamp}] [${level}] ${message}" >> "${LOGFILE}" 2>/dev/null
-    
-    # Log to stdout with color
-    case "${level}" in
-        INFO)  echo -e "\033[0;32m[INFO]\033[0m ${message}" ;;
-        WARN)  echo -e "\033[0;33m[WARN]\033[0m ${message}" ;;
-        ERROR) echo -e "\033[0;31m[ERROR]\033[0m ${message}" ;;
-        *)     echo "[${level}] ${message}" ;;
-    esac
-}
+# Enable file logging
+export ORADBA_LOG_FILE="${LOGFILE}"
 
 # Get first Oracle home from oratab
 get_first_oracle_home() {
     local oratab_file="${ORATAB:-/etc/oratab}"
     
     if [[ ! -f "${oratab_file}" ]]; then
-        log_message ERROR "oratab file not found: ${oratab_file}"
+        log ERROR "oratab file not found: ${oratab_file}"
         return 1
     fi
     
@@ -114,7 +94,7 @@ get_first_oracle_home() {
     oracle_home=$(grep -v '^#' "${oratab_file}" | grep -v '^$' | grep -v ':D$' | head -1 | cut -d: -f2)
     
     if [[ -z "${oracle_home}" ]]; then
-        log_message ERROR "No Oracle home found in oratab"
+        log ERROR "No Oracle home found in oratab"
         return 1
     fi
     
@@ -130,7 +110,7 @@ set_listener_env() {
     oracle_home=$(get_first_oracle_home)
     
     if [[ -z "${oracle_home}" ]]; then
-        log_message ERROR "Cannot determine Oracle home"
+        log ERROR "Cannot determine Oracle home"
         return 1
     fi
     
@@ -173,15 +153,15 @@ ask_justification() {
     read -p "Please provide justification for this operation: " justification
     
     if [[ -z "${justification}" ]]; then
-        log_message ERROR "Operation cancelled: No justification provided"
+        log ERROR "Operation cancelled: No justification provided"
         return 1
     fi
     
-    log_message INFO "Justification for ${action} all listeners: ${justification}"
+    log INFO "Justification for ${action} all listeners: ${justification}"
     read -p "Continue with operation? (yes/no): " confirm
     
     if [[ "${confirm}" != "yes" ]]; then
-        log_message INFO "Operation cancelled by user"
+        log INFO "Operation cancelled by user"
         return 1
     fi
     
@@ -192,18 +172,18 @@ ask_justification() {
 start_listener() {
     local listener_name="$1"
     
-    log_message INFO "Starting listener ${listener_name}..."
+    log INFO "Starting listener ${listener_name}..."
     
     # Set environment
     if ! set_listener_env "${listener_name}"; then
-        log_message ERROR "Failed to set environment for ${listener_name}"
+        log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
     
     # Check if listener is already running
     lsnrctl status "${listener_name}" >/dev/null 2>&1
     if [[ $? -eq 0 ]]; then
-        log_message INFO "Listener ${listener_name} is already running"
+        log INFO "Listener ${listener_name} is already running"
         return 0
     fi
     
@@ -211,10 +191,10 @@ start_listener() {
     lsnrctl start "${listener_name}" >> "${LOGFILE}" 2>&1
     
     if [[ $? -eq 0 ]]; then
-        log_message INFO "Listener ${listener_name} started successfully"
+        log INFO "Listener ${listener_name} started successfully"
         return 0
     else
-        log_message ERROR "Failed to start listener ${listener_name}"
+        log ERROR "Failed to start listener ${listener_name}"
         return 1
     fi
 }
@@ -223,18 +203,18 @@ start_listener() {
 stop_listener() {
     local listener_name="$1"
     
-    log_message INFO "Stopping listener ${listener_name}..."
+    log INFO "Stopping listener ${listener_name}..."
     
     # Set environment
     if ! set_listener_env "${listener_name}"; then
-        log_message ERROR "Failed to set environment for ${listener_name}"
+        log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
     
     # Check if listener is running
     lsnrctl status "${listener_name}" >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-        log_message INFO "Listener ${listener_name} is not running"
+        log INFO "Listener ${listener_name} is not running"
         return 0
     fi
     
@@ -242,10 +222,10 @@ stop_listener() {
     lsnrctl stop "${listener_name}" >> "${LOGFILE}" 2>&1
     
     if [[ $? -eq 0 ]]; then
-        log_message INFO "Listener ${listener_name} stopped successfully"
+        log INFO "Listener ${listener_name} stopped successfully"
         return 0
     else
-        log_message ERROR "Failed to stop listener ${listener_name}"
+        log ERROR "Failed to stop listener ${listener_name}"
         return 1
     fi
 }
@@ -309,13 +289,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Log action
-log_message INFO "========== Starting ${ACTION} operation =========="
-log_message INFO "User: $(whoami), Host: $(hostname)"
+log INFO "========== Starting ${ACTION} operation =========="
+log INFO "User: $(whoami), Host: $(hostname)"
 
 # Determine which listeners to process
 if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     # No listeners specified, use default
-    log_message INFO "No listeners specified, using default LISTENER"
+    log INFO "No listeners specified, using default LISTENER"
     LISTENERS=("LISTENER")
     
     # For status, show all running listeners
@@ -327,7 +307,7 @@ if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     fi
 else
     # Explicit listeners provided
-    log_message INFO "Processing specified listeners: ${LISTENERS[*]}"
+    log INFO "Processing specified listeners: ${LISTENERS[*]}"
     
     # Ask for justification if multiple listeners
     if [[ ${#LISTENERS[@]} -gt 1 ]] && [[ "${ACTION}" != "status" ]]; then
@@ -372,16 +352,16 @@ done
 
 # Summary
 if [[ "${ACTION}" != "status" ]]; then
-    log_message INFO "========== Operation completed =========="
-    log_message INFO "Success: ${success_count}, Failures: ${failure_count}"
+    log INFO "========== Operation completed =========="
+    log INFO "Success: ${success_count}, Failures: ${failure_count}"
     
     if [[ ${failure_count} -gt 0 ]]; then
-        log_message WARN "Some listeners failed to ${ACTION}"
+        log WARN "Some listeners failed to ${ACTION}"
         exit 1
     fi
 fi
 
-log_message INFO "Done"
+log INFO "Done"
 exit 0
 
 # EOF -------------------------------------------------------------------------

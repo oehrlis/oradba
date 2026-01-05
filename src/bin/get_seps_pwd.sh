@@ -25,6 +25,14 @@ SCRIPT_BASE="$(dirname "${SCRIPT_DIR}")"
 # shellcheck disable=SC2034  # Used for potential future extension
 readonly SCRIPT_BASE
 
+# Source common functions
+if [[ -f "${SCRIPT_BASE}/lib/common.sh" ]]; then
+    source "${SCRIPT_BASE}/lib/common.sh"
+else
+    echo "ERROR: Cannot find common.sh library"
+    exit 1
+fi
+
 # Default values
 WALLET_DIR="${cdn:-${ORACLE_BASE}/network}/wallet"
 WALLET_PASSWORD="${WALLET_PASSWORD:-}"
@@ -73,20 +81,12 @@ EOF
     exit 0
 }
 
-# Log message function
-log_message() {
+# Helper function to check log level
+should_log() {
     local level="$1"
-    local message="$2"
-    
-    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return
-    [[ "${QUIET}" == "true" ]] && return
-
-    case "${level}" in
-        INFO)  echo -e "\033[32m[INFO]\033[0m ${message}" ;;
-        DEBUG) echo -e "\033[34m[DEBUG]\033[0m ${message}" ;;
-        ERROR) echo -e "\033[31m[ERROR]\033[0m ${message}" >&2 ;;
-        *)     echo "${message}" ;;
-    esac
+    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
+    [[ "${QUIET}" == "true" ]] && return 1
+    return 0
 }
 
 # Get entry from wallet
@@ -121,18 +121,18 @@ parse_args() {
 validate_environment() {
     # Check wallet directory
     if [[ ! -d "${WALLET_DIR}" ]]; then
-        log_message ERROR "Wallet directory '${WALLET_DIR}' does not exist."
+        log ERROR "Wallet directory '${WALLET_DIR}' does not exist."
         exit 1
     fi
     
     if [[ ! -r "${WALLET_DIR}" ]]; then
-        log_message ERROR "Wallet directory '${WALLET_DIR}' is not readable."
+        log ERROR "Wallet directory '${WALLET_DIR}' is not readable."
         exit 1
     fi
 
     # Check mkstore command
     if ! command -v mkstore &> /dev/null; then
-        log_message ERROR "mkstore command not found. Please ensure Oracle Client is installed."
+        log ERROR "mkstore command not found. Please ensure Oracle Client is installed."
         exit 1
     fi
 }
@@ -142,7 +142,7 @@ load_wallet_password() {
     # Try to load from encoded file
     if [[ -f "${WALLET_DIR}/.wallet_pwd" ]]; then
         WALLET_PASSWORD=$(base64 -d "${WALLET_DIR}/.wallet_pwd" 2>/dev/null)
-        log_message DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
+        log DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
     fi
 
     # Prompt if not loaded
@@ -161,10 +161,10 @@ search_wallet() {
     count=$(echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -list 2>/dev/null \
             | grep -c "oracle.security.client.connect_string")
     
-    log_message DEBUG "Found ${count} connect string entries in wallet."
+    log DEBUG "Found ${count} connect string entries in wallet."
     
     if [[ ${count} -eq 0 ]]; then
-        log_message ERROR "No connect strings found in wallet."
+        log ERROR "No connect strings found in wallet."
         exit 1
     fi
 
@@ -174,11 +174,11 @@ search_wallet() {
         alias=$(get_entry "oracle.security.client.connect_string${i}")
         
         if [[ "${alias,,}" == "${connect_string_lower}" ]]; then
-            log_message INFO "Found connect string '${CONNECT_STRING}' in wallet."
+            should_log INFO && log INFO "Found connect string '${CONNECT_STRING}' in wallet."
             
             # Check mode - just verify existence
             if [[ "${CHECK}" == "true" ]]; then
-                log_message INFO "Password exists for connect string '${CONNECT_STRING}'."
+                should_log INFO && log INFO "Password exists for connect string '${CONNECT_STRING}'."
                 return 0
             fi
             
@@ -190,15 +190,15 @@ search_wallet() {
             if [[ "${QUIET}" == "true" ]]; then
                 echo "${password}"
             else
-                log_message INFO "Match found for connect string '${CONNECT_STRING}':"
-                log_message INFO "  Password: ${password}"
+                should_log INFO && log INFO "Match found for connect string '${CONNECT_STRING}':"
+                should_log INFO && log INFO "  Password: ${password}"
             fi
             return 0
         fi
     done
 
     # No match found
-    log_message ERROR "Connect string '${CONNECT_STRING}' not found in wallet."
+    should_log ERROR && log ERROR "Connect string '${CONNECT_STRING}' not found in wallet."
     return 1
 }
 
