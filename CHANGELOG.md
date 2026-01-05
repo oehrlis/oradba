@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Logging Infrastructure (#16)**: Core logging infrastructure implementation
+  - New function: `init_logging()` in `src/lib/common.sh`
+    - Automatic log directory creation (`/var/log/oradba` or `~/.oradba/logs`)
+    - Graceful fallback to user directory if system location not writable
+    - Sets `ORADBA_LOG_DIR` and `ORADBA_LOG_FILE` environment variables
+    - Idempotent (safe to call multiple times)
+  - New function: `init_session_log()` in `src/lib/common.sh`
+    - Per-session log files with unique names: `session_YYYYMMDD_HHMMSS_PID.log`
+    - Metadata header with user, host, PID, Oracle environment
+    - Dual logging support (main log + session log)
+    - Optional session-only logging via `ORADBA_SESSION_LOG_ONLY=true`
+  - Enhanced `log()` function:
+    - Optional caller information via `ORADBA_LOG_SHOW_CALLER=true`
+    - Format: `[LEVEL] TIMESTAMP [file:line] - message`
+    - Dual logging to both `ORADBA_LOG_FILE` and `ORADBA_SESSION_LOG`
+  - **Test Suite**: 23 comprehensive BATS tests in `tests/test_logging_infrastructure.bats`
+    - Directory initialization and fallback behavior
+    - Session log creation and metadata headers
+    - Caller information formatting
+    - Dual logging without duplication
+    - Backward compatibility verification
+  - **Documentation**: Complete API docs in `doc/api.md`
+    - `init_logging()` usage and examples
+    - `init_session_log()` configuration options
+    - Enhanced `log()` function parameters
+
+### Fixed
+
+- Release workflow now installs `markdownlint-cli` to run Markdown linting instead of skipping with a warning
+
 ## [0.14.0] - 2026-01-05
 
 ### 🔴 CRITICAL BUG FIXES

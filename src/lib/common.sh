@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.05
-# Revision...: 0.13.7
+# Revision...: 0.14.0
 # Purpose....: Common library functions for oradba scripts
 # Notes......: This library provides reusable functions for logging, validation,
 #              Oracle environment management, and configuration parsing.
@@ -30,6 +30,93 @@ get_script_dir() {
 # ------------------------------------------------------------------------------
 # Unified Logging System
 # ------------------------------------------------------------------------------
+# Prevent re-initialization if already sourced
+if [[ -z "${ORADBA_COMMON_SOURCED:-}" ]]; then
+    export ORADBA_COMMON_SOURCED="true"
+
+# Initialize logging infrastructure
+# Creates log directory and sets up log file paths
+# Falls back to user home directory if system directory not writable
+init_logging() {
+    local log_dir="${ORADBA_LOG_DIR:-}"
+    
+    # Determine log directory
+    if [[ -z "$log_dir" ]]; then
+        if [[ -w "/var/log" ]]; then
+            log_dir="/var/log/oradba"
+        else
+            log_dir="${HOME}/.oradba/logs"
+        fi
+    fi
+    
+    # Create directory if needed
+    if [[ ! -d "$log_dir" ]]; then
+        if ! mkdir -p "$log_dir" 2>/dev/null; then
+            # Fallback to user directory if system location fails
+            log_dir="${HOME}/.oradba/logs"
+            mkdir -p "$log_dir" 2>/dev/null || {
+                echo "[ERROR] Failed to create log directory: $log_dir" >&2
+                return 1
+            }
+        fi
+    fi
+    
+    export ORADBA_LOG_DIR="$log_dir"
+    
+    # Set main log file if not already set
+    if [[ -z "${ORADBA_LOG_FILE:-}" ]]; then
+        export ORADBA_LOG_FILE="${log_dir}/oradba.log"
+    fi
+    
+    # Debug output (only if DEBUG level enabled)
+    if [[ "${ORADBA_LOG_LEVEL:-INFO}" == "DEBUG" ]] || [[ "${DEBUG:-0}" == "1" ]]; then
+        echo "[DEBUG] $(date '+%Y-%m-%d %H:%M:%S') - Logging initialized: ${log_dir}" >&2
+    fi
+    
+    return 0
+}
+
+# Initialize session logging
+# Creates individual log file for current session with metadata header
+init_session_log() {
+    # Only create session log if enabled and logging is initialized
+    if [[ "${ORADBA_SESSION_LOGGING:-false}" != "true" ]]; then
+        return 0
+    fi
+    
+    # Ensure logging directory exists
+    local log_dir="${ORADBA_LOG_DIR:-}"
+    if [[ -z "$log_dir" ]]; then
+        init_logging || return 1
+        log_dir="${ORADBA_LOG_DIR}"
+    fi
+    
+    # Create session log file
+    local session_log="${log_dir}/session_$(date +%Y%m%d_%H%M%S)_$$.log"
+    export ORADBA_SESSION_LOG="$session_log"
+    
+    # Write session header
+    cat > "$session_log" <<EOF
+# ------------------------------------------------------------------------------
+# OraDBA Session Log
+# ------------------------------------------------------------------------------
+# Started....: $(date '+%Y-%m-%d %H:%M:%S')
+# User.......: ${USER}
+# Host.......: $(hostname)
+# PID........: $$
+# ORACLE_SID.: ${ORACLE_SID:-none}
+# ORACLE_HOME: ${ORACLE_HOME:-none}
+# ------------------------------------------------------------------------------
+
+EOF
+    
+    # Set as primary log file for dual logging
+    if [[ "${ORADBA_SESSION_LOG_ONLY:-false}" == "true" ]]; then
+        export ORADBA_LOG_FILE="$session_log"
+    fi
+    
+    return 0
+}
 
 # Color codes for TTY output (auto-detected)
 if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
@@ -116,7 +203,15 @@ log() {
         # Format log message
         local timestamp
         timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-        local log_line="[${level^^}] ${timestamp} - ${message}"
+        
+        # Add caller information if enabled
+        local log_line
+        if [[ "${ORADBA_LOG_SHOW_CALLER:-false}" == "true" ]]; then
+            local caller="${BASH_SOURCE[2]##*/}:${BASH_LINENO[1]}"
+            log_line="[${level^^}] ${timestamp} [${caller}] - ${message}"
+        else
+            log_line="[${level^^}] ${timestamp} - ${message}"
+        fi
         
         # Output to stderr with color if enabled
         if [[ -n "${color}" ]]; then
@@ -128,6 +223,11 @@ log() {
         # Optional file logging (without color codes)
         if [[ -n "${ORADBA_LOG_FILE:-}" ]]; then
             echo "${log_line}" >> "${ORADBA_LOG_FILE}"
+        fi
+        
+        # Dual logging: also write to session log if different from main log
+        if [[ -n "${ORADBA_SESSION_LOG:-}" ]] && [[ "${ORADBA_SESSION_LOG}" != "${ORADBA_LOG_FILE:-}" ]]; then
+            echo "${log_line}" >> "${ORADBA_SESSION_LOG}"
         fi
     fi
 }
@@ -181,6 +281,8 @@ log_debug() {
     _show_deprecation_warning "log_debug" "log DEBUG"
     log DEBUG "$*"
 }
+
+fi  # End of ORADBA_COMMON_SOURCED guard
 
 # ------------------------------------------------------------------------------
 # Function: execute_db_query

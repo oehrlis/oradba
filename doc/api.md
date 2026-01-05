@@ -6,9 +6,118 @@ This document describes the public API of the oradba common library (`src/lib/co
 
 ## Logging Functions
 
+### init_logging
+
+**New in v0.14.0**: Initialize logging infrastructure with directory creation.
+
+Creates log directory structure and sets up log file paths. Automatically falls
+back to user home directory if system directory is not writable.
+
+**Syntax**: `init_logging`
+
+**Environment (Input)**:
+
+- `ORADBA_LOG_DIR` - Custom log directory (optional)
+  - If not set, tries `/var/log/oradba` first, then `~/.oradba/logs`
+
+**Environment (Output)**:
+
+- `ORADBA_LOG_DIR` - Log directory path (created if needed)
+- `ORADBA_LOG_FILE` - Main log file path (set to `${ORADBA_LOG_DIR}/oradba.log`)
+
+**Returns**:
+
+- `0` - Success
+- `1` - Failed to create log directory
+
+**Examples**:
+
+```bash
+# Use default location (/var/log/oradba or ~/.oradba/logs)
+init_logging
+
+# Use custom directory
+export ORADBA_LOG_DIR="/opt/oracle/logs"
+init_logging
+
+# Check result
+echo "Logging to: ${ORADBA_LOG_FILE}"
+```
+
+**Behavior**:
+
+1. Determines log directory (custom, system, or user)
+2. Creates directory if it doesn't exist
+3. Falls back to `~/.oradba/logs` if system location fails
+4. Sets `ORADBA_LOG_FILE` to `oradba.log` in the directory
+5. Can be called multiple times safely (idempotent)
+
+### init_session_log
+
+**New in v0.14.0**: Initialize per-session logging with metadata header.
+
+Creates individual log file for current session with metadata header including
+timestamp, user, host, PID, and Oracle environment variables.
+
+**Syntax**: `init_session_log`
+
+**Environment (Input)**:
+
+- `ORADBA_SESSION_LOGGING` - Enable session logging (default: `false`)
+- `ORADBA_SESSION_LOG_ONLY` - Use session log as primary log (default: `false`)
+- `ORADBA_LOG_DIR` - Log directory (calls `init_logging` if not set)
+
+**Environment (Output)**:
+
+- `ORADBA_SESSION_LOG` - Session log file path
+- `ORADBA_LOG_FILE` - Updated to session log if `ORADBA_SESSION_LOG_ONLY=true`
+
+**Returns**:
+
+- `0` - Success or feature disabled
+
+**Examples**:
+
+```bash
+# Enable session logging
+export ORADBA_SESSION_LOGGING="true"
+init_logging
+init_session_log
+
+# View session log location
+echo "Session log: ${ORADBA_SESSION_LOG}"
+
+# Session log only (no dual logging)
+export ORADBA_SESSION_LOGGING="true"
+export ORADBA_SESSION_LOG_ONLY="true"
+init_session_log
+```
+
+**Session Log Header**:
+
+```text
+# ------------------------------------------------------------------------------
+# OraDBA Session Log
+# ------------------------------------------------------------------------------
+# Started....: 2026-01-05 16:25:30
+# User.......: oracle
+# Host.......: dbserver01
+# PID........: 12345
+# ORACLE_SID.: PRODDB
+# ORACLE_HOME: /u01/app/oracle/product/19.0.0/dbhome_1
+# ------------------------------------------------------------------------------
+```
+
+**Dual Logging**:
+
+- By default, logs are written to both main log and session log
+- Set `ORADBA_SESSION_LOG_ONLY=true` to write only to session log
+- Session logs named: `session_YYYYMMDD_HHMMSS_PID.log`
+
 ### log
 
 **New in v0.13.1**: Unified logging function with configurable levels.
+**Enhanced in v0.14.0**: Added caller information and dual logging support.
 
 Output log message with specified level and timestamp. All messages are written
 to stderr with automatic filtering based on configured minimum log level.
@@ -27,6 +136,10 @@ to stderr with automatic filtering based on configured minimum log level.
   - `INFO` - Show INFO, WARN, ERROR (default)
   - `WARN` - Show only WARN and ERROR
   - `ERROR` - Show only ERROR messages
+- `ORADBA_LOG_FILE` - File logging path (optional)
+- `ORADBA_SESSION_LOG` - Session log path (optional, for dual logging)
+- `ORADBA_LOG_SHOW_CALLER` - Include caller info (default: `false`)
+- `ORADBA_NO_COLOR` - Disable color output (default: `0`)
 - `DEBUG` - Legacy support: Setting `DEBUG=1` enables DEBUG level
 
 **Examples**:
@@ -42,6 +155,16 @@ log DEBUG "Checking oratab entry"
 export ORADBA_LOG_LEVEL=DEBUG
 log DEBUG "This will now appear"
 
+# Enable caller information
+export ORADBA_LOG_SHOW_CALLER="true"
+log INFO "Message with caller info"
+
+# Complete logging setup
+init_logging
+init_session_log
+export ORADBA_SESSION_LOGGING="true"
+log INFO "Logged to both main and session logs"
+
 # Legacy DEBUG=1 support
 export DEBUG=1
 log DEBUG "This also appears"
@@ -55,15 +178,20 @@ log WARN "This appears"
 **Output Format**:
 
 ```text
+# Standard format
 [LEVEL] YYYY-MM-DD HH:MM:SS - message
+
+# With caller information (ORADBA_LOG_SHOW_CALLER=true)
+[LEVEL] YYYY-MM-DD HH:MM:SS [file:line] - message
 ```
 
 **Example Output**:
 
 ```text
-[INFO] 2026-01-04 17:30:45 - Starting database backup
-[WARN] 2026-01-04 17:30:46 - Database not in archivelog mode
-[ERROR] 2026-01-04 17:30:47 - ORACLE_HOME not found
+[INFO] 2026-01-05 16:30:45 - Starting database backup
+[WARN] 2026-01-05 16:30:46 - Database not in archivelog mode
+[ERROR] 2026-01-05 16:30:47 - ORACLE_HOME not found
+[DEBUG] 2026-01-05 16:30:48 [script.sh:42] - Checking oratab entry
 ```
 
 ### log_info
