@@ -242,16 +242,16 @@ The library automatically handles different database states:
 
 | Function                  | NOMOUNT | MOUNT | OPEN |
 |---------------------------|---------|-------|------|
-| check_database_connection | ✓       | ✓     | ✓    |
-| get_database_open_mode    | ✓       | ✓     | ✓    |
-| query_instance_info       | ✓       | ✓     | ✓    |
-| format_uptime             | ✓       | ✓     | ✓    |
-| query_database_info       | ✗       | ✓     | ✓    |
-| query_datafile_size       | ✗       | ✓     | ✓    |
-| query_memory_usage        | ✗       | ✗     | ✓    |
-| query_sessions_info       | ✗       | ✓     | ✓    |
-| query_pdb_info            | ✗       | ✓     | ✓    |
-| show_database_status      | ✓       | ✓     | ✓    |
+| check_database_connection | [OK]       | [OK]     | [OK]    |
+| get_database_open_mode    | [OK]       | [OK]     | [OK]    |
+| query_instance_info       | [OK]       | [OK]     | [OK]    |
+| format_uptime             | [OK]       | [OK]     | [OK]    |
+| query_database_info       | [X]       | [OK]     | [OK]    |
+| query_datafile_size       | [X]       | [OK]     | [OK]    |
+| query_memory_usage        | [X]       | [X]     | [OK]    |
+| query_sessions_info       | [X]       | [OK]     | [OK]    |
+| query_pdb_info            | [X]       | [OK]     | [OK]    |
+| show_database_status      | [OK]       | [OK]     | [OK]    |
 
 ## Error Handling
 

@@ -326,7 +326,7 @@ $ source oraenv.sh FREE
 [DEBUG] create_sid_config called with SID=FREE
 [DEBUG] Will create: /opt/oradba/etc/sid.FREE.conf from template: /opt/oradba/etc/sid.ORACLE_SID.conf.example
 [INFO] Auto-creating SID configuration for FREE...
-[INFO] ✓ Created SID configuration: /opt/oradba/etc/sid.FREE.conf
+[INFO] [OK] Created SID configuration: /opt/oradba/etc/sid.FREE.conf
 [DEBUG] Loading newly created SID config: /opt/oradba/etc/sid.FREE.conf
 [DEBUG] Configuration loading complete
 ```
@@ -361,7 +361,7 @@ creates a SID-specific configuration file from a template.
 $ free  # First time switching to FREE instance
 
 [INFO] Auto-creating SID configuration for FREE...
-[INFO] ✓ Created SID configuration: /opt/oracle/local/oradba/etc/sid.FREE.conf
+[INFO] [OK] Created SID configuration: /opt/oracle/local/oradba/etc/sid.FREE.conf
 ```
 
 **What Gets Created:**

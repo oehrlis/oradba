@@ -66,8 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatically detects and verifies `.{extension}.checksum` files in `extensions/` directory
   - Integrated into `oradba_version.sh --verify` and `--info` commands
   - Reports status for each extension:
-    - ✓ Extension verified (n files)
-    - ✗ Extension FAILED with list of modified/missing files
+    - [OK] Extension verified (n files)
+    - [X] Extension FAILED with list of modified/missing files
   - Helps ensure custom extensions haven't been tampered with
   - **Example**: `.customer.checksum` validates all files in customer extension
 
@@ -179,7 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New alias `cfg` using `show_config()` to display OraDBA configuration hierarchy and load order
     - Shows 5-level configuration hierarchy: core → standard → customer → default → SID-specific
     - Validates which config files exist and were loaded
-    - Status indicators: `[✓ loaded]`, `[✗ MISSING - REQUIRED]`, `[- not configured]`
+    - Status indicators: `[[OK] loaded]`, `[[X] MISSING - REQUIRED]`, `[- not configured]`
     - Helps troubleshoot configuration precedence and missing files
   - Grouped `sqa` (SQLPATH), `pth` (PATH), and `cfg` (config) together in documentation
   - All three use similar output format with validation markers
@@ -1449,7 +1449,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 ### Improved
 
 - Enhanced user messaging when SID config is auto-created
-- Shows ✓ checkmark on successful creation
+- Shows [OK] checkmark on successful creation
 - More consistent log messages and error handling
 
 ## [0.7.13] - 2025-12-18
@@ -1688,7 +1688,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - Database connectivity testing (when environment is set)
   - OS and Oracle version information display
   - OraDBA installation verification
-  - Color-coded output with symbols (✓ ✗ ⚠ ℹ)
+  - Color-coded output with symbols ([OK] [X] ⚠ ℹ)
   - Options: `--dir`, `--quiet`, `--verbose`, `--help`, `--version`
   - Exit codes: 0 (passed), 1 (failed), 2 (invalid usage)
   - Comprehensive test suite: 24 tests (all passing)

@@ -362,10 +362,10 @@ oradba_sqlnet.sh --validate
 # Output example:
 # Validating SQL*Net configuration...
 # TNS_ADMIN: /u01/app/oracle/network/admin
-# ✓ sqlnet.ora exists
-# ✓ sqlnet.ora is readable
-# ✓ tnsnames.ora exists
-# ✓ Configuration validation passed
+# [OK] sqlnet.ora exists
+# [OK] sqlnet.ora is readable
+# [OK] tnsnames.ora exists
+# [OK] Configuration validation passed
 ```
 
 **Backup Configuration**

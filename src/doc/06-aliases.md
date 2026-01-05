@@ -368,18 +368,18 @@ sqa
 # Output:
 # SQLPATH Directories:
 # ===================
-#  1. /opt/oracle/local/oradba/sql                            [✓]
-#  2. /opt/oracle/product/23ai/dbhome_1/sqlplus/admin         [✓]
-#  3. /opt/oracle/product/23ai/dbhome_1/rdbms/admin           [✓]
+#  1. /opt/oracle/local/oradba/sql                            [[OK]]
+#  2. /opt/oracle/product/23ai/dbhome_1/sqlplus/admin         [[OK]]
+#  3. /opt/oracle/product/23ai/dbhome_1/rdbms/admin           [[OK]]
 
 # Display PATH directories
 pth
 # Output:
 # PATH Directories:
 # =================
-#  1. /opt/oracle/product/23ai/dbhome_1/bin                   [✓]
-#  2. /usr/local/bin                                          [✓]
-#  3. /usr/bin                                                [✓]
+#  1. /opt/oracle/product/23ai/dbhome_1/bin                   [[OK]]
+#  2. /usr/local/bin                                          [[OK]]
+#  3. /usr/bin                                                [[OK]]
 
 # Display OraDBA configuration load order
 cfg
@@ -391,20 +391,20 @@ cfg
 # 
 # Load Order (later configs override earlier):
 # ---------------------------------------------
-#  1. oradba_core.conf                                [✓ loaded]
-#  2. oradba_standard.conf                            [✓ loaded]
+#  1. oradba_core.conf                                [[OK] loaded]
+#  2. oradba_standard.conf                            [[OK] loaded]
 #  3. oradba_customer.conf (optional)                 [- not configured]
-#  4. sid._DEFAULT_.conf (optional)                   [✓ loaded]
-#  5. sid.FREE.conf (optional)                        [✓ loaded]
+#  4. sid._DEFAULT_.conf (optional)                   [[OK] loaded]
+#  5. sid.FREE.conf (optional)                        [[OK] loaded]
 ```
 
 **Features:**
 
-- **Validation**: Shows which directories/files exist with `[✓]` or are missing with `[✗]`
+- **Validation**: Shows which directories/files exist with `[[OK]]` or are missing with `[[X]]`
 - **Hierarchy**: `cfg` displays the 5-level configuration hierarchy and load order
 - **Status indicators**:
-  - `[✓ loaded]` - File exists and was loaded
-  - `[✗ MISSING - REQUIRED]` - Required file not found
+  - `[[OK] loaded]` - File exists and was loaded
+  - `[[X] MISSING - REQUIRED]` - Required file not found
   - `[- not configured]` - Optional file not present
 
 These aliases help troubleshoot:
