@@ -227,6 +227,9 @@ test_item ".oradba.checksum exists" "[[ -f '${ORADBA_BASE}/.oradba.checksum' ]]"
 # Check for file modifications if checksum exists
 if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
     MODIFIED_COUNT=0
+    MISSING_COUNT=0
+    declare -A checked_files  # Track files to avoid duplicates
+    
     while IFS= read -r line; do
         # Skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^# ]] && continue
@@ -235,6 +238,10 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
         expected_hash=$(echo "$line" | awk '{print $1}')
         file_path=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
         full_path="${ORADBA_BASE}/${file_path}"
+        
+        # Skip if already checked (handles duplicates in checksum file)
+        [[ -n "${checked_files[$file_path]}" ]] && continue
+        checked_files[$file_path]=1
         
         if [[ -f "$full_path" ]]; then
             if command -v sha256sum >/dev/null 2>&1; then
@@ -251,17 +258,24 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
                     echo -e "${YELLOW}⚠${NC} Modified: ${file_path}"
                 fi
             fi
+        else
+            # File is missing
+            MISSING_COUNT=$((MISSING_COUNT + 1))
+            if [[ "${VERBOSE}" == "true" ]]; then
+                echo -e "${RED}✗${NC} Missing: ${file_path}"
+            fi
         fi
     done < "${ORADBA_BASE}/.oradba.checksum"
     
-    if [[ $MODIFIED_COUNT -gt 0 ]]; then
+    if [[ $MODIFIED_COUNT -gt 0 || $MISSING_COUNT -gt 0 ]]; then
         if [[ "${VERBOSE}" == "false" ]]; then
-            echo -e "${YELLOW}⚠${NC} $MODIFIED_COUNT file(s) modified since installation"
+            [[ $MODIFIED_COUNT -gt 0 ]] && echo -e "${YELLOW}⚠${NC} $MODIFIED_COUNT file(s) modified since installation"
+            [[ $MISSING_COUNT -gt 0 ]] && echo -e "${RED}✗${NC} $MISSING_COUNT file(s) missing"
         fi
-        WARNINGS=$((WARNINGS + MODIFIED_COUNT))
+        WARNINGS=$((WARNINGS + MODIFIED_COUNT + MISSING_COUNT))
     else
         if [[ "${VERBOSE}" == "true" ]]; then
-            echo -e "${GREEN}✓${NC} No files modified"
+            echo -e "${GREEN}✓${NC} No files modified or missing"
         fi
     fi
 fi
@@ -332,8 +346,14 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
     else
         echo "  Modified:        0 files"
     fi
+    if [[ ${MISSING_COUNT:-0} -gt 0 ]]; then
+        echo "  Missing:         ${MISSING_COUNT} file(s)"
+    else
+        echo "  Missing:         0 files"
+    fi
 else
     echo "  Modified:        unknown (no checksum file)"
+    echo "  Missing:         unknown (no checksum file)"
 fi
 
 echo ""

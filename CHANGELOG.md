@@ -129,6 +129,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `src/doc/09-rman-scripts.md`: Updated examples to use `CONFIGURE` for persistent settings
   - Clarified: CONFIGURE for persistent configuration, SET for session-specific settings
 
+- **oradba_check.sh**: Made version detection dynamic instead of hardcoded
+  - Now reads version from VERSION file at runtime instead of hardcoded SCRIPT_VERSION
+  - Provides fallback version for standalone distribution scenarios
+  - Eliminates need to manually update version in script for each release
+
+- **oradba_version.sh**: Fixed duplicate file reporting in integrity checks
+  - Added deduplication using associative array to track reported files
+  - Prevents same missing/modified file from appearing multiple times
+  - Handles cases where files appear multiple times in checksum file
+
+- **oradba_validate.sh**: Added missing file detection and reporting
+  - Now tracks and reports missing files separately from modified files
+  - Added deduplication to prevent reporting same file multiple times
+  - Missing files shown with red ✗ symbol in verbose output
+  - Added missing file count to summary section
+  - Missing files included in warnings count
+
 ## [0.14.0] - 2026-01-05
 
 ### 🔴 CRITICAL BUG FIXES

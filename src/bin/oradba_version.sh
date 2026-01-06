@@ -101,6 +101,7 @@ check_integrity() {
         # Parse and format the output more cleanly
         local missing_count=0
         local modified_count=0
+        declare -A reported_files  # Track reported files to avoid duplicates
         
         echo "Modified or missing files:"
         while IFS= read -r line; do
@@ -114,8 +115,12 @@ check_integrity() {
                 local file="${BASH_REMATCH[1]}"
                 # Remove leading space if present
                 file="${file# }"
-                echo "  \$ORADBA_BASE/${file}: MISSING"
-                ((missing_count++))
+                # Skip if already reported
+                if [[ -z "${reported_files[$file]}" ]]; then
+                    echo "  \$ORADBA_BASE/${file}: MISSING"
+                    ((missing_count++))
+                    reported_files[$file]=1
+                fi
                 continue
             fi
             
@@ -128,13 +133,21 @@ check_integrity() {
             if [[ "$line" =~ ^(.+):[[:space:]]*FAILED[[:space:]]*open[[:space:]]*or[[:space:]]*read$ ]]; then
                 # File not found or can't be read
                 local file="${BASH_REMATCH[1]}"
-                echo "  \$ORADBA_BASE/${file}: MISSING"
-                ((missing_count++))
+                # Skip if already reported
+                if [[ -z "${reported_files[$file]}" ]]; then
+                    echo "  \$ORADBA_BASE/${file}: MISSING"
+                    ((missing_count++))
+                    reported_files[$file]=1
+                fi
             elif [[ "$line" =~ ^(.+):[[:space:]]*FAILED$ ]]; then
                 # Checksum mismatch
                 local file="${BASH_REMATCH[1]}"
-                echo "  \$ORADBA_BASE/${file}: MODIFIED"
-                ((modified_count++))
+                # Skip if already reported
+                if [[ -z "${reported_files[$file]}" ]]; then
+                    echo "  \$ORADBA_BASE/${file}: MODIFIED"
+                    ((modified_count++))
+                    reported_files[$file]=1
+                fi
             fi
         done <<< "$verify_output"
         
