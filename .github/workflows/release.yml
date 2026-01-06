@@ -104,6 +104,7 @@ jobs:
           ## Assets
           
           - **oradba_install.sh**: Self-contained installer with embedded payload
+          - **oradba_check.sh**: Standalone prerequisites checker (can be run before installation)
           - **oradba-${VERSION}.tar.gz**: Distribution tarball with version-substituted installer
           - **oradba-user-guide.pdf**: Complete user documentation (PDF)
           - **oradba-user-guide.html**: Complete user documentation (HTML)
@@ -119,6 +120,7 @@ jobs:
           prerelease: false
           files: |
             dist/oradba_install.sh
+            dist/oradba_check.sh
             dist/oradba-${{ steps.version.outputs.version }}.tar.gz
             dist/oradba-user-guide.pdf
             dist/oradba-user-guide.html
