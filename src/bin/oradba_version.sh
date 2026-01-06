@@ -114,7 +114,7 @@ check_integrity() {
                 local file="${BASH_REMATCH[1]}"
                 # Remove leading space if present
                 file="${file# }"
-                echo "  ${file}: MISSING"
+                echo "  \$ORADBA_BASE/${file}: MISSING"
                 ((missing_count++))
                 continue
             fi
@@ -128,12 +128,12 @@ check_integrity() {
             if [[ "$line" =~ ^(.+):[[:space:]]*FAILED[[:space:]]*open[[:space:]]*or[[:space:]]*read$ ]]; then
                 # File not found or can't be read
                 local file="${BASH_REMATCH[1]}"
-                echo "  ${file}: MISSING"
+                echo "  \$ORADBA_BASE/${file}: MISSING"
                 ((missing_count++))
             elif [[ "$line" =~ ^(.+):[[:space:]]*FAILED$ ]]; then
                 # Checksum mismatch
                 local file="${BASH_REMATCH[1]}"
-                echo "  ${file}: MODIFIED"
+                echo "  \$ORADBA_BASE/${file}: MODIFIED"
                 ((modified_count++))
             fi
         done <<< "$verify_output"
