@@ -11,23 +11,54 @@
 CONFIGURE RETENTION POLICY TO REDUNDANCY 2;
 CONFIGURE CONTROLFILE AUTOBACKUP ON;
 
+# Show current RMAN configuration
+SHOW ALL;
+
+# Apply custom SET commands (optional)
+<SET_COMMANDS>
+
 RUN {
-    ALLOCATE CHANNEL ch1 DEVICE TYPE DISK;
+    # Allocate channels for backup (replaced by template processor)
+    <ALLOCATE_CHANNELS>
     
-    # Backup database
-    BACKUP AS COMPRESSED BACKUPSET
-        DATABASE
-        PLUS ARCHIVELOG DELETE INPUT
-        TAG 'customer_backup';
+    # Backup database - with optional multisection support
+    # If SECTION_SIZE is set, enables parallel processing of large datafiles
+    BACKUP <SECTION_SIZE> <COMPRESSION>
+        DATABASE <TABLESPACES> <DATAFILES> <PLUGGABLE_DATABASE>
+        <FORMAT>
+        <TAG>;
+    
+    # Backup archivelogs with optional filtering
+    BACKUP <COMPRESSION>
+        ARCHIVELOG <ARCHIVE_RANGE> <ARCHIVE_PATTERN>
+        <FORMAT>
+        TAG 'ARCHIVELOG_BACKUP';
     
     # Backup current controlfile
-    BACKUP CURRENT CONTROLFILE
-        TAG 'customer_ctlfile';
+    BACKUP CURRENT CONTROLFILE 
+        <FORMAT>
+        TAG 'CONTROLFILE_BACKUP';
     
-    RELEASE CHANNEL ch1;
+    # Release channels (replaced by template processor)
+    <RELEASE_CHANNELS>
 }
 
-# List backup summary
+# Resync RMAN catalog if configured
+<RESYNC_CATALOG>
+
+# Delete obsolete backups
+DELETE NOPROMPT OBSOLETE;
+
+# Crosscheck backups and copies
+CROSSCHECK BACKUP;
+CROSSCHECK COPY;
+
+# Report on backup status
+REPORT SCHEMA;
 LIST BACKUP SUMMARY;
 
-EXIT;
+# Custom parameters for user-defined operations
+# <CUSTOM_PARAM_1>
+# <CUSTOM_PARAM_2>
+# <CUSTOM_PARAM_3>
+
