@@ -109,6 +109,8 @@ export RMAN_NOTIFY_ON_ERROR=true
 
 RMAN scripts use template tags that are replaced at runtime:
 
+**Basic Template Tags:**
+
 - `<ALLOCATE_CHANNELS>`: Generates `ALLOCATE CHANNEL` commands based on `--channels`
 - `<RELEASE_CHANNELS>`: Generates `RELEASE CHANNEL` commands matching allocated channels
 - `<FORMAT>`: Substituted with `FORMAT` clause from `--format`
@@ -117,6 +119,114 @@ RMAN scripts use template tags that are replaced at runtime:
 - `<BACKUP_PATH>`: Substituted with backup path (includes trailing slash for easy path construction)
 - `<ORACLE_SID>`: Substituted with current Oracle SID
 - `<START_DATE>`: Substituted with timestamp in YYYYMMDD_HHMMSS format
+
+**Advanced Template Tags (v0.14.0+):**
+
+- `<SET_COMMANDS>`: Custom RMAN SET commands (inline or external file)
+- `<TABLESPACES>`: Specific tablespaces for selective backup
+- `<DATAFILES>`: Specific datafiles for selective backup
+- `<PLUGGABLE_DATABASE>`: Specific PDBs for container database backups
+- `<SECTION_SIZE>`: Enables multisection backup for large datafiles
+- `<ARCHIVE_RANGE>`: Archive log range specification (ALL, FROM TIME, FROM SCN, etc.)
+- `<ARCHIVE_PATTERN>`: LIKE clause for archive log filtering
+- `<RESYNC_CATALOG>`: RMAN catalog resync command (when catalog configured)
+- `<CUSTOM_PARAM_1>`, `<CUSTOM_PARAM_2>`, `<CUSTOM_PARAM_3>`: User-defined parameters
+
+**Advanced Configuration:**
+
+For advanced RMAN features, configure additional parameters in `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`:
+
+```bash
+# -----------------------------------------------------------------------
+# RMAN Global SET Commands (Option 3: Hybrid approach)
+# -----------------------------------------------------------------------
+# Inline SET commands (simple, single or few commands)
+export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
+
+# OR external SET commands file (complex, many commands)
+export RMAN_SET_COMMANDS_FILE="${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv"
+
+# -----------------------------------------------------------------------
+# Backup Scope Configuration (Selective Backups)
+# -----------------------------------------------------------------------
+# Specific tablespaces (comma-separated, empty = full database)
+export RMAN_TABLESPACES=""
+# Example: export RMAN_TABLESPACES="USERS,TOOLS,APP_DATA"
+
+# Specific datafiles (comma-separated numbers or paths, empty = all datafiles)
+export RMAN_DATAFILES=""
+# Example: export RMAN_DATAFILES="4,5,6"
+# Example: export RMAN_DATAFILES="'/u01/oradata/FREE/users01.dbf','/u01/oradata/FREE/users02.dbf'"
+
+# Specific PDBs (comma-separated, empty = CDB only or all PDBs)
+export RMAN_PLUGGABLE_DATABASE=""
+# Example: export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2"
+
+# -----------------------------------------------------------------------
+# Multisection Backup Configuration (Large Datafile Parallelization)
+# -----------------------------------------------------------------------
+# Section size for multisection backups (empty = regular backup)
+export RMAN_SECTION_SIZE=""
+# Example: export RMAN_SECTION_SIZE="10G"
+# Example: export RMAN_SECTION_SIZE="32G"
+
+# -----------------------------------------------------------------------
+# Archive Log Backup Configuration
+# -----------------------------------------------------------------------
+# Archive log range (default: ALL)
+export RMAN_ARCHIVE_RANGE="ALL"
+# Example: export RMAN_ARCHIVE_RANGE="FROM TIME 'SYSDATE-1'"
+# Example: export RMAN_ARCHIVE_RANGE="FROM SCN 1234567"
+# Example: export RMAN_ARCHIVE_RANGE="UNTIL TIME 'SYSDATE-7'"
+
+# Archive log pattern (LIKE clause, empty = no filtering)
+export RMAN_ARCHIVE_PATTERN=""
+# Example: export RMAN_ARCHIVE_PATTERN="LIKE '/arch/arch_prod_%'"
+
+# -----------------------------------------------------------------------
+# RMAN Catalog Resync
+# -----------------------------------------------------------------------
+# Explicitly resync catalog after backup (default: true)
+export RMAN_RESYNC_CATALOG="true"
+
+# -----------------------------------------------------------------------
+# Custom Parameters (User-Defined)
+# -----------------------------------------------------------------------
+# Three user-defined parameters for custom template extensions
+export RMAN_CUSTOM_PARAM_1=""
+export RMAN_CUSTOM_PARAM_2=""
+export RMAN_CUSTOM_PARAM_3=""
+```
+
+**Advanced Examples:**
+
+```bash
+# Selective backup of specific tablespaces
+export RMAN_TABLESPACES="USERS,TOOLS"
+oradba_rman.sh --sid PROD --rcv backup_full.rcv
+
+# Multisection backup for large database (10G sections, 4 channels)
+export RMAN_SECTION_SIZE="10G"
+oradba_rman.sh --sid BIGDB --rcv backup_full.rcv --channels 4
+
+# Backup only yesterday's archive logs
+export RMAN_ARCHIVE_RANGE="FROM TIME 'SYSDATE-1' UNTIL TIME 'SYSDATE'"
+oradba_rman.sh --sid PROD --rcv backup_archivelogs.rcv
+
+# PDB-only backup in container database
+export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2,PDB3"
+oradba_rman.sh --sid CDB1 --rcv backup_full.rcv
+
+# Use external SET commands file
+export RMAN_SET_COMMANDS_FILE="${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv"
+cat > ${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv << 'EOF'
+SET CONTROLFILE AUTOBACKUP ON;
+SET CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
+SET BACKUP OPTIMIZATION ON;
+SET ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
+EOF
+oradba_rman.sh --sid PROD --rcv backup_full.rcv
+```
 
 **Examples:**
 

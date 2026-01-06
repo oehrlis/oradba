@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **RMAN Template Enhancement (#TBD)**: Comprehensive RMAN template system expansion
+  - **12 New Template Tags** in `src/bin/oradba_rman.sh`:
+    - `<SET_COMMANDS>`: Custom RMAN SET commands (inline or external file)
+    - `<TABLESPACES>`: Specific tablespaces for selective backup
+    - `<DATAFILES>`: Specific datafiles for selective backup  
+    - `<PLUGGABLE_DATABASE>`: Specific PDBs for container database backups
+    - `<SECTION_SIZE>`: Enables multisection backup for large datafiles
+    - `<ARCHIVE_RANGE>`: Archive log range specification (ALL, FROM TIME, FROM SCN)
+    - `<ARCHIVE_PATTERN>`: LIKE clause for archive log filtering
+    - `<RESYNC_CATALOG>`: RMAN catalog resync command (when catalog configured)
+    - `<CUSTOM_PARAM_1>`, `<CUSTOM_PARAM_2>`, `<CUSTOM_PARAM_3>`: User-defined parameters
+  - **15 New Configuration Parameters** in `src/etc/oradba_rman.conf.example`:
+    - `RMAN_SET_COMMANDS_INLINE`: Inline SET commands string
+    - `RMAN_SET_COMMANDS_FILE`: External SET commands file path (hybrid approach)
+    - `RMAN_TABLESPACES`: Comma-separated tablespace list for selective backups
+    - `RMAN_DATAFILES`: Comma-separated datafile numbers or paths
+    - `RMAN_PLUGGABLE_DATABASE`: Comma-separated PDB names
+    - `RMAN_SECTION_SIZE`: Section size for multisection backups (e.g., "10G")
+    - `RMAN_ARCHIVE_RANGE`: Archive log range (default: "ALL")
+    - `RMAN_ARCHIVE_PATTERN`: LIKE clause for archive log filtering
+    - `RMAN_RESYNC_CATALOG`: Boolean to explicitly resync catalog (default: "true")
+    - `RMAN_CUSTOM_PARAM_1/2/3`: Three user-defined parameters
+  - **Updated Template Files**:
+    - `src/rcv/backup_full.rcv`: Added all 12 new template tags
+    - `src/rcv/rman_set_commands.example`: Example external SET commands file
+  - **Documentation Updates**:
+    - `src/doc/09-rman-scripts.md`: Complete documentation for advanced template tags
+    - Examples for selective backups, multisection, archive filtering, PDB backups
+  - **Features Enabled**:
+    - Selective backups (tablespaces, datafiles, PDBs) for targeted backup strategies
+    - Multisection backups for improved performance on large datafiles
+    - Flexible archive log management (time-based, SCN-based, pattern-based)
+    - Custom RMAN SET commands via inline string or external file
+    - User-defined parameters for custom template extensions
+    - Configuration hierarchy: global → SID-specific → CLI override
+
 - **Logging Infrastructure (#16)**: Core logging infrastructure implementation
   - New function: `init_logging()` in `src/lib/common.sh`
     - Automatic log directory creation (`/var/log/oradba` or `~/.oradba/logs`)

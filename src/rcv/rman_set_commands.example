@@ -1,0 +1,47 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: rman_set_commands.example
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.06
+# Revision...: 0.14.0
+# Purpose....: Example RMAN SET commands file (external file option)
+# Notes......: This file demonstrates how to use external SET commands file
+#              instead of inline RMAN_SET_COMMANDS_INLINE parameter.
+#              Reference this file via RMAN_SET_COMMANDS_FILE parameter.
+#              Copy and customize for your environment.
+# Usage......: 1. Copy this file: cp rman_set_commands.example rman_set_commands.rcv
+#              2. Customize the SET commands below
+#              3. Set in config: RMAN_SET_COMMANDS_FILE="${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv"
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Control file autobackup - recommended for backup automation
+SET CONTROLFILE AUTOBACKUP ON;
+
+# Control file autobackup format - customize location/naming
+SET CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
+
+# Backup optimization - skip unchanged files
+SET BACKUP OPTIMIZATION ON;
+
+# Snapshot control file location - avoid conflicts in shared environments
+SET SNAPSHOT CONTROLFILE NAME TO '/u01/backup/rman/snapcf_<ORACLE_SID>.f';
+
+# Archive log deletion policy - delete after backup to catalog
+SET ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
+
+# Encryption (if using TDE) - uncomment and customize
+# SET ENCRYPTION ON;
+# SET ENCRYPTION ALGORITHM 'AES256';
+
+# Device type configuration (if needed) - uncomment and customize
+# CONFIGURE DEVICE TYPE DISK PARALLELISM 4;
+# CONFIGURE DEFAULT DEVICE TYPE TO DISK;
+
+# Retention policy override (if different from global config)
+# SET RETENTION POLICY TO REDUNDANCY 2;
+# SET RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;

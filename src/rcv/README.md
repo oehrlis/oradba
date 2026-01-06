@@ -19,12 +19,13 @@ and email notifications.
 
 ## Available Scripts
 
-| Script                             | Description                                     |
-|------------------------------------|-------------------------------------------------|
-| [backup_full.rcv](backup_full.rcv) | Full database backup template with archive logs |
-| [bck_ctl.rcv](bck_ctl.rcv)         | Control file and SPFILE backup template         |
+| Script                                                     | Description                                     |
+|------------------------------------------------------------|-------------------------------------------------|
+| [backup_full.rcv](backup_full.rcv)                         | Full database backup template with archive logs |
+| [bck_ctl.rcv](bck_ctl.rcv)                                 | Control file and SPFILE backup template         |
+| [rman_set_commands.example](rman_set_commands.example)     | Example external SET commands file (optional)   |
 
-**Total Scripts:** 2
+**Total Scripts:** 2 (+ 1 example file)
 
 ## RMAN Wrapper Script
 
@@ -157,10 +158,28 @@ Performs complete database backup including:
 
 **Template Tags:**
 
+**Basic Tags:**
+
 - `<ALLOCATE_CHANNELS>`: Replaced with channel allocation commands
+- `<RELEASE_CHANNELS>`: Replaced with channel release commands
 - `<COMPRESSION>`: Replaced with compression clause (NONE|LOW|MEDIUM|HIGH)
 - `<FORMAT>`: Replaced with FORMAT clause for backup files
 - `<TAG>`: Replaced with TAG clause for backup identification
+- `<BACKUP_PATH>`: Replaced with backup path (with trailing slash)
+- `<ORACLE_SID>`: Replaced with current Oracle SID
+- `<START_DATE>`: Replaced with timestamp (YYYYMMDD_HHMMSS)
+
+**Advanced Tags (v0.14.0+):**
+
+- `<SET_COMMANDS>`: Custom RMAN SET commands (inline or external file)
+- `<TABLESPACES>`: Specific tablespaces for selective backup
+- `<DATAFILES>`: Specific datafiles for selective backup
+- `<PLUGGABLE_DATABASE>`: Specific PDBs for container database backups
+- `<SECTION_SIZE>`: Enables multisection backup for large datafiles
+- `<ARCHIVE_RANGE>`: Archive log range (ALL, FROM TIME, FROM SCN)
+- `<ARCHIVE_PATTERN>`: LIKE clause for archive log filtering
+- `<RESYNC_CATALOG>`: RMAN catalog resync command (when catalog configured)
+- `<CUSTOM_PARAM_1>`, `<CUSTOM_PARAM_2>`, `<CUSTOM_PARAM_3>`: User-defined parameters
 
 **Default Configuration:**
 

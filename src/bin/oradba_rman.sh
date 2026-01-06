@@ -298,6 +298,85 @@ process_template() {
     # Get Oracle SID
     local oracle_sid="${ORACLE_SID:-ORCL}"
     
+    # Build SET commands block (Option 3: Hybrid approach)
+    local set_commands=""
+    if [[ -n "${RMAN_SET_COMMANDS_FILE}" && -f "${RMAN_SET_COMMANDS_FILE}" ]]; then
+        # Use external file
+        set_commands="@${RMAN_SET_COMMANDS_FILE}"
+        oradba_log DEBUG "  Using SET commands file: ${RMAN_SET_COMMANDS_FILE}"
+    elif [[ -n "${RMAN_SET_COMMANDS_INLINE}" ]]; then
+        # Use inline commands
+        set_commands="${RMAN_SET_COMMANDS_INLINE}"
+        oradba_log DEBUG "  Using inline SET commands"
+    fi
+    
+    # Build TABLESPACES clause (comma-separated list)
+    local tablespaces_clause=""
+    if [[ -n "${RMAN_TABLESPACES}" ]]; then
+        # Convert comma-separated list to RMAN format: TABLESPACE ts1, ts2, ts3
+        tablespaces_clause="TABLESPACE ${RMAN_TABLESPACES//,/, }"
+        oradba_log DEBUG "  Tablespaces: ${RMAN_TABLESPACES}"
+    fi
+    
+    # Build DATAFILES clause (comma-separated numbers or paths)
+    local datafiles_clause=""
+    if [[ -n "${RMAN_DATAFILES}" ]]; then
+        # Convert comma-separated list to RMAN format: DATAFILE 1, 2, 3 or '/path1', '/path2'
+        # Check if first item looks like a path (contains /)
+        if [[ "${RMAN_DATAFILES}" == */* ]]; then
+            # Quoted paths
+            datafiles_clause="DATAFILE ${RMAN_DATAFILES//,/, }"
+        else
+            # Numeric IDs
+            datafiles_clause="DATAFILE ${RMAN_DATAFILES//,/, }"
+        fi
+        oradba_log DEBUG "  Datafiles: ${RMAN_DATAFILES}"
+    fi
+    
+    # Build PLUGGABLE DATABASE clause
+    local pluggable_database_clause=""
+    if [[ -n "${RMAN_PLUGGABLE_DATABASE}" ]]; then
+        pluggable_database_clause="PLUGGABLE DATABASE ${RMAN_PLUGGABLE_DATABASE//,/, }"
+        oradba_log DEBUG "  Pluggable Databases: ${RMAN_PLUGGABLE_DATABASE}"
+    fi
+    
+    # Build SECTION SIZE clause (replaces full BACKUP command segment)
+    # If set: "SECTION SIZE 10G" - otherwise empty for regular backup
+    local section_size_clause=""
+    if [[ -n "${RMAN_SECTION_SIZE}" ]]; then
+        section_size_clause="SECTION SIZE ${RMAN_SECTION_SIZE}"
+        oradba_log DEBUG "  Section Size: ${RMAN_SECTION_SIZE}"
+    fi
+    
+    # Build ARCHIVE RANGE clause
+    local archive_range="${RMAN_ARCHIVE_RANGE:-ALL}"
+    oradba_log DEBUG "  Archive Range: ${archive_range}"
+    
+    # Build ARCHIVE PATTERN clause
+    local archive_pattern_clause=""
+    if [[ -n "${RMAN_ARCHIVE_PATTERN}" ]]; then
+        archive_pattern_clause="${RMAN_ARCHIVE_PATTERN}"
+        oradba_log DEBUG "  Archive Pattern: ${RMAN_ARCHIVE_PATTERN}"
+    fi
+    
+    # Build RESYNC CATALOG clause
+    local resync_catalog_clause=""
+    if [[ "${RMAN_RESYNC_CATALOG}" == "true" && -n "${RMAN_CATALOG}" ]]; then
+        resync_catalog_clause="RESYNC CATALOG;"
+        oradba_log DEBUG "  Catalog Resync: Enabled"
+    else
+        # Comment out the resync command
+        resync_catalog_clause="# RESYNC CATALOG;"
+    fi
+    
+    # Build custom parameter clauses
+    local custom_param_1="${RMAN_CUSTOM_PARAM_1:-}"
+    local custom_param_2="${RMAN_CUSTOM_PARAM_2:-}"
+    local custom_param_3="${RMAN_CUSTOM_PARAM_3:-}"
+    [[ -n "${custom_param_1}" ]] && oradba_log DEBUG "  Custom Param 1: ${custom_param_1}"
+    [[ -n "${custom_param_2}" ]] && oradba_log DEBUG "  Custom Param 2: ${custom_param_2}"
+    [[ -n "${custom_param_3}" ]] && oradba_log DEBUG "  Custom Param 3: ${custom_param_3}"
+    
     # Process the template
     sed -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
         -e "s|<RELEASE_CHANNELS>|${release_block}|g" \
@@ -307,6 +386,17 @@ process_template() {
         -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
         -e "s|<ORACLE_SID>|${oracle_sid}|g" \
         -e "s|<START_DATE>|${start_date}|g" \
+        -e "s|<SET_COMMANDS>|${set_commands}|g" \
+        -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
+        -e "s|<DATAFILES>|${datafiles_clause}|g" \
+        -e "s|<PLUGGABLE_DATABASE>|${pluggable_database_clause}|g" \
+        -e "s|<SECTION_SIZE>|${section_size_clause}|g" \
+        -e "s|<ARCHIVE_RANGE>|${archive_range}|g" \
+        -e "s|<ARCHIVE_PATTERN>|${archive_pattern_clause}|g" \
+        -e "s|<RESYNC_CATALOG>|${resync_catalog_clause}|g" \
+        -e "s|<CUSTOM_PARAM_1>|${custom_param_1}|g" \
+        -e "s|<CUSTOM_PARAM_2>|${custom_param_2}|g" \
+        -e "s|<CUSTOM_PARAM_3>|${custom_param_3}|g" \
         "${input_file}" > "${output_file}"
     
     oradba_log DEBUG "Template processed successfully: ${output_file}"
@@ -319,8 +409,8 @@ execute_rman_for_sid() {
     local sid="$1"
     local rcv_script="$2"
     
-    oradba_log INFO "Processing SID: ${sid}"
-    
+    oradba_log INFO "Processing SID:     ${sid}"
+
     # Set Oracle environment
     export ORACLE_SID="${sid}"
     export ORAENV_ASK=NO
@@ -370,8 +460,8 @@ execute_rman_for_sid() {
     script_basename=$(basename "${rcv_script}" .rcv)
     local sid_log="${log_dir}/${script_basename}_${TIMESTAMP}.log"
     
-    oradba_log INFO "  ORACLE_HOME: ${ORACLE_HOME}"
-    oradba_log INFO "  Log file: ${sid_log}"
+    oradba_log INFO "  ORACLE_HOME:      ${ORACLE_HOME}"
+    oradba_log INFO "  Log file:         ${sid_log}"
     
     # Find RMAN script
     local rman_script=""
@@ -438,7 +528,7 @@ execute_rman_for_sid() {
         return 1
     else
         oradba_log INFO "  RMAN execution successful for ${sid}"
-        oradba_log INFO "  Log: ${sid_log}"
+        oradba_log INFO "  Log:              ${sid_log}"
         oradba_log INFO "  Processed script: ${saved_rcv}"
         return 0
     fi
@@ -658,12 +748,17 @@ main() {
     oradba_log INFO "=========================================="
     oradba_log INFO "OraDBA RMAN Wrapper Starting"
     oradba_log INFO "=========================================="
-    oradba_log INFO "Script: ${OPT_RCV_SCRIPT}"
-    oradba_log INFO "SIDs: ${OPT_SIDS}"
-    oradba_log INFO "Timestamp: ${TIMESTAMP}"
-    [[ -n "${OPT_CHANNELS}" ]] && oradba_log INFO "Channels: ${OPT_CHANNELS}"
-    [[ -n "${OPT_TAG}" ]] && oradba_log INFO "Tag: ${OPT_TAG}"
-    [[ "${OPT_DRY_RUN}" == "true" ]] && oradba_log INFO "Mode: DRY RUN"
+    oradba_log INFO "Script:             ${OPT_RCV_SCRIPT}"
+    oradba_log INFO "SIDs:               ${OPT_SIDS}"
+    oradba_log INFO "Timestamp:          ${TIMESTAMP}"
+    [[ -n "${OPT_CHANNELS}" ]]          && oradba_log INFO "Channels:           ${OPT_CHANNELS}"
+    [[ -n "${OPT_BACKUP_PATH}" ]]       && oradba_log INFO "Backup Path:        ${OPT_BACKUP_PATH}"
+    [[ -n "${OPT_FORMAT}" ]]            && oradba_log INFO "Format:             ${OPT_FORMAT}"
+    [[ -n "${OPT_COMPRESSION}" ]]       && oradba_log INFO "Compression:        ${OPT_COMPRESSION}"
+    [[ -n "${OPT_TAG}" ]]               && oradba_log INFO "Tag:                ${OPT_TAG}"
+    [[ -n "${OPT_PARALLEL}" ]]          && oradba_log INFO "Parallel:           ${OPT_PARALLEL}"
+    [[ -n "${OPT_NOTIFY_EMAIL}" ]]      && oradba_log INFO "Notification Email: ${OPT_NOTIFY_EMAIL}"
+    [[ "${OPT_DRY_RUN}" == "true" ]]    && oradba_log INFO "Mode:               DRY RUN"
     oradba_log INFO ""
     
     # Check parallel method
@@ -698,9 +793,9 @@ main() {
     oradba_log INFO "=========================================="
     oradba_log INFO "OraDBA RMAN Wrapper Summary"
     oradba_log INFO "=========================================="
-    oradba_log INFO "Total SIDs: ${#SID_ARRAY[@]}"
-    oradba_log INFO "Successful: ${#SUCCESSFUL_SIDS[@]}"
-    oradba_log INFO "Failed: ${#FAILED_SIDS[@]}"
+    oradba_log INFO "Total SIDs:    ${#SID_ARRAY[@]}"
+    oradba_log INFO "Successful:    ${#SUCCESSFUL_SIDS[@]}"
+    oradba_log INFO "Failed:        ${#FAILED_SIDS[@]}"
     
     if [[ ${#FAILED_SIDS[@]} -gt 0 ]]; then
         oradba_log INFO "Failed SIDs: ${FAILED_SIDS[*]}"

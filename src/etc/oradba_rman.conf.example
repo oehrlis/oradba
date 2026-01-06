@@ -35,6 +35,70 @@ export RMAN_TAG="AUTO_BACKUP"
 export RMAN_COMPRESSION="MEDIUM"
 
 # ------------------------------------------------------------------------------
+# RMAN Global SET Commands (Option 3: Hybrid Approach)
+# ------------------------------------------------------------------------------
+
+# Inline SET commands executed before RUN block
+# Default: Enable controlfile autobackup
+# Example: export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
+export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
+
+# Optional external file containing SET commands
+# If specified, will use @file instead of inline commands
+# Leave empty to use RMAN_SET_COMMANDS_INLINE
+# Example: export RMAN_SET_COMMANDS_FILE="${ORADBA_ETC}/rman_set_commands.rcv"
+export RMAN_SET_COMMANDS_FILE=""
+
+# ------------------------------------------------------------------------------
+# Backup Scope Configuration
+# ------------------------------------------------------------------------------
+
+# Tablespaces to explicitly backup (comma-separated)
+# Leave empty for full database backup
+# Example: export RMAN_TABLESPACES="USERS,TOOLS,DATA"
+export RMAN_TABLESPACES=""
+
+# Datafiles to explicitly backup (comma-separated numbers or paths)
+# Leave empty for database/tablespace level backup
+# Example: export RMAN_DATAFILES="1,2,3"
+# Example: export RMAN_DATAFILES="/u01/oradata/file1.dbf,/u01/oradata/file2.dbf"
+export RMAN_DATAFILES=""
+
+# Pluggable databases to explicitly backup (comma-separated)
+# Leave empty for CDB root or all PDBs
+# Example: export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2"
+export RMAN_PLUGGABLE_DATABASE=""
+
+# ------------------------------------------------------------------------------
+# Multisection Backup Configuration
+# ------------------------------------------------------------------------------
+
+# Section size for multisection backups
+# Enables parallel backup of large datafiles across channels
+# Leave empty to disable multisection backups
+# Format: <number><unit> where unit is K, M, or G
+# Example: export RMAN_SECTION_SIZE="10G"
+export RMAN_SECTION_SIZE=""
+
+# ------------------------------------------------------------------------------
+# Archive Log Backup Configuration
+# ------------------------------------------------------------------------------
+
+# Archive log backup range
+# Controls which archivelogs to backup
+# Default: ALL (backup all available archivelogs)
+# Example: export RMAN_ARCHIVE_RANGE="FROM TIME 'SYSDATE-1'"
+# Example: export RMAN_ARCHIVE_RANGE="FROM SCN 1000 UNTIL SCN 2000"
+# Example: export RMAN_ARCHIVE_RANGE="UNTIL TIME 'SYSDATE'"
+export RMAN_ARCHIVE_RANGE="ALL"
+
+# Archive log pattern filter
+# Filter archivelogs by path pattern
+# Leave empty for no filtering
+# Example: export RMAN_ARCHIVE_PATTERN="LIKE '%arc_dest%'"
+export RMAN_ARCHIVE_PATTERN=""
+
+# ------------------------------------------------------------------------------
 # RMAN Catalog Connection
 # ------------------------------------------------------------------------------
 
@@ -44,6 +108,27 @@ export RMAN_COMPRESSION="MEDIUM"
 # Example: RMAN_CATALOG="rman_user/password@catdb"
 # Example: RMAN_CATALOG="rman_user@catdb"
 export RMAN_CATALOG=""
+
+# Resync catalog after backup operations
+# Only effective when using RMAN catalog (RMAN_CATALOG set)
+# Default: true (recommended for catalog synchronization)
+export RMAN_RESYNC_CATALOG="true"
+
+# ------------------------------------------------------------------------------
+# Custom Parameters
+# ------------------------------------------------------------------------------
+
+# Custom parameter 1 - User-defined RMAN command/option
+# Example: export RMAN_CUSTOM_PARAM_1="MAXSETSIZE 100G"
+export RMAN_CUSTOM_PARAM_1=""
+
+# Custom parameter 2 - User-defined RMAN command/option
+# Example: export RMAN_CUSTOM_PARAM_2="DURATION 02:00"
+export RMAN_CUSTOM_PARAM_2=""
+
+# Custom parameter 3 - User-defined RMAN command/option
+# Example: export RMAN_CUSTOM_PARAM_3="BACKUP COPIES 2"
+export RMAN_CUSTOM_PARAM_3=""
 
 # ------------------------------------------------------------------------------
 # Logging Configuration

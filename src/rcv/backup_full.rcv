@@ -4,11 +4,14 @@
 # Name.......: backup_full.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.13.0
+# Date.......: 2026.01.06
+# Revision...: 0.14.0
 # Purpose....: RMAN full database backup script with template support
 # Notes......: Performs compressed full backup with archivelogs.
-#              Template tags: <ALLOCATE_CHANNELS>, <FORMAT>, <TAG>, <COMPRESSION>
+#              Template tags: <ALLOCATE_CHANNELS>, <FORMAT>, <TAG>, <COMPRESSION>,
+#              <SET_COMMANDS>, <TABLESPACES>, <DATAFILES>, <PLUGGABLE_DATABASE>,
+#              <SECTION_SIZE>, <ARCHIVE_RANGE>, <ARCHIVE_PATTERN>, <RESYNC_CATALOG>,
+#              <CUSTOM_PARAM_1>, <CUSTOM_PARAM_2>, <CUSTOM_PARAM_3>
 #              Run as: rman target / @backup_full.rcv
 #              Or via: oradba_rman.sh --sid DB01 --rcv backup_full.rcv
 # Reference..: https://github.com/oehrlis/oradba
@@ -16,16 +19,28 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+# Show current RMAN configuration
+SHOW ALL;
+
+# Apply custom SET commands (optional)
+<SET_COMMANDS>
+
 RUN {
     # Allocate channels for backup (replaced by template processor)
 <ALLOCATE_CHANNELS>
     
-    # Backup database plus archivelog
-    BACKUP <COMPRESSION>
-        DATABASE 
-        PLUS ARCHIVELOG
+    # Backup database - with optional multisection support
+    # If SECTION_SIZE is set, enables parallel processing of large datafiles
+    BACKUP <SECTION_SIZE> <COMPRESSION>
+        DATABASE <TABLESPACES> <DATAFILES> <PLUGGABLE_DATABASE>
         <FORMAT>
         <TAG>;
+    
+    # Backup archivelogs with optional filtering
+    BACKUP <COMPRESSION>
+        ARCHIVELOG <ARCHIVE_RANGE> <ARCHIVE_PATTERN>
+        <FORMAT>
+        TAG 'ARCHIVELOG_BACKUP';
     
     # Backup current controlfile
     BACKUP CURRENT CONTROLFILE 
@@ -35,6 +50,9 @@ RUN {
     # Release channels (replaced by template processor)
 <RELEASE_CHANNELS>
 }
+
+# Resync RMAN catalog if configured
+<RESYNC_CATALOG>
 
 # Delete obsolete backups
 DELETE NOPROMPT OBSOLETE;
@@ -46,3 +64,8 @@ CROSSCHECK COPY;
 # Report on backup status
 REPORT SCHEMA;
 LIST BACKUP SUMMARY;
+
+# Custom parameters for user-defined operations
+# <CUSTOM_PARAM_1>
+# <CUSTOM_PARAM_2>
+# <CUSTOM_PARAM_3>
