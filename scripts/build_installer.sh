@@ -56,6 +56,12 @@ mkdir -p "$TEMP_TAR_DIR"
 # Copy src contents
 cp -r src/* "$TEMP_TAR_DIR/"
 
+# Remove MkDocs-specific files not needed in installation
+rm -rf "$TEMP_TAR_DIR/doc/javascripts"
+rm -rf "$TEMP_TAR_DIR/doc/stylesheets"
+rm -f "$TEMP_TAR_DIR/doc/index.md"
+rm -f "$TEMP_TAR_DIR/doc/oradba-user-guide.pdf" 2>/dev/null || true
+
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
