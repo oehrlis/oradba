@@ -403,20 +403,16 @@ flowchart TD
     H --> I[Extract ORACLE_HOME]
     I --> J{ORACLE_HOME Exists?}
     J -->|No| K[❌ Error: Invalid ORACLE_HOME]
-    J -->|Yes| L[Set ORACLE_SID]
+    L --> M[Set ORACLE_SID]
     
-    L --> M[Set ORACLE_HOME]
-    M --> N[Calculate ORACLE_BASE]
-    N --> O[Load Configuration Files]
+    M --> N[Set Oracle Environment:<br/>ORACLE_HOME, ORACLE_BASE]
+    N --> O[Load Core Configuration:<br/>oradba_core.conf<br/>oradba_local.conf]
     
-    O --> P[Load oradba_core.conf]
-    P --> PA[Load oradba_local.conf]
-    PA --> PB{Coexist Mode Active?}
+    O --> PB{Coexist Mode Active?}
     PB -->|Yes| PC[Enable BasEnv Coexistence]
     PB -->|No| Q
-    PC --> Q[Load oradba_standard.conf]
-    Q --> R[Load oradba_customer.conf]
-    R --> S{SID Config Exists?}
+    PC --> Q[Load Standard Configuration:<br/>oradba_standard.conf<br/>oradba_customer.conf]
+    Q --> S{SID Config Exists?}
     S -->|Yes| T[Load sid.SID.conf]
     S -->|No| SA{Auto-Create Enabled?}
     
@@ -424,13 +420,10 @@ flowchart TD
     SA -->|No| U[Skip SID config]
     SB --> T
     
-    T --> V[Update PATH]
+    T --> V[Update Environment:<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, NLS Variables]
     U --> V
     
-    V --> W[Update LD_LIBRARY_PATH]
-    W --> X[Set TNS_ADMIN]
-    X --> Y[Set NLS Variables]
-    Y --> Z[Export ORACLE_ Variables]
+    V --> Z[Export All ORACLE_ Variables]
     
     Z --> AA{CDB Database?}
     AA -->|Yes| AB[Generate PDB Aliases]
@@ -548,13 +541,7 @@ sequenceDiagram
         Config-->>oraenv.sh: Skip SID config
     end
     
-    oraenv.sh->>Oracle: Export ORACLE_SID=FREE
-    oraenv.sh->>Oracle: Export ORACLE_HOME
-    oraenv.sh->>Oracle: Export ORACLE_BASE
-    oraenv.sh->>Oracle: Update PATH
-    oraenv.sh->>Oracle: Update LD_LIBRARY_PATH
-    oraenv.sh->>Oracle: Set TNS_ADMIN
-    oraenv.sh->>Oracle: Set NLS_LANG
+    oraenv.sh->>Oracle: Export Environment Variables:<br/>ORACLE_SID, ORACLE_HOME, ORACLE_BASE<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, NLS_LANG
     
     oraenv.sh->>Aliases: Check if CDB
     Aliases-->>oraenv.sh: CDB=true
@@ -617,13 +604,9 @@ flowchart TD
     W --> U
     
     U --> X[Extract Tarball]
-    X --> Y[Create bin/ structure]
-    Y --> Z[Create lib/ structure]
-    Z --> AA[Create etc/ structure]
-    AA --> AB[Create sql/ structure]
-    AB --> AC[Create rcv/ structure]
+    X --> Y[Create Directory Structure:<br/>bin/, lib/, etc/, sql/, rcv/, logs/]
     
-    AC --> AD[Set Permissions]
+    Y --> AD[Set Permissions]
     AD --> AE{--user Specified?}
     
     AE -->|Yes| AF[chown to user:group]
@@ -664,18 +647,12 @@ flowchart TD
     CA -->|No| CC[Use standard alias]
     CB --> D[Load Standard Aliases]
     CC --> D
-    D --> E[Generate SQL*Plus Aliases sq, sqh, sqlplush]
+    D --> E[Generate Core Aliases:<br/>SQL*Plus: sq, sqh, sqlplush<br/>RMAN: rmanc, rmanh, rmanch<br/>Navigation: cdh, cdo, cdn, cda<br/>Diagnostic: taa, tah, tal, tac<br/>File Edit: via, vio, vit, vip<br/>DB Ops: dbstart, dbstop, lsnrstart]
     E --> EA{Alias Exists in BasEnv?}
-    EA -->|Yes & Coexist| EB[Skip Alias]
-    EA -->|No| F[Generate RMAN Aliases rmanc, rmanh, rmanch]
-    EA -->|Yes & Force| F
-    EB --> F
-    F --> G[Generate Navigation Aliases cdh, cdo, cdn, cda]
-    G --> H[Generate Diagnostic Aliases taa, tah, tal, tac]
-    H --> I[Generate File Edit Aliases via, vio, vit, vip]
-    I --> J[Generate DB Operations dbstart, dbstop, lsnrstart]
-    
-    J --> K{Is CDB?}
+    EA -->|Yes & Coexist| EB[Skip Conflicting Aliases]
+    EA -->|No| K{Is CDB?}
+    EA -->|Yes & Force| K
+    EB --> K
     
     K -->|No| L[Skip PDB Aliases]
     K -->|Yes| M[Query PDBs from Database]
@@ -692,14 +669,9 @@ flowchart TD
     R -->|Yes| S[Generate PDB Aliases]
     
     S --> T[For Each PDB]
-    T --> U[Create <pdbname> Alias]
-    U --> V[sqlplus sys@PDB as sysdba]
-    V --> W[Create <pdbname>h Alias]
-    W --> X[rlwrap sqlplus sys@PDB]
-    X --> Y[Create cd<pdbname> Alias]
-    Y --> Z[cd $ORACLE_BASE/.../PDB]
+    T --> U[Generate PDB Aliases:<br/><pdbname>: sqlplus sys@PDB as sysdba<br/><pdbname>h: rlwrap sqlplus sys@PDB<br/>cd<pdbname>: cd to PDB directory]
     
-    Z --> AA{More PDBs?}
+    U --> AA{More PDBs?}
     AA -->|Yes| T
     AA -->|No| AB[Store PDB List Cache]
     
@@ -742,11 +714,8 @@ flowchart TD
     K -->|Yes| M[Load template]
     
     M --> N[create_sid_config function]
-    N --> O[Replace ORCL with SID]
-    O --> P[Replace orcl with lowercase SID]
-    P --> Q[Update timestamp]
-    Q --> R[Update creation comment]
-    R --> S[Write to etc/sid.SID.conf]
+    N --> O[Apply Template Transformations:<br/>- Replace ORCL with SID<br/>- Replace orcl with lowercase SID<br/>- Update timestamp<br/>- Update creation comment]
+    O --> S[Write to etc/sid.SID.conf]
     
     S --> T{Syntax valid?}
     T -->|No| U[❌ Error: Invalid syntax]
