@@ -24,6 +24,8 @@ and email notifications.
 | Script                                                     | Description                                          |
 |------------------------------------------------------------|------------------------------------------------------|
 | [backup_full.rcv](backup_full.rcv)                         | Full database backup with archive logs, maintenance  |
+| [bck_arc.rcv](bck_arc.rcv)                                 | Archive logs backup only (without logswitch)         |
+| [bck_ctl.rcv](bck_ctl.rcv)                                 | Controlfile backup only                              |
 | [bck_db_keep.rcv](bck_db_keep.rcv)                         | Full database backup with retention guarantee        |
 | [bck_db_validate.rcv](bck_db_validate.rcv)                 | Full database validation (backup validate)           |
 | [bck_inc0.rcv](bck_inc0.rcv)                               | Incremental level 0 backup with archive logs         |
@@ -58,13 +60,26 @@ and email notifications.
 |------------------------------------------------------------|------------------------------------------------------|
 | [rpt_bck.rcv](rpt_bck.rcv)                                 | Report backup status and requirements                |
 
+### Recovery Scripts
+
+| Script                                                     | Description                                          |
+|------------------------------------------------------------|------------------------------------------------------|
+| [rcv_arc.rcv](rcv_arc.rcv)                                 | Restore archivelogs by sequence number range         |
+| [rcv_ctl.rcv](rcv_ctl.rcv)                                 | Restore controlfile from backup                      |
+| [rcv_db.rcv](rcv_db.rcv)                                   | Complete database recovery (controlfiles in place)   |
+| [rcv_db_pitr.rcv](rcv_db_pitr.rcv)                         | Database point-in-time recovery (PITR)               |
+| [rcv_df.rcv](rcv_df.rcv)                                   | Datafile recovery                                    |
+| [rcv_standby_db.rcv](rcv_standby_db.rcv)                   | Create standby database from primary backup          |
+| [rcv_ts.rcv](rcv_ts.rcv)                                   | Tablespace recovery                                  |
+| [rcv_ts_pitr.rcv](rcv_ts_pitr.rcv)                         | Tablespace point-in-time recovery (TSPITR)           |
+
 ### Configuration Examples
 
 | Script                                                     | Description                                          |
 |------------------------------------------------------------|------------------------------------------------------|
 | [rman_set_commands.example](rman_set_commands.example)     | Example external SET commands file (optional)        |
 
-**Total Scripts:** 24 backup/maintenance scripts (+ 1 example file)
+**Total Scripts:** 34 scripts (18 backup + 7 maintenance + 1 reporting + 8 recovery) + 1 example file
 
 ## RMAN Wrapper Script
 

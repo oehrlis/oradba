@@ -55,8 +55,9 @@ $filter->input_handler(sub {
     
     if ($in_password_prompt) {
         $in_password_prompt = 0;
-        # Return empty string to prevent saving to history
-        return "";
+        # Return the input but mark it to not be saved to history
+        $filter->send_output_oob("\x00");  # Signal to not save this line
+        return $input;
     }
     
     # Check if the input itself contains password keywords (CONNECT command)

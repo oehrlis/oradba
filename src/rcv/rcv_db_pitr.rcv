@@ -1,0 +1,46 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: rcv_db_pitr.rcv
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.06
+# Revision...: 0.14.1
+# Purpose....: Template for database point-in-time recovery (PITR)
+# Notes......: Assumes controlfiles are still in place and valid.
+#              Set the correct recovery time in the SET UNTIL TIME clause.
+#              For read-only tablespaces: add CHECK READONLY to restore.
+#              If structural changes occurred between PITR point and current,
+#              controlfile must be restored first (uncomment restore controlfile).
+#              After recovery completes, manually open database with RESETLOGS.
+#              Converted from TVD Backup template to OraDBA format.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Show current RMAN configuration
+SHOW ALL;
+
+# Apply custom SET commands (optional)
+<SET_COMMANDS>
+
+RUN {
+    # Allocate channels for backup (replaced by template processor)
+    <ALLOCATE_CHANNELS>
+
+    # Set the correct recovery time:
+    SET UNTIL TIME "to_date('15-01-00 15:00','DD-MM-YY HH24:MI')";
+
+    # Uncomment if controlfile restore is needed:
+    # RESTORE CONTROLFILE;
+    # ALTER DATABASE MOUNT;
+
+    RESTORE DATABASE;
+    RECOVER DATABASE;
+    # Release channels (replaced by template processor)
+    <RELEASE_CHANNELS>
+}
+
+# !!! Execute this step manually after verifying recovery !!!
+# ALTER DATABASE OPEN RESETLOGS;

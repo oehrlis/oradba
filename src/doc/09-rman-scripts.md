@@ -63,6 +63,9 @@ Optional Arguments:
                         Note: BASIC requires no license, MEDIUM/HIGH require
                         Oracle Advanced Compression option
   --backup-path PATH    Backup destination path (default: from config)
+  --tablespaces NAMES   Tablespace names, comma-separated (e.g., USERS,TOOLS)
+  --datafiles NUMBERS   Datafile numbers or paths, comma-separated (e.g., 1,2,3)
+  --pdb NAMES           Pluggable database names, comma-separated (e.g., PDB1,PDB2)
   --catalog CONNECT     RMAN catalog connection string
   --notify EMAIL        Send notifications to email address
   --parallel N          Max parallel SID executions (default: 1)
@@ -88,6 +91,9 @@ export RMAN_FORMAT="%d_%T_%U.bkp"         # Filename pattern only (no path)
 export RMAN_TAG="AUTO_BACKUP"
 export RMAN_COMPRESSION="BASIC"
 export RMAN_CATALOG=""
+export RMAN_TABLESPACES=""              # e.g., "USERS,TOOLS,DATA"
+export RMAN_DATAFILES=""                # e.g., "1,2,3" or "/path/file1.dbf,/path/file2.dbf"
+export RMAN_PLUGGABLE_DATABASE=""       # e.g., "PDB1,PDB2,PDB3"
 export RMAN_NOTIFY_EMAIL="dba@example.com"
 export RMAN_NOTIFY_ON_SUCCESS=false
 export RMAN_NOTIFY_ON_ERROR=true
@@ -138,6 +144,9 @@ RMAN scripts use template tags that are replaced at runtime:
 - `<ARCHIVE_RANGE>`: Archive log range specification (ALL, FROM TIME, FROM SCN, etc.)
 - `<ARCHIVE_PATTERN>`: LIKE clause for archive log filtering
 - `<RESYNC_CATALOG>`: RMAN catalog resync command (when catalog configured)
+- `<SPFILE_BACKUP>`: Conditional SPFILE text backup (pfile creation from spfile)
+- `<BACKUP_KEEP_TIME>`: Long-term retention with KEEP UNTIL TIME clause
+- `<RESTORE_POINT>`: Guaranteed restore point creation for long-term recovery
 - `<CUSTOM_PARAM_1>`, `<CUSTOM_PARAM_2>`, `<CUSTOM_PARAM_3>`: User-defined parameters
 
 **Advanced Configuration:**
@@ -149,7 +158,7 @@ For advanced RMAN features, configure additional parameters in `$ORADBA_ORA_ADMI
 # RMAN Global SET Commands (Option 3: Hybrid approach)
 # -----------------------------------------------------------------------
 # Inline SET commands (simple, single or few commands)
-export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
+export RMAN_SET_COMMANDS_INLINE="CONFIGURE CONTROLFILE AUTOBACKUP ON;"
 
 # OR external SET commands file (complex, many commands)
 export RMAN_SET_COMMANDS_FILE="${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv"
@@ -204,14 +213,51 @@ export RMAN_RESYNC_CATALOG="true"
 export RMAN_CUSTOM_PARAM_1=""
 export RMAN_CUSTOM_PARAM_2=""
 export RMAN_CUSTOM_PARAM_3=""
+
+# -----------------------------------------------------------------------
+# SPFILE Backup Configuration
+# -----------------------------------------------------------------------
+# Enable SPFILE text backup (pfile creation from spfile)
+# Creates a text pfile after backup for disaster recovery
+export RMAN_SPFILE_BACKUP="true"
+
+# -----------------------------------------------------------------------
+# Long-Term Retention Configuration
+# -----------------------------------------------------------------------
+# Backup keep time for guaranteed retention (KEEP UNTIL TIME clause)
+# Only used in bck_db_keep.rcv for long-term archival backups
+export RMAN_BACKUP_KEEP_TIME=""
+# Example: export RMAN_BACKUP_KEEP_TIME="KEEP UNTIL TIME 'SYSDATE+365'"
+
+# Restore point for guaranteed restore capability
+# Only used in bck_db_keep.rcv for guaranteed restore points
+export RMAN_RESTORE_POINT=""
+# Example: export RMAN_RESTORE_POINT="backup_rp_$(date +%Y%m%d)"
 ```
 
 **Advanced Examples:**
 
 ```bash
-# Selective backup of specific tablespaces
+# Selective backup of specific tablespaces (using CLI parameter - preferred)
+oradba_rman.sh --sid PROD --rcv backup_full.rcv --tablespaces USERS,TOOLS
+
+# Selective backup of specific tablespaces (using config variable)
 export RMAN_TABLESPACES="USERS,TOOLS"
 oradba_rman.sh --sid PROD --rcv backup_full.rcv
+
+# Selective backup of specific datafiles (using CLI parameter - preferred)
+oradba_rman.sh --sid PROD --rcv bck_inc0.rcv --datafiles 4,5,6
+
+# Selective backup of specific datafiles by path (using CLI parameter)
+oradba_rman.sh --sid PROD --rcv bck_inc0.rcv \
+    --datafiles "/u01/oradata/PROD/users01.dbf,/u01/oradata/PROD/users02.dbf"
+
+# Selective backup of specific pluggable databases (using CLI parameter - preferred)
+oradba_rman.sh --sid CDB1 --rcv bck_inc0_pdb.rcv --pdb PDB1,PDB2
+
+# Selective backup of specific pluggable databases (using config variable)
+export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2"
+oradba_rman.sh --sid CDB1 --rcv bck_inc0_pdb.rcv
 
 # Multisection backup for large database (10G sections, 4 channels)
 export RMAN_SECTION_SIZE="10G"
@@ -228,10 +274,10 @@ oradba_rman.sh --sid CDB1 --rcv backup_full.rcv
 # Use external SET commands file
 export RMAN_SET_COMMANDS_FILE="${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv"
 cat > ${ORADBA_ORA_ADMIN_SID}/etc/rman_set_commands.rcv << 'EOF'
-SET CONTROLFILE AUTOBACKUP ON;
-SET CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
-SET BACKUP OPTIMIZATION ON;
-SET ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
+CONFIGURE CONTROLFILE AUTOBACKUP ON;
+CONFIGURE CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
+CONFIGURE BACKUP OPTIMIZATION ON;
+CONFIGURE ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
 EOF
 oradba_rman.sh --sid PROD --rcv backup_full.rcv
 ```
@@ -410,13 +456,19 @@ Selective backup templates for specific database components:
 export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2"
 oradba_rman.sh --sid CDB1 --rcv bck_inc0_pdb.rcv
 
-# Backup specific tablespaces
+# Backup specific tablespaces (using config variable)
 export RMAN_TABLESPACES="USERS,TOOLS"
 oradba_rman.sh --sid PROD --rcv bck_inc0_ts.rcv
 
-# Backup specific datafiles
+# Backup specific tablespaces (using CLI parameter - preferred)
+oradba_rman.sh --sid PROD --rcv bck_inc0_ts.rcv --tablespaces USERS,TOOLS
+
+# Backup specific datafiles (using config variable)
 export RMAN_DATAFILES="4,5,6"
 oradba_rman.sh --sid PROD --rcv bck_inc0_df.rcv
+
+# Backup specific datafiles (using CLI parameter - preferred)
+oradba_rman.sh --sid PROD --rcv bck_inc0_df.rcv --datafiles 4,5,6
 ```
 
 #### Maintenance Scripts Usage

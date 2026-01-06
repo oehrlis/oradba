@@ -42,8 +42,8 @@ export RMAN_COMPRESSION="BASIC"
 
 # Inline SET commands executed before RUN block
 # Default: Enable controlfile autobackup
-# Example: export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
-export RMAN_SET_COMMANDS_INLINE="SET CONTROLFILE AUTOBACKUP ON;"
+# Example: export RMAN_SET_COMMANDS_INLINE="CONFIGURE CONTROLFILE AUTOBACKUP ON;"
+export RMAN_SET_COMMANDS_INLINE="CONFIGURE CONTROLFILE AUTOBACKUP ON;"
 
 # Optional external file containing SET commands
 # If specified, will use @file instead of inline commands
@@ -131,6 +131,34 @@ export RMAN_CUSTOM_PARAM_2=""
 # Custom parameter 3 - User-defined RMAN command/option
 # Example: export RMAN_CUSTOM_PARAM_3="BACKUP COPIES 2"
 export RMAN_CUSTOM_PARAM_3=""
+
+# ------------------------------------------------------------------------------
+# SPFILE Backup Configuration
+# ------------------------------------------------------------------------------
+
+# Enable SPFILE text backup (pfile creation)
+# When enabled, creates a text pfile from spfile after backup
+# Useful for disaster recovery and documentation
+# Default: true
+export RMAN_SPFILE_BACKUP="true"
+
+# ------------------------------------------------------------------------------
+# Long-Term Retention Configuration
+# ------------------------------------------------------------------------------
+
+# Backup keep time for guaranteed retention
+# Only used in specific retention-guaranteed backups (bck_db_keep.rcv)
+# Format: KEEP UNTIL TIME 'SYSDATE+<days>'
+# Example: export RMAN_BACKUP_KEEP_TIME="KEEP UNTIL TIME 'SYSDATE+365'"
+# Leave empty to skip KEEP clause
+export RMAN_BACKUP_KEEP_TIME=""
+
+# Restore point name for guaranteed restore capability
+# Only used in specific retention-guaranteed backups (bck_db_keep.rcv)
+# Creates a guaranteed restore point for long-term recovery
+# Example: export RMAN_RESTORE_POINT="backup_rp_$(date +%Y%m%d)"
+# Leave empty to skip restore point creation
+export RMAN_RESTORE_POINT=""
 
 # ------------------------------------------------------------------------------
 # Logging Configuration

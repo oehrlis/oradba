@@ -20,28 +20,28 @@
 # ------------------------------------------------------------------------------
 
 # Control file autobackup - recommended for backup automation
-SET CONTROLFILE AUTOBACKUP ON;
+CONFIGURE CONTROLFILE AUTOBACKUP ON;
 
 # Control file autobackup format - customize location/naming
-SET CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
+CONFIGURE CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '/u01/backup/rman/%F';
 
 # Backup optimization - skip unchanged files
-SET BACKUP OPTIMIZATION ON;
+CONFIGURE BACKUP OPTIMIZATION ON;
 
 # Snapshot control file location - avoid conflicts in shared environments
-SET SNAPSHOT CONTROLFILE NAME TO '/u01/backup/rman/snapcf_<ORACLE_SID>.f';
+CONFIGURE SNAPSHOT CONTROLFILE NAME TO '/u01/backup/rman/snapcf_<ORACLE_SID>.f';
 
 # Archive log deletion policy - delete after backup to catalog
-SET ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
+CONFIGURE ARCHIVELOG DELETION POLICY TO BACKED UP 1 TIMES TO CATALOG;
 
 # Encryption (if using TDE) - uncomment and customize
-# SET ENCRYPTION ON;
-# SET ENCRYPTION ALGORITHM 'AES256';
+# CONFIGURE ENCRYPTION ON;
+# CONFIGURE ENCRYPTION ALGORITHM 'AES256';
 
 # Device type configuration (if needed) - uncomment and customize
 # CONFIGURE DEVICE TYPE DISK PARALLELISM 4;
 # CONFIGURE DEFAULT DEVICE TYPE TO DISK;
 
 # Retention policy override (if different from global config)
-# SET RETENTION POLICY TO REDUNDANCY 2;
-# SET RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;
+# CONFIGURE RETENTION POLICY TO REDUNDANCY 2;
+# CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;

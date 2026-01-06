@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.06
-# Revision...: 0.14.0
+# Revision...: 0.14.1
 # Purpose....: Template for making a full backup validation of the database
 # Notes......: Converted from TVD Backup template to OraDBA format
 # Reference..: https://github.com/oehrlis/oradba
@@ -13,11 +13,19 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+# Show current RMAN configuration
 SHOW ALL;
+
+# Apply custom SET commands (optional)
 <SET_COMMANDS>
-run
-{
-<ALLOCATE_CHANNELS>
-backup validate check logical database <SECTION_SIZE> archivelog all;
-<RELEASE_CHANNELS>
+
+RUN {
+    # Allocate channels for backup (replaced by template processor)
+    <ALLOCATE_CHANNELS>
+
+    # Backup validate
+    BACKUP VALIDATE CHECK LOGICAL DATABASE <SECTION_SIZE> ARCHIVELOG ALL;
+    
+    # Release channels (replaced by template processor)
+    <RELEASE_CHANNELS>
 }

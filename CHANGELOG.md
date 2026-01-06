@@ -7,7 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-01-06
+
 ### Added
+
+- **CLI Parameters for Selective Backups**: Added command-line parameters for tablespaces, datafiles, and PDBs
+  - `--tablespaces <names>`: Specify tablespace names (comma-separated, e.g., USERS,TOOLS)
+  - `--datafiles <numbers>`: Specify datafile numbers or paths (comma-separated, e.g., 1,2,3)
+  - `--pdb <names>`: Specify pluggable database names (comma-separated, e.g., PDB1,PDB2)
+  - CLI parameters override config variables `RMAN_TABLESPACES`, `RMAN_DATAFILES`, and `RMAN_PLUGGABLE_DATABASE`
+  - Updated `oradba_rman.sh` help and examples
+  - Updated `src/doc/09-rman-scripts.md` with usage examples
+
+- **10 Additional RMAN Scripts**: Extended backup and recovery script library
+  - **2 Backup Scripts**:
+    - `bck_arc.rcv`: Archive logs backup only (without logswitch)
+    - `bck_ctl.rcv`: Controlfile backup only
+  - **8 Recovery Scripts** converted from TVD Backup to OraDBA format:
+    - `rcv_arc.rcv`: Restore archivelogs by sequence number range
+    - `rcv_ctl.rcv`: Restore controlfile from backup
+    - `rcv_db.rcv`: Complete database recovery (controlfiles in place)
+    - `rcv_db_pitr.rcv`: Database point-in-time recovery (PITR)
+    - `rcv_df.rcv`: Datafile recovery
+    - `rcv_standby_db.rcv`: Create standby database from primary backup
+    - `rcv_ts.rcv`: Tablespace recovery
+    - `rcv_ts_pitr.rcv`: Tablespace point-in-time recovery (TSPITR)
+  - **Total**: 34 RMAN scripts (18 backup + 7 maintenance + 1 reporting + 8 recovery)
+
+- **RMAN Template Tag Support Extended**: Added support for 4 additional template tags
+  - `<SPFILE_BACKUP>`: Conditional SPFILE text backup (pfile creation)
+  - `<BACKUP_KEEP_TIME>`: Long-term retention with KEEP clause
+  - `<RESTORE_POINT>`: Guaranteed restore point creation
+  - Configuration parameters: `RMAN_SPFILE_BACKUP`, `RMAN_BACKUP_KEEP_TIME`, `RMAN_RESTORE_POINT`
 
 - **23 RMAN Script Templates Converted from TVD Backup**: Comprehensive backup script library
   - **16 Backup Scripts**: Full, incremental (level 0/1 differential/cumulative), specialized backups
@@ -35,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `rpt_bck.rcv`: Report incarnation, unrecoverable objects, and backup needs
   - **Conversion Details**: Exact 1:1 conversion from TVD Backup templates
     - Template tag updates: `<COMPRESS>` → `<COMPRESSION>`, `<CTLFILE_PATH>` → `<BACKUP_PATH>`
+    - Replaced legacy `<BCK_PATH>` with `<BACKUP_PATH>` (12 files, 28 occurrences)
     - Added `SHOW ALL;` and `<SET_COMMANDS>` for OraDBA compatibility
     - Removed `filesperset` directives (handled by wrapper configuration)
     - Preserved all RMAN command structures and logic exactly
@@ -54,56 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **15 New Configuration Parameters** in `src/etc/oradba_rman.conf.example`:
     - `RMAN_SET_COMMANDS_INLINE`: Inline SET commands string
     - `RMAN_SET_COMMANDS_FILE`: External SET commands file path (hybrid approach)
-    - `RMAN_TABLESPACES`: Comma-separated tablespace list for selective backups
-    - `RMAN_DATAFILES`: Comma-separated datafile numbers or paths
-    - `RMAN_PLUGGABLE_DATABASE`: Comma-separated PDB names
-    - `RMAN_SECTION_SIZE`: Section size for multisection backups (e.g., "10G")
-    - `RMAN_ARCHIVE_RANGE`: Archive log range (default: "ALL")
-    - `RMAN_ARCHIVE_PATTERN`: LIKE clause for archive log filtering
-    - `RMAN_RESYNC_CATALOG`: Boolean to explicitly resync catalog (default: "true")
-    - `RMAN_CUSTOM_PARAM_1/2/3`: Three user-defined parameters
-  - **Updated Template Files**:
-    - `src/rcv/backup_full.rcv`: Added all 12 new template tags
-    - `src/rcv/rman_set_commands.example`: Example external SET commands file
-  - **Documentation Updates**:
-    - `src/doc/09-rman-scripts.md`: Complete documentation for advanced template tags
-    - `src/doc/09-rman-scripts.md`: Documentation for all 24 RMAN script templates
-    - `src/rcv/README.md`: Updated with complete script library (24 scripts)
-    - Examples for selective backups, multisection, archive filtering, PDB backups
-    - Script categorization: backup (16), maintenance (7), reporting (1)
-  - **Features Enabled**:
-    - Selective backups (tablespaces, datafiles, PDBs) for targeted backup strategies
-    - Multisection backups for improved performance on large datafiles
-    - Flexible archive log management (time-based, SCN-based, pattern-based)
-    - Custom RMAN SET commands via inline string or external file
-    - User-defined parameters for custom template extensions
-    - Configuration hierarchy: global → SID-specific → CLI override
-
-- **Logging Infrastructure (#16)**: Core logging infrastructure implementation
-  - New function: `init_logging()` in `src/lib/common.sh`
-    - Automatic log directory creation (`/var/log/oradba` or `~/.oradba/logs`)
-    - Graceful fallback to user directory if system location not writable
-    - Sets `ORADBA_LOG_DIR` and `ORADBA_LOG_FILE` environment variables
-    - Idempotent (safe to call multiple times)
-  - New function: `init_session_log()` in `src/lib/common.sh`
-    - Per-session log files with unique names: `session_YYYYMMDD_HHMMSS_PID.log`
-    - Metadata header with user, host, PID, Oracle environment
-    - Dual logging support (main log + session log)
-    - Optional session-only logging via `ORADBA_SESSION_LOG_ONLY=true`
-  - Enhanced `oradba_log()` function:
-    - Optional caller information via `ORADBA_LOG_SHOW_CALLER=true`
-    - Format: `[LEVEL] TIMESTAMP [file:line] - message`
-    - Dual logging to both `ORADBA_LOG_FILE` and `ORADBA_SESSION_LOG`
-  - **Test Suite**: 23 comprehensive BATS tests in `tests/test_logging_infrastructure.bats`
-    - Directory initialization and fallback behavior
-    - Session log creation and metadata headers
-    - Caller information formatting
-    - Dual logging without duplication
-    - Backward compatibility verification
-  - **Documentation**: Complete API docs in `doc/api.md`
-    - `init_logging()` usage and examples
-    - `init_session_log()` configuration options
-    - Enhanced `oradba_log()` function parameters
 
 ### Changed
 
@@ -116,64 +98,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Backward Compatibility**: Deprecated wrapper functions remain (`log_info`, `log_warn`,
     `log_error`, `log_debug`) - all now call `oradba_log()`
   - **Documentation**: Updated all docs and examples to use `oradba_log()`
+  - Release workflow now installs `markdownlint-cli` to run Markdown linting instead of skipping with a warning
 
 ### Fixed
 
-- **oradba_check.sh (#25)**: Removed color formatting from usage output
-  - Usage output now displays as plain text without ANSI escape codes
-  - Fixed issue where `${BOLD}` and `${NC}` variables were not expanded in heredoc
-  - Consistent with project standard: no color codes in usage/help functions
-- **oradba_logrotate.sh (#25)**: Removed color formatting from usage output
-  - All usage sections now display as plain text
-  - Consistent with project standard for usage/help output
-- **oradba_rman.sh (#25)**: Enhanced RMAN template processing and configuration
-  - **BREAKING**: Fixed RMAN configuration separation
-    - `RMAN_FORMAT` now contains only the filename pattern (e.g., `%d_%T_%U.bkp`)
-    - `RMAN_BACKUP_PATH` contains only the directory path
-    - If `RMAN_BACKUP_PATH` is empty:
-      - RMAN backups go to Fast Recovery Area (FRA)
-      - SQL-generated files (pfile/traces) go to `${ORADBA_ORA_ADMIN_SID}/backup/`
-    - Format clause now properly combines path + format: `FORMAT '/path/filename'`
-    - Script validates `ORADBA_ORA_ADMIN_SID` exists and creates backup subdirectory
-  - Added `<RELEASE_CHANNELS>` tag for dynamic channel release generation
-  - Channels now properly released matching allocation count (was hardcoded to ch1/ch2)
-  - Enhanced `<BACKUP_PATH>` tag with automatic trailing slash for path construction
-  - Added `<ORACLE_SID>` tag for SID-specific file naming
-  - Added `<START_DATE>` tag for timestamp in file names (YYYYMMDD_HHMMSS format)
-  - Updated template documentation in usage output
-- **RMAN Scripts**: Updated all `.rcv` scripts with new template tags
-  - `backup_full.rcv`: Updated to use `<RELEASE_CHANNELS>` tag
-  - `bck_ctl.rcv`: Updated to use `<RELEASE_CHANNELS>` tag
-  - Added commented SQL examples with proper file extensions (.ora, .ctl, .sql)
-  - SQL commands use flexible tags: `<BACKUP_PATH>`, `<ORACLE_SID>`, `<START_DATE>`
-- **Rlwrap Double-Echo Issue**: Fixed interactive command-line tools echoing input twice
-  - Added `--always-readline` flag to all rlwrap aliases
-  - Fixed aliases: `sqh`, `sqlplush`, `sqoh`, `rmanh`, `rmanch`, `lsnrh`, `adrcih`
-  - Users no longer need to type exit twice or see duplicate command echo
-  - Affects SQL*Plus, RMAN, Listener Control, and ADRCI interactive sessions
-- **RMAN Channel Allocation Syntax Error**: Fixed RMAN syntax error at line 11
-  - Fixed newline generation in channel allocation blocks
-  - Changed from `\n` string literals to proper bash `$'\n'` syntax
-  - Channels now allocate and release properly in RMAN scripts
+- **RMAN Maintenance Scripts**: Added missing `RUN { }` blocks for proper RMAN syntax
+  - Fixed `mnt_del_obs.rcv`: Added RUN block around channel allocation and delete commands
+  - Fixed `mnt_chk.rcv`: Added RUN block around channel allocation and crosscheck operations
+  - Fixed `mnt_del_obs_nomaint.rcv`: Removed hardcoded channel, cleaned up RUN block
+  - Error prevented: "RMAN-00558: error encountered while parsing input commands"
+  - Error prevented: "RMAN-01009: syntax error: found 'identifier': expecting one of: 'for'"
 
-- **SID Config Auto-Creation Broken (#16)**: Fixed regression from v0.13.5 refactoring
-  - **Bug 1**: Wrong variable in `oradba_standard.conf` line 67
-    - Was using: `generate_sid_lists "${ORATAB:-/etc/oratab}"`
-    - Should be: `generate_sid_lists "${ORATAB_FILE}"`
-    - Result: `ORADBA_REALSIDLIST` was empty, preventing auto-creation
-  - **Bug 2**: Wrong regex pattern in `common.sh` line 761
-    - Was using: `[[ " ${ORADBA_REALSIDLIST} " =~  ${sid}  ]]`
-    - Should be: `[[ " ${ORADBA_REALSIDLIST} " =~ " ${sid} " ]]`
-    - Result: Pattern didn't match SIDs correctly (missing spaces)
-  - **Bug 3**: Logic error after unified config loader
-    - Was using: `if ! load_config_file "${sid_config}"; then`
-    - Problem: `load_config_file()` returns 0 for missing optional files
-    - Should be: `if [[ -f "${sid_config}" ]]; then`
-    - Result: Auto-creation block never triggered
-  - **Impact**: SID-specific config files were never auto-created on first use
-  - **Solution**: Fixed all three bugs - auto-creation now works as designed
+- **rlwrap Filter**: Fixed double-exit issue in RMAN sessions with rlwrap
+  - Modified `src/etc/rlwrap_filter_oracle` to return input instead of empty string for password prompts
+  - Previously: returning empty string "" caused rlwrap to misinterpret exit commands
+  - Now: Uses `send_output_oob("\x00")` to signal history exclusion while returning actual input
+  - Single `exit` command now properly terminates RMAN without requiring second exit
 
-- Release workflow now installs `markdownlint-cli` to run Markdown linting instead of skipping with a warning
+- **longops.sh**: Fixed output line wrapping and formatting issues
+  - Increased LINESIZE from 120 to 160 for wider display
+  - Added SET TRIMOUT ON and SET TRIMSPOOL ON to remove trailing spaces
+  - Changed time formatting from `TO_CHAR` with format masks to `LPAD` function
+  - Fixed time_remain to display as "000:00:08" instead of " 000:  00:  08" (no extra spaces)
+  - Increased message column from A35 to A50 for longer operation descriptions
+  - Added WORD_WRAPPED attribute to prevent mid-word line breaks
+  - Fixed "Remaining" column displaying on multiple lines
+
+- **RMAN Command Syntax**: Corrected SET vs CONFIGURE usage in scripts and documentation
+  - Fixed `mnt_reg.rcv`: Changed `SET SNAPSHOT CONTROLFILE` to `CONFIGURE SNAPSHOT CONTROLFILE`
+  - Fixed `src/doc/09-rman-scripts.md`: Updated examples to use `CONFIGURE` for persistent settings
+  - Clarified: CONFIGURE for persistent configuration, SET for session-specific settings
 
 ## [0.14.0] - 2026-01-05
 

@@ -147,7 +147,9 @@ SET ECHO OFF
 SET FEEDBACK OFF
 SET HEADING ON
 SET PAGESIZE 100
-SET LINESIZE 120
+SET LINESIZE 160
+SET TRIMOUT ON
+SET TRIMSPOOL ON
 CONNECT / AS SYSDBA
 
 COLUMN sid           FORMAT 9999       HEADING "SID"
@@ -155,9 +157,9 @@ COLUMN serial#       FORMAT 99999      HEADING "Ser#"
 COLUMN sofar         FORMAT 999999999  HEADING "So Far"
 COLUMN totalwork     FORMAT 999999999  HEADING "Total"
 COLUMN pct_complete  FORMAT 999.9      HEADING "Pct%"
-COLUMN opname        FORMAT A30        HEADING "Operation"
-COLUMN time_remain   FORMAT A10        HEADING "Remaining"
-COLUMN message       FORMAT A35        HEADING "Message"
+COLUMN opname        FORMAT A30        HEADING "Operation" WORD_WRAPPED
+COLUMN time_remain   FORMAT A11        HEADING "Remaining"
+COLUMN message       FORMAT A50        HEADING "Message" WORD_WRAPPED
 
 SELECT 
     sid,
@@ -166,10 +168,10 @@ SELECT
     totalwork,
     ROUND(sofar / DECODE(totalwork, 0, 1, totalwork) * 100, 1) AS pct_complete,
     SUBSTR(opname, 1, 30) AS opname,
-    TO_CHAR(TRUNC(time_remaining/3600), '009') || ':' ||
-    TO_CHAR(TRUNC(MOD(time_remaining, 3600)/60), '09') || ':' ||
-    TO_CHAR(MOD(MOD(time_remaining, 3600), 60), '09') AS time_remain,
-    SUBSTR(message, 1, 35) AS message
+    LPAD(TO_CHAR(TRUNC(time_remaining/3600)), 3, '0') || ':' ||
+    LPAD(TO_CHAR(TRUNC(MOD(time_remaining, 3600)/60)), 2, '0') || ':' ||
+    LPAD(TO_CHAR(MOD(MOD(time_remaining, 3600), 60)), 2, '0') AS time_remain,
+    SUBSTR(message, 1, 50) AS message
 FROM 
     v\$session_longops
 ${where_clause}

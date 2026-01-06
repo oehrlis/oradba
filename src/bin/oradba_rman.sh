@@ -54,6 +54,9 @@ OPT_DRY_RUN=false
 OPT_VERBOSE=false
 OPT_BACKUP_PATH=""
 OPT_NO_CLEANUP=false
+OPT_TABLESPACES=""
+OPT_DATAFILES=""
+OPT_PLUGGABLE_DATABASE=""
 
 # ------------------------------------------------------------------------------
 # Usage information
@@ -77,6 +80,9 @@ OPTIONS
     --tag <name>             Backup tag name (default: from config)
     --compression <level>    Compression level: LOW|MEDIUM|HIGH (default: from config)
     --backup-path <path>     Backup destination path (if not set, uses Fast Recovery Area)
+    --tablespaces <names>    Tablespace names (comma-separated, e.g., USERS,TOOLS)
+    --datafiles <numbers>    Datafile numbers or paths (comma-separated, e.g., 1,2,3)
+    --pdb <names>            Pluggable database names (comma-separated, e.g., PDB1,PDB2)
     --notify <email>         Email address for notifications (default: from config)
     --parallel <method>      Parallel method: background|gnu (default: background)
     --dry-run                Show what would be executed without running
@@ -95,6 +101,9 @@ CONFIGURATION
         RMAN_COMPRESSION       Compression level
         RMAN_CATALOG           RMAN catalog connection
         RMAN_LOG_DIR           Log directory (default: \${ORADBA_ORA_ADMIN_SID}/log)
+        RMAN_TABLESPACES       Tablespace names for selective backup
+        RMAN_DATAFILES         Datafile numbers/paths for selective backup
+        RMAN_PLUGGABLE_DATABASE  PDB names for container database backups
         RMAN_NOTIFY_EMAIL      Email for notifications
         RMAN_NOTIFY_ON_SUCCESS Enable success notifications
         RMAN_NOTIFY_ON_ERROR   Enable error notifications
@@ -110,6 +119,9 @@ TEMPLATE TAGS
     <BACKUP_PATH>            Replaced with backup path (or \${ORADBA_ORA_ADMIN_SID}/backup/)
     <ORACLE_SID>             Replaced with current Oracle SID
     <START_DATE>             Replaced with timestamp (YYYYMMDD_HHMMSS)
+    <SPFILE_BACKUP>          Replaced with pfile creation command (or removed if disabled)
+    <BACKUP_KEEP_TIME>       Replaced with KEEP clause for long-term retention
+    <RESTORE_POINT>          Replaced with restore point creation command
 
 LOGGING
     Script log:  \${ORADBA_LOG}/oradba_rman_<timestamp>.log
@@ -133,6 +145,15 @@ EXAMPLES
 
     # With custom backup path
     ${SCRIPT_NAME} --sid PROD --rcv backup_full.rcv --backup-path /backup/prod
+
+    # Backup specific tablespaces
+    ${SCRIPT_NAME} --sid PROD --rcv bck_inc0_ts.rcv --tablespaces USERS,TOOLS
+
+    # Backup specific datafiles
+    ${SCRIPT_NAME} --sid PROD --rcv bck_inc0_df.rcv --datafiles 1,2,3
+
+    # Backup specific pluggable databases
+    ${SCRIPT_NAME} --sid CDB1 --rcv bck_inc0_pdb.rcv --pdb PDB1,PDB2
 
     # Dry run to see what would be executed (saves and displays script)
     ${SCRIPT_NAME} --sid DB01 --rcv backup_full.rcv --dry-run
@@ -232,7 +253,7 @@ process_template() {
     # Build channel allocation block
     local channel_block=""
     for ((i=1; i<=channels; i++)); do
-        channel_block+="    ALLOCATE CHANNEL ch${i} DEVICE TYPE DISK;"$'\n'
+        channel_block+="ALLOCATE CHANNEL ch${i} DEVICE TYPE DISK;"$'\n'
     done
     # Remove trailing newline
     channel_block="${channel_block%$'\n'}"
@@ -240,7 +261,7 @@ process_template() {
     # Build channel release block
     local release_block=""
     for ((i=1; i<=channels; i++)); do
-        release_block+="    RELEASE CHANNEL ch${i};"$'\n'
+        release_block+="RELEASE CHANNEL ch${i};"$'\n'
     done
     # Remove trailing newline
     release_block="${release_block%$'\n'}"
@@ -313,32 +334,35 @@ process_template() {
     
     # Build TABLESPACES clause (comma-separated list)
     local tablespaces_clause=""
-    if [[ -n "${RMAN_TABLESPACES}" ]]; then
+    local tablespaces="${OPT_TABLESPACES:-${RMAN_TABLESPACES}}"
+    if [[ -n "${tablespaces}" ]]; then
         # Convert comma-separated list to RMAN format: TABLESPACE ts1, ts2, ts3
-        tablespaces_clause="TABLESPACE ${RMAN_TABLESPACES//,/, }"
-        oradba_log DEBUG "  Tablespaces: ${RMAN_TABLESPACES}"
+        tablespaces_clause="TABLESPACE ${tablespaces//,/, }"
+        oradba_log DEBUG "  Tablespaces: ${tablespaces}"
     fi
     
     # Build DATAFILES clause (comma-separated numbers or paths)
     local datafiles_clause=""
-    if [[ -n "${RMAN_DATAFILES}" ]]; then
+    local datafiles="${OPT_DATAFILES:-${RMAN_DATAFILES}}"
+    if [[ -n "${datafiles}" ]]; then
         # Convert comma-separated list to RMAN format: DATAFILE 1, 2, 3 or '/path1', '/path2'
         # Check if first item looks like a path (contains /)
-        if [[ "${RMAN_DATAFILES}" == */* ]]; then
+        if [[ "${datafiles}" == */* ]]; then
             # Quoted paths
-            datafiles_clause="DATAFILE ${RMAN_DATAFILES//,/, }"
+            datafiles_clause="DATAFILE ${datafiles//,/, }"
         else
             # Numeric IDs
-            datafiles_clause="DATAFILE ${RMAN_DATAFILES//,/, }"
+            datafiles_clause="DATAFILE ${datafiles//,/, }"
         fi
-        oradba_log DEBUG "  Datafiles: ${RMAN_DATAFILES}"
+        oradba_log DEBUG "  Datafiles: ${datafiles}"
     fi
     
-    # Build PLUGGABLE DATABASE clause
+    # Build PLUGGABLE DATABASE clause (CLI overrides config)
     local pluggable_database_clause=""
-    if [[ -n "${RMAN_PLUGGABLE_DATABASE}" ]]; then
-        pluggable_database_clause="PLUGGABLE DATABASE ${RMAN_PLUGGABLE_DATABASE//,/, }"
-        oradba_log DEBUG "  Pluggable Databases: ${RMAN_PLUGGABLE_DATABASE}"
+    local pluggable_database="${OPT_PLUGGABLE_DATABASE:-${RMAN_PLUGGABLE_DATABASE}}"
+    if [[ -n "${pluggable_database}" ]]; then
+        pluggable_database_clause="PLUGGABLE DATABASE ${pluggable_database//,/, }"
+        oradba_log DEBUG "  Pluggable Databases: ${pluggable_database}"
     fi
     
     # Build SECTION SIZE clause (replaces full BACKUP command segment)
@@ -378,27 +402,77 @@ process_template() {
     [[ -n "${custom_param_2}" ]] && oradba_log DEBUG "  Custom Param 2: ${custom_param_2}"
     [[ -n "${custom_param_3}" ]] && oradba_log DEBUG "  Custom Param 3: ${custom_param_3}"
     
+    # Build SPFILE backup command (pfile creation)
+    local spfile_backup_clause=""
+    local spfile_backup_enabled="${RMAN_SPFILE_BACKUP:-true}"
+    if [[ "${spfile_backup_enabled}" == "true" ]]; then
+        spfile_backup_clause="sql \"create pfile=''${backup_path_tag}init_${oracle_sid}_${start_date}'' from spfile\";"
+        oradba_log DEBUG "  SPFILE Backup: Enabled"
+    else
+        oradba_log DEBUG "  SPFILE Backup: Disabled"
+    fi
+    
+    # Build BACKUP_KEEP_TIME clause
+    local backup_keep_time="${RMAN_BACKUP_KEEP_TIME:-}"
+    [[ -n "${backup_keep_time}" ]] && oradba_log DEBUG "  Backup Keep Time: ${backup_keep_time}"
+    
+    # Build RESTORE_POINT clause
+    local restore_point="${RMAN_RESTORE_POINT:-}"
+    [[ -n "${restore_point}" ]] && oradba_log DEBUG "  Restore Point: ${restore_point}"
+    
     # Process the template
-    sed -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
-        -e "s|<RELEASE_CHANNELS>|${release_block}|g" \
-        -e "s|<FORMAT>|${format_clause}|g" \
-        -e "s|<TAG>|${tag_clause}|g" \
-        -e "s|<COMPRESSION>|${compression_clause}|g" \
-        -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
-        -e "s|<ORACLE_SID>|${oracle_sid}|g" \
-        -e "s|<START_DATE>|${start_date}|g" \
-        -e "s|<SET_COMMANDS>|${set_commands}|g" \
-        -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
-        -e "s|<DATAFILES>|${datafiles_clause}|g" \
-        -e "s|<PLUGGABLE_DATABASE>|${pluggable_database_clause}|g" \
-        -e "s|<SECTION_SIZE>|${section_size_clause}|g" \
-        -e "s|<ARCHIVE_RANGE>|${archive_range}|g" \
-        -e "s|<ARCHIVE_PATTERN>|${archive_pattern_clause}|g" \
-        -e "s|<RESYNC_CATALOG>|${resync_catalog_clause}|g" \
-        -e "s|<CUSTOM_PARAM_1>|${custom_param_1}|g" \
-        -e "s|<CUSTOM_PARAM_2>|${custom_param_2}|g" \
-        -e "s|<CUSTOM_PARAM_3>|${custom_param_3}|g" \
-        "${input_file}" > "${output_file}"
+    # First pass: handle conditional tags that might need line removal
+    if [[ "${spfile_backup_enabled}" == "true" ]]; then
+        # SPFILE backup enabled - substitute the tag with the command
+        sed -e "s|<SPFILE_BACKUP>|${spfile_backup_clause}|g" \
+            -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
+            -e "s|<RELEASE_CHANNELS>|${release_block}|g" \
+            -e "s|<FORMAT>|${format_clause}|g" \
+            -e "s|<TAG>|${tag_clause}|g" \
+            -e "s|<COMPRESSION>|${compression_clause}|g" \
+            -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
+            -e "s|<ORACLE_SID>|${oracle_sid}|g" \
+            -e "s|<START_DATE>|${start_date}|g" \
+            -e "s|<SET_COMMANDS>|${set_commands}|g" \
+            -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
+            -e "s|<DATAFILES>|${datafiles_clause}|g" \
+            -e "s|<PLUGGABLE_DATABASE>|${pluggable_database_clause}|g" \
+            -e "s|<SECTION_SIZE>|${section_size_clause}|g" \
+            -e "s|<ARCHIVE_RANGE>|${archive_range}|g" \
+            -e "s|<ARCHIVE_PATTERN>|${archive_pattern_clause}|g" \
+            -e "s|<RESYNC_CATALOG>|${resync_catalog_clause}|g" \
+            -e "s|<BACKUP_KEEP_TIME>|${backup_keep_time}|g" \
+            -e "s|<RESTORE_POINT>|${restore_point}|g" \
+            -e "s|<CUSTOM_PARAM_1>|${custom_param_1}|g" \
+            -e "s|<CUSTOM_PARAM_2>|${custom_param_2}|g" \
+            -e "s|<CUSTOM_PARAM_3>|${custom_param_3}|g" \
+            "${input_file}" > "${output_file}"
+    else
+        # SPFILE backup disabled - remove lines containing the tag
+        sed -e "/<SPFILE_BACKUP>/d" \
+            -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
+            -e "s|<RELEASE_CHANNELS>|${release_block}|g" \
+            -e "s|<FORMAT>|${format_clause}|g" \
+            -e "s|<TAG>|${tag_clause}|g" \
+            -e "s|<COMPRESSION>|${compression_clause}|g" \
+            -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
+            -e "s|<ORACLE_SID>|${oracle_sid}|g" \
+            -e "s|<START_DATE>|${start_date}|g" \
+            -e "s|<SET_COMMANDS>|${set_commands}|g" \
+            -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
+            -e "s|<DATAFILES>|${datafiles_clause}|g" \
+            -e "s|<PLUGGABLE_DATABASE>|${pluggable_database_clause}|g" \
+            -e "s|<SECTION_SIZE>|${section_size_clause}|g" \
+            -e "s|<ARCHIVE_RANGE>|${archive_range}|g" \
+            -e "s|<ARCHIVE_PATTERN>|${archive_pattern_clause}|g" \
+            -e "s|<RESYNC_CATALOG>|${resync_catalog_clause}|g" \
+            -e "s|<BACKUP_KEEP_TIME>|${backup_keep_time}|g" \
+            -e "s|<RESTORE_POINT>|${restore_point}|g" \
+            -e "s|<CUSTOM_PARAM_1>|${custom_param_1}|g" \
+            -e "s|<CUSTOM_PARAM_2>|${custom_param_2}|g" \
+            -e "s|<CUSTOM_PARAM_3>|${custom_param_3}|g" \
+            "${input_file}" > "${output_file}"
+    fi
     
     oradba_log DEBUG "Template processed successfully: ${output_file}"
 }
@@ -697,6 +771,18 @@ main() {
                 OPT_BACKUP_PATH="$2"
                 shift 2
                 ;;
+            --tablespaces)
+                OPT_TABLESPACES="$2"
+                shift 2
+                ;;
+            --datafiles)
+                OPT_DATAFILES="$2"
+                shift 2
+                ;;
+            --pdb|--pluggable-database)
+                OPT_PLUGGABLE_DATABASE="$2"
+                shift 2
+                ;;
             --dry-run)
                 OPT_DRY_RUN=true
                 shift
@@ -752,14 +838,17 @@ main() {
     oradba_log INFO "Script:             ${OPT_RCV_SCRIPT}"
     oradba_log INFO "SIDs:               ${OPT_SIDS}"
     oradba_log INFO "Timestamp:          ${TIMESTAMP}"
-    [[ -n "${OPT_CHANNELS}" ]]          && oradba_log INFO "Channels:           ${OPT_CHANNELS}"
-    [[ -n "${OPT_BACKUP_PATH}" ]]       && oradba_log INFO "Backup Path:        ${OPT_BACKUP_PATH}"
-    [[ -n "${OPT_FORMAT}" ]]            && oradba_log INFO "Format:             ${OPT_FORMAT}"
-    [[ -n "${OPT_COMPRESSION}" ]]       && oradba_log INFO "Compression:        ${OPT_COMPRESSION}"
-    [[ -n "${OPT_TAG}" ]]               && oradba_log INFO "Tag:                ${OPT_TAG}"
-    [[ -n "${OPT_PARALLEL}" ]]          && oradba_log INFO "Parallel:           ${OPT_PARALLEL}"
-    [[ -n "${OPT_NOTIFY_EMAIL}" ]]      && oradba_log INFO "Notification Email: ${OPT_NOTIFY_EMAIL}"
-    [[ "${OPT_DRY_RUN}" == "true" ]]    && oradba_log INFO "Mode:               DRY RUN"
+    [[ -n "${OPT_CHANNELS}" ]]              && oradba_log INFO "Channels:           ${OPT_CHANNELS}"
+    [[ -n "${OPT_BACKUP_PATH}" ]]           && oradba_log INFO "Backup Path:        ${OPT_BACKUP_PATH}"
+    [[ -n "${OPT_PLUGGABLE_DATABASE}" ]]    && oradba_log INFO "Pluggable Databases: ${OPT_PLUGGABLE_DATABASE}"
+    [[ -n "${OPT_TABLESPACES}" ]]           && oradba_log INFO "Tablespaces:        ${OPT_TABLESPACES}"
+    [[ -n "${OPT_DATAFILES}" ]]             && oradba_log INFO "Datafiles:          ${OPT_DATAFILES}"
+    [[ -n "${OPT_FORMAT}" ]]                && oradba_log INFO "Format:             ${OPT_FORMAT}"
+    [[ -n "${OPT_COMPRESSION}" ]]           && oradba_log INFO "Compression:        ${OPT_COMPRESSION}"
+    [[ -n "${OPT_TAG}" ]]                   && oradba_log INFO "Tag:                ${OPT_TAG}"
+    [[ -n "${OPT_PARALLEL}" ]]              && oradba_log INFO "Parallel:           ${OPT_PARALLEL}"
+    [[ -n "${OPT_NOTIFY_EMAIL}" ]]          && oradba_log INFO "Notification Email: ${OPT_NOTIFY_EMAIL}"
+    [[ "${OPT_DRY_RUN}" == "true" ]]        && oradba_log INFO "Mode:               DRY RUN"
     oradba_log INFO ""
     
     # Check parallel method

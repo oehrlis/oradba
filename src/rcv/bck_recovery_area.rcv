@@ -5,7 +5,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.06
-# Revision...: 0.14.0
+# Revision...: 0.14.1
 # Purpose....: Template for backing up the fast recovery area
 # Notes......: Converted from TVD Backup template to OraDBA format
 # Reference..: https://github.com/oehrlis/oradba
@@ -13,14 +13,19 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+# Show current RMAN configuration
 SHOW ALL;
+
+# Apply custom SET commands (optional)
 <SET_COMMANDS>
-run
-{
-# the channels to backup the recovery area
-# must be Device Type SBT
-#
-<ALLOCATE_CHANNELS>
-backup recovery area format 'rec_area_<START_DATE>_s%s_p%p';
-<RELEASE_CHANNELS>
+
+RUN {
+    # Allocate channels for backup (replaced by template processor)
+    <ALLOCATE_CHANNELS>
+
+    # backup FRA
+    BACKUP RECOVERY AREA FORMAT 'rec_area_<START_DATE>_s%s_p%p';
+    
+    # Release channels (replaced by template processor)
+    <RELEASE_CHANNELS>
 }
