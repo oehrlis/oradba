@@ -150,7 +150,7 @@ EOF
 # ------------------------------------------------------------------------------
 # Logging setup
 # ------------------------------------------------------------------------------
-# Use common.sh's unified log() function with optional file logging
+# Use common.sh's unified oradba_log() function with optional file logging
 # Enable file logging to script log
 export ORADBA_LOG_FILE="${SCRIPT_LOG}"
 

@@ -10,7 +10,7 @@
 # Purpose....: Template for creating new bash scripts
 # Notes......: Copy this template and modify as needed for new scripts.
 #              Update Name, Purpose, and Notes sections appropriately.
-#              Uses unified log() function from common.sh
+#              Uses unified oradba_log() function from common.sh
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/

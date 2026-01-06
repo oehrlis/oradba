@@ -30,11 +30,11 @@ setup() {
 }
 
 # ------------------------------------------------------------------------------
-# Test: New Unified log() Function
+# Test: New Unified oradba_log() Function
 # ------------------------------------------------------------------------------
 
-@test "log() function exists" {
-    run type -t log
+@test "oradba_log() function exists" {
+    run type -t oradba_log
     [ "$status" -eq 0 ]
     [[ "$output" == "function" ]]
 }
@@ -219,19 +219,19 @@ setup() {
 # Test: Message Formatting
 # ------------------------------------------------------------------------------
 
-@test "log() handles multiple arguments" {
+@test "oradba_log() handles multiple arguments" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Message' 'with' 'multiple' 'parts' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Message with multiple parts" ]]
 }
 
-@test "log() preserves variable expansion" {
+@test "oradba_log() preserves variable expansion" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && VAR='test value' && oradba_log INFO \"Variable: \$VAR\" 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Variable: test value" ]]
 }
 
-@test "log() handles special characters" {
+@test "oradba_log() handles special characters" {
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test \$PATH and \${HOME}' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Test" ]]
@@ -241,7 +241,7 @@ setup() {
 # Test: Integration with Existing Code
 # ------------------------------------------------------------------------------
 
-@test "log() works with verify_oracle_env" {
+@test "oradba_log() works with verify_oracle_env" {
     run bash -c "unset ORACLE_SID ORACLE_HOME && source ${PROJECT_ROOT}/src/lib/common.sh && verify_oracle_env 2>&1"
     [ "$status" -eq 1 ]
     [[ "$output" =~ \[ERROR\] ]]

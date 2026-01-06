@@ -59,7 +59,7 @@ EOF
     exit 0
 }
 
-log() {
+oradba_log() {
     if [[ "$VERBOSE" == "true" ]]; then
         echo "[select_tests] $*" >&2
     fi
@@ -84,7 +84,7 @@ parse_testmap() {
         return 1
     fi
     
-    log "Parsing test map from $TESTMAP_FILE"
+    oradba_log "Parsing test map from $TESTMAP_FILE"
     return 0
 }
 
@@ -139,7 +139,7 @@ get_tests_for_pattern() {
     
     # Check patterns section
     # This is simplified - for complex patterns, consider using yq or python
-    log "Checking patterns for: $changed_file"
+    oradba_log "Checking patterns for: $changed_file"
     
     # Pattern matching logic would go here
     # For now, handle some common patterns directly
@@ -204,7 +204,7 @@ get_changed_files() {
         fi
     fi
     
-    log "Comparing against: $base"
+    oradba_log "Comparing against: $base"
     
     # Get changed files (both staged and unstaged)
     {
@@ -224,7 +224,7 @@ select_tests() {
     while IFS= read -r file; do
         if [[ -n "$file" ]]; then
             changed_files+=("$file")
-            log "Changed: $file"
+            oradba_log "Changed: $file"
         fi
     done < <(get_changed_files "$BASE_BRANCH")
     
@@ -249,7 +249,7 @@ select_tests() {
     while IFS= read -r test; do
         if [[ -n "$test" ]]; then
             test_set["$test"]=1
-            log "Always run: $test"
+            oradba_log "Always run: $test"
         fi
     done < <(get_always_run_tests)
     
@@ -259,7 +259,7 @@ select_tests() {
         while IFS= read -r test; do
             if [[ -n "$test" ]]; then
                 test_set["$test"]=1
-                log "Mapped $file -> $test"
+                oradba_log "Mapped $file -> $test"
             fi
         done < <(get_tests_for_file "$file")
         
@@ -267,7 +267,7 @@ select_tests() {
         while IFS= read -r test; do
             if [[ -n "$test" ]]; then
                 test_set["$test"]=1
-                log "Pattern matched $file -> $test"
+                oradba_log "Pattern matched $file -> $test"
             fi
         done < <(get_tests_for_pattern "$file")
     done

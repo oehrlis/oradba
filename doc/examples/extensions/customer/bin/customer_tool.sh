@@ -28,7 +28,10 @@ if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
     source "${ORADBA_BASE}/lib/common.sh"
 else
     # Fallback logging if common.sh not available
-    log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+    oradba_log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+    log_info() { oradba_log "INFO" "$@"; }
+    log_warn() { oradba_log "WARN" "$@"; }
+    log_error() { oradba_log "ERROR" "$@"; }
 fi
 
 # ------------------------------------------------------------------------------
@@ -57,26 +60,26 @@ EOF
 # Main function
 # ------------------------------------------------------------------------------
 main() {
-    log SECTION "Customer Tool - Example Extension"
-    log INFO "Extension: customer"
-    log INFO "Path:      ${ORADBA_EXT_CUSTOMER_PATH:-unknown}"
-    log INFO "Version:   1.0.0"
+    log_info "Customer Tool - Example Extension"
+    log_info "Extension: customer"
+    log_info "Path:      ${ORADBA_EXT_CUSTOMER_PATH:-unknown}"
+    log_info "Version:   1.0.0"
     echo ""
     
     # Example: Show Oracle environment
     if [[ -n "${ORACLE_SID}" ]]; then
-        log INFO "Current Oracle Environment:"
-        log INFO "  ORACLE_SID:  ${ORACLE_SID}"
-        log INFO "  ORACLE_HOME: ${ORACLE_HOME}"
-        log INFO "  ORACLE_BASE: ${ORACLE_BASE}"
+        log_info "Current Oracle Environment:"
+        log_info "  ORACLE_SID:  ${ORACLE_SID}"
+        log_info "  ORACLE_HOME: ${ORACLE_HOME}"
+        log_info "  ORACLE_BASE: ${ORACLE_BASE}"
     else
-        log WARN "No Oracle environment set"
-        log INFO "Run: source oraenv.sh <SID>"
+        log_warn "No Oracle environment set"
+        log_info "Run: source oraenv.sh <SID>"
     fi
     
     echo ""
-    log INFO "This is an example script demonstrating the extension system."
-    log INFO "Replace this with your own customer-specific tools."
+    log_info "This is an example script demonstrating the extension system."
+    log_info "Replace this with your own customer-specific tools."
     
     return 0
 }
@@ -96,7 +99,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            log ERROR "Unknown option: $1"
+            log_error "Unknown option: $1"
             usage
             ;;
     esac

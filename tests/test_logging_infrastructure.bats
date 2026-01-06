@@ -187,10 +187,10 @@ teardown() {
 }
 
 # ------------------------------------------------------------------------------
-# Test: Caller Information in log()
+# Test: Caller Information in oradba_log()
 # ------------------------------------------------------------------------------
 
-@test "log() includes caller info when ORADBA_LOG_SHOW_CALLER=true" {
+@test "oradba_log() includes caller info when ORADBA_LOG_SHOW_CALLER=true" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="true"
@@ -201,7 +201,7 @@ teardown() {
     [[ "$output" =~ \[.*:[0-9]*\] ]] || [[ "$output" =~ \[\:\:\] ]]
 }
 
-@test "log() excludes caller info when ORADBA_LOG_SHOW_CALLER=false" {
+@test "oradba_log() excludes caller info when ORADBA_LOG_SHOW_CALLER=false" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="false"

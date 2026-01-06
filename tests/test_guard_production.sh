@@ -56,11 +56,11 @@ if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
     fi
 fi
 
-log() {
+oradba_log() {
     echo "test"
 }
 
-log
+oradba_log
 EOF
 
 bash /tmp/test_guard_minimal.sh
