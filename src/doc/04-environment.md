@@ -17,7 +17,7 @@ The `oraenv.sh` script sets up your Oracle environment based on the oratab file.
 It configures all necessary environment variables, loads OraDBA configurations,
 and can display database status.
 
-![oraenv.sh Flow](images/oraenv-flow.png)
+![oraenv.sh Flow](images/oraenv-flow.png){ width=80% }
 
 The flow diagram shows how oraenv.sh processes oratab entries, validates the
 environment, loads hierarchical configurations, generates aliases, and displays

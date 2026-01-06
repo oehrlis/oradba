@@ -21,13 +21,13 @@ Configuration files are loaded in a specific order, with later files overriding 
 4. **sid._DEFAULT_.conf** - Default settings for all databases (optional)
 5. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created)
 
-![Configuration Hierarchy](images/config-hierarchy.png)
+![Configuration Hierarchy](images/config-hierarchy.png){ width=80% }
 
 The diagram illustrates the 5-level configuration hierarchy with override
 relationships. Later configurations override earlier settings, allowing flexible
 customization without modifying base files.
 
-![Configuration Load Sequence](images/config-sequence.png)
+![Configuration Load Sequence](images/config-sequence.png){ width=80% }
 
 The sequence diagram shows the step-by-step process of loading and applying configurations during environment setup.
 

@@ -12,7 +12,7 @@ provides an intelligent, hierarchical environment management system that
 simplifies daily database administration tasks through automation and consistent
 workflows.
 
-![OraDBA System Architecture](images/architecture-system.png)
+![OraDBA System Architecture](images/architecture-system.png){ width=80% }
 
 The architecture shows OraDBA's core components: the hierarchical configuration
 system, environment management, alias generation, and integration with Oracle
@@ -170,12 +170,12 @@ Ready to install? Continue to [Installation](02-installation.md) for detailed se
 
 Already installed? Jump to [Quick Start](03-quickstart.md) for your first steps.
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Installation](02-installation.md) - Detailed setup instructions
 - [Quick Start](03-quickstart.md) - Getting started quickly
 - [Configuration](05-configuration.md) - Customizing OraDBA
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Next:** [Installation](02-installation.md)

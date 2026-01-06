@@ -71,7 +71,7 @@ The check validates:
 
 OraDBA offers multiple installation methods to support different environments and use cases.
 
-![Installation Flow](images/installation-flow.png)
+![Installation Flow](images/installation-flow.png){ width=80% }
 
 The installation process automatically detects your environment, validates prerequisites, extracts
 files, and verifies integrity with SHA256 checksums.
