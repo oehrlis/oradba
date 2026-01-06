@@ -700,7 +700,7 @@ your compliance requirements and disk space constraints.
 Remember: Test configurations before production deployment, monitor rotation
 execution, and review policies regularly to ensure they meet your evolving needs.
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [SQLNet Configuration](14-sqlnet-config.md)  
 **Next:** [Usage Guide](16-usage.md)

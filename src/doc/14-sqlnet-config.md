@@ -934,14 +934,14 @@ vi $TNS_ADMIN/ldap.ora
 NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Environment Management](04-environment.md) - TNS_ADMIN configuration
 - [Configuration](05-configuration.md) - OraDBA configuration system
 - [Aliases](06-aliases.md) - Network configuration file aliases (vit, vil, visql)
 - [Troubleshooting](12-troubleshooting.md) - Network troubleshooting
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Quick Reference](13-reference.md)  
 **Next:** [Log Management](15-log-management.md)

@@ -803,14 +803,14 @@ mkdir -p /backup
 chown oracle:oinstall /backup
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [SQL Scripts](08-sql-scripts.md) - Database administration scripts
 - [Functions](10-functions.md) - Database functions reference
 - [Configuration](05-configuration.md) - Setting ORADBA_RMAN_CATALOG
 - [Troubleshooting](12-troubleshooting.md) - RMAN issues
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [SQL Scripts Reference](08-sql-scripts.md)  
 **Next:** [Database Functions Library](10-functions.md)

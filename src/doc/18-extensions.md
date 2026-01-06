@@ -354,7 +354,7 @@ export ORADBA_EXT_IMPORTANT_PRIORITY="5"   # Loads last (appears first in PATH)
 export ORADBA_EXT_OTHER_PRIORITY="50"      # Loads first (appears later in PATH)
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - **[Extension System Documentation](https://github.com/oehrlis/oradba/blob/main/doc/extension-system.md)** -
   Complete technical reference

@@ -357,7 +357,7 @@ alias | grep -E '^(cd|sq|rm|via|taa)'
 ls -l /opt/oradba/doc/
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Aliases](06-aliases.md) - Detailed alias documentation
 - [Environment Management](04-environment.md) - Complete environment guide
@@ -385,7 +385,7 @@ Full documentation chapters:
 15. [Log Management](15-log-management.md) - Log handling
 16. [Usage Examples](16-usage.md) - Usage guide
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Troubleshooting Guide](12-troubleshooting.md)  
 **Next:** [SQLNet Configuration](14-sqlnet-config.md)

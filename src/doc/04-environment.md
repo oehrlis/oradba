@@ -544,7 +544,7 @@ See the [Troubleshooting Guide](12-troubleshooting.md) for more solutions.
 7. **Use consistent naming** - SID names should be meaningful
 8. **Document custom configs** - Comment SID-specific settings
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Configuration](05-configuration.md) - Customize OraDBA settings
 - [Aliases](06-aliases.md) - 50+ convenient aliases
@@ -552,7 +552,7 @@ See the [Troubleshooting Guide](12-troubleshooting.md) for more solutions.
 - [Troubleshooting](12-troubleshooting.md) - Solve common issues
 - [Usage Examples](16-usage.md) - Practical scenarios
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Quick Start](03-quickstart.md)  
 **Next:** [Configuration System](05-configuration.md)

@@ -461,14 +461,14 @@ SQL> SET PAGESIZE 100
 SQL> @my_script
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [RMAN Scripts](09-rman-scripts.md) - Backup and recovery templates
 - [Functions Reference](10-functions.md) - Database functions library
 - [Quick Reference](13-reference.md) - Common SQL script examples
 - [Troubleshooting](12-troubleshooting.md) - Solving script issues
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [PDB Alias Reference](07-pdb-aliases.md)  
 **Next:** [RMAN Script Templates](09-rman-scripts.md)

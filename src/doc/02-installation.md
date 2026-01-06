@@ -768,13 +768,13 @@ rm -f /opt/oradba/etc/sid.*.conf
 
 **Note:** Always backup custom configurations before uninstalling.
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Quick Start](03-quickstart.md) - Getting started with OraDBA
 - [Configuration](05-configuration.md) - Customizing your installation
 - [Troubleshooting](12-troubleshooting.md) - Solving installation issues
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Introduction](01-introduction.md)  
 **Next:** [Quick Start](03-quickstart.md)

@@ -406,7 +406,7 @@ cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 
 **Related Chapters:** [Installation](02-installation.md), [Configuration](05-configuration.md)
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Environment Management](04-environment.md) - Detailed environment setup
 - [Configuration](05-configuration.md) - Configuration issues
@@ -414,7 +414,7 @@ cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 - [PDB Aliases](07-pdb-aliases.md) - PDB alias issues
 - [Installation](02-installation.md) - Reinstallation guide
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [rlwrap Filter Configuration](11-rlwrap.md)  
 **Next:** [Quick Reference](13-reference.md)

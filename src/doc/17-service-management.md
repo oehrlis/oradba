@@ -561,7 +561,7 @@ echo "Notifying monitoring..."
 curl -X POST http://monitoring/oracle/started
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Installation Guide](02-installation.md)
 - [Configuration](05-configuration.md)

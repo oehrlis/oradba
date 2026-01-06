@@ -371,14 +371,14 @@ get_oracle_version
 parse_oratab "FREE"
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Environment Management](04-environment.md) - Detailed oraenv.sh usage
 - [Configuration](05-configuration.md) - Configuration options
 - [Quick Reference](13-reference.md) - Quick command reference
 - [Troubleshooting](12-troubleshooting.md) - Problem solving
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Log Management](15-log-management.md)  
 **Home:** [Introduction](01-introduction.md)

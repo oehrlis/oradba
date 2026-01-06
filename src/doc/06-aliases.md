@@ -711,14 +711,14 @@ This displays a condensed list of the most commonly used aliases.
 5. **Check alias definitions** - Use `type alias_name` to see what it does
 6. **Document custom aliases** - Comment your aliases in customer config
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [PDB Aliases](07-pdb-aliases.md) - Pluggable database shortcuts
 - [rlwrap Configuration](11-rlwrap.md) - Password filtering and completion
 - [Configuration](05-configuration.md) - Customizing aliases
 - [Quick Reference](13-reference.md) - Condensed alias list
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Configuration System](05-configuration.md)  
 **Next:** [PDB Alias Reference](07-pdb-aliases.md)

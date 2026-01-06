@@ -397,7 +397,7 @@ my_check.sh              # Your script is now in PATH
 
 See [Extension System](18-extensions.md) for complete guide.
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Environment Management](04-environment.md) - Detailed oraenv.sh usage
 - [Aliases](06-aliases.md) - Complete alias reference
@@ -405,7 +405,7 @@ See [Extension System](18-extensions.md) for complete guide.
 - [Extension System](18-extensions.md) - Adding custom scripts
 - [Usage Examples](16-usage.md) - More usage scenarios
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Installation](02-installation.md)  
 **Next:** [Environment Management](04-environment.md)

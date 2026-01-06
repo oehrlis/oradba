@@ -900,7 +900,7 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 9. **Respect coexistence mode** - Use force mode sparingly to avoid conflicts
 10. **Keep oradba_local.conf intact** - Auto-generated, reflects installation state
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Installation](02-installation.md#parallel-installation-with-tvd-basenv--dbstar) - Parallel installation guide
 - [Environment Management](04-environment.md) - How oraenv.sh loads configurations
@@ -908,7 +908,7 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 - [PDB Aliases](07-pdb-aliases.md) - PDB-specific configuration
 - [Troubleshooting](12-troubleshooting.md) - Configuration issues
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Environment Management](04-environment.md)  
 **Next:** [Alias Reference](06-aliases.md)
