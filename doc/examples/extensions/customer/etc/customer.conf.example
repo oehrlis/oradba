@@ -27,7 +27,7 @@ export CUSTOMER_BACKUP_DIR="/backup/customer"
 # alias cdbkp='cd ${CUSTOMER_BACKUP_DIR}'
 
 # Run customer backup
-# alias custbackup='rman target / cmdfile=${ORADBA_EXT_CUSTOMER_PATH}/rcv/customer_backup.rman'
+# alias custbackup='rman target / cmdfile=${ORADBA_EXT_CUSTOMER_PATH}/rcv/customer_backup.rcv'
 
 # ------------------------------------------------------------------------------
 # Example: Extension Management

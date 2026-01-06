@@ -31,7 +31,7 @@ customer/
 ├── sql/
 │   └── customer_query.sql # Example SQL (added to SQLPATH)
 ├── rcv/
-│   └── customer_backup.rman # Example RMAN script
+│   └── customer_backup.rcv # Example RMAN script
 └── etc/
     └── customer.conf.example  # Config examples
 ```

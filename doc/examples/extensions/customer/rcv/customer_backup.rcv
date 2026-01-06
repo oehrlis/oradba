@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
-# Name.......: customer_backup.rman
+# Name.......: customer_backup.rcv
 # Purpose....: Example customer RMAN backup script
-# Usage......: rman target / cmdfile=customer_backup.rman
+# Usage......: rman target / cmdfile=customer_backup.rcv
 # Notes......: This directory is added to ORADBA_RCV_PATHS when extension loads
 # ------------------------------------------------------------------------------
 
