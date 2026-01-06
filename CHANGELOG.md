@@ -218,6 +218,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Testing instructions and verification steps
   - Configuration examples and best practices
 
+- **Mermaid Diagrams** ([doc/images/source/diagrams-mermaid.md](doc/images/source/diagrams-mermaid.md)):
+  - Updated **Architecture System** diagram (Diagram 6):
+    - Changed "Logging" to "oradba_log" in Core Libraries to reflect function rename
+  - Updated **oraenv.sh Execution Flow** diagram (Diagram 7):
+    - Added SID config auto-creation logic branch
+    - Shows decision flow when `ORADBA_AUTO_CREATE_SID_CONFIG=true`
+    - Documents template-based config generation for missing SID configs
+  - Updated **Configuration Hierarchy** diagram (Diagram 8):
+    - Added note about auto-creation feature in Level 4 (SID Configuration)
+  - Updated **Configuration Loading Sequence** diagram (Diagram 9):
+    - Changed from simple load to alt/else flow showing:
+      - Config file exists → Load
+      - Auto-create enabled & SID in oratab → Auto-create from template
+      - Auto-create disabled → Skip
+  - Added new **SID Config Auto-Creation Flow** diagram (Diagram 12):
+    - Complete flowchart of auto-creation logic
+    - Shows validation steps: ORATAB_FILE check, regex pattern matching
+    - Documents create_sid_config() function flow
+    - Illustrates Issue #16 bug fixes (ORATAB_FILE usage, file existence check)
+  - **Note**: PNG exports will be generated manually from updated Mermaid definitions
+
 - **Updated RMAN Usage Examples**:
 
   ```bash

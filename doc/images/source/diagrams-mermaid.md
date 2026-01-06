@@ -314,7 +314,7 @@ flowchart TB
     end
     
     subgraph Core["Core Libraries"]
-        L1[common.sh Logging, Validation, BasEnv Detection]
+        L1[common.sh oradba_log, Validation, BasEnv Detection]
         L2[db_functions.sh DB Operations]
         L3[aliases.sh Safe Alias Generation]
     end
@@ -418,7 +418,11 @@ flowchart TD
     Q --> R[Load oradba_customer.conf]
     R --> S{SID Config Exists?}
     S -->|Yes| T[Load sid.SID.conf]
-    S -->|No| U[Skip SID config]
+    S -->|No| SA{Auto-Create Enabled?}
+    
+    SA -->|Yes & SID in Oratab| SB[Auto-create sid.SID.conf from template]
+    SA -->|No| U[Skip SID config]
+    SB --> T
     
     T --> V[Update PATH]
     U --> V
@@ -468,7 +472,7 @@ flowchart TB
     end
     
     subgraph Level4["Level 4: SID Configuration"]
-        L4[sid.SID.conf Database-specific Custom aliases, paths]
+        L4[sid.SID.conf Database-specific Custom aliases, paths Auto-created if missing]
     end
     
     subgraph Level5["Level 5: Runtime"]
@@ -534,8 +538,15 @@ sequenceDiagram
     oraenv.sh->>Config: Load oradba_customer.conf
     Config-->>oraenv.sh: Customer overrides
     
-    oraenv.sh->>Config: Load sid.FREE.conf
-    Config-->>oraenv.sh: SID-specific config
+    oraenv.sh->>Config: Check sid.FREE.conf exists
+    alt Config file exists
+        Config-->>oraenv.sh: Load sid.FREE.conf
+    else Auto-create enabled & SID in oratab
+        oraenv.sh->>Config: Auto-create from template
+        Config-->>oraenv.sh: New config created
+    else Auto-create disabled
+        Config-->>oraenv.sh: Skip SID config
+    end
     
     oraenv.sh->>Oracle: Export ORACLE_SID=FREE
     oraenv.sh->>Oracle: Export ORACLE_HOME
@@ -706,6 +717,59 @@ flowchart TD
     style EB fill:#FFA500
 ```
 
+## 12. SID Config Auto-Creation Flow (v0.14.0)
+
+Shows the automatic creation of SID-specific configuration files from templates.
+
+```mermaid
+flowchart TD
+    A[load_config SID called] --> B{ORADBA_AUTO_CREATE_SID_CONFIG=true?}
+    
+    B -->|No| C[Skip auto-creation]
+    B -->|Yes| D{sid.SID.conf exists?}
+    
+    D -->|Yes| E[Load existing config]
+    D -->|No| F{SID in ORADBA_REALSIDLIST?}
+    
+    F -->|No| G[❌ Skip: Dummy/Test SID]
+    F -->|Yes| H[Read ORATAB_FILE]
+    
+    H --> I{Parse oratab for SID}
+    I -->|Not found| J[❌ Skip: SID not in oratab]
+    I -->|Found| K{Template exists?}
+    
+    K -->|No| L[❌ Error: Missing sid.ORACLE_SID.conf.example]
+    K -->|Yes| M[Load template]
+    
+    M --> N[create_sid_config function]
+    N --> O[Replace ORCL with SID]
+    O --> P[Replace orcl with lowercase SID]
+    P --> Q[Update timestamp]
+    Q --> R[Update creation comment]
+    R --> S[Write to etc/sid.SID.conf]
+    
+    S --> T{Syntax valid?}
+    T -->|No| U[❌ Error: Invalid syntax]
+    T -->|Yes| V[✅ Config created]
+    
+    V --> W[Load new config]
+    E --> W
+    C --> X[Continue without SID config]
+    
+    W --> Y[Environment ready]
+    X --> Y
+    G --> X
+    J --> X
+    
+    style V fill:#90EE90
+    style E fill:#87CEEB
+    style G fill:#FFB6C6
+    style J fill:#FFB6C6
+    style L fill:#FF0000
+    style U fill:#FF0000
+    style N fill:#FFD700
+```
+
 ## Diagram Sources
 
 - **CI/CD Pipeline**: Shows GitHub Actions workflows with smart vs full test selection and documentation deployment
@@ -713,9 +777,10 @@ flowchart TD
 - **Development Workflow**: Developer decision tree for testing and releasing
 - **Performance Comparison**: Visual time savings comparison
 - **Test Selection Decision**: Simplified logic for test selection
-- **Architecture System**: OraDBA layered system architecture with BasEnv coexistence
-- **oraenv.sh Flow**: Complete environment setup process with coexistence mode detection
-- **Configuration Hierarchy**: 6-level configuration override system with oradba_local.conf
-- **Configuration Sequence**: Sequence diagram of config loading including BasEnv detection
-- **Installation Flow**: Self-extracting installer process with BasEnv detection
-- **Alias Generation**: Dynamic alias generation with safe_alias() and coexistence mode
+- **Architecture System**: OraDBA layered system architecture with oradba_log() function
+- **oraenv.sh Flow**: Complete environment setup with SID config auto-creation (v0.14.0)
+- **Configuration Hierarchy**: 6-level configuration override with auto-created SID configs
+- **Configuration Sequence**: Config loading with auto-creation alt flow (v0.14.0)
+- **Installation Flow**: Self-extracting installer with BasEnv detection
+- **Alias Generation**: Dynamic alias generation with safe_alias() coexistence
+- **SID Config Auto-Creation**: Automatic config generation from templates (v0.14.0)
