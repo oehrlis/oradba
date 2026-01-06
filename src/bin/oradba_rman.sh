@@ -293,7 +293,8 @@ process_template() {
     fi
     
     # Build timestamp for file naming
-    local start_date="$(date '+%Y%m%d_%H%M%S')"
+    local start_date
+    start_date="$(date '+%Y%m%d_%H%M%S')"
     
     # Get Oracle SID
     local oracle_sid="${ORACLE_SID:-ORCL}"

@@ -17,6 +17,12 @@
 # Project configuration
 PROJECT_NAME	:= oradba
 VERSION 		:= $(shell cat VERSION 2>/dev/null || echo "0.0.0")
+# Support dev/test builds with suffix
+ifdef ORADBA_BUILD_SUFFIX
+    VERSION_FULL := $(VERSION)$(ORADBA_BUILD_SUFFIX)
+else
+    VERSION_FULL := $(VERSION)
+endif
 SHELL 			:= /bin/bash
 
 # Directories
@@ -230,7 +236,11 @@ build: clean clean-test-configs ## Build distribution archive and installer
 	@echo -e "$(COLOR_BLUE)Building OraDBA distribution and installer...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/build_installer.sh
 	@echo -e "$(COLOR_GREEN)✓ Build complete$(COLOR_RESET)"
-	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz $(DIST_DIR)/oradba_install.sh
+	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION_FULL).tar.gz $(DIST_DIR)/oradba_install.sh
+
+.PHONY: build-dev
+build-dev: ## Build distribution with -dev suffix for testing
+	@$(MAKE) ORADBA_BUILD_SUFFIX="-dev" build
 
 .PHONY: install
 install: ## Install OraDBA locally

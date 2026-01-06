@@ -34,6 +34,7 @@ readonly CUSTOM_DIR="${HOME}/.oradba/logrotate"
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
+# shellcheck disable=SC2034  # May be used in future enhancements
 readonly BOLD='\033[1m'
 readonly NC='\033[0m' # No Color
 

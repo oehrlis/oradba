@@ -34,7 +34,7 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv \
 
 **Features:**
 
-- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<RELEASE_CHANNELS>`, 
+- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<RELEASE_CHANNELS>`,
   `<FORMAT>`, `<TAG>`, `<COMPRESSION>`, `<BACKUP_PATH>`, `<ORACLE_SID>`, `<START_DATE>` tags
 - **Error Detection**: Checks for RMAN-00569 error pattern to catch failures (RMAN returns exit
   code 0 even on errors)
@@ -387,6 +387,7 @@ sql "alter database backup controlfile to trace as ''/u01/admin/FREE/backup/cre_
 ```
 
 **Benefits:**
+
 - Automatic timestamp in filenames prevents overwrites
 - SID-specific naming for multi-database environments
 - Flexible path construction with `<BACKUP_PATH>` (includes trailing slash)

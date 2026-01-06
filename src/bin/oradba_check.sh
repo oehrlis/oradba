@@ -21,7 +21,9 @@
 set -o pipefail
 
 # Script metadata
+# shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_NAME="$(basename "$0")"
+# shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_VERSION="0.14.0"
 
 # Colors for output
@@ -49,26 +51,30 @@ CHECKS_INFO=0
 
 # Logging functions
 log_pass() {
-    echo -e "  ${GREEN}✓${NC} $1"
     ((CHECKS_PASSED++))
+    [[ "$QUIET" == "true" ]] && return  # Don't show passes in quiet mode
+    echo -e "  ${GREEN}✓${NC} $1"
 }
 
 log_fail() {
-    echo -e "  ${RED}✗${NC} $1"
     ((CHECKS_FAILED++))
+    echo -e "  ${RED}✗${NC} $1"
 }
 
 log_warn() {
-    echo -e "  ${YELLOW}⚠${NC} $1"
     ((CHECKS_WARNING++))
+    [[ "$QUIET" == "true" ]] && return  # Don't show warnings in quiet mode
+    echo -e "  ${YELLOW}⚠${NC} $1"
 }
 
 log_info() {
-    echo -e "  ${BLUE}ℹ${NC} $1"
     ((CHECKS_INFO++))
+    [[ "$QUIET" == "true" ]] && return  # Don't show info in quiet mode
+    echo -e "  ${BLUE}ℹ${NC} $1"
 }
 
 log_header() {
+    [[ "$QUIET" == "true" ]] && return  # Don't show headers in quiet mode
     echo ""
     echo -e "${BOLD}$1${NC}"
     echo "$(printf '%.0s-' $(seq 1 ${#1}))"
@@ -189,33 +195,33 @@ check_system_info() {
     # OS Type
     local os_type
     os_type=$(uname -s)
-    log_info "OS Type: $os_type"
+    log_info "$(printf '%-14s %s' 'OS Type:' "$os_type")"
     
     # OS Version
     if [[ -f /etc/os-release ]]; then
         local os_name
         os_name=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d'"' -f2)
-        log_info "OS Version: $os_name"
+        log_info "$(printf '%-14s %s' 'OS Version:' "$os_name")"
     elif [[ "$os_type" == "Darwin" ]]; then
         local os_version
         os_version=$(sw_vers -productVersion)
-        log_info "OS Version: macOS $os_version"
+        log_info "$(printf '%-14s %s' 'OS Version:' "macOS $os_version")"
     else
-        log_info "OS Version: Unable to determine"
+        log_info "$(printf '%-14s %s' 'OS Version:' 'Unable to determine')"
     fi
     
     # Hostname
     local hostname
     hostname=$(hostname)
-    log_info "Hostname: $hostname"
+    log_info "$(printf '%-14s %s' 'Hostname:' "$hostname")"
     
     # Current User
     local current_user
     current_user=$(whoami)
-    log_info "Current User: $current_user"
+    log_info "$(printf '%-14s %s' 'Current User:' "$current_user")"
     
     # Shell
-    log_info "Shell: $SHELL"
+    log_info "$(printf '%-14s %s' 'Shell:' "$SHELL")"
 }
 
 # =============================================================================
@@ -290,10 +296,10 @@ check_optional_tools() {
         local rlwrap_version
         rlwrap_version=$(rlwrap -v 2>&1 | head -1 || echo "unknown")
         log_pass "rlwrap found - Enhanced readline support"
-        [[ "$VERBOSE" == "true" ]] && log_info "  Version: $rlwrap_version"
+        [[ "$VERBOSE" == "true" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$rlwrap_version")"
     else
         log_warn "rlwrap not found - Install for better CLI experience"
-        [[ "$VERBOSE" == "true" ]] && log_info "  Install: yum install rlwrap | apt install rlwrap | brew install rlwrap"
+        [[ "$VERBOSE" == "true" ]] && log_info "$(printf '  %-16s %s' 'Install:' 'yum install rlwrap | apt install rlwrap | brew install rlwrap')"
     fi
     
     # less
@@ -332,15 +338,15 @@ check_disk_space() {
         check_dir="$(dirname "$check_dir")"
     done
     
-    log_info "Checking: $check_dir"
+    log_info "$(printf '%-14s %s' 'Checking:' "$check_dir")"
     
     if command -v df >/dev/null 2>&1; then
         local available_mb
         available_mb=$(df -Pm "$check_dir" 2>/dev/null | awk 'NR==2 {print $4}')
         
         if [[ -n "$available_mb" ]] && [[ "$available_mb" =~ ^[0-9]+$ ]]; then
-            log_info "Available: ${available_mb} MB"
-            log_info "Required: ${required_mb} MB"
+            log_info "$(printf '%-14s %s' 'Available:' "${available_mb} MB")"
+            log_info "$(printf '%-14s %s' 'Required:' "${required_mb} MB")"
             
             if [[ $available_mb -ge $required_mb ]]; then
                 log_pass "Sufficient disk space"
@@ -431,7 +437,7 @@ check_oracle_tools() {
             local tool_path
             tool_path=$(command -v "$tool")
             log_pass "$tool - $desc"
-            [[ "$VERBOSE" == "true" ]] && log_info "  Path: $tool_path"
+            [[ "$VERBOSE" == "true" ]] && log_info "$(printf '  %-16s %s' 'Path:' "$tool_path")"
         else
             log_warn "$tool not found - $desc"
         fi
@@ -467,7 +473,7 @@ check_database_connectivity() {
             if [[ "$VERBOSE" == "true" ]]; then
                 local db_version
                 db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2>/dev/null | grep "Oracle")
-                [[ -n "$db_version" ]] && log_info "  Version: $db_version"
+                [[ -n "$db_version" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$db_version")"
             fi
         else
             log_warn "Database process found but connection failed"
@@ -492,7 +498,7 @@ check_oracle_versions() {
     fi
     
     if [[ -n "$inventory_loc" ]] && [[ -f "$inventory_loc/ContentsXML/inventory.xml" ]]; then
-        log_info "Oracle Inventory: $inventory_loc"
+        log_info "$(printf '%-18s %s' 'Oracle Inventory:' "$inventory_loc")"
         
         # Parse inventory.xml for Oracle Homes
         local homes_found=0
@@ -501,13 +507,13 @@ check_oracle_versions() {
                 local home="${BASH_REMATCH[1]}"
                 if [[ -d "$home" ]]; then
                     ((homes_found++))
-                    log_info "Oracle Home $homes_found: $home"
+                    log_info "$(printf '%-18s %s' "Oracle Home $homes_found:" "$home")"
                     
                     # Get version if possible
                     if [[ -f "$home/bin/sqlplus" ]] && [[ "$VERBOSE" == "true" ]]; then
                         local version
                         version=$("$home/bin/sqlplus" -version 2>/dev/null | grep "^SQL" | awk '{print $3}')
-                        [[ -n "$version" ]] && log_info "  Version: $version"
+                        [[ -n "$version" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$version")"
                     fi
                 fi
             fi
@@ -528,10 +534,10 @@ check_oracle_versions() {
         
         for loc in "${common_locs[@]}"; do
             if [[ -d "$loc" ]]; then
-                log_info "Found Oracle product directory: $loc"
+                log_info "$(printf '%-18s %s' 'Found directory:' "$loc")"
                 for version_dir in "$loc"/*; do
                     if [[ -d "$version_dir/bin" ]] && [[ -f "$version_dir/bin/sqlplus" ]]; then
-                        log_info "  Oracle Home: $version_dir"
+                        log_info "$(printf '  %-16s %s' 'Oracle Home:' "$version_dir")"
                     fi
                 done
             fi
@@ -556,7 +562,7 @@ check_oradba_installation() {
                 while IFS='=' read -r key value; do
                     [[ "$key" =~ ^#.*$ ]] && continue
                     [[ -z "$key" ]] && continue
-                    log_info "  $key: $value"
+                    log_info "$(printf '  %-16s %s' "$key:" "$value")"
                 done < "$CHECK_DIR/.install_info"
             fi
         else

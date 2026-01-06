@@ -198,11 +198,21 @@ check_additional_files() {
         echo ""
         echo -e "${YELLOW}⚠ Additional files detected (not part of installation):${NC}"
         echo "  These files may have been created or modified by the user."
+        echo "  Installation directory: ${BASE_DIR}"
         echo "  Consider backing them up before updating."
         echo ""
         for file in "${additional_files[@]}"; do
-            echo "  ${file}"
+            echo "  \$ORADBA_BASE/${file}"
         done
+        
+        # Show backup commands if requested
+        if [[ "${SHOW_BACKUP}" == "true" ]]; then
+            echo ""
+            echo "  Backup commands:"
+            for file in "${additional_files[@]}"; do
+                echo "  cp -p \"\$ORADBA_BASE/${file}\" \"\$ORADBA_BASE/${file}.bak\""
+            done
+        fi
     fi
 }
 
@@ -394,6 +404,7 @@ OraDBA version and integrity checking utility
 Options:
   -c, --check         Show current version
   -v, --verify        Verify installation integrity (checksums)
+      --show-backup   Show backup commands for additional files (use with -v)
   -u, --update-check  Check for available updates online
   -i, --info          Show detailed version information
   -h, --help          Display this help message
@@ -416,12 +427,35 @@ EOF
 # Main
 # ------------------------------------------------------------------------------
 main() {
-    if [[ $# -eq 0 ]]; then
+    # Parse options
+    SHOW_BACKUP="false"
+    ACTION=""
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --show-backup)
+                SHOW_BACKUP="true"
+                shift
+                ;;
+            -c|--check|-v|--verify|-u|--update-check|-i|--info|-h|--help)
+                ACTION="$1"
+                shift
+                ;;
+            *)
+                echo "Unknown option: $1"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+    
+    # If no action specified, show info
+    if [[ -z "${ACTION}" ]]; then
         version_info
         exit $?
     fi
     
-    case "$1" in
+    case "${ACTION}" in
         -c|--check)
             check_version
             ;;

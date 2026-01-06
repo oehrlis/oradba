@@ -24,6 +24,10 @@ cd "$(dirname "$SCRIPT_DIR")"
 
 # Variables
 VERSION=$(cat VERSION 2> /dev/null || echo "0.1.0")
+# Support dev/test builds with suffix (e.g., ORADBA_BUILD_SUFFIX="-dev" make build)
+if [[ -n "${ORADBA_BUILD_SUFFIX}" ]]; then
+    VERSION="${VERSION}${ORADBA_BUILD_SUFFIX}"
+fi
 BUILD_DIR="build"
 DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
@@ -54,6 +58,11 @@ cp -r src/* "$TEMP_TAR_DIR/"
 
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
+
+# If build suffix is set, update VERSION file in tarball
+if [[ -n "${ORADBA_BUILD_SUFFIX}" ]]; then
+    echo "${VERSION}" > "$TEMP_TAR_DIR/VERSION"
+fi
 
 # Generate extension template tarballs
 echo "Generating extension template tarballs..."

@@ -986,6 +986,12 @@ make ci
 # Build distribution archive
 make build
 
+# Build with dev suffix for testing (creates oradba-X.Y.Z-dev.tar.gz)
+make build-dev
+
+# Or with custom suffix
+ORADBA_BUILD_SUFFIX="-rc1" make build
+
 # Install OraDBA locally
 make install
 
@@ -1001,6 +1007,18 @@ make clean-all
 # Quick shortcut for build
 make b
 ```
+
+**Development Builds:**
+
+When testing changes before a release, use `make build-dev` to create a build
+with a `-dev` suffix. This suffix appears in:
+
+- Tarball filename: `dist/oradba-0.14.0-dev.tar.gz`
+- VERSION file inside the tarball (shows `0.14.0-dev`)
+- Output of `oradba_version.sh` after installation
+
+This makes it clear when you're running a development build versus a production
+release. The workspace VERSION file remains unchanged (`0.14.0`).
 
 ### Version Management
 
