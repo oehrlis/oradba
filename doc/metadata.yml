@@ -18,8 +18,8 @@ author:
 - Stefan Oehrli
 # date is set by pandoc, uncomment the date line to explicitly set a date
 # date: 2020 November 06
-version: "0.7.4"
-tvddocversion: 0.7.4
+version: "0.14.1"
+tvddocversion: 0.14.1
 lang: en-US
 
 # - Book settings --------------------------------------------------------------
