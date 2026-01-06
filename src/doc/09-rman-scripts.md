@@ -59,7 +59,9 @@ Optional Arguments:
   --channels N          Number of parallel channels (default: from config)
   --format FORMAT       Backup format string (default: from config)
   --tag TAG             Backup tag (default: from config)
-  --compression LEVEL   NONE|LOW|MEDIUM|HIGH (default: from config)
+  --compression LEVEL   NONE|LOW|BASIC|MEDIUM|HIGH (default: BASIC)
+                        Note: BASIC requires no license, MEDIUM/HIGH require
+                        Oracle Advanced Compression option
   --backup-path PATH    Backup destination path (default: from config)
   --catalog CONNECT     RMAN catalog connection string
   --notify EMAIL        Send notifications to email address
@@ -84,7 +86,7 @@ export RMAN_CHANNELS=2
 export RMAN_BACKUP_PATH="/backup/prod"    # If empty, uses Fast Recovery Area
 export RMAN_FORMAT="%d_%T_%U.bkp"         # Filename pattern only (no path)
 export RMAN_TAG="AUTO_BACKUP"
-export RMAN_COMPRESSION="MEDIUM"
+export RMAN_COMPRESSION="BASIC"
 export RMAN_CATALOG=""
 export RMAN_NOTIFY_EMAIL="dba@example.com"
 export RMAN_NOTIFY_ON_SUCCESS=false
@@ -92,6 +94,12 @@ export RMAN_NOTIFY_ON_ERROR=true
 ```
 
 **Important Configuration Notes:**
+
+- **`RMAN_COMPRESSION`**: Compression levels and licensing:
+  - `BASIC` (default): No additional license required
+  - `LOW`: No additional license required (less compression than BASIC)
+  - `MEDIUM`, `HIGH`: Require Oracle Advanced Compression option license
+  - `NONE`: No compression (fastest, largest backup size)
 
 - **`RMAN_FORMAT`**: Contains only the filename pattern (e.g., `%d_%T_%U.bkp`)
   - Do NOT include the path in this variable
@@ -298,9 +306,61 @@ cdr
 
 ## Available Scripts
 
-### backup_full.rcv
+OraDBA includes 24 RMAN script templates covering various backup scenarios,
+maintenance operations, and reporting tasks. All scripts are converted from
+TVD Backup templates and adapted for OraDBA's template tag system.
 
-Full database backup template with dynamic substitution:
+### Backup Scripts
+
+#### Full and Incremental Backups
+
+| Script                  | Description                                       | Use Case                          |
+|-------------------------|---------------------------------------------------|-----------------------------------|
+| `backup_full.rcv`       | Full database backup with maintenance             | Production full backups           |
+| `bck_db_keep.rcv`       | Full backup with retention guarantee              | Long-term archive backups         |
+| `bck_db_validate.rcv`   | Full database validation                          | Verify backup integrity           |
+| `bck_inc0.rcv`          | Incremental level 0 with archive logs             | Weekly baseline backup            |
+| `bck_inc0_noarc.rcv`    | Incremental level 0 without archive logs          | Baseline without archive cleanup  |
+| `bck_inc0_cold.rcv`     | Offline (cold) incremental level 0                | Scheduled maintenance window      |
+| `bck_inc0_df.rcv`       | Incremental level 0 for specific datafiles        | Selective datafile backup         |
+| `bck_inc0_pdb.rcv`      | Incremental level 0 for pluggable databases       | PDB-specific backups in CDB       |
+| `bck_inc0_rec_area.rcv` | Incremental level 0 to recovery area              | Backup to FRA                     |
+| `bck_inc0_ts.rcv`       | Incremental level 0 for specific tablespaces      | Selective tablespace backup       |
+| `bck_inc1c.rcv`         | Incremental level 1 cumulative with archives      | Daily cumulative backup           |
+| `bck_inc1c_noarc.rcv`   | Incremental level 1 cumulative without archives   | Cumulative without archive logs   |
+| `bck_inc1d.rcv`         | Incremental level 1 differential with archives    | Daily differential backup         |
+| `bck_inc1d_noarc.rcv`   | Incremental level 1 differential without archives | Differential without archive logs |
+
+#### Specialized Backups
+
+| Script                  | Description                              | Use Case                  |
+|-------------------------|------------------------------------------|---------------------------|
+| `bck_recovery_area.rcv` | Fast recovery area backup (requires SBT) | Backup FRA to tape        |
+| `bck_standby_inc0.rcv`  | Incremental level 0 for standby setup    | Data Guard initialization |
+
+### Maintenance Scripts
+
+| Script                    | Description                                 | Use Case                     |
+|---------------------------|---------------------------------------------|------------------------------|
+| `mnt_chk.rcv`             | Crosscheck backups/copies, delete expired   | Regular maintenance          |
+| `mnt_chk_arc.rcv`         | Crosscheck archive logs                     | Archive log validation       |
+| `mnt_del_arc.rcv`         | Delete archive logs (commented for safety)  | Data Guard housekeeping      |
+| `mnt_del_obs.rcv`         | Delete obsolete backups (commented)         | Backup cleanup               |
+| `mnt_del_obs_nomaint.rcv` | Delete obsolete without maintenance window  | Continuous operation cleanup |
+| `mnt_reg.rcv`             | Register database, set snapshot controlfile | Catalog registration         |
+| `mnt_sync.rcv`            | Resync RMAN catalog                         | Catalog synchronization      |
+
+### Reporting Scripts
+
+| Script        | Description                           | Use Case              |
+|---------------|---------------------------------------|-----------------------|
+| `rpt_bck.rcv` | Report backup status and requirements | Backup status reports |
+
+### Script Details
+
+#### backup_full.rcv
+
+Comprehensive full database backup with maintenance operations:
 
 ```bash
 # Using wrapper script (recommended)
@@ -308,20 +368,73 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv
 
 # Direct execution with RMAN (static values)
 rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv
-
-# Or using alias
-rman
-RMAN> @backup_full.rcv
 ```
 
 **What it does:**
 
-- Connects to target database
-- Performs full database backup
-- Includes all datafiles
-- Includes control file
-- Includes SPFILE
-- Archives current redo logs
+- Full database backup with all datafiles
+- Archive log backup
+- Control file and SPFILE backup
+- Automatic backup validation
+- DELETE OBSOLETE and CROSSCHECK operations
+- Catalog resync (if configured)
+- Backup status reporting
+
+#### bck_inc0.rcv / bck_inc1d.rcv / bck_inc1c.rcv
+
+Standard incremental backup templates following Oracle best practices:
+
+```bash
+# Weekly level 0 backup
+oradba_rman.sh --sid PROD --rcv bck_inc0.rcv --tag WEEKLY_L0
+
+# Daily differential incremental (smaller, faster)
+oradba_rman.sh --sid PROD --rcv bck_inc1d.rcv --tag DAILY_DIFF
+
+# Daily cumulative incremental (larger, faster recovery)
+oradba_rman.sh --sid PROD --rcv bck_inc1c.rcv --tag DAILY_CUMUL
+```
+
+**Incremental Strategy:**
+
+- **Level 0**: Full backup used as baseline for incrementals
+- **Level 1 Differential**: Backs up blocks changed since last level 0 or 1
+- **Level 1 Cumulative**: Backs up all blocks changed since last level 0
+
+#### bck_inc0_pdb.rcv / bck_inc0_ts.rcv / bck_inc0_df.rcv
+
+Selective backup templates for specific database components:
+
+```bash
+# Backup specific PDBs in container database
+export RMAN_PLUGGABLE_DATABASE="PDB1,PDB2"
+oradba_rman.sh --sid CDB1 --rcv bck_inc0_pdb.rcv
+
+# Backup specific tablespaces
+export RMAN_TABLESPACES="USERS,TOOLS"
+oradba_rman.sh --sid PROD --rcv bck_inc0_ts.rcv
+
+# Backup specific datafiles
+export RMAN_DATAFILES="4,5,6"
+oradba_rman.sh --sid PROD --rcv bck_inc0_df.rcv
+```
+
+#### Maintenance Scripts Usage
+
+```bash
+# Regular maintenance: crosscheck and delete expired
+oradba_rman.sh --sid PROD --rcv mnt_chk.rcv
+
+# Delete obsolete backups (edit file to uncomment delete command)
+oradba_rman.sh --sid PROD --rcv mnt_del_obs.rcv
+
+# Sync RMAN catalog
+oradba_rman.sh --sid PROD --rcv mnt_sync.rcv --catalog "rman/pass@catdb"
+```
+
+**Safety Note:** Maintenance scripts that perform deletions (`mnt_del_arc.rcv`,
+`mnt_del_obs.rcv`) have delete commands commented out by default. Review and
+uncomment only after verifying configuration.
 
 **Template Tags:**
 

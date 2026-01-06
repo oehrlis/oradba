@@ -19,14 +19,52 @@ and email notifications.
 
 ## Available Scripts
 
-| Script                                                     | Description                                     |
-|------------------------------------------------------------|-------------------------------------------------|
-| [backup_full.rcv](backup_full.rcv)                         | Full database backup template with archive logs |
-| [bck_arc.rcv](bck_arc.rcv)                                 | Archived redo log backup with optional deletion |
-| [bck_ctl.rcv](bck_ctl.rcv)                                 | Control file and SPFILE backup template         |
-| [rman_set_commands.example](rman_set_commands.example)     | Example external SET commands file (optional)   |
+### Backup Scripts
 
-**Total Scripts:** 3 (+ 1 example file)
+| Script                                                     | Description                                          |
+|------------------------------------------------------------|------------------------------------------------------|
+| [backup_full.rcv](backup_full.rcv)                         | Full database backup with archive logs, maintenance  |
+| [bck_db_keep.rcv](bck_db_keep.rcv)                         | Full database backup with retention guarantee        |
+| [bck_db_validate.rcv](bck_db_validate.rcv)                 | Full database validation (backup validate)           |
+| [bck_inc0.rcv](bck_inc0.rcv)                               | Incremental level 0 backup with archive logs         |
+| [bck_inc0_noarc.rcv](bck_inc0_noarc.rcv)                   | Incremental level 0 backup without archive logs      |
+| [bck_inc0_cold.rcv](bck_inc0_cold.rcv)                     | Offline (cold) incremental level 0 backup            |
+| [bck_inc0_df.rcv](bck_inc0_df.rcv)                         | Incremental level 0 backup for specific datafiles    |
+| [bck_inc0_pdb.rcv](bck_inc0_pdb.rcv)                       | Incremental level 0 backup for pluggable databases   |
+| [bck_inc0_rec_area.rcv](bck_inc0_rec_area.rcv)             | Incremental level 0 backup to recovery area          |
+| [bck_inc0_ts.rcv](bck_inc0_ts.rcv)                         | Incremental level 0 backup for specific tablespaces  |
+| [bck_inc1c.rcv](bck_inc1c.rcv)                             | Incremental level 1 cumulative backup with archives  |
+| [bck_inc1c_noarc.rcv](bck_inc1c_noarc.rcv)                 | Incremental level 1 cumulative without archives      |
+| [bck_inc1d.rcv](bck_inc1d.rcv)                             | Incremental level 1 differential backup with archives|
+| [bck_inc1d_noarc.rcv](bck_inc1d_noarc.rcv)                 | Incremental level 1 differential without archives    |
+| [bck_recovery_area.rcv](bck_recovery_area.rcv)             | Fast recovery area backup (requires SBT channels)    |
+| [bck_standby_inc0.rcv](bck_standby_inc0.rcv)               | Incremental level 0 for standby database setup       |
+
+### Maintenance Scripts
+
+| Script                                                     | Description                                          |
+|------------------------------------------------------------|------------------------------------------------------|
+| [mnt_chk.rcv](mnt_chk.rcv)                                 | Crosscheck backups/copies and delete expired         |
+| [mnt_chk_arc.rcv](mnt_chk_arc.rcv)                         | Crosscheck archive logs                              |
+| [mnt_del_arc.rcv](mnt_del_arc.rcv)                         | Delete archive logs (commented for safety)           |
+| [mnt_del_obs.rcv](mnt_del_obs.rcv)                         | Delete obsolete backups (commented for safety)       |
+| [mnt_del_obs_nomaint.rcv](mnt_del_obs_nomaint.rcv)         | Delete obsolete without maintenance window           |
+| [mnt_reg.rcv](mnt_reg.rcv)                                 | Register database and set snapshot controlfile       |
+| [mnt_sync.rcv](mnt_sync.rcv)                               | Resync RMAN catalog                                  |
+
+### Reporting Scripts
+
+| Script                                                     | Description                                          |
+|------------------------------------------------------------|------------------------------------------------------|
+| [rpt_bck.rcv](rpt_bck.rcv)                                 | Report backup status and requirements                |
+
+### Configuration Examples
+
+| Script                                                     | Description                                          |
+|------------------------------------------------------------|------------------------------------------------------|
+| [rman_set_commands.example](rman_set_commands.example)     | Example external SET commands file (optional)        |
+
+**Total Scripts:** 24 backup/maintenance scripts (+ 1 example file)
 
 ## RMAN Wrapper Script
 
@@ -164,7 +202,7 @@ Performs complete database backup including:
 
 - `<ALLOCATE_CHANNELS>`: Replaced with channel allocation commands
 - `<RELEASE_CHANNELS>`: Replaced with channel release commands
-- `<COMPRESSION>`: Replaced with compression clause (NONE|LOW|MEDIUM|HIGH)
+- `<COMPRESSION>`: Replaced with compression clause (NONE|LOW|BASIC|MEDIUM|HIGH)
 - `<FORMAT>`: Replaced with FORMAT clause for backup files
 - `<TAG>`: Replaced with TAG clause for backup identification
 - `<BACKUP_PATH>`: Replaced with backup path (with trailing slash)
@@ -186,9 +224,16 @@ Performs complete database backup including:
 **Default Configuration:**
 
 - Format: `/backup/%d_%T_%U.bkp`
-- Compression: MEDIUM
+- Compression: BASIC (no license required)
 - Channels: 2
 - Tag: AUTO_BACKUP
+
+**Note on Compression Levels:**
+
+- `BASIC`: Default, no additional Oracle license required
+- `LOW`: No license required, less compression than BASIC
+- `MEDIUM`, `HIGH`: Require Oracle Advanced Compression option license
+- `NONE`: No compression
 
 ### Customization
 
@@ -228,7 +273,9 @@ rman target / @/backup/scripts/my_backup.rcv
 
 - Backup destination (`FORMAT`)
 - Retention policy (`RETENTION POLICY`)
-- Compression level (`COMPRESS HIGH`, `COMPRESS LOW`)
+- Compression level (`NONE|LOW|BASIC|MEDIUM|HIGH`)
+  - Note: BASIC/LOW do not require Oracle Advanced Compression license
+  - MEDIUM/HIGH require Oracle Advanced Compression option
 - Parallelism (`CHANNELS`)
 - Backup type (`INCREMENTAL LEVEL 0/1`)
 
@@ -275,7 +322,7 @@ oradba_rman.sh --sid PROD --rcv bck_arc.rcv --compression HIGH
 
 # Archive log backup every 4 hours
 export RMAN_ARCHIVE_RANGE="ALL"
-export RMAN_COMPRESSION="MEDIUM"
+export RMAN_COMPRESSION="BASIC"
 export RMAN_TAG="ARCHIVELOG_BACKUP"
 
 # Optional: Include SPFILE backup
@@ -288,6 +335,90 @@ export RMAN_CUSTOM_PARAM_1="backup spfile TAG 'SPFILE_BACKUP' format '<BACKUP_PA
 2. No automatic log switch is performed - manually uncomment if needed
 3. Use with appropriate retention policy to prevent running out of archived log space
 4. Recommended for scheduled archivelog-only backups (e.g., every 4 hours)
+
+### Incremental Level 0 Backup (bck_inc0.rcv)
+
+Performs incremental level 0 backup (base backup for incremental backup strategy):
+
+- Complete database backup at block level
+- Archived redo logs (with DELETE INPUT)
+- Current controlfile
+- Control file to trace
+- PFILE for recovery reference
+
+**Key Features:**
+
+- **Base for Incrementals**: Level 0 is the starting point for incremental strategy
+- **Block-Level Backup**: Similar to full but creates incremental base
+- **Multisection Support**: Use SECTION_SIZE for large datafile parallelization
+- **Archive Log Cleanup**: DELETE INPUT removes archived logs after backup
+
+**Example Usage:**
+
+```bash
+# Weekly level 0 backup (base for incremental strategy)
+oradba_rman.sh --sid PROD --rcv bck_inc0.rcv --tag WEEKLY_L0
+
+# With multisection for large database
+export RMAN_SECTION_SIZE="10G"
+oradba_rman.sh --sid BIGDB --rcv bck_inc0.rcv --channels 4
+
+# Selective tablespace level 0
+export RMAN_TABLESPACES="USERS,TOOLS"
+oradba_rman.sh --sid PROD --rcv bck_inc0.rcv
+```
+
+### Incremental Level 1 Differential Backup (bck_inc1d.rcv)
+
+Performs differential incremental level 1 backup:
+
+- Backs up all blocks changed since most recent level 0 **or** level 1
+- Smaller backup size compared to cumulative
+- Faster backup but slower recovery (more backups to apply)
+
+**Example Usage:**
+
+```bash
+# Daily differential level 1 (backs up changes since last level 0 or level 1)
+oradba_rman.sh --sid PROD --rcv bck_inc1d.rcv --tag DAILY_L1D
+
+# Schedule: Level 0 on Sunday, Level 1 differential Mon-Sat
+# Mon: changes since Sun
+# Tue: changes since Mon
+# Wed: changes since Tue
+# etc.
+```
+
+### Incremental Level 1 Cumulative Backup (bck_inc1c.rcv)
+
+Performs cumulative incremental level 1 backup:
+
+- Backs up all blocks changed since most recent level 0 **only**
+- Larger backup size compared to differential
+- Slower backup but faster recovery (fewer backups to apply)
+
+**Example Usage:**
+
+```bash
+# Daily cumulative level 1 (backs up all changes since level 0)
+oradba_rman.sh --sid PROD --rcv bck_inc1c.rcv --tag DAILY_L1C
+
+# Schedule: Level 0 on Sunday, Level 1 cumulative Mon-Sat
+# Mon: all changes since Sun
+# Tue: all changes since Sun
+# Wed: all changes since Sun
+# etc.
+```
+
+**Incremental Backup Strategy Comparison:**
+
+| Aspect           | Differential (bck_inc1d.rcv)      | Cumulative (bck_inc1c.rcv)        |
+|------------------|-----------------------------------|-----------------------------------|
+| Backup Size      | Smaller (only since last backup)  | Larger (all since level 0)        |
+| Backup Time      | Faster                            | Slower                            |
+| Recovery Time    | Slower (more backups to apply)    | Faster (fewer backups to apply)   |
+| Storage Required | Less                              | More                              |
+| Use Case         | Daily backups, space-constrained  | Weekly backups, fast recovery     |
 
 ## Best Practices
 

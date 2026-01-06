@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **23 RMAN Script Templates Converted from TVD Backup**: Comprehensive backup script library
+  - **16 Backup Scripts**: Full, incremental (level 0/1 differential/cumulative), specialized backups
+    - `bck_db_keep.rcv`: Full backup with retention guarantee
+    - `bck_db_validate.rcv`: Full database validation
+    - `bck_inc0.rcv`, `bck_inc0_noarc.rcv`: Incremental level 0 with/without archives
+    - `bck_inc0_cold.rcv`: Offline (cold) incremental level 0
+    - `bck_inc0_df.rcv`: Incremental level 0 for specific datafiles
+    - `bck_inc0_pdb.rcv`: Incremental level 0 for pluggable databases
+    - `bck_inc0_rec_area.rcv`: Incremental level 0 to recovery area
+    - `bck_inc0_ts.rcv`: Incremental level 0 for specific tablespaces
+    - `bck_inc1c.rcv`, `bck_inc1c_noarc.rcv`: Cumulative level 1 with/without archives
+    - `bck_inc1d.rcv`, `bck_inc1d_noarc.rcv`: Differential level 1 with/without archives
+    - `bck_recovery_area.rcv`: Fast recovery area backup (requires SBT)
+    - `bck_standby_inc0.rcv`: Incremental level 0 for standby database setup
+  - **7 Maintenance Scripts**: Crosscheck, delete, register, sync operations
+    - `mnt_chk.rcv`: Crosscheck backups/copies and delete expired
+    - `mnt_chk_arc.rcv`: Crosscheck archive logs
+    - `mnt_del_arc.rcv`: Delete archive logs (commented for safety)
+    - `mnt_del_obs.rcv`: Delete obsolete backups (commented for safety)
+    - `mnt_del_obs_nomaint.rcv`: Delete obsolete without maintenance window
+    - `mnt_reg.rcv`: Register database and set snapshot controlfile
+    - `mnt_sync.rcv`: Resync RMAN catalog
+  - **1 Reporting Script**: Backup status and requirements
+    - `rpt_bck.rcv`: Report incarnation, unrecoverable objects, and backup needs
+  - **Conversion Details**: Exact 1:1 conversion from TVD Backup templates
+    - Template tag updates: `<COMPRESS>` → `<COMPRESSION>`, `<CTLFILE_PATH>` → `<BACKUP_PATH>`
+    - Added `SHOW ALL;` and `<SET_COMMANDS>` for OraDBA compatibility
+    - Removed `filesperset` directives (handled by wrapper configuration)
+    - Preserved all RMAN command structures and logic exactly
+    - Maintained separation of concerns: backup scripts vs maintenance scripts
+
 - **RMAN Template Enhancement (#TBD)**: Comprehensive RMAN template system expansion
   - **12 New Template Tags** in `src/bin/oradba_rman.sh`:
     - `<SET_COMMANDS>`: Custom RMAN SET commands (inline or external file)
@@ -36,7 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/rcv/rman_set_commands.example`: Example external SET commands file
   - **Documentation Updates**:
     - `src/doc/09-rman-scripts.md`: Complete documentation for advanced template tags
+    - `src/doc/09-rman-scripts.md`: Documentation for all 24 RMAN script templates
+    - `src/rcv/README.md`: Updated with complete script library (24 scripts)
     - Examples for selective backups, multisection, archive filtering, PDB backups
+    - Script categorization: backup (16), maintenance (7), reporting (1)
   - **Features Enabled**:
     - Selective backups (tablespaces, datafiles, PDBs) for targeted backup strategies
     - Multisection backups for improved performance on large datafiles

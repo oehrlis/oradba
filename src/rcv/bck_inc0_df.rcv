@@ -1,0 +1,28 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: bck_inc0_df.rcv
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.06
+# Revision...: 0.14.0
+# Purpose....: Template for making an incremental level 0 backup
+# Notes......: Converted from TVD Backup template to OraDBA format
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+SHOW ALL;
+<SET_COMMANDS>
+run
+{
+<ALLOCATE_CHANNELS>
+backup <COMPRESSION> incremental level 0 datafile <DATAFILES> <SECTION_SIZE> <TAG> format '<BCK_PATH>inc0_df_%d_<START_DATE>_s%s_p%p';
+backup <COMPRESSION> archivelog <ARCHIVE_RANGE> <ARCHIVE_PATTERN> delete input <TAG> format '<BCK_PATH>arc_%d_<START_DATE>_s%s_p%p';
+backup <COMPRESSION> current controlfile <TAG> format '<BCK_PATH>ctl_%d_<START_DATE>_s%s_p%p';
+<SPFILE_BACKUP>sql "create pfile=''<BACKUP_PATH>init_<ORACLE_SID>_<START_DATE>'' from spfile";
+sql "alter database backup controlfile to ''<BACKUP_PATH>controlfile_<ORACLE_SID>_<START_DATE>''";
+sql "alter database backup controlfile to trace as ''<BACKUP_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>''";
+<RELEASE_CHANNELS>
+}

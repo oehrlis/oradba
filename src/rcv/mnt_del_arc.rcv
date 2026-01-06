@@ -1,0 +1,20 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: mnt_del_arc.rcv
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.06
+# Revision...: 0.14.0
+# Purpose....: Template for deleteing archive logs in Data Guard (housekeeping)
+# Notes......: Converted from TVD Backup template to OraDBA format
+#              For security reasons the deletion is commented out
+#              to execute this script just uncomment the delete command
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+SHOW ALL;
+<SET_COMMANDS>
+#delete noprompt archivelog <ARCHIVE_RANGE> <ARCHIVE_PATTERN>;

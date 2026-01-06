@@ -74,7 +74,7 @@ EOF
 export RMAN_CHANNELS=2
 export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
 export RMAN_TAG="AUTO_BACKUP"
-export RMAN_COMPRESSION="MEDIUM"
+export RMAN_COMPRESSION="BASIC"
 export RMAN_CATALOG=""
 export RMAN_NOTIFY_EMAIL="test@example.com"
 export RMAN_NOTIFY_ON_SUCCESS=false

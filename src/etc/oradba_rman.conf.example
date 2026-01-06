@@ -30,9 +30,11 @@ export RMAN_FORMAT="%d_%T_%U.bkp"
 # Used to identify backup sets in RMAN catalog/controlfile
 export RMAN_TAG="AUTO_BACKUP"
 
-# Compression level: NONE, LOW, MEDIUM, HIGH
-# MEDIUM provides good balance of compression ratio and performance
-export RMAN_COMPRESSION="MEDIUM"
+# Compression level: NONE, LOW, BASIC, MEDIUM, HIGH
+# BASIC is the default (no Advanced Compression license required)
+# MEDIUM/HIGH require Oracle Advanced Compression option license
+# BASIC provides good compression with no additional licensing cost
+export RMAN_COMPRESSION="BASIC"
 
 # ------------------------------------------------------------------------------
 # RMAN Global SET Commands (Option 3: Hybrid Approach)

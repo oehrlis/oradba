@@ -1,0 +1,26 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: bck_standby_inc0.rcv
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.06
+# Revision...: 0.14.0
+# Purpose....: Template for creating a incremental level 0 backup for setting up a standby database
+# Notes......: Converted from TVD Backup template to OraDBA format
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+SHOW ALL;
+<SET_COMMANDS>
+run
+{
+<ALLOCATE_CHANNELS>
+backup <COMPRESSION> incremental level 0 database <TAG> format '<BCK_PATH>inc0_%d_<START_DATE>_s%s_p%p';
+backup <COMPRESSION> current controlfile <TAG> format '<BACKUP_PATH>ctl_<ORACLE_SID>_<START_DATE>';
+sql "alter database create standby controlfile as ''<BACKUP_PATH>standby_ctl_<ORACLE_SID>_<START_DATE>''";
+backup <COMPRESSION> archivelog <ARCHIVE_RANGE> <ARCHIVE_PATTERN> delete input <TAG> format '<BCK_PATH>arc_%d_<START_DATE>_s%s_p%p';
+<RELEASE_CHANNELS>
+}
