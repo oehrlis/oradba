@@ -34,8 +34,8 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv \
 
 **Features:**
 
-- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`,
-  `<COMPRESSION>`, `<BACKUP_PATH>` tags
+- **Template Processing**: Dynamic substitution of `<ALLOCATE_CHANNELS>`, `<RELEASE_CHANNELS>`, 
+  `<FORMAT>`, `<TAG>`, `<COMPRESSION>`, `<BACKUP_PATH>`, `<ORACLE_SID>`, `<START_DATE>` tags
 - **Error Detection**: Checks for RMAN-00569 error pattern to catch failures (RMAN returns exit
   code 0 even on errors)
 - **Parallel Execution**: Run RMAN for multiple SIDs concurrently (background jobs or GNU parallel)
@@ -81,25 +81,42 @@ cp $ORADBA_PREFIX/etc/oradba_rman.conf.example \
 
 # Edit configuration
 export RMAN_CHANNELS=2
-export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
+export RMAN_BACKUP_PATH="/backup/prod"    # If empty, uses Fast Recovery Area
+export RMAN_FORMAT="%d_%T_%U.bkp"         # Filename pattern only (no path)
 export RMAN_TAG="AUTO_BACKUP"
 export RMAN_COMPRESSION="MEDIUM"
-export RMAN_BACKUP_PATH="/backup/prod"
 export RMAN_CATALOG=""
 export RMAN_NOTIFY_EMAIL="dba@example.com"
 export RMAN_NOTIFY_ON_SUCCESS=false
 export RMAN_NOTIFY_ON_ERROR=true
 ```
 
+**Important Configuration Notes:**
+
+- **`RMAN_FORMAT`**: Contains only the filename pattern (e.g., `%d_%T_%U.bkp`)
+  - Do NOT include the path in this variable
+  - Variables: `%d` (database name), `%T` (timestamp), `%U` (unique identifier)
+  
+- **`RMAN_BACKUP_PATH`**: Contains only the directory path (e.g., `/backup/prod`)
+  - If empty or not set:
+    - RMAN backups use the Fast Recovery Area (FRA)
+    - SQL-generated files (pfile, controlfile traces) use `${ORADBA_ORA_ADMIN_SID}/backup/`
+  - The wrapper automatically combines path + format: `FORMAT '/backup/prod/DB_20260106_ABC.bkp'`
+  - Trailing slash is handled automatically
+  - Backup directory is created automatically if it doesn't exist
+
 **Template Tags:**
 
 RMAN scripts use template tags that are replaced at runtime:
 
 - `<ALLOCATE_CHANNELS>`: Generates `ALLOCATE CHANNEL` commands based on `--channels`
+- `<RELEASE_CHANNELS>`: Generates `RELEASE CHANNEL` commands matching allocated channels
 - `<FORMAT>`: Substituted with `FORMAT` clause from `--format`
 - `<TAG>`: Substituted with `TAG` clause from `--tag`
 - `<COMPRESSION>`: Substituted with compression clause from `--compression`
-- `<BACKUP_PATH>`: Substituted with backup destination path from `--backup-path` or config
+- `<BACKUP_PATH>`: Substituted with backup path (includes trailing slash for easy path construction)
+- `<ORACLE_SID>`: Substituted with current Oracle SID
+- `<START_DATE>`: Substituted with timestamp in YYYYMMDD_HHMMSS format
 
 **Examples:**
 
@@ -117,7 +134,14 @@ oradba_rman.sh --sid PROD --rcv backup_full.rcv \
 
 # Custom backup destination path
 oradba_rman.sh --sid PROD --rcv backup_full.rcv \
-    --backup-path /backup/prod_daily
+    --backup-path /backup/prod_daily \
+    --format "DB_%d_%T_%U.bkp"
+
+# Use Fast Recovery Area (no --backup-path specified)
+# RMAN backups → FRA
+# SQL files (pfile/traces) → ${ORADBA_ORA_ADMIN_SID}/backup/
+oradba_rman.sh --sid PROD --rcv backup_full.rcv \
+    --format "%d_FULL_%T_%U.bkp"
 
 # Dry run to test template processing (saves and displays script)
 oradba_rman.sh --sid FREE --rcv backup_full.rcv --dry-run
@@ -127,7 +151,8 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv --no-cleanup
 
 # Custom format and tag
 oradba_rman.sh --sid FREE --rcv backup_full.rcv \
-    --format "/backup/monthly/%d_%T_%U.bkp" \
+    --backup-path /backup/monthly \
+    --format "MONTHLY_%d_%T_%U.bkp" \
     --tag MONTHLY_FULL_20260102
 ```
 
@@ -193,9 +218,13 @@ RMAN> @backup_full.rcv
 The script uses template tags that are dynamically replaced:
 
 - `<ALLOCATE_CHANNELS>`: Replaced with channel allocation commands
+- `<RELEASE_CHANNELS>`: Replaced with channel release commands (matches allocated channels)
 - `<FORMAT>`: Replaced with FORMAT clause
 - `<TAG>`: Replaced with TAG clause  
 - `<COMPRESSION>`: Replaced with compression clause
+- `<BACKUP_PATH>`: Replaced with backup path (with trailing slash)
+- `<ORACLE_SID>`: Replaced with current Oracle SID
+- `<START_DATE>`: Replaced with timestamp (YYYYMMDD_HHMMSS)
 
 **Customization:**
 
@@ -209,6 +238,50 @@ oradba_rman.sh --sid FREE --rcv backup_full.rcv \
 Option 2 - Configure defaults in `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf`
 
 Option 3 - Copy and edit the .rcv file directly for static values
+
+### Using Template Tags in SQL Commands
+
+The template tags can be used in SQL commands within RMAN scripts for creating
+additional backup files with dynamic naming:
+
+```rman
+RUN {
+<ALLOCATE_CHANNELS>
+    
+    # Backup database
+    BACKUP <COMPRESSION> DATABASE <FORMAT> <TAG>;
+    
+    # Create text versions for documentation
+    sql "create pfile=''<BACKUP_PATH>init_<ORACLE_SID>_<START_DATE>.ora'' from spfile";
+    sql "alter database backup controlfile to ''<BACKUP_PATH>controlfile_<ORACLE_SID>_<START_DATE>.ctl''";
+    sql "alter database backup controlfile to trace as ''<BACKUP_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>.sql''";
+    
+<RELEASE_CHANNELS>
+}
+```
+
+**Example processed output** (when `--sid FREE --backup-path /backup/prod` is used):
+
+```sql
+sql "create pfile=''/backup/prod/init_FREE_20260106_143022.ora'' from spfile";
+sql "alter database backup controlfile to ''/backup/prod/controlfile_FREE_20260106_143022.ctl''";
+sql "alter database backup controlfile to trace as ''/backup/prod/cre_controlfile_FREE_20260106_143022.sql''";
+```
+
+**Example processed output** (when `--sid FREE` without `--backup-path`):
+
+```sql
+sql "create pfile=''/u01/admin/FREE/backup/init_FREE_20260106_143022.ora'' from spfile";
+sql "alter database backup controlfile to ''/u01/admin/FREE/backup/controlfile_FREE_20260106_143022.ctl''";
+sql "alter database backup controlfile to trace as ''/u01/admin/FREE/backup/cre_controlfile_FREE_20260106_143022.sql''";
+```
+
+**Benefits:**
+- Automatic timestamp in filenames prevents overwrites
+- SID-specific naming for multi-database environments
+- Flexible path construction with `<BACKUP_PATH>` (includes trailing slash)
+- Consistent naming across all backup artifacts
+- When no path specified: RMAN uses FRA, text files go to `${ORADBA_ORA_ADMIN_SID}/backup/`
 
 ## Using RMAN with OraDBA
 
@@ -262,6 +335,8 @@ rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv log=/tmp/backup.log
 
 ### Script Template
 
+**Static RMAN Script (.rman):**
+
 ```rman
 # ------------------------------------------------------------------------------
 # Script......: my_backup.rman
@@ -276,6 +351,7 @@ CONFIGURE RETENTION POLICY TO REDUNDANCY 2;
 
 RUN {
     ALLOCATE CHANNEL ch1 DEVICE TYPE DISK;
+    ALLOCATE CHANNEL ch2 DEVICE TYPE DISK;
     BACKUP AS COMPRESSED BACKUPSET 
         DATABASE 
         FORMAT '/backup/%d_%T_%U.bkp'
@@ -285,7 +361,49 @@ RUN {
     BACKUP SPFILE 
         FORMAT '/backup/spfile_%d_%T_%U.ora';
     RELEASE CHANNEL ch1;
+    RELEASE CHANNEL ch2;
 }
+```
+
+**Template RMAN Script (.rcv) - Recommended:**
+
+```rman
+# ------------------------------------------------------------------------------
+# Script......: my_backup.rcv
+# Author......: Your Name
+# Date........: YYYY-MM-DD
+# Purpose.....: Brief description with template support
+# Usage.......: oradba_rman.sh --sid DB01 --rcv my_backup.rcv
+# ------------------------------------------------------------------------------
+
+SHOW ALL;
+
+RUN {
+    # Allocate channels dynamically
+<ALLOCATE_CHANNELS>
+    
+    # Full database backup with dynamic settings
+    BACKUP <COMPRESSION>
+        DATABASE 
+        <FORMAT>
+        <TAG>;
+    
+    # Backup controlfile and SPFILE
+    BACKUP CURRENT CONTROLFILE <FORMAT> TAG 'CONTROLFILE';
+    BACKUP SPFILE <FORMAT> TAG 'SPFILE';
+    
+    # Optional: Create text versions for documentation
+    sql "create pfile=''<BACKUP_PATH>init_<ORACLE_SID>_<START_DATE>.ora'' from spfile";
+    sql "alter database backup controlfile to trace as ''<BACKUP_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>.sql''";
+    
+    # Release channels dynamically
+<RELEASE_CHANNELS>
+}
+
+# Maintenance
+DELETE NOPROMPT OBSOLETE;
+CROSSCHECK BACKUP;
+LIST BACKUP SUMMARY;
 ```
 
 ### Best Practices

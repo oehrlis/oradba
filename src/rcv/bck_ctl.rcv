@@ -18,7 +18,7 @@
 SHOW ALL;
 RUN {
     # Allocate channels for backup (replaced by template processor)
-<ALLOCATE_CHANNELS>
+    <ALLOCATE_CHANNELS>
     
     # Backup current controlfile
     BACKUP <COMPRESSION> CURRENT CONTROLFILE
@@ -30,11 +30,11 @@ RUN {
         <FORMAT>
         <TAG>;
     
+    # Create spfile and controlfile backups
+    SQL "create pfile=''<BACKUP_PATH>init_<ORACLE_SID>_<START_DATE>.ora'' from spfile";
+    SQL "alter database backup controlfile to ''<BACKUP_PATH>ctl_<ORACLE_SID>_<START_DATE>.ctl''";
+    SQL "alter database backup controlfile to trace as ''<BACKUP_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>.sql''";
+    
     # Release channels (replaced by template processor)
-    RELEASE CHANNEL ch1;
-    RELEASE CHANNEL ch2;
+    <RELEASE_CHANNELS>
 }
-
-#<SPFILE_BACKUP>sql "create pfile=''<CTLFILE_PATH>init_<ORACLE_SID>_<START_DATE>'' from spfile";
-#sql "alter database backup controlfile to ''<CTLFILE_PATH>controlfile_<ORACLE_SID>_<START_DATE>''";
-#sql "alter database backup controlfile to trace as ''<CTLFILE_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>''";

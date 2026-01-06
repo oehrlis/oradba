@@ -33,8 +33,7 @@ RUN {
         TAG 'CONTROLFILE_BACKUP';
     
     # Release channels (replaced by template processor)
-    RELEASE CHANNEL ch1;
-    RELEASE CHANNEL ch2;
+<RELEASE_CHANNELS>
 }
 
 # Delete obsolete backups

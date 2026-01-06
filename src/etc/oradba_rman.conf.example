@@ -13,11 +13,18 @@
 
 # Number of parallel channels for backup/restore operations
 # Higher values can improve performance but increase resource usage
-export RMAN_CHANNELS=2
+export RMAN_CHANNELS=1
 
-# Backup format string
+# Backup destination path
+# If empty, RMAN uses Fast Recovery Area (DB_RECOVERY_FILE_DEST)
+# If set, must be an absolute path with trailing slash handled automatically
+# Example: export RMAN_BACKUP_PATH="/backup/prod"
+export RMAN_BACKUP_PATH=""
+
+# Backup format string (filename pattern only, no path)
 # Variables: %d (database name), %T (timestamp), %U (unique identifier)
-export RMAN_FORMAT="/backup/%d_%T_%U.bkp"
+# Combined with RMAN_BACKUP_PATH if set, otherwise uses FRA
+export RMAN_FORMAT="%d_%T_%U.bkp"
 
 # Default backup tag
 # Used to identify backup sets in RMAN catalog/controlfile

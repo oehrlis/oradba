@@ -77,27 +77,27 @@ log_header() {
 # Usage information
 usage() {
     cat << EOF
-${BOLD}OraDBA System Check${NC} - Version ${SCRIPT_VERSION}
+OraDBA System Check - Version ${SCRIPT_VERSION}
 
 Validates system prerequisites and Oracle environment readiness.
 Can be run BEFORE installation or AFTER for troubleshooting.
 
-${BOLD}USAGE:${NC}
+USAGE:
     $SCRIPT_NAME [OPTIONS]
 
-${BOLD}OPTIONS:${NC}
+OPTIONS:
     -d, --dir PATH      Check disk space for specific directory
     -q, --quiet         Minimal output (errors only)
     -v, --verbose       Verbose output with additional details
     -h, --help          Show this help message
     --version           Show version information
 
-${BOLD}EXIT CODES:${NC}
+EXIT CODES:
     0   All critical checks passed
     1   One or more critical checks failed
     2   Invalid usage or arguments
 
-${BOLD}EXAMPLES:${NC}
+EXAMPLES:
     # Pre-installation check (download from GitHub releases)
     curl -sL https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh | bash
 
@@ -110,7 +110,7 @@ ${BOLD}EXAMPLES:${NC}
     # Verbose output for troubleshooting
     $SCRIPT_NAME --verbose
 
-${BOLD}CHECKS PERFORMED:${NC}
+CHECKS PERFORMED:
     - System tools and utilities (bash, tar, awk, sed, grep)
     - Checksum tools (sha256sum/shasum)
     - Base64 encoder (for installer with embedded payload)
@@ -122,7 +122,7 @@ ${BOLD}CHECKS PERFORMED:${NC}
     - Oracle version information
     - OraDBA installation status
 
-${BOLD}DOWNLOAD:${NC}
+DOWNLOAD:
     Standalone version available from GitHub releases:
     https://github.com/oehrlis/oradba/releases
 

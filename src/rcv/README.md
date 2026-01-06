@@ -48,7 +48,7 @@ oradba_rman.sh --sid PROD --rcv backup_full.rcv \
 
 ### Features
 
-- **Template Processing**: Replace `<ALLOCATE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>` at runtime
+- **Template Processing**: Replace `<ALLOCATE_CHANNELS>`, `<RELEASE_CHANNELS>`, `<FORMAT>`, `<TAG>`, `<COMPRESSION>`, `<BACKUP_PATH>`, `<ORACLE_SID>`, `<START_DATE>` at runtime
 - **Parallel Execution**: Run RMAN for multiple SIDs concurrently
 - **Dual Logging**: Generic wrapper log + SID-specific RMAN output logs
 - **Email Notifications**: Alert on backup success/failure

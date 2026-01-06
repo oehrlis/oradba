@@ -73,10 +73,10 @@ REQUIRED ARGUMENTS
 
 OPTIONS
     --channels <n>           Number of allocation channels (default: from config)
-    --format <path>          Backup format string (default: from config)
+    --format <pattern>       Backup format pattern (filename only, default: from config)
     --tag <name>             Backup tag name (default: from config)
     --compression <level>    Compression level: LOW|MEDIUM|HIGH (default: from config)
-    --backup-path <path>     Backup destination path (default: from config)
+    --backup-path <path>     Backup destination path (if not set, uses Fast Recovery Area)
     --notify <email>         Email address for notifications (default: from config)
     --parallel <method>      Parallel method: background|gnu (default: background)
     --dry-run                Show what would be executed without running
@@ -89,10 +89,10 @@ CONFIGURATION
     
     Variables:
         RMAN_CHANNELS          Number of allocation channels
-        RMAN_FORMAT            Backup format string
+        RMAN_BACKUP_PATH       Backup destination path (if empty, uses Fast Recovery Area)
+        RMAN_FORMAT            Backup format pattern (filename only, no path)
         RMAN_TAG               Default backup tag
         RMAN_COMPRESSION       Compression level
-        RMAN_BACKUP_PATH       Backup destination path (CLI overrides config)
         RMAN_CATALOG           RMAN catalog connection
         RMAN_LOG_DIR           Log directory (default: \${ORADBA_ORA_ADMIN_SID}/log)
         RMAN_NOTIFY_EMAIL      Email for notifications
@@ -103,10 +103,13 @@ TEMPLATE TAGS
     RMAN scripts support template processing with these tags:
     
     <ALLOCATE_CHANNELS>      Replaced with ALLOCATE CHANNEL commands
+    <RELEASE_CHANNELS>       Replaced with RELEASE CHANNEL commands
     <FORMAT>                 Replaced with FORMAT clause
     <TAG>                    Replaced with TAG clause
     <COMPRESSION>            Replaced with COMPRESSED BACKUPSET clause
-    <BACKUP_PATH>            Replaced with backup destination path
+    <BACKUP_PATH>            Replaced with backup path (or \${ORADBA_ORA_ADMIN_SID}/backup/)
+    <ORACLE_SID>             Replaced with current Oracle SID
+    <START_DATE>             Replaced with timestamp (YYYYMMDD_HHMMSS)
 
 LOGGING
     Script log:  \${ORADBA_LOG}/oradba_rman_<timestamp>.log
@@ -214,10 +217,10 @@ process_template() {
     local input_file="$1"
     local output_file="$2"
     local channels="${3:-${RMAN_CHANNELS:-2}}"
-    local format="${4:-${RMAN_FORMAT:-/backup/%d_%T_%U.bkp}}"
+    local format="${4:-${RMAN_FORMAT:-%d_%T_%U.bkp}}"
     local tag="${5:-${RMAN_TAG:-BACKUP}}"
     local compression="${6:-${RMAN_COMPRESSION:-MEDIUM}}"
-    local backup_path="${7:-${OPT_BACKUP_PATH}}"
+    local backup_path="${7:-${OPT_BACKUP_PATH:-${RMAN_BACKUP_PATH}}}"
     
     oradba_log DEBUG "Processing template: ${input_file}"
     oradba_log DEBUG "  Channels: ${channels}"
@@ -229,11 +232,30 @@ process_template() {
     # Build channel allocation block
     local channel_block=""
     for ((i=1; i<=channels; i++)); do
-        channel_block+="    ALLOCATE CHANNEL ch${i} DEVICE TYPE DISK;\n"
+        channel_block+="    ALLOCATE CHANNEL ch${i} DEVICE TYPE DISK;"$'\n'
     done
+    # Remove trailing newline
+    channel_block="${channel_block%$'\n'}"
+    
+    # Build channel release block
+    local release_block=""
+    for ((i=1; i<=channels; i++)); do
+        release_block+="    RELEASE CHANNEL ch${i};"$'\n'
+    done
+    # Remove trailing newline
+    release_block="${release_block%$'\n'}"
     
     # Build format clause
-    local format_clause="FORMAT '${format}'"
+    # If backup_path is set, combine it with format; otherwise use format only (FRA)
+    local format_clause
+    if [[ -n "${backup_path}" ]]; then
+        # Ensure trailing slash
+        [[ "${backup_path}" != */ ]] && backup_path="${backup_path}/"
+        format_clause="FORMAT '${backup_path}${format}'"
+    else
+        # No path specified - RMAN will use Fast Recovery Area
+        format_clause="FORMAT '${format}'"
+    fi
     
     # Build tag clause
     local tag_clause="TAG '${tag}'"
@@ -244,18 +266,47 @@ process_template() {
         compression_clause="AS COMPRESSED BACKUPSET"
     fi
     
-    # Build backup path clause (if specified)
-    local backup_path_clause=""
+    # Build backup path for SQL commands (with trailing slash)
+    # If no path specified, use admin backup directory for text files
+    local backup_path_tag
     if [[ -n "${backup_path}" ]]; then
-        backup_path_clause="${backup_path}"
+        # User specified a path - use it for both RMAN and SQL commands
+        backup_path_tag="${backup_path}"
+        [[ "${backup_path_tag}" != */ ]] && backup_path_tag="${backup_path_tag}/"
+    else
+        # No path specified - use admin backup directory for SQL-generated files
+        # RMAN FORMAT will use FRA, but SQL commands need a filesystem path
+        if [[ -z "${ORADBA_ORA_ADMIN_SID}" ]]; then
+            oradba_log ERROR "ORADBA_ORA_ADMIN_SID not set - cannot determine backup directory"
+            return 1
+        fi
+        backup_path_tag="${ORADBA_ORA_ADMIN_SID}/backup/"
+        
+        # Create backup directory if it doesn't exist
+        if [[ ! -d "${ORADBA_ORA_ADMIN_SID}/backup" ]]; then
+            oradba_log DEBUG "Creating backup directory: ${ORADBA_ORA_ADMIN_SID}/backup"
+            mkdir -p "${ORADBA_ORA_ADMIN_SID}/backup" || {
+                oradba_log ERROR "Failed to create backup directory: ${ORADBA_ORA_ADMIN_SID}/backup"
+                return 1
+            }
+        fi
     fi
+    
+    # Build timestamp for file naming
+    local start_date="$(date '+%Y%m%d_%H%M%S')"
+    
+    # Get Oracle SID
+    local oracle_sid="${ORACLE_SID:-ORCL}"
     
     # Process the template
     sed -e "s|<ALLOCATE_CHANNELS>|${channel_block}|g" \
+        -e "s|<RELEASE_CHANNELS>|${release_block}|g" \
         -e "s|<FORMAT>|${format_clause}|g" \
         -e "s|<TAG>|${tag_clause}|g" \
         -e "s|<COMPRESSION>|${compression_clause}|g" \
-        -e "s|<BACKUP_PATH>|${backup_path_clause}|g" \
+        -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
+        -e "s|<ORACLE_SID>|${oracle_sid}|g" \
+        -e "s|<START_DATE>|${start_date}|g" \
         "${input_file}" > "${output_file}"
     
     oradba_log DEBUG "Template processed successfully: ${output_file}"
@@ -286,6 +337,13 @@ execute_rman_for_sid() {
     # Validate ORACLE_HOME
     if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
         oradba_log ERROR "ORACLE_HOME not set or invalid for SID: ${sid}"
+        return 1
+    fi
+    
+    # Validate admin directory exists
+    if [[ -n "${ORADBA_ORA_ADMIN_SID}" && ! -d "${ORADBA_ORA_ADMIN_SID}" ]]; then
+        oradba_log ERROR "Admin directory does not exist: ${ORADBA_ORA_ADMIN_SID}"
+        oradba_log ERROR "Expected structure: \${ORACLE_BASE}/admin/${sid}"
         return 1
     fi
     

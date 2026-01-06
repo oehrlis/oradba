@@ -45,44 +45,75 @@ Usage: ${SCRIPT_NAME} [OPTIONS]
 Manage logrotate configurations for OraDBA and Oracle Database logs.
 Supports both system-wide (root) and user-mode (non-root) operation.
 
-Options:
-  ${BOLD}System-wide (requires root):${NC}
+SCENARIOS:
+
+  1. WITH ROOT ACCESS (System-wide logrotate):
+     - Installs configurations to ${TARGET_DIR}
+     - System's logrotate daemon handles rotation automatically (via cron.daily)
+     - Best for production environments with root access
+
+  2. WITHOUT ROOT ACCESS (User-mode):
+     - Creates user-specific configurations in ~/.oradba/logrotate/
+     - YOU must run logrotate manually OR set up your own crontab
+     - Suitable for non-root users (oracle user without sudo)
+
+OPTIONS:
+
+  System-wide (requires root):
   -i, --install         Install logrotate configurations to ${TARGET_DIR}
   -u, --uninstall       Uninstall system-wide configurations
   -f, --force           Force rotation for testing
 
-  ${BOLD}User-mode (non-root):${NC}
+  User-mode (non-root):
   --install-user        Set up user-specific logrotate configurations
-  --run-user            Run logrotate with user-specific configurations
+  --run-user            Run logrotate manually with user configs
   --cron                Generate crontab entry for automated rotation
 
-  ${BOLD}General:${NC}
+  General:
   -l, --list            List installed configurations
   -t, --test            Test logrotate configurations (dry-run)
   -c, --customize       Generate customized configurations
   -v, --version         Show script version
   -h, --help            Show this help message
 
-Examples:
-  ${BOLD}System-wide installation (requires root):${NC}
-  sudo ${SCRIPT_NAME} --install
-  sudo ${SCRIPT_NAME} --force
+EXAMPLES:
 
-  ${BOLD}User-mode operation (as oracle user):${NC}
-  # Initial setup
-  ${SCRIPT_NAME} --install-user
+  System-wide installation (WITH ROOT ACCESS):
+    # Install configurations (system cron.daily will run automatically)
+    sudo ${SCRIPT_NAME} --install
+    
+    # Test rotation manually
+    sudo ${SCRIPT_NAME} --force
+    
+    # Verify installation
+    sudo ${SCRIPT_NAME} --list
 
-  # Run manually
-  ${SCRIPT_NAME} --run-user
+  User-mode operation (WITHOUT ROOT ACCESS):
+    # Step 1: Initial setup (creates configs in ~/.oradba/logrotate/)
+    ${SCRIPT_NAME} --install-user
+    
+    # Step 2a: Run manually (one-time rotation)
+    ${SCRIPT_NAME} --run-user
+    
+    # Step 2b: OR set up automatic rotation via crontab
+    ${SCRIPT_NAME} --cron
+    # This generates a crontab entry like:
+    # 0 2 * * * /path/to/oradba_logrotate.sh --run-user
+    
+    # Add to crontab
+    crontab -e
+    # Paste the generated entry (runs daily at 2 AM)
 
-  # Add to crontab
-  ${SCRIPT_NAME} --cron
-  crontab -e  # Then paste the generated entry
+  Testing and customization:
+    ${SCRIPT_NAME} --test              # Dry-run test
+    ${SCRIPT_NAME} --list              # Show configurations
+    ${SCRIPT_NAME} --customize         # Generate custom configs
 
-  ${BOLD}Testing and customization:${NC}
-  ${SCRIPT_NAME} --test
-  ${SCRIPT_NAME} --list
-  ${SCRIPT_NAME} --customize
+NOTES:
+  - System-wide: Logrotate runs automatically via /etc/cron.daily/logrotate
+  - User-mode: YOU are responsible for running logrotate (manual or crontab)
+  - User-mode configs: ~/.oradba/logrotate/logrotate.conf
+  - User-mode state: ~/.oradba/logrotate/logrotate.status
 
 EOF
 }

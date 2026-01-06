@@ -49,6 +49,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **oradba_check.sh (#25)**: Removed color formatting from usage output
+  - Usage output now displays as plain text without ANSI escape codes
+  - Fixed issue where `${BOLD}` and `${NC}` variables were not expanded in heredoc
+  - Consistent with project standard: no color codes in usage/help functions
+- **oradba_logrotate.sh (#25)**: Removed color formatting from usage output
+  - All usage sections now display as plain text
+  - Consistent with project standard for usage/help output
+- **oradba_rman.sh (#25)**: Enhanced RMAN template processing and configuration
+  - **BREAKING**: Fixed RMAN configuration separation
+    - `RMAN_FORMAT` now contains only the filename pattern (e.g., `%d_%T_%U.bkp`)
+    - `RMAN_BACKUP_PATH` contains only the directory path
+    - If `RMAN_BACKUP_PATH` is empty:
+      - RMAN backups go to Fast Recovery Area (FRA)
+      - SQL-generated files (pfile/traces) go to `${ORADBA_ORA_ADMIN_SID}/backup/`
+    - Format clause now properly combines path + format: `FORMAT '/path/filename'`
+    - Script validates `ORADBA_ORA_ADMIN_SID` exists and creates backup subdirectory
+  - Added `<RELEASE_CHANNELS>` tag for dynamic channel release generation
+  - Channels now properly released matching allocation count (was hardcoded to ch1/ch2)
+  - Enhanced `<BACKUP_PATH>` tag with automatic trailing slash for path construction
+  - Added `<ORACLE_SID>` tag for SID-specific file naming
+  - Added `<START_DATE>` tag for timestamp in file names (YYYYMMDD_HHMMSS format)
+  - Updated template documentation in usage output
+- **RMAN Scripts**: Updated all `.rcv` scripts with new template tags
+  - `backup_full.rcv`: Updated to use `<RELEASE_CHANNELS>` tag
+  - `bck_ctl.rcv`: Updated to use `<RELEASE_CHANNELS>` tag
+  - Added commented SQL examples with proper file extensions (.ora, .ctl, .sql)
+  - SQL commands use flexible tags: `<BACKUP_PATH>`, `<ORACLE_SID>`, `<START_DATE>`
+- **Rlwrap Double-Echo Issue**: Fixed interactive command-line tools echoing input twice
+  - Added `--always-readline` flag to all rlwrap aliases
+  - Fixed aliases: `sqh`, `sqlplush`, `sqoh`, `rmanh`, `rmanch`, `lsnrh`, `adrcih`
+  - Users no longer need to type exit twice or see duplicate command echo
+  - Affects SQL*Plus, RMAN, Listener Control, and ADRCI interactive sessions
+- **RMAN Channel Allocation Syntax Error**: Fixed RMAN syntax error at line 11
+  - Fixed newline generation in channel allocation blocks
+  - Changed from `\n` string literals to proper bash `$'\n'` syntax
+  - Channels now allocate and release properly in RMAN scripts
+
 - **SID Config Auto-Creation Broken (#16)**: Fixed regression from v0.13.5 refactoring
   - **Bug 1**: Wrong variable in `oradba_standard.conf` line 67
     - Was using: `generate_sid_lists "${ORATAB:-/etc/oratab}"`
