@@ -269,6 +269,7 @@ teardown() {
 @test "oradba_rman.sh uses default config when available" {
     export ORADBA_ORA_ADMIN="${TEST_TEMP_DIR}/admin"
     export ORACLE_SID="TEST"
+    export ORADBA_ORA_ADMIN_SID="${TEST_TEMP_DIR}/admin/TEST"
     
     run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
     [[ "$status" -eq 0 ]]
@@ -424,6 +425,8 @@ EOF
 }
 
 @test "oradba_rman.sh template processing preserves script structure" {
+    export ORADBA_ORA_ADMIN_SID="${TEST_TEMP_DIR}/admin/TEST"
+    
     run "$RMAN_SCRIPT" --sid TEST --rcv "$MOCK_RCV" --dry-run --verbose
     [[ "$status" -eq 0 ]]
     # Check that template was processed

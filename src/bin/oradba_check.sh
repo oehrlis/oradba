@@ -5,8 +5,8 @@
 # Name.......: oradba_check.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.14.0
+# Date.......: 2026.01.06
+# Revision...: 0.14.1
 # Purpose....: System prerequisites and Oracle environment verification script
 # Notes......: Validates system readiness for OraDBA installation and usage.
 #              Can be run standalone BEFORE installation to verify prerequisites,
@@ -23,8 +23,17 @@ set -o pipefail
 # Script metadata
 # shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_NAME="$(basename "$0")"
-# shellcheck disable=SC2034  # Used in usage() function
-SCRIPT_VERSION="0.14.0"
+
+# Try to read version from VERSION file, fall back to hardcoded version
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION_FILE="${SCRIPT_DIR}/../../VERSION"
+if [[ -f "$VERSION_FILE" ]]; then
+    # shellcheck disable=SC2034  # Used in usage() function
+    SCRIPT_VERSION="$(head -1 "$VERSION_FILE" | tr -d '[:space:]')"
+else
+    # shellcheck disable=SC2034  # Used in usage() function
+    SCRIPT_VERSION="0.14.1"  # Fallback version for standalone distribution
+fi
 
 # Colors for output
 if [[ -t 1 ]]; then

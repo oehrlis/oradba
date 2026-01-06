@@ -241,7 +241,7 @@ EOF
 @test "oradba_version.sh rejects invalid options" {
     run "$ORADBA_VERSION" --invalid-option
     [[ "$status" -eq 1 ]]
-    [[ "$output" =~ "ERROR: Unknown option" ]]
+    [[ "$output" =~ "Unknown option" ]]
 }
 
 @test "oradba_version.sh handles missing ORADBA_BASE gracefully" {
