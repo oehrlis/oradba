@@ -213,7 +213,7 @@ teardown() {
     [[ "$output" =~ "Test message" ]]
 }
 
-@test "log() caller info shows correct file and line format" {
+@test "oradba_log() caller info shows correct file and line format" {
     export ORADBA_LOG_SHOW_CALLER="true"
     
     run bash -c "source ${PROJECT_ROOT}/src/lib/common.sh && oradba_log INFO 'Test' 2>&1"
@@ -229,7 +229,7 @@ teardown() {
 # Test: Dual Logging (Main + Session)
 # ------------------------------------------------------------------------------
 
-@test "log() writes to both main and session logs when both are set" {
+@test "oradba_log() writes to both main and session logs when both are set" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/main.log"
     export ORADBA_SESSION_LOG="${TEST_LOG_DIR}/session.log"
@@ -250,7 +250,7 @@ teardown() {
     [[ "$output" =~ "Dual log test" ]]
 }
 
-@test "log() does not duplicate when ORADBA_LOG_FILE equals ORADBA_SESSION_LOG" {
+@test "oradba_log() does not duplicate when ORADBA_LOG_FILE equals ORADBA_SESSION_LOG" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/same.log"
     export ORADBA_SESSION_LOG="${TEST_LOG_DIR}/same.log"
