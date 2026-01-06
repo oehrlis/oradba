@@ -22,10 +22,11 @@ and email notifications.
 | Script                                                     | Description                                     |
 |------------------------------------------------------------|-------------------------------------------------|
 | [backup_full.rcv](backup_full.rcv)                         | Full database backup template with archive logs |
+| [bck_arc.rcv](bck_arc.rcv)                                 | Archived redo log backup with optional deletion |
 | [bck_ctl.rcv](bck_ctl.rcv)                                 | Control file and SPFILE backup template         |
 | [rman_set_commands.example](rman_set_commands.example)     | Example external SET commands file (optional)   |
 
-**Total Scripts:** 2 (+ 1 example file)
+**Total Scripts:** 3 (+ 1 example file)
 
 ## RMAN Wrapper Script
 
@@ -230,6 +231,63 @@ rman target / @/backup/scripts/my_backup.rcv
 - Compression level (`COMPRESS HIGH`, `COMPRESS LOW`)
 - Parallelism (`CHANNELS`)
 - Backup type (`INCREMENTAL LEVEL 0/1`)
+
+### Archived Redo Log Backup (bck_arc.rcv)
+
+Performs backup of archived redo logs with automatic deletion after successful backup:
+
+- Archived redo logs (with DELETE INPUT)
+- Current controlfile
+- SPFILE (optional via CUSTOM_PARAM_1)
+- Control file to trace
+- PFILE for recovery reference
+
+**Key Features:**
+
+- **DELETE INPUT**: Removes archived logs after successful backup
+- **No Automatic Log Switch**: Allows backup even if archiver is stuck
+- **Flexible Filtering**: Use ARCHIVE_RANGE and ARCHIVE_PATTERN for selective backup
+- **Optional SPFILE**: Control SPFILE backup via CUSTOM_PARAM_1
+
+**Example Usage:**
+
+```bash
+# Backup all archived logs
+oradba_rman.sh --sid PROD --rcv bck_arc.rcv
+
+# Backup last 24 hours of archived logs
+export RMAN_ARCHIVE_RANGE="FROM TIME 'SYSDATE-1'"
+oradba_rman.sh --sid PROD --rcv bck_arc.rcv
+
+# Include SPFILE backup (conditional via CUSTOM_PARAM_1)
+export RMAN_CUSTOM_PARAM_1="backup spfile TAG 'SPFILE_BACKUP' format '<BACKUP_PATH>spfile_<ORACLE_SID>_<START_DATE>';"
+oradba_rman.sh --sid PROD --rcv bck_arc.rcv
+
+# Backup with pattern filtering
+export RMAN_ARCHIVE_PATTERN="LIKE '/arch/prod_%'"
+oradba_rman.sh --sid PROD --rcv bck_arc.rcv --compression HIGH
+```
+
+**Configuration Example:**
+
+```bash
+# In ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
+
+# Archive log backup every 4 hours
+export RMAN_ARCHIVE_RANGE="ALL"
+export RMAN_COMPRESSION="MEDIUM"
+export RMAN_TAG="ARCHIVELOG_BACKUP"
+
+# Optional: Include SPFILE backup
+export RMAN_CUSTOM_PARAM_1="backup spfile TAG 'SPFILE_BACKUP' format '<BACKUP_PATH>spfile_<ORACLE_SID>_<START_DATE>';"
+```
+
+**Important Notes:**
+
+1. **DELETE INPUT** removes archived logs after backup - ensure backups are successful
+2. No automatic log switch is performed - manually uncomment if needed
+3. Use with appropriate retention policy to prevent running out of archived log space
+4. Recommended for scheduled archivelog-only backups (e.g., every 4 hours)
 
 ## Best Practices
 
