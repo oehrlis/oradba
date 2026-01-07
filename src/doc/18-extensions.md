@@ -408,6 +408,10 @@ Extension Integrity Checks:
 2. Check what files changed:
 
    ```bash
+   # Use verbose mode to see details
+   oradba_version.sh --info --verbose
+   
+   # Or check manually
    cd /opt/oracle/local/customer
    sha256sum -c .extension.checksum
    ```
@@ -420,8 +424,31 @@ Extension Integrity Checks:
      xargs -0 sha256sum > .extension.checksum
    ```
 
-**Note**: The `.extension` metadata file is excluded from checksum verification as
-it's expected to be modified during installation.
+**Verbose Mode Output**:
+
+```bash
+# With --verbose flag, see detailed information
+oradba_version.sh --verify --verbose
+
+Extension Integrity Checks:
+  ✗ Extension 'customer': FAILED
+      Modified or missing files:
+        ${CUSTOMER_BASE}/bin/tool.sh
+      Additional files (not in checksum):
+        ${CUSTOMER_BASE}/sql/new_script.sql
+```
+
+**Extension Environment Variables**:
+
+Each loaded extension exports a `<NAME>_BASE` variable pointing to its directory:
+
+```bash
+echo $CUSTOMER_BASE    # /opt/oracle/local/customer
+echo $USZ_BASE         # /opt/oracle/local/usz
+```
+
+**Note**: The `.extension` metadata file and `log/` directory are excluded from
+checksum verification as they're modified during normal operation.
 
 ### Priority Issues
 

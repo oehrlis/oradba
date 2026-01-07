@@ -90,7 +90,7 @@ integrity verification. This file:
 - Uses the standard `.extension.checksum` filename (always the same, regardless of extension name)
 - Contains SHA256 checksums in the format produced by `sha256sum`
 - Is automatically verified by `oradba_version.sh --verify` and `--info`
-- Excludes `.extension` from verification (modified during installation)
+- Excludes `.extension` and `log/` from verification (modified during operation)
 - Is only checked for enabled extensions
 
 Example `.extension.checksum`:
@@ -103,6 +103,19 @@ a1b2c3d4e5f6...  bin/my_tool.sh
 
 When creating extensions with `oradba_extension.sh create --from-github`, the checksum
 file is automatically included and verified.
+
+**Verbose Mode**: Use `--verbose` flag to see detailed information about failed checks:
+
+```bash
+oradba_version.sh --verify --verbose
+
+Extension Integrity Checks:
+  ✗ Extension 'customer': FAILED
+      Modified or missing files:
+        ${CUSTOMER_BASE}/bin/tool.sh
+      Additional files (not in checksum):
+        ${CUSTOMER_BASE}/sql/new_query.sql
+```
 
 ## Configuration
 
@@ -565,11 +578,15 @@ See `doc/examples/extensions/` for complete examples:
 
 ### Environment Variables (Per-Extension)
 
-| Variable                     | Example                               | Description    |
-|------------------------------|---------------------------------------|----------------|
-| `ORADBA_EXT_<NAME>_ENABLED`  | `ORADBA_EXT_CUSTOMER_ENABLED="false"` | Enable/disable |
-| `ORADBA_EXT_<NAME>_PRIORITY` | `ORADBA_EXT_CUSTOMER_PRIORITY="10"`   | Load priority  |
-| `ORADBA_EXT_<NAME>_PATH`     | Set automatically                     | Extension path |
+| Variable                     | Example                               | Description                     |
+|------------------------------|---------------------------------------|---------------------------------|
+| `ORADBA_EXT_<NAME>_ENABLED`  | `ORADBA_EXT_CUSTOMER_ENABLED="false"` | Enable/disable                  |
+| `ORADBA_EXT_<NAME>_PRIORITY` | `ORADBA_EXT_CUSTOMER_PRIORITY="10"`   | Load priority                   |
+| `ORADBA_EXT_<NAME>_PATH`     | Set automatically                     | Extension path (long format)    |
+| `<NAME>_BASE`                | Set automatically                     | Extension path (e.g. USZ_BASE)  |
+
+**Note**: The `<NAME>_BASE` variable is automatically exported when an extension is loaded.
+For example, loading the `usz` extension creates `$USZ_BASE=/opt/oracle/local/usz`.
 
 ### Functions (lib/extensions.sh)
 

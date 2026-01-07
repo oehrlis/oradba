@@ -333,9 +333,13 @@ load_extension() {
     # Create navigation alias (cd<extname> or cde<extname>)
     create_extension_alias "${ext_name}" "${ext_path}"
     
-    # Export extension path for reference
+    # Export extension path variables for reference
     local var_name="ORADBA_EXT_${ext_name^^}_PATH"
     export "${var_name}=${ext_path}"
+    
+    # Export <EXTENSION>_BASE variable (e.g., USZ_BASE=/opt/oracle/local/usz)
+    local base_var="${ext_name^^}_BASE"
+    export "${base_var}=${ext_path}"
     
     # Show version if available
     local version

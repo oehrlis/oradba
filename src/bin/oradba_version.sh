@@ -35,6 +35,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Verbose mode flag
+VERBOSE=false
+
 # Check if running in a terminal for colored output
 if [[ ! -t 1 ]]; then
     RED=''
@@ -310,27 +313,60 @@ check_extension_checksums() {
         # Change to extension directory for relative paths
         cd "${extension_dir}" || continue
         
-        # Verify checksums (exclude .extension as it's modified during installation)
+        # Verify checksums (exclude .extension and log/ as modified during operation)
+        # Checksum format is: hash  filename
+        # Filter out .extension and log/* files using awk
         local verify_output
-        verify_output=$(grep -v '\.extension$' "${checksum_file}" | sha256sum -c - 2>&1)
+        verify_output=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// {print}' "${checksum_file}" | sha256sum -c - 2>&1)
         local verify_status=$?
         
         if [[ ${verify_status} -eq 0 ]]; then
             local file_count
-            file_count=$(grep -v '^\\.extension$' "${checksum_file}" | grep -c '^[^#]')
+            file_count=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// && !/^#/ {print}' "${checksum_file}" | wc -l | tr -d ' ')
             echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
         else
             echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
             ((failed_count++))
             
-            # Show which files failed
-            while IFS= read -r line; do
-                if [[ "$line" =~ FAILED ]]; then
-                    local failed_file
-                    failed_file=$(echo "$line" | cut -d: -f1)
-                    echo "      ${failed_file}: MODIFIED or MISSING"
-                fi
-            done <<< "$verify_output"
+            # Show details in verbose mode
+            if [[ "${VERBOSE}" == "true" ]]; then
+                echo "      Modified or missing files:"
+                while IFS= read -r line; do
+                    if [[ "$line" =~ FAILED ]]; then
+                        local failed_file
+                        failed_file=$(echo "$line" | cut -d: -f1)
+                        echo "        \${${ext_name^^}_BASE}/${failed_file}"
+                    fi
+                done <<< "$verify_output"
+            fi
+        fi
+        
+        # Check for additional files not in checksum (only in verbose mode)
+        # This runs regardless of checksum pass/fail status
+        if [[ "${VERBOSE}" == "true" ]]; then
+            local checksummed_files
+            checksummed_files=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// && !/^#/ {print $2}' "${checksum_file}" | sort)
+            
+            local additional_files=()
+            local managed_dirs=("bin" "sql" "rcv" "etc" "lib")
+            
+            for dir in "${managed_dirs[@]}"; do
+                [[ ! -d "${dir}" ]] && continue
+                
+                while IFS= read -r -d '' file; do
+                    local rel_path="${file#./}"
+                    if ! echo "${checksummed_files}" | grep -qxF "${rel_path}"; then
+                        additional_files+=("${rel_path}")
+                    fi
+                done < <(find "${dir}" -type f ! -name ".*" -print0 2>/dev/null)
+            done
+            
+            if [[ ${#additional_files[@]} -gt 0 ]]; then
+                echo "      Additional files (not in checksum):"
+                for file in "${additional_files[@]}"; do
+                    echo "        \${${ext_name^^}_BASE}/${file}"
+                done
+            fi
         fi
     done
     
@@ -391,8 +427,9 @@ show_installed_extensions() {
         if [[ "${enabled_status}" == "enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
             local checksum_file="${ext_path}/.extension.checksum"
             
-            # Verify checksums
-            if (cd "${ext_path}" && sha256sum -c "${checksum_file}" &>/dev/null); then
+            # Verify checksums (exclude .extension and log/ as modified during operation)
+            # Checksum format is: hash  filename - use awk to filter by filename field
+            if (cd "${ext_path}" && awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// {print}' "${checksum_file}" | sha256sum -c - &>/dev/null); then
                 checksum_status=" ${GREEN}✓${NC}"
             else
                 checksum_status=" ${RED}✗${NC}"
@@ -516,6 +553,7 @@ Options:
   -c, --check         Show current version
   -v, --verify        Verify installation integrity (checksums)
   --verify-core       Verify core installation only (skip extensions)
+  --verbose           Show detailed file list for failed checks
       --show-backup   Show backup commands for additional files (use with -v)
   -u, --update-check  Check for available updates online
   -i, --info          Show detailed version information
@@ -524,8 +562,9 @@ Options:
 Examples:
   $(basename "$0") --check
   $(basename "$0") --verify
+  $(basename "$0") --verify --verbose
+  $(basename "$0") --info --verbose
   $(basename "$0") --update-check
-  $(basename "$0") --info
 
 Exit codes:
   0 - Success
@@ -547,6 +586,10 @@ main() {
         case "$1" in
             --show-backup)
                 SHOW_BACKUP="true"
+                shift
+                ;;
+            --verbose)
+                VERBOSE="true"
                 shift
                 ;;
             -c|--check|-v|--verify|--verify-core|-u|--update-check|-i|--info|-h|--help)

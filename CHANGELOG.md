@@ -21,8 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Extension Verification Improvements**: Enhanced extension integrity checking behavior
   - Disabled extensions are now skipped during checksum verification
   - `.extension` metadata file excluded from verification (modified during installation)
+  - `log/` directory excluded from verification (operational data)
   - Only enabled extensions shown in verification output
   - Prevents confusing "FAILED" messages for disabled extensions
+  - Uses `awk` to properly parse checksum file format (hash filename pairs)
 
 - **Installer Integrity Checks**: Modified installer to skip extension verification
   - Added `--verify-core` option to verify only core OraDBA files
@@ -45,9 +47,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Verbose Mode for Extension Checks**: Added `--verbose` flag for detailed integrity information
+  - Shows modified or missing files with `${EXTENSION_BASE}` prefix
+  - Detects additional files not in checksum (e.g., new scripts added)
+  - Works with both `--verify` and `--info` commands
+  - Usage: `oradba_version.sh --verify --verbose`
+
+- **Extension Base Variables**: Automatic environment variables for each loaded extension
+  - Each extension exports `<NAME>_BASE` variable (e.g., `USZ_BASE=/opt/oracle/local/usz`)
+  - Simplifies referencing extension paths in scripts and documentation
+  - Complements existing `ORADBA_EXT_<NAME>_PATH` variables
+  - Automatically set when extension is loaded
+
 - **Documentation Updates**: Enhanced extension documentation with checksum information
   - Added `.extension.checksum` to directory structure examples
-  - Documented that `.extension` is excluded from verification
+  - Documented that `.extension` and `log/` are excluded from verification
   - Added integrity check troubleshooting section in user guide
   - Included checksum update instructions for intentional file changes
 
