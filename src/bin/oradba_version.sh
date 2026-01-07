@@ -233,20 +233,23 @@ check_additional_files() {
 # Check extension checksums if available
 # ------------------------------------------------------------------------------
 check_extension_checksums() {
-    local extensions_dir="${BASE_DIR}/extensions"
     local checked_count=0
     local failed_count=0
+    local checksum_files=()
     
-    # Check if extensions directory exists
-    if [[ ! -d "${extensions_dir}" ]]; then
-        return 0
+    # Check extensions in ORADBA_BASE/extensions
+    if [[ -d "${BASE_DIR}/extensions" ]]; then
+        while IFS= read -r -d '' checksum_file; do
+            checksum_files+=("${checksum_file}")
+        done < <(find "${BASE_DIR}/extensions" -maxdepth 2 -type f -name ".*.checksum" -print0)
     fi
     
-    # Look for extension checksum files
-    local checksum_files=()
-    while IFS= read -r -d '' checksum_file; do
-        checksum_files+=("${checksum_file}")
-    done < <(find "${extensions_dir}" -maxdepth 2 -type f -name ".*.checksum" -print0)
+    # Check extensions in ORADBA_LOCAL_BASE if set and different
+    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]] && [[ "${ORADBA_LOCAL_BASE}" != "${BASE_DIR}/extensions" ]]; then
+        while IFS= read -r -d '' checksum_file; do
+            checksum_files+=("${checksum_file}")
+        done < <(find "${ORADBA_LOCAL_BASE}" -maxdepth 2 -type f \( -name ".*.checksum" -o -name "*.checksum" \) -print0)
+    fi
     
     # Return if no checksum files found
     if [[ ${#checksum_files[@]} -eq 0 ]]; then
@@ -307,6 +310,67 @@ check_extension_checksums() {
     fi
     
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Show installed extensions
+# ------------------------------------------------------------------------------
+show_installed_extensions() {
+    # Source extensions library if available
+    if [[ -f "${BASE_DIR}/lib/extensions.sh" ]]; then
+        # shellcheck source=../lib/extensions.sh
+        source "${BASE_DIR}/lib/extensions.sh"
+    else
+        return 0
+    fi
+    
+    # Get all extensions
+    local extensions
+    mapfile -t extensions < <(get_all_extensions 2>/dev/null)
+    
+    if [[ ${#extensions[@]} -eq 0 ]]; then
+        return 0
+    fi
+    
+    echo ""
+    echo "Installed Extensions:"
+    
+    # Sort by priority
+    local sorted
+    mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}" 2>/dev/null)
+    
+    for ext_path in "${sorted[@]}"; do
+        local name version enabled_status checksum_status
+        name=$(get_extension_name "${ext_path}" 2>/dev/null)
+        version=$(get_extension_version "${ext_path}" 2>/dev/null)
+        
+        # Check if enabled
+        if is_extension_enabled "${name}" "${ext_path}" 2>/dev/null; then
+            enabled_status="enabled"
+        else
+            enabled_status="disabled"
+        fi
+        
+        # Check for checksum file and verify
+        checksum_status=""
+        if [[ -f "${ext_path}/.extension.checksum" ]] || [[ -f "${ext_path}/.${name}.checksum" ]]; then
+            local checksum_file
+            if [[ -f "${ext_path}/.extension.checksum" ]]; then
+                checksum_file="${ext_path}/.extension.checksum"
+            else
+                checksum_file="${ext_path}/.${name}.checksum"
+            fi
+            
+            # Verify checksums
+            if (cd "${ext_path}" && sha256sum -c "${checksum_file}" &>/dev/null); then
+                checksum_status=" ${GREEN}✓${NC}"
+            else
+                checksum_status=" ${RED}✗${NC}"
+            fi
+        fi
+        
+        printf "  %-20s %-10s [%s]%s\n" "${name}" "v${version}" "${enabled_status}" "${checksum_status}"
+    done
 }
 
 # ------------------------------------------------------------------------------
@@ -398,6 +462,9 @@ version_info() {
             esac
         done < "${install_info}"
     fi
+    
+    # Show installed extensions
+    show_installed_extensions
     
     echo ""
     check_integrity

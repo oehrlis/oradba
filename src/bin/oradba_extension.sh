@@ -263,6 +263,9 @@ download_github_release() {
     fi
     
     echo "Downloaded successfully"
+    
+    # Output tag_name to stdout for caller to capture
+    echo "${tag_name}"
     return 0
 }
 
@@ -275,6 +278,7 @@ cmd_create() {
     local template_file=""
     local use_github=false
     local temp_dir=""
+    local ext_version="0.1.0"
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -343,10 +347,20 @@ cmd_create() {
         temp_dir=$(mktemp -d)
         template_file="${temp_dir}/github-release.tar.gz"
         
-        if ! download_github_release "${template_file}"; then
+        # Capture output: last line is tag_name, others are status messages
+        local github_output
+        github_output=$(download_github_release "${template_file}")
+        local download_status=$?
+        
+        if [[ ${download_status} -ne 0 ]]; then
             rm -rf "${temp_dir}"
             return 1
         fi
+        
+        # Extract version from last line of output (tag_name)
+        ext_version=$(echo "${github_output}" | tail -1)
+        # Remove 'v' prefix if present (e.g., v0.1.0 -> 0.1.0)
+        ext_version="${ext_version#v}"
     elif [[ -n "${template_file}" ]]; then
         echo -e "${BOLD}Creating extension from custom template${NC}"
         if [[ ! -f "${template_file}" ]]; then
@@ -449,9 +463,16 @@ cmd_create() {
     # Update metadata if .extension file exists
     if [[ -f "${ext_path}/.extension" ]]; then
         echo "Updating extension metadata..."
-        sed -i.bak "s/^name=.*/name=${ext_name}/" "${ext_path}/.extension" 2>/dev/null || \
-            sed -i '' "s/^name=.*/name=${ext_name}/" "${ext_path}/.extension" 2>/dev/null
+        # Update name (support both key=value and key: value formats)
+        sed -i.bak "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2>/dev/null || \
+            sed -i '' "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2>/dev/null
+        # Update version
+        sed -i.bak "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2>/dev/null || \
+            sed -i '' "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2>/dev/null
         rm -f "${ext_path}/.extension.bak"
+        
+        echo "  Name:    ${ext_name}"
+        echo "  Version: ${ext_version}"
     fi
     
     echo -e "${GREEN}✓ Extension created successfully${NC}"

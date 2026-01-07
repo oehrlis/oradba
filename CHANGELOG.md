@@ -15,12 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Automatically finds latest release via GitHub API
     - Prioritizes `extension-template-*.tar.gz` assets
     - Displays release version during download
+    - Automatically sets extension version from GitHub release tag (or 0.1.0 for local tarballs)
     - Falls back to source tarball if no asset found
   - Custom template support: `--template <file>` accepts any .tar.gz/.tgz file
   - Custom target location: `--path <dir>` overrides default `ORADBA_LOCAL_BASE`
   - Automatic extension name validation (alphanumeric, dashes, underscores, must start with letter)
   - Error handling for existing extensions (fails with clear message)
-  - Automatic metadata update (replaces template name with new extension name)
+  - Automatic metadata update in `.extension` file:
+    - Sets `name:` field to CLI-specified extension name
+    - Sets `version:` field to GitHub release version or default (0.1.0)
   - Detailed next steps displayed after creation
   - Comprehensive test coverage in `test_extensions.bats`
   - Updated documentation:
@@ -28,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/doc/18-extensions.md`: Updated Quick Start with create command
     - `README.md`: Extension example now uses create command
     - `src/templates/extensions/README.md`: Create command as recommended method
+
+- **Extension Status in Version Info**: Enhanced `oradba_version.sh --info` to show installed extensions
+  - Displays compact list of all discovered extensions with name, version, and status
+  - Shows enabled/disabled status for each extension
+  - Automatic checksum verification when `.extension.checksum` or `.${name}.checksum` exists
+  - Visual indicators: ✓ (green) for verified, ✗ (red) for modified/failed checksums
+  - Checks extensions in both `ORADBA_BASE/extensions` and `ORADBA_LOCAL_BASE`
 
 ## [0.14.1] - 2026-01-06
 
