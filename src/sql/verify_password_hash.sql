@@ -36,7 +36,7 @@ DECLARE
  eMatch EXCEPTION;
  eTimeout EXCEPTION;
  TYPE pwdDt IS TABLE OF VARCHAR2(30) INDEX BY BINARY_INTEGER;
- Dict pwdDt;             -- Dictionary arry
+ Dict pwdDt;             -- Dictionary array
  DictEmpty pwdDt;        -- empty Dictionary array to clean up
  CURSOR Accounts IS SELECT name, password AS pass, astatus AS status FROM sys.user$ WHERE type#=1 AND LOWER(name) LIKE LOWER('%'||cUser||'%') ORDER BY user#;
 
@@ -112,7 +112,7 @@ PROCEDURE initDict(u IN VARCHAR2 := 'USER', m IN NUMBER := 10)
   vDomainName VARCHAR2(30);
   n NUMBER :=0;
  BEGIN
-  -- get some values from the sys_context. sub blocks are used to handle expeption eg. 9i / 10g
+  -- get some values from the sys_context. sub blocks are used to handle exception eg. 9i / 10g
   BEGIN vDBName:= sys_context('USERENV','DB_NAME'); EXCEPTION WHEN OTHERS THEN vDBName:='ORCL'; END;
   BEGIN vOSUser:= sys_context('USERENV','OS_USER'); EXCEPTION WHEN OTHERS THEN vOSUser:='ORACLE'; END;
   BEGIN vHost:= sys_context('USERENV','HOST'); EXCEPTION WHEN OTHERS THEN vHost:='LOCALHOST'; END;
@@ -130,7 +130,7 @@ PROCEDURE initDict(u IN VARCHAR2 := 'USER', m IN NUMBER := 10)
   Dict(Dict.COUNT+1):='WELCOME';
   Dict(Dict.COUNT+1):='CHANGE_ON_INSTALL';
   Dict(Dict.COUNT+1):='ORACLE';
-  -- passords with user and database name
+  -- passwords with user and database name
   Dict(Dict.COUNT+1):=vDBName;
   Dict(Dict.COUNT+1):=u||vDBName;
   Dict(Dict.COUNT+1):=vDBName||u;

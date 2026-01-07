@@ -30,7 +30,7 @@ COLUMN rec_year            format 9,999,999,999 heading "Avg per year"
 COLUMN num_rows            format 9,999,999,999 heading "No of rows"
 COLUMN avg_row_len         format 9,999,999,999 heading "Average row length"
 COLUMN actual_size_of_data format a24 heading "Total data size"
-COLUMN total_size          format a24 heading "Total size of segements"
+COLUMN total_size          format a24 heading "Total size of segments"
 
 -- Configure spool directory and filename components
 DEFINE LOGDIR = '.'
@@ -93,7 +93,7 @@ SELECT 'FGA_LOG$' "table_name", min_rec,max_rec,rec_day,rec_month,rec_year,rec_t
  (SELECT max(ntimestamp#) max_rec FROM sys.fga_log$),
  (SELECT min(ntimestamp#) min_rec FROM sys.fga_log$),
  (SELECT nvl(avg(count(*)),0) rec_day FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY.MM.DD')),
- (SELECT nvl(avg(count(*)),0) rec_month FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY.MM')),
+ (SELECT nvl(avg(count(*)),0) rec_month FROM sys.fga_log$ GROUP BY to_char(#,'YYYY.MM')),
  (SELECT nvl(avg(count(*)),0) rec_year FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY')),
  (SELECT nvl(count(*),0) rec_tot FROM sys.fga_log$)  
 UNION

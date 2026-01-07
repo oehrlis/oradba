@@ -7,10 +7,10 @@
 -- Date......: 2018.12.11
 -- Revision..: 0.9.5
 -- Purpose...: Check if user in sys.user$ has a weak password
--- Usage.....: @verify_passwords SHOW USER TIMOUT
+-- Usage.....: @verify_passwords SHOW USER TIMEOUT
 --              SHOW     TRUE or FALSE depending if passwords should be displayed
 --              USER     Limit to certain users
---              TIMEOUT  A timeout for the proceedure
+--              TIMEOUT  A timeout for the procedure
 -- Notes.....: 
 -- Reference.: requires execute on dbms_crypto
 -- License...: Apache License Version 2.0, January 2004 as shown
@@ -35,7 +35,7 @@ DECLARE
  eMatch EXCEPTION;
  eTimeout EXCEPTION;
  TYPE pwdDt IS TABLE OF VARCHAR2(30) INDEX BY BINARY_INTEGER;
- Dict pwdDt;             -- Dictionary arry
+ Dict pwdDt;             -- Dictionary array
  DictEmpty pwdDt;        -- empty Dictionary array to clean up
  CURSOR Accounts IS SELECT name, password AS pass, astatus AS status FROM sys.user$ WHERE type#=1 AND LOWER(name) LIKE LOWER('%'||cUser||'%') ORDER BY user#;
 
@@ -61,7 +61,7 @@ FUNCTION timeout RETURN NUMBER IS BEGIN RETURN TO_NUMBER(TO_CHAR(SYSDATE,'SSSSS'
 -- User parameters...: Username as VARCHAR2
 --                     Password as VARCHAR2 (DEFAULT = MANAGER)
 -- Output parameters.: Unicode String as RAW
--- Notes.............: Callculate the Oracle password hash
+-- Notes.............: Calculate the Oracle password hash
 --                     1. create an zero padded unicode string
 --                     2. encrypt the unicode string with DES CBC and 
 --                        0123456789ABCDEF as the initial key
@@ -79,7 +79,7 @@ FUNCTION PasswordHash(u IN VARCHAR2, pPassword IN VARCHAR2 := 'MANAGER') RETURN 
   -- Define CONSTANT for the crypto type DES in CBC Mode with zero padding
   cCryptoTyp CONSTANT PLS_INTEGER := DBMS_CRYPTO.ENCRYPT_DES + DBMS_CRYPTO.CHAIN_CBC + DBMS_CRYPTO.PAD_ZERO;
  BEGIN  
-  -- Build the new userpwd String as multibyte with the high byte set to 0 and convert the string into raw
+  -- Build the new user pwd String as multi byte with the high byte set to 0 and convert the string into raw
   FOR i IN 1..LENGTH(UPPER(u||pPassword)) LOOP vUniStr := vUniStr||CHR(0)||SUBSTR(UPPER(u||pPassword),i,1); END LOOP;
   -- First DES encryption to create the second DES key
   vEncRAW:= DBMS_CRYPTO.ENCRYPT(SRC=>UTL_RAW.CAST_TO_RAW(vUniStr), TYP => cCryptoTyp, KEY => HEXTORAW('0123456789ABCDEF'));
@@ -111,7 +111,7 @@ PROCEDURE initDict(u IN VARCHAR2 := 'USER', m IN NUMBER := 10)
   vDomainName VARCHAR2(30);
   n NUMBER :=0;
  BEGIN
-  -- get some values from the sys_context. sub blocks are used to handle expeption eg. 9i / 10g
+  -- get some values from the sys_context. sub blocks are used to handle exception eg. 9i / 10g
   BEGIN vDBName:= sys_context('USERENV','DB_NAME'); EXCEPTION WHEN OTHERS THEN vDBName:='ORCL'; END;
   BEGIN vOSUser:= sys_context('USERENV','OS_USER'); EXCEPTION WHEN OTHERS THEN vOSUser:='ORACLE'; END;
   BEGIN vHost:= sys_context('USERENV','HOST'); EXCEPTION WHEN OTHERS THEN vHost:='LOCALHOST'; END;
@@ -129,7 +129,7 @@ PROCEDURE initDict(u IN VARCHAR2 := 'USER', m IN NUMBER := 10)
   Dict(Dict.COUNT+1):='WELCOME';
   Dict(Dict.COUNT+1):='CHANGE_ON_INSTALL';
   Dict(Dict.COUNT+1):='ORACLE';
-  -- passords with user and database name
+  -- passwords with user and database name
   Dict(Dict.COUNT+1):=vDBName;
   Dict(Dict.COUNT+1):=u||vDBName;
   Dict(Dict.COUNT+1):=vDBName||u;
