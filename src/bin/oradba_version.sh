@@ -247,6 +247,19 @@ check_extension_checksums() {
     # Check extensions in ORADBA_LOCAL_BASE if set and different
     if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]] && [[ "${ORADBA_LOCAL_BASE}" != "${BASE_DIR}/extensions" ]]; then
         while IFS= read -r -d '' checksum_file; do
+            local checksum_dir
+            checksum_dir=$(dirname "${checksum_file}")
+            
+            # Skip if this is the main OraDBA installation directory
+            if [[ "$(cd "${checksum_dir}" && pwd)" == "$(cd "${BASE_DIR}" && pwd)" ]]; then
+                continue
+            fi
+            
+            # Skip if this is inside the main OraDBA directory (not an extension)
+            if [[ "${checksum_dir}" == "${BASE_DIR}"* ]] && [[ "${checksum_dir}" != "${BASE_DIR}/extensions"* ]]; then
+                continue
+            fi
+            
             checksum_files+=("${checksum_file}")
         done < <(find "${ORADBA_LOCAL_BASE}" -maxdepth 2 -type f \( -name ".*.checksum" -o -name "*.checksum" \) -print0)
     fi
