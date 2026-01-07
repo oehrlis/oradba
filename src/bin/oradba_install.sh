@@ -1312,15 +1312,15 @@ find "$INSTALL_PREFIX/bin" -type f -name "*.sh" -exec chmod +x {} \;
 # Verify installation integrity
 log_info "Verifying installation integrity..."
 if [[ -x "$INSTALL_PREFIX/bin/oradba_version.sh" ]]; then
-    # Run checksum verification with ORADBA_BASE set
-    if ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify >/dev/null 2>&1; then
+    # Run checksum verification with ORADBA_BASE set (skip extension checks during install)
+    if ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify-core >/dev/null 2>&1; then
         log_info "Installation integrity verified"
     else
         log_error "Installation integrity verification FAILED"
         log_error "Some files may be corrupted or missing"
         echo ""
         echo "Running detailed verification:"
-        ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify
+        ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify-core
         echo ""
         
         # Rollback if this was an update

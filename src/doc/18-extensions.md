@@ -18,7 +18,7 @@ Extensions are directories parallel to your OraDBA installation that contain cus
 
 ### Creating an Extension
 
-**Method 1: Using the create command (Recommended)**
+#### Method 1: Using the create command (Recommended)
 
 ```bash
 # Create new extension from default template
@@ -35,7 +35,7 @@ source oraenv.sh FREE
 oradba_extension.sh list
 ```
 
-**Method 2: Manual creation**
+#### Method 2: Manual creation
 
 1. **Create extension directory**:
 
@@ -113,6 +113,7 @@ oradba_extension.sh create mycompany --path /opt/oracle/custom
 ```
 
 The create command will:
+
 - Validate the extension name
 - Extract template to target location
 - Update metadata with new name
@@ -246,6 +247,7 @@ export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
 ```text
 /opt/oracle/local/customer/
 ├── .extension              # Metadata (optional)
+├── .extension.checksum     # SHA256 checksums for integrity (optional)
 ├── README.md              # Documentation (recommended)
 ├── bin/                   # Executable scripts (added to PATH)
 │   ├── tool1.sh
@@ -382,6 +384,44 @@ chmod +x /opt/oracle/local/backup/bin/backup_db.sh
    ```bash
    source oraenv.sh ${ORACLE_SID}
    ```
+
+### Integrity Check Failures
+
+**Problem**: Extension shows failed checksum verification
+
+**Symptoms**:
+
+```text
+Extension Integrity Checks:
+  ✗ Extension 'customer': FAILED
+```
+
+**Solutions**:
+
+1. Verify extension is enabled:
+
+   ```bash
+   oradba_extension.sh list
+   # Disabled extensions are not checked
+   ```
+
+2. Check what files changed:
+
+   ```bash
+   cd /opt/oracle/local/customer
+   sha256sum -c .extension.checksum
+   ```
+
+3. Update checksums after intentional changes:
+
+   ```bash
+   cd /opt/oracle/local/customer
+   find . -type f ! -name '.extension.checksum' -print0 | \
+     xargs -0 sha256sum > .extension.checksum
+   ```
+
+**Note**: The `.extension` metadata file is excluded from checksum verification as
+it's expected to be modified during installation.
 
 ### Priority Issues
 

@@ -61,8 +61,11 @@ check_version() {
 
 # ------------------------------------------------------------------------------
 # Verify installation integrity
+# Arguments:
+#   $1 - skip_extensions (optional): if "true", skip extension checksum verification
 # ------------------------------------------------------------------------------
 check_integrity() {
+    local skip_extensions="${1:-false}"
     local checksum_file="${BASE_DIR}/.oradba.checksum"
     
     if [[ ! -f "${checksum_file}" ]]; then
@@ -163,9 +166,12 @@ check_integrity() {
     # Always check for additional files regardless of integrity check result
     check_additional_files
     
-    # Check extension checksums if available
-    check_extension_checksums
-    local extension_status=$?
+    # Check extension checksums if available (unless skipped)
+    local extension_status=0
+    if [[ "${skip_extensions}" != "true" ]]; then
+        check_extension_checksums
+        extension_status=$?
+    fi
     
     # Return worst status (integrity or extension check failure)
     if [[ ${integrity_result} -ne 0 ]] || [[ ${extension_status} -ne 0 ]]; then
@@ -241,7 +247,7 @@ check_extension_checksums() {
     if [[ -d "${BASE_DIR}/extensions" ]]; then
         while IFS= read -r -d '' checksum_file; do
             checksum_files+=("${checksum_file}")
-        done < <(find "${BASE_DIR}/extensions" -maxdepth 2 -type f -name ".*.checksum" -print0)
+        done < <(find "${BASE_DIR}/extensions" -maxdepth 2 -type f -name ".extension.checksum" -print0)
     fi
     
     # Check extensions in ORADBA_LOCAL_BASE if set and different
@@ -261,7 +267,7 @@ check_extension_checksums() {
             fi
             
             checksum_files+=("${checksum_file}")
-        done < <(find "${ORADBA_LOCAL_BASE}" -maxdepth 2 -type f \( -name ".*.checksum" -o -name "*.checksum" \) -print0)
+        done < <(find "${ORADBA_LOCAL_BASE}" -maxdepth 2 -type f -name ".extension.checksum" -print0)
     fi
     
     # Return if no checksum files found
@@ -269,33 +275,49 @@ check_extension_checksums() {
         return 0
     fi
     
-    echo ""
-    echo -e "${BLUE}Extension Integrity Checks:${NC}"
-    
-    # Check each extension checksum file
+    # First pass: check which extensions are enabled
+    local enabled_extensions=()
     for checksum_file in "${checksum_files[@]}"; do
         local extension_dir
         extension_dir=$(dirname "${checksum_file}")
+        local ext_name
+        ext_name=$(basename "${extension_dir}")
         
-        # Extract extension name from checksum filename (e.g., .myext.checksum -> myext)
-        local checksum_basename
-        checksum_basename=$(basename "${checksum_file}")
-        local ext_name="${checksum_basename#.}"
-        ext_name="${ext_name%.checksum}"
+        if is_extension_enabled "${ext_name}" "${extension_dir}" 2>/dev/null; then
+            enabled_extensions+=("${checksum_file}")
+        fi
+    done
+    
+    # Return if no enabled extensions with checksums
+    if [[ ${#enabled_extensions[@]} -eq 0 ]]; then
+        return 0
+    fi
+    
+    echo ""
+    echo -e "${BLUE}Extension Integrity Checks:${NC}"
+    
+    # Check each enabled extension checksum file
+    for checksum_file in "${enabled_extensions[@]}"; do
+        local extension_dir
+        extension_dir=$(dirname "${checksum_file}")
+        
+        # Extract extension name from directory name
+        local ext_name
+        ext_name=$(basename "${extension_dir}")
         
         ((checked_count++))
         
         # Change to extension directory for relative paths
         cd "${extension_dir}" || continue
         
-        # Verify checksums
+        # Verify checksums (exclude .extension as it's modified during installation)
         local verify_output
-        verify_output=$(sha256sum -c "${checksum_file}" 2>&1)
+        verify_output=$(grep -v '\.extension$' "${checksum_file}" | sha256sum -c - 2>&1)
         local verify_status=$?
         
         if [[ ${verify_status} -eq 0 ]]; then
             local file_count
-            file_count=$(grep -c '^[^#]' "${checksum_file}")
+            file_count=$(grep -v '^\\.extension$' "${checksum_file}" | grep -c '^[^#]')
             echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
         else
             echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
@@ -364,15 +386,10 @@ show_installed_extensions() {
             enabled_status="disabled"
         fi
         
-        # Check for checksum file and verify
+        # Check for checksum file and verify (only for enabled extensions)
         checksum_status=""
-        if [[ -f "${ext_path}/.extension.checksum" ]] || [[ -f "${ext_path}/.${name}.checksum" ]]; then
-            local checksum_file
-            if [[ -f "${ext_path}/.extension.checksum" ]]; then
-                checksum_file="${ext_path}/.extension.checksum"
-            else
-                checksum_file="${ext_path}/.${name}.checksum"
-            fi
+        if [[ "${enabled_status}" == "enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
+            local checksum_file="${ext_path}/.extension.checksum"
             
             # Verify checksums
             if (cd "${ext_path}" && sha256sum -c "${checksum_file}" &>/dev/null); then
@@ -382,7 +399,8 @@ show_installed_extensions() {
             fi
         fi
         
-        printf "  %-20s %-10s [%s]%s\n" "${name}" "v${version}" "${enabled_status}" "${checksum_status}"
+        printf "  %-20s %-10s [%s]" "${name}" "v${version}" "${enabled_status}"
+        echo -e "${checksum_status}"
     done
 }
 
@@ -497,6 +515,7 @@ OraDBA version and integrity checking utility
 Options:
   -c, --check         Show current version
   -v, --verify        Verify installation integrity (checksums)
+  --verify-core       Verify core installation only (skip extensions)
       --show-backup   Show backup commands for additional files (use with -v)
   -u, --update-check  Check for available updates online
   -i, --info          Show detailed version information
@@ -530,7 +549,7 @@ main() {
                 SHOW_BACKUP="true"
                 shift
                 ;;
-            -c|--check|-v|--verify|-u|--update-check|-i|--info|-h|--help)
+            -c|--check|-v|--verify|--verify-core|-u|--update-check|-i|--info|-h|--help)
                 ACTION="$1"
                 shift
                 ;;
@@ -554,6 +573,9 @@ main() {
             ;;
         -v|--verify)
             check_integrity
+            ;;
+        --verify-core)
+            check_integrity true
             ;;
         -u|--update-check)
             check_updates

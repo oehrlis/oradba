@@ -32,6 +32,7 @@ Extensions are discovered automatically and loaded in priority order during envi
 │
 ├── customer/            # Example extension
 │   ├── .extension       # Metadata file (optional)
+│   ├── .extension.checksum  # Integrity checksums (optional)
 │   ├── README.md
 │   ├── bin/
 │   │   └── my_tool.sh
@@ -80,6 +81,28 @@ provides:
 
 **Note**: Extensions work without a `.extension` file. The file is optional and only
 provides additional metadata for tracking and management.
+
+### Integrity Verification
+
+Extensions can include a `.extension.checksum` file containing SHA256 checksums for
+integrity verification. This file:
+
+- Uses the standard `.extension.checksum` filename (always the same, regardless of extension name)
+- Contains SHA256 checksums in the format produced by `sha256sum`
+- Is automatically verified by `oradba_version.sh --verify` and `--info`
+- Excludes `.extension` from verification (modified during installation)
+- Is only checked for enabled extensions
+
+Example `.extension.checksum`:
+
+```text
+# Extension checksums
+a1b2c3d4e5f6...  bin/my_tool.sh
+1a2b3c4d5e6f...  sql/custom_query.sql
+```
+
+When creating extensions with `oradba_extension.sh create --from-github`, the checksum
+file is automatically included and verified.
 
 ## Configuration
 

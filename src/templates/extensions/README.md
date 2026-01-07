@@ -38,6 +38,7 @@ oradba_extension.sh create mycompany --path /opt/oracle/custom
 ```
 
 The create command will:
+
 - Validate the extension name
 - Extract the template
 - Update metadata with the new name

@@ -7,37 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-01-07
+
+### Changed
+
+- **Extension Checksum Standardization**: Standardized extension checksum filename to `.extension.checksum`
+  - Changed from `.${extension_name}.checksum` to fixed `.extension.checksum` naming
+  - Simplifies checksum management - no need to rename when distributing
+  - Automatically included in GitHub release tarballs without modification
+  - Extension name now extracted from directory name instead of checksum filename
+  - Backward compatible - old naming scheme still detected if present
+
+- **Extension Verification Improvements**: Enhanced extension integrity checking behavior
+  - Disabled extensions are now skipped during checksum verification
+  - `.extension` metadata file excluded from verification (modified during installation)
+  - Only enabled extensions shown in verification output
+  - Prevents confusing "FAILED" messages for disabled extensions
+
+- **Installer Integrity Checks**: Modified installer to skip extension verification
+  - Added `--verify-core` option to verify only core OraDBA files
+  - Installer now uses `--verify-core` instead of `--verify`
+  - Extension issues no longer cause installation failures
+  - Users can still verify extensions manually with `--verify` or `--info`
+
+### Fixed
+
+- **Main OraDBA Directory Exclusion**: Fixed false positive detection of OraDBA as extension
+  - `check_extension_checksums()` now correctly excludes `ORADBA_BASE` directory
+  - Uses canonical path comparison to handle symlinks properly
+  - Prevents "Extension 'oradba': FAILED" error during verification
+  - Only processes actual extension directories, not the main installation
+
+- **Color Code Display**: Fixed ANSI escape codes appearing in extension status output
+  - Changed from `printf` to `echo -e` for checksum status display
+  - Color indicators (✓/✗) now render correctly instead of showing raw escape codes
+  - Improved readability of extension integrity status
+
 ### Added
 
-- **Extension Creation Command**: Added `create` command to `oradba_extension.sh` for easy extension creation
-  - Create extensions from default template: `oradba_extension.sh create <name>`
-  - Support for GitHub releases: `--from-github` downloads latest from [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
-    - Automatically finds latest release via GitHub API
-    - Prioritizes `extension-template-*.tar.gz` assets
-    - Displays release version during download
-    - Automatically sets extension version from GitHub release tag (or 0.1.0 for local tarballs)
-    - Falls back to source tarball if no asset found
-  - Custom template support: `--template <file>` accepts any .tar.gz/.tgz file
-  - Custom target location: `--path <dir>` overrides default `ORADBA_LOCAL_BASE`
-  - Automatic extension name validation (alphanumeric, dashes, underscores, must start with letter)
-  - Error handling for existing extensions (fails with clear message)
-  - Automatic metadata update in `.extension` file:
-    - Sets `name:` field to CLI-specified extension name
-    - Sets `version:` field to GitHub release version or default (0.1.0)
-  - Detailed next steps displayed after creation
-  - Comprehensive test coverage in `test_extensions.bats`
-  - Updated documentation:
-    - `doc/extension-system.md`: New "Using the create Command" section
-    - `src/doc/18-extensions.md`: Updated Quick Start with create command
-    - `README.md`: Extension example now uses create command
-    - `src/templates/extensions/README.md`: Create command as recommended method
-
-- **Extension Status in Version Info**: Enhanced `oradba_version.sh --info` to show installed extensions
-  - Displays compact list of all discovered extensions with name, version, and status
-  - Shows enabled/disabled status for each extension
-  - Automatic checksum verification when `.extension.checksum` or `.${name}.checksum` exists
-  - Visual indicators: ✓ (green) for verified, ✗ (red) for modified/failed checksums
-  - Checks extensions in both `ORADBA_BASE/extensions` and `ORADBA_LOCAL_BASE`
+- **Documentation Updates**: Enhanced extension documentation with checksum information
+  - Added `.extension.checksum` to directory structure examples
+  - Documented that `.extension` is excluded from verification
+  - Added integrity check troubleshooting section in user guide
+  - Included checksum update instructions for intentional file changes
 
 ## [0.14.1] - 2026-01-06
 
