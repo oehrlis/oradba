@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../oradba_extention"
 		}
 	],
 	"settings": {}

@@ -25,7 +25,7 @@ STARTUP MOUNT;
 SHOW ALL;
 
 # Apply custom SET commands (optional)
-<SET_COMMANDS>
+#<SET_COMMANDS>
 
 RUN {
     # Allocate channels for backup (replaced by template processor)

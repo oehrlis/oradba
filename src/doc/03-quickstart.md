@@ -300,10 +300,10 @@ oradba_version.sh --update-check
 $ORADBA_PREFIX/bin/oradba_install.sh --update --github
 
 # Update to specific version
-$ORADBA_PREFIX/bin/oradba_install.sh --update --github --version 0.7.0
+$ORADBA_PREFIX/bin/oradba_install.sh --update --github --version 0.14.1
 
 # Update from local tarball
-$ORADBA_PREFIX/bin/oradba_install.sh --update --local /path/to/oradba-0.7.0.tar.gz
+$ORADBA_PREFIX/bin/oradba_install.sh --update --local /path/to/oradba-0.14.1.tar.gz
 ```
 
 **Update features:**

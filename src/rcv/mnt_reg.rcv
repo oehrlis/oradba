@@ -13,7 +13,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-<SET_COMMANDS>
+#<SET_COMMANDS>
 
 # Register target database to rman catalog
 REGISTER DATABASE;

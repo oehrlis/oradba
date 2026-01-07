@@ -1,0 +1,11 @@
+name: extension-template
+version: 0.1.0
+description: Template OraDBA extension with starter scripts and docs
+author: OraDBA Team
+enabled: true
+priority: 50
+provides:
+  bin: true
+  sql: true
+  rcv: true
+  etc: true

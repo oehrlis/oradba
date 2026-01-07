@@ -431,8 +431,10 @@ process_template() {
             -e "s|<TAG>|${tag_clause}|g" \
             -e "s|<COMPRESSION>|${compression_clause}|g" \
             -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
+            -e "s|<BCK_PATH>|${backup_path_tag}|g" \
             -e "s|<ORACLE_SID>|${oracle_sid}|g" \
             -e "s|<START_DATE>|${start_date}|g" \
+            -e "s|#<SET_COMMANDS>|${set_commands}|g" \
             -e "s|<SET_COMMANDS>|${set_commands}|g" \
             -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
             -e "s|<DATAFILES>|${datafiles_clause}|g" \
@@ -456,8 +458,10 @@ process_template() {
             -e "s|<TAG>|${tag_clause}|g" \
             -e "s|<COMPRESSION>|${compression_clause}|g" \
             -e "s|<BACKUP_PATH>|${backup_path_tag}|g" \
+            -e "s|<BCK_PATH>|${backup_path_tag}|g" \
             -e "s|<ORACLE_SID>|${oracle_sid}|g" \
             -e "s|<START_DATE>|${start_date}|g" \
+            -e "s|#<SET_COMMANDS>|${set_commands}|g" \
             -e "s|<SET_COMMANDS>|${set_commands}|g" \
             -e "s|<TABLESPACES>|${tablespaces_clause}|g" \
             -e "s|<DATAFILES>|${datafiles_clause}|g" \

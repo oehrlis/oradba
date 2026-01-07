@@ -17,7 +17,7 @@
 SHOW ALL;
 
 # Apply custom SET commands (optional)
-<SET_COMMANDS>
+#<SET_COMMANDS>
 list incarnation of database;
 report unrecoverable database;
 report need backup days=1 database;
