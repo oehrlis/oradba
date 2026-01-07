@@ -233,7 +233,8 @@ The `create` command will:
 
 **Template Sources**:
 
-- **Default**: `${ORADBA_BASE}/templates/oradba_extension/extension-template.tar.gz` (downloaded during build from GitHub releases)
+- **Default**: `${ORADBA_BASE}/templates/oradba_extension/extension-template.tar.gz`
+  (downloaded during build from GitHub releases)
 - **GitHub**: Latest release from [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
 - **Custom**: Any `.tar.gz` or `.tgz` file with extension structure
 

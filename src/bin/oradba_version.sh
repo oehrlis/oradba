@@ -63,6 +63,70 @@ check_version() {
 }
 
 # ------------------------------------------------------------------------------
+# Parse checksumignore file and return exclusion patterns
+# Arguments:
+#   $1 - extension_path: path to extension directory
+# Returns:
+#   Space-separated awk exclusion patterns (field 2 matching)
+# ------------------------------------------------------------------------------
+get_checksum_exclusions() {
+    local extension_path="$1"
+    local ignore_file="${extension_path}/.checksumignore"
+    local patterns=()
+    
+    # Always exclude .extension and .checksumignore files
+    patterns+=('$2 ~ /^\.extension$/')
+    patterns+=('$2 ~ /^\.checksumignore$/')
+    
+    # Default: exclude log/ directory
+    patterns+=('$2 ~ /^log\//')
+    
+    # If .checksumignore exists, parse it
+    if [[ -f "${ignore_file}" ]]; then
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            # Skip empty lines and comments
+            [[ -z "$line" ]] && continue
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            
+            # Trim whitespace
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [[ -z "$line" ]] && continue
+            
+            # Convert glob pattern to awk regex
+            # Replace * with .* for regex matching
+            local pattern="$line"
+            
+            # Escape special regex characters except * and ?
+            pattern=$(echo "$pattern" | sed 's/\./\\./g')  # Escape dots
+            
+            # Convert glob wildcards to regex
+            pattern=$(echo "$pattern" | sed 's/\*/.*/g')   # * -> .*
+            pattern=$(echo "$pattern" | sed 's/?/./g')      # ? -> .
+            
+            # If pattern ends with /, match directory contents
+            if [[ "$pattern" == */ ]]; then
+                patterns+=("\$2 ~ /^${pattern}/")
+            else
+                # Match exact file or pattern
+                patterns+=("\$2 ~ /^${pattern}$/")
+            fi
+        done < "${ignore_file}"
+    fi
+    
+    # Combine patterns with ||
+    local combined=""
+    for ((i=0; i<${#patterns[@]}; i++)); do
+        if [[ $i -eq 0 ]]; then
+            combined="${patterns[$i]}"
+        else
+            combined="${combined} || ${patterns[$i]}"
+        fi
+    done
+    
+    echo "$combined"
+}
+
+# ------------------------------------------------------------------------------
 # Verify installation integrity
 # Arguments:
 #   $1 - skip_extensions (optional): if "true", skip extension checksum verification
@@ -313,16 +377,19 @@ check_extension_checksums() {
         # Change to extension directory for relative paths
         cd "${extension_dir}" || continue
         
-        # Verify checksums (exclude .extension and log/ as modified during operation)
+        # Get exclusion patterns from .checksumignore
+        local exclusions
+        exclusions=$(get_checksum_exclusions "${extension_dir}")
+        
+        # Verify checksums (apply exclusions from .checksumignore)
         # Checksum format is: hash  filename
-        # Filter out .extension and log/* files using awk
         local verify_output
-        verify_output=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// {print}' "${checksum_file}" | sha256sum -c - 2>&1)
+        verify_output=$(awk "!(${exclusions}) {print}" "${checksum_file}" | sha256sum -c - 2>&1)
         local verify_status=$?
         
         if [[ ${verify_status} -eq 0 ]]; then
             local file_count
-            file_count=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// && !/^#/ {print}' "${checksum_file}" | wc -l | tr -d ' ')
+            file_count=$(awk "!(${exclusions}) && !/^#/ {print}" "${checksum_file}" | wc -l | tr -d ' ')
             echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
         else
             echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
@@ -345,7 +412,7 @@ check_extension_checksums() {
         # This runs regardless of checksum pass/fail status
         if [[ "${VERBOSE}" == "true" ]]; then
             local checksummed_files
-            checksummed_files=$(awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// && !/^#/ {print $2}' "${checksum_file}" | sort)
+            checksummed_files=$(awk "!(${exclusions}) && !/^#/ {print \$2}" "${checksum_file}" | sort)
             
             local additional_files=()
             local managed_dirs=("bin" "sql" "rcv" "etc" "lib")
@@ -427,9 +494,13 @@ show_installed_extensions() {
         if [[ "${enabled_status}" == "enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
             local checksum_file="${ext_path}/.extension.checksum"
             
-            # Verify checksums (exclude .extension and log/ as modified during operation)
+            # Get exclusion patterns from .checksumignore
+            local exclusions
+            exclusions=$(get_checksum_exclusions "${ext_path}")
+            
+            # Verify checksums (apply exclusions from .checksumignore)
             # Checksum format is: hash  filename - use awk to filter by filename field
-            if (cd "${ext_path}" && awk '$2 !~ /^\.extension$/ && $2 !~ /^log\// {print}' "${checksum_file}" | sha256sum -c - &>/dev/null); then
+            if (cd "${ext_path}" && awk "!(${exclusions}) {print}" "${checksum_file}" | sha256sum -c - &>/dev/null); then
                 checksum_status=" ${GREEN}✓${NC}"
             else
                 checksum_status=" ${RED}✗${NC}"
