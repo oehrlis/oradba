@@ -534,9 +534,9 @@ update_profile() {
     profile_file=$(detect_profile_file)
     
     echo ""
-    echo "========================================="
+    echo "==========================================="
     echo "Shell Profile Integration"
-    echo "========================================="
+    echo "==========================================="
     echo ""
     
     # Check if already integrated
@@ -633,9 +633,9 @@ EOF
 run_preflight_checks() {
     local install_dir="$1"
     
-    echo "========================================="
+    echo "==========================================="
     echo "Pre-flight Checks"
-    echo "========================================="
+    echo "==========================================="
     echo ""
     
     # Check required tools
@@ -657,7 +657,7 @@ run_preflight_checks() {
     fi
     
     log_info "All pre-flight checks passed"
-    echo "========================================="
+    echo "==========================================="
     echo ""
 }
 
@@ -966,9 +966,9 @@ perform_update() {
     local backup_dir
     local config_dir
     
-    echo "========================================="
+    echo "==========================================="
     echo "OraDBA Update Process"
-    echo "========================================="
+    echo "==========================================="
     echo ""
     
     # Check if installation exists
@@ -1182,9 +1182,9 @@ if [[ "$UPDATE_MODE" == "true" ]]; then
     BACKUP_DIR="${UPDATE_INFO%%|*}"
     CONFIG_DIR="${UPDATE_INFO##*|}"
 else
-    echo "========================================="
+    echo "==========================================="
     echo "oradba Installer v${INSTALLER_VERSION}"
-    echo "========================================="
+    echo "==========================================="
     echo "Installation mode: $INSTALL_MODE"
     echo "Installation prefix: $INSTALL_PREFIX"
     [[ -n "$INSTALL_USER" ]] && echo "Install user: $INSTALL_USER"
@@ -1367,10 +1367,10 @@ update_profile "$INSTALL_PREFIX"
 INSTALLED_VERSION=$(cat "$INSTALL_PREFIX/VERSION" 2>/dev/null || echo "$INSTALLER_VERSION")
 
 echo ""
-echo "========================================="
+echo "==========================================="
 if [[ "$UPDATE_MODE" == "true" ]]; then
     log_info "Update completed successfully!"
-    echo "========================================="
+    echo "==========================================="
     echo ""
     echo "oradba has been updated at: $INSTALL_PREFIX"
     echo "New version: $INSTALLED_VERSION"
@@ -1378,7 +1378,7 @@ if [[ "$UPDATE_MODE" == "true" ]]; then
     echo "Configuration files have been preserved"
 else
     log_info "Installation completed successfully!"
-    echo "========================================="
+    echo "==========================================="
     echo ""
     echo "oradba has been installed to: $INSTALL_PREFIX"
 fi
