@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
+# shellcheck disable=SC1091,SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------

@@ -14,15 +14,19 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+# shellcheck disable=SC1091,SC2030,SC2031,SC2314,SC2315
+
 setup() {
     # Load test helpers
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
     
     # Source common library
+    # shellcheck source=../src/lib/common.sh
     source "${PROJECT_ROOT}/src/lib/common.sh"
     
     # Source extensions library
+    # shellcheck source=../src/lib/extensions.sh
     source "${PROJECT_ROOT}/src/lib/extensions.sh"
     
     # Create temporary test directory

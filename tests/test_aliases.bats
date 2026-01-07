@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# shellcheck disable=SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
+# shellcheck disable=SC1091,SC2030,SC2031  # Modifications in BATS @test functions are isolated by design
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
-# Revision...: 0.5.0
+# Revision...: 0.6.0
 # Purpose....: BATS tests for aliases.sh - dynamic alias generation
 # Notes......: Run with: bats test_aliases.bats
 # Reference..: https://github.com/oehrlis/oradba

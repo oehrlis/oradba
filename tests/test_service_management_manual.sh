@@ -66,7 +66,7 @@ print_info() {
 
 pause_test() {
     echo ""
-    read -p "Press Enter to continue to next test..."
+    read -r -p "Press Enter to continue to next test..."
     echo ""
 }
 
@@ -234,7 +234,7 @@ interactive_dbctl_test() {
     print_info "This test requires a running Oracle environment"
     print_info "Skip if no Oracle database is available"
     echo ""
-    read -p "Do you have Oracle databases available for testing? (y/n): " response
+    read -r -p "Do you have Oracle databases available for testing? (y/n): " response
     
     if [[ "${response}" != "y" ]]; then
         print_info "Skipping interactive database tests"
@@ -246,7 +246,7 @@ interactive_dbctl_test() {
     pause_test
     
     print_info "Review the output above"
-    read -p "Did the status command work correctly? (y/n): " response
+    read -r -p "Did the status command work correctly? (y/n): " response
     if [[ "${response}" == "y" ]]; then
         print_pass "Database status command works"
     else
@@ -259,7 +259,7 @@ interactive_lsnrctl_test() {
     
     print_info "This test requires Oracle listener to be available"
     echo ""
-    read -p "Do you have Oracle listener available for testing? (y/n): " response
+    read -r -p "Do you have Oracle listener available for testing? (y/n): " response
     
     if [[ "${response}" != "y" ]]; then
         print_info "Skipping interactive listener tests"
@@ -271,7 +271,7 @@ interactive_lsnrctl_test() {
     pause_test
     
     print_info "Review the output above"
-    read -p "Did the listener status command work correctly? (y/n): " response
+    read -r -p "Did the listener status command work correctly? (y/n): " response
     if [[ "${response}" == "y" ]]; then
         print_pass "Listener status command works"
     else
@@ -287,7 +287,7 @@ interactive_services_test() {
     pause_test
     
     print_info "Review the output above"
-    read -p "Did the combined services status work correctly? (y/n): " response
+    read -r -p "Did the combined services status work correctly? (y/n): " response
     if [[ "${response}" == "y" ]]; then
         print_pass "Combined services status works"
     else
@@ -314,7 +314,7 @@ test_documentation
 
 # Run interactive tests if user wants
 echo ""
-read -p "Run interactive tests with Oracle environment? (y/n): " response
+read -r -p "Run interactive tests with Oracle environment? (y/n): " response
 if [[ "${response}" == "y" ]]; then
     interactive_dbctl_test
     interactive_lsnrctl_test
