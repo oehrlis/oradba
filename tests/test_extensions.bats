@@ -892,7 +892,7 @@ EOF
     # Verify name was updated in metadata
     local metadata_content
     metadata_content=$(cat "${TEST_TEMP_DIR}/newext/.extension")
-    [[ "${metadata_content}" == *"name=newext"* ]]
+    [[ "${metadata_content}" == *"name: newext"* ]]
 }
 
 @test "oradba_extension.sh create shows next steps after creation" {
