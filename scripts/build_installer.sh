@@ -70,16 +70,93 @@ if [[ -n "${ORADBA_BUILD_SUFFIX}" ]]; then
     echo "${VERSION}" > "$TEMP_TAR_DIR/VERSION"
 fi
 
-# Generate extension template tarballs
-echo "Generating extension template tarballs..."
-mkdir -p "$TEMP_TAR_DIR/templates/extensions"
+# Download extension template from GitHub
+echo "Downloading extension template from GitHub..."
+mkdir -p templates/oradba_extension
+mkdir -p "$TEMP_TAR_DIR/templates/oradba_extension"
 
-# Create tarball for customer extension example
-if [[ -d "doc/examples/extensions/customer" ]]; then
-    echo "  Creating customer-extension-template.tar.gz..."
-    (cd doc/examples/extensions && tar czf - customer) > "$TEMP_TAR_DIR/templates/extensions/customer-extension-template.tar.gz"
+EXTENSION_REPO="oehrlis/oradba_extension"
+EXTENSION_CACHE_FILE="templates/oradba_extension/extension-template.tar.gz"
+EXTENSION_VERSION_FILE="templates/oradba_extension/.version"
+
+# Function to get latest release info from GitHub
+get_latest_extension_release() {
+    local api_url="https://api.github.com/repos/${EXTENSION_REPO}/releases/latest"
+    
+    # Use curl with fallback to wget
+    if command -v curl &> /dev/null; then
+        curl -sS "${api_url}" 2>/dev/null || echo "{}"
+    elif command -v wget &> /dev/null; then
+        wget -qO- "${api_url}" 2>/dev/null || echo "{}"
+    else
+        echo "{}"
+    fi
+}
+
+# Check if we need to download a new version
+DOWNLOAD_EXTENSION=false
+CACHED_VERSION=""
+LATEST_VERSION=""
+
+if [[ -f "${EXTENSION_VERSION_FILE}" ]]; then
+    CACHED_VERSION=$(cat "${EXTENSION_VERSION_FILE}" 2>/dev/null || echo "")
+fi
+
+echo "  Checking for latest release from ${EXTENSION_REPO}..."
+RELEASE_INFO=$(get_latest_extension_release)
+
+if [[ -n "${RELEASE_INFO}" ]] && [[ "${RELEASE_INFO}" != "{}" ]]; then
+    LATEST_VERSION=$(echo "${RELEASE_INFO}" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*": *"\(.*\)".*/\1/')
+    TARBALL_URL=$(echo "${RELEASE_INFO}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    
+    if [[ -n "${LATEST_VERSION}" ]]; then
+        echo "  Latest version: ${LATEST_VERSION}"
+        
+        if [[ "${CACHED_VERSION}" != "${LATEST_VERSION}" ]] || [[ ! -f "${EXTENSION_CACHE_FILE}" ]]; then
+            echo "  New version available, downloading..."
+            DOWNLOAD_EXTENSION=true
+        else
+            echo "  Using cached version: ${CACHED_VERSION}"
+        fi
+    else
+        echo "  Warning: Could not parse version from GitHub API"
+    fi
+fi
+
+# Download if needed
+if [[ "${DOWNLOAD_EXTENSION}" == "true" ]] && [[ -n "${TARBALL_URL}" ]]; then
+    echo "  Downloading from: ${TARBALL_URL}"
+    
+    if command -v curl &> /dev/null; then
+        curl -sS -L "${TARBALL_URL}" -o "${EXTENSION_CACHE_FILE}" || {
+            echo "  Warning: Failed to download extension template"
+            DOWNLOAD_EXTENSION=false
+        }
+    elif command -v wget &> /dev/null; then
+        wget -q "${TARBALL_URL}" -O "${EXTENSION_CACHE_FILE}" || {
+            echo "  Warning: Failed to download extension template"
+            DOWNLOAD_EXTENSION=false
+        }
+    else
+        echo "  Warning: Neither curl nor wget available"
+        DOWNLOAD_EXTENSION=false
+    fi
+    
+    if [[ "${DOWNLOAD_EXTENSION}" == "true" ]]; then
+        echo "${LATEST_VERSION}" > "${EXTENSION_VERSION_FILE}"
+        echo "  ✓ Downloaded extension template ${LATEST_VERSION}"
+    fi
+fi
+
+# Copy extension template to staging if available
+if [[ -f "${EXTENSION_CACHE_FILE}" ]]; then
+    echo "  Including extension template in distribution..."
+    cp "${EXTENSION_CACHE_FILE}" "$TEMP_TAR_DIR/templates/oradba_extension/extension-template.tar.gz"
+    if [[ -f "${EXTENSION_VERSION_FILE}" ]]; then
+        cp "${EXTENSION_VERSION_FILE}" "$TEMP_TAR_DIR/templates/oradba_extension/.version"
+    fi
 else
-    echo "  Warning: doc/examples/extensions/customer not found"
+    echo "  Warning: No extension template available (installer will work, but oradba_extension.sh will need --from-github or --template)"
 fi
 
 # Substitute version in installer

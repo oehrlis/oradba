@@ -242,6 +242,39 @@ build: clean clean-test-configs ## Build distribution archive and installer
 build-dev: ## Build distribution with -dev suffix for testing
 	@$(MAKE) ORADBA_BUILD_SUFFIX="-dev" build
 
+.PHONY: download-extensions
+download-extensions: ## Download latest extension template from GitHub
+	@echo -e "$(COLOR_BLUE)Downloading extension templates...$(COLOR_RESET)"
+	@mkdir -p templates/oradba_extension
+	@EXTENSION_REPO="oehrlis/oradba_extension"; \
+	EXTENSION_CACHE="templates/oradba_extension/extension-template.tar.gz"; \
+	EXTENSION_VERSION="templates/oradba_extension/.version"; \
+	API_URL="https://api.github.com/repos/$$EXTENSION_REPO/releases/latest"; \
+	echo "  Checking $$EXTENSION_REPO for latest release..."; \
+	if command -v curl &> /dev/null; then \
+		RELEASE_INFO=$$(curl -sS "$$API_URL" 2>/dev/null || echo "{}"); \
+	elif command -v wget &> /dev/null; then \
+		RELEASE_INFO=$$(wget -qO- "$$API_URL" 2>/dev/null || echo "{}"); \
+	else \
+		echo -e "$(COLOR_RED)Error: Neither curl nor wget available$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	LATEST_VERSION=$$(echo "$$RELEASE_INFO" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*": *"\(.*\)".*/\1/'); \
+	TARBALL_URL=$$(echo "$$RELEASE_INFO" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4); \
+	if [[ -n "$$LATEST_VERSION" ]] && [[ -n "$$TARBALL_URL" ]]; then \
+		echo "  Latest version: $$LATEST_VERSION"; \
+		if command -v curl &> /dev/null; then \
+			curl -sS -L "$$TARBALL_URL" -o "$$EXTENSION_CACHE"; \
+		else \
+			wget -q "$$TARBALL_URL" -O "$$EXTENSION_CACHE"; \
+		fi; \
+		echo "$$LATEST_VERSION" > "$$EXTENSION_VERSION"; \
+		echo -e "$(COLOR_GREEN)✓ Downloaded extension template $$LATEST_VERSION$(COLOR_RESET)"; \
+	else \
+		echo -e "$(COLOR_RED)Error: Could not find extension template release$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+
 .PHONY: install
 install: ## Install OraDBA locally
 	@echo -e "$(COLOR_BLUE)Installing OraDBA...$(COLOR_RESET)"
@@ -484,10 +517,18 @@ status: ## Show git status and current version
 clean: ## Clean build artifacts
 	@echo -e "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
 	@rm -rf $(DIST_DIR)
+	@rm -rf build
 	@find . -name "*.log" -type f -delete 2>/dev/null || true
 	@find . -name "*.tmp" -type f -delete 2>/dev/null || true
 	@find . -name "*~" -type f -delete 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Cleaned$(COLOR_RESET)"
+
+.PHONY: clean-extensions
+clean-extensions: ## Clean downloaded extension templates
+	@echo -e "$(COLOR_BLUE)Cleaning downloaded extension templates...$(COLOR_RESET)"
+	@rm -rf templates/oradba_extension/*.tar.gz 2>/dev/null || true
+	@rm -rf templates/oradba_extension/.version 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Extension templates cleaned$(COLOR_RESET)"
 
 .PHONY: clean-test-configs
 clean-test-configs: ## Clean test-generated SID config files
@@ -500,7 +541,7 @@ clean-test-configs: ## Clean test-generated SID config files
 	@echo -e "$(COLOR_GREEN)✓ Test config files cleaned$(COLOR_RESET)"
 
 .PHONY: clean-all
-clean-all: clean clean-test-configs docs-clean ## Deep clean (including caches, test configs, and docs)
+clean-all: clean clean-test-configs clean-extensions docs-clean ## Deep clean (including caches, test configs, extensions, and docs)
 	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"
