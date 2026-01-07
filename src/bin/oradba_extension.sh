@@ -389,6 +389,8 @@ cmd_create() {
             local template_version
             template_version=$(cat "${version_file}" 2>/dev/null || echo "unknown")
             echo "Template version: ${template_version}"
+            # Set extension version from template version (remove 'v' prefix if present)
+            ext_version="${template_version#v}"
         fi
     fi
     
