@@ -1,9 +1,11 @@
 {
 	"folders": [
 		{
+			"name": "oradba",
 			"path": "."
 		},
 		{
+			"name": "oradba_extension",
 			"path": "../oradba_extension"
 		}
 	],
