@@ -27,27 +27,27 @@ RUN {
     # Backup pdbs incremental level 0
     BACKUP <COMPRESSION> INCREMENTAL LEVEL 0 <PLUGGABLE_DATABASE> <SECTION_SIZE> 
         <TAG> 
-        FORMAT '<BACKUP_PATH>inc0_df_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>inc0_df_%d_<START_DATE>_s%s_p%p';
 
     # Backup archivelogs with optional filtering and delete after backup
     BACKUP <COMPRESSION>
         ARCHIVELOG <ARCHIVE_RANGE> <ARCHIVE_PATTERN>
         DELETE INPUT
         <TAG>
-        FORMAT '<BACKUP_PATH>arc_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>arc_%d_<START_DATE>_s%s_p%p';
 
     # Backup current controlfile
     BACKUP <COMPRESSION>
         CURRENT CONTROLFILE
         <TAG>
-        FORMAT '<BACKUP_PATH>ctl_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>ctl_%d_<START_DATE>_s%s_p%p';
     
     # Create text pfile from spfile (optional, controlled by RMAN_SPFILE_BACKUP)
-    <SPFILE_BACKUP> CREATE PFILE='<BACKUP_PATH>init_<ORACLE_SID>_<START_DATE>' FROM SPFILE;
+    <SPFILE_BACKUP> CREATE PFILE='<BCK_PATH>init_<ORACLE_SID>_<START_DATE>' FROM SPFILE;
 
     # Create controlfile backups
-    ALTER DATABASE BACKUP CONTROLFILE TO '<BACKUP_PATH>ctl_<ORACLE_SID>_<START_DATE>.ctl';
-    ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS '<BACKUP_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>.sql';
+    ALTER DATABASE BACKUP CONTROLFILE TO '<BCK_PATH>ctl_<ORACLE_SID>_<START_DATE>.ctl';
+    ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS '<BCK_PATH>cre_controlfile_<ORACLE_SID>_<START_DATE>.sql';
    
     # Release channels (replaced by template processor)
     <RELEASE_CHANNELS>

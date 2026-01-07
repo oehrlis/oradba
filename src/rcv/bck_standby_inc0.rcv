@@ -26,23 +26,23 @@ RUN {
     # Backup database incremental level 0
     BACKUP <COMPRESSION> INCREMENTAL LEVEL 0 DATABASE <SECTION_SIZE> 
         <TAG> 
-        FORMAT '<BACKUP_PATH>inc0_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>inc0_%d_<START_DATE>_s%s_p%p';
 
     # Backup current controlfile
     BACKUP <COMPRESSION>
         CURRENT CONTROLFILE
         <TAG>
-        FORMAT '<BACKUP_PATH>ctl_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>ctl_%d_<START_DATE>_s%s_p%p';
 
     # create standby controlfile
-    ALTER DATABASE CREATE STANDBY CONTROLFILE AS '<BACKUP_PATH>standby_ctl_<ORACLE_SID>_<START_DATE>';
+    ALTER DATABASE CREATE STANDBY CONTROLFILE AS '<BCK_PATH>standby_ctl_<ORACLE_SID>_<START_DATE>';
 
     # Backup archivelogs with optional filtering and delete after backup
     BACKUP <COMPRESSION>
         ARCHIVELOG <ARCHIVE_RANGE> <ARCHIVE_PATTERN>
         DELETE INPUT
         <TAG>
-        FORMAT '<BACKUP_PATH>arc_%d_<START_DATE>_s%s_p%p';
+        FORMAT '<BCK_PATH>arc_%d_<START_DATE>_s%s_p%p';
 
     # Release channels (replaced by template processor)
     <RELEASE_CHANNELS>

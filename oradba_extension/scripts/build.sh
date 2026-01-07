@@ -72,8 +72,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -d "$EXTENSION_DIR" ]]; then
-    echo "Extension directory not found: $EXTENSION_DIR" >&2
-    exit 1
+    CANDIDATES=()
+    while IFS= read -r -d '' path; do
+        CANDIDATES+=("$path")
+    done < <(find "$ROOT_DIR" -maxdepth 1 -mindepth 1 -type d -exec test -f "{}/.extension" \; -print0)
+
+    if [[ ${#CANDIDATES[@]} -eq 1 ]]; then
+        EXTENSION_DIR="${CANDIDATES[0]}"
+    else
+        echo "Extension directory not found: $EXTENSION_DIR" >&2
+        if [[ ${#CANDIDATES[@]} -gt 1 ]]; then
+            echo "Multiple candidates with .extension found; specify one with --extension:" >&2
+            printf ' - %s\n' "${CANDIDATES[@]}" >&2
+        fi
+        exit 1
+    fi
 fi
 
 EXTENSION_NAME="$(basename "$EXTENSION_DIR")"
