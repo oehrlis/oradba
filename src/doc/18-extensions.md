@@ -18,6 +18,25 @@ Extensions are directories parallel to your OraDBA installation that contain cus
 
 ### Creating an Extension
 
+**Method 1: Using the create command (Recommended)**
+
+```bash
+# Create new extension from default template
+oradba_extension.sh create mycompany
+
+# Follow the displayed next steps:
+# 1. Review and customize files
+# 2. Edit .extension metadata
+# 3. Add your scripts to bin/, sql/, rcv/
+# 4. Reload environment
+source oraenv.sh FREE
+
+# Verify extension is loaded
+oradba_extension.sh list
+```
+
+**Method 2: Manual creation**
+
 1. **Create extension directory**:
 
    ```bash
@@ -76,6 +95,28 @@ The core OraDBA installation (`/opt/oradba`) is excluded from discovery.
 ## Managing Extensions
 
 Use the `oradba_extension.sh` command-line tool:
+
+### Create Extension
+
+```bash
+# Create from default template
+oradba_extension.sh create mycompany
+
+# Create from GitHub release
+oradba_extension.sh create mycompany --from-github
+
+# Create with custom template
+oradba_extension.sh create mycompany --template /path/to/template.tar.gz
+
+# Create in custom location
+oradba_extension.sh create mycompany --path /opt/oracle/custom
+```
+
+The create command will:
+- Validate the extension name
+- Extract template to target location
+- Update metadata with new name
+- Display next steps for customization
 
 ### List Extensions
 

@@ -19,7 +19,31 @@ A complete example extension demonstrating the OraDBA extension system.
 
 ## Quick Start
 
-### 1. Extract Template
+### Using the create Command (Recommended)
+
+The easiest way to create a new extension:
+
+```bash
+# Create from default template
+oradba_extension.sh create mycompany
+
+# Create from GitHub release (latest)
+oradba_extension.sh create mycompany --from-github
+
+# Create with custom template
+oradba_extension.sh create mycompany --template /path/to/custom.tar.gz
+
+# Create in custom location
+oradba_extension.sh create mycompany --path /opt/oracle/custom
+```
+
+The create command will:
+- Validate the extension name
+- Extract the template
+- Update metadata with the new name
+- Display next steps for customization
+
+### Manual Extraction (Alternative)
 
 Extract to your local extensions directory:
 
@@ -34,9 +58,7 @@ cd /opt/oracle/local
 tar xzf ${ORADBA_BASE}/templates/extensions/customer-extension-template.tar.gz
 ```
 
-### 2. Customize
-
-Rename and modify the extension:
+Then customize the extension:
 
 ```bash
 cd ${ORADBA_LOCAL_BASE}
@@ -53,7 +75,7 @@ mv mycompany/etc/customer.conf.example mycompany/etc/mycompany.conf
 vim mycompany/bin/customer_tool.sh
 ```
 
-### 3. Activate
+## Activating Extensions
 
 The extension will be auto-discovered on next environment load:
 

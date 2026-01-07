@@ -731,4 +731,191 @@ EOF
     export PATH="${orig_path}"
 }
 
+# ==============================================================================
+# oradba_extension.sh Command Tests
+# ==============================================================================
+
+@test "oradba_extension.sh create requires extension name" {
+    # Run without name
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"Extension name is required"* ]]
+}
+
+@test "oradba_extension.sh create validates extension name format" {
+    # Invalid: starts with number
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create 123invalid --path "${TEST_TEMP_DIR}"
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"must start with a letter"* ]]
+    
+    # Invalid: contains spaces
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create "bad name" --path "${TEST_TEMP_DIR}"
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"can only contain"* ]]
+    
+    # Invalid: special characters
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create "bad@name" --path "${TEST_TEMP_DIR}"
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"can only contain"* ]]
+}
+
+@test "oradba_extension.sh create accepts valid extension names" {
+    # Valid names (will fail due to missing template, but name validation passes)
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create myext --path "${TEST_TEMP_DIR}"
+    [[ "$output" != *"can only contain"* ]]
+    [[ "$output" != *"must start with a letter"* ]]
+    
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create my_ext --path "${TEST_TEMP_DIR}"
+    [[ "$output" != *"can only contain"* ]]
+    [[ "$output" != *"must start with a letter"* ]]
+    
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create my-ext-123 --path "${TEST_TEMP_DIR}"
+    [[ "$output" != *"can only contain"* ]]
+    [[ "$output" != *"must start with a letter"* ]]
+}
+
+@test "oradba_extension.sh create fails if extension already exists" {
+    # Create existing extension
+    mkdir -p "${TEST_TEMP_DIR}/existing"
+    
+    # Try to create again
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create existing --path "${TEST_TEMP_DIR}"
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"already exists"* ]]
+}
+
+@test "oradba_extension.sh create fails if target directory does not exist" {
+    # Try to create in non-existent directory
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create myext --path "/nonexistent/path"
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"does not exist"* ]]
+}
+
+@test "oradba_extension.sh create requires ORADBA_LOCAL_BASE if --path not specified" {
+    # Unset ORADBA_LOCAL_BASE
+    local orig_base="${ORADBA_LOCAL_BASE}"
+    export ORADBA_LOCAL_BASE=""
+    
+    # Try to create without --path
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create myext
+    
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"not set"* ]]
+    
+    # Restore
+    export ORADBA_LOCAL_BASE="${orig_base}"
+}
+
+@test "validate_extension_name function accepts valid names" {
+    # Source the script functions
+    source "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    
+    # Valid names
+    run validate_extension_name "myext"
+    [[ "$status" -eq 0 ]]
+    
+    run validate_extension_name "my_ext"
+    [[ "$status" -eq 0 ]]
+    
+    run validate_extension_name "my-ext-123"
+    [[ "$status" -eq 0 ]]
+    
+    run validate_extension_name "MyExt123"
+    [[ "$status" -eq 0 ]]
+}
+
+@test "validate_extension_name function rejects invalid names" {
+    # Source the script functions
+    source "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    
+    # Empty name
+    run validate_extension_name ""
+    [[ "$status" -eq 1 ]]
+    
+    # Starts with number
+    run validate_extension_name "123ext"
+    [[ "$status" -eq 1 ]]
+    
+    # Contains spaces
+    run validate_extension_name "my ext"
+    [[ "$status" -eq 1 ]]
+    
+    # Contains special characters
+    run validate_extension_name "my@ext"
+    [[ "$status" -eq 1 ]]
+    
+    # Starts with dash
+    run validate_extension_name "-myext"
+    [[ "$status" -eq 1 ]]
+}
+
+# ==============================================================================
+# Integration test for create command (with mock template)
+# ==============================================================================
+
+@test "oradba_extension.sh create with custom template creates extension" {
+    # Create a mock template tarball
+    local template_dir="${TEST_TEMP_DIR}/template"
+    mkdir -p "${template_dir}/customer/bin"
+    mkdir -p "${template_dir}/customer/sql"
+    cat > "${template_dir}/customer/.extension" << 'EOF'
+name=customer
+version=1.0.0
+description=Template extension
+EOF
+    
+    # Create tarball
+    local template_file="${TEST_TEMP_DIR}/template.tar.gz"
+    (cd "${template_dir}" && tar czf "${template_file}" customer)
+    
+    # Create extension
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create newext \
+        --path "${TEST_TEMP_DIR}" \
+        --template "${template_file}"
+    
+    echo "$output"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"created successfully"* ]]
+    
+    # Verify extension was created
+    [[ -d "${TEST_TEMP_DIR}/newext" ]]
+    [[ -d "${TEST_TEMP_DIR}/newext/bin" ]]
+    [[ -d "${TEST_TEMP_DIR}/newext/sql" ]]
+    [[ -f "${TEST_TEMP_DIR}/newext/.extension" ]]
+    
+    # Verify name was updated in metadata
+    local metadata_content
+    metadata_content=$(cat "${TEST_TEMP_DIR}/newext/.extension")
+    [[ "${metadata_content}" == *"name=newext"* ]]
+}
+
+@test "oradba_extension.sh create shows next steps after creation" {
+    # Create a mock template tarball
+    local template_dir="${TEST_TEMP_DIR}/template"
+    mkdir -p "${template_dir}/customer"
+    cat > "${template_dir}/customer/.extension" << 'EOF'
+name=customer
+EOF
+    
+    local template_file="${TEST_TEMP_DIR}/template.tar.gz"
+    (cd "${template_dir}" && tar czf "${template_file}" customer)
+    
+    # Create extension
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" create myext \
+        --path "${TEST_TEMP_DIR}" \
+        --template "${template_file}"
+    
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"Next Steps"* ]]
+    [[ "$output" == *"cd ${TEST_TEMP_DIR}/myext"* ]]
+    [[ "$output" == *"source"* ]]
+    [[ "$output" == *"oradba_extension.sh list"* ]]
+}
+
 # EOF

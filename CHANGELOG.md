@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Extension Creation Command**: Added `create` command to `oradba_extension.sh` for easy extension creation
+  - Create extensions from default template: `oradba_extension.sh create <name>`
+  - Support for GitHub releases: `--from-github` downloads latest from oehrlis/oradba_extension
+  - Custom template support: `--template <file>` accepts any .tar.gz/.tgz file
+  - Custom target location: `--path <dir>` overrides default `ORADBA_LOCAL_BASE`
+  - Automatic extension name validation (alphanumeric, dashes, underscores, must start with letter)
+  - Error handling for existing extensions (fails with clear message)
+  - Automatic metadata update (replaces template name with new extension name)
+  - Detailed next steps displayed after creation
+  - Comprehensive test coverage in `test_extensions.bats`
+  - Updated documentation:
+    - `doc/extension-system.md`: New "Using the create Command" section
+    - `src/doc/18-extensions.md`: Updated Quick Start with create command
+    - `README.md`: Extension example now uses create command
+    - `src/templates/extensions/README.md`: Create command as recommended method
+
 ## [0.14.1] - 2026-01-06
 
 ### Added

@@ -78,6 +78,13 @@ DESCRIPTION
     validate, and manage extensions in the OraDBA environment.
 
 COMMANDS
+    create <name> [options]
+        Create a new extension from a template.
+        Options:
+          --path <dir>          Target directory (default: \${ORADBA_LOCAL_BASE})
+          --template <file>     Use custom tarball template (.tar.gz or .tgz)
+          --from-github         Use latest release from github.com/oehrlis/oradba_extension
+
     list [--verbose|-v]
         List all discovered extensions with their status, version, and priority.
         Use --verbose for detailed information including paths and metadata.
@@ -124,6 +131,18 @@ ENVIRONMENT VARIABLES
     ORADBA_EXT_<NAME>_PRIORITY      Override priority for specific extension
 
 EXAMPLES
+    # Create new extension
+    $(basename "$0") create mycompany
+
+    # Create with custom template
+    $(basename "$0") create mycompany --template /path/to/template.tar.gz
+
+    # Create from GitHub release
+    $(basename "$0") create mycompany --from-github
+
+    # Create in custom location
+    $(basename "$0") create mycompany --path /opt/oracle/custom
+
     # List all extensions
     $(basename "$0") list
 
@@ -146,6 +165,255 @@ SEE ALSO
     doc/extension-system.md - Complete extension system documentation
 
 EOF
+}
+
+# ------------------------------------------------------------------------------
+# Validate extension name
+# ------------------------------------------------------------------------------
+validate_extension_name() {
+    local name="$1"
+    
+    # Check if name is empty
+    if [[ -z "${name}" ]]; then
+        echo "ERROR: Extension name cannot be empty" >&2
+        return 1
+    fi
+    
+    # Check for invalid characters (allow alphanumeric, dash, underscore)
+    if [[ ! "${name}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo "ERROR: Extension name can only contain letters, numbers, dashes, and underscores" >&2
+        return 1
+    fi
+    
+    # Check if name starts with a letter
+    if [[ ! "${name}" =~ ^[a-zA-Z] ]]; then
+        echo "ERROR: Extension name must start with a letter" >&2
+        return 1
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Download GitHub release tarball
+# ------------------------------------------------------------------------------
+download_github_release() {
+    local output_file="$1"
+    local repo="oehrlis/oradba_extension"
+    local api_url="https://api.github.com/repos/${repo}/releases/latest"
+    
+    echo "Fetching latest release from GitHub..."
+    
+    # Get latest release info
+    local release_info
+    if ! release_info=$(curl -s "${api_url}"); then
+        echo "ERROR: Failed to fetch release information from GitHub" >&2
+        return 1
+    fi
+    
+    # Extract tarball URL (look for .tar.gz asset)
+    local tarball_url
+    tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    
+    if [[ -z "${tarball_url}" ]]; then
+        # Fallback to tarball_url from release
+        tarball_url=$(echo "${release_info}" | grep -o '"tarball_url": "[^"]*"' | head -1 | cut -d'"' -f4)
+    fi
+    
+    if [[ -z "${tarball_url}" ]]; then
+        echo "ERROR: Could not find release tarball URL" >&2
+        return 1
+    fi
+    
+    echo "Downloading from: ${tarball_url}"
+    
+    # Download tarball
+    if ! curl -L -o "${output_file}" "${tarball_url}"; then
+        echo "ERROR: Failed to download release tarball" >&2
+        return 1
+    fi
+    
+    echo "Downloaded successfully"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Command: create - Create new extension from template
+# ------------------------------------------------------------------------------
+cmd_create() {
+    local ext_name=""
+    local target_path="${ORADBA_LOCAL_BASE}"
+    local template_file=""
+    local use_github=false
+    local temp_dir=""
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --path)
+                target_path="$2"
+                shift 2
+                ;;
+            --template)
+                template_file="$2"
+                shift 2
+                ;;
+            --from-github)
+                use_github=true
+                shift
+                ;;
+            -*)
+                echo "ERROR: Unknown option: $1" >&2
+                return 1
+                ;;
+            *)
+                if [[ -z "${ext_name}" ]]; then
+                    ext_name="$1"
+                    shift
+                else
+                    echo "ERROR: Unexpected argument: $1" >&2
+                    return 1
+                fi
+                ;;
+        esac
+    done
+    
+    # Validate extension name
+    if [[ -z "${ext_name}" ]]; then
+        echo "ERROR: Extension name is required" >&2
+        echo "Usage: $(basename "$0") create <name> [options]" >&2
+        return 1
+    fi
+    
+    if ! validate_extension_name "${ext_name}"; then
+        return 1
+    fi
+    
+    # Validate target path
+    if [[ -z "${target_path}" ]]; then
+        echo "ERROR: Target path not set. Please set ORADBA_LOCAL_BASE or use --path option" >&2
+        return 1
+    fi
+    
+    if [[ ! -d "${target_path}" ]]; then
+        echo "ERROR: Target directory does not exist: ${target_path}" >&2
+        echo "Please create it first: mkdir -p ${target_path}" >&2
+        return 1
+    fi
+    
+    # Check if extension already exists
+    local ext_path="${target_path}/${ext_name}"
+    if [[ -e "${ext_path}" ]]; then
+        echo "ERROR: Extension already exists: ${ext_path}" >&2
+        return 1
+    fi
+    
+    # Determine template source
+    if [[ "${use_github}" == "true" ]]; then
+        echo -e "${BOLD}Creating extension from GitHub release${NC}"
+        temp_dir=$(mktemp -d)
+        template_file="${temp_dir}/github-release.tar.gz"
+        
+        if ! download_github_release "${template_file}"; then
+            rm -rf "${temp_dir}"
+            return 1
+        fi
+    elif [[ -n "${template_file}" ]]; then
+        echo -e "${BOLD}Creating extension from custom template${NC}"
+        if [[ ! -f "${template_file}" ]]; then
+            echo "ERROR: Template file not found: ${template_file}" >&2
+            return 1
+        fi
+    else
+        # Use default template
+        echo -e "${BOLD}Creating extension from default template${NC}"
+        template_file="${BASE_DIR}/templates/extensions/customer-extension-template.tar.gz"
+        
+        if [[ ! -f "${template_file}" ]]; then
+            echo "ERROR: Default template not found: ${template_file}" >&2
+            echo "Please ensure OraDBA is properly installed or use --template or --from-github option" >&2
+            return 1
+        fi
+    fi
+    
+    echo ""
+    echo "Extension name: ${ext_name}"
+    echo "Target location: ${ext_path}"
+    echo "Template: ${template_file}"
+    echo ""
+    
+    # Extract template
+    echo "Extracting template..."
+    
+    # Create temporary extraction directory
+    local extract_dir
+    extract_dir=$(mktemp -d)
+    
+    if ! tar -xzf "${template_file}" -C "${extract_dir}" 2>/dev/null; then
+        echo "ERROR: Failed to extract template" >&2
+        rm -rf "${extract_dir}"
+        [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    # Find the extracted directory (it might be named differently)
+    local extracted_dir
+    extracted_dir=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 -type d | head -1)
+    
+    if [[ -z "${extracted_dir}" ]]; then
+        echo "ERROR: No directory found in template archive" >&2
+        rm -rf "${extract_dir}"
+        [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    # Move to target location
+    if ! mv "${extracted_dir}" "${ext_path}"; then
+        echo "ERROR: Failed to move extension to target location" >&2
+        rm -rf "${extract_dir}"
+        [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    # Clean up
+    rm -rf "${extract_dir}"
+    [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+    
+    # Update metadata if .extension file exists
+    if [[ -f "${ext_path}/.extension" ]]; then
+        echo "Updating extension metadata..."
+        sed -i.bak "s/^name=.*/name=${ext_name}/" "${ext_path}/.extension" 2>/dev/null || \
+            sed -i '' "s/^name=.*/name=${ext_name}/" "${ext_path}/.extension" 2>/dev/null
+        rm -f "${ext_path}/.extension.bak"
+    fi
+    
+    echo -e "${GREEN}✓ Extension created successfully${NC}"
+    echo ""
+    echo -e "${BOLD}Next Steps:${NC}"
+    echo ""
+    echo "1. Review and customize the extension:"
+    echo "   cd ${ext_path}"
+    echo ""
+    echo "2. Edit the metadata file:"
+    echo "   vi ${ext_path}/.extension"
+    echo ""
+    echo "3. Customize configuration files:"
+    echo "   ls ${ext_path}/etc/"
+    echo ""
+    echo "4. Add your scripts and SQL files:"
+    echo "   - Executables: ${ext_path}/bin/"
+    echo "   - SQL scripts: ${ext_path}/sql/"
+    echo "   - RMAN scripts: ${ext_path}/rcv/"
+    echo "   - Config files: ${ext_path}/etc/"
+    echo ""
+    echo "5. Reload your environment to discover the extension:"
+    echo "   source \${ORADBA_BASE}/bin/oraenv.sh \${ORACLE_SID}"
+    echo ""
+    echo "6. Verify the extension is loaded:"
+    echo "   oradba_extension.sh list"
+    echo ""
+    
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -547,6 +815,9 @@ main() {
     shift || true
     
     case "${command}" in
+        create)
+            cmd_create "$@"
+            ;;
         list)
             cmd_list "$@"
             ;;

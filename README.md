@@ -144,18 +144,22 @@ oradba_rman.sh --sid PROD --rcv backup_full.rcv \
 Extend OraDBA with custom scripts:
 
 ```bash
-# Create extension directory
-mkdir -p /opt/oracle/local/customer/bin
-cp my_script.sh /opt/oracle/local/customer/bin/
-chmod +x /opt/oracle/local/customer/bin/my_script.sh
+# Create new extension (easiest method)
+oradba_extension.sh create mycompany
 
-# Next time you source oraenv, extension is auto-loaded
+# Follow the displayed next steps to customize
+cd /opt/oracle/local/mycompany
+vi .extension              # Update metadata
+vi bin/my_script.sh        # Add your scripts
+chmod +x bin/my_script.sh
+
+# Reload environment - extension is auto-loaded
 source oraenv.sh FREE
 my_script.sh      # Now available in PATH
 
 # Manage extensions
-oradba_extension.sh list      # Show all extensions
-oradba_extension.sh info customer  # Detailed info
+oradba_extension.sh list              # Show all extensions
+oradba_extension.sh info mycompany    # Detailed info
 ```
 
 See [Extension System Guide](doc/extension-system.md) for complete documentation.

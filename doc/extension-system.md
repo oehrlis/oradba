@@ -169,6 +169,38 @@ export ORADBA_EXTENSIONS_IN_COEXIST="true"
 
 ## Creating an Extension
 
+### Using the create Command (Recommended)
+
+The easiest way to create a new extension is using the `create` command:
+
+```bash
+# Create from default template
+oradba_extension.sh create mycompany
+
+# Create in custom location
+oradba_extension.sh create mycompany --path /opt/oracle/custom
+
+# Create from GitHub release (latest)
+oradba_extension.sh create mycompany --from-github
+
+# Create from custom template
+oradba_extension.sh create mycompany --template /path/to/template.tar.gz
+```
+
+The `create` command will:
+
+1. Validate the extension name (alphanumeric, dashes, underscores only)
+2. Check that the extension doesn't already exist
+3. Extract the template to the target location
+4. Update the `.extension` metadata with the new name
+5. Show detailed next steps for customization
+
+**Template Sources**:
+
+- **Default**: `${ORADBA_BASE}/templates/extensions/customer-extension-template.tar.gz`
+- **GitHub**: Latest release from [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
+- **Custom**: Any `.tar.gz` or `.tgz` file with extension structure
+
 ### Minimal Extension
 
 Create a directory with at least one content folder:
@@ -245,6 +277,24 @@ cdemyext       # cd /opt/oracle/local/myext
 ## Managing Extensions
 
 OraDBA provides the `oradba_extension.sh` command-line tool for managing extensions.
+
+### Create Extension
+
+```bash
+# Create new extension from default template
+oradba_extension.sh create mycompany
+
+# Create from GitHub release
+oradba_extension.sh create mycompany --from-github
+
+# Create with custom template
+oradba_extension.sh create mycompany --template /path/to/custom.tar.gz
+
+# Create in specific location
+oradba_extension.sh create mycompany --path /opt/oracle/custom
+```
+
+See [Creating an Extension](#creating-an-extension) for detailed information.
 
 ### List Extensions
 
