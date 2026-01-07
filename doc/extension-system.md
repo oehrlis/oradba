@@ -104,6 +104,18 @@ a1b2c3d4e5f6...  bin/my_tool.sh
 When creating extensions with `oradba_extension.sh create --from-github`, the checksum
 file is automatically included and verified.
 
+**Managed Directories**: Integrity checks only verify files in these directories:
+
+- `bin/` - Executable scripts
+- `sql/` - SQL scripts
+- `rcv/` - RMAN recovery catalog scripts
+- `etc/` - Configuration files
+- `lib/` - Library/function files
+
+Other directories (e.g., `doc/`, `templates/`, `log/`) are not subject to integrity
+verification, allowing users to freely add documentation or other files without
+triggering checksum failures.
+
 #### Checksum Exclusions (.checksumignore)
 
 The `.checksumignore` file specifies patterns for files that should be excluded from

@@ -364,6 +364,8 @@ check_extension_checksums() {
     
     echo ""
     echo -e "${BLUE}Extension Integrity Checks:${NC}"
+    echo "  Managed directories: bin, sql, rcv, etc, lib"
+    echo "  (Other directories like doc/ and templates/ are not verified)"
     
     # Check each enabled extension checksum file
     for checksum_file in "${enabled_extensions[@]}"; do

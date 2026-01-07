@@ -393,8 +393,14 @@ chmod +x /opt/oracle/local/backup/bin/backup_db.sh
 
 ```text
 Extension Integrity Checks:
+  Managed directories: bin, sql, rcv, etc, lib
+  (Other directories like doc/ and templates/ are not verified)
   ✗ Extension 'customer': FAILED
 ```
+
+**Note**: Only files in managed directories (`bin`, `sql`, `rcv`, `etc`, `lib`) are
+verified. Files in other directories like `doc/`, `templates/`, or `log/` are
+intentionally excluded from integrity checks.
 
 **Solutions**:
 
