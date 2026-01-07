@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-01-07
+
 ### Changed
 
 - **Extension Template Repository**: Extension templates moved to dedicated GitHub repository
