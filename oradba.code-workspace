@@ -4,8 +4,19 @@
 			"path": "."
 		},
 		{
-			"path": "../oradba_extention"
+			"path": "../oradba_extension"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+			"logdir",
+			"LOGDIR",
+			"NOPRINT",
+			"ntimestamp",
+			"segements",
+			"spsec",
+			"SYSDATE",
+			"usrinf"
+		]
+	}
 }
