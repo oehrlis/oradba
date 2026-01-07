@@ -24,6 +24,7 @@ ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 
 # Source common functions
 if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+    # shellcheck source=../lib/common.sh
     source "${ORADBA_BASE}/lib/common.sh"
 else
     echo "ERROR: Cannot find common.sh library"
@@ -32,6 +33,7 @@ fi
 
 # Source DB functions
 if [[ -f "${ORADBA_BASE}/lib/db_functions.sh" ]]; then
+    # shellcheck source=../lib/db_functions.sh
     source "${ORADBA_BASE}/lib/db_functions.sh"
 fi
 
@@ -110,6 +112,7 @@ get_databases() {
 }
 
 # Check if database should be auto-started
+# shellcheck disable=SC2329
 should_autostart() {
     local sid="$1"
     local oratab_file="${ORATAB:-/etc/oratab}"
@@ -134,7 +137,7 @@ ask_justification() {
     echo "=========================================="
     echo "This will affect ${count} database(s)"
     echo ""
-    read -p "Please provide justification for this operation: " justification
+    read -r -p "Please provide justification for this operation: " justification
     
     if [[ -z "${justification}" ]]; then
         oradba_log ERROR "Operation cancelled: No justification provided"
@@ -142,7 +145,7 @@ ask_justification() {
     fi
     
     oradba_log INFO "Justification for ${action} all databases: ${justification}"
-    read -p "Continue with operation? (yes/no): " confirm
+    read -r -p "Continue with operation? (yes/no): " confirm
     
     if [[ "${confirm}" != "yes" ]]; then
         oradba_log INFO "Operation cancelled by user"
@@ -215,7 +218,7 @@ ALTER PLUGGABLE DATABASE ALL OPEN;
 EXIT;
 EOF
     
-    if [[ $? -eq 0 ]]; then
+    if sqlplus -s / as sysdba <<< "SELECT COUNT(*) FROM v\$pdbs WHERE open_mode != 'READ WRITE';" | grep -q '^0$'; then
         oradba_log INFO "All PDBs opened successfully in ${sid}"
     else
         oradba_log WARN "Some PDBs may have failed to open in ${sid}"
@@ -254,7 +257,7 @@ EOF
     # Try shutdown immediate with timeout
     oradba_log INFO "Attempting shutdown immediate for ${sid} (timeout: ${SHUTDOWN_TIMEOUT}s)"
     
-    timeout ${SHUTDOWN_TIMEOUT} sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
+    timeout "${SHUTDOWN_TIMEOUT}" sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
 WHENEVER SQLERROR CONTINUE
 SHUTDOWN IMMEDIATE;
 EXIT;
@@ -273,8 +276,8 @@ EOF
 SHUTDOWN ABORT;
 EXIT;
 EOF
-        
-        if [[ $? -eq 0 ]]; then
+        local abort_rc=$?
+        if [[ ${abort_rc} -eq 0 ]]; then
             oradba_log INFO "Database ${sid} stopped with abort"
             return 0
         else
@@ -294,6 +297,7 @@ show_status() {
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
+        # shellcheck source=oraenv.sh
         source "${ORADBA_BIN}/oraenv.sh" "${sid}" >/dev/null 2>&1
     else
         echo "${sid}: Unable to source environment"
