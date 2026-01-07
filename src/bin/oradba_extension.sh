@@ -368,14 +368,27 @@ cmd_create() {
             return 1
         fi
     else
-        # Use default template
+        # Use default template from templates/oradba_extension/
         echo -e "${BOLD}Creating extension from default template${NC}"
-        template_file="${BASE_DIR}/templates/extensions/customer-extension-template.tar.gz"
+        template_file="${BASE_DIR}/templates/oradba_extension/extension-template.tar.gz"
         
         if [[ ! -f "${template_file}" ]]; then
             echo "ERROR: Default template not found: ${template_file}" >&2
-            echo "Please ensure OraDBA is properly installed or use --template or --from-github option" >&2
+            echo "The extension template was not included in this installation." >&2
+            echo "" >&2
+            echo "Options:" >&2
+            echo "  1. Use --from-github to download the latest template" >&2
+            echo "  2. Provide a custom template with --template <file>" >&2
+            echo "  3. Download template manually: make download-extensions (in oradba source)" >&2
             return 1
+        fi
+        
+        # Check if version info is available
+        local version_file="${BASE_DIR}/templates/oradba_extension/.version"
+        if [[ -f "${version_file}" ]]; then
+            local template_version
+            template_version=$(cat "${version_file}" 2>/dev/null || echo "unknown")
+            echo "Template version: ${template_version}"
         fi
     fi
     
