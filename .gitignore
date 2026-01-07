@@ -16,8 +16,9 @@
 /dist/
 /build/
 
-# Extension templates (generated during build)
-src/templates/extensions/*.tar.gz
+# Extension templates (downloaded from GitHub during build)
+templates/oradba_extension/
+!templates/oradba_extension/.gitkeep
 
 # Generated documentation
 src/doc/*.pdf
