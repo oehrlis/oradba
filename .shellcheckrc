@@ -1,0 +1,20 @@
+# ShellCheck configuration
+# This file configures shellcheck for both CI and VS Code integration
+# See: https://github.com/koalaman/shellcheck/wiki/Integration
+
+# Set minimum severity level to warning (ignore info and style issues)
+# This matches the CI pipeline: shellcheck -x -S warning
+severity=warning
+
+# Disable checks that are false positives for BATS test files
+# SC1091: Can't follow sourced files in test context
+# SC2030/SC2031: Variable modifications in subshells (BATS tests run in subshells)
+# SC2162: read without -r (info level)
+# SC2181: Check exit code directly (style level)
+# SC2314/SC2315: BATS-specific ! handling
+# SC2329: Function never invoked (info level)
+disable=SC1091,SC2030,SC2031,SC2162,SC2181,SC2314,SC2315,SC2329
+
+# Optionally disable other specific checks (uncomment as needed)
+# disable=SC2034  # Unused variables
+# disable=SC2154  # Referenced but not assigned
