@@ -105,7 +105,9 @@ get_checksum_exclusions() {
             
             # If pattern ends with /, match directory contents
             if [[ "$pattern" == */ ]]; then
-                patterns+=("\$2 ~ /^${pattern}/")
+                # Remove trailing / and add it back in the regex to avoid double /
+                pattern="${pattern%/}"
+                patterns+=("\$2 ~ /^${pattern}\\//" )
             else
                 # Match exact file or pattern
                 patterns+=("\$2 ~ /^${pattern}$/")
