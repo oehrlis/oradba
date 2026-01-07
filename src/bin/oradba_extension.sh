@@ -211,12 +211,28 @@ download_github_release() {
         return 1
     fi
     
-    # Extract tarball URL (look for .tar.gz asset)
+    # Extract version tag
+    local tag_name
+    tag_name=$(echo "${release_info}" | grep -o '"tag_name": "[^"]*"' | head -1 | cut -d'"' -f4)
+    
+    if [[ -z "${tag_name}" ]]; then
+        echo "ERROR: Could not find release tag" >&2
+        return 1
+    fi
+    
+    echo "Found latest release: ${tag_name}"
+    
+    # Extract tarball URL (look for extension-template-*.tar.gz asset)
     local tarball_url
-    tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
     
     if [[ -z "${tarball_url}" ]]; then
-        # Fallback to tarball_url from release
+        # Fallback: look for any .tar.gz asset
+        tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    fi
+    
+    if [[ -z "${tarball_url}" ]]; then
+        # Last fallback: use source tarball_url from release
         tarball_url=$(echo "${release_info}" | grep -o '"tarball_url": "[^"]*"' | head -1 | cut -d'"' -f4)
     fi
     

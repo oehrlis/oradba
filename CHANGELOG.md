@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Extension Creation Command**: Added `create` command to `oradba_extension.sh` for easy extension creation
   - Create extensions from default template: `oradba_extension.sh create <name>`
-  - Support for GitHub releases: `--from-github` downloads latest from oehrlis/oradba_extension
+  - Support for GitHub releases: `--from-github` downloads latest from [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
+    - Automatically finds latest release via GitHub API
+    - Prioritizes `extension-template-*.tar.gz` assets
+    - Displays release version during download
+    - Falls back to source tarball if no asset found
   - Custom template support: `--template <file>` accepts any .tar.gz/.tgz file
   - Custom target location: `--path <dir>` overrides default `ORADBA_LOCAL_BASE`
   - Automatic extension name validation (alphanumeric, dashes, underscores, must start with letter)
