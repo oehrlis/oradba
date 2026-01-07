@@ -243,9 +243,22 @@ download_github_release() {
     
     echo "Downloading from: ${tarball_url}"
     
-    # Download tarball
-    if ! curl -L -o "${output_file}" "${tarball_url}"; then
+    # Download tarball with progress
+    if ! curl -L -f -o "${output_file}" "${tarball_url}"; then
         echo "ERROR: Failed to download release tarball" >&2
+        return 1
+    fi
+    
+    # Verify download
+    if [[ ! -s "${output_file}" ]]; then
+        echo "ERROR: Downloaded file is empty" >&2
+        return 1
+    fi
+    
+    # Verify it's a valid gzip file
+    if ! file "${output_file}" | grep -q "gzip compressed"; then
+        echo "ERROR: Downloaded file is not a valid gzip archive" >&2
+        echo "File type: $(file "${output_file}")" >&2
         return 1
     fi
     
@@ -365,6 +378,12 @@ cmd_create() {
     local extract_dir
     extract_dir=$(mktemp -d)
     
+    # First, check what's in the tarball
+    if [[ "${DEBUG:-0}" -eq 1 ]]; then
+        echo "DEBUG: Tarball contents:"
+        tar -tzf "${template_file}" | head -20
+    fi
+    
     if ! tar -xzf "${template_file}" -C "${extract_dir}" 2>/dev/null; then
         echo "ERROR: Failed to extract template" >&2
         rm -rf "${extract_dir}"
@@ -374,25 +393,57 @@ cmd_create() {
     
     # Find the extracted directory (it might be named differently)
     local extracted_dir
-    extracted_dir=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 -type d | head -1)
+    local item_count
+    item_count=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
     
-    if [[ -z "${extracted_dir}" ]]; then
-        echo "ERROR: No directory found in template archive" >&2
+    # Check if there's exactly one item and it's a directory
+    if [[ ${item_count} -eq 1 ]]; then
+        extracted_dir=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 -type d)
+        if [[ -z "${extracted_dir}" ]]; then
+            # Single item but not a directory
+            echo "ERROR: Unexpected template structure" >&2
+            rm -rf "${extract_dir}"
+            [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+            return 1
+        fi
+    elif [[ ${item_count} -gt 1 ]]; then
+        # Multiple items at root level - files extracted directly
+        extracted_dir="${extract_dir}"
+        if [[ "${DEBUG:-0}" -eq 1 ]]; then
+            echo "DEBUG: Template files extracted directly (no single top-level directory)"
+        fi
+    else
+        echo "ERROR: No files found in template archive" >&2
         rm -rf "${extract_dir}"
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
     
     # Move to target location
-    if ! mv "${extracted_dir}" "${ext_path}"; then
-        echo "ERROR: Failed to move extension to target location" >&2
+    if [[ "${extracted_dir}" == "${extract_dir}" ]]; then
+        # Files were extracted directly, create target and move contents
+        # Extract directly to the target path instead
         rm -rf "${extract_dir}"
-        [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
-        return 1
+        mkdir -p "${ext_path}"
+        if ! tar -xzf "${template_file}" -C "${ext_path}" 2>/dev/null; then
+            echo "ERROR: Failed to extract template to target location" >&2
+            rm -rf "${ext_path}"
+            [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+            return 1
+        fi
+    else
+        # Normal case: directory was extracted
+        if ! mv "${extracted_dir}" "${ext_path}"; then
+            echo "ERROR: Failed to move extension to target location" >&2
+            rm -rf "${extract_dir}"
+            [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+            return 1
+        fi
+        # Clean up temp extraction dir
+        rm -rf "${extract_dir}"
     fi
     
-    # Clean up
-    rm -rf "${extract_dir}"
+    # Clean up GitHub download temp dir if used
     [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
     
     # Update metadata if .extension file exists
