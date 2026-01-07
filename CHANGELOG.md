@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Extension Template Repository**: Extension templates moved to dedicated GitHub repository
+  - Template content moved to [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
+  - Build process downloads latest template from GitHub releases
+  - Cached in `templates/oradba_extension/extension-template.tar.gz`
+  - Version tracking in `templates/oradba_extension/.version`
+  - Reduces code duplication between repositories
+  - `oradba_extension.sh` updated to use new path
+
+### Added
+
+- **Checksum Exclusion Support**: Added `.checksumignore` file for customizable integrity checks
+  - Define patterns for files to exclude from checksum verification
+  - Supports glob patterns: `*`, `?`, directory matching (`pattern/`)
+  - Default exclusions: `.extension`, `.checksumignore`, `log/`
+  - Per-extension configuration
+  - Common use cases: credentials, caches, temporary files, user-specific configs
+  - Template included in oradba_extension repository
+
+- **Build Automation**: Added make targets for extension template management
+  - `make download-extensions` - Download latest template from GitHub
+  - `make clean-extensions` - Clean downloaded templates
+  - Build script checks for newer versions automatically
+  - Integrated into `make clean-all`
+
 ## [0.14.2] - 2026-01-07
 
 ### Changed

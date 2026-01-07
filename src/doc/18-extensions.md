@@ -420,9 +420,65 @@ Extension Integrity Checks:
 
    ```bash
    cd /opt/oracle/local/customer
-   find . -type f ! -name '.extension.checksum' -print0 | \
-     xargs -0 sha256sum > .extension.checksum
+   # Regenerate checksums for all files
+   find bin sql rcv etc lib -type f 2>/dev/null | sort | \
+     xargs sha256sum > .extension.checksum
    ```
+
+4. Exclude files from integrity checks:
+
+   Create or edit `.checksumignore` to exclude runtime-generated files:
+
+   ```bash
+   # Add patterns to .checksumignore
+   cat >> .checksumignore << 'EOF'
+   # Temporary files
+   tmp/
+   *.tmp
+   
+   # Credentials (if stored in extension)
+   keystore/
+   secrets/
+   EOF
+   ```
+
+   See "Checksum Exclusions" below for pattern syntax.
+
+**Checksum Exclusions (.checksumignore)**:
+
+The `.checksumignore` file lets you exclude specific files or patterns from integrity checks.
+
+**Default exclusions** (always applied):
+
+- `.extension` - Metadata file
+- `.checksumignore` - This file itself
+- `log/` - Log directory
+
+**Pattern syntax**:
+
+- One pattern per line, `#` for comments
+- `*` matches any characters: `*.log`, `data/*.cache`
+- `?` matches one character: `file?.txt`
+- Patterns ending with `/` match directories: `tmp/`, `keystore/`
+
+**Common patterns**:
+
+```text
+# Runtime files
+cache/
+tmp/
+*.tmp
+*.cache
+
+# Credentials
+keystore/
+secrets/
+*.key
+*.pem
+
+# User configs
+etc/*.local
+```
 
 **Verbose Mode Output**:
 

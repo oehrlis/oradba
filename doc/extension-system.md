@@ -90,7 +90,7 @@ integrity verification. This file:
 - Uses the standard `.extension.checksum` filename (always the same, regardless of extension name)
 - Contains SHA256 checksums in the format produced by `sha256sum`
 - Is automatically verified by `oradba_version.sh --verify` and `--info`
-- Excludes `.extension` and `log/` from verification (modified during operation)
+- Supports exclusion patterns via `.checksumignore` file
 - Is only checked for enabled extensions
 
 Example `.extension.checksum`:
@@ -104,7 +104,56 @@ a1b2c3d4e5f6...  bin/my_tool.sh
 When creating extensions with `oradba_extension.sh create --from-github`, the checksum
 file is automatically included and verified.
 
-**Verbose Mode**: Use `--verbose` flag to see detailed information about failed checks:
+#### Checksum Exclusions (.checksumignore)
+
+The `.checksumignore` file specifies patterns for files that should be excluded from
+integrity checks. This is useful for:
+
+- **Runtime-generated files**: logs, caches, temporary files
+- **Credentials**: keystores, certificates, API keys
+- **User-specific configs**: local overrides, customizations
+
+**Default Exclusions** (always applied):
+
+- `.extension` - Metadata file (may be modified)
+- `.checksumignore` - This file itself
+- `log/` - Log directory
+
+**Syntax**:
+
+- One pattern per line
+- Lines starting with `#` are comments
+- Empty lines are ignored
+- Glob patterns supported:
+  - `*` - matches any characters within a filename/directory
+  - `?` - matches exactly one character
+  - Patterns ending with `/` match directory contents
+
+**Example `.checksumignore`**:
+
+```text
+# Default - log directory (already excluded)
+log/
+
+# Credentials and secrets
+keystore/
+secrets/
+*.key
+*.pem
+
+# Cache and temporary files
+cache/
+tmp/
+*.tmp
+*.cache
+
+# User-specific configurations
+etc/*.local
+```
+
+#### Verbose Mode
+
+Use `--verbose` flag to see detailed information about failed checks:
 
 ```bash
 oradba_version.sh --verify --verbose
