@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Extension Add Command**: New `oradba_extension.sh add` command for installing existing extensions
+  - Install from GitHub repositories: short name (`oehrlis/odb_xyz`), versioned (`oehrlis/odb_xyz@v1.0.0`), or full URL
+  - Install from local tarball files
+  - Automatic structure validation (checks for `.extension` file or standard directories)
+  - Update existing extensions with `--update` flag
+  - RPM-style configuration handling: creates `.save` backup files for modified configs
+  - Preserves logs and user data during updates
+  - Timestamped backups of entire extension before update
+
+- **PATH and SQLPATH Deduplication**: Fixed extension path management to prevent duplicates
+  - `remove_extension_paths()`: Removes all extension paths before reloading
+  - `deduplicate_path()` and `deduplicate_sqlpath()`: Remove duplicate entries
+  - Clean slate approach: removes all extension paths, reloads enabled extensions only
+  - Preserves original PATH/SQLPATH in `ORADBA_ORIGINAL_PATH` and `ORADBA_ORIGINAL_SQLPATH`
+  - Prevents PATH pollution when sourcing `oraenv.sh` multiple times
+  - Properly removes disabled extension paths immediately
+
+### Fixed
+
+- **Extension Path Management**: Fixed issues with PATH and SQLPATH handling
+  - Disabled extensions are now properly removed from PATH/SQLPATH without logout
+  - Multiple sourcing of `oraenv.sh` no longer creates duplicate paths
+  - Extension paths are now deduplicated keeping first occurrence
+
+### Changed
+
+- **Extension Loading**: Modified `load_extensions()` to use clean slate approach
+  - Saves original PATH/SQLPATH on first run
+  - Removes all extension paths before reloading
+  - Only adds paths for enabled extensions
+  - Deduplicates final PATH and SQLPATH
+
 ## [0.15.0] - 2026-01-07
 
 ### Changed
