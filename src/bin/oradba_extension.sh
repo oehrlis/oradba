@@ -465,7 +465,8 @@ update_extension() {
     local new_content_dir="$2"
     
     # Create backup directory
-    local backup_dir="${ext_path}.backup.$(date +%Y%m%d_%H%M%S)"
+    local backup_dir
+    backup_dir="${ext_path}.backup.$(date +%Y%m%d_%H%M%S)"
     echo "Creating backup: ${backup_dir}"
     
     if ! cp -R "${ext_path}" "${backup_dir}"; then
@@ -484,8 +485,10 @@ update_extension() {
                 [[ "${line}" =~ ^# ]] && continue
                 [[ -z "${line}" ]] && continue
                 
-                local checksum=$(echo "${line}" | awk '{print $1}')
-                local filename=$(echo "${line}" | awk '{print $2}')
+                local checksum
+                local filename
+                checksum=$(echo "${line}" | awk '{print $1}')
+                filename=$(echo "${line}" | awk '{print $2}')
                 
                 # Only process etc/ files
                 [[ "${filename}" =~ ^etc/ ]] || continue

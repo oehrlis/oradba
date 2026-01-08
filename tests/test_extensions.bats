@@ -35,6 +35,7 @@ setup() {
     
     # Source helper functions from oradba_extension.sh for validation tests
     # Extract only the validate_extension_structure function
+    # shellcheck disable=SC1090
     source <(sed -n '/^validate_extension_structure()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh")
     
     # Create temporary test directory
