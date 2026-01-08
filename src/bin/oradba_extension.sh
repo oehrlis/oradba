@@ -342,20 +342,73 @@ download_extension_from_github() {
             return 1
         fi
         
+        # Check if release found, otherwise try tags
         if [[ -z "${release_info}" ]] || echo "${release_info}" | grep -q '"message".*"Not Found"'; then
-            echo "ERROR: No releases found for ${repo}" >&2
-            return 1
+            echo "No releases found, checking for tags..."
+            
+            # Try to get latest tag
+            api_url="https://api.github.com/repos/${repo}/tags"
+            local tags_info
+            if command -v curl >/dev/null 2>&1; then
+                tags_info=$(curl -fsSL "${api_url}" 2>/dev/null)
+            elif command -v wget >/dev/null 2>&1; then
+                tags_info=$(wget -qO- "${api_url}" 2>/dev/null)
+            fi
+            
+            if [[ -n "${tags_info}" ]] && ! echo "${tags_info}" | grep -q '"message".*"Not Found"'; then
+                # Get first (latest) tag
+                tag_name=$(echo "${tags_info}" | grep '"name"' | cut -d'"' -f4 | head -1)
+                download_url=$(echo "${tags_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+                
+                if [[ -n "${download_url}" ]]; then
+                    echo "Found latest tag: ${tag_name}"
+                else
+                    # No tags either, fallback to main/master branch
+                    echo "No tags found, using main branch..."
+                    tag_name="main"
+                    download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
+                    
+                    # Check if main branch exists, otherwise try master
+                    if command -v curl >/dev/null 2>&1; then
+                        if ! curl -fsSL -I "${download_url}" >/dev/null 2>&1; then
+                            echo "Trying master branch..."
+                            tag_name="master"
+                            download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
+                        fi
+                    fi
+                fi
+            else
+                # No tags, fallback to main/master branch
+                echo "No tags found, using main branch..."
+                tag_name="main"
+                download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
+                
+                # Check if main branch exists, otherwise try master
+                if command -v curl >/dev/null 2>&1; then
+                    if ! curl -fsSL -I "${download_url}" >/dev/null 2>&1; then
+                        echo "Trying master branch..."
+                        tag_name="master"
+                        download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
+                    fi
+                fi
+            fi
+        else
+            # Release found
+            download_url=$(echo "${release_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+            tag_name=$(echo "${release_info}" | grep '"tag_name"' | cut -d'"' -f4 | head -1)
+            
+            if [[ -z "${download_url}" ]]; then
+                echo "ERROR: Could not find download URL for latest release" >&2
+                return 1
+            fi
+            
+            echo "Latest release: ${tag_name}"
         fi
-        
-        download_url=$(echo "${release_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
-        tag_name=$(echo "${release_info}" | grep '"tag_name"' | cut -d'"' -f4 | head -1)
         
         if [[ -z "${download_url}" ]]; then
-            echo "ERROR: Could not find download URL for latest release" >&2
+            echo "ERROR: Could not determine download URL for ${repo}" >&2
             return 1
         fi
-        
-        echo "Latest release: ${tag_name}"
     fi
     
     # Download tarball
