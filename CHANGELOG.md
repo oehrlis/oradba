@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents extension messages from hiding `oraup.sh` output during login
   - Messages still visible with `DEBUG=1` when troubleshooting
 
+- **Main oradba Directory Removal**: Fixed `remove_extension_paths()` incorrectly removing core oradba bin directory
+  - Core `oradba/bin` and `oradba/sql` directories are now preserved
+  - Only extension directories are removed during cleanup
+  - Fixes issue where `oraup.sh` and other core commands disappeared from PATH after login
+
 ### Changed
 
 - **Extension Loading**: Modified `load_extensions()` to use clean slate approach
