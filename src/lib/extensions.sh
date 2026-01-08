@@ -460,9 +460,9 @@ load_extension() {
     local version
     version=$(get_extension_version "${ext_path}")
     if [[ "${version}" != "unknown" ]]; then
-        oradba_log INFO "Loaded extension: ${ext_name} (v${version})"
+        oradba_log DEBUG "Loaded extension: ${ext_name} (v${version})"
     else
-        oradba_log INFO "Loaded extension: ${ext_name}"
+        oradba_log DEBUG "Loaded extension: ${ext_name}"
     fi
     
     return 0

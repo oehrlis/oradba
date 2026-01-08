@@ -1151,7 +1151,7 @@ add_to_sqlpath() {
     
     # Check if already in SQLPATH
     if [[ ":${SQLPATH}:" == *":${new_path}:"* ]]; then
-        oradba_log INFO "Directory already in SQLPATH: ${new_path}"
+        oradba_log DEBUG "Directory already in SQLPATH: ${new_path}"
         return 0
     fi
     
@@ -1162,7 +1162,7 @@ add_to_sqlpath() {
         export SQLPATH="${SQLPATH}:${new_path}"
     fi
     
-    oradba_log INFO "Added to SQLPATH: ${new_path}"
+    oradba_log DEBUG "Added to SQLPATH: ${new_path}"
 }
 
 # Show version information
