@@ -21,6 +21,10 @@ setup() {
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
     
+    # Save original PATH and SQLPATH to restore in teardown
+    ORIGINAL_TEST_PATH="${PATH}"
+    ORIGINAL_TEST_SQLPATH="${SQLPATH:-}"
+    
     # Source common library
     # shellcheck source=../src/lib/common.sh
     source "${PROJECT_ROOT}/src/lib/common.sh"
@@ -45,6 +49,10 @@ setup() {
 }
 
 teardown() {
+    # Restore original PATH and SQLPATH before cleanup
+    export PATH="${ORIGINAL_TEST_PATH}"
+    export SQLPATH="${ORIGINAL_TEST_SQLPATH}"
+    
     # Clean up temporary directory
     rm -rf "${TEST_TEMP_DIR}"
     
@@ -52,6 +60,8 @@ teardown() {
     unset ORADBA_LOCAL_BASE
     unset ORADBA_AUTO_DISCOVER_EXTENSIONS
     unset ORADBA_EXTENSION_PATHS
+    unset ORIGINAL_TEST_PATH
+    unset ORIGINAL_TEST_SQLPATH
 }
 
 # ==============================================================================
