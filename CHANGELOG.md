@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Multiple sourcing of `oraenv.sh` no longer creates duplicate paths
   - Extension paths are now deduplicated keeping first occurrence
 
+- **Extension Loading Messages**: Suppressed verbose output during interactive shell login
+  - Changed extension loading messages from INFO to DEBUG level
+  - Changed `add_to_sqlpath` messages from INFO to DEBUG level
+  - Prevents extension messages from hiding `oraup.sh` output during login
+  - Messages still visible with `DEBUG=1` when troubleshooting
+
 ### Changed
 
 - **Extension Loading**: Modified `load_extensions()` to use clean slate approach
