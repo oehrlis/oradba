@@ -257,12 +257,12 @@ sort_extensions_by_priority() {
 # Usage: remove_extension_paths
 remove_extension_paths() {
     if [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
-        # Remove all paths matching ORADBA_LOCAL_BASE/*/bin from PATH
+        # Remove all paths matching ORADBA_LOCAL_BASE/*/bin from PATH (except oradba itself)
         local cleaned_path=""
         IFS=':' read -ra path_parts <<< "${PATH}"
         for part in "${path_parts[@]}"; do
-            # Skip if matches extension pattern
-            if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/bin$ ]]; then
+            # Skip if matches extension pattern, but not the main oradba directory
+            if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/bin$ ]] && [[ "${part}" != "${ORADBA_LOCAL_BASE}/oradba/bin" ]]; then
                 oradba_log DEBUG "Removing extension path: ${part}"
                 continue
             fi
@@ -270,13 +270,13 @@ remove_extension_paths() {
         done
         export PATH="${cleaned_path}"
         
-        # Remove extension paths from SQLPATH
+        # Remove extension paths from SQLPATH (except oradba itself)
         if [[ -n "${SQLPATH}" ]]; then
             local cleaned_sqlpath=""
             IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
             for part in "${sqlpath_parts[@]}"; do
-                # Skip if matches extension pattern
-                if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/sql$ ]]; then
+                # Skip if matches extension pattern, but not the main oradba directory
+                if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/sql$ ]] && [[ "${part}" != "${ORADBA_LOCAL_BASE}/oradba/sql" ]]; then
                     oradba_log DEBUG "Removing extension SQLPATH: ${part}"
                     continue
                 fi
