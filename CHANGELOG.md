@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-01-08
+
 ### Added
 
 - **Extension Add Command**: New `oradba_extension.sh add` command for installing existing extensions
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RPM-style configuration handling: creates `.save` backup files for modified configs
   - Preserves logs and user data during updates
   - Timestamped backups of entire extension before update
+  - Fallback support for repositories without releases (uses tags or main/master branch)
 
 - **PATH and SQLPATH Deduplication**: Fixed extension path management to prevent duplicates
   - `remove_extension_paths()`: Removes all extension paths before reloading
@@ -51,6 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removes all extension paths before reloading
   - Only adds paths for enabled extensions
   - Deduplicates final PATH and SQLPATH
+
+- **GitHub Integration**: Enhanced extension download to support repositories at any stage
+  - Tries latest GitHub release first
+  - Falls back to latest tag if no releases
+  - Falls back to main/master branch if no tags
+  - Allows installing extensions from development repositories
 
 ## [0.15.0] - 2026-01-07
 
