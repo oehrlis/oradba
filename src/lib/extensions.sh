@@ -253,11 +253,121 @@ sort_extensions_by_priority() {
 # Extension Loading Functions
 # ------------------------------------------------------------------------------
 
+# Remove extension paths from PATH/SQLPATH
+# Usage: remove_extension_paths
+remove_extension_paths() {
+    if [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+        # Remove all paths matching ORADBA_LOCAL_BASE/*/bin from PATH
+        local cleaned_path=""
+        IFS=':' read -ra path_parts <<< "${PATH}"
+        for part in "${path_parts[@]}"; do
+            # Skip if matches extension pattern
+            if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/bin$ ]]; then
+                oradba_log DEBUG "Removing extension path: ${part}"
+                continue
+            fi
+            cleaned_path="${cleaned_path:+${cleaned_path}:}${part}"
+        done
+        export PATH="${cleaned_path}"
+        
+        # Remove extension paths from SQLPATH
+        if [[ -n "${SQLPATH}" ]]; then
+            local cleaned_sqlpath=""
+            IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
+            for part in "${sqlpath_parts[@]}"; do
+                # Skip if matches extension pattern
+                if [[ "${part}" =~ ^${ORADBA_LOCAL_BASE}/[^/]+/sql$ ]]; then
+                    oradba_log DEBUG "Removing extension SQLPATH: ${part}"
+                    continue
+                fi
+                cleaned_sqlpath="${cleaned_sqlpath:+${cleaned_sqlpath}:}${part}"
+            done
+            export SQLPATH="${cleaned_sqlpath}"
+        fi
+    fi
+}
+
+# Deduplicate PATH (keep first occurrence)
+# Usage: deduplicate_path
+deduplicate_path() {
+    local seen=()
+    local new_path=""
+    
+    IFS=':' read -ra path_parts <<< "${PATH}"
+    for part in "${path_parts[@]}"; do
+        # Skip empty parts
+        [[ -z "${part}" ]] && continue
+        
+        # Check if already seen
+        local found=false
+        for seen_part in "${seen[@]}"; do
+            if [[ "${part}" == "${seen_part}" ]]; then
+                found=true
+                break
+            fi
+        done
+        
+        # Add if not seen
+        if [[ "${found}" == "false" ]]; then
+            seen+=("${part}")
+            new_path="${new_path:+${new_path}:}${part}"
+        fi
+    done
+    
+    export PATH="${new_path}"
+}
+
+# Deduplicate SQLPATH (keep first occurrence)
+# Usage: deduplicate_sqlpath
+deduplicate_sqlpath() {
+    [[ -z "${SQLPATH}" ]] && return 0
+    
+    local seen=()
+    local new_sqlpath=""
+    
+    IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
+    for part in "${sqlpath_parts[@]}"; do
+        # Skip empty parts
+        [[ -z "${part}" ]] && continue
+        
+        # Check if already seen
+        local found=false
+        for seen_part in "${seen[@]}"; do
+            if [[ "${part}" == "${seen_part}" ]]; then
+                found=true
+                break
+            fi
+        done
+        
+        # Add if not seen
+        if [[ "${found}" == "false" ]]; then
+            seen+=("${part}")
+            new_sqlpath="${new_sqlpath:+${new_sqlpath}:}${part}"
+        fi
+    done
+    
+    export SQLPATH="${new_sqlpath}"
+}
+
 # Load all enabled extensions
 # Called from oraenv.sh after configuration loading
 load_extensions() {
     local extensions=()
     local ext_path
+    
+    # Save original PATH/SQLPATH on first run
+    if [[ -z "${ORADBA_ORIGINAL_PATH}" ]]; then
+        export ORADBA_ORIGINAL_PATH="${PATH}"
+        oradba_log DEBUG "Saved original PATH"
+    fi
+    if [[ -z "${ORADBA_ORIGINAL_SQLPATH}" ]] && [[ -n "${SQLPATH}" ]]; then
+        export ORADBA_ORIGINAL_SQLPATH="${SQLPATH}"
+        oradba_log DEBUG "Saved original SQLPATH"
+    fi
+    
+    # Remove any existing extension paths before re-loading
+    oradba_log DEBUG "Cleaning extension paths from PATH/SQLPATH"
+    remove_extension_paths
     
     oradba_log DEBUG "Starting extension discovery and loading..."
     
@@ -278,6 +388,11 @@ load_extensions() {
     while IFS= read -r ext_path; do
         load_extension "${ext_path}"
     done < <(sort_extensions_by_priority "${extensions[@]}")
+    
+    # Deduplicate PATH and SQLPATH to remove any duplicates
+    oradba_log DEBUG "Deduplicating PATH and SQLPATH"
+    deduplicate_path
+    deduplicate_sqlpath
     
     oradba_log DEBUG "Extension loading complete"
 }
