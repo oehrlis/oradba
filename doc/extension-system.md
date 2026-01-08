@@ -238,6 +238,46 @@ Variable naming: `ORADBA_EXT_<NAME>_<SETTING>` where `<NAME>` is the extension n
 PATH="${ORADBA_BIN}:${CUSTOMER_BIN}:${ACME_BIN}:${ORACLE_HOME}/bin:${SYSTEM_PATH}"
 ```
 
+### PATH and SQLPATH Management
+
+OraDBA maintains clean, unique PATH and SQLPATH values:
+
+**On First Execution**:
+- Saves original PATH to `ORADBA_ORIGINAL_PATH`
+- Saves original SQLPATH to `ORADBA_ORIGINAL_SQLPATH`
+
+**Every Time `oraenv.sh` is Sourced**:
+1. Removes all extension paths matching `${ORADBA_LOCAL_BASE}/*/bin` and `*/sql`
+2. Loads only enabled extensions
+3. Deduplicates PATH and SQLPATH (keeps first occurrence)
+
+**Benefits**:
+- Sourcing `oraenv.sh` multiple times doesn't create duplicates
+- Disabling an extension and re-sourcing removes it from PATH/SQLPATH
+- Always produces consistent, clean environment
+
+**Example**:
+
+```bash
+# First sourcing
+$ source ${ORADBA_BASE}/bin/oraenv.sh ${ORACLE_SID}
+$ echo $PATH | tr ':' '\n' | grep local
+/opt/oracle/local/usz/bin
+/opt/oracle/local/oradba/bin
+
+# Re-sourcing doesn't create duplicates
+$ source ${ORADBA_BASE}/bin/oraenv.sh ${ORACLE_SID}
+$ echo $PATH | tr ':' '\n' | grep local
+/opt/oracle/local/usz/bin          # Still only once!
+/opt/oracle/local/oradba/bin       # Still only once!
+
+# Disable extension
+$ echo "enabled: false" >> /opt/oracle/local/usz/.extension
+$ source ${ORADBA_BASE}/bin/oraenv.sh ${ORACLE_SID}
+$ echo $PATH | tr ':' '\n' | grep local
+/opt/oracle/local/oradba/bin       # usz is gone!
+```
+
 ### Priority Sorting
 
 Extensions are sorted by:
@@ -298,6 +338,73 @@ The `create` command will:
   (downloaded during build from GitHub releases)
 - **GitHub**: Latest release from [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
 - **Custom**: Any `.tar.gz` or `.tgz` file with extension structure
+
+### Installing an Existing Extension
+
+Use the `add` command to install extensions from GitHub or local tarballs:
+
+```bash
+# Install from GitHub (latest release)
+oradba_extension.sh add oehrlis/odb_autoupgrade
+
+# Install specific version
+oradba_extension.sh add oehrlis/odb_autoupgrade@v1.2.0
+
+# Install from full GitHub URL
+oradba_extension.sh add https://github.com/oehrlis/odb_autoupgrade
+
+# Install from local tarball
+oradba_extension.sh add /path/to/extension.tar.gz
+
+# Install with custom name
+oradba_extension.sh add oehrlis/odb_xyz --name custom_name
+
+# Install to custom location
+oradba_extension.sh add oehrlis/odb_xyz --path /opt/oracle/custom
+
+# Update existing extension
+oradba_extension.sh add oehrlis/odb_xyz --update
+```
+
+The `add` command will:
+
+1. Download the extension tarball (for GitHub sources)
+2. Validate the extension structure
+3. Extract to target location
+4. Enable the extension by default (`enabled: true`)
+5. Show next steps for configuration
+
+**Update Behavior (`--update` flag)**:
+
+- Creates timestamped backup: `<extension>.backup.YYYYMMDD_HHMMSS`
+- Compares files against `.extension.checksum`
+- Creates `.save` files for modified configs in `etc/` (RPM-style)
+- Preserves `log/` directory
+- Installs new version
+- Restores `.save` files alongside new configs
+
+**Example Update Flow**:
+
+```bash
+# Initial install
+$ oradba_extension.sh add oehrlis/odb_xyz
+
+# Modify config
+$ vi /opt/oracle/local/odb_xyz/etc/config.conf
+
+# Update to new version
+$ oradba_extension.sh add oehrlis/odb_xyz --update
+Creating backup: /opt/oracle/local/odb_xyz.backup.20260108_143022
+Checking for modified configuration files...
+  Preserving modified file: etc/config.conf
+Installing new version...
+Restored modified configuration files (*.save)
+
+# Check for .save files
+$ ls /opt/oracle/local/odb_xyz/etc/
+config.conf       # New version from update
+config.conf.save  # Your modified version preserved
+```
 
 ### Minimal Extension
 

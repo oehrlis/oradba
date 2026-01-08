@@ -918,4 +918,342 @@ EOF
     [[ "$output" == *"oradba_extension.sh list"* ]]
 }
 
+# ==============================================================================
+# PATH/SQLPATH Deduplication Tests
+# ==============================================================================
+
+@test "remove_extension_paths removes extension bin paths" {
+    # Setup test extensions
+    mkdir -p "${TEST_TEMP_DIR}/ext1/bin"
+    mkdir -p "${TEST_TEMP_DIR}/ext2/bin"
+    
+    # Set PATH with extension paths
+    export PATH="${TEST_TEMP_DIR}/ext1/bin:${TEST_TEMP_DIR}/ext2/bin:/usr/bin:/bin"
+    
+    # Remove extension paths
+    remove_extension_paths
+    
+    # Extension paths should be removed
+    [[ "${PATH}" != *"${TEST_TEMP_DIR}/ext1/bin"* ]]
+    [[ "${PATH}" != *"${TEST_TEMP_DIR}/ext2/bin"* ]]
+    # System paths should remain
+    [[ "${PATH}" == *"/usr/bin"* ]]
+    [[ "${PATH}" == *"/bin"* ]]
+}
+
+@test "remove_extension_paths removes extension sql paths from SQLPATH" {
+    # Setup test extensions
+    mkdir -p "${TEST_TEMP_DIR}/ext1/sql"
+    mkdir -p "${TEST_TEMP_DIR}/ext2/sql"
+    
+    # Set SQLPATH with extension paths
+    export SQLPATH="${TEST_TEMP_DIR}/ext1/sql:${TEST_TEMP_DIR}/ext2/sql:/opt/oracle/sql"
+    
+    # Remove extension paths
+    remove_extension_paths
+    
+    # Extension paths should be removed
+    [[ "${SQLPATH}" != *"${TEST_TEMP_DIR}/ext1/sql"* ]]
+    [[ "${SQLPATH}" != *"${TEST_TEMP_DIR}/ext2/sql"* ]]
+    # Other paths should remain
+    [[ "${SQLPATH}" == *"/opt/oracle/sql"* ]]
+}
+
+@test "deduplicate_path removes duplicate PATH entries" {
+    # Set PATH with duplicates
+    export PATH="/usr/bin:/opt/bin:/usr/bin:/bin:/opt/bin"
+    
+    # Deduplicate
+    deduplicate_path
+    
+    # Count occurrences of /usr/bin
+    local count
+    count=$(echo "${PATH}" | grep -o "/usr/bin" | wc -l | tr -d ' ')
+    [[ "${count}" -eq 1 ]]
+    
+    # Count occurrences of /opt/bin
+    count=$(echo "${PATH}" | grep -o "/opt/bin" | wc -l | tr -d ' ')
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "deduplicate_path keeps first occurrence" {
+    # Set PATH with duplicates
+    export PATH="/first:/second:/first:/third"
+    
+    # Deduplicate
+    deduplicate_path
+    
+    # Should keep first occurrence
+    [[ "${PATH}" == "/first:/second:/third" ]]
+}
+
+@test "deduplicate_sqlpath removes duplicate SQLPATH entries" {
+    # Set SQLPATH with duplicates
+    export SQLPATH="/opt/sql1:/opt/sql2:/opt/sql1:/opt/sql3"
+    
+    # Deduplicate
+    deduplicate_sqlpath
+    
+    # Count occurrences of /opt/sql1
+    local count
+    count=$(echo "${SQLPATH}" | grep -o "/opt/sql1" | wc -l | tr -d ' ')
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "load_extensions saves original PATH on first run" {
+    # Clear any existing saved PATH
+    unset ORADBA_ORIGINAL_PATH
+    
+    # Set initial PATH
+    export PATH="/usr/bin:/bin"
+    
+    # Load extensions (none exist, but should still save PATH)
+    load_extensions
+    
+    # Original PATH should be saved
+    [[ -n "${ORADBA_ORIGINAL_PATH}" ]]
+    [[ "${ORADBA_ORIGINAL_PATH}" == "/usr/bin:/bin" ]]
+}
+
+@test "load_extensions prevents duplicate paths when called multiple times" {
+    # Create extension
+    mkdir -p "${TEST_TEMP_DIR}/test_dup/bin"
+    echo "name: test_dup" > "${TEST_TEMP_DIR}/test_dup/.extension"
+    echo "enabled: true" >> "${TEST_TEMP_DIR}/test_dup/.extension"
+    
+    # Set initial PATH
+    export PATH="/usr/bin:/bin"
+    
+    # Load extensions multiple times
+    load_extensions
+    load_extensions
+    load_extensions
+    
+    # Count occurrences of test_dup/bin
+    local count
+    count=$(echo "${PATH}" | grep -o "test_dup/bin" | wc -l | tr -d ' ')
+    
+    # Should only appear once
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "load_extensions excludes disabled extensions" {
+    # Create enabled extension
+    mkdir -p "${TEST_TEMP_DIR}/ext_enabled/bin"
+    echo "name: ext_enabled" > "${TEST_TEMP_DIR}/ext_enabled/.extension"
+    echo "enabled: true" >> "${TEST_TEMP_DIR}/ext_enabled/.extension"
+    
+    # Create disabled extension
+    mkdir -p "${TEST_TEMP_DIR}/ext_disabled/bin"
+    echo "name: ext_disabled" > "${TEST_TEMP_DIR}/ext_disabled/.extension"
+    echo "enabled: false" >> "${TEST_TEMP_DIR}/ext_disabled/.extension"
+    
+    # Set initial PATH
+    export PATH="/usr/bin:/bin"
+    
+    # Load extensions
+    load_extensions
+    
+    # Enabled should be in PATH
+    [[ "${PATH}" == *"ext_enabled/bin"* ]]
+    
+    # Disabled should NOT be in PATH
+    [[ "${PATH}" != *"ext_disabled/bin"* ]]
+}
+
+@test "load_extensions removes disabled extension paths when re-sourced" {
+    # Create extension initially enabled
+    mkdir -p "${TEST_TEMP_DIR}/ext_toggle/bin"
+    echo "name: ext_toggle" > "${TEST_TEMP_DIR}/ext_toggle/.extension"
+    echo "enabled: true" >> "${TEST_TEMP_DIR}/ext_toggle/.extension"
+    
+    # Set initial PATH
+    export PATH="/usr/bin:/bin"
+    
+    # Load extensions - should add ext_toggle
+    load_extensions
+    [[ "${PATH}" == *"ext_toggle/bin"* ]]
+    
+    # Disable the extension
+    echo "enabled: false" > "${TEST_TEMP_DIR}/ext_toggle/.extension"
+    
+    # Load extensions again - should remove ext_toggle
+    load_extensions
+    [[ "${PATH}" != *"ext_toggle/bin"* ]]
+}
+
+# ==============================================================================
+# Extension Add Command Tests (Validation)
+# ==============================================================================
+
+@test "validate_extension_structure accepts extension with .extension file" {
+    mkdir -p "${TEST_TEMP_DIR}/valid_ext"
+    echo "name: valid_ext" > "${TEST_TEMP_DIR}/valid_ext/.extension"
+    
+    run validate_extension_structure "${TEST_TEMP_DIR}/valid_ext"
+    [[ "$status" -eq 0 ]]
+}
+
+@test "validate_extension_structure accepts extension with bin directory" {
+    mkdir -p "${TEST_TEMP_DIR}/valid_ext2/bin"
+    
+    run validate_extension_structure "${TEST_TEMP_DIR}/valid_ext2"
+    [[ "$status" -eq 0 ]]
+}
+
+@test "validate_extension_structure accepts extension with sql directory" {
+    mkdir -p "${TEST_TEMP_DIR}/valid_ext3/sql"
+    
+    run validate_extension_structure "${TEST_TEMP_DIR}/valid_ext3"
+    [[ "$status" -eq 0 ]]
+}
+
+@test "validate_extension_structure rejects empty directory" {
+    mkdir -p "${TEST_TEMP_DIR}/invalid_ext"
+    
+    run validate_extension_structure "${TEST_TEMP_DIR}/invalid_ext"
+    [[ "$status" -ne 0 ]]
+    [[ "$output" == *"Invalid extension structure"* ]]
+}
+
+# ==============================================================================
+# PATH/SQLPATH Management Tests
+# ==============================================================================
+
+@test "remove_extension_paths removes extension bin directories from PATH" {
+    # Setup PATH with extension paths
+    export PATH="${TEST_TEMP_DIR}/ext1/bin:${TEST_TEMP_DIR}/ext2/bin:/usr/bin"
+    
+    # Remove extension paths
+    remove_extension_paths
+    
+    # Extension paths should be removed
+    [[ "${PATH}" != *"ext1/bin"* ]]
+    [[ "${PATH}" != *"ext2/bin"* ]]
+    # System paths should remain
+    [[ "${PATH}" == *"/usr/bin"* ]]
+}
+
+@test "remove_extension_paths removes extension sql directories from SQLPATH" {
+    # Setup SQLPATH with extension paths
+    export SQLPATH="${TEST_TEMP_DIR}/ext1/sql:${TEST_TEMP_DIR}/ext2/sql:/other/sql"
+    
+    # Remove extension paths
+    remove_extension_paths
+    
+    # Extension paths should be removed
+    [[ "${SQLPATH}" != *"ext1/sql"* ]]
+    [[ "${SQLPATH}" != *"ext2/sql"* ]]
+    # Other paths should remain
+    [[ "${SQLPATH}" == *"/other/sql"* ]]
+}
+
+@test "deduplicate_path removes duplicate entries" {
+    # Setup PATH with duplicates
+    export PATH="/usr/bin:/opt/bin:/usr/bin:/opt/bin:/usr/bin"
+    
+    # Deduplicate
+    deduplicate_path
+    
+    # Count occurrences of /usr/bin
+    local count
+    count=$(echo "${PATH}" | tr ':' '\n' | grep -c "^/usr/bin$")
+    [[ "${count}" -eq 1 ]]
+    
+    # Count occurrences of /opt/bin
+    count=$(echo "${PATH}" | tr ':' '\n' | grep -c "^/opt/bin$")
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "deduplicate_path keeps first occurrence" {
+    # Setup PATH - first /usr/bin should be kept
+    export PATH="/usr/bin:/opt/bin:/usr/bin"
+    
+    # Deduplicate
+    deduplicate_path
+    
+    # First entry should be /usr/bin
+    local first_entry
+    first_entry=$(echo "${PATH}" | cut -d: -f1)
+    [[ "${first_entry}" == "/usr/bin" ]]
+}
+
+@test "deduplicate_sqlpath removes duplicate entries" {
+    # Setup SQLPATH with duplicates
+    export SQLPATH="/sql1:/sql2:/sql1:/sql2"
+    
+    # Deduplicate
+    deduplicate_sqlpath
+    
+    # Count occurrences
+    local count
+    count=$(echo "${SQLPATH}" | tr ':' '\n' | grep -c "^/sql1$")
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "load_extensions saves original PATH on first run" {
+    # Clear ORADBA_ORIGINAL_PATH
+    unset ORADBA_ORIGINAL_PATH
+    
+    # Set PATH
+    export PATH="/usr/bin:/bin"
+    
+    # Load extensions (no extensions exist, but it should save PATH)
+    load_extensions
+    
+    # Original PATH should be saved
+    [[ -n "${ORADBA_ORIGINAL_PATH}" ]]
+    [[ "${ORADBA_ORIGINAL_PATH}" == "/usr/bin:/bin" ]]
+}
+
+@test "load_extensions prevents PATH duplicates on multiple calls" {
+    # Create test extension
+    mkdir -p "${TEST_TEMP_DIR}/test_dup/bin"
+    echo "name: test_dup" > "${TEST_TEMP_DIR}/test_dup/.extension"
+    
+    # Clear PATH to have controlled environment
+    export PATH="/usr/bin"
+    unset ORADBA_ORIGINAL_PATH
+    
+    # Load extensions multiple times
+    load_extensions
+    local path_after_first="${PATH}"
+    
+    load_extensions
+    local path_after_second="${PATH}"
+    
+    load_extensions
+    local path_after_third="${PATH}"
+    
+    # PATH should be identical after each load
+    [[ "${path_after_first}" == "${path_after_second}" ]]
+    [[ "${path_after_second}" == "${path_after_third}" ]]
+    
+    # Extension path should appear only once
+    local count
+    count=$(echo "${PATH}" | tr ':' '\n' | grep -c "test_dup/bin")
+    [[ "${count}" -eq 1 ]]
+}
+
+@test "load_extensions removes disabled extension from PATH" {
+    # Create test extension
+    mkdir -p "${TEST_TEMP_DIR}/test_disable/bin"
+    echo -e "name: test_disable\nenabled: true" > "${TEST_TEMP_DIR}/test_disable/.extension"
+    
+    # Clear PATH
+    export PATH="/usr/bin"
+    unset ORADBA_ORIGINAL_PATH
+    
+    # Load extensions - should add test_disable
+    load_extensions
+    [[ "${PATH}" == *"test_disable/bin"* ]]
+    
+    # Disable extension
+    echo -e "name: test_disable\nenabled: false" > "${TEST_TEMP_DIR}/test_disable/.extension"
+    
+    # Load extensions again - should remove test_disable
+    load_extensions
+    [[ "${PATH}" != *"test_disable/bin"* ]]
+}
+
 # EOF

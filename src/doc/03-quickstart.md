@@ -368,6 +368,8 @@ dbstatus.sh / sta        # Database status
 # Extensions
 oradba_extension.sh list              # List all extensions
 oradba_extension.sh info customer     # Show extension details
+oradba_extension.sh add oehrlis/odb_xyz  # Install extension from GitHub
+oradba_extension.sh create myext      # Create new extension from template
 
 # Version
 oradba_version.sh --check          # Current version
@@ -377,6 +379,32 @@ oradba_version.sh --update-check   # Check for updates
 ## Extending OraDBA
 
 You can add custom scripts without modifying the core installation:
+
+### Option 1: Install from GitHub
+
+```bash
+# Install existing extension
+oradba_extension.sh add oehrlis/odb_autoupgrade
+
+# Source environment to load it
+source oraenv.sh FREE
+```
+
+### Option 2: Create from Template
+
+```bash
+# Create new extension
+oradba_extension.sh create customer
+
+# Add your scripts
+vi /opt/oracle/local/customer/bin/my_check.sh
+
+# Reload environment
+source oraenv.sh FREE
+my_check.sh              # Your script is now in PATH
+```
+
+### Option 3: Manual Creation
 
 ```bash
 # Create extension directory

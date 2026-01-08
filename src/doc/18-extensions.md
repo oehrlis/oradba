@@ -119,6 +119,34 @@ The create command will:
 - Update metadata with new name
 - Display next steps for customization
 
+### Install/Add Extension
+
+Install existing extensions from GitHub or local tarballs:
+
+```bash
+# Install from GitHub (latest release)
+oradba_extension.sh add oehrlis/odb_autoupgrade
+
+# Install specific version
+oradba_extension.sh add oehrlis/odb_autoupgrade@v1.2.0
+
+# Install from local tarball
+oradba_extension.sh add /path/to/extension.tar.gz
+
+# Update existing extension (preserves modified configs)
+oradba_extension.sh add oehrlis/odb_autoupgrade --update
+
+# Install with custom name
+oradba_extension.sh add oehrlis/odb_xyz --name custom_name
+```
+
+The add command will:
+
+- Download/extract the extension
+- Validate structure
+- Enable by default
+- When updating: create backups and `.save` files for modified configs
+
 ### List Extensions
 
 ```bash
