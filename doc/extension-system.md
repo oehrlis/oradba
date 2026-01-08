@@ -243,15 +243,18 @@ PATH="${ORADBA_BIN}:${CUSTOMER_BIN}:${ACME_BIN}:${ORACLE_HOME}/bin:${SYSTEM_PATH
 OraDBA maintains clean, unique PATH and SQLPATH values:
 
 **On First Execution**:
+
 - Saves original PATH to `ORADBA_ORIGINAL_PATH`
 - Saves original SQLPATH to `ORADBA_ORIGINAL_SQLPATH`
 
 **Every Time `oraenv.sh` is Sourced**:
+
 1. Removes all extension paths matching `${ORADBA_LOCAL_BASE}/*/bin` and `*/sql`
 2. Loads only enabled extensions
 3. Deduplicates PATH and SQLPATH (keeps first occurrence)
 
 **Benefits**:
+
 - Sourcing `oraenv.sh` multiple times doesn't create duplicates
 - Disabling an extension and re-sourcing removes it from PATH/SQLPATH
 - Always produces consistent, clean environment

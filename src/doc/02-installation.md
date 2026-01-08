@@ -211,32 +211,55 @@ Automate OraDBA installation across your Oracle infrastructure using Ansible.
   hosts: oracle_servers
   become: yes
   become_user: oracle
+  gather_facts: yes
+
   vars:
-    oradba_version: "0.14.0"
-    oradba_prefix: "/opt/oracle/local/oradba"
-    oradba_download_url: "https://github.com/oehrlis/oradba/releases/download/v{{ oradba_version }}/oradba_install.sh"
-    
+    # Default to the latest release unless explicitly pinned (e.g. "0.14.0")
+    oradba_version: "latest"
+
+    # Prefix is derived from ORACLE_BASE on the target host:
+    #   $ORACLE_BASE/local/oradba
+    oradba_prefix: "{{ ansible_env.ORACLE_BASE }}/local/oradba"
+
   tasks:
+    - name: Ensure ORACLE_BASE is set on the target host
+      assert:
+        that:
+          - ansible_env.ORACLE_BASE is defined
+          - (ansible_env.ORACLE_BASE | length) > 0
+        fail_msg: "ORACLE_BASE is not set for user 'oracle' on the target host."
+
+    - name: Compute OraDBA download URL (latest or pinned)
+      set_fact:
+        oradba_download_url: >-
+          {{
+            (oradba_version == 'latest')
+            | ternary(
+                'https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh',
+                'https://github.com/oehrlis/oradba/releases/download/v' ~ oradba_version ~ '/oradba_install.sh'
+              )
+          }}
+
     - name: Create temporary download directory
       file:
         path: /tmp/oradba-install
         state: directory
-        mode: '0755'
-        
+        mode: "0755"
+
     - name: Download OraDBA installer
       get_url:
         url: "{{ oradba_download_url }}"
         dest: /tmp/oradba-install/oradba_install.sh
-        mode: '0755'
-      when: ansible_connection != 'local'  # Skip in air-gapped
-      
+        mode: "0755"
+      when: ansible_connection != "local"  # Skip in air-gapped
+
     - name: Copy installer (air-gapped alternative)
       copy:
         src: files/oradba_install.sh
         dest: /tmp/oradba-install/oradba_install.sh
-        mode: '0755'
-      when: ansible_connection == 'local'
-      
+        mode: "0755"
+      when: ansible_connection == "local"
+
     - name: Run OraDBA installer
       command: >
         /tmp/oradba-install/oradba_install.sh
@@ -246,17 +269,17 @@ Automate OraDBA installation across your Oracle infrastructure using Ansible.
       args:
         creates: "{{ oradba_prefix }}/bin/oraenv.sh"
       register: install_result
-      
+
     - name: Verify installation
       command: "{{ oradba_prefix }}/bin/oradba_version.sh --verify"
       register: verify_result
       changed_when: false
-      
+
     - name: Display installation summary
       debug:
-        msg: "OraDBA {{ oradba_version }} installed successfully at {{ oradba_prefix }}"
+        msg: "OraDBA installed successfully at {{ oradba_prefix }} (requested version: {{ oradba_version }})"
       when: verify_result.rc == 0
-      
+
     - name: Clean up temporary files
       file:
         path: /tmp/oradba-install
