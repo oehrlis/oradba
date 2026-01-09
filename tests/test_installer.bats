@@ -155,11 +155,11 @@ teardown() {
 @test "installer help works" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --help 2>&1) || {
+        # Run with bash -x to trace execution
+        output=$(bash -x "${PROJECT_ROOT}/dist/oradba_install.sh" --help 2>&1) || {
             echo "Installer failed with exit code $?"
-            echo "Output: $output"
-            echo "First 20 lines of installer:"
-            head -20 "${PROJECT_ROOT}/dist/oradba_install.sh"
+            echo "=== Debug trace (last 50 lines) ==="
+            echo "$output" | tail -50
             return 1
         }
         echo "$output" | grep -q "Usage:"
