@@ -91,7 +91,7 @@ jobs:
     needs: [changes, lint]
     if: |
       always() && 
-      needs.changes.outputs.tests == 'true' &&
+      (needs.changes.outputs.tests == 'true' || needs.changes.outputs.config == 'true') &&
       (needs.lint.result == 'success' || needs.lint.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
