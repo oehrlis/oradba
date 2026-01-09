@@ -240,6 +240,7 @@ Other Options:
   --user USER         Run as specific user (requires sudo)
   --version VERSION   Specify version for --github mode
   --dummy-home PATH   Set dummy ORACLE_HOME for pre-Oracle installations
+  --silent            Silent mode (no interactive prompts, no profile update)
   --no-examples       Don't install example files
   --force             Force update even if same version
   --update-profile    Update shell profile for automatic environment loading
@@ -729,6 +730,8 @@ DUMMY_ORACLE_HOME=""  # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto"  # auto, yes, no
+SILENT_MODE=false
+SKIP_EXAMPLES=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -779,6 +782,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-update-profile)
             UPDATE_PROFILE="no"
+            shift
+            ;;
+        --silent)
+            SILENT_MODE=true
+            UPDATE_PROFILE="no"  # Silent mode implies no profile update prompts
+            shift
+            ;;
+        --no-examples)
+            SKIP_EXAMPLES=true
             shift
             ;;
         -h|--help)
