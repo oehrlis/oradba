@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Oracle Homes Support (Phase 1)**: Core infrastructure for managing non-database Oracle products
+  - New configuration file: `oradba_homes.conf` for registering Oracle Homes
+  - Configuration format: `NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION`
+  - Core functions in common.sh:
+    - `get_oracle_homes_path()`: Get path to oradba_homes.conf
+    - `parse_oracle_home()`: Parse home entry by name
+    - `list_oracle_homes()`: List all homes sorted by order with optional filtering
+    - `get_oracle_home_path()`: Get ORACLE_HOME path for a named home
+    - `get_oracle_home_type()`: Get product type for a home
+    - `detect_product_type()`: Auto-detect product type from ORACLE_HOME filesystem
+    - `set_oracle_home_environment()`: Set environment variables by product type
+    - `is_oracle_home()`: Check if name refers to Oracle Home vs database SID
+  - Supported product types:
+    - `database`: Oracle Database (existing functionality)
+    - `oud`: Oracle Unified Directory
+    - `client`: Oracle Client
+    - `weblogic`: WebLogic Server
+    - `oms`: Enterprise Manager OMS
+    - `emagent`: Enterprise Manager Agent
+    - `datasafe`: Oracle Data Safe
+  - Comprehensive unit test suite with 28 tests (100% coverage)
+
 ## [0.17.0] - 2026-01-09
 
 ### Added
