@@ -105,6 +105,9 @@ jobs:
       
       - name: Build installer for testing
         run: |
+          echo "Checking build dependencies..."
+          which curl tar gzip openssl || echo "Some dependencies missing"
+          
           echo "Building installer for tests..."
           ./scripts/build_installer.sh
           echo "Build completed, checking installer..."
