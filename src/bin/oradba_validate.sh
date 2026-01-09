@@ -16,10 +16,31 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"
 
+# Source common library for oratab detection
+if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+    # shellcheck source=../lib/common.sh
+    source "${ORADBA_BASE}/lib/common.sh"
+fi
+
+# Detect pre-Oracle installation mode
+PRE_ORACLE_MODE=false
+if type get_oratab_path &>/dev/null; then
+    ORATAB_PATH=$(get_oratab_path)
+    if [[ ! -f "$ORATAB_PATH" ]] || ! grep -q "^[^#]" "$ORATAB_PATH" 2>/dev/null; then
+        PRE_ORACLE_MODE=true
+    fi
+else
+    # Fallback detection
+    if [[ ! -f "/etc/oratab" ]] && [[ ! -f "/var/opt/oracle/oratab" ]] && [[ ! -f "${ORADBA_BASE}/etc/oratab" ]]; then
+        PRE_ORACLE_MODE=true
+    fi
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Options
@@ -97,6 +118,13 @@ test_item() {
 
 # Print header
 cat << EOF
+===============================================================================
+                  OraDBA Installation Validation
+===============================================================================
+
+Installation Mode: $([[ "$PRE_ORACLE_MODE" == "true" ]] && echo "Pre-Oracle" || echo "Oracle Installed")
+Validation Date:   $(date '+%Y-%m-%d %H:%M:%S')
+
 ===============================================================================
                       OraDBA Installation Validation
 ===============================================================================
@@ -304,20 +332,34 @@ if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
     fi
 fi
 
-# Check Oracle prerequisites (optional)
+# Check Oracle prerequisites (context-aware)
 if [[ "${VERBOSE}" == "true" ]]; then
     echo ""
-    echo "Checking Oracle Environment (optional)..."
+    echo "Checking Oracle Environment..."
     echo "-------------------------------------------------------------------------------"
 else
-    echo "Checking Oracle Environment (optional)..."
+    echo "Checking Oracle Environment..."
 fi
 
-test_item "ORACLE_HOME is set" "[[ -n '${ORACLE_HOME}' ]]" "optional"
-test_item "ORACLE_BASE is set" "[[ -n '${ORACLE_BASE}' ]]" "optional"
-test_item "ORACLE_SID is set" "[[ -n '${ORACLE_SID}' ]]" "optional"
-test_item "oratab file exists" "[[ -f '/etc/oratab' || -f '/var/opt/oracle/oratab' ]]" "optional"
-test_item "sqlplus command available" "command -v sqlplus >/dev/null" "optional"
+if [[ "$PRE_ORACLE_MODE" == "true" ]]; then
+    # Pre-Oracle mode: show informative message
+    TOTAL=$((TOTAL + 1))
+    PASSED=$((PASSED + 1))
+    if [[ "${VERBOSE}" == "true" ]]; then
+        echo -e "${BLUE}ℹ${NC} Pre-Oracle installation detected"
+        echo -e "${BLUE}ℹ${NC} Oracle Database not required for OraDBA functionality"
+        echo -e "${BLUE}ℹ${NC} After installing Oracle, run: oradba_setup.sh link-oratab"
+    else
+        echo -e "${BLUE}ℹ${NC} Pre-Oracle installation mode (Oracle Database not required)"
+    fi
+else
+    # Oracle installed: check environment
+    test_item "ORACLE_HOME is set" "[[ -n '${ORACLE_HOME}' ]]" "optional"
+    test_item "ORACLE_BASE is set" "[[ -n '${ORACLE_BASE}' ]]" "optional"
+    test_item "ORACLE_SID is set" "[[ -n '${ORACLE_SID}' ]]" "optional"
+    test_item "oratab file exists" "[[ -f '/etc/oratab' || -f '/var/opt/oracle/oratab' || -f '${ORADBA_BASE}/etc/oratab' ]]" "optional"
+    test_item "sqlplus command available" "command -v sqlplus >/dev/null" "optional"
+fi
 
 # Print validation summary
 if [[ "${VERBOSE}" == "true" ]]; then
@@ -362,12 +404,39 @@ echo ""
 if [[ ${FAILED} -eq 0 ]]; then
     echo -e "${GREEN}✓ OraDBA installation is valid!${NC}"
     echo ""
-    echo "To use OraDBA, source the environment script:"
-    echo "  source ${ORADBA_BASE}/bin/oraenv.sh [ORACLE_SID]"
+    
+    if [[ "$PRE_ORACLE_MODE" == "true" ]]; then
+        # Pre-Oracle mode instructions
+        echo "Pre-Oracle Installation Detected:"
+        echo ""
+        echo "OraDBA is installed and ready. After installing Oracle Database:"
+        echo ""
+        echo "1. Link system oratab:"
+        echo "   ${ORADBA_BASE}/bin/oradba_setup.sh link-oratab"
+        echo ""
+        echo "2. Check installation:"
+        echo "   ${ORADBA_BASE}/bin/oradba_setup.sh check"
+        echo ""
+        echo "3. Source environment:"
+        echo "   source ${ORADBA_BASE}/bin/oraenv.sh [ORACLE_SID]"
+        echo ""
+        echo "Current functionality:"
+        echo "  - OraDBA tools and utilities are available"
+        echo "  - Oracle-specific features will activate after Oracle installation"
+        echo "  - Run 'oraup.sh' to see current status"
+    else
+        # Normal mode instructions
+        echo "To use OraDBA, source the environment script:"
+        echo "  source ${ORADBA_BASE}/bin/oraenv.sh [ORACLE_SID]"
+        echo ""
+        echo "For help:"
+        echo "  ${ORADBA_BASE}/bin/oraenv.sh --help"
+        echo "  source ${ORADBA_BASE}/bin/oraenv.sh && alih"
+        echo ""
+        echo "Check configuration:"
+        echo "  ${ORADBA_BASE}/bin/oradba_setup.sh show-config"
+    fi
     echo ""
-    echo "For help:"
-    echo "  ${ORADBA_BASE}/bin/oraenv.sh --help"
-    echo "  source ${ORADBA_BASE}/bin/oraenv.sh && alih"
     exit 0
 else
     echo -e "${RED}✗ OraDBA installation has issues!${NC}"
@@ -377,6 +446,11 @@ else
     echo "  2. Check file permissions"
     echo "  3. Verify installation directory"
     echo ""
+    if [[ "$PRE_ORACLE_MODE" == "true" ]]; then
+        echo "Note: Pre-Oracle installation mode is normal before Oracle is installed."
+        echo "      Oracle-specific issues will be addressed after Oracle installation."
+        echo ""
+    fi
     echo "For support, see: ${ORADBA_BASE}/README.md"
     exit 1
 fi

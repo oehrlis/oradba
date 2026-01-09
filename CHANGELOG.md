@@ -52,6 +52,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic backup before modifying oratab
   - Force mode for overwriting existing configurations
 
+- **Validation Tool Enhancement**: Updated `oradba_validate.sh` for pre-Oracle awareness
+  - Detects pre-Oracle installation mode automatically
+  - Context-aware Oracle environment checks
+  - Tailored guidance for pre-Oracle vs installed Oracle scenarios
+  - Shows installation mode in validation header
+  - Provides next-steps instructions specific to installation state
+  - No longer fails on missing Oracle when in pre-Oracle mode
+  - `show-config`: Display current OraDBA configuration
+  - Automatic backup before modifying oratab
+  - Force mode for overwriting existing configurations
+
 - **No-Oracle Mode**: Graceful degradation when Oracle Database not installed
   - `oraenv.sh` sets minimal environment without failing
   - `oraup.sh` shows helpful messages instead of errors
