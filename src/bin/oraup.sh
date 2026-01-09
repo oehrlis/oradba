@@ -186,8 +186,35 @@ show_oracle_status() {
     
     # Check if oratab exists
     if [[ ! -f "$ORATAB_FILE" ]]; then
-        echo "Warning: oratab file not found at $ORATAB_FILE"
-        return 1
+        echo ""
+        echo "  ⚠ No oratab file found at $ORATAB_FILE"
+        echo ""
+        echo "  This appears to be a pre-Oracle installation."
+        echo "  OraDBA is installed but Oracle Database is not yet present."
+        echo ""
+        echo "  After installing Oracle:"
+        echo "    1. Use 'oradba_setup.sh link-oratab' to link system oratab"
+        echo "    2. Or create entries in: ${ORADBA_BASE}/etc/oratab"
+        echo ""
+        echo "---------------------------------------------------------------------------------"
+        echo ""
+        return 0
+    fi
+    
+    # Check if oratab has any entries
+    local entry_count
+    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$ORATAB_FILE")
+    
+    if [[ "$entry_count" -eq 0 ]]; then
+        echo ""
+        echo "  ℹ No database entries found in oratab"
+        echo ""
+        echo "  The oratab file exists but contains no database entries."
+        echo "  Add Oracle instances to: $ORATAB_FILE"
+        echo ""
+        echo "---------------------------------------------------------------------------------"
+        echo ""
+        return 0
     fi
     
     # Collect all entries first for sorting

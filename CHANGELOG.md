@@ -45,6 +45,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration Documentation**: Updated oradba_core.conf with oratab priority documentation
 - **Test Coverage**: Added 9 new tests for oratab priority system
 
+- **Setup Helper Command**: New `oradba_setup.sh` utility for post-installation tasks
+  - `link-oratab`: Replace temporary oratab with symlink to system oratab
+  - `check`: Validate OraDBA installation health
+  - `show-config`: Display current OraDBA configuration
+  - Automatic backup before modifying oratab
+  - Force mode for overwriting existing configurations
+
+- **No-Oracle Mode**: Graceful degradation when Oracle Database not installed
+  - `oraenv.sh` sets minimal environment without failing
+  - `oraup.sh` shows helpful messages instead of errors
+  - `ORADBA_NO_ORACLE_MODE` flag indicates pre-Oracle state
+  - Informative messages guide users on next steps
+
+### Changed
+
+- **Installer Behavior**: Enhanced installation flow for pre-Oracle scenarios
+  - Auto-detection returns empty when Oracle not found (instead of failing)
+  - Clear error messages when installation location cannot be determined
+  - Silent mode prevents interactive prompts
+  - Prefix determination follows clear priority: --prefix > --user-level > --base > auto-detect
+
+- **oraenv.sh Behavior**: Non-fatal handling of missing ORACLE_HOME
+  - Warns but continues when ORACLE_HOME directory doesn't exist
+  - Allows environment setup for dummy entries
+  - Useful for pre-Oracle testing scenarios
+
+- **oraup.sh Output**: Enhanced messaging for empty/missing oratab
+  - Clear pre-Oracle installation messages
+  - Guidance on using `oradba_setup.sh link-oratab`
+  - No longer fails with error when no databases present
+
+- **Configuration Documentation**: Updated oradba_core.conf with:
+  - oratab priority documentation
+  - ORADBA_NO_ORACLE_MODE flag documentation
+
+- **Test Coverage**: Added 9 new tests for oratab priority system
+
 ### Fixed
 
 - **Installer Test Compatibility**: Added --silent flag to all installer tests to prevent hangs

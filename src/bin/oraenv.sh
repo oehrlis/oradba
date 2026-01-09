@@ -287,8 +287,10 @@ _oraenv_set_environment() {
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
 
     if [[ ! -d "$oracle_home" ]]; then
-        log_error "ORACLE_HOME directory does not exist: $oracle_home"
-        return 1
+        log_warn "ORACLE_HOME directory does not exist: $oracle_home"
+        log_warn "This may be a dummy entry or Oracle is not yet installed"
+        log_info "Continuing with environment setup..."
+        # Don't return error - allow setting env even if HOME doesn't exist
     fi
 
     # Unset previous Oracle environment
@@ -381,8 +383,22 @@ _oraenv_main() {
     oratab_file=$(_oraenv_find_oratab)
 
     if [[ $? -ne 0 ]]; then
-        log_error "Cannot proceed without oratab file"
-        return 1
+        log_warn "No oratab file found - running in no-Oracle mode"
+        log_info "OraDBA is installed but Oracle Database is not detected"
+        log_info "After installing Oracle, use: oradba_setup.sh link-oratab"
+        
+        # Set minimal environment for no-Oracle mode
+        export ORACLE_SID="${REQUESTED_SID:-dummy}"
+        export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_PREFIX}/dummy}"
+        export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_PREFIX%/local/oradba}}"
+        export ORADBA_NO_ORACLE_MODE=true
+        
+        log_info "Minimal Oracle environment set (no-Oracle mode):"
+        log_info "  ORACLE_SID:  ${ORACLE_SID}"
+        log_info "  ORACLE_HOME: ${ORACLE_HOME}"
+        log_info "  ORACLE_BASE: ${ORACLE_BASE}"
+        
+        return 0
     fi
 
     log_debug "Using oratab file: $oratab_file"
