@@ -85,6 +85,7 @@ jobs:
   test:
     name: Run Tests (Smart Selection)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [changes, lint]
     if: |
       always() && 
@@ -119,10 +120,11 @@ jobs:
           
           echo "::group::Running selected tests"
           if [ -s selected_tests.txt ]; then
-            cd tests && cat ../selected_tests.txt | xargs bats
+            # Run with timeout for individual tests
+            cd tests && timeout 15m cat ../selected_tests.txt | xargs bats --tap
           else
             echo "No tests selected, running all tests"
-            ./tests/run_tests.sh
+            timeout 15m ./tests/run_tests.sh
           fi
           echo "::endgroup::"
 
