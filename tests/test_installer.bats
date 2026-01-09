@@ -155,7 +155,14 @@ teardown() {
 @test "installer help works" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --help | grep -q "Usage:"
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --help 2>&1) || {
+            echo "Installer failed with exit code $?"
+            echo "Output: $output"
+            echo "First 20 lines of installer:"
+            head -20 "${PROJECT_ROOT}/dist/oradba_install.sh"
+            return 1
+        }
+        echo "$output" | grep -q "Usage:"
     else
         skip "Built installer not found"
     fi
