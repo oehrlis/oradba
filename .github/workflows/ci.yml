@@ -21,6 +21,8 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for path detection
       
       - uses: dorny/paths-filter@v3
         id: filter
