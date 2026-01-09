@@ -6,7 +6,7 @@ common tasks.
 **Prerequisites:**
 
 - OraDBA installed (see [Installation](02-installation.md))
-- Oracle Database installed
+- Oracle Database installed (or see [Pre-Oracle Quick Start](#pre-oracle-quick-start) below)
 - Shell profile configured
 
 ## Introduction
@@ -14,6 +14,75 @@ common tasks.
 This guide helps you get started with OraDBA quickly after installation. You'll
 learn how to set up your oratab file, switch between databases, and perform
 common tasks.
+
+## Pre-Oracle Quick Start
+
+**Available from:** v0.17.0
+
+If you installed OraDBA **before Oracle Database**, follow this streamlined path:
+
+### 1. Verify Pre-Oracle Installation
+
+```bash
+# Check installation mode
+oradba_validate.sh
+
+# Expected output:
+# ═══════════════════════════════════════════════════════════════
+# OraDBA Installation Validation
+# Installation Mode: Pre-Oracle
+# ═══════════════════════════════════════════════════════════════
+```
+
+### 2. Understand Pre-Oracle Behavior
+
+In pre-Oracle mode, OraDBA operates with graceful degradation:
+
+```bash
+# Environment tools work but don't set Oracle-specific variables
+source oraenv.sh
+echo $ORADBA_NO_ORACLE_MODE  # Shows: true
+
+# Status tools show helpful guidance
+oraup.sh
+# Shows: "No Oracle databases found" with setup instructions
+
+# Validation is context-aware
+oradba_validate.sh  # Skips Oracle-specific checks
+```
+
+### 3. After Installing Oracle
+
+Once Oracle Database is installed, link OraDBA to the system oratab:
+
+```bash
+# Link to system oratab (creates symlink)
+oradba_setup.sh link-oratab
+
+# Verify configuration
+oradba_setup.sh check
+
+# Show current settings
+oradba_setup.sh show-config
+```
+
+### 4. Verify Full Integration
+
+```bash
+# Validate complete setup
+oradba_validate.sh
+# Now shows: "Installation Mode: Oracle Installed"
+
+# List databases
+oraup.sh
+# Shows databases from /etc/oratab
+
+# Set environment
+source oraenv.sh FREE
+echo $ORACLE_HOME  # Now set correctly
+```
+
+**What's Next?** Continue with [First Steps](#first-steps) below for full Oracle usage.
 
 ## First Steps
 

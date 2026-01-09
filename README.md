@@ -11,6 +11,7 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
+- **Pre-Oracle Installation Support** (v0.17.0+): Install and configure OraDBA before Oracle Database for CI/CD, Docker layering, and phased deployments
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
 - **Hierarchical Configuration**: 5-level configuration system with flexible overrides
 - **Extension System**: Modular plugin architecture for custom scripts and tools
@@ -69,6 +70,13 @@ chmod +x oradba_install.sh
 
 # Or specify custom installation directory
 ./oradba_install.sh --prefix /opt/oradba
+
+# Pre-Oracle installation (v0.17.0+) - install before Oracle Database
+./oradba_install.sh --user-level          # Install to ~/oradba
+./oradba_install.sh --base /opt           # Install to /opt/local/oradba
+
+# After Oracle is installed, link to system oratab
+oradba_setup.sh link-oratab
 ```
 
 ### Basic Usage

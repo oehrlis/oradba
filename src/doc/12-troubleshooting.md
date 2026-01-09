@@ -368,7 +368,282 @@ If you cannot resolve the issue:
    - Environment details (OS, Oracle version)
    - Steps to reproduce
 
+## Pre-Oracle Installation Issues
+
+**Available from:** v0.17.0 - Troubleshooting for installations before Oracle Database is present.
+
+### Issue: "ORACLE_BASE not found" During Installation
+
+**Symptom:** Installer hangs or prompts for Oracle Base when Oracle is not installed.
+
+**Likely Cause:** Installer trying to detect Oracle Base but Oracle is not installed yet.
+
+**Check:**
+
+```bash
+# Verify Oracle is not installed
+which oracle
+ls -d /u01/app/oracle 2>/dev/null
+echo $ORACLE_BASE
+```
+
+**Fix:**
+
+```bash
+# Use --user-level for home directory installation
+./oradba_install.sh --user-level
+
+# Or specify base explicitly
+./oradba_install.sh --base /opt
+
+# Or use direct prefix
+./oradba_install.sh --prefix /opt/local/oradba
+
+# Use --silent to avoid prompts
+./oradba_install.sh --user-level --silent
+```
+
+**Related Chapters:** [Installation](02-installation.md#pre-oracle-installation)
+
+### Issue: Temporary oratab Created
+
+**Symptom:** OraDBA created `${ORADBA_BASE}/etc/oratab` instead of using system oratab.
+
+**Likely Cause:** Normal behavior for pre-Oracle installations - system oratab doesn't exist yet.
+
+**Check:**
+
+```bash
+# Verify it's a temporary oratab
+cat $ORADBA_BASE/etc/oratab | head -3
+
+# Check if it's a symlink
+ls -la $ORADBA_BASE/etc/oratab
+
+# Verify no system oratab exists
+ls -l /etc/oratab /var/opt/oracle/oratab 2>/dev/null
+```
+
+**Fix:**
+
+```bash
+# This is expected! After Oracle installation:
+oradba_setup.sh link-oratab
+
+# Verify the symlink
+oradba_setup.sh check
+```
+
+**Related Chapters:** [Installation](02-installation.md#post-oracle-configuration)
+
+### Issue: "No Oracle installation detected"
+
+**Symptom:** Tools report Oracle is not installed or `ORADBA_NO_ORACLE_MODE=true` is set.
+
+**Likely Cause:** Oracle not installed yet, or ORACLE_HOME not detectable.
+
+**Check:**
+
+```bash
+# Verify Oracle installation status
+oradba_validate.sh  # Shows "Pre-Oracle" or "Oracle Installed"
+
+# Check for Oracle binaries
+which sqlplus oracle
+
+# Check environment
+echo $ORACLE_HOME
+echo $ORADBA_NO_ORACLE_MODE
+```
+
+**Fix:**
+
+```bash
+# If Oracle is NOT installed - this is expected behavior
+# Tools work in graceful degradation mode
+
+# If Oracle IS installed - link oratab:
+oradba_setup.sh link-oratab
+
+# Or manually set ORACLE_HOME
+export ORACLE_HOME=/u01/app/oracle/product/19c/dbhome_1
+export PATH=$ORACLE_HOME/bin:$PATH
+```
+
+**Related Chapters:** [Installation](02-installation.md#graceful-degradation-no-oracle-mode)
+
+### Issue: oraup.sh Shows No Databases
+
+**Symptom:** `oraup.sh` reports "No Oracle databases found in oratab" when Oracle is installed.
+
+**Likely Cause:**
+
+1. Using temporary oratab instead of system oratab
+2. System oratab exists but not linked
+3. oratab is empty or has no entries
+
+**Check:**
+
+```bash
+# Check which oratab is being used
+oradba_setup.sh show-config
+
+# Verify system oratab exists and has entries
+cat /etc/oratab | grep -v "^#" | grep -v "^$"
+
+# Check if using temp oratab
+ls -la $ORADBA_BASE/etc/oratab
+```
+
+**Fix:**
+
+```bash
+# Link to system oratab
+oradba_setup.sh link-oratab
+
+# If oratab is empty, add database entries:
+echo "FREE:/u01/app/oracle/product/21c/dbhome_1:N" | sudo tee -a /etc/oratab
+
+# Then verify
+oraup.sh
+```
+
+**Related Chapters:** [Environment Management](04-environment.md), [Quick Start](03-quickstart.md)
+
+### Issue: Permission Denied During link-oratab
+
+**Symptom:** `oradba_setup.sh link-oratab` fails with permission errors.
+
+**Likely Cause:** Insufficient permissions to create symlink in `${ORADBA_BASE}/etc/`.
+
+**Check:**
+
+```bash
+# Check ownership
+ls -ld $ORADBA_BASE/etc/
+
+# Check if temp oratab is writable
+ls -l $ORADBA_BASE/etc/oratab
+
+# Verify system oratab exists
+ls -l /etc/oratab /var/opt/oracle/oratab 2>/dev/null
+```
+
+**Fix:**
+
+```bash
+# Fix ownership
+sudo chown -R oracle:oinstall $ORADBA_BASE/etc/
+
+# Run as appropriate user
+oradba_setup.sh link-oratab
+
+# Or with sudo if needed
+sudo -E bash -c 'source oraenv.sh && oradba_setup.sh link-oratab'
+```
+
+**Related Chapters:** [Installation](02-installation.md#post-oracle-configuration)
+
+### Issue: oraenv.sh Not Setting ORACLE_HOME
+
+**Symptom:** After sourcing `oraenv.sh`, ORACLE_HOME is not set.
+
+**Likely Cause:** Operating in No-Oracle Mode, or ORACLE_HOME not found in oratab.
+
+**Check:**
+
+```bash
+# Check if in No-Oracle Mode
+source oraenv.sh
+echo $ORADBA_NO_ORACLE_MODE  # Should be empty or unset if Oracle is present
+
+# Verify SID in oratab
+grep "^ORCL:" /etc/oratab
+
+# Check validation status
+oradba_validate.sh
+```
+
+**Fix:**
+
+```bash
+# If pre-Oracle - expected behavior, tools gracefully degrade
+
+# If Oracle installed but not linked:
+oradba_setup.sh link-oratab
+source oraenv.sh ORCL
+
+# If oratab entry missing:
+echo "ORCL:/u01/app/oracle/product/19c/dbhome_1:N" | sudo tee -a /etc/oratab
+```
+
+**Related Chapters:** [Environment Management](04-environment.md)
+
+### Issue: Extensions Not Working in Pre-Oracle Mode
+
+**Symptom:** Extensions fail to load or don't function correctly.
+
+**Likely Cause:** Extensions may depend on Oracle being installed.
+
+**Check:**
+
+```bash
+# Verify installation mode
+oradba_validate.sh
+
+# Check extension status
+oradba_extension.sh list
+
+# Review extension requirements
+cat $ORADBA_BASE/extensions/*/metadata.json
+```
+
+**Fix:**
+
+```bash
+# Extensions work best after Oracle is installed
+oradba_setup.sh link-oratab
+
+# Or review extension-specific documentation
+oradba_extension.sh info <extension-name>
+```
+
+**Related Chapters:** [Extensions](18-extensions.md)
+
+### Issue: Dummy Home for Testing
+
+**Symptom:** Want to test OraDBA without installing Oracle.
+
+**Likely Cause:** Need isolated test environment.
+
+**Check:**
+
+```bash
+# Verify current installation
+oradba_validate.sh
+```
+
+**Fix:**
+
+```bash
+# Install with dummy ORACLE_HOME for testing
+./oradba_install.sh --dummy-home /tmp/fake-oracle --prefix /tmp/oradba-test
+
+# Test the installation
+export ORADBA_BASE=/tmp/oradba-test
+source /tmp/oradba-test/bin/oraenv.sh
+
+# Validate
+/tmp/oradba-test/bin/oradba_validate.sh
+
+# Cleanup when done
+rm -rf /tmp/oradba-test /tmp/fake-oracle
+```
+
+**Related Chapters:** [Installation](02-installation.md#pre-oracle-installation)
+
 ## Log Files
+
 
 Check log files for errors:
 

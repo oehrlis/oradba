@@ -376,6 +376,220 @@ source /opt/oracle/local/oradba/bin/oraenv.sh
 
 ## Installation Scenarios
 
+### Pre-Oracle Installation
+
+**Available from:** v0.17.0
+
+OraDBA can now be installed **before Oracle Database is installed**, enabling preparatory system setup, CI/CD pipeline bootstrapping, or Docker image layering.
+
+#### Why Install Before Oracle?
+
+- **CI/CD Pipelines:** Prepare database tools before Oracle installation in automation workflows
+- **Docker/Container Images:** Layer OraDBA in base images before Oracle binaries
+- **System Preparation:** Set up administrative tooling on new servers
+- **Development Environments:** Configure tooling before full Oracle setup
+- **Gradual Deployment:** Install tools first, Oracle later
+
+#### Pre-Oracle Installation Methods
+
+**User-Level Installation (Recommended for Pre-Oracle):**
+
+```bash
+# Install to ~/oradba with no Oracle requirement
+./oradba_install.sh --user-level
+
+# Or explicitly specify home directory
+./oradba_install.sh --prefix $HOME/oradba
+```
+
+Creates structure:
+```
+$HOME/
+  oradba/               # OraDBA installation
+  .oratab               # Temporary oratab (symlink ready)
+  .bashrc               # Updated with OraDBA (if --update-profile)
+```
+
+**Base Directory Installation:**
+
+```bash
+# Install to /opt/local/oradba with temp oratab
+./oradba_install.sh --base /opt
+
+# Or specify path explicitly
+./oradba_install.sh --prefix /opt/local/oradba
+```
+
+Creates structure:
+```
+/opt/
+  local/oradba/         # OraDBA installation
+    etc/oratab          # Temporary oratab (ready for symlink)
+```
+
+**Silent Installation (Non-Interactive):**
+
+```bash
+# Suppress Oracle Base prompt
+./oradba_install.sh --user-level --silent
+
+# For automation/scripts
+./oradba_install.sh --prefix /opt/local/oradba --silent --update-profile
+```
+
+#### Understanding Temporary oratab
+
+In pre-Oracle mode, OraDBA creates a **temporary oratab** at `${ORADBA_BASE}/etc/oratab`:
+
+```bash
+# Example temporary oratab content
+#
+# OraDBA Temporary oratab
+# This file was created during pre-Oracle installation.
+# Replace with symlink to system oratab after Oracle installation:
+#   oradba_setup.sh link-oratab
+#
+```
+
+**Characteristics:**
+- ✓ Allows OraDBA to function without Oracle
+- ✓ Tools work with graceful degradation  
+- ✓ Ready to be replaced with symlink post-Oracle
+- ✓ No interference with system oratab
+
+#### Post-Oracle Configuration
+
+After Oracle Database is installed, link OraDBA to the system oratab:
+
+```bash
+# Link to system oratab (requires appropriate permissions)
+oradba_setup.sh link-oratab
+
+# Verify configuration
+oradba_setup.sh check
+
+# Display current settings
+oradba_setup.sh show-config
+```
+
+**What `link-oratab` does:**
+1. Detects system oratab location (`/etc/oratab` or `/var/opt/oracle/oratab`)
+2. Backs up temporary oratab (`${ORADBA_BASE}/etc/oratab.backup.TIMESTAMP`)
+3. Creates symlink: `${ORADBA_BASE}/etc/oratab -> /etc/oratab`
+4. Validates symlink functionality
+
+#### Graceful Degradation (No-Oracle Mode)
+
+When Oracle is not detected, OraDBA operates in **No-Oracle Mode**:
+
+```bash
+# Tools work with minimal environment
+source oraenv.sh     # Sets ORADBA_NO_ORACLE_MODE=true
+oraup.sh            # Shows helpful pre-Oracle guidance
+
+# Validation is context-aware
+oradba_validate.sh  # Reports "Pre-Oracle" mode, skips Oracle checks
+```
+
+**What works without Oracle:**
+- ✓ Base directory structure
+- ✓ Configuration management
+- ✓ Extension system
+- ✓ Documentation and help
+- ✓ Setup helper commands
+
+**What requires Oracle:**
+- ✗ Database environment switching (`oraenv.sh <SID>`)
+- ✗ Database listing (`oraup.sh`)
+- ✗ Oracle-specific tools (RMAN, SQL wrappers)
+
+#### Example: Docker Multi-Stage Build
+
+```dockerfile
+# Stage 1: OraDBA preparation
+FROM oraclelinux:8-slim AS oradba-prep
+RUN useradd -m -u 54321 oracle
+USER oracle
+WORKDIR /home/oracle
+
+# Install OraDBA before Oracle
+RUN curl -L https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh | \
+    bash -s -- --user-level --silent --update-profile
+
+# Stage 2: Oracle Database (separate layer)
+FROM oradba-prep AS oracle-db
+USER root
+# ... install Oracle Database ...
+USER oracle
+
+# Link OraDBA to system oratab
+RUN /home/oracle/oradba/bin/oradba_setup.sh link-oratab
+
+CMD ["/home/oracle/oradba/bin/oraenv.sh"]
+```
+
+#### Example: CI/CD Pipeline
+
+```yaml
+# .github/workflows/oracle-setup.yml
+name: Oracle Database Setup
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install OraDBA (Pre-Oracle)
+        run: |
+          curl -L -o install.sh \
+            https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
+          bash install.sh --user-level --silent
+          
+      - name: Verify OraDBA
+        run: ~/oradba/bin/oradba_validate.sh
+        
+      - name: Install Oracle Database
+        run: |
+          # ... Oracle installation steps ...
+          
+      - name: Link OraDBA to Oracle
+        run: ~/oradba/bin/oradba_setup.sh link-oratab
+```
+
+#### Troubleshooting Pre-Oracle Issues
+
+**Issue: "Oracle Base directory not found"**
+```bash
+# Use explicit prefix or user-level
+./oradba_install.sh --user-level
+# Or
+./oradba_install.sh --prefix /opt/local/oradba
+```
+
+**Issue: "Permission denied" during installation**
+```bash
+# Install to user directory
+./oradba_install.sh --user-level
+
+# Or fix permissions
+sudo chown -R oracle:oinstall /opt/local
+./oradba_install.sh --base /opt
+```
+
+**Issue: Tools not finding databases**
+```bash
+# This is expected before Oracle installation
+# Verify pre-Oracle mode:
+oradba_validate.sh  # Should show "Pre-Oracle" mode
+
+# After Oracle is installed:
+oradba_setup.sh link-oratab
+```
+
+**Issue: Want to test pre-Oracle without Oracle**
+```bash
+# Use dummy home for testing
+./oradba_install.sh --dummy-home /tmp/fake-oracle --prefix /tmp/oradba
+```
+
 ### New Installation
 
 First-time installation with default settings:

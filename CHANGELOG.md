@@ -91,6 +91,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Test Coverage**: Added 9 new tests for oratab priority system
 
+### Documentation
+
+- **Pre-Oracle Installation Guide**: Comprehensive new section in [02-installation.md](src/doc/02-installation.md)
+  - Pre-Oracle installation methods (--user-level, --base, --prefix)
+  - Understanding temporary oratab
+  - Post-Oracle configuration with oradba_setup.sh
+  - Graceful degradation in No-Oracle Mode
+  - Docker multi-stage build example
+  - CI/CD pipeline integration example
+  - Pre-Oracle troubleshooting guide
+
+- **Pre-Oracle Troubleshooting**: New section in [12-troubleshooting.md](src/doc/12-troubleshooting.md)
+  - "ORACLE_BASE not found" during installation
+  - Temporary oratab behavior
+  - "No Oracle installation detected"
+  - oraup.sh shows no databases
+  - Permission issues during link-oratab
+  - oraenv.sh not setting ORACLE_HOME
+  - Extensions behavior in pre-Oracle mode
+  - Dummy home testing scenarios
+
+- **Pre-Oracle Quick Start**: New section in [03-quickstart.md](src/doc/03-quickstart.md)
+  - Verify pre-Oracle installation
+  - Understand pre-Oracle behavior
+  - Post-Oracle integration steps
+  - Complete setup verification
+
+- **README Updates**: Added pre-Oracle support to feature list and installation examples
+
 ### Fixed
 
 - **Installer Test Compatibility**: Added --silent flag to all installer tests to prevent hangs
