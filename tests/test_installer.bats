@@ -340,7 +340,7 @@ teardown() {
         "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Try update
-        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
         echo "$output" | grep -q "Current version"
     else
         skip "Built installer not found"
@@ -354,7 +354,7 @@ teardown() {
         "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Try update without force
-        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
         echo "$output" | grep -q "Already running latest version"
     else
         skip "Built installer not found"
@@ -368,7 +368,7 @@ teardown() {
         "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update with force
-        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" 2>&1)
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" 2>&1)
         echo "$output" | grep -q "Force update enabled"
         echo "$output" | grep -q "Creating backup"
     else
@@ -386,7 +386,7 @@ teardown() {
         echo "test_setting=custom" >> "$TEST_INSTALL_DIR/etc/oradba.conf"
         
         # Update
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Check config preserved
         grep -q "test_setting=custom" "$TEST_INSTALL_DIR/etc/oradba.conf"
@@ -405,7 +405,7 @@ teardown() {
         "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update with force
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Check no backup directories remain
         [ "$(find "$install_parent" -type d -name "*.backup.*" 2>/dev/null | wc -l)" -eq 0 ]
@@ -421,7 +421,7 @@ teardown() {
         "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Check install_method is "update"
         grep -q "install_method=update" "$TEST_INSTALL_DIR/.install_info"
