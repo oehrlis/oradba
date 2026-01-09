@@ -802,6 +802,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Validate arguments (before checking prefix requirements)
+if [[ "$INSTALL_MODE" == "local" ]] && [[ -z "$LOCAL_TARBALL" ]]; then
+    log_error "--local requires a path to tarball file"
+    usage
+fi
+
+if [[ -n "$GITHUB_VERSION" ]] && [[ "$INSTALL_MODE" != "github" ]]; then
+    log_error "--version can only be used with --github"
+    usage
+fi
+
 # Determine final INSTALL_PREFIX based on priority
 # Priority: --prefix > --user-level > --base > DEFAULT_PREFIX
 if [[ -z "$INSTALL_PREFIX" ]]; then
@@ -832,17 +843,6 @@ if [[ -z "$INSTALL_PREFIX" ]]; then
         log_error "For more information, run: $0 --help"
         exit 1
     fi
-fi
-
-# Validate arguments
-if [[ "$INSTALL_MODE" == "local" ]] && [[ -z "$LOCAL_TARBALL" ]]; then
-    log_error "--local requires a path to tarball file"
-    usage
-fi
-
-if [[ -n "$GITHUB_VERSION" ]] && [[ "$INSTALL_MODE" != "github" ]]; then
-    log_error "--version can only be used with --github"
-    usage
 fi
 
 # Auto-detect installation mode
