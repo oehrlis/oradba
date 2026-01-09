@@ -58,8 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ORADBA_NO_ORACLE_MODE` flag indicates pre-Oracle state
   - Informative messages guide users on next steps
 
-### Changed
-
 - **Installer Behavior**: Enhanced installation flow for pre-Oracle scenarios
   - Auto-detection returns empty when Oracle not found (instead of failing)
   - Clear error messages when installation location cannot be determined
