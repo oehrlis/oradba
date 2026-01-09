@@ -31,6 +31,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `datasafe`: Oracle Data Safe
   - Comprehensive unit test suite with 28 tests (100% coverage)
 
+- **Oracle Homes Support (Phase 2)**: Integration with oraenv.sh and oraup.sh
+  - Enhanced `oraenv.sh` to support Oracle Homes:
+    - Checks `is_oracle_home()` before oratab lookup
+    - Calls `set_oracle_home_environment()` for Oracle Homes
+    - Interactive menu displays both Oracle Homes and database SIDs
+    - Shows product type indicators for Oracle Homes
+    - Clears `ORACLE_SID` for non-database homes
+    - Updated help text to mention both SIDs and Oracle Homes
+  - Enhanced `oraup.sh` to display Oracle Homes:
+    - New "Oracle Homes" section before database instances
+    - Shows product type (OUD, WebLogic, Client, OMS, etc.)
+    - Displays home status (available/missing)
+    - Maintains sorted display (homes by order, databases by SID)
+  - Integration test coverage:
+    - 3 new Oracle Homes integration tests in test_oraenv.bats
+    - All 28 oraenv tests passing
+    - Validates Oracle Home detection, environment setup, and priority handling
+
 ## [0.17.0] - 2026-01-09
 
 ### Added
