@@ -191,6 +191,9 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         run bash -c "${PROJECT_ROOT}/dist/oradba_install.sh --version 1.0.0 2>&1 || true"
+        echo "=== Actual output: ==="
+        echo "$output"
+        echo "===================="
         [[ "$output" =~ "--version can only be used with --github" ]] || [[ "$output" =~ "Usage:" ]]
     else
         skip "Built installer not found"
