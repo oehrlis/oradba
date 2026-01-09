@@ -403,7 +403,8 @@ OraDBA can now be installed **before Oracle Database is installed**, enabling pr
 ```
 
 Creates structure:
-```
+
+```text
 $HOME/
   oradba/               # OraDBA installation
   .oratab               # Temporary oratab (symlink ready)
@@ -421,7 +422,8 @@ $HOME/
 ```
 
 Creates structure:
-```
+
+```text
 /opt/
   local/oradba/         # OraDBA installation
     etc/oratab          # Temporary oratab (ready for symlink)
@@ -452,6 +454,7 @@ In pre-Oracle mode, OraDBA creates a **temporary oratab** at `${ORADBA_BASE}/etc
 ```
 
 **Characteristics:**
+
 - ✓ Allows OraDBA to function without Oracle
 - ✓ Tools work with graceful degradation  
 - ✓ Ready to be replaced with symlink post-Oracle
@@ -473,6 +476,7 @@ oradba_setup.sh show-config
 ```
 
 **What `link-oratab` does:**
+
 1. Detects system oratab location (`/etc/oratab` or `/var/opt/oracle/oratab`)
 2. Backs up temporary oratab (`${ORADBA_BASE}/etc/oratab.backup.TIMESTAMP`)
 3. Creates symlink: `${ORADBA_BASE}/etc/oratab -> /etc/oratab`
@@ -492,6 +496,7 @@ oradba_validate.sh  # Reports "Pre-Oracle" mode, skips Oracle checks
 ```
 
 **What works without Oracle:**
+
 - ✓ Base directory structure
 - ✓ Configuration management
 - ✓ Extension system
@@ -499,6 +504,7 @@ oradba_validate.sh  # Reports "Pre-Oracle" mode, skips Oracle checks
 - ✓ Setup helper commands
 
 **What requires Oracle:**
+
 - ✗ Database environment switching (`oraenv.sh <SID>`)
 - ✗ Database listing (`oraup.sh`)
 - ✗ Oracle-specific tools (RMAN, SQL wrappers)
@@ -557,6 +563,7 @@ jobs:
 #### Troubleshooting Pre-Oracle Issues
 
 **Issue: "Oracle Base directory not found"**
+
 ```bash
 # Use explicit prefix or user-level
 ./oradba_install.sh --user-level
@@ -565,6 +572,7 @@ jobs:
 ```
 
 **Issue: "Permission denied" during installation**
+
 ```bash
 # Install to user directory
 ./oradba_install.sh --user-level
@@ -575,6 +583,7 @@ sudo chown -R oracle:oinstall /opt/local
 ```
 
 **Issue: Tools not finding databases**
+
 ```bash
 # This is expected before Oracle installation
 # Verify pre-Oracle mode:
@@ -585,6 +594,7 @@ oradba_setup.sh link-oratab
 ```
 
 **Issue: Want to test pre-Oracle without Oracle**
+
 ```bash
 # Use dummy home for testing
 ./oradba_install.sh --dummy-home /tmp/fake-oracle --prefix /tmp/oradba

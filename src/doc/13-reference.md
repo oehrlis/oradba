@@ -28,6 +28,10 @@ oradba help config             # Configuration system
 oradba help sql                # SQL script help
 oradba_version.sh --check      # Check OraDBA version
 oradba_version.sh --verify     # Verify installation integrity
+oradba_validate.sh             # Validate installation and environment
+oradba_setup.sh link-oratab    # Link to system oratab (v0.17.0+)
+oradba_setup.sh check          # Check installation health (v0.17.0+)
+oradba_setup.sh show-config    # Display configuration (v0.17.0+)
 alih                           # Alias help reference
 ```
 

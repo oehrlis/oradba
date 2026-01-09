@@ -644,7 +644,6 @@ rm -rf /tmp/oradba-test /tmp/fake-oracle
 
 ## Log Files
 
-
 Check log files for errors:
 
 ```bash
