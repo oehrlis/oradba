@@ -380,7 +380,8 @@ source /opt/oracle/local/oradba/bin/oraenv.sh
 
 **Available from:** v0.17.0
 
-OraDBA can now be installed **before Oracle Database is installed**, enabling preparatory system setup, CI/CD pipeline bootstrapping, or Docker image layering.
+OraDBA can now be installed **before Oracle Database is installed**, enabling
+preparatory system setup, CI/CD pipeline bootstrapping, or Docker image layering.
 
 #### Why Install Before Oracle?
 
@@ -562,7 +563,7 @@ jobs:
 
 #### Troubleshooting Pre-Oracle Issues
 
-**Issue: "Oracle Base directory not found"**
+**Issue**: "Oracle Base directory not found"
 
 ```bash
 # Use explicit prefix or user-level
@@ -571,7 +572,7 @@ jobs:
 ./oradba_install.sh --prefix /opt/local/oradba
 ```
 
-**Issue: "Permission denied" during installation**
+**Issue**: "Permission denied" during installation
 
 ```bash
 # Install to user directory
@@ -582,7 +583,7 @@ sudo chown -R oracle:oinstall /opt/local
 ./oradba_install.sh --base /opt
 ```
 
-**Issue: Tools not finding databases**
+**Issue**: Tools not finding databases
 
 ```bash
 # This is expected before Oracle installation
@@ -593,7 +594,7 @@ oradba_validate.sh  # Should show "Pre-Oracle" mode
 oradba_setup.sh link-oratab
 ```
 
-**Issue: Want to test pre-Oracle without Oracle**
+**Issue**: Want to test pre-Oracle without Oracle
 
 ```bash
 # Use dummy home for testing

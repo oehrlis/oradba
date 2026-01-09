@@ -11,7 +11,8 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
-- **Pre-Oracle Installation Support** (v0.17.0+): Install and configure OraDBA before Oracle Database for CI/CD, Docker layering, and phased deployments
+- **Pre-Oracle Installation Support** (v0.17.0+): Install and configure OraDBA before Oracle Database for CI/CD
+  Docker layering, and phased deployments
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
 - **Hierarchical Configuration**: 5-level configuration system with flexible overrides
 - **Extension System**: Modular plugin architecture for custom scripts and tools
