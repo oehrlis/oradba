@@ -103,6 +103,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bats
       
+      - name: Build installer for testing
+        run: |
+          echo "Building installer for tests..."
+          ./scripts/build_installer.sh
+      
       - name: Select and run tests
         run: |
           echo "::group::Detecting changed files"
