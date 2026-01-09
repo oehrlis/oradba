@@ -116,7 +116,7 @@ determine_default_prefix() {
     return 1
 }
 
-DEFAULT_PREFIX=$(determine_default_prefix)
+DEFAULT_PREFIX=$(determine_default_prefix) || true
 
 # Logging functions
 log_info() {
