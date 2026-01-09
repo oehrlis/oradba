@@ -107,6 +107,12 @@ jobs:
         run: |
           echo "Building installer for tests..."
           ./scripts/build_installer.sh
+          echo "Build completed, checking installer..."
+          ls -la dist/
+          echo "Testing installer basic functionality..."
+          bash -n dist/oradba_install.sh && echo "✓ Syntax OK" || echo "✗ Syntax ERROR"
+          timeout 10s bash dist/oradba_install.sh --help >/dev/null 2>&1 && echo "✓ Help OK" || echo "✗ Help FAILED"
+          timeout 10s bash dist/oradba_install.sh --show-version >/dev/null 2>&1 && echo "✓ Version OK" || echo "✗ Version FAILED"
       
       - name: Select and run tests
         run: |
