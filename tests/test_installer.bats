@@ -537,3 +537,4 @@ teardown() {
     # Check that oraup is called for interactive shells
     grep -q "if.*\$-.*\*i\*.*oraup" "$STANDALONE_INSTALLER"
 }
+# Test CI trigger - Fri Jan  9 14:30:29 CET 2026
