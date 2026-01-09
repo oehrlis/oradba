@@ -764,7 +764,8 @@ while [[ $# -gt 0 ]]; do
             ;;
         --version)
             GITHUB_VERSION="$2"
-            shift 2
+            shift
+            [[ -n "$GITHUB_VERSION" ]] && shift
             ;;
         --update)
             UPDATE_MODE=true
