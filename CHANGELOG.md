@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - TBD
+
+### Added
+
+- **Pre-Oracle Installation Support**: OraDBA can now be installed before Oracle Database
+  - New CLI parameters for installer:
+    - `--user-level`: Install to ~/oradba (no root/Oracle required)
+    - `--base PATH`: Specify Oracle Base directory (installs to PATH/local/oradba)
+    - `--prefix PATH`: Direct installation path (overrides auto-detection)
+    - `--dummy-home PATH`: Custom dummy ORACLE_HOME for pre-Oracle scenarios
+  - Enhanced prefix detection with 5-priority system
+  - Automatic creation of temporary oratab at `${ORADBA_BASE}/etc/oratab`
+  - Interactive Oracle Base prompt for non-silent installations
+  - Write permission validation before installation
+  - Symlink creation when /etc/oratab exists
+  - Dummy database entry support for pre-Oracle testing
+
+- **Centralized oratab Priority System**: New `get_oratab_path()` function in common.sh
+  - Priority 1: `$ORADBA_ORATAB` (explicit override)
+  - Priority 2: `/etc/oratab` (system default)
+  - Priority 3: `/var/opt/oracle/oratab` (Solaris/AIX)
+  - Priority 4: `${ORADBA_BASE}/etc/oratab` (temporary for pre-Oracle)
+  - Priority 5: `${HOME}/.oratab` (user fallback)
+  - All oratab-related functions now use centralized priority system
+  - Updated: `is_dummy_sid()`, `parse_oratab()`, `generate_sid_lists()`
+  - Updated: `oraup.sh`, `oraenv.sh` to use priority detection
+
+### Changed
+
+- **Installer Behavior**: Enhanced installation flow for pre-Oracle scenarios
+  - Auto-detection returns empty when Oracle not found (instead of failing)
+  - Clear error messages when installation location cannot be determined
+  - Silent mode prevents interactive prompts
+  - Prefix determination follows clear priority: --prefix > --user-level > --base > auto-detect
+
+- **Configuration Documentation**: Updated oradba_core.conf with oratab priority documentation
+- **Test Coverage**: Added 9 new tests for oratab priority system
+
+### Fixed
+
+- **Installer Test Compatibility**: Added --silent flag to all installer tests to prevent hangs
+
 ## [0.16.0] - 2026-01-08
 
 ### Added

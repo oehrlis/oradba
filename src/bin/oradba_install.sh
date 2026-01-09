@@ -105,8 +105,15 @@ determine_default_prefix() {
         fi
     done
     
-    # Priority 4: Fallback to HOME
-    echo "${HOME}/local/oradba"
+    # Priority 4: Check if /opt/oracle exists (common default location)
+    if [[ -d "/opt/oracle" ]]; then
+        echo "/opt/oracle/local/oradba"
+        return 0
+    fi
+    
+    # Priority 5: Cannot determine - return empty (will require explicit parameter)
+    echo ""
+    return 1
 }
 
 DEFAULT_PREFIX=$(determine_default_prefix)
@@ -205,6 +212,9 @@ backup_modified_files() {
 
 # Display usage
 usage() {
+    # Determine default prefix for display
+    local display_prefix="${DEFAULT_PREFIX:-<requires --prefix, --base, or --user-level>}"
+    
     cat <<EOF
 Usage: $0 [OPTIONS]
 
@@ -217,10 +227,19 @@ Installation Modes:
   --github --version  Install specific version from GitHub
   --update            Update existing installation (preserves config)
 
-Options:
-  --prefix PATH       Installation prefix (default: $DEFAULT_PREFIX)
+Installation Location Options:
+  --prefix PATH       Direct installation path (installs to PATH)
+  --base PATH         Oracle Base directory (installs to PATH/local/oradba)
+  --user-level        User-level install to ~/oradba (no root required)
+  
+  Default: ${display_prefix}
+  
+  Priority: --prefix > --user-level > --base > auto-detect
+
+Other Options:
   --user USER         Run as specific user (requires sudo)
   --version VERSION   Specify version for --github mode
+  --dummy-home PATH   Set dummy ORACLE_HOME for pre-Oracle installations
   --no-examples       Don't install example files
   --force             Force update even if same version
   --update-profile    Update shell profile for automatic environment loading
@@ -232,29 +251,44 @@ Examples:
   # Install from embedded payload (if available)
   $0
   
+  # Install to user home directory (no Oracle required)
+  $0 --user-level
+  
+  # Install with custom Oracle Base
+  $0 --base /opt/oracle
+  
+  # Install with custom prefix
+  $0 --prefix /usr/local/oradba
+  
   # Install from local tarball (air-gapped)
-  $0 --local /tmp/oradba-0.6.1.tar.gz
+  $0 --local /tmp/oradba-0.16.0.tar.gz
   
   # Install latest from GitHub
   $0 --github
   
   # Install specific version from GitHub
-  $0 --github --version 0.6.0
+  $0 --github --version 0.16.0
   
   # Update existing installation
   $0 --update
   
+  # Pre-Oracle installation with dummy entry
+  $0 --base /opt/oracle --dummy-home /opt/oracle/product/dummy
+  
   # Update from local tarball
-  $0 --update --local /path/to/oradba-0.7.0.tar.gz
+  $0 --update --local /path/to/oradba-0.17.0.tar.gz
   
   # Update from specific GitHub version
-  $0 --update --github --version 0.7.0
-  
-  # Custom installation prefix
-  $0 --prefix /usr/local/oradba
+  $0 --update --github --version 0.17.0
   
   # Install as different user
   sudo $0 --prefix /opt/oradba --user oracle
+
+Pre-Oracle Installation:
+  When installing before Oracle, use --user-level, --prefix, or --base to
+  specify installation location. A temporary oratab will be created in
+  \${ORADBA_BASE}/etc/oratab. After Oracle installation, create a symlink:
+    ln -sf /etc/oratab \${ORADBA_BASE}/etc/oratab
 
 EOF
     exit 0
@@ -682,13 +716,16 @@ if [[ -f "${SCRIPT_DIR}/../VERSION" ]] && [[ -d "${SCRIPT_DIR}/../etc" ]] && [[ 
 fi
 
 # Parse arguments
-INSTALL_PREFIX="$DEFAULT_PREFIX"
+INSTALL_PREFIX=""  # Will be set based on --prefix, --base, --user-level, or DEFAULT_PREFIX
+ORACLE_BASE_PARAM=""  # For --base parameter
+USER_LEVEL_INSTALL=false  # For --user-level parameter
 INSTALL_USER=""
 # shellcheck disable=SC2034  # Used for future enhancement
 INSTALL_EXAMPLES=true
 INSTALL_MODE="auto"  # auto, embedded, local, github
 LOCAL_TARBALL=""
 GITHUB_VERSION=""
+DUMMY_ORACLE_HOME=""  # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto"  # auto, yes, no
@@ -697,6 +734,18 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --prefix)
             INSTALL_PREFIX="$2"
+            shift 2
+            ;;
+        --base)
+            ORACLE_BASE_PARAM="$2"
+            shift 2
+            ;;
+        --user-level)
+            USER_LEVEL_INSTALL=true
+            shift
+            ;;
+        --dummy-home)
+            DUMMY_ORACLE_HOME="$2"
             shift 2
             ;;
         --user)
@@ -745,6 +794,38 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Determine final INSTALL_PREFIX based on priority
+# Priority: --prefix > --user-level > --base > DEFAULT_PREFIX
+if [[ -z "$INSTALL_PREFIX" ]]; then
+    if [[ "$USER_LEVEL_INSTALL" == "true" ]]; then
+        INSTALL_PREFIX="$HOME/oradba"
+        log_info "User-level installation selected: $INSTALL_PREFIX"
+    elif [[ -n "$ORACLE_BASE_PARAM" ]]; then
+        INSTALL_PREFIX="${ORACLE_BASE_PARAM}/local/oradba"
+        log_info "Using Oracle Base parameter: $ORACLE_BASE_PARAM"
+        log_info "Installation prefix: $INSTALL_PREFIX"
+    elif [[ -n "$DEFAULT_PREFIX" ]]; then
+        INSTALL_PREFIX="$DEFAULT_PREFIX"
+    else
+        # No prefix could be determined
+        log_error "Cannot determine installation location"
+        log_error ""
+        log_error "Oracle environment not detected. Please specify installation location:"
+        log_error ""
+        log_error "  Option 1: User-level install (no Oracle required)"
+        log_error "    $0 --user-level"
+        log_error ""
+        log_error "  Option 2: Specify Oracle Base directory"
+        log_error "    $0 --base /opt/oracle"
+        log_error ""
+        log_error "  Option 3: Specify direct installation path"
+        log_error "    $0 --prefix /custom/path"
+        log_error ""
+        log_error "For more information, run: $0 --help"
+        exit 1
+    fi
+fi
 
 # Validate arguments
 if [[ "$INSTALL_MODE" == "local" ]] && [[ -z "$LOCAL_TARBALL" ]]; then
@@ -944,7 +1025,7 @@ restore_configs() {
     
     # Restore preserved files
     find "$temp_config_dir" -type f | while read -r src; do
-        local rel_path="${src#${temp_config_dir}/}"
+        local rel_path="${src#"${temp_config_dir}"/}"
         local dest="${install_dir}/${rel_path}"
         
         mkdir -p "$(dirname "$dest")"
@@ -1066,6 +1147,174 @@ extract_embedded_payload() {
     fi
     
     log_info "Embedded payload extracted successfully"
+    return 0
+}
+
+# Prompt for Oracle Base if not specified and not in silent mode
+prompt_oracle_base() {
+    # Skip if already set or in silent mode
+    if [[ -n "$ORACLE_BASE_PARAM" ]] || [[ "$SILENT_MODE" == "true" ]]; then
+        return 0
+    fi
+    
+    # Skip if we detected Oracle installation (should have been caught already)
+    if [[ -n "$ORACLE_BASE" ]]; then
+        ORACLE_BASE_PARAM="$ORACLE_BASE"
+        return 0
+    fi
+    
+    # Interactive prompt
+    local default_base="/opt/oracle"
+    echo ""
+    echo "Oracle Base directory not specified and could not be auto-detected."
+    echo "This directory will be used for the temporary oratab and dummy ORACLE_HOME."
+    echo ""
+    read -rp "Oracle Base directory [${default_base}]: " input_base
+    
+    # Use default if empty
+    input_base="${input_base:-$default_base}"
+    
+    # Validate the path is absolute
+    if [[ ! "$input_base" =~ ^/ ]]; then
+        log_error "Oracle Base must be an absolute path: ${input_base}"
+        return 1
+    fi
+    
+    # Check if parent directory exists and is writable
+    local parent_dir="${input_base%/*}"
+    if [[ ! -d "$parent_dir" ]]; then
+        log_error "Parent directory does not exist: ${parent_dir}"
+        return 1
+    fi
+    
+    if [[ ! -w "$parent_dir" ]]; then
+        log_error "No write permission to parent directory: ${parent_dir}"
+        log_info "You may need to run with sudo or choose a different location"
+        return 1
+    fi
+    
+    # Set the parameter
+    ORACLE_BASE_PARAM="$input_base"
+    log_info "Using Oracle Base: ${ORACLE_BASE_PARAM}"
+    
+    return 0
+}
+
+# Validate write permissions for installation prefix
+validate_write_permissions() {
+    local target_path="$1"
+    
+    # If target exists, check if writable
+    if [[ -e "$target_path" ]]; then
+        if [[ ! -w "$target_path" ]]; then
+            log_error "No write permission to existing directory: ${target_path}"
+            log_info "You may need to run with sudo or choose a different location using --prefix"
+            return 1
+        fi
+        return 0
+    fi
+    
+    # Target doesn't exist - check parent directory
+    local parent_dir="${target_path%/*}"
+    
+    # Handle case where parent_dir is empty (root level)
+    if [[ -z "$parent_dir" ]]; then
+        parent_dir="/"
+    fi
+    
+    # Check if parent exists
+    if [[ ! -d "$parent_dir" ]]; then
+        log_error "Parent directory does not exist: ${parent_dir}"
+        log_info "Please create the parent directory first or choose a different location"
+        return 1
+    fi
+    
+    # Check if parent is writable
+    if [[ ! -w "$parent_dir" ]]; then
+        log_error "No write permission to parent directory: ${parent_dir}"
+        log_info "You may need to run with sudo or choose a different location using --prefix"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Create temporary oratab for pre-Oracle installations
+create_temp_oratab() {
+    local install_prefix="$1"
+    local oratab_path="${install_prefix}/etc/oratab"
+    
+    # Check if /etc/oratab exists
+    if [[ -f "/etc/oratab" ]]; then
+        # System oratab exists - create symlink if possible
+        if [[ ! -e "$oratab_path" ]]; then
+            log_info "Creating symlink to /etc/oratab"
+            if ln -sf "/etc/oratab" "$oratab_path" 2>/dev/null; then
+                log_info "  Symlink created: ${oratab_path} -> /etc/oratab"
+                return 0
+            else
+                log_warn "  Could not create symlink (will use temp oratab)"
+            fi
+        else
+            log_info "oratab already exists at ${oratab_path}"
+            return 0
+        fi
+    fi
+    
+    # No system oratab or couldn't create symlink - create temporary oratab
+    if [[ ! -f "$oratab_path" ]]; then
+        log_info "Creating temporary oratab for pre-Oracle installation"
+        
+        # Determine Oracle Base for dummy entry
+        local dummy_base="${ORACLE_BASE_PARAM}"
+        if [[ -z "$dummy_base" ]] && [[ "$USER_LEVEL_INSTALL" != "true" ]]; then
+            # Try to derive from install prefix
+            if [[ "$install_prefix" == */local/oradba ]]; then
+                dummy_base="${install_prefix%/local/oradba}"
+            else
+                dummy_base="/opt/oracle"
+            fi
+        fi
+        
+        # Use custom dummy home or create default
+        local dummy_home="${DUMMY_ORACLE_HOME:-${dummy_base}/product/dummy}"
+        
+        cat > "$oratab_path" <<'ORATAB_HEADER'
+# ==============================================================================
+# Temporary oratab file for OraDBA
+# ==============================================================================
+# This file will be used until Oracle is installed and /etc/oratab is available.
+#
+# After Oracle installation, you have two options:
+#
+#   Option 1: Create symlink (recommended if you have write permission):
+ORATAB_HEADER
+        
+        {
+            echo "#     rm -f ${oratab_path}"
+            echo "#     ln -sf /etc/oratab ${oratab_path}"
+            echo "#"
+            echo "#   Option 2: Use oradba_setup.sh helper:"
+            echo "#     oradba_setup.sh --link-oratab"
+            echo "#"
+            echo "# =============================================================================="
+            echo ""
+        } >> "$oratab_path"
+        
+        # Add dummy entry if in pre-Oracle mode
+        if [[ -n "$DUMMY_ORACLE_HOME" ]] || [[ ! -f "/etc/oratab" ]]; then
+            log_info "  Adding dummy Oracle entry: dummy:${dummy_home}:N"
+            echo "# Dummy entry for pre-Oracle environment (remove after Oracle installation)" >> "$oratab_path"
+            echo "dummy:${dummy_home}:N" >> "$oratab_path"
+        fi
+        
+        log_info "  Temporary oratab created: ${oratab_path}"
+        if [[ ! -f "/etc/oratab" ]]; then
+            log_warn "  No /etc/oratab found - you're in pre-Oracle installation mode"
+            log_warn "  After installing Oracle, create symlink or add entries to ${oratab_path}"
+        fi
+    fi
+    
     return 0
 }
 
@@ -1196,6 +1445,23 @@ fi
 # Run pre-flight checks
 run_preflight_checks "$INSTALL_PREFIX"
 
+# Validate write permissions to installation prefix
+validate_write_permissions "$INSTALL_PREFIX" || exit 1
+
+# Prompt for Oracle Base only if:
+#   - No system oratab exists (/etc/oratab or /var/opt/oracle/oratab)
+#   - Not in silent mode
+#   - No ORACLE_BASE_PARAM set
+#   - Not a user-level install
+# This is needed for creating the dummy entry in temp oratab
+if [[ ! -f "/etc/oratab" ]] && [[ ! -f "/var/opt/oracle/oratab" ]] && \
+   [[ "$SILENT_MODE" != "true" ]] && \
+   [[ -z "$ORACLE_BASE_PARAM" ]] && \
+   [[ "$USER_LEVEL_INSTALL" != "true" ]]; then
+    # Pre-Oracle installation scenario - prompt for Oracle Base
+    prompt_oracle_base || exit 1
+fi
+
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)
 log_info "Created temporary directory: $TEMP_DIR"
@@ -1240,6 +1506,9 @@ cp -r "$TEMP_DIR"/.[!.]* "$INSTALL_PREFIX/" 2>/dev/null || true
 
 # Create log directory
 mkdir -p "$INSTALL_PREFIX/log"
+
+# Create temporary oratab if needed (for pre-Oracle installations)
+create_temp_oratab "$INSTALL_PREFIX"
 
 # Detect TVD BasEnv / DB*Star coexistence
 log_info "Checking for TVD BasEnv / DB*Star..."

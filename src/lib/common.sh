@@ -352,11 +352,76 @@ EOF
     [[ -n "$result" ]] && return 0 || return 1
 }
 
+# ------------------------------------------------------------------------------
+# oratab Priority & Detection
+# ------------------------------------------------------------------------------
+
+# Get oratab file path with priority system
+# Priority: 
+#   1. $ORADBA_ORATAB (explicit override)
+#   2. /etc/oratab (system default)
+#   3. /var/opt/oracle/oratab (Solaris/AIX)
+#   4. ${ORADBA_BASE}/etc/oratab (temporary for pre-Oracle installations)
+#   5. ${HOME}/.oratab (user fallback)
+#
+# Returns: Path to oratab file (even if doesn't exist)
+# Exit code: 0 if file exists, 1 if doesn't exist
+get_oratab_path() {
+    local oratab_path=""
+    
+    # Priority 1: Explicit override
+    if [[ -n "${ORADBA_ORATAB:-}" ]]; then
+        oratab_path="$ORADBA_ORATAB"
+        oradba_log DEBUG "Using ORADBA_ORATAB override: $oratab_path"
+        echo "$oratab_path"
+        [[ -f "$oratab_path" ]] && return 0 || return 1
+    fi
+    
+    # Priority 2: System default
+    if [[ -f "/etc/oratab" ]]; then
+        oratab_path="/etc/oratab"
+        oradba_log DEBUG "Using system oratab: $oratab_path"
+        echo "$oratab_path"
+        return 0
+    fi
+    
+    # Priority 3: Solaris/AIX location
+    if [[ -f "/var/opt/oracle/oratab" ]]; then
+        oratab_path="/var/opt/oracle/oratab"
+        oradba_log DEBUG "Using Solaris/AIX oratab: $oratab_path"
+        echo "$oratab_path"
+        return 0
+    fi
+    
+    # Priority 4: OraDBA temporary oratab (pre-Oracle installations)
+    if [[ -n "${ORADBA_BASE:-}" ]] && [[ -f "${ORADBA_BASE}/etc/oratab" ]]; then
+        oratab_path="${ORADBA_BASE}/etc/oratab"
+        oradba_log DEBUG "Using OraDBA temporary oratab: $oratab_path"
+        echo "$oratab_path"
+        return 0
+    fi
+    
+    # Priority 5: User fallback
+    if [[ -f "${HOME}/.oratab" ]]; then
+        oratab_path="${HOME}/.oratab"
+        oradba_log DEBUG "Using user oratab: $oratab_path"
+        echo "$oratab_path"
+        return 0
+    fi
+    
+    # No oratab found - return default for new installations
+    oratab_path="/etc/oratab"
+    oradba_log DEBUG "No oratab found, returning default: $oratab_path"
+    echo "$oratab_path"
+    return 1
+}
+
 # Check if current ORACLE_SID is a dummy database (oratab flag :D)
 # Returns: 0 if dummy, 1 if not dummy or can't determine
 is_dummy_sid() {
     local sid="${ORACLE_SID}"
-    local oratab_file="${ORATAB:-/etc/oratab}"
+    local oratab_file
+    oratab_file=$(get_oratab_path)
     
     [[ -z "$sid" ]] && return 1
     [[ ! -f "$oratab_file" ]] && return 1
@@ -484,7 +549,7 @@ get_oracle_version() {
 # Parse oratab file
 parse_oratab() {
     local sid="$1"
-    local oratab_file="${2:-/etc/oratab}"
+    local oratab_file="${2:-$(get_oratab_path)}"
 
     if [[ ! -f "$oratab_file" ]]; then
         oradba_log ERROR "oratab file not found: $oratab_file"
@@ -498,7 +563,7 @@ parse_oratab() {
 # Generate SID lists and aliases from oratab
 # Usage: generate_sid_lists [oratab_file]
 generate_sid_lists() {
-    local oratab_file="${1:-/etc/oratab}"
+    local oratab_file="${1:-$(get_oratab_path)}"
     
     # Check if oratab exists
     if [[ ! -f "$oratab_file" ]]; then

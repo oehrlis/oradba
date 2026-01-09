@@ -23,17 +23,20 @@ if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
     source "${ORADBA_BASE}/lib/common.sh"
 fi
 
-# Default oratab location
-ORATAB_FILE="${ORATAB_FILE:-/etc/oratab}"
-
-# Check for alternative oratab locations
-if [[ ! -f "$ORATAB_FILE" ]]; then
-    for alt_oratab in "/var/opt/oracle/oratab" "${HOME}/.oratab"; do
-        if [[ -f "$alt_oratab" ]]; then
-            ORATAB_FILE="$alt_oratab"
-            break
-        fi
-    done
+# Get oratab file path using centralized function
+if type get_oratab_path &>/dev/null; then
+    ORATAB_FILE=$(get_oratab_path)
+else
+    # Fallback if common.sh not sourced
+    ORATAB_FILE="${ORATAB_FILE:-/etc/oratab}"
+    if [[ ! -f "$ORATAB_FILE" ]]; then
+        for alt_oratab in "/var/opt/oracle/oratab" "${ORADBA_BASE}/etc/oratab" "${HOME}/.oratab"; do
+            if [[ -f "$alt_oratab" ]]; then
+                ORATAB_FILE="$alt_oratab"
+                break
+            fi
+        done
+    fi
 fi
 
 # ------------------------------------------------------------------------------

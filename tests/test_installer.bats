@@ -193,7 +193,7 @@ teardown() {
 @test "embedded mode installation works" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         [ -d "$TEST_INSTALL_DIR" ]
         [ -f "$TEST_INSTALL_DIR/bin/oradba_install.sh" ]
         [ -f "$TEST_INSTALL_DIR/.install_info" ]
@@ -220,7 +220,7 @@ teardown() {
 @test "installed oradba_install.sh is standalone" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         [ -f "$TEST_INSTALL_DIR/bin/oradba_install.sh" ]
         # Check it doesn't have embedded payload (smaller than built version)
         built_size=$(wc -c < "${PROJECT_ROOT}/dist/oradba_install.sh")
@@ -234,7 +234,7 @@ teardown() {
 @test "installation creates .install_info with metadata" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         [ -f "$TEST_INSTALL_DIR/.install_info" ]
         grep -q "install_date=" "$TEST_INSTALL_DIR/.install_info"
         grep -q "install_version=" "$TEST_INSTALL_DIR/.install_info"
@@ -248,14 +248,14 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # First installation
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Modify a configuration file
         if [ -f "$TEST_INSTALL_DIR/etc/oradba_standard.conf" ]; then
             echo "# User modification" >> "$TEST_INSTALL_DIR/etc/oradba_standard.conf"
             
             # Update installation
-            "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" --force >/dev/null 2>&1
+            "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" --force >/dev/null 2>&1
             
             # Check that backup was created
             [ -f "$TEST_INSTALL_DIR/etc/oradba_standard.conf.save" ]
@@ -271,7 +271,7 @@ teardown() {
 @test "installation creates checksum file" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         [ -f "$TEST_INSTALL_DIR/.oradba.checksum" ]
         # Check checksum file has entries
         [ "$(grep -c '^[^#]' "$TEST_INSTALL_DIR/.oradba.checksum" || true)" -gt 0 ]
@@ -283,7 +283,7 @@ teardown() {
 @test "installation runs integrity verification" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
-        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" 2>&1)
+        output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" 2>&1)
         echo "$output" | grep -q "Verifying installation integrity"
         echo "$output" | grep -q "Installation integrity verified"
     else
@@ -337,7 +337,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Try update
         output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
@@ -351,7 +351,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Try update without force
         output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --prefix "$TEST_INSTALL_DIR" 2>&1)
@@ -365,7 +365,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update with force
         output=$("${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" 2>&1)
@@ -380,7 +380,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Add custom config
         echo "test_setting=custom" >> "$TEST_INSTALL_DIR/etc/oradba.conf"
@@ -402,7 +402,7 @@ teardown() {
         install_parent="$(dirname "$TEST_INSTALL_DIR")"
         
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update with force
         "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
@@ -418,7 +418,7 @@ teardown() {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
         # Install first
-        "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
         
         # Update
         "${PROJECT_ROOT}/dist/oradba_install.sh" --no-update-profile --update --force --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1

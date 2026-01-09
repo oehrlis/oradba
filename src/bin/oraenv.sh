@@ -168,9 +168,17 @@ Examples:
   echo "..." | source oraenv.sh      # Non-interactive: first SID, silent
 
 Environment Variables:
-  ORATAB_FILE        Path to oratab file (default: /etc/oratab)
+  ORADBA_ORATAB      Override oratab file location (highest priority)
+  ORATAB_FILE        Path to oratab file (default: auto-detected)
   ORACLE_BASE        Oracle base directory
   TNS_ADMIN          TNS configuration directory
+
+  oratab Priority:
+    1. \$ORADBA_ORATAB (explicit override)
+    2. /etc/oratab (system default)
+    3. /var/opt/oracle/oratab (Solaris/AIX)
+    4. \${ORADBA_BASE}/etc/oratab (temporary for pre-Oracle)
+    5. \${HOME}/.oratab (user fallback)
 
 EOF
 }
@@ -183,7 +191,17 @@ _oraenv_find_oratab() {
         return 0
     fi
 
-    # Check alternative locations
+    # Use centralized get_oratab_path() function if available
+    if type get_oratab_path &>/dev/null; then
+        local oratab_path
+        oratab_path=$(get_oratab_path)
+        if [[ -f "$oratab_path" ]]; then
+            echo "$oratab_path"
+            return 0
+        fi
+    fi
+
+    # Fallback: Check alternative locations
     for oratab in "${ORATAB_ALTERNATIVES[@]}"; do
         if [[ -f "$oratab" ]]; then
             echo "$oratab"
