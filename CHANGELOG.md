@@ -49,6 +49,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - All 28 oraenv tests passing
     - Validates Oracle Home detection, environment setup, and priority handling
 
+- **Oracle Homes Support (Phase 3)**: Management CLI tool
+  - New `oradba_homes.sh` command-line management tool with 6 commands:
+    - `list`: Display registered Oracle Homes with filtering (--type, --verbose)
+    - `show <name>`: Show detailed information about specific Oracle Home
+    - `add`: Add new Oracle Home (interactive or CLI parameters)
+      - Parameters: --name, --path, --type, --order, --desc
+      - Auto-detection of product type from filesystem
+      - Input validation for name format, product type, duplicates
+      - Interactive prompts with TTY detection for non-interactive environments
+    - `remove <name>`: Remove Oracle Home with confirmation and backup
+      - Automatic backup creation before removal
+      - Confirmation prompt (skipped in non-interactive mode)
+    - `discover`: Auto-discover Oracle Homes under $ORACLE_BASE/product
+      - Options: --base, --auto-add, --dry-run
+      - Scans product directory recursively
+      - Auto-detects product types
+      - Skips already registered homes
+    - `validate [name]`: Validate configuration and detect issues
+      - Checks directory existence
+      - Verifies product type matches detected type
+      - Can validate all homes or specific home
+      - Returns exit codes for CI/CD integration
+  - Features:
+    - TTY detection prevents hanging in non-interactive environments (CI/CD, tests)
+    - Graceful fallback with clear error messages when inputs missing
+    - Configuration file auto-creation with documentation
+    - Sorted display by order value
+    - Color-coded output for status indicators
+  - Comprehensive test suite:
+    - 39 tests covering all commands and scenarios
+    - Basic tests (5): existence, syntax, help, usage
+    - List tests (5): empty config, display, filtering, verbose mode
+    - Show tests (3): validation, details, error handling
+    - Add tests (9): validation, creation, auto-detection, duplicates, ordering
+    - Remove tests (5): validation, confirmation, backup creation, non-interactive
+    - Discover tests (6): ORACLE_BASE handling, finding homes, dry-run, auto-add
+    - Validate tests (5): directory checks, type mismatch detection, specific home
+    - Integration tests (2): full workflow, oraenv integration
+    - All tests pass reliably without timeouts
+
 ## [0.17.0] - 2026-01-09
 
 ### Added
