@@ -11,6 +11,12 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
+- **Oracle Homes Support** (v0.18.0+): Unified management for all Oracle products beyond databases
+  - Support for OUD, WebLogic, Oracle Client, EM OMS/Agent, Data Safe connectors
+  - Auto-discovery under `$ORACLE_BASE/product`
+  - CLI tool for managing Oracle Homes (`oradba_homes.sh`)
+  - Integrated with `oraenv.sh` and `oraup.sh` for unified environment setup
+  - Product-specific environment variables and path configuration
 - **Pre-Oracle Installation Support** (v0.17.0+): Install and configure OraDBA before Oracle Database for CI/CD
   Docker layering, and phased deployments
 - **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
@@ -95,8 +101,29 @@ source oraenv.sh FREE
 # Or use auto-generated aliases
 free              # Shortcut for: source /opt/oradba/bin/oraenv.sh FREE
 
-# Interactive selection (displays numbered SID list)
+# Setup Oracle Homes (v0.18.0+)
+source oraenv.sh OUD12     # Oracle Unified Directory
+source oraenv.sh WLS14     # WebLogic Server
+
+# Interactive selection (displays both Oracle Homes and database SIDs)
 source oraenv.sh
+```
+
+Manage Oracle Homes (v0.18.0+):
+
+```bash
+# List registered Oracle Homes
+oradba_homes.sh list
+
+# Auto-discover Oracle products
+oradba_homes.sh discover --auto-add
+
+# Add Oracle Home manually
+oradba_homes.sh add --name OUD12 \
+  --path /u01/app/oracle/product/12.2.1.4/oud --type oud
+
+# Show environment status (includes Oracle Homes)
+oraup.sh
 ```
 
 After sourcing, you have 50+ aliases available:
