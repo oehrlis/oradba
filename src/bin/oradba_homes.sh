@@ -31,7 +31,8 @@ else
 fi
 
 # Script name for logging
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 
 # ------------------------------------------------------------------------------
 # Function: show_usage
@@ -143,8 +144,7 @@ list_homes() {
     done
 
     # Check if config file exists
-    local homes_file
-    if ! homes_file=$(get_oracle_homes_path); then
+    if ! get_oracle_homes_path >/dev/null 2>&1; then
         log_warn "No Oracle Homes configuration found"
         echo "To add Oracle Homes, use: $SCRIPT_NAME add"
         return 0
@@ -249,7 +249,7 @@ show_home() {
     if [[ -d "$h_path" ]]; then
         echo "Directory Contents:"
         echo "--------------------------------------------------------------------------------"
-        ls -la "$h_path" 2>/dev/null | head -10
+        find "$h_path" -maxdepth 1 -ls 2>/dev/null | head -10
         echo ""
     else
         echo "⚠ Warning: Oracle Home directory does not exist"
