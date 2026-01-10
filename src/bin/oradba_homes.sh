@@ -16,14 +16,17 @@
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
+ORADBA_PREFIX="$(dirname "$SCRIPT_DIR")"
+
+# Set ORADBA_BASE for configuration
+export ORADBA_BASE="${ORADBA_BASE:-${ORADBA_PREFIX}}"
 
 # Source common library
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+if [[ -f "${ORADBA_PREFIX}/lib/common.sh" ]]; then
     # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+    source "${ORADBA_PREFIX}/lib/common.sh"
 else
-    echo "ERROR: Cannot find common library at ${ORADBA_BASE}/lib/common.sh" >&2
+    echo "ERROR: Cannot find common library at ${ORADBA_PREFIX}/lib/common.sh" >&2
     exit 1
 fi
 
@@ -295,9 +298,14 @@ add_home() {
         esac
     done
 
-    # Interactive mode if no options provided
+    # Interactive mode if no options provided and we have a TTY
     if [[ -z "$name" ]]; then
-        read -p "Oracle Home name: " name
+        if [[ -t 0 ]]; then
+            read -p "Oracle Home name: " name
+        else
+            log_error "Oracle Home name is required (--name)"
+            return 1
+        fi
     fi
     
     if [[ -z "$name" ]]; then
@@ -318,7 +326,12 @@ add_home() {
     fi
 
     if [[ -z "$path" ]]; then
-        read -p "ORACLE_HOME path: " path
+        if [[ -t 0 ]]; then
+            read -p "ORACLE_HOME path: " path
+        else
+            log_error "ORACLE_HOME path is required (--path)"
+            return 1
+        fi
     fi
     
     if [[ -z "$path" ]]; then
@@ -328,11 +341,15 @@ add_home() {
 
     # Validate path exists
     if [[ ! -d "$path" ]]; then
-        log_warn "Directory does not exist: $path"
-        read -p "Continue anyway? [y/N]: " confirm
-        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-            echo "Cancelled."
-            return 0
+        if [[ -t 0 ]]; then
+            log_warn "Directory does not exist: $path"
+            read -p "Continue anyway? [y/N]: " confirm
+            if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+                echo "Cancelled."
+                return 0
+            fi
+        else
+            log_warn "Directory does not exist: $path (continuing in non-interactive mode)"
         fi
     fi
 
@@ -341,8 +358,11 @@ add_home() {
         if [[ -d "$path" ]]; then
             ptype=$(detect_product_type "$path")
             log_info "Auto-detected product type: $ptype"
-        else
+        elif [[ -t 0 ]]; then
             read -p "Product type (database/oud/client/weblogic/oms/emagent/datasafe): " ptype
+        else
+            log_error "Product type is required when path doesn't exist (--type)"
+            return 1
         fi
     fi
 
@@ -357,11 +377,13 @@ add_home() {
     esac
 
     if [[ -z "$desc" ]]; then
-        read -p "Description (optional): " desc
-    fi
-    
-    if [[ -z "$desc" ]]; then
-        desc="$ptype Oracle Home"
+        if [[ -t 0 ]]; then
+            read -p "Description (optional): " desc
+        fi
+        # Always set default if still empty
+        if [[ -z "$desc" ]]; then
+            desc="$ptype Oracle Home"
+        fi
     fi
 
     # Get config file path
@@ -440,11 +462,15 @@ remove_home() {
     # Confirm removal
     echo ""
     echo "Remove Oracle Home: $name"
-    read -p "Are you sure? [y/N]: " confirm
     
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-        echo "Cancelled."
-        return 0
+    if [[ -t 0 ]]; then
+        read -p "Are you sure? [y/N]: " confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            echo "Cancelled."
+            return 0
+        fi
+    else
+        log_info "Non-interactive mode: skipping confirmation"
     fi
 
     # Create backup
