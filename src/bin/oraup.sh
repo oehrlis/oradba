@@ -55,7 +55,8 @@ OPTIONS:
     -q, --quiet     Minimal output (errors only)
 
 DESCRIPTION:
-    Shows all Oracle databases, listeners, and processes on the system:
+    Shows all Oracle environments on the system:
+    - Oracle Homes (OUD, WebLogic, Client, OMS, etc.)
     - Database instances (from oratab)
     - Running Oracle processes (pmon, listener)
     - Instance status (open/mounted/started/nomount)
@@ -237,6 +238,48 @@ show_oracle_status() {
     # Sort both arrays alphabetically by SID
     mapfile -t dummy_entries < <(printf '%s\n' "${dummy_entries[@]}" | sort)
     mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
+    
+    # Display Oracle Homes first (if available)
+    if command -v list_oracle_homes &>/dev/null; then
+        local -a homes
+        mapfile -t homes < <(list_oracle_homes)
+        
+        if [[ ${#homes[@]} -gt 0 ]]; then
+            echo ""
+            echo "Oracle Homes"
+            echo "---------------------------------------------------------------------------------"
+            
+            for home_line in "${homes[@]}"; do
+                # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
+                read -r name path ptype order desc <<< "$home_line"
+                
+                # Format product type for display
+                local ptype_display
+                case "$ptype" in
+                    database)   ptype_display="Database" ;;
+                    oud)        ptype_display="OUD" ;;
+                    client)     ptype_display="Client" ;;
+                    weblogic)   ptype_display="WebLogic" ;;
+                    oms)        ptype_display="OMS" ;;
+                    emagent)    ptype_display="EM Agent" ;;
+                    datasafe)   ptype_display="Data Safe" ;;
+                    *)          ptype_display="$ptype" ;;
+                esac
+                
+                # Check if directory exists
+                local status
+                if [[ -d "$path" ]]; then
+                    status="available"
+                else
+                    status="missing"
+                fi
+                
+                printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$name" "$status" "$path"
+            done
+            
+            echo ""
+        fi
+    fi
     
     # Process dummy entries first
     for entry in "${dummy_entries[@]}"; do

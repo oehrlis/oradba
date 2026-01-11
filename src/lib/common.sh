@@ -750,6 +750,230 @@ validate_directory() {
 }
 
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Oracle Homes Management Functions
+# ------------------------------------------------------------------------------
+
+# Get path to oradba_homes.conf file
+# Returns: Path to oradba_homes.conf or empty if not found
+get_oracle_homes_path() {
+    local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+    
+    if [[ -f "${homes_file}" ]]; then
+        echo "${homes_file}"
+        return 0
+    fi
+    
+    return 1
+}
+
+# Parse Oracle Home entry from oradba_homes.conf
+# Arguments:
+#   $1 - Home name to parse
+# Returns: Space-separated: name path type order description
+parse_oracle_home() {
+    local name="$1"
+    local homes_file
+    
+    if [[ -z "${name}" ]]; then
+        log_error "Home name required"
+        return 1
+    fi
+    
+    homes_file=$(get_oracle_homes_path) || return 1
+    
+    # Parse file: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION
+    while IFS=: read -r h_name h_path h_type h_order h_desc; do
+        # Skip comments and empty lines
+        [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${h_name}" ]] && continue
+        
+        if [[ "${h_name}" == "${name}" ]]; then
+            echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_desc}"
+            return 0
+        fi
+    done < "${homes_file}"
+    
+    return 1
+}
+
+# List all Oracle Homes from oradba_homes.conf
+# Arguments:
+#   $1 - Optional filter (product type)
+# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
+list_oracle_homes() {
+    local filter="$1"
+    local homes_file
+    
+    homes_file=$(get_oracle_homes_path) || return 1
+    
+    # Parse and optionally filter
+    while IFS=: read -r h_name h_path h_type h_order h_desc; do
+        # Skip comments and empty lines
+        [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${h_name}" ]] && continue
+        
+        # Apply filter if specified
+        if [[ -n "${filter}" ]]; then
+            [[ "${h_type}" != "${filter}" ]] && continue
+        fi
+        
+        # Output: name path type order description
+        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_desc}"
+    done < "${homes_file}" | sort -k4 -n
+}
+
+# Get ORACLE_HOME path for a named home
+# Arguments:
+#   $1 - Home name
+# Returns: ORACLE_HOME path or empty if not found
+get_oracle_home_path() {
+    local name="$1"
+    local home_info
+    
+    home_info=$(parse_oracle_home "${name}") || return 1
+    echo "${home_info}" | awk '{print $2}'
+}
+
+# Get product type for a named home
+# Arguments:
+#   $1 - Home name
+# Returns: Product type (database, oud, client, etc.)
+get_oracle_home_type() {
+    local name="$1"
+    local home_info
+    
+    home_info=$(parse_oracle_home "${name}") || return 1
+    echo "${home_info}" | awk '{print $3}'
+}
+
+# Detect product type from ORACLE_HOME path
+# Arguments:
+#   $1 - ORACLE_HOME path
+# Returns: Detected product type or "unknown"
+detect_product_type() {
+    local oracle_home="$1"
+    
+    [[ -z "${oracle_home}" ]] && echo "unknown" && return 1
+    [[ ! -d "${oracle_home}" ]] && echo "unknown" && return 1
+    
+    # Check for Oracle Unified Directory
+    if [[ -f "${oracle_home}/oud/lib/ldapjdk.jar" ]]; then
+        echo "oud"
+        return 0
+    fi
+    
+    # Check for WebLogic
+    if [[ -f "${oracle_home}/wlserver/server/lib/weblogic.jar" ]]; then
+        echo "weblogic"
+        return 0
+    fi
+    
+    # Check for OMS
+    if [[ -f "${oracle_home}/sysman/lib/emoms.jar" ]]; then
+        echo "oms"
+        return 0
+    fi
+    
+    # Check for EM Agent
+    if [[ -f "${oracle_home}/agent_inst/bin/emctl" ]]; then
+        echo "emagent"
+        return 0
+    fi
+    
+    # Check for Oracle Client
+    if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -f "${oracle_home}/bin/oracle" ]]; then
+        echo "client"
+        return 0
+    fi
+    
+    # Check for Data Safe
+    if [[ -f "${oracle_home}/datasafe/lib/datasafe.jar" ]]; then
+        echo "datasafe"
+        return 0
+    fi
+    
+    # Check for Database (has sqlplus and oracle binary)
+    if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ -f "${oracle_home}/bin/oracle" ]]; then
+        echo "database"
+        return 0
+    fi
+    
+    echo "unknown"
+    return 1
+}
+
+# Set environment variables for an Oracle Home
+# Arguments:
+#   $1 - Oracle Home name
+#   $2 - ORACLE_HOME path (optional, will be detected if not provided)
+# Sets: ORACLE_HOME and product-specific variables
+set_oracle_home_environment() {
+    local name="$1"
+    local oracle_home="$2"
+    local product_type
+    
+    # Get ORACLE_HOME if not provided
+    if [[ -z "${oracle_home}" ]]; then
+        oracle_home=$(get_oracle_home_path "${name}") || return 1
+    fi
+    
+    # Detect product type
+    product_type=$(detect_product_type "${oracle_home}")
+    
+    # Set base environment
+    export ORACLE_HOME="${oracle_home}"
+    
+    # Set product-specific environment variables
+    case "${product_type}" in
+        database)
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+        oud)
+            export PATH="${ORACLE_HOME}/oud/bin:${PATH}"
+            export INSTANCE_HOME="${ORACLE_HOME}/asinst_1"
+            ;;
+        client)
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+        weblogic)
+            export WL_HOME="${ORACLE_HOME}/wlserver"
+            export PATH="${WL_HOME}/server/bin:${PATH}"
+            ;;
+        oms)
+            export ORACLE_HOSTNAME=$(hostname -f)
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+        emagent)
+            export AGENT_HOME="${ORACLE_HOME}"
+            export PATH="${AGENT_HOME}/bin:${PATH}"
+            ;;
+        datasafe)
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+        *)
+            log_warn "Unknown product type: ${product_type}"
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+    esac
+    
+    log_debug "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"
+    return 0
+}
+
+# Check if name refers to an Oracle Home (vs database SID)
+# Arguments:
+#   $1 - Name to check
+# Returns: 0 if it's an Oracle Home, 1 otherwise
+is_oracle_home() {
+    local name="$1"
+    
+    [[ -z "${name}" ]] && return 1
+    
+    parse_oracle_home "${name}" >/dev/null 2>&1
+}
+
 # Configuration Management
 # ------------------------------------------------------------------------------
 

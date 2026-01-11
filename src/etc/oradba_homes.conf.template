@@ -1,0 +1,67 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_homes.conf.template
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.09
+# Version....: 0.18.0
+# Purpose....: Configuration file for Oracle Homes (non-database products)
+# Notes......: This file registers Oracle products beyond databases:
+#              - Oracle Unified Directory (OUD)
+#              - Oracle Data Safe On-Premises Connector
+#              - Oracle Client installations
+#              - WebLogic, OMS, EM Agent, etc.
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# Configuration Format
+# ====================
+# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:DESCRIPTION]
+#
+# Fields:
+#   NAME          - Unique identifier (uppercase recommended, e.g., OUD12C)
+#   ORACLE_HOME   - Full path to Oracle home directory
+#   PRODUCT_TYPE  - Product type identifier (see below)
+#   ORDER         - Display order (lower numbers first, 10-based increments)
+#   DESCRIPTION   - Optional human-readable description
+#
+# Product Types:
+#   oud          - Oracle Unified Directory
+#   datasafe     - Oracle Data Safe On-Premises Connector
+#   client       - Oracle Client (SQL*Plus, networking tools)
+#   weblogic     - Oracle WebLogic Server
+#   oms          - Oracle Enterprise Manager OMS
+#   emagent      - Oracle Enterprise Manager Agent
+#   database     - Oracle Database (typically managed via oratab)
+#
+# Examples:
+# ---------
+# OUD12C:/u01/app/oracle/product/oud12c:oud:10:Oracle Unified Directory 12c
+# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:Data Safe Connector
+# CLIENT19:/opt/oracle/product/19c/client:client:30:Oracle Client 19c
+# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:WebLogic 14.1.1
+# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:Enterprise Manager OMS 13c
+# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:EM Agent 13.5
+
+# Usage Notes
+# ===========
+# - One entry per line (empty lines and comments ignored)
+# - Names must be unique
+# - Use consistent ORDER increments (10, 20, 30...) for easy reordering
+# - ORACLE_HOME paths must be absolute
+# - To activate a home: source oraenv.sh <NAME>
+# - List all homes: oraup.sh
+#
+# Coexistence with oratab:
+#   - This file is for non-database Oracle products
+#   - Database homes continue to use /etc/oratab
+#   - oraenv.sh checks both locations
+#   - oraup.sh displays both databases and homes
+
+# Your Oracle Homes Configuration
+# ================================
+# Add your entries below:
+

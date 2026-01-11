@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Oracle Homes Support (Phase 1)**: Core infrastructure for managing non-database Oracle products
+  - New configuration file: `oradba_homes.conf` for registering Oracle Homes
+  - Configuration format: `NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION`
+  - Core functions in common.sh:
+    - `get_oracle_homes_path()`: Get path to oradba_homes.conf
+    - `parse_oracle_home()`: Parse home entry by name
+    - `list_oracle_homes()`: List all homes sorted by order with optional filtering
+    - `get_oracle_home_path()`: Get ORACLE_HOME path for a named home
+    - `get_oracle_home_type()`: Get product type for a home
+    - `detect_product_type()`: Auto-detect product type from ORACLE_HOME filesystem
+    - `set_oracle_home_environment()`: Set environment variables by product type
+    - `is_oracle_home()`: Check if name refers to Oracle Home vs database SID
+  - Supported product types:
+    - `database`: Oracle Database (existing functionality)
+    - `oud`: Oracle Unified Directory
+    - `client`: Oracle Client
+    - `weblogic`: WebLogic Server
+    - `oms`: Enterprise Manager OMS
+    - `emagent`: Enterprise Manager Agent
+    - `datasafe`: Oracle Data Safe
+  - Comprehensive unit test suite with 28 tests (100% coverage)
+
+- **Oracle Homes Support (Phase 2)**: Integration with oraenv.sh and oraup.sh
+  - Enhanced `oraenv.sh` to support Oracle Homes:
+    - Checks `is_oracle_home()` before oratab lookup
+    - Calls `set_oracle_home_environment()` for Oracle Homes
+    - Interactive menu displays both Oracle Homes and database SIDs
+    - Shows product type indicators for Oracle Homes
+    - Clears `ORACLE_SID` for non-database homes
+    - Updated help text to mention both SIDs and Oracle Homes
+  - Enhanced `oraup.sh` to display Oracle Homes:
+    - New "Oracle Homes" section before database instances
+    - Shows product type (OUD, WebLogic, Client, OMS, etc.)
+    - Displays home status (available/missing)
+    - Maintains sorted display (homes by order, databases by SID)
+  - Integration test coverage:
+    - 3 new Oracle Homes integration tests in test_oraenv.bats
+    - All 28 oraenv tests passing
+    - Validates Oracle Home detection, environment setup, and priority handling
+
+- **Oracle Homes Support (Phase 3)**: Management CLI tool
+  - New `oradba_homes.sh` command-line management tool with 6 commands:
+    - `list`: Display registered Oracle Homes with filtering (--type, --verbose)
+    - `show <name>`: Show detailed information about specific Oracle Home
+    - `add`: Add new Oracle Home (interactive or CLI parameters)
+      - Parameters: --name, --path, --type, --order, --desc
+      - Auto-detection of product type from filesystem
+      - Input validation for name format, product type, duplicates
+      - Interactive prompts with TTY detection for non-interactive environments
+    - `remove <name>`: Remove Oracle Home with confirmation and backup
+      - Automatic backup creation before removal
+      - Confirmation prompt (skipped in non-interactive mode)
+    - `discover`: Auto-discover Oracle Homes under $ORACLE_BASE/product
+      - Options: --base, --auto-add, --dry-run
+      - Scans product directory recursively
+      - Auto-detects product types
+      - Skips already registered homes
+    - `validate [name]`: Validate configuration and detect issues
+      - Checks directory existence
+      - Verifies product type matches detected type
+      - Can validate all homes or specific home
+      - Returns exit codes for CI/CD integration
+  - Features:
+    - TTY detection prevents hanging in non-interactive environments (CI/CD, tests)
+    - Graceful fallback with clear error messages when inputs missing
+    - Configuration file auto-creation with documentation
+    - Sorted display by order value
+    - Color-coded output for status indicators
+  - Comprehensive test suite:
+    - 39 tests covering all commands and scenarios
+    - Basic tests (5): existence, syntax, help, usage
+    - List tests (5): empty config, display, filtering, verbose mode
+    - Show tests (3): validation, details, error handling
+    - Add tests (9): validation, creation, auto-detection, duplicates, ordering
+    - Remove tests (5): validation, confirmation, backup creation, non-interactive
+    - Discover tests (6): ORACLE_BASE handling, finding homes, dry-run, auto-add
+    - Validate tests (5): directory checks, type mismatch detection, specific home
+    - Integration tests (2): full workflow, oraenv integration
+    - All tests pass reliably without timeouts
+
 ## [0.17.0] - 2026-01-09
 
 ### Added
