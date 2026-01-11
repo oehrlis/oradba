@@ -942,7 +942,8 @@ set_oracle_home_environment() {
             export PATH="${WL_HOME}/server/bin:${PATH}"
             ;;
         oms)
-            export ORACLE_HOSTNAME=$(hostname -f)
+            ORACLE_HOSTNAME=$(hostname -f)
+            export ORACLE_HOSTNAME
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
         emagent)

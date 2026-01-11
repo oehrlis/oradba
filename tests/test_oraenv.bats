@@ -287,12 +287,12 @@ EOF
     " 2>&1)
     
     # Debug output if test fails
-    if [[ ! "$result" =~ "HOME=${oud_home}" ]]; then
+    if [[ ! "$result" =~ HOME=${oud_home} ]]; then
         echo "Expected: HOME=${oud_home}"
         echo "Got: $result"
     fi
     
-    [[ "$result" =~ "HOME=${oud_home}" ]] || [[ "$result" =~ "HOME=" ]]
+    [[ "$result" =~ HOME=${oud_home} ]] || [[ "$result" =~ HOME= ]]
 }
 
 @test "oraenv.sh prefers Oracle Home over SID when name matches" {
@@ -322,5 +322,5 @@ EOF
     
     # Should use Oracle Home, not oratab entry (or may use oratab if homes not loaded)
     # Test passes if either works correctly
-    [[ "$result" =~ "${home_path}" ]] || [[ "$result" =~ "oracle/19c" ]]
+    [[ "$result" =~ ${home_path} ]] || [[ "$result" =~ oracle/19c ]]
 }

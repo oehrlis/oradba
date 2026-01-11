@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Code Quality**: Fixed all shellcheck and markdownlint warnings
+  - `src/bin/oraup.sh`: SC2034 - Prefixed unused variables with underscore
+  - `src/lib/common.sh`: SC2155 - Separated ORACLE_HOSTNAME declaration and assignment
+  - `tests/test_oraenv.bats`: SC2076 - Removed quotes from regex patterns (3 locations)
+  - `doc/releases/v0.18.0.md`: MD013 - Split long overview line
+  - `doc/releases/v0.18.0.md`: MD040 - Added language specifiers to code blocks (2 locations)
+
 ### Added
 
 - **Oracle Homes Support (Phase 1)**: Core infrastructure for managing non-database Oracle products

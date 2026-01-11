@@ -251,7 +251,7 @@ show_oracle_status() {
             
             for home_line in "${homes[@]}"; do
                 # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
-                read -r name path ptype order desc <<< "$home_line"
+                read -r name path ptype _order _desc <<< "$home_line"
                 
                 # Format product type for display
                 local ptype_display
