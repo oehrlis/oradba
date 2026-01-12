@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-01-12
+
+### Fixed
+
+- **Oracle Home Alias Resolution**: Fixed critical bugs preventing Oracle Home aliases from working
+  - `parse_oracle_home()` now resolves alias names to actual NAME before lookup
+  - Added `resolve_oracle_home_name()` function to check both NAME and ALIAS_NAME fields
+  - `set_oracle_home_environment()` resolves aliases to prevent circular references
+  - Fixed alias creation to use actual NAME, not alias itself (e.g., `alias rdbms26='. oraenv.sh DBHOMEFREE'`)
+  
+- **Oracle Home Configuration Path**: Fixed incorrect config file path in generate functions
+  - `generate_sid_lists()` now uses `get_oracle_homes_path()` instead of hardcoded path
+  - `generate_oracle_home_aliases()` now uses `get_oracle_homes_path()` instead of hardcoded path
+  - Corrected filename from `oracle_homes.conf` to `oradba_homes.conf`
+  - Both functions now consistent with all other Oracle Homes functions
+
+- **Empty Dummy Array Display**: Fixed phantom "Dummy rdbms" line appearing when no dummy entries exist
+  - Added conditional sorting to prevent mapfile from creating empty array elements
+  - Only sort arrays if they contain elements (`${#array[@]} -gt 0`)
+  - Prevents bash quirk where `printf '%s\n' ""` creates one empty element
+
+- **PS1 Prompt Enhancement**: Fixed empty PS1 prompt when using Oracle Homes
+  - Enhanced PS1 logic to show `ORADBA_CURRENT_HOME_ALIAS` for Oracle Homes
+  - Shows database format `SID[.PDB]` or Oracle Home alias `[rdbms26]`
+  - Removed invalid `local` keyword in oradba_standard.conf (outside function)
+
+- **Installer Race Condition**: Fixed intermittent "syntax error near unexpected token" during installation
+  - Added `sync` command after tar extraction to ensure filesystem writes complete
+  - Added 0.5s sleep to allow buffered operations to finish
+  - Prevents failures on slow/busy systems or network filesystems
+
+### Changed
+
+- **Oracle Home Alias Convention**: Made Oracle Home aliases lowercase by default
+  - Consistent with database SID alias convention (e.g., `FREE` → `free`)
+  - Default alias is now lowercase version of NAME (e.g., `DBHOMEFREE` → `dbhomefree`)
+  - Custom aliases still supported via `--alias` option
+  - `generate_oracle_home_aliases()` creates lowercase alias for NAME automatically
+  - Example: `DBHOMEFREE` creates both `dbhomefree` and custom `rdbms26` aliases
+
+- **ORADBA_SIDLIST Enhancement**: Extended to include Oracle Home names and aliases
+  - `ORADBA_REALSIDLIST`: Real database SIDs only (Y/N/S flags from oratab)
+  - `ORADBA_SIDLIST`: All sourceable names (database SIDs + dummy entries + Oracle Home names/aliases)
+  - `generate_sid_lists()` now appends Oracle Home entries from oradba_homes.conf
+  - Both NAME and ALIAS_NAME added to SIDLIST for completeness
+
+- **Dynamic Alias Generation**: Aliases regenerated after add/remove operations
+  - `oradba_homes.sh add` now calls `generate_sid_lists()` and `generate_oracle_home_aliases()`
+  - `oradba_homes.sh remove` regenerates aliases after removal
+  - New Oracle Homes immediately available in current shell (after first source)
+  - Note: Parent shell requires sourcing once due to subshell limitation
+
+- **Oracle Home Display**: Show alias name in `oraup.sh` instead of full NAME
+  - Displays user-friendly alias (e.g., `rdbms26`) instead of technical name (e.g., `DBHOMEFREE`)
+  - Falls back to NAME if no alias defined or alias same as NAME
+  - More intuitive display matching what users actually type
+
+### Documentation
+
+- **Release Notes Archive**: Implemented retention policy for release documentation
+  - Moved old releases (v0.9.4-v0.16.0) to `doc/releases/archive/` directory
+  - Created `archive_github_releases.sh` script to add archive notices to GitHub releases
+  - Archive notice includes link to `/releases/latest` (permanent URL)
+  - Applied to 21 GitHub releases (v0.9.5-v0.16.0)
+
 ## [0.18.1] - 2026-01-12
 
 ### Added
