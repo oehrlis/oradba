@@ -11,7 +11,11 @@ on:
       - 'mkdocs.yml'
       - '.github/workflows/docs.yml'
       - 'VERSION'
+      - '.github/extensions.yml'
+      - '.github/scripts/sync_extension_docs.py'
   workflow_dispatch:
+  repository_dispatch:
+    types: [extension-docs-update]
 
 permissions:
   contents: read
@@ -44,7 +48,13 @@ jobs:
           pip install \
             mkdocs-material \
             mkdocs-git-revision-date-localized-plugin \
-            pymdown-extensions
+            pymdown-extensions \
+            pyyaml
+      
+      - name: Sync extension documentation
+        run: |
+          echo "Syncing documentation from registered extensions..."
+          python .github/scripts/sync_extension_docs.py
       
       - name: Prepare documentation images
         run: |

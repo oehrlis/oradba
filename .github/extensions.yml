@@ -1,0 +1,23 @@
+# Official OraDBA Extensions Registry
+# This file lists all official extensions whose documentation will be included
+# in the main OraDBA documentation site.
+
+extensions:
+  - name: oradba_extension
+    display_name: OraDBA Extension Template
+    repo: oehrlis/oradba_extension
+    docs_path: doc  # Path in extension repo containing markdown files
+    description: Template and example for creating OraDBA extensions
+    category: Development
+    maintainer: Stefan Oehrli
+    status: active
+    
+  # Add more extensions here as they are approved:
+  # - name: oradba_monitoring
+  #   display_name: OraDBA Monitoring Extension
+  #   repo: oehrlis/oradba_monitoring
+  #   docs_path: doc
+  #   description: Monitoring scripts and dashboards for Oracle databases
+  #   category: Operations
+  #   maintainer: Your Name
+  #   status: active

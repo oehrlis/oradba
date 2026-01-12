@@ -126,6 +126,10 @@ nav:
     - Log Management: 15-log-management.md
     - Usage Guide: 16-usage.md
     - Service Management: 17-service-management.md
+  
+  - Extensions:
+    - Extension System: 18-extensions.md
+    - Extensions Catalog: 19-extensions-catalog.md
 
 # Extra configuration
 extra:

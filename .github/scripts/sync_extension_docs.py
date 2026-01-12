@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""
+Sync extension documentation from registered extension repositories.
+This script reads .github/extensions.yml and pulls documentation from each
+registered extension repository into src/doc/extensions/<name>/.
+"""
+
+import os
+import sys
+import yaml
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Dict, List
+
+def load_extensions_registry(registry_path: str) -> List[Dict]:
+    """Load extensions from the registry YAML file."""
+    with open(registry_path, 'r') as f:
+        data = yaml.safe_load(f)
+    return data.get('extensions', [])
+
+def clone_or_update_repo(repo: str, target_dir: Path, branch: str = 'main') -> bool:
+    """Clone or update a git repository."""
+    repo_url = f"https://github.com/{repo}.git"
+    
+    if target_dir.exists():
+        print(f"  Updating existing clone: {target_dir}")
+        try:
+            subprocess.run(['git', 'pull'], cwd=target_dir, check=True, capture_output=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"  ⚠️  Failed to update: {e}")
+            return False
+    else:
+        print(f"  Cloning {repo_url} to {target_dir}")
+        try:
+            subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, repo_url, str(target_dir)],
+                         check=True, capture_output=True)
+            return True
+        except subprocess.CalledProcessError:
+            # Try without branch if it fails
+            try:
+                subprocess.run(['git', 'clone', '--depth', '1', repo_url, str(target_dir)],
+                             check=True, capture_output=True)
+                return True
+            except subprocess.CalledProcessError as e:
+                print(f"  ⚠️  Failed to clone: {e}")
+                return False
+
+def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool:
+    """Sync documentation for a single extension."""
+    name = extension['name']
+    repo = extension['repo']
+    docs_path = extension.get('docs_path', 'doc')
+    
+    print(f"\n📦 Syncing {name} from {repo}")
+    
+    # Clone/update the extension repo
+    repo_dir = work_dir / name
+    if not clone_or_update_repo(repo, repo_dir):
+        return False
+    
+    # Check if doc directory exists
+    source_docs = repo_dir / docs_path
+    if not source_docs.exists():
+        print(f"  ⚠️  Doc directory not found: {docs_path}")
+        return False
+    
+    # Copy docs to target location
+    target_docs = docs_dir / 'extensions' / name
+    target_docs.parent.mkdir(parents=True, exist_ok=True)
+    
+    if target_docs.exists():
+        shutil.rmtree(target_docs)
+    
+    shutil.copytree(source_docs, target_docs)
+    print(f"  ✓ Copied docs to {target_docs}")
+    
+    # Create or update navigation metadata
+    create_extension_nav(extension, target_docs)
+    
+    return True
+
+def create_extension_nav(extension: Dict, docs_dir: Path) -> None:
+    """Create a .pages file for mkdocs-awesome-pages-plugin (if used) or metadata."""
+    metadata = {
+        'title': extension['display_name'],
+        'description': extension['description'],
+        'category': extension['category'],
+        'repository': f"https://github.com/{extension['repo']}",
+        'status': extension['status']
+    }
+    
+    # Create a metadata file for reference
+    meta_file = docs_dir / '.metadata.yml'
+    with open(meta_file, 'w') as f:
+        yaml.dump(metadata, f)
+    
+    print(f"  ✓ Created metadata file")
+
+def update_extensions_index(extensions: List[Dict], index_file: Path) -> None:
+    """Update the extensions catalog index page with current extensions."""
+    
+    if not index_file.exists():
+        print(f"⚠️  Index file not found: {index_file}")
+        return
+    
+    with open(index_file, 'r') as f:
+        content = f.read()
+    
+    # Find the auto-generated section
+    start_marker = "<!-- EXTENSIONS_LIST_START -->"
+    end_marker = "<!-- EXTENSIONS_LIST_END -->"
+    
+    if start_marker not in content or end_marker not in content:
+        print("⚠️  Index markers not found in catalog page")
+        return
+    
+    # Generate extension list
+    ext_list = ["\n"]
+    for ext in extensions:
+        if ext['status'] != 'active':
+            continue
+            
+        ext_list.append(f"### {ext['display_name']}\n\n")
+        ext_list.append(f"**Repository:** [{ext['repo']}](https://github.com/{ext['repo']})  \n")
+        ext_list.append(f"**Category:** {ext['category']}  \n")
+        ext_list.append(f"**Status:** {ext['status'].title()}  \n\n")
+        ext_list.append(f"{ext['description']}\n\n")
+        ext_list.append(f"[View Documentation](extensions/{ext['name']}/index.md){{ .md-button }}\n\n")
+    
+    # Replace content between markers
+    start_idx = content.index(start_marker) + len(start_marker)
+    end_idx = content.index(end_marker)
+    
+    new_content = content[:start_idx] + ''.join(ext_list) + content[end_idx:]
+    
+    with open(index_file, 'w') as f:
+        f.write(new_content)
+    
+    print(f"✓ Updated extensions index with {len(ext_list) // 6} extensions")
+
+def main():
+    # Setup paths
+    repo_root = Path(__file__).parent.parent.parent
+    registry_file = repo_root / '.github' / 'extensions.yml'
+    docs_dir = repo_root / 'src' / 'doc'
+    index_file = docs_dir / '19-extensions-catalog.md'
+    work_dir = repo_root / '.extensions_work'
+    
+    print("🔄 OraDBA Extension Documentation Sync")
+    print(f"   Registry: {registry_file}")
+    print(f"   Docs Dir: {docs_dir}")
+    
+    # Load extensions
+    if not registry_file.exists():
+        print(f"❌ Registry file not found: {registry_file}")
+        sys.exit(1)
+    
+    extensions = load_extensions_registry(registry_file)
+    print(f"   Found {len(extensions)} registered extension(s)")
+    
+    # Create work directory
+    work_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Sync each extension
+    success_count = 0
+    for extension in extensions:
+        if extension.get('status') == 'active':
+            if sync_extension_docs(extension, work_dir, docs_dir):
+                success_count += 1
+    
+    # Update the index page
+    update_extensions_index(extensions, index_file)
+    
+    print(f"\n✅ Synced {success_count}/{len(extensions)} extensions")
+    
+    # Cleanup work directory (optional - comment out to keep for debugging)
+    # shutil.rmtree(work_dir)
+
+if __name__ == '__main__':
+    main()
