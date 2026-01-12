@@ -611,6 +611,51 @@ generate_sid_lists() {
     return 0
 }
 
+# Generate aliases for registered Oracle Homes
+# Usage: generate_oracle_home_aliases
+# Creates shell aliases for all registered Oracle Homes (both NAME and ALIAS_NAME)
+# Example: If home is registered as DBHOMEFREE with alias rdbms26:
+#   - alias DBHOMEFREE='. oraenv.sh DBHOMEFREE'
+#   - alias rdbms26='. oraenv.sh DBHOMEFREE'
+generate_oracle_home_aliases() {
+    local homes_config="${ORADBA_ETC}/oracle_homes.conf"
+    
+    # Check if Oracle Homes config exists
+    if [[ ! -f "${homes_config}" ]]; then
+        oradba_log DEBUG "Oracle Homes config not found: ${homes_config}"
+        return 0
+    fi
+    
+    local name alias_name
+    
+    # Parse Oracle Homes config (skip comments and empty lines)
+    while IFS='|' read -r name _type _status _description _path alias_name; do
+        # Skip empty lines and comments
+        [[ -z "${name}" ]] && continue
+        [[ "${name}" =~ ^[[:space:]]*# ]] && continue
+        
+        # Trim whitespace from fields
+        name="${name#"${name%%[![:space:]]*}"}"
+        name="${name%"${name##*[![:space:]]}"}"
+        alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"
+        alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
+        
+        # Create alias for the Oracle Home name
+        # shellcheck disable=SC2139
+        alias "${name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
+        oradba_log DEBUG "Created Oracle Home alias: ${name}"
+        
+        # Create alias for the alias name if it exists and is different
+        if [[ -n "${alias_name}" && "${alias_name}" != "${name}" ]]; then
+            # shellcheck disable=SC2139
+            alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
+            oradba_log DEBUG "Created Oracle Home alias: ${alias_name} -> ${name}"
+        fi
+    done < "${homes_config}"
+    
+    return 0
+}
+
 # Usage: generate_pdb_aliases
 # Generate aliases for PDBs in the current CDB
 generate_pdb_aliases() {
