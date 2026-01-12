@@ -1052,17 +1052,22 @@ detect_product_type() {
 
 # Set environment variables for an Oracle Home
 # Arguments:
-#   $1 - Oracle Home name
+#   $1 - Oracle Home name or alias
 #   $2 - ORACLE_HOME path (optional, will be detected if not provided)
 # Sets: ORACLE_HOME and product-specific variables
 set_oracle_home_environment() {
     local name="$1"
     local oracle_home="$2"
     local product_type
+    local actual_name
+    local alias_name
 
+    # Resolve alias to actual name if needed
+    actual_name=$(resolve_oracle_home_name "${name}")
+    
     # Get ORACLE_HOME if not provided
     if [[ -z "${oracle_home}" ]]; then
-        oracle_home=$(get_oracle_home_path "${name}") || return 1
+        oracle_home=$(get_oracle_home_path "${actual_name}") || return 1
     fi
 
     # Detect product type
@@ -1072,14 +1077,14 @@ set_oracle_home_environment() {
     export ORACLE_HOME="${oracle_home}"
     
     # Set home tracking variables for PS1
-    export ORADBA_CURRENT_HOME="${name}"
-    local alias_name
-    alias_name=$(get_oracle_home_alias "${name}" 2>/dev/null || echo "${name}")
+    export ORADBA_CURRENT_HOME="${actual_name}"
+    alias_name=$(get_oracle_home_alias "${actual_name}" 2>/dev/null || echo "${actual_name}")
     export ORADBA_CURRENT_HOME_ALIAS="${alias_name}"
     
     # Create alias for this Oracle Home (consistent with SID aliases)
+    # Always use actual name in alias target, not the alias itself
     # shellcheck disable=SC2139  # We want the alias to expand now
-    alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
+    alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
 
     # Set product-specific environment variables
     case "${product_type}" in
