@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Extension Documentation Integration**: Pull-based system for integrating extension docs into main site
+  - Extension registry (`.github/extensions.yml`) for managing official extensions
+  - Automated sync script (`.github/scripts/sync_extension_docs.py`) to pull docs from extension repos
+  - Extensions catalog page (`src/doc/19-extensions-catalog.md`) listing all official extensions
+  - Documentation workflow updated to sync extension docs before build
+  - Extensions section added to MkDocs navigation
+  - Extension documentation maintained in extension repos (`doc/` directory)
+  - Extension docs linked from main site but not included in PDF documentation
+  - Comprehensive guides for extension developers:
+    - `doc/extension-docs-integration.md` - Integration guide for extension developers
+    - `doc/extension-docs-implementation.md` - Technical implementation details
+  - Published at `https://code.oradba.ch/oradba/extensions/<name>/`
+
 ### Fixed
 
 - **Code Quality**: Fixed all shellcheck and markdownlint warnings
@@ -15,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/test_oraenv.bats`: SC2076 - Removed quotes from regex patterns (3 locations)
   - `doc/releases/v0.18.0.md`: MD013 - Split long overview line
   - `doc/releases/v0.18.0.md`: MD040 - Added language specifiers to code blocks (2 locations)
+
+### Removed
+
+- **Documentation Cleanup**: Removed interim development documentation
+  - `doc/v0.17.0-phase1-summary.md` (255 lines) - Phase 1 implementation notes
+  - `doc/v0.17.0-complete-summary.md` (994 lines) - Complete implementation summary
+  - `doc/v0.18.0-oracle-homes-support.md` (811 lines) - Planning/architecture document
+  - These interim documents are superseded by official release documentation
 
 ### Added
 
