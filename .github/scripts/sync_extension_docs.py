@@ -73,17 +73,16 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     if target_docs.exists():
         shutil.rmtree(target_docs)
     
-    # Define files/patterns to exclude from sync
-    exclude_patterns = [
-        'release_notes_*.md',   # Release notes with broken links
-        'release_notes',        # Release notes directory
-        'RELEASE_*.md',         # Release files
-        'QUICKREF.md',          # Quick reference with source links
-        'quickref.md',          # Quick reference with source links
-        'quickstart_*.md',      # Quickstart files with broken links
-        'install_*.md',         # Installation files with broken links
-        '.git*',                # Git files
+    # Define subdirectories to exclude from sync
+    exclude_subdirs = [
+        'release_notes',        # Release notes directory with broken links
+        '.git',                 # Git directory
         '__pycache__',          # Python cache
+    ]
+    
+    # Define file patterns to always exclude
+    exclude_file_patterns = [
+        '.git*',                # Git files
         '*.pyc',                # Python compiled files
     ]
     
@@ -91,17 +90,19 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
         """Check if file should be excluded based on patterns."""
         import fnmatch
         
-        # Check if any parent directory matches exclusion patterns
-        for parent in file_path.parents:
-            parent_name = parent.name
-            for pattern in exclude_patterns:
-                if fnmatch.fnmatch(parent_name, pattern):
-                    return True
+        # Get relative path from source_docs to check for subdirectories
+        rel_path = file_path.relative_to(source_docs)
+        
+        # Exclude if file is in an excluded subdirectory
+        for part in rel_path.parts[:-1]:  # Check all directory parts except the filename
+            if part in exclude_subdirs:
+                return True
         
         # Check if filename matches exclusion patterns
-        for pattern in exclude_patterns:
+        for pattern in exclude_file_patterns:
             if fnmatch.fnmatch(file_path.name, pattern):
                 return True
+        
         return False
     
     # Copy files selectively
