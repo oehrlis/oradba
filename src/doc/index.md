@@ -52,21 +52,21 @@ sq          # sqlplus / as sysdba
 alih        # Show all aliases
 ```
 
-See [Quick Start Guide](03-quickstart.md) for detailed first steps.
+See [Quick Start Guide](quickstart.md) for detailed first steps.
 
 ## Finding What You Need
 
 | If you want to...      | Start here                                       |
 |------------------------|--------------------------------------------------|
-| Learn what OraDBA is   | [Introduction](01-introduction.md)               |
-| Install OraDBA         | [Installation](02-installation.md)               |
-| Get started quickly    | [Quick Start](03-quickstart.md)                  |
-| Customize your setup   | [Configuration System](05-configuration.md)      |
-| See available commands | [Aliases Reference](06-aliases.md) or run `alih` |
-| Extend functionality   | [Extension System](18-extensions.md)             |
-| Fix issues             | [Troubleshooting](12-troubleshooting.md)         |
-| Quick command lookup   | [Quick Reference](13-reference.md)               |
-| See practical examples | [Usage Guide](16-usage.md)                       |
+| Learn what OraDBA is   | [Introduction](introduction.md)               |
+| Install OraDBA         | [Installation](installation.md)               |
+| Get started quickly    | [Quick Start](quickstart.md)                  |
+| Customize your setup   | [Configuration System](configuration.md)      |
+| See available commands | [Aliases Reference](aliases.md) or run `alih` |
+| Extend functionality   | [Extension System](extensions.md)             |
+| Fix issues             | [Troubleshooting](troubleshooting.md)         |
+| Quick command lookup   | [Quick Reference](reference.md)               |
+| See practical examples | [Usage Guide](usage.md)                       |
 
 ## 💬 Support
 

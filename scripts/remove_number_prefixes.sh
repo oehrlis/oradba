@@ -1,3 +1,58 @@
+#!/usr/bin/env bash
+# ============================================================================
+# Script Name: remove_number_prefixes.sh
+# Description: Remove number prefixes from documentation files
+#              Updates mkdocs.yml navigation references
+# ============================================================================
+
+set -euo pipefail
+
+readonly DOCS_DIR="src/doc"
+
+# File mappings (old -> new)
+declare -A FILE_MAP=(
+    ["01-introduction.md"]="introduction.md"
+    ["02-installation.md"]="installation.md"
+    ["02-installation-docker.md"]="installation-docker.md"
+    ["03-quickstart.md"]="quickstart.md"
+    ["04-environment.md"]="environment.md"
+    ["05-configuration.md"]="configuration.md"
+    ["06-aliases.md"]="aliases.md"
+    ["07-pdb-aliases.md"]="pdb-aliases.md"
+    ["08-sql-scripts.md"]="sql-scripts.md"
+    ["09-rman-scripts.md"]="rman-scripts.md"
+    ["10-functions.md"]="functions.md"
+    ["11-rlwrap.md"]="rlwrap.md"
+    ["12-troubleshooting.md"]="troubleshooting.md"
+    ["13-reference.md"]="reference.md"
+    ["14-sqlnet-config.md"]="sqlnet-config.md"
+    ["15-log-management.md"]="log-management.md"
+    ["16-usage.md"]="usage.md"
+    ["17-service-management.md"]="service-management.md"
+    ["18-extensions.md"]="extensions.md"
+    ["19-extensions-catalog.md"]="extensions-catalog.md"
+)
+
+echo "Renaming documentation files..."
+echo "==============================="
+
+# Rename files
+for old_file in "${!FILE_MAP[@]}"; do
+    new_file="${FILE_MAP[$old_file]}"
+    
+    if [[ -f "${DOCS_DIR}/${old_file}" ]]; then
+        git mv "${DOCS_DIR}/${old_file}" "${DOCS_DIR}/${new_file}"
+        echo "✓ Renamed: ${old_file} -> ${new_file}"
+    else
+        echo "⚠ Skipped: ${old_file} (not found)"
+    fi
+done
+
+echo ""
+echo "Updating mkdocs.yml..."
+
+# Update mkdocs.yml (using git so it tracks the change)
+cat > mkdocs.yml.new <<'EOF'
 site_name: OraDBA Documentation
 site_url: https://oehrlis.github.io/oradba
 site_description: Oracle Database Administration Toolset - Complete user guides and reference materials
@@ -149,3 +204,21 @@ extra_css:
 # Additional JavaScript
 extra_javascript:
   - javascripts/extra.js
+EOF
+
+mv mkdocs.yml.new mkdocs.yml
+echo "✓ Updated mkdocs.yml with new filenames"
+
+echo ""
+echo "Done! Summary:"
+echo "=============="
+echo "- Files renamed to remove number prefixes"
+echo "- mkdocs.yml updated with new filenames"
+echo "- URLs will now be clean (e.g., /introduction/ instead of /01-introduction/)"
+echo "- Navigation order is preserved via explicit nav structure"
+echo "- For PDF: Use scripts/build_pdf.sh which reads from nav order"
+echo ""
+echo "Next steps:"
+echo "1. Review changes with: git status"
+echo "2. Test locally with: mkdocs serve"
+echo "3. Commit changes: git add -A && git commit -m 'docs: Remove number prefixes from filenames'"
