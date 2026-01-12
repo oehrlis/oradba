@@ -60,6 +60,7 @@ ADD OPTIONS:
     -n, --name <name>       Oracle Home name (required)
     -p, --path <path>       ORACLE_HOME path (required)
     -t, --type <type>       Product type (auto-detected if not specified)
+    -a, --alias <name>      Alias name for shortcuts (default: same as name)
     -o, --order <num>       Display order (default: 50)
     -d, --desc <text>       Description
 
@@ -92,6 +93,9 @@ EXAMPLES:
     # Add Oracle Home manually
     $SCRIPT_NAME add --name OUD12 --path /u01/app/oracle/oud12 --type oud
 
+    # Add with custom alias name
+    $SCRIPT_NAME add --name OUD12C --path /u01/app/oracle/oud12 --alias oud12
+
     # Add with auto-detection
     $SCRIPT_NAME add --name WLS14 --path /u01/app/oracle/wls14
 
@@ -112,7 +116,7 @@ EXAMPLES:
 
 CONFIGURATION:
     Oracle Homes are stored in: \${ORADBA_BASE}/etc/oradba_homes.conf
-    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION
+    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
 
 EOF
 }
@@ -179,8 +183,8 @@ list_homes() {
 
     # Display homes
     while read -r line; do
-        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
-        read -r name path ptype order desc <<< "$line"
+        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
+        read -r name path ptype order alias_name desc <<< "$line"
         
         # Check status
         local status
@@ -193,7 +197,12 @@ list_homes() {
         if [[ "$verbose" == "true" ]]; then
             printf "%-15s %-12s %-12s %-5s %s\n" "$name" "$ptype" "$status" "$order" "$path"
         else
-            printf "%-15s %-12s %-12s %s\n" "$name" "$ptype" "$status" "$desc"
+            # Show alias name if different from name
+            local display_desc="$desc"
+            if [[ "$alias_name" != "$name" ]]; then
+                display_desc="[alias: $alias_name] $desc"
+            fi
+            printf "%-15s %-12s %-12s %s\n" "$name" "$ptype" "$status" "$display_desc"
         fi
     done <<< "$homes_output"
     
@@ -221,7 +230,7 @@ show_home() {
     fi
 
     # Extract details
-    read -r h_name h_path h_type h_order h_desc <<< "$home_info"
+    read -r h_name h_path h_type h_order h_alias h_desc <<< "$home_info"
     
     # Get additional info
     local status="missing"
@@ -237,6 +246,7 @@ show_home() {
     echo "Oracle Home Details: $name"
     echo "================================================================================"
     echo "Name              : $h_name"
+    echo "Alias Name        : $h_alias"
     echo "ORACLE_HOME       : $h_path"
     echo "Product Type      : $h_type"
     echo "Detected Type     : $detected_type"
@@ -266,6 +276,7 @@ add_home() {
     local path=""
     local ptype=""
     local order="50"
+    local alias_name=""
     local desc=""
 
     # Parse options
@@ -281,6 +292,10 @@ add_home() {
                 ;;
             -t|--type)
                 ptype="$2"
+                shift 2
+                ;;
+            -a|--alias)
+                alias_name="$2"
                 shift 2
                 ;;
             -o|--order)
@@ -386,6 +401,17 @@ add_home() {
         fi
     fi
 
+    # Set alias_name default if not provided
+    if [[ -z "$alias_name" ]]; then
+        if [[ -t 0 ]]; then
+            read -p "Alias name (default: $name): " alias_name
+        fi
+        # Use home name as default alias
+        if [[ -z "$alias_name" ]]; then
+            alias_name="$name"
+        fi
+    fi
+
     # Get config file path
     local config_file="${ORADBA_BASE}/etc/oradba_homes.conf"
     
@@ -398,30 +424,32 @@ add_home() {
 # ------------------------------------------------------------------------------
 # Oracle Homes Configuration
 # ------------------------------------------------------------------------------
-# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION
+# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
 #
-# NAME          - Unique identifier (uppercase recommended)
+# NAME          - Unique identifier (auto-discovered or user-defined)
 # ORACLE_HOME   - Full path to Oracle Home directory
 # PRODUCT_TYPE  - database, oud, client, weblogic, oms, emagent, datasafe
 # ORDER         - Display order (numeric, lower = displayed first)
+# ALIAS_NAME    - Optional alias for shortcuts (defaults to NAME)
 # DESCRIPTION   - Human-readable description
 #
 # Examples:
-# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:Oracle Unified Directory 12c
-# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:Oracle Client 19c
-# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:WebLogic Server 14c
+# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:oud12:Oracle Unified Directory 12c
+# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:client:Oracle Client 19c
+# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:wls:WebLogic Server 14c
 # ------------------------------------------------------------------------------
 
 EOF
     fi
 
-    # Add entry
-    echo "${name}:${path}:${ptype}:${order}:${desc}" >> "$config_file"
+    # Add entry with alias_name
+    echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}" >> "$config_file"
     
     log_info "Oracle Home '$name' added successfully"
     echo ""
     echo "Configuration:"
     echo "  Name        : $name"
+    echo "  Alias Name  : $alias_name"
     echo "  Path        : $path"
     echo "  Type        : $ptype"
     echo "  Order       : $order"

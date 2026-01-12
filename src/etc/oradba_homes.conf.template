@@ -19,13 +19,14 @@
 
 # Configuration Format
 # ====================
-# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:DESCRIPTION]
+# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
 #
 # Fields:
-#   NAME          - Unique identifier (uppercase recommended, e.g., OUD12C)
+#   NAME          - Unique identifier (auto-discovered or user-defined, e.g., OUD12C)
 #   ORACLE_HOME   - Full path to Oracle home directory
 #   PRODUCT_TYPE  - Product type identifier (see below)
 #   ORDER         - Display order (lower numbers first, 10-based increments)
+#   ALIAS_NAME    - Optional user-friendly name for aliases (defaults to NAME)
 #   DESCRIPTION   - Optional human-readable description
 #
 # Product Types:
@@ -39,12 +40,16 @@
 #
 # Examples:
 # ---------
+# Basic format (ALIAS_NAME defaults to NAME):
 # OUD12C:/u01/app/oracle/product/oud12c:oud:10:Oracle Unified Directory 12c
-# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:Data Safe Connector
-# CLIENT19:/opt/oracle/product/19c/client:client:30:Oracle Client 19c
-# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:WebLogic 14.1.1
-# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:Enterprise Manager OMS 13c
-# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:EM Agent 13.5
+#
+# With custom alias name:
+# OUD12C:/u01/app/oracle/product/oud12c:oud:10:oud12:Oracle Unified Directory 12c
+# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:ds:Data Safe Connector
+# CLIENT19:/opt/oracle/product/19c/client:client:30:client:Oracle Client 19c
+# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:wls:WebLogic 14.1.1
+# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:oms:Enterprise Manager OMS 13c
+# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:agent:EM Agent 13.5
 
 # Usage Notes
 # ===========

@@ -771,7 +771,7 @@ get_oracle_homes_path() {
 # Parse Oracle Home entry from oradba_homes.conf
 # Arguments:
 #   $1 - Home name to parse
-# Returns: Space-separated: name path type order description
+# Returns: Space-separated: name path type order alias_name description
 parse_oracle_home() {
     local name="$1"
     local homes_file
@@ -783,14 +783,20 @@ parse_oracle_home() {
     
     homes_file=$(get_oracle_homes_path) || return 1
     
-    # Parse file: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION
-    while IFS=: read -r h_name h_path h_type h_order h_desc; do
+    # Parse file: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
         # Skip comments and empty lines
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
         
         if [[ "${h_name}" == "${name}" ]]; then
-            echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_desc}"
+            # If h_alias is empty or looks like a description, use h_name as alias
+            if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
+                # h_alias is actually description, shift values
+                h_desc="${h_alias} ${h_desc}"
+                h_alias="${h_name}"
+            fi
+            echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc}"
             return 0
         fi
     done < "${homes_file}"
@@ -801,7 +807,7 @@ parse_oracle_home() {
 # List all Oracle Homes from oradba_homes.conf
 # Arguments:
 #   $1 - Optional filter (product type)
-# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
+# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
 list_oracle_homes() {
     local filter="$1"
     local homes_file
@@ -809,7 +815,7 @@ list_oracle_homes() {
     homes_file=$(get_oracle_homes_path) || return 1
     
     # Parse and optionally filter
-    while IFS=: read -r h_name h_path h_type h_order h_desc; do
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
         # Skip comments and empty lines
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
@@ -819,8 +825,15 @@ list_oracle_homes() {
             [[ "${h_type}" != "${filter}" ]] && continue
         fi
         
-        # Output: name path type order description
-        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_desc}"
+        # If h_alias is empty or looks like a description, use h_name as alias
+        if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
+            # h_alias is actually description, shift values
+            h_desc="${h_alias} ${h_desc}"
+            h_alias="${h_name}"
+        fi
+        
+        # Output: name path type order alias_name description
+        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc}"
     done < "${homes_file}" | sort -k4 -n
 }
 
@@ -834,6 +847,18 @@ get_oracle_home_path() {
     
     home_info=$(parse_oracle_home "${name}") || return 1
     echo "${home_info}" | awk '{print $2}'
+}
+
+# Get alias name for a named home
+# Arguments:
+#   $1 - Home name
+# Returns: Alias name or home name if not found
+get_oracle_home_alias() {
+    local name="$1"
+    local home_info
+    
+    home_info=$(parse_oracle_home "${name}") || return 1
+    echo "${home_info}" | awk '{print $5}'
 }
 
 # Get product type for a named home
