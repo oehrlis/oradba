@@ -164,9 +164,6 @@ def cleanup_broken_links(docs_dir: Path) -> None:
     if files_cleaned > 0:
         print(f"  ✓ Cleaned broken links in {files_cleaned} file(s)")
 
-def c
-    return True
-
 def create_extension_nav(extension: Dict, docs_dir: Path) -> None:
     """Create a .pages file for mkdocs-awesome-pages-plugin (if used) or metadata."""
     metadata = {
