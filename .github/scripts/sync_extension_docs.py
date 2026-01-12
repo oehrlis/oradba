@@ -129,7 +129,10 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     
     # Create or update navigation metadata
     create_extension_nav(extension, target_docs)
-    leanup_broken_links(docs_dir: Path) -> None:
+    
+    return True
+
+def cleanup_broken_links(docs_dir: Path) -> None:
     """Remove or fix broken links that point outside the doc directory."""
     # Patterns for links that will be broken (point to source code, not docs)
     broken_link_patterns = [
