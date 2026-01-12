@@ -123,7 +123,7 @@ instead to preserve your changes during updates.
 
 **Location:** `${ORADBA_PREFIX}/etc/oradba_customer.conf`
 
-**Template:** `${ORADBA_PREFIX}/etc/oradba_customer.conf.example`
+**Template:** `${ORADBA_PREFIX}/templates/etc/oradba_customer.conf.example`
 
 **Purpose:** **This is the recommended file for your customizations**
 
@@ -199,7 +199,7 @@ export PATH="${CUSTOM_APP_HOME}/bin:${PATH}"
 **When to Edit:** This is where you should make all your customizations! Copy from the `.example` template:
 
 ```bash
-cp ${ORADBA_PREFIX}/etc/oradba_customer.conf.example \
+cp ${ORADBA_PREFIX}/templates/etc/oradba_customer.conf.example \
    ${ORADBA_PREFIX}/etc/oradba_customer.conf
 
 # Edit with your settings
@@ -322,9 +322,9 @@ $ source oraenv.sh FREE
 [DEBUG] Loading standard config: /opt/oradba/etc/oradba_standard.conf
 [DEBUG] Loading customer config: /opt/oradba/etc/oradba_customer.conf
 [DEBUG] Loading default SID config: /opt/oradba/etc/sid._DEFAULT_.conf
-[DEBUG] Auto-create enabled, config_dir=/opt/oradba/etc, template should be at: /opt/oradba/etc/sid.ORACLE_SID.conf.example
+[DEBUG] Auto-create enabled, config_dir=/opt/oradba/etc, template should be at: /opt/oradba/templates/etc/sid.ORACLE_SID.conf.example
 [DEBUG] create_sid_config called with SID=FREE
-[DEBUG] Will create: /opt/oradba/etc/sid.FREE.conf from template: /opt/oradba/etc/sid.ORACLE_SID.conf.example
+[DEBUG] Will create: /opt/oradba/etc/sid.FREE.conf from template: /opt/oradba/templates/etc/sid.ORACLE_SID.conf.example
 [INFO] Auto-creating SID configuration for FREE...
 [INFO] [OK] Created SID configuration: /opt/oradba/etc/sid.FREE.conf
 [DEBUG] Loading newly created SID config: /opt/oradba/etc/sid.FREE.conf
@@ -352,7 +352,7 @@ creates a SID-specific configuration file from a template.
 
 - **Enabled by default** (`ORADBA_AUTO_CREATE_SID_CONFIG=true`)
 - **Only for real SIDs** - Skips dummy SIDs (oratab entries with startup flag `D`)
-- **Template-based** - Uses `sid.ORACLE_SID.conf.example` as the base
+- **Template-based** - Uses `templates/etc/sid.ORACLE_SID.conf.example` as the base
 - **No database queries** - Uses placeholders from template, not live data
 
 **Example Output:**
@@ -369,7 +369,7 @@ $ free  # First time switching to FREE instance
 The auto-creation process:
 
 1. Checks if SID is in `ORADBA_REALSIDLIST` (not a dummy SID)
-2. Copies `sid.ORACLE_SID.conf.example` template
+2. Copies `templates/etc/sid.ORACLE_SID.conf.example` template
 3. Replaces `ORCL` with actual SID name (uppercase and lowercase)
 4. Updates date stamp and creation timestamp
 5. Creates `sid.${ORACLE_SID}.conf` in the configuration directory
@@ -409,7 +409,7 @@ You can also manually create SID configurations:
 
 ```bash
 # Copy template
-cp ${ORADBA_PREFIX}/etc/sid.ORACLE_SID.conf.example \
+cp ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example \
    ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 # Edit with your settings
@@ -623,7 +623,7 @@ For complete extension configuration details, see the [Extension System Guide](e
 ls -l ${ORADBA_PREFIX}/etc/oradba_customer.conf
 
 # Create from example
-cp ${ORADBA_PREFIX}/etc/oradba_customer.conf.example \
+cp ${ORADBA_PREFIX}/templates/etc/oradba_customer.conf.example \
    ${ORADBA_PREFIX}/etc/oradba_customer.conf
 ```
 
