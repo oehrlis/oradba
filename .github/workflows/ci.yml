@@ -73,16 +73,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
       
-      - name: Run shellcheck on bash scripts
-        run: |
-          find . -type f -name "*.sh" -not -path "./dist/*" -not -path "./build/*" | xargs shellcheck -e SC1091 || true
-      
-      - name: Check for #!/bin/sh usage
-        run: |
-          if grep -r "^#!/bin/sh" src/ scripts/ 2>/dev/null; then
-            echo "ERROR: Found #!/bin/sh usage. Use #!/usr/bin/env bash instead"
-            exit 1
-          fi
+      - name: Run shellcheck via Makefile
+        run: make lint-shell
 
   test:
     name: Run Tests (Smart Selection)
@@ -224,7 +216,7 @@ jobs:
         run: npm install -g markdownlint-cli
       
       - name: Lint markdown files
-        run: markdownlint '**/*.md' --ignore node_modules --ignore dist --ignore build
+        run: make lint-markdown
 
   docs:
     name: Generate Documentation

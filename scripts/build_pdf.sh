@@ -10,8 +10,11 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+declare SCRIPT_DIR
+declare PROJECT_ROOT
+SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly SCRIPT_DIR PROJECT_ROOT
 readonly DOCS_DIR="${PROJECT_ROOT}/src/doc"
 readonly BUILD_DIR="${PROJECT_ROOT}/build"
 readonly OUTPUT_PDF="${BUILD_DIR}/oradba-documentation.pdf"
