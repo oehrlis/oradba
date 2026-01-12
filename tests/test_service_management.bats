@@ -222,27 +222,27 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "service management documentation exists" {
-    [ -f "${PROJECT_ROOT}/src/doc/17-service-management.md" ]
+    [ -f "${PROJECT_ROOT}/src/doc/service-management.md" ]
 }
 
 @test "documentation contains Overview section" {
-    grep -q "## Overview" "${PROJECT_ROOT}/src/doc/17-service-management.md"
+    grep -q "## Overview" "${PROJECT_ROOT}/src/doc/service-management.md"
 }
 
 @test "documentation contains Database Control section" {
-    grep -q "## Database Control" "${PROJECT_ROOT}/src/doc/17-service-management.md"
+    grep -q "## Database Control" "${PROJECT_ROOT}/src/doc/service-management.md"
 }
 
 @test "documentation contains Listener Control section" {
-    grep -q "## Listener Control" "${PROJECT_ROOT}/src/doc/17-service-management.md"
+    grep -q "## Listener Control" "${PROJECT_ROOT}/src/doc/service-management.md"
 }
 
 @test "documentation contains System Integration section" {
-    grep -q "## System Integration" "${PROJECT_ROOT}/src/doc/17-service-management.md"
+    grep -q "## System Integration" "${PROJECT_ROOT}/src/doc/service-management.md"
 }
 
 @test "documentation contains examples" {
-    grep -q "### Examples" "${PROJECT_ROOT}/src/doc/17-service-management.md"
+    grep -q "### Examples" "${PROJECT_ROOT}/src/doc/service-management.md"
 }
 
 # ------------------------------------------------------------------------------
