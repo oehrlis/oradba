@@ -73,8 +73,40 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     if target_docs.exists():
         shutil.rmtree(target_docs)
     
-    shutil.copytree(source_docs, target_docs)
+    # Define files/patterns to exclude from sync
+    exclude_patterns = [
+        'release_notes_*.md',  # Release notes with broken links
+        'RELEASE_*.md',         # Release files
+        '.git*',                # Git files
+        '__pycache__',          # Python cache
+        '*.pyc',                # Python compiled files
+    ]
+    
+    def should_exclude(file_path: Path) -> bool:
+        """Check if file should be excluded based on patterns."""
+        import fnmatch
+        for pattern in exclude_patterns:
+            if fnmatch.fnmatch(file_path.name, pattern):
+                return True
+        return False
+    
+    # Copy files selectively
+    target_docs.mkdir(parents=True, exist_ok=True)
+    for item in source_docs.rglob('*'):
+        if item.is_file() and not should_exclude(item):
+            rel_path = item.relative_to(source_docs)
+            target_file = target_docs / rel_path
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, target_file)
+    
     print(f"  ✓ Copied docs to {target_docs}")
+    
+    # If README.md exists but index.md doesn't, use README as index
+    readme_file = target_docs / 'README.md'
+    index_file = target_docs / 'index.md'
+    if readme_file.exists() and not index_file.exists():
+        shutil.move(str(readme_file), str(index_file))
+        print(f"  ✓ Renamed README.md to index.md")
     
     # Create or update navigation metadata
     create_extension_nav(extension, target_docs)
