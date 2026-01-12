@@ -4,6 +4,14 @@ Example configuration files for OraDBA scripts.
 
 ## Available Examples
 
+### Core Configuration
+
+- **[oradba_customer.conf.example](oradba_customer.conf.example)** - Customer customization template
+- **[sid.ORACLE_SID.conf.example](sid.ORACLE_SID.conf.example)** - SID-specific configuration template
+- **[oradba_rman.conf.example](oradba_rman.conf.example)** - RMAN backup configuration template
+- **[oratab.example](oratab.example)** - Sample Oracle oratab file
+- **[oradba_config.example](oradba_config.example)** - Legacy configuration format (deprecated)
+
 ### Peer Synchronization
 
 - **[sync_to_peers.conf.example](sync_to_peers.conf.example)** - Configuration for `sync_to_peers.sh`
@@ -14,12 +22,24 @@ Example configuration files for OraDBA scripts.
 Copy the relevant example file to `${ORADBA_BASE}/etc/` and customize:
 
 ```bash
+# Copy and customize customer configuration
+cp ${ORADBA_BASE}/templates/etc/oradba_customer.conf.example \
+   ${ORADBA_BASE}/etc/oradba_customer.conf
+
+# Copy and customize SID-specific configuration
+cp ${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example \
+   ${ORADBA_BASE}/etc/sid.PRODDB.conf
+
+# Copy and customize RMAN configuration
+cp ${ORADBA_BASE}/templates/etc/oradba_rman.conf.example \
+   ${ORADBA_BASE}/etc/oradba_rman.conf
+
 # Copy and customize sync_to_peers configuration
 cp ${ORADBA_BASE}/templates/etc/sync_to_peers.conf.example \
    ${ORADBA_BASE}/etc/sync_to_peers.conf
 
 # Edit the configuration
-vi ${ORADBA_BASE}/etc/sync_to_peers.conf
+vi ${ORADBA_BASE}/etc/<config_file>
 ```
 
 ## Configuration Files

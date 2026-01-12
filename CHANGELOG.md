@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Configuration Templates Organization**: Moved example configuration files to `src/templates/etc/`
+  - Moved `oradba_config.example`, `oradba_customer.conf.example`, `oradba_rman.conf.example`, `oratab.example`, and `sid.ORACLE_SID.conf.example` from `src/etc/` to `src/templates/etc/`
+  - Updated all documentation, scripts, and tests to reference new location
+  - Consolidated all configuration templates in one location for easier discovery
+  - Updated `src/etc/README.md` and `src/templates/etc/README.md` with new structure
+
 ## [0.18.2] - 2026-01-12
 
 ### Fixed

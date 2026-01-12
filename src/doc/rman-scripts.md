@@ -81,7 +81,7 @@ Create SID-specific configuration in `$ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf
 
 ```bash
 # Copy example configuration
-cp $ORADBA_PREFIX/etc/oradba_rman.conf.example \
+cp $ORADBA_PREFIX/templates/etc/oradba_rman.conf.example \
    $ORADBA_ORA_ADMIN_SID/etc/oradba_rman.conf
 
 # Edit configuration

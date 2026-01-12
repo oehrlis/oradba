@@ -26,7 +26,7 @@ setup() {
     mkdir -p "${TEST_DIR}/logs"
     
     # Copy necessary files
-    cp "${PROJECT_ROOT}/src/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
+    cp "${PROJECT_ROOT}/src/templates/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
