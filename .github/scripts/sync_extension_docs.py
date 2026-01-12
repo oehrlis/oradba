@@ -75,8 +75,13 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     
     # Define files/patterns to exclude from sync
     exclude_patterns = [
-        'release_notes_*.md',  # Release notes with broken links
+        'release_notes_*.md',   # Release notes with broken links
+        'release_notes',        # Release notes directory
         'RELEASE_*.md',         # Release files
+        'QUICKREF.md',          # Quick reference with source links
+        'quickref.md',          # Quick reference with source links
+        'quickstart_*.md',      # Quickstart files with broken links
+        'install_*.md',         # Installation files with broken links
         '.git*',                # Git files
         '__pycache__',          # Python cache
         '*.pyc',                # Python compiled files
@@ -85,6 +90,15 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     def should_exclude(file_path: Path) -> bool:
         """Check if file should be excluded based on patterns."""
         import fnmatch
+        
+        # Check if any parent directory matches exclusion patterns
+        for parent in file_path.parents:
+            parent_name = parent.name
+            for pattern in exclude_patterns:
+                if fnmatch.fnmatch(parent_name, pattern):
+                    return True
+        
+        # Check if filename matches exclusion patterns
         for pattern in exclude_patterns:
             if fnmatch.fnmatch(file_path.name, pattern):
                 return True
