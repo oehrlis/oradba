@@ -602,7 +602,8 @@ generate_sid_lists() {
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
     # Add Oracle Home names and aliases to ORADBA_SIDLIST
-    local homes_config="${ORADBA_ETC}/oracle_homes.conf"
+    local homes_config
+    homes_config=$(get_oracle_homes_path 2>/dev/null) || homes_config=""
     if [[ -f "${homes_config}" ]]; then
         while IFS=: read -r name _path _type _order alias_name _desc; do
             # Skip empty lines and comments
@@ -642,7 +643,13 @@ generate_sid_lists() {
 #   - alias DBHOMEFREE='. oraenv.sh DBHOMEFREE'
 #   - alias rdbms26='. oraenv.sh DBHOMEFREE'
 generate_oracle_home_aliases() {
-    local homes_config="${ORADBA_ETC}/oracle_homes.conf"
+    local homes_config
+    
+    # Get Oracle Homes config path
+    homes_config=$(get_oracle_homes_path 2>/dev/null) || {
+        oradba_log DEBUG "Oracle Homes config not found"
+        return 0
+    }
     
     # Check if Oracle Homes config exists
     if [[ ! -f "${homes_config}" ]]; then
