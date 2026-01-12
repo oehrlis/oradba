@@ -457,6 +457,13 @@ EOF
     echo "To set environment: source oraenv.sh $name"
     echo ""
 
+    # Regenerate SID lists and aliases in current shell
+    if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
+        generate_oracle_home_aliases 2>/dev/null
+        log_debug "Regenerated SID lists and aliases"
+    fi
+
     return 0
 }
 
@@ -509,6 +516,13 @@ remove_home() {
 
     log_info "Oracle Home '$name' removed successfully"
     echo ""
+
+    # Regenerate SID lists and aliases in current shell
+    if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
+        generate_oracle_home_aliases 2>/dev/null
+        log_debug "Regenerated SID lists and aliases"
+    fi
 
     return 0
 }
