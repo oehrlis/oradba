@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `doc/v0.18.0-oracle-homes-support.md` (811 lines) - Planning/architecture document
   - These interim documents are superseded by official release documentation
 
+## [0.18.0] - 2026-01-11
+
 ### Added
 
 - **Oracle Homes Support (Phase 1)**: Core infrastructure for managing non-database Oracle products
@@ -120,6 +122,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Validate tests (5): directory checks, type mismatch detection, specific home
     - Integration tests (2): full workflow, oraenv integration
     - All tests pass reliably without timeouts
+
+### Fixed
+
+- **Code Quality**: Fixed all shellcheck and markdownlint warnings
+  - `src/bin/oraup.sh`: SC2034 - Prefixed unused variables with underscore
+  - `src/lib/common.sh`: SC2155 - Separated ORACLE_HOSTNAME declaration and assignment
+  - `tests/test_oraenv.bats`: SC2076 - Removed quotes from regex patterns (3 locations)
+  - `doc/releases/v0.18.0.md`: MD013 - Split long overview line
+  - `doc/releases/v0.18.0.md`: MD040 - Added language specifiers to code blocks (2 locations)
+
+### Removed
+
+- **Documentation Cleanup**: Removed interim development documentation
+  - `doc/v0.17.0-phase1-summary.md` (255 lines) - Phase 1 implementation notes
+  - `doc/v0.17.0-complete-summary.md` (994 lines) - Complete implementation summary
+  - `doc/v0.18.0-oracle-homes-support.md` (811 lines) - Planning/architecture document
+  - These interim documents are superseded by official release documentation
 
 ## [0.17.0] - 2026-01-09
 
