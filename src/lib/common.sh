@@ -653,7 +653,8 @@ generate_oracle_home_aliases() {
     local name alias_name
     
     # Parse Oracle Homes config (skip comments and empty lines)
-    while IFS='|' read -r name _type _status _description _path alias_name; do
+    # File format: NAME:PATH:TYPE:ORDER:ALIAS_NAME:DESCRIPTION
+    while IFS=: read -r name _path _type _order alias_name _desc; do
         # Skip empty lines and comments
         [[ -z "${name}" ]] && continue
         [[ "${name}" =~ ^[[:space:]]*# ]] && continue
