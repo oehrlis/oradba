@@ -4,8 +4,8 @@
 # Name.......: oradba_homes.conf.template
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.09
-# Version....: 0.18.0
+# Date.......: 2026.01.12
+# Version....: 0.18.1
 # Purpose....: Configuration file for Oracle Homes (non-database products)
 # Notes......: This file registers Oracle products beyond databases:
 #              - Oracle Unified Directory (OUD)

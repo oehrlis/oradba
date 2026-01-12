@@ -6,8 +6,8 @@
 # Name.......: test_oradba_homes.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.09
-# Revision...: 0.18.0
+# Date.......: 2026.01.12
+# Revision...: 0.18.1
 # Purpose....: BATS tests for oradba_homes.sh management tool
 # Notes......: Tests CLI commands, validation, and discovery
 # Reference..: https://github.com/oehrlis/oradba
@@ -85,7 +85,7 @@ teardown() {
 }
 
 @test "oradba_homes.sh list displays homes when configured" {
-    # Create test config
+    # Create test config (backward compatible format)
     cat > "${ORADBA_BASE}/etc/oradba_homes.conf" << EOF
 OUD12:/u01/app/oracle/oud12:oud:10:Oracle Unified Directory 12c
 CLIENT19:/u01/app/oracle/client19:client:20:Oracle Client 19c
@@ -97,6 +97,18 @@ EOF
     [[ "$output" =~ "CLIENT19" ]]
     [[ "$output" =~ "oud" ]]
     [[ "$output" =~ "client" ]]
+}
+
+@test "oradba_homes.sh list displays alias when different from name" {
+    # Create test config with custom alias
+    cat > "${ORADBA_BASE}/etc/oradba_homes.conf" << EOF
+OUD12C:/u01/app/oracle/oud12:oud:10:oud12:Oracle Unified Directory 12c
+EOF
+    
+    run "$HOMES_SCRIPT" list
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ OUD12C ]]
+    [[ "$output" =~ \[alias:\ oud12\] ]]
 }
 
 @test "oradba_homes.sh list --type filters by product type" {
@@ -236,6 +248,21 @@ EOF
     "$HOMES_SCRIPT" add --name TEST1 --path "${TEST_TEMP_DIR}/test_home" --type client --order 99 < /dev/null >/dev/null 2>&1
     
     grep -q ":99:" "${ORADBA_BASE}/etc/oradba_homes.conf"
+}
+
+@test "oradba_homes.sh add accepts custom alias name" {
+    mkdir -p "${TEST_TEMP_DIR}/test_home"
+    "$HOMES_SCRIPT" add --name OUD12C --path "${TEST_TEMP_DIR}/test_home" --type oud --alias oud12 < /dev/null >/dev/null 2>&1
+    
+    grep -q "OUD12C:" "${ORADBA_BASE}/etc/oradba_homes.conf"
+    grep -q ":oud12:" "${ORADBA_BASE}/etc/oradba_homes.conf"
+}
+
+@test "oradba_homes.sh add defaults alias to name when not specified" {
+    mkdir -p "${TEST_TEMP_DIR}/test_home"
+    "$HOMES_SCRIPT" add --name MYCLIENT --path "${TEST_TEMP_DIR}/test_home" --type client < /dev/null >/dev/null 2>&1
+    
+    grep -q "MYCLIENT:.*:MYCLIENT:" "${ORADBA_BASE}/etc/oradba_homes.conf"
 }
 
 # ------------------------------------------------------------------------------

@@ -7,37 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-01-12
+
 ### Added
 
-- **Extension Documentation Integration**: Pull-based system for integrating extension docs into main site
-  - Extension registry (`.github/extensions.yml`) for managing official extensions
-  - Automated sync script (`.github/scripts/sync_extension_docs.py`) to pull docs from extension repos
-  - Extensions catalog page (`src/doc/19-extensions-catalog.md`) listing all official extensions
-  - Documentation workflow updated to sync extension docs before build
-  - Extensions section added to MkDocs navigation
-  - Extension documentation maintained in extension repos (`doc/` directory)
-  - Extension docs linked from main site but not included in PDF documentation
-  - Comprehensive guides for extension developers:
-    - `doc/extension-docs-integration.md` - Integration guide for extension developers
-    - `doc/extension-docs-implementation.md` - Technical implementation details
-  - Published at `https://code.oradba.ch/oradba/extensions/<name>/`
+- **Oracle Homes ALIAS_NAME Support**: Optional user-friendly alias names for Oracle Homes
+  - Extended configuration format: `NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]`
+  - ALIAS_NAME defaults to NAME if not specified (backward compatible)
+  - Useful for distinguishing between auto-discovered NAME and user-preferred alias
+  - Added `--alias` option to `oradba_homes.sh add` command
+  - New function `get_oracle_home_alias()` in common.sh
+  - List display shows alias when different from home name
+  - Updated documentation and tests
+
+### Changed
+
+- **Extension Registry**: Added odb_datasafe and odb_autoupgrade extensions
+  - odb_datasafe: Oracle Data Safe tools for OCI management
+  - odb_autoupgrade: AutoUpgrade wrapper scripts and configurations
+  - Updated sync script to filter problematic files and auto-convert README to index
 
 ### Fixed
 
-- **Code Quality**: Fixed all shellcheck and markdownlint warnings
-  - `src/bin/oraup.sh`: SC2034 - Prefixed unused variables with underscore
-  - `src/lib/common.sh`: SC2155 - Separated ORACLE_HOSTNAME declaration and assignment
-  - `tests/test_oraenv.bats`: SC2076 - Removed quotes from regex patterns (3 locations)
-  - `doc/releases/v0.18.0.md`: MD013 - Split long overview line
-  - `doc/releases/v0.18.0.md`: MD040 - Added language specifiers to code blocks (2 locations)
+- **Documentation Build**: Fixed mkdocs strict mode failures
+  - Exclude release_notes_*.md files with broken source links
+  - Automatically rename README.md to index.md in synced extension docs
+  - Pattern-based file filtering during extension documentation sync
 
-### Removed
-
-- **Documentation Cleanup**: Removed interim development documentation
-  - `doc/v0.17.0-phase1-summary.md` (255 lines) - Phase 1 implementation notes
-  - `doc/v0.17.0-complete-summary.md` (994 lines) - Complete implementation summary
-  - `doc/v0.18.0-oracle-homes-support.md` (811 lines) - Planning/architecture document
-  - These interim documents are superseded by official release documentation
+- **CI/CD Workflows**: Standardized workflow linting
+  - Updated ci.yml to use `make lint-shell` and `make lint-markdown`
+  - Fixed SC2155 shellcheck warnings in build_pdf.sh
+  - Consistent use of Makefile targets across all workflows
 
 ## [0.18.0] - 2026-01-11
 
