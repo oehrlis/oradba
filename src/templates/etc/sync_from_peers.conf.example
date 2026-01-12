@@ -1,0 +1,82 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: sync_from_peers.conf.example
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.12
+# Revision...: 1.0.0
+# Purpose....: Example configuration for sync_from_peers.sh
+# Notes......: Copy to ${ORADBA_BASE}/etc/sync_from_peers.conf and customize
+#              Configuration can also be set via environment variables
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Peer Host Configuration
+# ------------------------------------------------------------------------------
+
+# Space-separated list of peer hostnames to sync to (after fetching from source)
+# The source peer (-p option) is automatically excluded from this list
+# Example: PEER_HOSTS=(db01 db02 db03)
+PEER_HOSTS=(db01 db02)
+
+# SSH connection settings
+# User account for SSH connections to peer hosts
+SSH_USER="oracle"
+
+# SSH port (default: 22)
+SSH_PORT="22"
+
+# ------------------------------------------------------------------------------
+# Rsync Options
+# ------------------------------------------------------------------------------
+
+# Additional rsync options
+# Default includes: -az (archive mode, compress)
+# Common additions:
+#   --exclude='*.log'  - Exclude log files
+#   --bwlimit=1000     - Limit bandwidth to 1000 KB/s
+#   --timeout=300      - Set I/O timeout
+# RSYNC_OPTS="-az --exclude='*.log'"
+
+# ------------------------------------------------------------------------------
+# Remote Base Path
+# ------------------------------------------------------------------------------
+
+# Optional: Override remote base path on source peer
+# By default, files are synced from the same absolute path on remote host
+# Set this to sync from a different location on source peer
+# Example: REMOTE_BASE="/opt/oracle/backup"
+# REMOTE_BASE=""
+
+# ------------------------------------------------------------------------------
+# Alternative Configuration Directory
+# ------------------------------------------------------------------------------
+
+# Optional: Alternative location to search for config files
+# Useful when OraDBA is installed in non-standard location
+# ETC_BASE="/opt/local/etc"
+
+# ------------------------------------------------------------------------------
+# Notes
+# ------------------------------------------------------------------------------
+# 
+# Configuration Priority (later overrides earlier):
+#   1. Script-specific config: ${SCRIPT_BASE}/etc/sync_from_peers.conf
+#   2. Alternative config: ${ETC_BASE}/sync_from_peers.conf (if ETC_BASE set)
+#   3. CLI-specified config: -c <config_file>
+#   4. Environment variables: SSH_USER, SSH_PORT, PEER_HOSTS
+#
+# Usage Pattern:
+#   1. Fetch file/folder from source peer (-p option) to local host
+#   2. Distribute the fetched content to all other peers (excluding source and self)
+#
+# Environment variables can be set in shell profile or systemd service files
+# Example in .bash_profile:
+#   export PEER_HOSTS=(db01 db02)
+#   export SSH_USER=oracle
+#
+# ------------------------------------------------------------------------------
