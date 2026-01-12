@@ -12,6 +12,24 @@ extensions:
     maintainer: Stefan Oehrli
     status: active
     
+  - name: odb_datasafe
+    display_name: OraDBA Data Safe Extension
+    repo: oehrlis/odb_datasafe
+    docs_path: doc
+    description: Tools for managing Oracle Data Safe targets in OCI with simplified CLI and comprehensive logging
+    category: Operations
+    maintainer: Stefan Oehrli
+    status: active
+    
+  - name: odb_autoupgrade
+    display_name: OraDBA AutoUpgrade Extension
+    repo: oehrlis/odb_autoupgrade
+    docs_path: doc
+    description: Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrades
+    category: Operations
+    maintainer: Stefan Oehrli
+    status: active
+    
   # Add more extensions here as they are approved:
   # - name: oradba_monitoring
   #   display_name: OraDBA Monitoring Extension
