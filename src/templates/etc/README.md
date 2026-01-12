@@ -60,6 +60,7 @@ SSH_PORT="22"
 ### Example Configurations
 
 **Simple RAC cluster:**
+
 ```bash
 PEER_HOSTS=(rac1 rac2)
 SSH_USER="oracle"
@@ -67,6 +68,7 @@ SSH_PORT="22"
 ```
 
 **Multi-site setup with custom SSH port:**
+
 ```bash
 PEER_HOSTS=(primary.example.com standby1.example.com standby2.example.com)
 SSH_USER="oracle"
@@ -75,6 +77,7 @@ RSYNC_OPTS="-az --bwlimit=5000"  # Limit bandwidth for WAN
 ```
 
 **Testing environment:**
+
 ```bash
 PEER_HOSTS=(dev01 dev02 test01)
 SSH_USER="oracle"
