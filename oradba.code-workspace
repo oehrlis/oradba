@@ -3,6 +3,9 @@
 		{
 			"name": "oradba",
 			"path": "."
+		},
+		{
+			"path": "../oradba_extension"
 		}
 	],
 	"settings": {

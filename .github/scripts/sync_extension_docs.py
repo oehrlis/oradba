@@ -116,18 +116,36 @@ def update_extensions_index(extensions: List[Dict], index_file: Path) -> None:
         print("⚠️  Index markers not found in catalog page")
         return
     
-    # Generate extension list
+    # Generate extension list - only include extensions with synced docs
     ext_list = ["\n"]
+    synced_count = 0
+    
+    docs_dir = index_file.parent / 'extensions'
+    
     for ext in extensions:
         if ext['status'] != 'active':
             continue
-            
+        
+        # Check if extension docs were synced
+        ext_docs = docs_dir / ext['name']
+        if not ext_docs.exists() or not (ext_docs / 'index.md').exists():
+            print(f"  ⓘ  Skipping {ext['name']} - no docs synced")
+            continue
+        
         ext_list.append(f"### {ext['display_name']}\n\n")
         ext_list.append(f"**Repository:** [{ext['repo']}](https://github.com/{ext['repo']})  \n")
         ext_list.append(f"**Category:** {ext['category']}  \n")
         ext_list.append(f"**Status:** {ext['status'].title()}  \n\n")
         ext_list.append(f"{ext['description']}\n\n")
         ext_list.append(f"[View Documentation](extensions/{ext['name']}/index.md){{ .md-button }}\n\n")
+        synced_count += 1
+    
+    # If no extensions with docs, show placeholder message
+    if synced_count == 0:
+        ext_list = ["\n"]
+        ext_list.append("No extensions with documentation are currently available. Extensions will appear here once\n")
+        ext_list.append("they have documentation in their `doc/` directory and are registered in the extensions registry.\n\n")
+        ext_list.append("To add your extension, see the [Extension System Guide](18-extensions.md).\n")
     
     # Replace content between markers
     start_idx = content.index(start_marker) + len(start_marker)
@@ -138,7 +156,8 @@ def update_extensions_index(extensions: List[Dict], index_file: Path) -> None:
     with open(index_file, 'w') as f:
         f.write(new_content)
     
-    print(f"✓ Updated extensions index with {len(ext_list) // 6} extensions")
+    print(f"✓ Updated extensions index with {synced_count} extension(s)")
+
 
 def main():
     # Setup paths
