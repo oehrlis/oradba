@@ -1345,6 +1345,9 @@ extract_local_tarball() {
 
     log_info "Extracting local tarball..."
     if tar -xzf "$tarball" -C "$TEMP_DIR" 2> /dev/null; then
+        # Ensure all file operations are synced to disk
+        sync
+        sleep 0.5
         log_info "Local tarball extracted successfully"
         return 0
     else
@@ -1416,6 +1419,10 @@ extract_github_release() {
     # Extract downloaded tarball
     log_info "Extracting downloaded tarball..."
     if tar -xzf "$tarball_path" -C "$TEMP_DIR" 2> /dev/null; then
+        # Ensure all file operations are synced to disk
+        sync
+        # Brief delay to ensure filesystem operations complete
+        sleep 0.5
         rm -f "$tarball_path" # Clean up downloaded file
         log_info "GitHub release extracted successfully"
         return 0
