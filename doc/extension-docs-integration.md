@@ -42,7 +42,7 @@ your-extension/
 
 1. **`doc/configuration.md`** - Configuration options and examples
 2. **`doc/reference.md`** - Command/script reference
-3. **`doc/changelog.md`** - Version history and changes
+3. **`CHANGELOG.md`** - Version history and changes (Keep a Changelog format)
 
 ### Markdown Format
 
