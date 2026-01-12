@@ -889,9 +889,9 @@ resolve_oracle_home_name() {
         fi
     done < "${homes_file}"
 
-    # Not found, return original
+    # Not found, return original (still valid)
     echo "${name_or_alias}"
-    return 1
+    return 0
 }
 
 # Arguments:

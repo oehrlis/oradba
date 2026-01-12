@@ -258,11 +258,11 @@ EOF
     grep -q ":oud12:" "${ORADBA_BASE}/etc/oradba_homes.conf"
 }
 
-@test "oradba_homes.sh add defaults alias to name when not specified" {
+@test "oradba_homes.sh add defaults alias to lowercase name when not specified" {
     mkdir -p "${TEST_TEMP_DIR}/test_home"
     "$HOMES_SCRIPT" add --name MYCLIENT --path "${TEST_TEMP_DIR}/test_home" --type client < /dev/null >/dev/null 2>&1
     
-    grep -q "MYCLIENT:.*:MYCLIENT:" "${ORADBA_BASE}/etc/oradba_homes.conf"
+    grep -q "MYCLIENT:.*:myclient:" "${ORADBA_BASE}/etc/oradba_homes.conf"
 }
 
 # ------------------------------------------------------------------------------
