@@ -453,11 +453,11 @@ Both sync scripts support configuration via:
 
 ## See Also {.unlisted .unnumbered}
 
-- [Usage Guide](16-usage.md) - Including dbstatus.sh usage
-- [Environment Management](04-environment.md) - Environment setup with status
-- [Configuration](05-configuration.md) - Function behavior settings
+- [Usage Guide](usage.md) - Including dbstatus.sh usage
+- [Environment Management](environment.md) - Environment setup with status
+- [Configuration](configuration.md) - Function behavior settings
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [RMAN Script Templates](09-rman-scripts.md)  
-**Next:** [rlwrap Filter Configuration](11-rlwrap.md)
+**Previous:** [RMAN Script Templates](rman-scripts.md)  
+**Next:** [rlwrap Filter Configuration](rlwrap.md)

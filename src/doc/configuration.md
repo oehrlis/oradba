@@ -549,7 +549,7 @@ You can still manually run `oraup.sh` or `dbstatus.sh` when needed.
 ORADBA_RLWRAP_FILTER="true"
 ```
 
-See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
+See [rlwrap Filter Configuration](rlwrap.md) for setup details.
 
 ## Configuration Variables Reference
 
@@ -577,7 +577,7 @@ See [rlwrap Filter Configuration](11-rlwrap.md) for setup details.
 
 ### Extension System Variables
 
-For complete extension configuration details, see the [Extension System Guide](18-extensions.md).
+For complete extension configuration details, see the [Extension System Guide](extensions.md).
 
 | Variable                          | Default | Description                                    |
 |-----------------------------------|---------|------------------------------------------------|
@@ -902,13 +902,13 @@ source ${ORADBA_PREFIX}/bin/oraenv.sh
 
 ## See Also {.unlisted .unnumbered}
 
-- [Installation](02-installation.md#parallel-installation-with-tvd-basenv--dbstar) - Parallel installation guide
-- [Environment Management](04-environment.md) - How oraenv.sh loads configurations
-- [Aliases](06-aliases.md) - Configuring and customizing aliases
-- [PDB Aliases](07-pdb-aliases.md) - PDB-specific configuration
-- [Troubleshooting](12-troubleshooting.md) - Configuration issues
+- [Installation](installation.md#parallel-installation-with-tvd-basenv--dbstar) - Parallel installation guide
+- [Environment Management](environment.md) - How oraenv.sh loads configurations
+- [Aliases](aliases.md) - Configuring and customizing aliases
+- [PDB Aliases](pdb-aliases.md) - PDB-specific configuration
+- [Troubleshooting](troubleshooting.md) - Configuration issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Environment Management](04-environment.md)  
-**Next:** [Alias Reference](06-aliases.md)
+**Previous:** [Environment Management](environment.md)  
+**Next:** [Alias Reference](aliases.md)

@@ -222,7 +222,7 @@ oradba_extension.sh disable <name>
 oradba_extension.sh validate <name>
 ```
 
-For complete extension system documentation, see [Extension System Guide](18-extensions.md).
+For complete extension system documentation, see [Extension System Guide](extensions.md).
 
 ## Utility Aliases
 
@@ -363,36 +363,36 @@ ls -l /opt/oradba/doc/
 
 ## See Also {.unlisted .unnumbered}
 
-- [Aliases](06-aliases.md) - Detailed alias documentation
-- [Environment Management](04-environment.md) - Complete environment guide
-- [Configuration](05-configuration.md) - Detailed configuration options
-- [Usage Examples](16-usage.md) - Practical usage scenarios
+- [Aliases](aliases.md) - Detailed alias documentation
+- [Environment Management](environment.md) - Complete environment guide
+- [Configuration](configuration.md) - Detailed configuration options
+- [Usage Examples](usage.md) - Practical usage scenarios
 
 ## Further Reading
 
 Full documentation chapters:
 
-1. [Introduction](01-introduction.md) - What is OraDBA
-2. [Installation](02-installation.md) - Installation guide
-3. [Quick Start](03-quickstart.md) - Getting started
-4. [Environment Management](04-environment.md) - Environment setup
-5. [Configuration](05-configuration.md) - Configuration system
-6. [Aliases](06-aliases.md) - Complete alias reference
-7. [PDB Aliases](07-pdb-aliases.md) - PDB-specific aliases
-8. [SQL Scripts](08-sql-scripts.md) - SQL scripts
-9. [RMAN Scripts](09-rman-scripts.md) - RMAN templates
-10. [Functions](10-functions.md) - Database functions
-11. [rlwrap](11-rlwrap.md) - rlwrap configuration
-12. [Troubleshooting](12-troubleshooting.md) - Problem solving
-13. [Quick Reference](13-reference.md) - This reference
-14. [SQLNet Config](14-sqlnet-config.md) - SQLNet configuration
-15. [Log Management](15-log-management.md) - Log handling
-16. [Usage Examples](16-usage.md) - Usage guide
+1. [Introduction](introduction.md) - What is OraDBA
+2. [Installation](installation.md) - Installation guide
+3. [Quick Start](quickstart.md) - Getting started
+4. [Environment Management](environment.md) - Environment setup
+5. [Configuration](configuration.md) - Configuration system
+6. [Aliases](aliases.md) - Complete alias reference
+7. [PDB Aliases](pdb-aliases.md) - PDB-specific aliases
+8. [SQL Scripts](sql-scripts.md) - SQL scripts
+9. [RMAN Scripts](rman-scripts.md) - RMAN templates
+10. [Functions](functions.md) - Database functions
+11. [rlwrap](rlwrap.md) - rlwrap configuration
+12. [Troubleshooting](troubleshooting.md) - Problem solving
+13. [Quick Reference](reference.md) - This reference
+14. [SQLNet Config](sqlnet-config.md) - SQLNet configuration
+15. [Log Management](log-management.md) - Log handling
+16. [Usage Examples](usage.md) - Usage guide
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Troubleshooting Guide](12-troubleshooting.md)  
-**Next:** [SQLNet Configuration](14-sqlnet-config.md)
+**Previous:** [Troubleshooting Guide](troubleshooting.md)  
+**Next:** [SQLNet Configuration](sqlnet-config.md)
 
 ---
 

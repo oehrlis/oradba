@@ -489,12 +489,12 @@ export ORADBA_NO_PDB_ALIASES="true"
 
 ## See Also {.unlisted .unnumbered}
 
-- [Aliases](06-aliases.md) - Complete alias reference
-- [Configuration](05-configuration.md) - Disabling PDB aliases
-- [Environment Management](04-environment.md) - How PDB aliases are generated
-- [Troubleshooting](12-troubleshooting.md) - PDB alias issues
+- [Aliases](aliases.md) - Complete alias reference
+- [Configuration](configuration.md) - Disabling PDB aliases
+- [Environment Management](environment.md) - How PDB aliases are generated
+- [Troubleshooting](troubleshooting.md) - PDB alias issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Alias Reference](06-aliases.md)  
-**Next:** [SQL Scripts](08-sql-scripts.md)
+**Previous:** [Alias Reference](aliases.md)  
+**Next:** [SQL Scripts](sql-scripts.md)

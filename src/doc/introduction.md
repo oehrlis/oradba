@@ -67,7 +67,7 @@ Modular plugin architecture for adding custom scripts without modifying core Ora
 - **No Core Modifications**: Add custom tools without touching base installation
 - **Configuration Overrides**: Per-extension enable/disable and priority settings
 
-See [Extension System](18-extensions.md) for complete guide.
+See [Extension System](extensions.md) for complete guide.
 
 ### Database Status Display
 
@@ -166,16 +166,16 @@ OraDBA is designed for lab and engineering environments, not production:
 
 ## Getting Started
 
-Ready to install? Continue to [Installation](02-installation.md) for detailed setup instructions.
+Ready to install? Continue to [Installation](installation.md) for detailed setup instructions.
 
-Already installed? Jump to [Quick Start](03-quickstart.md) for your first steps.
+Already installed? Jump to [Quick Start](quickstart.md) for your first steps.
 
 ## See Also {.unlisted .unnumbered}
 
-- [Installation](02-installation.md) - Detailed setup instructions
-- [Quick Start](03-quickstart.md) - Getting started quickly
-- [Configuration](05-configuration.md) - Customizing OraDBA
+- [Installation](installation.md) - Detailed setup instructions
+- [Quick Start](quickstart.md) - Getting started quickly
+- [Configuration](configuration.md) - Customizing OraDBA
 
 ## Navigation {.unlisted .unnumbered}
 
-**Next:** [Installation](02-installation.md)
+**Next:** [Installation](installation.md)

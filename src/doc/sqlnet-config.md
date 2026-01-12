@@ -936,12 +936,12 @@ NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 
 ## See Also {.unlisted .unnumbered}
 
-- [Environment Management](04-environment.md) - TNS_ADMIN configuration
-- [Configuration](05-configuration.md) - OraDBA configuration system
-- [Aliases](06-aliases.md) - Network configuration file aliases (vit, vil, visql)
-- [Troubleshooting](12-troubleshooting.md) - Network troubleshooting
+- [Environment Management](environment.md) - TNS_ADMIN configuration
+- [Configuration](configuration.md) - OraDBA configuration system
+- [Aliases](aliases.md) - Network configuration file aliases (vit, vil, visql)
+- [Troubleshooting](troubleshooting.md) - Network troubleshooting
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Quick Reference](13-reference.md)  
-**Next:** [Log Management](15-log-management.md)
+**Previous:** [Quick Reference](reference.md)  
+**Next:** [Log Management](log-management.md)

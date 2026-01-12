@@ -16,7 +16,7 @@ integrated into this site.
     - Has its documentation maintained in its own repository (in `doc/` directory)
     - Documentation is linked here but maintained separately from main OraDBA docs
     
-    For details on creating extensions, see the [Extension System Guide](18-extensions.md).
+    For details on creating extensions, see the [Extension System Guide](extensions.md).
 
 ## Available Extensions
 
@@ -26,7 +26,7 @@ integrated into this site.
 No extensions with documentation are currently available. Extensions will appear here once
 they have documentation in their `doc/` directory and are registered in the extensions registry.
 
-To add your extension, see the [Extension System Guide](18-extensions.md).
+To add your extension, see the [Extension System Guide](extensions.md).
 
 <!-- EXTENSIONS_LIST_END -->
 
@@ -56,4 +56,4 @@ See the [Extension Template](https://github.com/oehrlis/oradba_extension) for ex
 
 ## Creating Your Own Extension
 
-See the [Extension System Guide](18-extensions.md) for detailed instructions on creating custom extensions.
+See the [Extension System Guide](extensions.md) for detailed instructions on creating custom extensions.

@@ -558,9 +558,9 @@ export ORADBA_EXT_OTHER_PRIORITY="50"      # Loads first (appears later in PATH)
   Complete technical reference
 - **[Example Extension](https://github.com/oehrlis/oradba/tree/main/doc/examples/extensions/customer)** -
   Reference implementation
-- **[Configuration Guide](05-configuration.md)** - Configuration hierarchy
-- **[Troubleshooting](12-troubleshooting.md)** - General troubleshooting
+- **[Configuration Guide](configuration.md)** - Configuration hierarchy
+- **[Troubleshooting](troubleshooting.md)** - General troubleshooting
 
 ---
 
-**Next Chapter**: [Usage Guide](16-usage.md) | **Previous Chapter**: [Service Management](17-service-management.md)
+**Next Chapter**: [Usage Guide](usage.md) | **Previous Chapter**: [Service Management](service-management.md)

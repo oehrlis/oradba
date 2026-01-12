@@ -5,7 +5,7 @@ common tasks.
 
 **Prerequisites:**
 
-- OraDBA installed (see [Installation](02-installation.md))
+- OraDBA installed (see [Installation](installation.md))
 - Oracle Database installed (or see [Pre-Oracle Quick Start](#pre-oracle-quick-start) below)
 - Shell profile configured
 
@@ -387,11 +387,11 @@ $ORADBA_PREFIX/bin/oradba_install.sh --update --local /path/to/oradba-0.14.1.tar
 
 Now that you're familiar with basic operations, explore these topics:
 
-- **[Environment Management](04-environment.md)** - Detailed oraenv.sh usage and environment variables
-- **[Configuration](05-configuration.md)** - Customize OraDBA for your needs
-- **[Aliases](06-aliases.md)** - Complete reference of 50+ aliases
-- **[SQL Scripts](08-sql-scripts.md)** - Database administration SQL scripts
-- **[RMAN Scripts](09-rman-scripts.md)** - Backup and recovery templates
+- **[Environment Management](environment.md)** - Detailed oraenv.sh usage and environment variables
+- **[Configuration](configuration.md)** - Customize OraDBA for your needs
+- **[Aliases](aliases.md)** - Complete reference of 50+ aliases
+- **[SQL Scripts](sql-scripts.md)** - Database administration SQL scripts
+- **[RMAN Scripts](rman-scripts.md)** - Backup and recovery templates
 
 ## Tips and Best Practices
 
@@ -406,7 +406,7 @@ Now that you're familiar with basic operations, explore these topics:
 
 If you encounter issues:
 
-- Check the **[Troubleshooting Guide](12-troubleshooting.md)**
+- Check the **[Troubleshooting Guide](troubleshooting.md)**
 - View alias help: `alih` or `cat $ORADBA_PREFIX/doc/alias_help.txt`
 - Check version info: `oradba_version.sh --info`
 - Review logs in `$ORADBA_PREFIX/log/`
@@ -492,17 +492,17 @@ source oraenv.sh FREE
 my_check.sh              # Your script is now in PATH
 ```
 
-See [Extension System](18-extensions.md) for complete guide.
+See [Extension System](extensions.md) for complete guide.
 
 ## See Also {.unlisted .unnumbered}
 
-- [Environment Management](04-environment.md) - Detailed oraenv.sh usage
-- [Aliases](06-aliases.md) - Complete alias reference
-- [Configuration](05-configuration.md) - Customizing OraDBA
-- [Extension System](18-extensions.md) - Adding custom scripts
-- [Usage Examples](16-usage.md) - More usage scenarios
+- [Environment Management](environment.md) - Detailed oraenv.sh usage
+- [Aliases](aliases.md) - Complete alias reference
+- [Configuration](configuration.md) - Customizing OraDBA
+- [Extension System](extensions.md) - Adding custom scripts
+- [Usage Examples](usage.md) - More usage scenarios
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Installation](02-installation.md)  
-**Next:** [Environment Management](04-environment.md)
+**Previous:** [Installation](installation.md)  
+**Next:** [Environment Management](environment.md)

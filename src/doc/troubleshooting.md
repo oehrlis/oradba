@@ -40,7 +40,7 @@ source /opt/oradba/bin/oraenv.sh FREE
 alias oraenv='source /opt/oradba/bin/oraenv.sh'
 ```
 
-**Related Chapters:** [Installation](02-installation.md), [Quick Start](03-quickstart.md)
+**Related Chapters:** [Installation](installation.md), [Quick Start](quickstart.md)
 
 ### Issue: "This script must be sourced, not executed"
 
@@ -66,7 +66,7 @@ source oraenv.sh FREE
 . oraenv.sh FREE
 ```
 
-**Related Chapters:** [Environment Management](04-environment.md), [Quick Start](03-quickstart.md)
+**Related Chapters:** [Environment Management](environment.md), [Quick Start](quickstart.md)
 
 ### Issue: "ORACLE_SID not found in oratab"
 
@@ -106,7 +106,7 @@ export ORATAB_FILE="/path/to/oratab"
 source oraenv.sh FREE
 ```
 
-**Related Chapters:** [Quick Start](03-quickstart.md), [Configuration](05-configuration.md)
+**Related Chapters:** [Quick Start](quickstart.md), [Configuration](configuration.md)
 
 ### Issue: "ORACLE_HOME directory does not exist"
 
@@ -138,7 +138,7 @@ sudo vim /etc/oratab
 sudo ln -s /actual/oracle/location /expected/oracle/location
 ```
 
-**Related Chapters:** [Installation](02-installation.md), [Quick Start](03-quickstart.md)
+**Related Chapters:** [Installation](installation.md), [Quick Start](quickstart.md)
 
 ### Issue: "Permission denied"
 
@@ -403,7 +403,7 @@ echo $ORACLE_BASE
 ./oradba_install.sh --user-level --silent
 ```
 
-**Related Chapters:** [Installation](02-installation.md#pre-oracle-installation)
+**Related Chapters:** [Installation](installation.md#pre-oracle-installation)
 
 ### Issue: Temporary oratab Created
 
@@ -434,7 +434,7 @@ oradba_setup.sh link-oratab
 oradba_setup.sh check
 ```
 
-**Related Chapters:** [Installation](02-installation.md#post-oracle-configuration)
+**Related Chapters:** [Installation](installation.md#post-oracle-configuration)
 
 ### Issue: "No Oracle installation detected"
 
@@ -470,7 +470,7 @@ export ORACLE_HOME=/u01/app/oracle/product/19c/dbhome_1
 export PATH=$ORACLE_HOME/bin:$PATH
 ```
 
-**Related Chapters:** [Installation](02-installation.md#graceful-degradation-no-oracle-mode)
+**Related Chapters:** [Installation](installation.md#graceful-degradation-no-oracle-mode)
 
 ### Issue: oraup.sh Shows No Databases
 
@@ -508,7 +508,7 @@ echo "FREE:/u01/app/oracle/product/21c/dbhome_1:N" | sudo tee -a /etc/oratab
 oraup.sh
 ```
 
-**Related Chapters:** [Environment Management](04-environment.md), [Quick Start](03-quickstart.md)
+**Related Chapters:** [Environment Management](environment.md), [Quick Start](quickstart.md)
 
 ### Issue: Permission Denied During link-oratab
 
@@ -542,7 +542,7 @@ oradba_setup.sh link-oratab
 sudo -E bash -c 'source oraenv.sh && oradba_setup.sh link-oratab'
 ```
 
-**Related Chapters:** [Installation](02-installation.md#post-oracle-configuration)
+**Related Chapters:** [Installation](installation.md#post-oracle-configuration)
 
 ### Issue: oraenv.sh Not Setting ORACLE_HOME
 
@@ -577,7 +577,7 @@ source oraenv.sh ORCL
 echo "ORCL:/u01/app/oracle/product/19c/dbhome_1:N" | sudo tee -a /etc/oratab
 ```
 
-**Related Chapters:** [Environment Management](04-environment.md)
+**Related Chapters:** [Environment Management](environment.md)
 
 ### Issue: Extensions Not Working in Pre-Oracle Mode
 
@@ -608,7 +608,7 @@ oradba_setup.sh link-oratab
 oradba_extension.sh info <extension-name>
 ```
 
-**Related Chapters:** [Extensions](18-extensions.md)
+**Related Chapters:** [Extensions](extensions.md)
 
 ### Issue: Dummy Home for Testing
 
@@ -640,7 +640,7 @@ source /tmp/oradba-test/bin/oraenv.sh
 rm -rf /tmp/oradba-test /tmp/fake-oracle
 ```
 
-**Related Chapters:** [Installation](02-installation.md#pre-oracle-installation)
+**Related Chapters:** [Installation](installation.md#pre-oracle-installation)
 
 ## Log Files
 
@@ -657,7 +657,7 @@ taa  # tail alert log
 tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert_*.log
 ```
 
-**Related Chapters:** [Aliases](06-aliases.md), [Environment Management](04-environment.md)
+**Related Chapters:** [Aliases](aliases.md), [Environment Management](environment.md)
 
 ## Reinstallation
 
@@ -678,17 +678,17 @@ sudo ./oradba_install.sh --prefix /opt/oradba
 cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 ```
 
-**Related Chapters:** [Installation](02-installation.md), [Configuration](05-configuration.md)
+**Related Chapters:** [Installation](installation.md), [Configuration](configuration.md)
 
 ## See Also {.unlisted .unnumbered}
 
-- [Environment Management](04-environment.md) - Detailed environment setup
-- [Configuration](05-configuration.md) - Configuration issues
-- [Aliases](06-aliases.md) - Alias loading problems
-- [PDB Aliases](07-pdb-aliases.md) - PDB alias issues
-- [Installation](02-installation.md) - Reinstallation guide
+- [Environment Management](environment.md) - Detailed environment setup
+- [Configuration](configuration.md) - Configuration issues
+- [Aliases](aliases.md) - Alias loading problems
+- [PDB Aliases](pdb-aliases.md) - PDB alias issues
+- [Installation](installation.md) - Reinstallation guide
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [rlwrap Filter Configuration](11-rlwrap.md)  
-**Next:** [Quick Reference](13-reference.md)
+**Previous:** [rlwrap Filter Configuration](rlwrap.md)  
+**Next:** [Quick Reference](reference.md)

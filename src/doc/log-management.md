@@ -679,9 +679,9 @@ Each template includes:
 ### OraDBA Documentation
 
 - [Project Repository](https://github.com/oehrlis/oradba): Source code and overview
-- [Installation](02-installation.md) - OraDBA setup
-- [Configuration](05-configuration.md) - General configuration
-- [Troubleshooting](12-troubleshooting.md) - Common issues
+- [Installation](installation.md) - OraDBA setup
+- [Configuration](configuration.md) - General configuration
+- [Troubleshooting](troubleshooting.md) - Common issues
 
 ## Summary
 
@@ -702,5 +702,5 @@ execution, and review policies regularly to ensure they meet your evolving needs
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [SQLNet Configuration](14-sqlnet-config.md)  
-**Next:** [Usage Guide](16-usage.md)
+**Previous:** [SQLNet Configuration](sqlnet-config.md)  
+**Next:** [Usage Guide](usage.md)

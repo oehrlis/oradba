@@ -373,12 +373,12 @@ parse_oratab "FREE"
 
 ## See Also {.unlisted .unnumbered}
 
-- [Environment Management](04-environment.md) - Detailed oraenv.sh usage
-- [Configuration](05-configuration.md) - Configuration options
-- [Quick Reference](13-reference.md) - Quick command reference
-- [Troubleshooting](12-troubleshooting.md) - Problem solving
+- [Environment Management](environment.md) - Detailed oraenv.sh usage
+- [Configuration](configuration.md) - Configuration options
+- [Quick Reference](reference.md) - Quick command reference
+- [Troubleshooting](troubleshooting.md) - Problem solving
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Log Management](15-log-management.md)  
-**Home:** [Introduction](01-introduction.md)
+**Previous:** [Log Management](log-management.md)  
+**Home:** [Introduction](introduction.md)

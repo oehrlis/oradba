@@ -563,7 +563,7 @@ curl -X POST http://monitoring/oracle/started
 
 ## See Also {.unlisted .unnumbered}
 
-- [Installation Guide](02-installation.md)
-- [Configuration](05-configuration.md)
-- [Environment Management](04-environment.md)
-- [Reference](13-reference.md)
+- [Installation Guide](installation.md)
+- [Configuration](configuration.md)
+- [Environment Management](environment.md)
+- [Reference](reference.md)

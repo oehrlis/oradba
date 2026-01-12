@@ -345,11 +345,11 @@ Aliases will continue to use rlwrap but without password filtering.
 
 ## See Also {.unlisted .unnumbered}
 
-- [Aliases](06-aliases.md) - Complete alias reference with rlwrap
-- [Configuration](05-configuration.md) - Setting ORADBA_RLWRAP_FILTER
-- [Troubleshooting](12-troubleshooting.md) - rlwrap issues
+- [Aliases](aliases.md) - Complete alias reference with rlwrap
+- [Configuration](configuration.md) - Setting ORADBA_RLWRAP_FILTER
+- [Troubleshooting](troubleshooting.md) - rlwrap issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Database Functions Library](10-functions.md)  
-**Next:** [Troubleshooting Guide](12-troubleshooting.md)
+**Previous:** [Database Functions Library](functions.md)  
+**Next:** [Troubleshooting Guide](troubleshooting.md)

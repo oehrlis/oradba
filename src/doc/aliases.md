@@ -433,7 +433,7 @@ pdb1
 SQL> show con_name
 ```
 
-For complete PDB alias documentation, configuration options, troubleshooting, and advanced usage, see [PDB Alias Reference](07-pdb-aliases.md).
+For complete PDB alias documentation, configuration options, troubleshooting, and advanced usage, see [PDB Alias Reference](pdb-aliases.md).
 
 ## Help and Information Aliases
 
@@ -532,7 +532,7 @@ export ORADBA_RLWRAP_FILTER="true"
 - CONNECT commands with passwords
 - CREATE/ALTER USER statements
 
-See [rlwrap Filter Configuration](11-rlwrap.md) for details.
+See [rlwrap Filter Configuration](rlwrap.md) for details.
 
 ## Custom Aliases
 
@@ -713,12 +713,12 @@ This displays a condensed list of the most commonly used aliases.
 
 ## See Also {.unlisted .unnumbered}
 
-- [PDB Aliases](07-pdb-aliases.md) - Pluggable database shortcuts
-- [rlwrap Configuration](11-rlwrap.md) - Password filtering and completion
-- [Configuration](05-configuration.md) - Customizing aliases
-- [Quick Reference](13-reference.md) - Condensed alias list
+- [PDB Aliases](pdb-aliases.md) - Pluggable database shortcuts
+- [rlwrap Configuration](rlwrap.md) - Password filtering and completion
+- [Configuration](configuration.md) - Customizing aliases
+- [Quick Reference](reference.md) - Condensed alias list
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Configuration System](05-configuration.md)  
-**Next:** [PDB Alias Reference](07-pdb-aliases.md)
+**Previous:** [Configuration System](configuration.md)  
+**Next:** [PDB Alias Reference](pdb-aliases.md)

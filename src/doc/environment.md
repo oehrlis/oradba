@@ -216,7 +216,7 @@ When you source `oraenv.sh`, OraDBA loads configuration files in a hierarchical 
 
 This allows default settings to work everywhere while enabling customization at multiple levels.
 
-For complete details on the configuration hierarchy, files, and variables, see [Configuration System](05-configuration.md).
+For complete details on the configuration hierarchy, files, and variables, see [Configuration System](configuration.md).
 
 ## Scripting with oraenv.sh
 
@@ -531,7 +531,7 @@ source $ORADBA_PREFIX/lib/common.sh
 generate_pdb_aliases
 ```
 
-See the [Troubleshooting Guide](12-troubleshooting.md) for more solutions.
+See the [Troubleshooting Guide](troubleshooting.md) for more solutions.
 
 ## Best Practices
 
@@ -546,13 +546,13 @@ See the [Troubleshooting Guide](12-troubleshooting.md) for more solutions.
 
 ## See Also {.unlisted .unnumbered}
 
-- [Configuration](05-configuration.md) - Customize OraDBA settings
-- [Aliases](06-aliases.md) - 50+ convenient aliases
-- [PDB Aliases](07-pdb-aliases.md) - Pluggable database shortcuts
-- [Troubleshooting](12-troubleshooting.md) - Solve common issues
-- [Usage Examples](16-usage.md) - Practical scenarios
+- [Configuration](configuration.md) - Customize OraDBA settings
+- [Aliases](aliases.md) - 50+ convenient aliases
+- [PDB Aliases](pdb-aliases.md) - Pluggable database shortcuts
+- [Troubleshooting](troubleshooting.md) - Solve common issues
+- [Usage Examples](usage.md) - Practical scenarios
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Quick Start](03-quickstart.md)  
-**Next:** [Configuration System](05-configuration.md)
+**Previous:** [Quick Start](quickstart.md)  
+**Next:** [Configuration System](configuration.md)

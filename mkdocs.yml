@@ -105,6 +105,7 @@ nav:
   - Getting Started:
     - Introduction: introduction.md
     - Installation: installation.md
+    - Docker Installation: installation-docker.md
     - Quick Start: quickstart.md
     - Environment Management: environment.md
   

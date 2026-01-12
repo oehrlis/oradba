@@ -372,7 +372,7 @@ source /opt/oracle/local/oradba/bin/oraenv.sh
 
 **Warning:** Force mode may override BasEnv functionality - use with caution.
 
-**See Also:** [Configuration - Coexistence Mode](05-configuration.md#coexistence-mode)
+**See Also:** [Configuration - Coexistence Mode](configuration.md#coexistence-mode)
 
 ## Installation Scenarios
 
@@ -1018,11 +1018,11 @@ rm -f /opt/oradba/etc/sid.*.conf
 
 ## See Also {.unlisted .unnumbered}
 
-- [Quick Start](03-quickstart.md) - Getting started with OraDBA
-- [Configuration](05-configuration.md) - Customizing your installation
-- [Troubleshooting](12-troubleshooting.md) - Solving installation issues
+- [Quick Start](quickstart.md) - Getting started with OraDBA
+- [Configuration](configuration.md) - Customizing your installation
+- [Troubleshooting](troubleshooting.md) - Solving installation issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Introduction](01-introduction.md)  
-**Next:** [Quick Start](03-quickstart.md)
+**Previous:** [Introduction](introduction.md)  
+**Next:** [Quick Start](quickstart.md)
