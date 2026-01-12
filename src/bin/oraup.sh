@@ -283,11 +283,13 @@ show_oracle_status() {
         fi
     fi
 
-    # Process dummy entries first
-    for entry in "${dummy_entries[@]}"; do
-        IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-        printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
-    done
+    # Process dummy entries first (only if they exist)
+    if [[ ${#dummy_entries[@]} -gt 0 ]]; then
+        for entry in "${dummy_entries[@]}"; do
+            IFS=: read -r sid oracle_home startup_flag <<< "$entry"
+            printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+        done
+    fi
 
     # Process DB instances
     for entry in "${db_entries[@]}"; do

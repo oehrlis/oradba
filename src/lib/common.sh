@@ -952,6 +952,16 @@ set_oracle_home_environment() {
 
     # Set base environment
     export ORACLE_HOME="${oracle_home}"
+    
+    # Set home tracking variables for PS1
+    export ORADBA_CURRENT_HOME="${name}"
+    local alias_name
+    alias_name=$(get_oracle_home_alias "${name}" 2>/dev/null || echo "${name}")
+    export ORADBA_CURRENT_HOME_ALIAS="${alias_name}"
+    
+    # Create alias for this Oracle Home
+    # shellcheck disable=SC2139  # We want the alias to expand now
+    alias "${alias_name}"="source '${ORADBA_PREFIX}/bin/oraenv.sh' '${name}' --silent"
 
     # Set product-specific environment variables
     case "${product_type}" in
