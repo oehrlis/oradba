@@ -40,7 +40,7 @@ readonly NC='\033[0m' # No Color
 
 # Usage information
 usage() {
-    cat <<EOF
+    cat << EOF
 Usage: ${SCRIPT_NAME} [OPTIONS]
 
 Manage logrotate configurations for OraDBA and Oracle Database logs.
@@ -139,39 +139,39 @@ check_root() {
 # Install logrotate configurations
 install_logrotate() {
     check_root "--install" || return 1
-    
+
     if [[ ! -d "${TEMPLATE_DIR}" ]]; then
         print_message "${RED}" "ERROR: Template directory not found: ${TEMPLATE_DIR}"
         return 1
     fi
-    
+
     if [[ ! -d "${TARGET_DIR}" ]]; then
         print_message "${RED}" "ERROR: Target directory not found: ${TARGET_DIR}"
         print_message "${YELLOW}" "Is logrotate installed?"
         return 1
     fi
-    
+
     print_message "${GREEN}" "Installing logrotate configurations..."
     echo ""
-    
+
     local installed=0
     local failed=0
-    
+
     for template in "${TEMPLATE_DIR}"/*.logrotate; do
         if [[ ! -f "${template}" ]]; then
             continue
         fi
-        
+
         local basename
         basename=$(basename "${template}" .logrotate)
         local target="${TARGET_DIR}/${basename}"
-        
+
         # Backup existing config
         if [[ -f "${target}" ]]; then
             cp "${target}" "${target}.backup.$(date +%Y%m%d_%H%M%S)"
             print_message "${YELLOW}" "  ⚠ Backed up existing ${basename}"
         fi
-        
+
         # Copy template
         if cp "${template}" "${target}"; then
             chmod 644 "${target}"
@@ -183,32 +183,32 @@ install_logrotate() {
             ((failed++))
         fi
     done
-    
+
     echo ""
     print_message "${GREEN}" "Installation Summary:"
     echo "  Installed: ${installed}"
     if [[ ${failed} -gt 0 ]]; then
         echo "  Failed: ${failed}"
     fi
-    
+
     echo ""
     print_message "${YELLOW}" "Next steps:"
     echo "  1. Review configurations: ls -l ${TARGET_DIR}/oracle*"
     echo "  2. Customize paths if needed"
     echo "  3. Test configurations: ${SCRIPT_NAME} --test"
-    
+
     return 0
 }
 
 # Uninstall logrotate configurations
 uninstall_logrotate() {
     check_root "--uninstall" || return 1
-    
+
     print_message "${YELLOW}" "Uninstalling logrotate configurations..."
     echo ""
-    
+
     local removed=0
-    
+
     for config in "${TARGET_DIR}"/oradba* "${TARGET_DIR}"/oracle-*; do
         if [[ -f "${config}" ]]; then
             local basename
@@ -221,14 +221,14 @@ uninstall_logrotate() {
             fi
         fi
     done
-    
+
     echo ""
     if [[ ${removed} -eq 0 ]]; then
         print_message "${YELLOW}" "No configurations found to remove"
     else
         print_message "${GREEN}" "Removed ${removed} configuration(s)"
     fi
-    
+
     return 0
 }
 
@@ -236,16 +236,16 @@ uninstall_logrotate() {
 list_logrotate() {
     echo "Installed logrotate configurations:"
     echo ""
-    
+
     local found=0
-    
+
     for config in "${TARGET_DIR}"/oradba* "${TARGET_DIR}"/oracle-*; do
         if [[ -f "${config}" ]]; then
             ls -lh "${config}"
             ((found++))
         fi
     done
-    
+
     echo ""
     if [[ ${found} -eq 0 ]]; then
         print_message "${YELLOW}" "No OraDBA logrotate configurations found"
@@ -254,7 +254,7 @@ list_logrotate() {
     else
         print_message "${GREEN}" "Found ${found} configuration(s)"
     fi
-    
+
     return 0
 }
 
@@ -262,9 +262,9 @@ list_logrotate() {
 test_logrotate() {
     print_message "${GREEN}" "Testing logrotate configurations (dry-run)..."
     echo ""
-    
+
     local found=0
-    
+
     for config in "${TARGET_DIR}"/oradba* "${TARGET_DIR}"/oracle-*; do
         if [[ -f "${config}" ]]; then
             local basename
@@ -275,20 +275,20 @@ test_logrotate() {
             ((found++))
         fi
     done
-    
+
     if [[ ${found} -eq 0 ]]; then
         print_message "${YELLOW}" "No configurations found to test"
         print_message "${YELLOW}" "Install configurations with: sudo ${SCRIPT_NAME} --install"
         return 1
     fi
-    
+
     return 0
 }
 
 # Force rotation for testing
 force_logrotate() {
     check_root "--force" || return 1
-    
+
     print_message "${YELLOW}" "WARNING: Forcing log rotation for testing"
     print_message "${YELLOW}" "This will rotate logs immediately!"
     echo ""
@@ -297,11 +297,11 @@ force_logrotate() {
         echo "Aborted"
         return 1
     fi
-    
+
     echo ""
     print_message "${GREEN}" "Forcing log rotation..."
     echo ""
-    
+
     for config in "${TARGET_DIR}"/oradba* "${TARGET_DIR}"/oracle-*; do
         if [[ -f "${config}" ]]; then
             local basename
@@ -311,7 +311,7 @@ force_logrotate() {
             echo ""
         fi
     done
-    
+
     print_message "${GREEN}" "Forced rotation complete"
     return 0
 }
@@ -319,10 +319,10 @@ force_logrotate() {
 # Generate customized configurations
 customize_logrotate() {
     mkdir -p "${CUSTOM_DIR}"
-    
+
     print_message "${GREEN}" "Generating customized logrotate configurations..."
     echo ""
-    
+
     # Check if oratab exists
     local oratab="/etc/oratab"
     if [[ ! -f "${oratab}" ]]; then
@@ -330,16 +330,16 @@ customize_logrotate() {
         print_message "${YELLOW}" "Cannot auto-detect databases"
         echo ""
     fi
-    
+
     # Detect Oracle environment
     local oracle_base="${ORACLE_BASE:-/u01/app/oracle}"
     local oracle_home="${ORACLE_HOME:-}"
-    
+
     print_message "${GREEN}" "Detected environment:"
     echo "  ORACLE_BASE: ${oracle_base}"
     echo "  ORACLE_HOME: ${oracle_home:-<not set>}"
     echo ""
-    
+
     # Parse oratab if available
     if [[ -f "${oratab}" ]]; then
         print_message "${GREEN}" "Databases found in ${oratab}:"
@@ -348,10 +348,10 @@ customize_logrotate() {
         done
         echo ""
     fi
-    
+
     # Generate customized alert log config
     local custom_alert="${CUSTOM_DIR}/oracle-alert-custom.logrotate"
-    cat > "${custom_alert}" <<EOF
+    cat > "${custom_alert}" << EOF
 # Auto-generated Oracle Alert Log Configuration
 # Generated: $(date)
 # Environment: ${oracle_base}
@@ -370,12 +370,12 @@ ${oracle_base}/diag/rdbms/*/*/trace/alert_*.log {
     size 100M
 }
 EOF
-    
+
     print_message "${GREEN}" "✓ Created ${custom_alert}"
-    
+
     # Generate customized trace config
     local custom_trace="${CUSTOM_DIR}/oracle-trace-custom.logrotate"
-    cat > "${custom_trace}" <<EOF
+    cat > "${custom_trace}" << EOF
 # Auto-generated Oracle Trace Files Configuration
 # Generated: $(date)
 # Environment: ${oracle_base}
@@ -404,9 +404,9 @@ ${oracle_base}/diag/rdbms/*/*/trace/*_ora_*.trm {
     maxage 14
 }
 EOF
-    
+
     print_message "${GREEN}" "✓ Created ${custom_trace}"
-    
+
     echo ""
     print_message "${GREEN}" "Customized configurations created in:"
     echo "  ${CUSTOM_DIR}"
@@ -416,38 +416,38 @@ EOF
     echo "  2. Edit paths if needed: vi ${CUSTOM_DIR}/*.logrotate"
     echo "  3. Test: logrotate -d ${CUSTOM_DIR}/oracle-alert-custom.logrotate"
     echo "  4. Install: sudo cp ${CUSTOM_DIR}/*.logrotate ${TARGET_DIR}/"
-    
+
     return 0
 }
 
 # Install user-mode configurations
 install_user() {
     local user_state_dir="${CUSTOM_DIR}/state"
-    
+
     mkdir -p "${CUSTOM_DIR}"
     mkdir -p "${user_state_dir}"
-    
+
     print_message "${GREEN}" "Setting up user-mode logrotate..."
     echo ""
-    
+
     # Check if logrotate is available
-    if ! command -v logrotate &>/dev/null; then
+    if ! command -v logrotate &> /dev/null; then
         print_message "${RED}" "ERROR: logrotate command not found"
         print_message "${YELLOW}" "Please install logrotate package"
         return 1
     fi
-    
+
     # Generate customized configurations for user
     print_message "${GREEN}" "Generating user-specific configurations..."
     echo ""
-    
+
     # Detect Oracle environment
     local oracle_base="${ORACLE_BASE:-/u01/app/oracle}"
     local oracle_home="${ORACLE_HOME:-}"
-    
+
     # Generate user-specific alert log config
     local user_alert="${CUSTOM_DIR}/oracle-alert.logrotate"
-    cat > "${user_alert}" <<EOF
+    cat > "${user_alert}" << EOF
 # User-specific Oracle Alert Log Configuration
 # Generated: $(date)
 # User: ${USER}
@@ -465,12 +465,12 @@ ${oracle_base}/diag/rdbms/*/*/trace/alert_*.log {
     size 100M
 }
 EOF
-    
+
     print_message "${GREEN}" "✓ Created ${user_alert}"
-    
+
     # Generate user-specific trace config
     local user_trace="${CUSTOM_DIR}/oracle-trace.logrotate"
-    cat > "${user_trace}" <<EOF
+    cat > "${user_trace}" << EOF
 # User-specific Oracle Trace Files Configuration
 # Generated: $(date)
 # User: ${USER}
@@ -498,12 +498,12 @@ ${oracle_base}/diag/rdbms/*/*/trace/*_ora_*.trm {
     maxage 14
 }
 EOF
-    
+
     print_message "${GREEN}" "✓ Created ${user_trace}"
-    
+
     # Generate user-specific listener log config
     local user_listener="${CUSTOM_DIR}/oracle-listener.logrotate"
-    cat > "${user_listener}" <<EOF
+    cat > "${user_listener}" << EOF
 # User-specific Oracle Listener Log Configuration
 # Generated: $(date)
 # User: ${USER}
@@ -532,9 +532,9 @@ ${oracle_base}/diag/tnslsnr/*/listener/alert/log.xml {
     size 50M
 }
 EOF
-    
+
     print_message "${GREEN}" "✓ Created ${user_listener}"
-    
+
     echo ""
     print_message "${GREEN}" "User-mode setup complete!"
     echo ""
@@ -547,7 +547,7 @@ EOF
     echo "  3. Test: ${SCRIPT_NAME} --test"
     echo "  4. Run: ${SCRIPT_NAME} --run-user"
     echo "  5. Automate: ${SCRIPT_NAME} --cron"
-    
+
     return 0
 }
 
@@ -555,45 +555,45 @@ EOF
 run_user() {
     local user_state_dir="${CUSTOM_DIR}/state"
     local state_file="${user_state_dir}/logrotate.status"
-    
+
     # Check if user-mode is set up
     if [[ ! -d "${CUSTOM_DIR}" ]]; then
         print_message "${RED}" "ERROR: User-mode not initialized"
         print_message "${YELLOW}" "Run: ${SCRIPT_NAME} --install-user"
         return 1
     fi
-    
+
     # Check if any config files exist
     local config_count=0
     for config in "${CUSTOM_DIR}"/oracle-*.logrotate; do
         [[ -f "${config}" ]] && ((config_count++))
     done
-    
+
     if [[ ${config_count} -eq 0 ]]; then
         print_message "${RED}" "ERROR: No logrotate configurations found"
         print_message "${YELLOW}" "Run: ${SCRIPT_NAME} --install-user"
         return 1
     fi
-    
+
     # Check if logrotate is available
-    if ! command -v logrotate &>/dev/null; then
+    if ! command -v logrotate &> /dev/null; then
         print_message "${RED}" "ERROR: logrotate command not found"
         return 1
     fi
-    
+
     # Ensure state directory exists
     mkdir -p "${user_state_dir}"
-    
+
     print_message "${GREEN}" "Running logrotate as user: ${USER}"
     echo ""
-    
+
     # Run logrotate for each configuration
     for config in "${CUSTOM_DIR}"/oracle-*.logrotate; do
         if [[ -f "${config}" ]]; then
             local basename
             basename=$(basename "${config}")
             print_message "${YELLOW}" "=== Processing ${basename} ==="
-            
+
             # Run logrotate with user-specific state file
             if logrotate -v --state="${state_file}" "${config}"; then
                 print_message "${GREEN}" "✓ ${basename} processed successfully"
@@ -603,10 +603,10 @@ run_user() {
             echo ""
         fi
     done
-    
+
     print_message "${GREEN}" "User-mode rotation complete"
     echo "State file: ${state_file}"
-    
+
     return 0
 }
 
@@ -614,7 +614,7 @@ run_user() {
 generate_cron() {
     local script_path
     script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-    
+
     print_message "${GREEN}" "Crontab entry for automated log rotation:"
     echo ""
     echo "# OraDBA log rotation (runs daily at 2 AM)"
@@ -627,7 +627,7 @@ generate_cron() {
     echo ""
     print_message "${YELLOW}" "To verify:"
     echo "  crontab -l | grep oradba_logrotate"
-    
+
     return 0
 }
 
@@ -644,24 +644,24 @@ main() {
         usage
         return 1
     fi
-    
+
     case "${1}" in
-        -i|--install)
+        -i | --install)
             install_logrotate
             ;;
-        -u|--uninstall)
+        -u | --uninstall)
             uninstall_logrotate
             ;;
-        -l|--list)
+        -l | --list)
             list_logrotate
             ;;
-        -t|--test)
+        -t | --test)
             test_logrotate
             ;;
-        -f|--force)
+        -f | --force)
             force_logrotate
             ;;
-        -c|--customize)
+        -c | --customize)
             customize_logrotate
             ;;
         --install-user)
@@ -673,10 +673,10 @@ main() {
         --cron)
             generate_cron
             ;;
-        -v|--version)
+        -v | --version)
             show_version
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         *)

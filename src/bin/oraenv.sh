@@ -71,23 +71,23 @@ REQUESTED_SID=""
 _oraenv_parse_args() {
     # shellcheck disable=SC2034  # Reserved for future use
     local force_mode=false
-    
+
     # Detect if running in interactive mode (with TTY)
     if [[ -t 0 ]]; then
         ORAENV_INTERACTIVE=true
         # shellcheck disable=SC2034  # Global variables used in _oraenv_main
-        SHOW_STATUS=true  # Default to showing status in interactive mode
+        SHOW_STATUS=true # Default to showing status in interactive mode
         # shellcheck disable=SC2034  # Global variables used in _oraenv_main
-        SHOW_ENV=true     # Show environment info
+        SHOW_ENV=true # Show environment info
     else
         ORAENV_INTERACTIVE=false
         # shellcheck disable=SC2034  # Global variables used in _oraenv_main
-        SHOW_STATUS=false  # Default to silent in non-interactive mode
+        SHOW_STATUS=false # Default to silent in non-interactive mode
         # shellcheck disable=SC2034  # Global variables used in _oraenv_main
         SHOW_ENV=false
     fi
-    
-    ORAENV_STATUS_ONLY=false  # Flag for --status option
+
+    ORAENV_STATUS_ONLY=false # Flag for --status option
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -193,7 +193,7 @@ _oraenv_find_oratab() {
     fi
 
     # Use centralized get_oratab_path() function if available
-    if type get_oratab_path &>/dev/null; then
+    if type get_oratab_path &> /dev/null; then
         local oratab_path
         oratab_path=$(get_oratab_path)
         if [[ -f "$oratab_path" ]]; then
@@ -217,25 +217,25 @@ _oraenv_find_oratab() {
 # Get SID from user (interactive) or first SID (non-interactive)
 _oraenv_prompt_sid() {
     local oratab_file="$1"
-    
+
     # Get list of available SIDs from oratab
     local -a sids
     mapfile -t sids < <(grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print $1}')
-    
+
     # Get list of Oracle Homes if available
     local -a homes
-    if command -v list_oracle_homes &>/dev/null; then
+    if command -v list_oracle_homes &> /dev/null; then
         mapfile -t homes < <(list_oracle_homes | awk '{print $1}')
     fi
-    
+
     local total_entries=$((${#sids[@]} + ${#homes[@]}))
-    
+
     # Check if we found any SIDs or Homes
     if [[ $total_entries -eq 0 ]]; then
         log_error "No Oracle instances or homes found"
         return 1
     fi
-    
+
     # If non-interactive mode, return first entry (SID or Home)
     if [[ "$ORAENV_INTERACTIVE" != "true" ]]; then
         if [[ ${#sids[@]} -gt 0 ]]; then
@@ -245,29 +245,29 @@ _oraenv_prompt_sid() {
         fi
         return 0
     fi
-    
+
     # Display list to stderr so it appears before the prompt
     {
         echo ""
         echo "Available Oracle instances and homes:"
         echo "========================================"
-        
+
         local counter=1
-        
+
         # Display Oracle Homes first (if any)
         if [[ ${#homes[@]} -gt 0 ]]; then
             echo ""
             echo "Oracle Homes:"
             for home in "${homes[@]}"; do
                 local home_type=""
-                if command -v get_oracle_home_type &>/dev/null; then
-                    home_type=$(get_oracle_home_type "$home" 2>/dev/null || echo "")
+                if command -v get_oracle_home_type &> /dev/null; then
+                    home_type=$(get_oracle_home_type "$home" 2> /dev/null || echo "")
                 fi
                 printf "  [%d] %-20s (%s)\n" "$counter" "$home" "${home_type}"
                 ((counter++))
             done
         fi
-        
+
         # Display Database SIDs
         if [[ ${#sids[@]} -gt 0 ]]; then
             echo ""
@@ -279,11 +279,11 @@ _oraenv_prompt_sid() {
         fi
         echo ""
     } >&2
-    
+
     # Prompt for selection
     local selection
     read -p "Enter name or number [1-${total_entries}]: " selection
-    
+
     # Check if user entered a number
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ $selection -ge 1 ]] && [[ $selection -le $total_entries ]]; then
         # User entered a valid number
@@ -311,40 +311,40 @@ _oraenv_set_environment() {
     local oratab_file="$2"
 
     # Check if this is an Oracle Home (not a database SID)
-    if command -v is_oracle_home &>/dev/null && is_oracle_home "$requested_sid"; then
+    if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then
         log_debug "Setting environment for Oracle Home: $requested_sid"
-        
+
         # Unset previous Oracle environment
         _oraenv_unset_old_env
-        
+
         # Set Oracle Home environment using Oracle Homes management
-        if command -v set_oracle_home_environment &>/dev/null; then
+        if command -v set_oracle_home_environment &> /dev/null; then
             set_oracle_home_environment "$requested_sid"
             if [[ $? -ne 0 ]]; then
                 log_error "Failed to set Oracle Home environment for: $requested_sid"
                 return 1
             fi
-            
+
             # Set ORACLE_SID to empty for non-database homes
             export ORACLE_SID=""
-            
+
             # Set ORACLE_BASE if not already set
             if [[ -z "${ORACLE_BASE}" ]]; then
                 local derived_base
                 derived_base="$(dirname "$(dirname "$ORACLE_HOME")")"
                 export ORACLE_BASE="${derived_base}"
             fi
-            
+
             # Set common environment variables
             export_oracle_base_env
-            
+
             # Load hierarchical configuration for this Oracle Home
             load_config "$requested_sid"
-            
+
             log_debug "Oracle Home environment set: $requested_sid"
             log_debug "ORACLE_HOME: $ORACLE_HOME"
-            log_debug "Product Type: $(get_oracle_home_type "$requested_sid" 2>/dev/null || echo "unknown")"
-            
+            log_debug "Product Type: $(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")"
+
             return 0
         else
             log_error "Oracle Homes functions not available"
@@ -365,7 +365,7 @@ _oraenv_set_environment() {
     # Extract actual SID from oratab (preserves uppercase from oratab)
     local actual_sid
     actual_sid=$(echo "$oratab_entry" | cut -d: -f1)
-    
+
     # Extract ORACLE_HOME from oratab
     local oracle_home
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
@@ -412,7 +412,7 @@ _oraenv_set_environment() {
 
     # Load extensions (skip in coexistence mode unless forced) (#15)
     if [[ "${ORADBA_COEXIST_MODE}" != "basenv" ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
-        if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &>/dev/null; then
+        if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &> /dev/null; then
             load_extensions
         fi
     fi
@@ -470,18 +470,18 @@ _oraenv_main() {
         log_warn "No oratab file found - running in no-Oracle mode"
         log_info "OraDBA is installed but Oracle Database is not detected"
         log_info "After installing Oracle, use: oradba_setup.sh link-oratab"
-        
+
         # Set minimal environment for no-Oracle mode
         export ORACLE_SID="${REQUESTED_SID:-dummy}"
         export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_PREFIX}/dummy}"
         export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_PREFIX%/local/oradba}}"
         export ORADBA_NO_ORACLE_MODE=true
-        
+
         log_info "Minimal Oracle environment set (no-Oracle mode):"
         log_info "  ORACLE_SID:  ${ORACLE_SID}"
         log_info "  ORACLE_HOME: ${ORACLE_HOME}"
         log_info "  ORACLE_BASE: ${ORACLE_BASE}"
-        
+
         return 0
     fi
 

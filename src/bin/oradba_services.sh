@@ -111,21 +111,21 @@ load_config() {
 # Start listeners
 start_listeners() {
     oradba_log INFO "Starting Oracle listeners..."
-    
+
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh start"
-    
+
     # Add force flag if set
     [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
-    
+
     # Add listener options
     [[ -n "${LSNR_OPTIONS}" ]] && cmd="${cmd} ${LSNR_OPTIONS}"
-    
+
     # Add specific listeners if configured
     [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
-    
+
     oradba_log INFO "Executing: ${cmd}"
     eval "${cmd}"
-    
+
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Listeners started successfully"
@@ -139,21 +139,21 @@ start_listeners() {
 # Stop listeners
 stop_listeners() {
     oradba_log INFO "Stopping Oracle listeners..."
-    
+
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh stop"
-    
+
     # Add force flag if set
     [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
-    
+
     # Add listener options
     [[ -n "${LSNR_OPTIONS}" ]] && cmd="${cmd} ${LSNR_OPTIONS}"
-    
+
     # Add specific listeners if configured
     [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
-    
+
     oradba_log INFO "Executing: ${cmd}"
     eval "${cmd}"
-    
+
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Listeners stopped successfully"
@@ -167,21 +167,21 @@ stop_listeners() {
 # Start databases
 start_databases() {
     oradba_log INFO "Starting Oracle databases..."
-    
+
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh start"
-    
+
     # Add force flag if set
     [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
-    
+
     # Add database options
     [[ -n "${DB_OPTIONS}" ]] && cmd="${cmd} ${DB_OPTIONS}"
-    
+
     # Add specific databases if configured
     [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
-    
+
     oradba_log INFO "Executing: ${cmd}"
     eval "${cmd}"
-    
+
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Databases started successfully"
@@ -195,21 +195,21 @@ start_databases() {
 # Stop databases
 stop_databases() {
     oradba_log INFO "Stopping Oracle databases..."
-    
+
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh stop"
-    
+
     # Add force flag if set
     [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
-    
+
     # Add database options
     [[ -n "${DB_OPTIONS}" ]] && cmd="${cmd} ${DB_OPTIONS}"
-    
+
     # Add specific databases if configured
     [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
-    
+
     oradba_log INFO "Executing: ${cmd}"
     eval "${cmd}"
-    
+
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Databases stopped successfully"
@@ -227,32 +227,32 @@ show_status() {
     echo "Oracle Services Status"
     echo "=========================================="
     echo ""
-    
+
     echo "Listeners:"
     echo "----------"
     local lsnr_cmd="${ORADBA_BIN}/oradba_lsnrctl.sh status"
     [[ -n "${SPECIFIC_LISTENERS}" ]] && lsnr_cmd="${lsnr_cmd} ${SPECIFIC_LISTENERS}"
     eval "${lsnr_cmd}"
-    
+
     echo ""
     echo "Databases:"
     echo "----------"
     local db_cmd="${ORADBA_BIN}/oradba_dbctl.sh status"
     [[ -n "${SPECIFIC_DBS}" ]] && db_cmd="${db_cmd} ${SPECIFIC_DBS}"
     eval "${db_cmd}"
-    
+
     echo ""
 }
 
 # Start all services
 start_all() {
     oradba_log INFO "========== Starting Oracle services =========="
-    
+
     local success=true
-    
+
     # Parse startup order
     IFS=',' read -ra order <<< "${STARTUP_ORDER}"
-    
+
     for service in "${order[@]}"; do
         case "${service}" in
             listener)
@@ -272,7 +272,7 @@ start_all() {
                 ;;
         esac
     done
-    
+
     if [[ "${success}" == "true" ]]; then
         oradba_log INFO "All services started successfully"
         return 0
@@ -285,12 +285,12 @@ start_all() {
 # Stop all services
 stop_all() {
     oradba_log INFO "========== Stopping Oracle services =========="
-    
+
     local success=true
-    
+
     # Parse shutdown order
     IFS=',' read -ra order <<< "${SHUTDOWN_ORDER}"
-    
+
     for service in "${order[@]}"; do
         case "${service}" in
             listener)
@@ -310,7 +310,7 @@ stop_all() {
                 ;;
         esac
     done
-    
+
     if [[ "${success}" == "true" ]]; then
         oradba_log INFO "All services stopped successfully"
         return 0
@@ -334,22 +334,22 @@ ACTION="$1"
 shift
 
 case "${ACTION}" in
-    start|stop|restart|status) ;;
+    start | stop | restart | status) ;;
     *) usage ;;
 esac
 
 # Parse options
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -f|--force)
+        -f | --force)
             FORCE_MODE=true
             shift
             ;;
-        -c|--config)
+        -c | --config)
             CONFIG_FILE="$2"
             shift 2
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         -*)

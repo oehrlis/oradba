@@ -92,7 +92,7 @@ should_log() {
 # Get entry from wallet
 get_entry() {
     local key="$1"
-    echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -viewEntry "${key}" 2>/dev/null \
+    echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -viewEntry "${key}" 2> /dev/null \
         | grep -i "${key}" | awk -F '= ' '{print $2}'
 }
 
@@ -124,7 +124,7 @@ validate_environment() {
         oradba_log ERROR "Wallet directory '${WALLET_DIR}' does not exist."
         exit 1
     fi
-    
+
     if [[ ! -r "${WALLET_DIR}" ]]; then
         oradba_log ERROR "Wallet directory '${WALLET_DIR}' is not readable."
         exit 1
@@ -141,7 +141,7 @@ validate_environment() {
 load_wallet_password() {
     # Try to load from encoded file
     if [[ -f "${WALLET_DIR}/.wallet_pwd" ]]; then
-        WALLET_PASSWORD=$(base64 -d "${WALLET_DIR}/.wallet_pwd" 2>/dev/null)
+        WALLET_PASSWORD=$(base64 -d "${WALLET_DIR}/.wallet_pwd" 2> /dev/null)
         oradba_log DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
     fi
 
@@ -155,14 +155,14 @@ load_wallet_password() {
 # Search wallet for connect string
 search_wallet() {
     local connect_string_lower="${CONNECT_STRING,,}"
-    
+
     # Count connect string entries
     local count
-    count=$(echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -list 2>/dev/null \
-            | grep -c "oracle.security.client.connect_string")
-    
+    count=$(echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -list 2> /dev/null \
+        | grep -c "oracle.security.client.connect_string")
+
     oradba_log DEBUG "Found ${count} connect string entries in wallet."
-    
+
     if [[ ${count} -eq 0 ]]; then
         oradba_log ERROR "No connect strings found in wallet."
         exit 1
@@ -172,20 +172,20 @@ search_wallet() {
     for i in $(seq 1 "${count}"); do
         local alias
         alias=$(get_entry "oracle.security.client.connect_string${i}")
-        
+
         if [[ "${alias,,}" == "${connect_string_lower}" ]]; then
             should_log INFO && oradba_log INFO "Found connect string '${CONNECT_STRING}' in wallet."
-            
+
             # Check mode - just verify existence
             if [[ "${CHECK}" == "true" ]]; then
                 should_log INFO && oradba_log INFO "Password exists for connect string '${CONNECT_STRING}'."
                 return 0
             fi
-            
+
             # Retrieve password
             local password
             password=$(get_entry "oracle.security.client.password${i}")
-            
+
             # Output based on mode
             if [[ "${QUIET}" == "true" ]]; then
                 echo "${password}"

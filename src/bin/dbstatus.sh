@@ -40,7 +40,7 @@ VERSION="0.1.0"
 
 # Display usage
 usage() {
-    cat <<EOF
+    cat << EOF
 Usage: $SCRIPT_NAME [OPTIONS]
 
 Display Oracle database status information including instance state, uptime,
@@ -73,21 +73,21 @@ version() {
 # Main script
 main() {
     local ORACLE_SID_PARAM=""
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -h|--help)
+            -h | --help)
                 usage
                 ;;
-            -v|--version)
+            -v | --version)
                 version
                 ;;
-            -d|--debug)
+            -d | --debug)
                 set -x
                 shift
                 ;;
-            -s|--sid)
+            -s | --sid)
                 ORACLE_SID_PARAM="$2"
                 shift 2
                 ;;
@@ -97,27 +97,27 @@ main() {
                 ;;
         esac
     done
-    
+
     # If SID parameter provided, set ORACLE_SID
     if [[ -n "$ORACLE_SID_PARAM" ]]; then
         export ORACLE_SID="$ORACLE_SID_PARAM"
         log_info "Using ORACLE_SID: $ORACLE_SID"
     fi
-    
+
     # Check required environment
     if [[ -z "$ORACLE_HOME" ]]; then
         log_error "ORACLE_HOME is not set"
         exit 1
     fi
-    
+
     if [[ -z "$ORACLE_SID" ]]; then
         log_error "ORACLE_SID is not set. Use --sid option or set environment variable."
         exit 1
     fi
-    
+
     # Display database status
     show_database_status
-    
+
     return $?
 }
 

@@ -32,7 +32,7 @@ if [[ -f "$VERSION_FILE" ]]; then
     SCRIPT_VERSION="$(head -1 "$VERSION_FILE" | tr -d '[:space:]')"
 else
     # shellcheck disable=SC2034  # Used in usage() function
-    SCRIPT_VERSION="0.14.1"  # Fallback version for standalone distribution
+    SCRIPT_VERSION="0.14.1" # Fallback version for standalone distribution
 fi
 
 # Colors for output
@@ -61,7 +61,7 @@ CHECKS_INFO=0
 # Logging functions
 log_pass() {
     ((CHECKS_PASSED++))
-    [[ "$QUIET" == "true" ]] && return  # Don't show passes in quiet mode
+    [[ "$QUIET" == "true" ]] && return # Don't show passes in quiet mode
     echo -e "  ${GREEN}✓${NC} $1"
 }
 
@@ -72,18 +72,18 @@ log_fail() {
 
 log_warn() {
     ((CHECKS_WARNING++))
-    [[ "$QUIET" == "true" ]] && return  # Don't show warnings in quiet mode
+    [[ "$QUIET" == "true" ]] && return # Don't show warnings in quiet mode
     echo -e "  ${YELLOW}⚠${NC} $1"
 }
 
 log_info() {
     ((CHECKS_INFO++))
-    [[ "$QUIET" == "true" ]] && return  # Don't show info in quiet mode
+    [[ "$QUIET" == "true" ]] && return # Don't show info in quiet mode
     echo -e "  ${BLUE}ℹ${NC} $1"
 }
 
 log_header() {
-    [[ "$QUIET" == "true" ]] && return  # Don't show headers in quiet mode
+    [[ "$QUIET" == "true" ]] && return # Don't show headers in quiet mode
     echo ""
     echo -e "${BOLD}$1${NC}"
     echo "$(printf '%.0s-' $(seq 1 ${#1}))"
@@ -152,15 +152,15 @@ QUIET=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -d|--dir)
+        -d | --dir)
             CHECK_DIR="$2"
             shift 2
             ;;
-        -q|--quiet)
+        -q | --quiet)
             QUIET=true
             shift
             ;;
-        -v|--verbose)
+        -v | --verbose)
             VERBOSE=true
             shift
             ;;
@@ -168,7 +168,7 @@ while [[ $# -gt 0 ]]; do
             echo "OraDBA System Check v${SCRIPT_VERSION}"
             exit 0
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         *)
@@ -183,11 +183,11 @@ done
 if [[ "$QUIET" != "true" ]]; then
     # Calculate padding for centered version text
     version_text="Version ${SCRIPT_VERSION}"
-    box_width=60  # Inner width of the box
+    box_width=60 # Inner width of the box
     version_length=${#version_text}
-    padding=$(( (box_width - version_length) / 2 ))
+    padding=$(((box_width - version_length) / 2))
     version_line=$(printf "║%*s%s%*s║" $padding "" "$version_text" $((box_width - version_length - padding)) "")
-    
+
     echo ""
     echo -e "${BOLD}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BOLD}║          OraDBA System Prerequisites Check                 ║${NC}"
@@ -200,12 +200,12 @@ fi
 # =============================================================================
 check_system_info() {
     log_header "System Information"
-    
+
     # OS Type
     local os_type
     os_type=$(uname -s)
     log_info "$(printf '%-14s %s' 'OS Type:' "$os_type")"
-    
+
     # OS Version
     if [[ -f /etc/os-release ]]; then
         local os_name
@@ -218,17 +218,17 @@ check_system_info() {
     else
         log_info "$(printf '%-14s %s' 'OS Version:' 'Unable to determine')"
     fi
-    
+
     # Hostname
     local hostname
     hostname=$(hostname)
     log_info "$(printf '%-14s %s' 'Hostname:' "$hostname")"
-    
+
     # Current User
     local current_user
     current_user=$(whoami)
     log_info "$(printf '%-14s %s' 'Current User:' "$current_user")"
-    
+
     # Shell
     log_info "$(printf '%-14s %s' 'Shell:' "$SHELL")"
 }
@@ -238,7 +238,7 @@ check_system_info() {
 # =============================================================================
 check_system_tools() {
     log_header "System Tools"
-    
+
     local tools=(
         "bash:Bash shell"
         "tar:Archive extraction"
@@ -248,14 +248,14 @@ check_system_tools() {
         "find:File search"
         "sort:Sorting utility"
     )
-    
+
     local tools_ok=true
-    
+
     for tool_info in "${tools[@]}"; do
         local tool="${tool_info%%:*}"
         local desc="${tool_info#*:}"
-        
-        if command -v "$tool" >/dev/null 2>&1; then
+
+        if command -v "$tool" > /dev/null 2>&1; then
             if [[ "$VERBOSE" == "true" ]]; then
                 local version
                 version=$($tool --version 2>&1 | head -1 || echo "unknown")
@@ -268,25 +268,25 @@ check_system_tools() {
             tools_ok=false
         fi
     done
-    
+
     # Check for shasum or sha256sum
-    if command -v sha256sum >/dev/null 2>&1; then
+    if command -v sha256sum > /dev/null 2>&1; then
         log_pass "sha256sum - Checksum verification"
-    elif command -v shasum >/dev/null 2>&1; then
+    elif command -v shasum > /dev/null 2>&1; then
         log_pass "shasum - Checksum verification"
     else
         log_fail "sha256sum/shasum missing - Checksum verification"
         tools_ok=false
     fi
-    
+
     # Check for base64 (needed for installer with embedded payload)
-    if command -v base64 >/dev/null 2>&1; then
+    if command -v base64 > /dev/null 2>&1; then
         log_pass "base64 - Payload decoding (installer)"
     else
         log_warn "base64 not found - Required for installer with embedded payload"
         [[ "$VERBOSE" == "true" ]] && log_info "  Note: Not required for tarball installation"
     fi
-    
+
     if [ "$tools_ok" = true ]; then
         return 0
     else
@@ -299,9 +299,9 @@ check_system_tools() {
 # =============================================================================
 check_optional_tools() {
     log_header "Optional Tools"
-    
+
     # rlwrap
-    if command -v rlwrap >/dev/null 2>&1; then
+    if command -v rlwrap > /dev/null 2>&1; then
         local rlwrap_version
         rlwrap_version=$(rlwrap -v 2>&1 | head -1 || echo "unknown")
         log_pass "rlwrap found - Enhanced readline support"
@@ -310,21 +310,21 @@ check_optional_tools() {
         log_warn "rlwrap not found - Install for better CLI experience"
         [[ "$VERBOSE" == "true" ]] && log_info "$(printf '  %-16s %s' 'Install:' 'yum install rlwrap | apt install rlwrap | brew install rlwrap')"
     fi
-    
+
     # less
-    if command -v less >/dev/null 2>&1; then
+    if command -v less > /dev/null 2>&1; then
         log_pass "less - Paging support"
     else
         log_warn "less not found - Some scripts use less for paging"
     fi
-    
+
     # curl/wget
     local download_tool=""
-    if command -v curl >/dev/null 2>&1; then
+    if command -v curl > /dev/null 2>&1; then
         download_tool="curl"
         log_pass "curl - Download support"
     fi
-    if command -v wget >/dev/null 2>&1; then
+    if command -v wget > /dev/null 2>&1; then
         download_tool="${download_tool:+$download_tool, }wget"
         log_pass "wget - Download support"
     fi
@@ -338,25 +338,25 @@ check_optional_tools() {
 # =============================================================================
 check_disk_space() {
     log_header "Disk Space"
-    
+
     local check_dir="$CHECK_DIR"
     local required_mb=100
-    
+
     # Find existing parent directory
     while [[ ! -d "$check_dir" ]] && [[ "$check_dir" != "/" ]]; do
         check_dir="$(dirname "$check_dir")"
     done
-    
+
     log_info "$(printf '%-14s %s' 'Checking:' "$check_dir")"
-    
-    if command -v df >/dev/null 2>&1; then
+
+    if command -v df > /dev/null 2>&1; then
         local available_mb
-        available_mb=$(df -Pm "$check_dir" 2>/dev/null | awk 'NR==2 {print $4}')
-        
+        available_mb=$(df -Pm "$check_dir" 2> /dev/null | awk 'NR==2 {print $4}')
+
         if [[ -n "$available_mb" ]] && [[ "$available_mb" =~ ^[0-9]+$ ]]; then
             log_info "$(printf '%-14s %s' 'Available:' "${available_mb} MB")"
             log_info "$(printf '%-14s %s' 'Required:' "${required_mb} MB")"
-            
+
             if [[ $available_mb -ge $required_mb ]]; then
                 log_pass "Sufficient disk space"
             else
@@ -376,7 +376,7 @@ check_disk_space() {
 # =============================================================================
 check_oracle_environment() {
     log_header "Oracle Environment Variables"
-    
+
     # ORACLE_HOME
     if [[ -n "$ORACLE_HOME" ]]; then
         if [[ -d "$ORACLE_HOME" ]]; then
@@ -387,7 +387,7 @@ check_oracle_environment() {
     else
         log_info "ORACLE_HOME not set (not required for OraDBA installation)"
     fi
-    
+
     # ORACLE_BASE
     if [[ -n "$ORACLE_BASE" ]]; then
         if [[ -d "$ORACLE_BASE" ]]; then
@@ -398,14 +398,14 @@ check_oracle_environment() {
     else
         log_info "ORACLE_BASE not set"
     fi
-    
+
     # ORACLE_SID
     if [[ -n "$ORACLE_SID" ]]; then
         log_pass "ORACLE_SID set: $ORACLE_SID"
     else
         log_info "ORACLE_SID not set"
     fi
-    
+
     # TNS_ADMIN
     if [[ -n "$TNS_ADMIN" ]]; then
         if [[ -d "$TNS_ADMIN" ]]; then
@@ -416,8 +416,8 @@ check_oracle_environment() {
     else
         log_info "TNS_ADMIN not set"
     fi
-    
-    return 0  # Environment variables are informational
+
+    return 0 # Environment variables are informational
 }
 
 # =============================================================================
@@ -425,24 +425,24 @@ check_oracle_environment() {
 # =============================================================================
 check_oracle_tools() {
     log_header "Oracle Tools"
-    
+
     if [[ -z "$ORACLE_HOME" ]]; then
         log_info "ORACLE_HOME not set - skipping Oracle tools check"
         return 0
     fi
-    
+
     local tools=(
         "sqlplus:SQL*Plus"
         "rman:Recovery Manager"
         "lsnrctl:Listener Control"
         "tnsping:TNS Ping"
     )
-    
+
     for tool_info in "${tools[@]}"; do
         local tool="${tool_info%%:*}"
         local desc="${tool_info#*:}"
-        
-        if command -v "$tool" >/dev/null 2>&1; then
+
+        if command -v "$tool" > /dev/null 2>&1; then
             local tool_path
             tool_path=$(command -v "$tool")
             log_pass "$tool - $desc"
@@ -458,30 +458,30 @@ check_oracle_tools() {
 # =============================================================================
 check_database_connectivity() {
     log_header "Database Connectivity"
-    
+
     if [[ -z "$ORACLE_HOME" ]] || [[ -z "$ORACLE_SID" ]]; then
         log_info "ORACLE_HOME or ORACLE_SID not set - skipping connectivity check"
         return 0
     fi
-    
-    if ! command -v sqlplus >/dev/null 2>&1; then
+
+    if ! command -v sqlplus > /dev/null 2>&1; then
         log_info "sqlplus not found - skipping connectivity check"
         return 0
     fi
-    
+
     # Check if database process is running
-    if pgrep -f "ora_pmon_${ORACLE_SID}" >/dev/null 2>&1 || \
-       pgrep -f "db_pmon_${ORACLE_SID}" >/dev/null 2>&1; then
+    if pgrep -f "ora_pmon_${ORACLE_SID}" > /dev/null 2>&1 \
+        || pgrep -f "db_pmon_${ORACLE_SID}" > /dev/null 2>&1; then
         log_pass "Database process found for $ORACLE_SID"
-        
+
         # Try to connect
         if timeout 5 sqlplus -S / as sysdba <<< "SELECT 'CONNECTION_OK' FROM DUAL;" 2>&1 | grep -q "CONNECTION_OK"; then
             log_pass "Database connection successful"
-            
+
             # Get database version
             if [[ "$VERBOSE" == "true" ]]; then
                 local db_version
-                db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2>/dev/null | grep "Oracle")
+                db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2> /dev/null | grep "Oracle")
                 [[ -n "$db_version" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$db_version")"
             fi
         else
@@ -497,7 +497,7 @@ check_database_connectivity() {
 # =============================================================================
 check_oracle_versions() {
     log_header "Oracle Versions"
-    
+
     # Check for oraInst.loc to find Oracle Inventory
     local inventory_loc=""
     if [[ -f /etc/oraInst.loc ]]; then
@@ -505,10 +505,10 @@ check_oracle_versions() {
     elif [[ -f /var/opt/oracle/oraInst.loc ]]; then
         inventory_loc=$(grep "^inventory_loc=" /var/opt/oracle/oraInst.loc | cut -d'=' -f2)
     fi
-    
+
     if [[ -n "$inventory_loc" ]] && [[ -f "$inventory_loc/ContentsXML/inventory.xml" ]]; then
         log_info "$(printf '%-18s %s' 'Oracle Inventory:' "$inventory_loc")"
-        
+
         # Parse inventory.xml for Oracle Homes
         local homes_found=0
         while IFS= read -r line; do
@@ -517,30 +517,30 @@ check_oracle_versions() {
                 if [[ -d "$home" ]]; then
                     ((homes_found++))
                     log_info "$(printf '%-18s %s' "Oracle Home $homes_found:" "$home")"
-                    
+
                     # Get version if possible
                     if [[ -f "$home/bin/sqlplus" ]] && [[ "$VERBOSE" == "true" ]]; then
                         local version
-                        version=$("$home/bin/sqlplus" -version 2>/dev/null | grep "^SQL" | awk '{print $3}')
+                        version=$("$home/bin/sqlplus" -version 2> /dev/null | grep "^SQL" | awk '{print $3}')
                         [[ -n "$version" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$version")"
                     fi
                 fi
             fi
         done < "$inventory_loc/ContentsXML/inventory.xml"
-        
+
         if [[ $homes_found -eq 0 ]]; then
             log_info "No Oracle Homes found in inventory"
         fi
     else
         log_info "Oracle Inventory not found"
-        
+
         # Fallback: Check common locations
         local common_locs=(
             "/u01/app/oracle/product"
             "/opt/oracle/product"
             "$HOME/oracle/product"
         )
-        
+
         for loc in "${common_locs[@]}"; do
             if [[ -d "$loc" ]]; then
                 log_info "$(printf '%-18s %s' 'Found directory:' "$loc")"
@@ -559,14 +559,14 @@ check_oracle_versions() {
 # =============================================================================
 check_oradba_installation() {
     log_header "OraDBA Installation"
-    
+
     if [[ -d "$CHECK_DIR" ]]; then
         log_pass "OraDBA directory exists: $CHECK_DIR"
-        
+
         # Check for .install_info
         if [[ -f "$CHECK_DIR/.install_info" ]]; then
             log_pass ".install_info found"
-            
+
             if [[ "$VERBOSE" == "true" ]]; then
                 while IFS='=' read -r key value; do
                     [[ "$key" =~ ^#.*$ ]] && continue
@@ -577,11 +577,11 @@ check_oradba_installation() {
         else
             log_warn ".install_info not found - may not be installed via installer"
         fi
-        
+
         # Check for key directories
         local dirs=("bin" "lib" "sql" "etc")
         local missing_dirs=()
-        
+
         for dir in "${dirs[@]}"; do
             if [[ -d "$CHECK_DIR/$dir" ]]; then
                 log_pass "$dir/ directory exists"
@@ -590,7 +590,7 @@ check_oradba_installation() {
                 missing_dirs+=("$dir")
             fi
         done
-        
+
         if [[ ${#missing_dirs[@]} -gt 0 ]]; then
             log_warn "Incomplete installation - missing directories: ${missing_dirs[*]}"
         fi

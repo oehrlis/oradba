@@ -54,7 +54,7 @@ check_root() {
 
 # Check if oracle user exists
 check_oracle_user() {
-    if ! id "${ORACLE_USER}" >/dev/null 2>&1; then
+    if ! id "${ORACLE_USER}" > /dev/null 2>&1; then
         log_message "ERROR" "User ${ORACLE_USER} does not exist"
         exit 1
     fi
@@ -66,7 +66,7 @@ check_services_script() {
         log_message "ERROR" "Services script not found: ${SERVICES_SCRIPT}"
         exit 1
     fi
-    
+
     if [[ ! -x "${SERVICES_SCRIPT}" ]]; then
         log_message "ERROR" "Services script is not executable: ${SERVICES_SCRIPT}"
         exit 1
@@ -76,14 +76,14 @@ check_services_script() {
 # Execute command as oracle user
 run_as_oracle() {
     local action="$1"
-    
+
     log_message "INFO" "Executing ${action} as user ${ORACLE_USER}"
-    
+
     # Execute services script as oracle user
     su - "${ORACLE_USER}" -c "${SERVICES_SCRIPT} ${action} --force"
-    
+
     local rc=$?
-    
+
     if [[ ${rc} -eq 0 ]]; then
         log_message "INFO" "Command completed successfully"
         return 0
@@ -142,11 +142,11 @@ fi
 ACTION="$1"
 
 case "${ACTION}" in
-    start|stop|restart|status) ;;
-    -h|--help) usage ;;
-    *) 
+    start | stop | restart | status) ;;
+    -h | --help) usage ;;
+    *)
         echo "Unknown action: ${ACTION}"
-        usage 
+        usage
         ;;
 esac
 

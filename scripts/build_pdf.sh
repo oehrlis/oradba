@@ -42,15 +42,15 @@ log_error() {
 # Check dependencies
 check_dependencies() {
     local missing=()
-    
-    if ! command -v pandoc >/dev/null 2>&1; then
+
+    if ! command -v pandoc > /dev/null 2>&1; then
         missing+=("pandoc")
     fi
-    
-    if ! command -v yq >/dev/null 2>&1; then
+
+    if ! command -v yq > /dev/null 2>&1; then
         log_warn "yq not found, using python yaml parser instead"
     fi
-    
+
     if [[ ${#missing[@]} -gt 0 ]]; then
         log_error "Missing required dependencies: ${missing[*]}"
         log_info "Install with: brew install pandoc yq"
@@ -61,10 +61,10 @@ check_dependencies() {
 # Extract file list from mkdocs.yml nav structure
 extract_nav_files() {
     log_info "Extracting file list from mkdocs.yml navigation..."
-    
+
     # Try Python with PyYAML first
-    if command -v python3 >/dev/null 2>&1; then
-        python3 <<'EOF' 2>/dev/null && return 0
+    if command -v python3 > /dev/null 2>&1; then
+        python3 << 'EOF' 2> /dev/null && return 0
 import yaml
 import sys
 
@@ -91,22 +91,22 @@ except Exception as e:
     sys.exit(1)
 EOF
     fi
-    
+
     # Fallback: simple grep-based extraction
     log_warn "PyYAML not available, using grep-based extraction"
-    grep -A 100 "^nav:" "${MKDOCS_CONFIG}" | \
-        grep "\.md$" | \
-        sed -E 's/.*: //' | \
-        tr -d ' "'
+    grep -A 100 "^nav:" "${MKDOCS_CONFIG}" \
+        | grep "\.md$" \
+        | sed -E 's/.*: //' \
+        | tr -d ' "'
 }
 
 # Build PDF
 build_pdf() {
     log_info "Building PDF documentation..."
-    
+
     # Create build directory
     mkdir -p "${BUILD_DIR}"
-    
+
     # Get ordered file list
     local files=()
     while IFS= read -r file; do
@@ -116,14 +116,14 @@ build_pdf() {
             log_warn "File not found: ${file}"
         fi
     done < <(extract_nav_files)
-    
+
     if [[ ${#files[@]} -eq 0 ]]; then
         log_error "No markdown files found"
         exit 1
     fi
-    
+
     log_info "Found ${#files[@]} files to process"
-    
+
     # Build pandoc command
     local pandoc_opts=(
         --from=markdown
@@ -142,18 +142,18 @@ build_pdf() {
         -V urlcolor=blue
         -V toccolor=black
     )
-    
+
     # Add metadata if VERSION file exists
     if [[ -f "${PROJECT_ROOT}/VERSION" ]]; then
         local version
         version=$(cat "${PROJECT_ROOT}/VERSION")
         pandoc_opts+=(-V "version=${version}")
     fi
-    
+
     # Execute pandoc
     log_info "Running pandoc..."
     pandoc "${pandoc_opts[@]}" "${files[@]}"
-    
+
     if [[ -f "${OUTPUT_PDF}" ]]; then
         local size
         size=$(du -h "${OUTPUT_PDF}" | cut -f1)
@@ -168,12 +168,12 @@ build_pdf() {
 main() {
     log_info "OraDBA Documentation PDF Builder"
     log_info "================================"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     check_dependencies
     build_pdf
-    
+
     log_info "Done!"
 }
 

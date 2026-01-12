@@ -74,13 +74,13 @@ show_alias_help() {
     echo -e "${COLOR_BOLD}OraDBA Aliases${COLOR_RESET}\n"
     echo "Quick alias reference (comprehensive list):"
     echo ""
-    
+
     if [[ -f "${ORADBA_PREFIX}/doc/alias_help.txt" ]]; then
         cat "${ORADBA_PREFIX}/doc/alias_help.txt"
     else
         echo "Alias help file not found."
     fi
-    
+
     echo -e "\n${COLOR_BLUE}For detailed alias documentation:${COLOR_RESET}"
     echo "  Online: https://oehrlis.github.io/oradba/06-aliases/"
     echo "  Command: alih"
@@ -92,7 +92,7 @@ show_scripts_help() {
     echo -e "${COLOR_BOLD}OraDBA Scripts${COLOR_RESET}\n"
     echo "Available scripts in ${ORADBA_BIN_DIR:-${ORADBA_PREFIX}/bin}:"
     echo ""
-    
+
     local bin_dir="${ORADBA_BIN_DIR:-${ORADBA_PREFIX}/bin}"
     if [[ -d "$bin_dir" ]]; then
         echo "Core Scripts:"
@@ -107,7 +107,7 @@ show_scripts_help() {
             fi
         done
     fi
-    
+
     echo ""
     echo -e "${COLOR_BLUE}Usage:${COLOR_RESET}"
     echo "  script.sh --help    # Show detailed help for any script"
@@ -125,12 +125,12 @@ show_variables_help() {
     echo -e "${COLOR_BOLD}OraDBA Environment Variables${COLOR_RESET}\n"
     echo "Currently set variables:"
     echo ""
-    
+
     echo -e "${COLOR_GREEN}OraDBA Variables:${COLOR_RESET}"
     env | grep "^ORADBA_" | sort | while IFS= read -r line; do
         echo "  $line"
     done
-    
+
     echo ""
     echo -e "${COLOR_GREEN}Oracle Variables:${COLOR_RESET}"
     for var in ORACLE_SID ORACLE_HOME ORACLE_BASE TNS_ADMIN NLS_LANG; do
@@ -138,7 +138,7 @@ show_variables_help() {
             echo "  $var=${!var}"
         fi
     done
-    
+
     echo ""
     echo -e "${COLOR_BLUE}Key Variables:${COLOR_RESET}"
     echo "  ORADBA_PREFIX        Installation directory"
@@ -156,7 +156,7 @@ show_config_help() {
     echo -e "${COLOR_BOLD}OraDBA Configuration System${COLOR_RESET}\n"
     echo "Configuration files (loaded in order, later overrides earlier):"
     echo ""
-    
+
     local etc_dir="${ORADBA_ETC:-${ORADBA_PREFIX}/etc}"
     local config_files=(
         "oradba_core.conf:Core system settings"
@@ -165,7 +165,7 @@ show_config_help() {
         "sid._DEFAULT_.conf:Default SID settings (optional)"
         "sid.${ORACLE_SID}.conf:Current SID settings (optional)"
     )
-    
+
     for entry in "${config_files[@]}"; do
         IFS=':' read -r file desc <<< "$entry"
         local full_path="${etc_dir}/${file}"
@@ -175,7 +175,7 @@ show_config_help() {
             printf "  ${COLOR_YELLOW}○${COLOR_RESET} %-30s %s\n" "$file" "$desc"
         fi
     done
-    
+
     echo ""
     echo -e "${COLOR_BLUE}Edit configuration:${COLOR_RESET}"
     echo "  vic    # Edit customer config"
@@ -211,12 +211,12 @@ show_online_help() {
     echo ""
     echo "URL: $url"
     echo ""
-    
+
     # Try to open in browser
-    if command -v open >/dev/null 2>&1; then
+    if command -v open > /dev/null 2>&1; then
         open "$url"
         echo "Documentation opened in your default browser."
-    elif command -v xdg-open >/dev/null 2>&1; then
+    elif command -v xdg-open > /dev/null 2>&1; then
         xdg-open "$url"
         echo "Documentation opened in your default browser."
     else
@@ -228,35 +228,35 @@ show_online_help() {
 main() {
     # Handle 'oradba help <topic>' and 'oradba <topic>' formats
     local topic="${1:-}"
-    
+
     # If first arg is 'help', shift to get actual topic
     if [[ "$topic" == "help" ]]; then
         topic="${2:-}"
     fi
-    
+
     case "$topic" in
         "")
             show_main_help
             ;;
-        aliases|alias)
+        aliases | alias)
             show_alias_help
             ;;
-        scripts|script)
+        scripts | script)
             show_scripts_help
             ;;
-        variables|vars|var|env)
+        variables | vars | var | env)
             show_variables_help
             ;;
-        config|configuration|conf)
+        config | configuration | conf)
             show_config_help
             ;;
         sql)
             show_sql_help
             ;;
-        online|docs|web)
+        online | docs | web)
             show_online_help
             ;;
-        -h|--help|help)
+        -h | --help | help)
             show_main_help
             ;;
         *)

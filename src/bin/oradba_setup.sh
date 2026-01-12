@@ -82,16 +82,16 @@ cmd_link_oratab() {
     local force_mode="${1:-false}"
     local temp_oratab="${ORADBA_BASE}/etc/oratab"
     local system_oratab="/etc/oratab"
-    
+
     oradba_log INFO "Linking system oratab..."
-    
+
     # Check if system oratab exists
     if [[ ! -f "$system_oratab" ]]; then
         oradba_log ERROR "System oratab not found: $system_oratab"
         oradba_log INFO "Oracle may not be installed yet"
         return 1
     fi
-    
+
     # Check if temp oratab location exists
     if [[ ! -e "$temp_oratab" ]]; then
         oradba_log WARN "No oratab found at: $temp_oratab"
@@ -104,7 +104,7 @@ cmd_link_oratab() {
             return 1
         fi
     fi
-    
+
     # Check if it's already a symlink to the correct location
     if [[ -L "$temp_oratab" ]]; then
         local link_target
@@ -131,11 +131,11 @@ cmd_link_oratab() {
             fi
         fi
     fi
-    
+
     # It's a regular file (temp oratab)
     if [[ -f "$temp_oratab" ]]; then
         oradba_log INFO "Found temporary oratab file"
-        
+
         # Backup temp oratab
         local backup_file
         backup_file="${temp_oratab}.backup.$(date +%Y%m%d_%H%M%S)"
@@ -144,9 +144,9 @@ cmd_link_oratab() {
             oradba_log ERROR "Failed to create backup"
             return 1
         fi
-        
+
         # Check if temp oratab has custom entries
-        if grep -qv "^#" "$temp_oratab" 2>/dev/null; then
+        if grep -qv "^#" "$temp_oratab" 2> /dev/null; then
             oradba_log WARN "Temporary oratab contains database entries:"
             grep -v "^#" "$temp_oratab" | grep -v "^[[:space:]]*$" | while read -r line; do
                 oradba_log WARN "  $line"
@@ -154,7 +154,7 @@ cmd_link_oratab() {
             oradba_log INFO "These entries are backed up in: $backup_file"
             oradba_log INFO "You may need to manually add them to $system_oratab"
         fi
-        
+
         # Remove temp oratab and create symlink
         if [[ "$force_mode" == "true" ]] || [[ ! -s "$temp_oratab" ]] || grep -q "^dummy:" "$temp_oratab"; then
             rm -f "$temp_oratab"
@@ -175,7 +175,7 @@ cmd_link_oratab() {
             return 1
         fi
     fi
-    
+
     oradba_log ERROR "Unexpected state for: $temp_oratab"
     return 1
 }
@@ -185,13 +185,13 @@ cmd_link_oratab() {
 # ------------------------------------------------------------------------------
 cmd_check() {
     local exit_code=0
-    
+
     echo ""
     echo "==================================================================="
     echo "OraDBA Installation Check"
     echo "==================================================================="
     echo ""
-    
+
     # Check ORADBA_BASE
     echo "Installation Location:"
     if [[ -d "$ORADBA_BASE" ]]; then
@@ -201,7 +201,7 @@ cmd_check() {
         exit_code=1
     fi
     echo ""
-    
+
     # Check core directories
     echo "Core Directories:"
     for dir in bin lib etc sql templates; do
@@ -213,7 +213,7 @@ cmd_check() {
         fi
     done
     echo ""
-    
+
     # Check key scripts
     echo "Key Scripts:"
     for script in oradba_install.sh oraenv.sh oraup.sh oradba_extension.sh; do
@@ -225,7 +225,7 @@ cmd_check() {
         fi
     done
     echo ""
-    
+
     # Check oratab
     echo "oratab Configuration:"
     local oratab_path
@@ -237,7 +237,7 @@ cmd_check() {
             link_target=$(readlink "$oratab_path")
             echo "    (symlink to: $link_target)"
         fi
-        
+
         # Count database entries
         local db_count
         db_count=$(grep -v "^#" "$oratab_path" | grep -v "^[[:space:]]*$" | grep -vc "^dummy:")
@@ -251,7 +251,7 @@ cmd_check() {
         exit_code=1
     fi
     echo ""
-    
+
     # Check Oracle environment
     echo "Oracle Environment:"
     if [[ -n "${ORACLE_HOME:-}" ]]; then
@@ -259,31 +259,31 @@ cmd_check() {
     else
         echo "  ⚠ ORACLE_HOME not set"
     fi
-    
+
     if [[ -n "${ORACLE_BASE:-}" ]]; then
         echo "  ✓ ORACLE_BASE: $ORACLE_BASE"
     else
         echo "  ⚠ ORACLE_BASE not set"
     fi
-    
+
     if [[ -n "${ORACLE_SID:-}" ]]; then
         echo "  ✓ ORACLE_SID: $ORACLE_SID"
     else
         echo "  ⚠ ORACLE_SID not set"
     fi
     echo ""
-    
+
     # Check extensions
     if [[ -d "${ORADBA_BASE}/extensions" ]]; then
         echo "Extensions:"
         local ext_count
-        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2> /dev/null | wc -l | tr -d ' ')
         if [[ $ext_count -gt 0 ]]; then
             echo "  ✓ Installed extensions: $ext_count"
             find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | while read -r ext; do
                 if [[ -f "${ORADBA_BASE}/extensions/${ext}/.extension" ]]; then
                     local enabled
-                    enabled=$(grep -q "^enabled=true" "${ORADBA_BASE}/extensions/${ext}/.extension" 2>/dev/null && echo "enabled" || echo "disabled")
+                    enabled=$(grep -q "^enabled=true" "${ORADBA_BASE}/extensions/${ext}/.extension" 2> /dev/null && echo "enabled" || echo "disabled")
                     echo "    - ${ext} (${enabled})"
                 fi
             done
@@ -292,7 +292,7 @@ cmd_check() {
         fi
         echo ""
     fi
-    
+
     # Summary
     echo "==================================================================="
     if [[ $exit_code -eq 0 ]]; then
@@ -302,7 +302,7 @@ cmd_check() {
     fi
     echo "==================================================================="
     echo ""
-    
+
     return $exit_code
 }
 
@@ -315,19 +315,19 @@ cmd_show_config() {
     echo "OraDBA Configuration"
     echo "==================================================================="
     echo ""
-    
+
     echo "Installation:"
     echo "  ORADBA_BASE:       ${ORADBA_BASE}"
     echo "  ORADBA_PREFIX:     ${ORADBA_PREFIX:-$ORADBA_BASE}"
-    echo "  Version:           $(cat "${ORADBA_BASE}/VERSION" 2>/dev/null || echo "unknown")"
+    echo "  Version:           $(cat "${ORADBA_BASE}/VERSION" 2> /dev/null || echo "unknown")"
     echo ""
-    
+
     echo "Configuration Files:"
     echo "  Core config:       ${ORADBA_BASE}/etc/oradba_core.conf"
     echo "  Local config:      ${ORADBA_BASE}/etc/oradba_local.conf"
     [[ -n "${ORACLE_SID:-}" ]] && echo "  SID config:        ${ORADBA_BASE}/etc/sid.${ORACLE_SID}.conf"
     echo ""
-    
+
     echo "oratab:"
     local oratab_path
     oratab_path=$(get_oratab_path)
@@ -340,32 +340,32 @@ cmd_show_config() {
     else
         echo "  Type:              not found"
     fi
-    
+
     # Priority override
     [[ -n "${ORADBA_ORATAB:-}" ]] && echo "  Override:          $ORADBA_ORATAB"
     echo ""
-    
+
     echo "Oracle Environment:"
     echo "  ORACLE_BASE:       ${ORACLE_BASE:-<not set>}"
     echo "  ORACLE_HOME:       ${ORACLE_HOME:-<not set>}"
     echo "  ORACLE_SID:        ${ORACLE_SID:-<not set>}"
     echo "  TNS_ADMIN:         ${TNS_ADMIN:-<not set>}"
     echo ""
-    
+
     echo "Extensions:"
     echo "  Auto-discover:     ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-false}"
     if [[ -d "${ORADBA_BASE}/extensions" ]]; then
         local ext_count
-        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2> /dev/null | wc -l | tr -d ' ')
         echo "  Installed:         $ext_count"
     fi
     echo ""
-    
+
     echo "Logging:"
     echo "  Log level:         ${ORADBA_LOG_LEVEL:-INFO}"
     echo "  Log directory:     ${ORADBA_LOG_DIR:-<not set>}"
     echo ""
-    
+
     echo "==================================================================="
     echo ""
 }
@@ -376,23 +376,23 @@ cmd_show_config() {
 main() {
     local command=""
     local force_mode=false
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            link-oratab|check|show-config|help)
+            link-oratab | check | show-config | help)
                 command="$1"
                 shift
                 ;;
-            -f|--force)
+            -f | --force)
                 force_mode=true
                 shift
                 ;;
-            -v|--verbose)
+            -v | --verbose)
                 export ORADBA_LOG_LEVEL="DEBUG"
                 shift
                 ;;
-            -h|--help)
+            -h | --help)
                 usage
                 exit 0
                 ;;
@@ -403,13 +403,13 @@ main() {
                 ;;
         esac
     done
-    
+
     # Default to help if no command
     if [[ -z "$command" ]]; then
         usage
         exit 0
     fi
-    
+
     # Execute command
     case "$command" in
         link-oratab)

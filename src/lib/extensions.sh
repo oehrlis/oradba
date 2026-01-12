@@ -29,28 +29,28 @@
 discover_extensions() {
     local base_dir="${ORADBA_LOCAL_BASE}"
     local extensions=()
-    
+
     if [[ ! -d "${base_dir}" ]]; then
         oradba_log DEBUG "Extension base directory not found: ${base_dir}"
         return 0
     fi
-    
+
     oradba_log DEBUG "Scanning for extensions in: ${base_dir}"
-    
+
     # Find directories with .extension marker
     for dir in "${base_dir}"/*; do
         # Skip if not a directory
         [[ ! -d "${dir}" ]] && continue
-        
+
         local dir_name
         dir_name="$(basename "${dir}")"
-        
+
         # Skip oradba itself (the main OraDBA installation)
         if [[ "${dir_name}" == "oradba" ]] || [[ "${dir}" == "${ORADBA_BASE}" ]]; then
             oradba_log DEBUG "Skipping main OraDBA directory: ${dir_name}"
             continue
         fi
-        
+
         # Check for .extension marker file
         if [[ -f "${dir}/.extension" ]]; then
             extensions+=("${dir}")
@@ -61,7 +61,7 @@ discover_extensions() {
             oradba_log DEBUG "Found extension without metadata: ${dir_name}"
         fi
     done
-    
+
     # Output one per line (only if array is not empty)
     if [[ ${#extensions[@]} -gt 0 ]]; then
         printf "%s\n" "${extensions[@]}"
@@ -72,14 +72,14 @@ discover_extensions() {
 # Returns: List of extension paths (one per line)
 get_all_extensions() {
     local extensions=()
-    
+
     # Auto-discover extensions if enabled
     if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]]; then
         while IFS= read -r ext; do
             [[ -n "${ext}" ]] && extensions+=("${ext}")
         done < <(discover_extensions)
     fi
-    
+
     # Add manually configured extensions
     if [[ -n "${ORADBA_EXTENSION_PATHS}" ]]; then
         IFS=':' read -ra manual_exts <<< "${ORADBA_EXTENSION_PATHS}"
@@ -87,7 +87,7 @@ get_all_extensions() {
             [[ -n "${ext}" ]] && [[ -d "${ext}" ]] && extensions+=("${ext}")
         done
     fi
-    
+
     # Remove duplicates while preserving order (only if array is not empty)
     if [[ ${#extensions[@]} -gt 0 ]]; then
         printf "%s\n" "${extensions[@]}" | awk '!seen[$0]++'
@@ -116,7 +116,7 @@ get_extension_property() {
     local check_config="${4:-false}"
     local metadata="${ext_path}/.extension"
     local value=""
-    
+
     # Check config override first (if requested)
     if [[ "${check_config}" == "true" ]]; then
         local ext_name
@@ -124,17 +124,17 @@ get_extension_property() {
         local config_var="ORADBA_EXT_${ext_name^^}_${property^^}"
         value="${!config_var}"
     fi
-    
+
     # Fall back to metadata file
     if [[ -z "${value}" ]] && [[ -f "${metadata}" ]]; then
         value=$(parse_extension_metadata "${metadata}" "${property}")
     fi
-    
+
     # Use fallback if still empty
     if [[ -z "${value}" ]]; then
         value="${fallback}"
     fi
-    
+
     echo "${value}"
 }
 
@@ -144,16 +144,16 @@ get_extension_property() {
 parse_extension_metadata() {
     local metadata_file="$1"
     local key="$2"
-    
+
     if [[ ! -f "${metadata_file}" ]]; then
         return 1
     fi
-    
+
     # Simple key-value parser for YAML-like format
     # Handles: "key: value" or "key:value"
     local value
-    value=$(grep "^${key}:" "${metadata_file}" 2>/dev/null | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    
+    value=$(grep "^${key}:" "${metadata_file}" 2> /dev/null | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
     echo "${value}"
 }
 
@@ -211,15 +211,15 @@ extension_provides() {
     local type="$2"
     local metadata="${ext_path}/.extension"
     local provides
-    
+
     # Check metadata first
     if [[ -f "${metadata}" ]]; then
-        provides=$(parse_extension_metadata "${metadata}" "provides.${type}" 2>/dev/null)
+        provides=$(parse_extension_metadata "${metadata}" "provides.${type}" 2> /dev/null)
         if [[ -n "${provides}" ]]; then
             [[ "${provides}" == "true" ]] && return 0 || return 1
         fi
     fi
-    
+
     # Fall back to checking directory existence
     [[ -d "${ext_path}/${type}" ]]
 }
@@ -235,14 +235,14 @@ sort_extensions_by_priority() {
     local extensions=("$@")
     local priorities=()
     local ext priority name
-    
+
     # Build array of "priority:name:path" for stable sorting
     for ext in "${extensions[@]}"; do
         priority=$(get_extension_priority "${ext}")
         name="$(basename "${ext}")"
         priorities+=("${priority}:${name}:${ext}")
     done
-    
+
     # Sort numerically by priority (descending), then alphabetically by name (ascending)
     # We reverse priority order because extensions are prepended to PATH
     # So lower priority (50) loads first, higher priority (10) loads last and ends up first in PATH
@@ -269,7 +269,7 @@ remove_extension_paths() {
             cleaned_path="${cleaned_path:+${cleaned_path}:}${part}"
         done
         export PATH="${cleaned_path}"
-        
+
         # Remove extension paths from SQLPATH (except oradba itself)
         if [[ -n "${SQLPATH}" ]]; then
             local cleaned_sqlpath=""
@@ -292,12 +292,12 @@ remove_extension_paths() {
 deduplicate_path() {
     local seen=()
     local new_path=""
-    
+
     IFS=':' read -ra path_parts <<< "${PATH}"
     for part in "${path_parts[@]}"; do
         # Skip empty parts
         [[ -z "${part}" ]] && continue
-        
+
         # Check if already seen
         local found=false
         for seen_part in "${seen[@]}"; do
@@ -306,14 +306,14 @@ deduplicate_path() {
                 break
             fi
         done
-        
+
         # Add if not seen
         if [[ "${found}" == "false" ]]; then
             seen+=("${part}")
             new_path="${new_path:+${new_path}:}${part}"
         fi
     done
-    
+
     export PATH="${new_path}"
 }
 
@@ -321,15 +321,15 @@ deduplicate_path() {
 # Usage: deduplicate_sqlpath
 deduplicate_sqlpath() {
     [[ -z "${SQLPATH}" ]] && return 0
-    
+
     local seen=()
     local new_sqlpath=""
-    
+
     IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
     for part in "${sqlpath_parts[@]}"; do
         # Skip empty parts
         [[ -z "${part}" ]] && continue
-        
+
         # Check if already seen
         local found=false
         for seen_part in "${seen[@]}"; do
@@ -338,14 +338,14 @@ deduplicate_sqlpath() {
                 break
             fi
         done
-        
+
         # Add if not seen
         if [[ "${found}" == "false" ]]; then
             seen+=("${part}")
             new_sqlpath="${new_sqlpath:+${new_sqlpath}:}${part}"
         fi
     done
-    
+
     export SQLPATH="${new_sqlpath}"
 }
 
@@ -354,7 +354,7 @@ deduplicate_sqlpath() {
 load_extensions() {
     local extensions=()
     local ext_path
-    
+
     # Save original PATH/SQLPATH on first run
     if [[ -z "${ORADBA_ORIGINAL_PATH}" ]]; then
         export ORADBA_ORIGINAL_PATH="${PATH}"
@@ -364,36 +364,36 @@ load_extensions() {
         export ORADBA_ORIGINAL_SQLPATH="${SQLPATH}"
         oradba_log DEBUG "Saved original SQLPATH"
     fi
-    
+
     # Remove any existing extension paths before re-loading
     oradba_log DEBUG "Cleaning extension paths from PATH/SQLPATH"
     remove_extension_paths
-    
+
     oradba_log DEBUG "Starting extension discovery and loading..."
-    
+
     # Get all extensions (discovered + manual)
     while IFS= read -r ext_path; do
         [[ -n "${ext_path}" ]] && extensions+=("${ext_path}")
     done < <(get_all_extensions)
-    
+
     # Check if any extensions found
     if [[ ${#extensions[@]} -eq 0 ]]; then
         oradba_log DEBUG "No extensions found"
         return 0
     fi
-    
+
     oradba_log DEBUG "Found ${#extensions[@]} extension(s)"
-    
+
     # Sort by priority and load
     while IFS= read -r ext_path; do
         load_extension "${ext_path}"
     done < <(sort_extensions_by_priority "${extensions[@]}")
-    
+
     # Deduplicate PATH and SQLPATH to remove any duplicates
     oradba_log DEBUG "Deduplicating PATH and SQLPATH"
     deduplicate_path
     deduplicate_sqlpath
-    
+
     oradba_log DEBUG "Extension loading complete"
 }
 
@@ -403,59 +403,59 @@ load_extensions() {
 load_extension() {
     local ext_path="$1"
     local ext_name metadata
-    
+
     # Validate path
     if [[ ! -d "${ext_path}" ]]; then
         oradba_log WARN "Extension directory not found: ${ext_path}"
         return 1
     fi
-    
+
     # Get extension name
     ext_name="$(get_extension_name "${ext_path}")"
-    
+
     # Check if disabled via config
     if ! is_extension_enabled "${ext_name}" "${ext_path}"; then
         oradba_log DEBUG "Extension '${ext_name}' is disabled, skipping"
         return 0
     fi
-    
+
     oradba_log DEBUG "Loading extension: ${ext_name} (${ext_path})"
-    
+
     # Add to PATH (bin directory)
     if [[ -d "${ext_path}/bin" ]]; then
         # Add to beginning of PATH (after ORADBA_BIN)
         export PATH="${ext_path}/bin:${PATH}"
         oradba_log DEBUG "  Added ${ext_name}/bin to PATH"
     fi
-    
+
     # Add to SQLPATH (sql directory)
     if [[ -d "${ext_path}/sql" ]]; then
         # Use add_to_sqlpath from common.sh if available, otherwise append
-        if command -v add_to_sqlpath >/dev/null 2>&1; then
+        if command -v add_to_sqlpath > /dev/null 2>&1; then
             add_to_sqlpath "${ext_path}/sql"
         else
             export SQLPATH="${SQLPATH:+${SQLPATH}:}${ext_path}/sql"
         fi
         oradba_log DEBUG "  Added ${ext_name}/sql to SQLPATH"
     fi
-    
+
     # Add RMAN search path (rcv directory)
     if [[ -d "${ext_path}/rcv" ]]; then
         export ORADBA_RCV_PATHS="${ORADBA_RCV_PATHS:+${ORADBA_RCV_PATHS}:}${ext_path}/rcv"
         oradba_log DEBUG "  Added ${ext_name}/rcv to RMAN search paths"
     fi
-    
+
     # Create navigation alias (cd<extname> or cde<extname>)
     create_extension_alias "${ext_name}" "${ext_path}"
-    
+
     # Export extension path variables for reference
     local var_name="ORADBA_EXT_${ext_name^^}_PATH"
     export "${var_name}=${ext_path}"
-    
+
     # Export <EXTENSION>_BASE variable (e.g., USZ_BASE=/opt/oracle/local/usz)
     local base_var="${ext_name^^}_BASE"
     export "${base_var}=${ext_path}"
-    
+
     # Show version if available
     local version
     version=$(get_extension_version "${ext_path}")
@@ -464,7 +464,7 @@ load_extension() {
     else
         oradba_log DEBUG "Loaded extension: ${ext_name}"
     fi
-    
+
     return 0
 }
 
@@ -474,19 +474,19 @@ create_extension_alias() {
     local ext_name="$1"
     local ext_path="$2"
     local alias_name
-    
+
     # Create alias like: cde<name> (cd extension)
     alias_name="cde${ext_name}"
-    
+
     # Use safe_alias if available (respects coexistence mode)
-    if command -v safe_alias >/dev/null 2>&1; then
+    if command -v safe_alias > /dev/null 2>&1; then
         safe_alias "${alias_name}" "cd '${ext_path}'"
     else
         # Fallback: direct alias
         # shellcheck disable=SC2139  # Intentional: expand at definition time
         alias "${alias_name}=cd '${ext_path}'"
     fi
-    
+
     oradba_log DEBUG "  Created alias: ${alias_name}"
 }
 
@@ -499,47 +499,47 @@ create_extension_alias() {
 list_extensions() {
     local verbose=false
     [[ "$1" == "--verbose" ]] && verbose=true
-    
+
     local extensions=()
     local ext_path ext_name version enabled priority
-    
+
     # Get all extensions
     while IFS= read -r ext_path; do
         [[ -n "${ext_path}" ]] && extensions+=("${ext_path}")
     done < <(get_all_extensions)
-    
+
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found"
         return 0
     fi
-    
+
     echo "OraDBA Extensions:"
     echo "=================="
     echo ""
-    
+
     # Sort by priority
     while IFS= read -r ext_path; do
         ext_name="$(get_extension_name "${ext_path}")"
         version=$(get_extension_version "${ext_path}")
         priority=$(get_extension_priority "${ext_path}")
-        
+
         # Check enabled status
         if is_extension_enabled "${ext_name}" "${ext_path}"; then
             enabled="✓ enabled"
         else
             enabled="✗ disabled"
         fi
-        
+
         # Basic info
         printf "%-20s v%-10s [%s] (priority: %s)\n" "${ext_name}" "${version}" "${enabled}" "${priority}"
-        
+
         # Verbose info
         if [[ "${verbose}" == "true" ]]; then
             echo "  Path: ${ext_path}"
             local desc
             desc=$(get_extension_description "${ext_path}")
             [[ -n "${desc}" ]] && echo "  Description: ${desc}"
-            
+
             # Show what it provides
             local provides=()
             [[ -d "${ext_path}/bin" ]] && provides+=("bin")
@@ -547,7 +547,7 @@ list_extensions() {
             [[ -d "${ext_path}/rcv" ]] && provides+=("rcv")
             [[ -d "${ext_path}/etc" ]] && provides+=("etc")
             [[ -d "${ext_path}/lib" ]] && provides+=("lib")
-            
+
             if [[ ${#provides[@]} -gt 0 ]]; then
                 echo "  Provides: ${provides[*]}"
             fi
@@ -561,12 +561,12 @@ list_extensions() {
 show_extension_info() {
     local ext_identifier="$1"
     local ext_path ext_name version desc author priority enabled
-    
+
     if [[ -z "${ext_identifier}" ]]; then
         oradba_log ERROR "Extension name or path required"
         return 1
     fi
-    
+
     # Determine if identifier is a path or name
     if [[ -d "${ext_identifier}" ]]; then
         ext_path="${ext_identifier}"
@@ -579,30 +579,30 @@ show_extension_info() {
             fi
         done < <(get_all_extensions)
     fi
-    
+
     if [[ -z "${ext_path}" ]] || [[ ! -d "${ext_path}" ]]; then
         oradba_log ERROR "Extension not found: ${ext_identifier}"
         return 1
     fi
-    
+
     # Get extension details
     ext_name="$(get_extension_name "${ext_path}")"
     version=$(get_extension_version "${ext_path}")
     desc=$(get_extension_description "${ext_path}")
     priority=$(get_extension_priority "${ext_path}")
-    
+
     # Get author from metadata
     if [[ -f "${ext_path}/.extension" ]]; then
         author=$(parse_extension_metadata "${ext_path}/.extension" "author")
     fi
-    
+
     # Check enabled status
     if is_extension_enabled "${ext_name}" "${ext_path}"; then
         enabled="yes"
     else
         enabled="no"
     fi
-    
+
     # Display information
     echo "Extension Information"
     echo "====================="
@@ -616,7 +616,7 @@ show_extension_info() {
     echo ""
     echo "Path:        ${ext_path}"
     echo ""
-    
+
     # Show directory structure
     echo "Structure:"
     [[ -d "${ext_path}/bin" ]] && echo "  ✓ bin/  (scripts added to PATH)"
@@ -624,7 +624,7 @@ show_extension_info() {
     [[ -d "${ext_path}/rcv" ]] && echo "  ✓ rcv/  (RMAN scripts)"
     [[ -d "${ext_path}/etc" ]] && echo "  ✓ etc/  (configuration examples)"
     [[ -d "${ext_path}/lib" ]] && echo "  ✓ lib/  (library files)"
-    
+
     # Show navigation alias
     echo ""
     echo "Navigation alias: cde${ext_name}"
@@ -641,18 +641,18 @@ validate_extension() {
     local ext_path="$1"
     local warnings=0
     local ext_name
-    
+
     if [[ ! -d "${ext_path}" ]]; then
         echo "ERROR: Directory does not exist: ${ext_path}"
         return 1
     fi
-    
+
     ext_name="$(basename "${ext_path}")"
-    
+
     echo "Validating extension: ${ext_name}"
     echo "Path: ${ext_path}"
     echo ""
-    
+
     # Check for metadata file
     if [[ ! -f "${ext_path}/.extension" ]]; then
         echo "⚠ Warning: No .extension metadata file found"
@@ -660,23 +660,29 @@ validate_extension() {
         ((warnings++))
     else
         echo "✓ Metadata file present"
-        
+
         # Validate metadata content
         local name version
         name=$(parse_extension_metadata "${ext_path}/.extension" "name")
         version=$(parse_extension_metadata "${ext_path}/.extension" "version")
-        
-        [[ -n "${name}" ]] && echo "  Name: ${name}" || { echo "  ⚠ Warning: 'name' not set in metadata"; ((warnings++)); }
-        [[ -n "${version}" ]] && echo "  Version: ${version}" || { echo "  ⚠ Warning: 'version' not set in metadata"; ((warnings++)); }
+
+        [[ -n "${name}" ]] && echo "  Name: ${name}" || {
+            echo "  ⚠ Warning: 'name' not set in metadata"
+            ((warnings++))
+        }
+        [[ -n "${version}" ]] && echo "  Version: ${version}" || {
+            echo "  ⚠ Warning: 'version' not set in metadata"
+            ((warnings++))
+        }
     fi
-    
+
     # Check for at least one content directory
     if [[ ! -d "${ext_path}/bin" ]] && [[ ! -d "${ext_path}/sql" ]] && [[ ! -d "${ext_path}/rcv" ]]; then
         echo "⚠ Warning: No bin/, sql/, or rcv/ directories found"
         echo "  Extension has no content to load"
         ((warnings++))
     fi
-    
+
     # Check directories
     echo ""
     echo "Directories:"
@@ -685,7 +691,7 @@ validate_extension() {
     [[ -d "${ext_path}/rcv" ]] && echo "  ✓ rcv/" || echo "  - rcv/ (not present)"
     [[ -d "${ext_path}/etc" ]] && echo "  ✓ etc/" || echo "  - etc/ (not present)"
     [[ -d "${ext_path}/lib" ]] && echo "  ✓ lib/" || echo "  - lib/ (not present)"
-    
+
     echo ""
     if [[ ${warnings} -eq 0 ]]; then
         echo "✓ Extension structure is valid"

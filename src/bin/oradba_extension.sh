@@ -21,7 +21,7 @@ if [[ -n "${ORADBA_BASE}" ]]; then
     BASE_DIR="${ORADBA_BASE}"
 elif [[ -L "${BASH_SOURCE[0]}" ]]; then
     # Script is symlinked, resolve to actual location
-    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || readlink "${BASH_SOURCE[0]}")"
+    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2> /dev/null || readlink "${BASH_SOURCE[0]}")"
     BASE_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 else
     BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -184,25 +184,25 @@ EOF
 # ------------------------------------------------------------------------------
 validate_extension_name() {
     local name="$1"
-    
+
     # Check if name is empty
     if [[ -z "${name}" ]]; then
         echo "ERROR: Extension name cannot be empty" >&2
         return 1
     fi
-    
+
     # Check for invalid characters (allow alphanumeric, dash, underscore)
     if [[ ! "${name}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
         echo "ERROR: Extension name can only contain letters, numbers, dashes, and underscores" >&2
         return 1
     fi
-    
+
     # Check if name starts with a letter
     if [[ ! "${name}" =~ ^[a-zA-Z] ]]; then
         echo "ERROR: Extension name must start with a letter" >&2
         return 1
     fi
-    
+
     return 0
 }
 
@@ -213,69 +213,69 @@ download_github_release() {
     local output_file="$1"
     local repo="oehrlis/oradba_extension"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
-    
+
     echo "Fetching latest release from GitHub..."
-    
+
     # Get latest release info
     local release_info
     if ! release_info=$(curl -s "${api_url}"); then
         echo "ERROR: Failed to fetch release information from GitHub" >&2
         return 1
     fi
-    
+
     # Extract version tag
     local tag_name
     tag_name=$(echo "${release_info}" | grep -o '"tag_name": "[^"]*"' | head -1 | cut -d'"' -f4)
-    
+
     if [[ -z "${tag_name}" ]]; then
         echo "ERROR: Could not find release tag" >&2
         return 1
     fi
-    
+
     echo "Found latest release: ${tag_name}"
-    
+
     # Extract tarball URL (look for extension-template-*.tar.gz asset)
     local tarball_url
     tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
-    
+
     if [[ -z "${tarball_url}" ]]; then
         # Fallback: look for any .tar.gz asset
         tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
     fi
-    
+
     if [[ -z "${tarball_url}" ]]; then
         # Last fallback: use source tarball_url from release
         tarball_url=$(echo "${release_info}" | grep -o '"tarball_url": "[^"]*"' | head -1 | cut -d'"' -f4)
     fi
-    
+
     if [[ -z "${tarball_url}" ]]; then
         echo "ERROR: Could not find release tarball URL" >&2
         return 1
     fi
-    
+
     echo "Downloading from: ${tarball_url}"
-    
+
     # Download tarball with progress
     if ! curl -L -f -o "${output_file}" "${tarball_url}"; then
         echo "ERROR: Failed to download release tarball" >&2
         return 1
     fi
-    
+
     # Verify download
     if [[ ! -s "${output_file}" ]]; then
         echo "ERROR: Downloaded file is empty" >&2
         return 1
     fi
-    
+
     # Verify it's a valid gzip file
     if ! file "${output_file}" | grep -q "gzip compressed"; then
         echo "ERROR: Downloaded file is not a valid gzip archive" >&2
         echo "File type: $(file "${output_file}")" >&2
         return 1
     fi
-    
+
     echo "Downloaded successfully"
-    
+
     # Output tag_name to stdout for caller to capture
     echo "${tag_name}"
     return 0
@@ -289,39 +289,39 @@ download_extension_from_github() {
     local repo="$1"
     local version="${2:-}"
     local output_file="$3"
-    
+
     # Normalize repo name (remove github.com prefix if present)
     repo=$(echo "${repo}" | sed 's|^https\?://github.com/||')
-    
+
     # Validate repo format (should be owner/repo)
     if [[ ! "${repo}" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
         echo "ERROR: Invalid GitHub repository format: ${repo}" >&2
         echo "Expected format: owner/repo (e.g., oehrlis/odb_xyz)" >&2
         return 1
     fi
-    
+
     echo "GitHub repository: ${repo}"
-    
+
     # Determine version/tag to use
     local api_url
     local download_url
     local tag_name
-    
+
     if [[ -n "${version}" ]]; then
         # Specific version requested
         echo "Requested version: ${version}"
         # Add 'v' prefix if not present
         [[ "${version}" =~ ^v ]] || version="v${version}"
-        
+
         # Check if this tag/release exists
         api_url="https://api.github.com/repos/${repo}/releases/tags/${version}"
-        
-        if command -v curl >/dev/null 2>&1; then
-            download_url=$(curl -fsSL "${api_url}" 2>/dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
-        elif command -v wget >/dev/null 2>&1; then
-            download_url=$(wget -qO- "${api_url}" 2>/dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+
+        if command -v curl > /dev/null 2>&1; then
+            download_url=$(curl -fsSL "${api_url}" 2> /dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+        elif command -v wget > /dev/null 2>&1; then
+            download_url=$(wget -qO- "${api_url}" 2> /dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
         fi
-        
+
         if [[ -z "${download_url}" ]]; then
             echo "ERROR: Version ${version} not found in ${repo}" >&2
             return 1
@@ -331,35 +331,35 @@ download_extension_from_github() {
         # Get latest release
         echo "Fetching latest release..."
         api_url="https://api.github.com/repos/${repo}/releases/latest"
-        
+
         local release_info
-        if command -v curl >/dev/null 2>&1; then
-            release_info=$(curl -fsSL "${api_url}" 2>/dev/null)
-        elif command -v wget >/dev/null 2>&1; then
-            release_info=$(wget -qO- "${api_url}" 2>/dev/null)
+        if command -v curl > /dev/null 2>&1; then
+            release_info=$(curl -fsSL "${api_url}" 2> /dev/null)
+        elif command -v wget > /dev/null 2>&1; then
+            release_info=$(wget -qO- "${api_url}" 2> /dev/null)
         else
             echo "ERROR: Neither curl nor wget found" >&2
             return 1
         fi
-        
+
         # Check if release found, otherwise try tags
         if [[ -z "${release_info}" ]] || echo "${release_info}" | grep -q '"message".*"Not Found"'; then
             echo "No releases found, checking for tags..."
-            
+
             # Try to get latest tag
             api_url="https://api.github.com/repos/${repo}/tags"
             local tags_info
-            if command -v curl >/dev/null 2>&1; then
-                tags_info=$(curl -fsSL "${api_url}" 2>/dev/null)
-            elif command -v wget >/dev/null 2>&1; then
-                tags_info=$(wget -qO- "${api_url}" 2>/dev/null)
+            if command -v curl > /dev/null 2>&1; then
+                tags_info=$(curl -fsSL "${api_url}" 2> /dev/null)
+            elif command -v wget > /dev/null 2>&1; then
+                tags_info=$(wget -qO- "${api_url}" 2> /dev/null)
             fi
-            
+
             if [[ -n "${tags_info}" ]] && ! echo "${tags_info}" | grep -q '"message".*"Not Found"'; then
                 # Get first (latest) tag
                 tag_name=$(echo "${tags_info}" | grep '"name"' | cut -d'"' -f4 | head -1)
                 download_url=$(echo "${tags_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
-                
+
                 if [[ -n "${download_url}" ]]; then
                     echo "Found latest tag: ${tag_name}"
                 else
@@ -367,10 +367,10 @@ download_extension_from_github() {
                     echo "No tags found, using main branch..."
                     tag_name="main"
                     download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
-                    
+
                     # Check if main branch exists, otherwise try master
-                    if command -v curl >/dev/null 2>&1; then
-                        if ! curl -fsSL -I "${download_url}" >/dev/null 2>&1; then
+                    if command -v curl > /dev/null 2>&1; then
+                        if ! curl -fsSL -I "${download_url}" > /dev/null 2>&1; then
                             echo "Trying master branch..."
                             tag_name="master"
                             download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
@@ -382,10 +382,10 @@ download_extension_from_github() {
                 echo "No tags found, using main branch..."
                 tag_name="main"
                 download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
-                
+
                 # Check if main branch exists, otherwise try master
-                if command -v curl >/dev/null 2>&1; then
-                    if ! curl -fsSL -I "${download_url}" >/dev/null 2>&1; then
+                if command -v curl > /dev/null 2>&1; then
+                    if ! curl -fsSL -I "${download_url}" > /dev/null 2>&1; then
                         echo "Trying master branch..."
                         tag_name="master"
                         download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
@@ -396,36 +396,36 @@ download_extension_from_github() {
             # Release found
             download_url=$(echo "${release_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
             tag_name=$(echo "${release_info}" | grep '"tag_name"' | cut -d'"' -f4 | head -1)
-            
+
             if [[ -z "${download_url}" ]]; then
                 echo "ERROR: Could not find download URL for latest release" >&2
                 return 1
             fi
-            
+
             echo "Latest release: ${tag_name}"
         fi
-        
+
         if [[ -z "${download_url}" ]]; then
             echo "ERROR: Could not determine download URL for ${repo}" >&2
             return 1
         fi
     fi
-    
+
     # Download tarball
     echo "Downloading from: ${download_url}"
-    
-    if command -v curl >/dev/null 2>&1; then
+
+    if command -v curl > /dev/null 2>&1; then
         if ! curl -fsSL -o "${output_file}" "${download_url}"; then
             echo "ERROR: Failed to download extension tarball" >&2
             return 1
         fi
-    elif command -v wget >/dev/null 2>&1; then
+    elif command -v wget > /dev/null 2>&1; then
         if ! wget -q -O "${output_file}" "${download_url}"; then
             echo "ERROR: Failed to download extension tarball" >&2
             return 1
         fi
     fi
-    
+
     echo "Downloaded successfully"
     return 0
 }
@@ -436,19 +436,19 @@ download_extension_from_github() {
 # ------------------------------------------------------------------------------
 validate_extension_structure() {
     local ext_dir="$1"
-    
+
     # Check if has .extension file OR expected directories
     if [[ -f "${ext_dir}/.extension" ]]; then
         return 0
     fi
-    
+
     # Check for expected extension directories
-    if [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || \
-       [[ -d "${ext_dir}/rcv" ]] || [[ -d "${ext_dir}/etc" ]] || \
-       [[ -d "${ext_dir}/lib" ]]; then
+    if [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] \
+        || [[ -d "${ext_dir}/rcv" ]] || [[ -d "${ext_dir}/etc" ]] \
+        || [[ -d "${ext_dir}/lib" ]]; then
         return 0
     fi
-    
+
     echo "ERROR: Invalid extension structure" >&2
     echo "Extension must contain either:" >&2
     echo "  - .extension metadata file" >&2
@@ -463,41 +463,41 @@ validate_extension_structure() {
 update_extension() {
     local ext_path="$1"
     local new_content_dir="$2"
-    
+
     # Create backup directory
     local backup_dir
     backup_dir="${ext_path}.backup.$(date +%Y%m%d_%H%M%S)"
     echo "Creating backup: ${backup_dir}"
-    
+
     if ! cp -R "${ext_path}" "${backup_dir}"; then
         echo "ERROR: Failed to create backup" >&2
         return 1
     fi
-    
+
     # Save modified config files in etc/
     if [[ -d "${ext_path}/etc" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
         echo "Checking for modified configuration files..."
         cd "${ext_path}" || return 1
-        
+
         # Check each file in etc/ against checksum
         if [[ -d "etc" ]]; then
             while IFS= read -r line; do
                 [[ "${line}" =~ ^# ]] && continue
                 [[ -z "${line}" ]] && continue
-                
+
                 local checksum
                 local filename
                 checksum=$(echo "${line}" | awk '{print $1}')
                 filename=$(echo "${line}" | awk '{print $2}')
-                
+
                 # Only process etc/ files
                 [[ "${filename}" =~ ^etc/ ]] || continue
                 [[ -f "${filename}" ]] || continue
-                
+
                 # Calculate current checksum
                 local current_checksum
-                current_checksum=$(sha256sum "${filename}" 2>/dev/null | awk '{print $1}')
-                
+                current_checksum=$(sha256sum "${filename}" 2> /dev/null | awk '{print $1}')
+
                 # If modified, create .save file
                 if [[ "${current_checksum}" != "${checksum}" ]]; then
                     echo "  Preserving modified file: ${filename}"
@@ -506,26 +506,26 @@ update_extension() {
             done < ".extension.checksum"
         fi
     fi
-    
+
     # Remove old files (except log/, *.save, and backup)
     echo "Removing old files..."
     cd "${ext_path}" || return 1
-    
+
     # Remove managed directories
     for dir in bin sql rcv etc lib; do
         if [[ -d "${dir}" ]]; then
             # Keep .save files in etc/
             if [[ "${dir}" == "etc" ]]; then
-                find etc -type f ! -name "*.save" -delete 2>/dev/null
+                find etc -type f ! -name "*.save" -delete 2> /dev/null
             else
                 rm -rf "${dir}"
             fi
         fi
     done
-    
+
     # Remove metadata files (new ones will be copied)
     rm -f .extension .extension.checksum .checksumignore
-    
+
     # Copy new content
     echo "Installing new version..."
     if [[ "${new_content_dir}" == *"/${ext_path##*/}" ]]; then
@@ -543,12 +543,12 @@ update_extension() {
             return 1
         fi
     fi
-    
+
     # Restore .save files
     if compgen -G "${ext_path}/etc/*.save" > /dev/null 2>&1; then
         echo "Restored modified configuration files (*.save)"
     fi
-    
+
     echo "Update completed. Backup: ${backup_dir}"
     return 0
 }
@@ -563,7 +563,7 @@ cmd_create() {
     local use_github=false
     local temp_dir=""
     local ext_version="0.1.0"
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -594,53 +594,53 @@ cmd_create() {
                 ;;
         esac
     done
-    
+
     # Validate extension name
     if [[ -z "${ext_name}" ]]; then
         echo "ERROR: Extension name is required" >&2
         echo "Usage: $(basename "$0") create <name> [options]" >&2
         return 1
     fi
-    
+
     if ! validate_extension_name "${ext_name}"; then
         return 1
     fi
-    
+
     # Validate target path
     if [[ -z "${target_path}" ]]; then
         echo "ERROR: Target path not set. Please set ORADBA_LOCAL_BASE or use --path option" >&2
         return 1
     fi
-    
+
     if [[ ! -d "${target_path}" ]]; then
         echo "ERROR: Target directory does not exist: ${target_path}" >&2
         echo "Please create it first: mkdir -p ${target_path}" >&2
         return 1
     fi
-    
+
     # Check if extension already exists
     local ext_path="${target_path}/${ext_name}"
     if [[ -e "${ext_path}" ]]; then
         echo "ERROR: Extension already exists: ${ext_path}" >&2
         return 1
     fi
-    
+
     # Determine template source
     if [[ "${use_github}" == "true" ]]; then
         echo -e "${BOLD}Creating extension from GitHub release${NC}"
         temp_dir=$(mktemp -d)
         template_file="${temp_dir}/github-release.tar.gz"
-        
+
         # Capture output: last line is tag_name, others are status messages
         local github_output
         github_output=$(download_github_release "${template_file}")
         local download_status=$?
-        
+
         if [[ ${download_status} -ne 0 ]]; then
             rm -rf "${temp_dir}"
             return 1
         fi
-        
+
         # Extract version from last line of output (tag_name)
         ext_version=$(echo "${github_output}" | tail -1)
         # Remove 'v' prefix if present (e.g., v0.1.0 -> 0.1.0)
@@ -655,7 +655,7 @@ cmd_create() {
         # Use default template from templates/oradba_extension/
         echo -e "${BOLD}Creating extension from default template${NC}"
         template_file="${BASE_DIR}/templates/oradba_extension/extension-template.tar.gz"
-        
+
         if [[ ! -f "${template_file}" ]]; then
             echo "ERROR: Default template not found: ${template_file}" >&2
             echo "The extension template was not included in this installation." >&2
@@ -666,49 +666,49 @@ cmd_create() {
             echo "  3. Download template manually: make download-extensions (in oradba source)" >&2
             return 1
         fi
-        
+
         # Check if version info is available
         local version_file="${BASE_DIR}/templates/oradba_extension/.version"
         if [[ -f "${version_file}" ]]; then
             local template_version
-            template_version=$(cat "${version_file}" 2>/dev/null || echo "unknown")
+            template_version=$(cat "${version_file}" 2> /dev/null || echo "unknown")
             echo "Template version: ${template_version}"
             # Set extension version from template version (remove 'v' prefix if present)
             ext_version="${template_version#v}"
         fi
     fi
-    
+
     echo ""
     echo "Extension name: ${ext_name}"
     echo "Target location: ${ext_path}"
     echo "Template: ${template_file}"
     echo ""
-    
+
     # Extract template
     echo "Extracting template..."
-    
+
     # Create temporary extraction directory
     local extract_dir
     extract_dir=$(mktemp -d)
-    
+
     # First, check what's in the tarball
     if [[ "${DEBUG:-0}" -eq 1 ]]; then
         echo "DEBUG: Tarball contents:"
         tar -tzf "${template_file}" | head -20
     fi
-    
-    if ! tar -xzf "${template_file}" -C "${extract_dir}" 2>/dev/null; then
+
+    if ! tar -xzf "${template_file}" -C "${extract_dir}" 2> /dev/null; then
         echo "ERROR: Failed to extract template" >&2
         rm -rf "${extract_dir}"
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     # Find the extracted directory (it might be named differently)
     local extracted_dir
     local item_count
     item_count=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
-    
+
     # Check if there's exactly one item and it's a directory
     if [[ ${item_count} -eq 1 ]]; then
         extracted_dir=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 -type d)
@@ -731,14 +731,14 @@ cmd_create() {
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     # Move to target location
     if [[ "${extracted_dir}" == "${extract_dir}" ]]; then
         # Files were extracted directly, create target and move contents
         # Extract directly to the target path instead
         rm -rf "${extract_dir}"
         mkdir -p "${ext_path}"
-        if ! tar -xzf "${template_file}" -C "${ext_path}" 2>/dev/null; then
+        if ! tar -xzf "${template_file}" -C "${ext_path}" 2> /dev/null; then
             echo "ERROR: Failed to extract template to target location" >&2
             rm -rf "${ext_path}"
             [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
@@ -755,25 +755,25 @@ cmd_create() {
         # Clean up temp extraction dir
         rm -rf "${extract_dir}"
     fi
-    
+
     # Clean up GitHub download temp dir if used
     [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
-    
+
     # Update metadata if .extension file exists
     if [[ -f "${ext_path}/.extension" ]]; then
         echo "Updating extension metadata..."
         # Update name (support both key=value and key: value formats)
-        sed -i.bak "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2>/dev/null || \
-            sed -i '' "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2>/dev/null
+        sed -i.bak "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2> /dev/null \
+            || sed -i '' "s/^name[=:].*/name: ${ext_name}/" "${ext_path}/.extension" 2> /dev/null
         # Update version
-        sed -i.bak "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2>/dev/null || \
-            sed -i '' "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2>/dev/null
+        sed -i.bak "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2> /dev/null \
+            || sed -i '' "s/^version[=:].*/version: ${ext_version}/" "${ext_path}/.extension" 2> /dev/null
         rm -f "${ext_path}/.extension.bak"
-        
+
         echo "  Name:    ${ext_name}"
         echo "  Version: ${ext_version}"
     fi
-    
+
     echo -e "${GREEN}✓ Extension created successfully${NC}"
     echo ""
     echo -e "${BOLD}Next Steps:${NC}"
@@ -799,7 +799,7 @@ cmd_create() {
     echo "6. Verify the extension is loaded:"
     echo "   oradba_extension.sh list"
     echo ""
-    
+
     return 0
 }
 
@@ -813,7 +813,7 @@ cmd_add() {
     local do_update=false
     local temp_dir=""
     local tarball_path=""
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -844,46 +844,46 @@ cmd_add() {
                 ;;
         esac
     done
-    
+
     # Validate source
     if [[ -z "${source}" ]]; then
         echo "ERROR: Extension source is required" >&2
         echo "Usage: $(basename "$0") add <source> [options]" >&2
         return 1
     fi
-    
+
     # Validate target path
     if [[ -z "${target_path}" ]]; then
         echo "ERROR: Target path not set. Please set ORADBA_LOCAL_BASE or use --path option" >&2
         return 1
     fi
-    
+
     if [[ ! -d "${target_path}" ]]; then
         echo "ERROR: Target directory does not exist: ${target_path}" >&2
         echo "Please create it first: mkdir -p ${target_path}" >&2
         return 1
     fi
-    
+
     # Determine source type and get tarball
     if [[ -f "${source}" ]]; then
         # Local tarball
         echo -e "${BOLD}Adding extension from local tarball${NC}"
         tarball_path="${source}"
-        
+
     elif [[ "${source}" =~ ^https?:// ]]; then
         # Full URL - download to temp location
         echo -e "${BOLD}Adding extension from URL${NC}"
         temp_dir=$(mktemp -d)
         tarball_path="${temp_dir}/extension.tar.gz"
-        
+
         echo "Downloading: ${source}"
-        if command -v curl >/dev/null 2>&1; then
+        if command -v curl > /dev/null 2>&1; then
             if ! curl -fsSL -o "${tarball_path}" "${source}"; then
                 echo "ERROR: Failed to download from URL" >&2
                 rm -rf "${temp_dir}"
                 return 1
             fi
-        elif command -v wget >/dev/null 2>&1; then
+        elif command -v wget > /dev/null 2>&1; then
             if ! wget -q -O "${tarball_path}" "${source}"; then
                 echo "ERROR: Failed to download from URL" >&2
                 rm -rf "${temp_dir}"
@@ -894,13 +894,13 @@ cmd_add() {
             rm -rf "${temp_dir}"
             return 1
         fi
-        
+
     else
         # GitHub repo (short format or repo@version)
         echo -e "${BOLD}Adding extension from GitHub${NC}"
         temp_dir=$(mktemp -d)
         tarball_path="${temp_dir}/extension.tar.gz"
-        
+
         # Parse repo and version
         local repo="${source}"
         local version=""
@@ -908,41 +908,41 @@ cmd_add() {
             repo="${source%@*}"
             version="${source#*@}"
         fi
-        
+
         # Download from GitHub release
         if ! download_extension_from_github "${repo}" "${version}" "${tarball_path}"; then
             rm -rf "${temp_dir}"
             return 1
         fi
     fi
-    
+
     # Validate tarball exists
     if [[ ! -f "${tarball_path}" ]]; then
         echo "ERROR: Tarball not found: ${tarball_path}" >&2
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     echo "Tarball: ${tarball_path}"
     echo ""
-    
+
     # Extract to temporary location for inspection
     local extract_dir
     extract_dir=$(mktemp -d)
-    
+
     echo "Extracting tarball..."
-    if ! tar -xzf "${tarball_path}" -C "${extract_dir}" 2>/dev/null; then
+    if ! tar -xzf "${tarball_path}" -C "${extract_dir}" 2> /dev/null; then
         echo "ERROR: Failed to extract tarball" >&2
         rm -rf "${extract_dir}"
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     # Determine extracted structure
     local extracted_dir
     local item_count
     item_count=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
-    
+
     if [[ ${item_count} -eq 1 ]]; then
         extracted_dir=$(find "${extract_dir}" -mindepth 1 -maxdepth 1 -type d)
         if [[ -z "${extracted_dir}" ]]; then
@@ -958,21 +958,21 @@ cmd_add() {
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     # Validate extension structure
     if ! validate_extension_structure "${extracted_dir}"; then
         rm -rf "${extract_dir}"
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     # Determine extension name
     if [[ -z "${ext_name}" ]]; then
         # Try to get from .extension file
         if [[ -f "${extracted_dir}/.extension" ]]; then
             ext_name=$(parse_extension_metadata "${extracted_dir}/.extension" "name")
         fi
-        
+
         # Fall back to directory name from extraction
         if [[ -z "${ext_name}" ]]; then
             if [[ "${extracted_dir}" != "${extract_dir}" ]]; then
@@ -983,20 +983,20 @@ cmd_add() {
             fi
         fi
     fi
-    
+
     # Validate extension name
     if ! validate_extension_name "${ext_name}"; then
         rm -rf "${extract_dir}"
         [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
         return 1
     fi
-    
+
     local ext_path="${target_path}/${ext_name}"
-    
+
     echo "Extension name: ${ext_name}"
     echo "Target location: ${ext_path}"
     echo ""
-    
+
     # Check if extension exists
     if [[ -e "${ext_path}" ]]; then
         if [[ "${do_update}" != "true" ]]; then
@@ -1006,7 +1006,7 @@ cmd_add() {
             [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
             return 1
         fi
-        
+
         # Perform update
         echo "Updating existing extension..."
         if ! update_extension "${ext_path}" "${extracted_dir}"; then
@@ -1036,24 +1036,24 @@ cmd_add() {
                 return 1
             fi
         fi
-        
+
         # Enable extension by default
         if [[ -f "${ext_path}/.extension" ]]; then
             # Update or add enabled: true
             if grep -q "^enabled:" "${ext_path}/.extension"; then
-                sed -i.bak "s/^enabled:.*/enabled: true/" "${ext_path}/.extension" 2>/dev/null || \
-                    sed -i '' "s/^enabled:.*/enabled: true/" "${ext_path}/.extension" 2>/dev/null
+                sed -i.bak "s/^enabled:.*/enabled: true/" "${ext_path}/.extension" 2> /dev/null \
+                    || sed -i '' "s/^enabled:.*/enabled: true/" "${ext_path}/.extension" 2> /dev/null
             else
                 echo "enabled: true" >> "${ext_path}/.extension"
             fi
             rm -f "${ext_path}/.extension.bak"
         fi
     fi
-    
+
     # Clean up
     rm -rf "${extract_dir}"
     [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
-    
+
     echo -e "${GREEN}✓ Extension added successfully${NC}"
     echo ""
     echo -e "${BOLD}Next Steps:${NC}"
@@ -1070,7 +1070,7 @@ cmd_add() {
     echo "4. Verify the extension is loaded:"
     echo "   oradba_extension.sh list"
     echo ""
-    
+
     return 0
 }
 
@@ -1097,11 +1097,11 @@ format_status() {
 # ------------------------------------------------------------------------------
 cmd_list() {
     local verbose=false
-    
+
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -v|--verbose)
+            -v | --verbose)
                 verbose=true
                 shift
                 ;;
@@ -1111,14 +1111,14 @@ cmd_list() {
                 ;;
         esac
     done
-    
+
     echo -e "${BOLD}OraDBA Extensions${NC}"
     echo ""
-    
+
     # Get all extensions
     local extensions
     mapfile -t extensions < <(get_all_extensions)
-    
+
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
         echo ""
@@ -1132,11 +1132,11 @@ cmd_list() {
         fi
         return 0
     fi
-    
+
     # Sort by priority
     local sorted
     mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}")
-    
+
     if [[ "${verbose}" == "true" ]]; then
         # Verbose output
         for ext_path in "${sorted[@]}"; do
@@ -1145,13 +1145,13 @@ cmd_list() {
             version="$(get_extension_version "${ext_path}")"
             description="$(get_extension_description "${ext_path}")"
             priority="$(get_extension_priority "${ext_path}")"
-            
+
             if is_extension_enabled "${name}" "${ext_path}"; then
                 enabled_status="Enabled"
             else
                 enabled_status="Disabled"
             fi
-            
+
             echo -e "${CYAN}${name}${NC} (${version})"
             echo "  Status: $(format_status "${enabled_status}")"
             echo "  Priority: ${priority}"
@@ -1165,24 +1165,24 @@ cmd_list() {
         # Compact output - table format
         printf "%-20s %-12s %-10s %-10s\n" "NAME" "VERSION" "PRIORITY" "STATUS"
         printf "%-20s %-12s %-10s %-10s\n" "----" "-------" "--------" "------"
-        
+
         for ext_path in "${sorted[@]}"; do
             local name version priority enabled_status
             name="$(get_extension_name "${ext_path}")"
             version="$(get_extension_version "${ext_path}")"
             priority="$(get_extension_priority "${ext_path}")"
-            
+
             if is_extension_enabled "${name}" "${ext_path}"; then
                 enabled_status="Enabled"
             else
                 enabled_status="Disabled"
             fi
-            
+
             printf "%-20s %-12s %-10s " "${name}" "${version}" "${priority}"
             format_status "${enabled_status}"
         done
     fi
-    
+
     echo ""
     echo "Total: ${#extensions[@]} extension(s)"
 }
@@ -1192,17 +1192,17 @@ cmd_list() {
 # ------------------------------------------------------------------------------
 cmd_info() {
     local ext_name="$1"
-    
+
     if [[ -z "${ext_name}" ]]; then
         echo "ERROR: Extension name required" >&2
         echo "Usage: $(basename "$0") info <extension-name>" >&2
         return 1
     fi
-    
+
     # Find extension
     local extensions ext_path found=false
     mapfile -t extensions < <(get_all_extensions)
-    
+
     for path in "${extensions[@]}"; do
         local name
         name="$(get_extension_name "${path}")"
@@ -1212,12 +1212,12 @@ cmd_info() {
             break
         fi
     done
-    
+
     if [[ "${found}" != "true" ]]; then
         echo "ERROR: Extension '${ext_name}' not found" >&2
         return 1
     fi
-    
+
     # Show info using library function
     show_extension_info "${ext_path}"
 }
@@ -1227,15 +1227,15 @@ cmd_info() {
 # ------------------------------------------------------------------------------
 cmd_validate() {
     local target="$1"
-    
+
     if [[ -z "${target}" ]]; then
         echo "ERROR: Extension name or path required" >&2
         echo "Usage: $(basename "$0") validate <extension-name|path>" >&2
         return 1
     fi
-    
+
     local ext_path
-    
+
     # Check if target is a path
     if [[ -d "${target}" ]]; then
         ext_path="${target}"
@@ -1243,7 +1243,7 @@ cmd_validate() {
         # Find extension by name
         local extensions found=false
         mapfile -t extensions < <(get_all_extensions)
-        
+
         for path in "${extensions[@]}"; do
             local name
             name="$(get_extension_name "${path}")"
@@ -1253,19 +1253,19 @@ cmd_validate() {
                 break
             fi
         done
-        
+
         if [[ "${found}" != "true" ]]; then
             echo "ERROR: Extension '${target}' not found" >&2
             return 1
         fi
     fi
-    
+
     # Validate using library function
     local name
     name="$(basename "${ext_path}")"
     echo -e "${BOLD}Validating extension: ${name}${NC}"
     echo ""
-    
+
     if validate_extension "${ext_path}"; then
         echo ""
         echo -e "${GREEN}✓ Validation passed${NC}"
@@ -1283,24 +1283,24 @@ cmd_validate() {
 cmd_validate_all() {
     echo -e "${BOLD}Validating all extensions${NC}"
     echo ""
-    
+
     local extensions
     mapfile -t extensions < <(get_all_extensions)
-    
+
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
         return 0
     fi
-    
+
     local total=${#extensions[@]}
     local passed=0
     local warnings=0
-    
+
     for ext_path in "${extensions[@]}"; do
         local name
         name="$(get_extension_name "${ext_path}")"
         echo -e "${CYAN}${name}${NC} (${ext_path})"
-        
+
         if validate_extension "${ext_path}" 2>&1 | grep -q "Warning"; then
             warnings=$((warnings + 1))
         else
@@ -1308,7 +1308,7 @@ cmd_validate_all() {
         fi
         echo ""
     done
-    
+
     echo "----------------------------------------"
     echo "Total extensions: ${total}"
     echo -e "${GREEN}Passed: ${passed}${NC}"
@@ -1326,34 +1326,34 @@ cmd_discover() {
     echo "Auto-discovery: ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}"
     echo "Local base: ${ORADBA_LOCAL_BASE:-not set}"
     echo ""
-    
+
     if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}" != "true" ]]; then
         echo "Auto-discovery is disabled."
         return 0
     fi
-    
+
     if [[ -z "${ORADBA_LOCAL_BASE}" || ! -d "${ORADBA_LOCAL_BASE}" ]]; then
         echo "Local base directory not found or not set."
         return 0
     fi
-    
+
     echo -e "${BOLD}Auto-Discovered Extensions:${NC}"
     echo ""
-    
+
     local discovered
     mapfile -t discovered < <(discover_extensions)
-    
+
     if [[ ${#discovered[@]} -eq 0 ]]; then
         echo "No extensions discovered in ${ORADBA_LOCAL_BASE}"
         return 0
     fi
-    
+
     for ext_path in "${discovered[@]}"; do
         local name
         name="$(basename "${ext_path}")"
         echo "  ${name} -> ${ext_path}"
     done
-    
+
     echo ""
     echo "Total: ${#discovered[@]} extension(s)"
 }
@@ -1364,7 +1364,7 @@ cmd_discover() {
 cmd_paths() {
     echo -e "${BOLD}Extension Search Paths${NC}"
     echo ""
-    
+
     echo "Auto-discovery:"
     echo "  Enabled: ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}"
     if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}" == "true" ]]; then
@@ -1375,7 +1375,7 @@ cmd_paths() {
             echo "  Status: ${RED}not found${NC}"
         fi
     fi
-    
+
     echo ""
     echo "Manual paths:"
     if [[ -n "${ORADBA_EXTENSION_PATHS}" ]]; then
@@ -1398,26 +1398,26 @@ cmd_paths() {
 cmd_enabled() {
     echo -e "${BOLD}Enabled Extensions${NC}"
     echo ""
-    
+
     local extensions
     mapfile -t extensions < <(get_all_extensions)
-    
+
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
         return 0
     fi
-    
+
     local sorted
     mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}")
-    
+
     local count=0
     printf "%-20s %-12s %-10s\n" "NAME" "VERSION" "PRIORITY"
     printf "%-20s %-12s %-10s\n" "----" "-------" "--------"
-    
+
     for ext_path in "${sorted[@]}"; do
         local name version priority
         name="$(get_extension_name "${ext_path}")"
-        
+
         if is_extension_enabled "${name}" "${ext_path}"; then
             version="$(get_extension_version "${ext_path}")"
             priority="$(get_extension_priority "${ext_path}")"
@@ -1425,7 +1425,7 @@ cmd_enabled() {
             count=$((count + 1))
         fi
     done
-    
+
     echo ""
     echo "Total: ${count} enabled extension(s)"
 }
@@ -1436,30 +1436,30 @@ cmd_enabled() {
 cmd_disabled() {
     echo -e "${BOLD}Disabled Extensions${NC}"
     echo ""
-    
+
     local extensions
     mapfile -t extensions < <(get_all_extensions)
-    
+
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
         return 0
     fi
-    
+
     local count=0
     printf "%-20s %-12s\n" "NAME" "VERSION"
     printf "%-20s %-12s\n" "----" "-------"
-    
+
     for ext_path in "${extensions[@]}"; do
         local name version
         name="$(get_extension_name "${ext_path}")"
-        
+
         if ! is_extension_enabled "${name}" "${ext_path}"; then
             version="$(get_extension_version "${ext_path}")"
             printf "%-20s %-12s\n" "${name}" "${version}"
             count=$((count + 1))
         fi
     done
-    
+
     echo ""
     echo "Total: ${count} disabled extension(s)"
 }
@@ -1471,7 +1471,7 @@ main() {
     # Parse command
     local command="${1:-help}"
     shift || true
-    
+
     case "${command}" in
         add)
             cmd_add "$@"
@@ -1503,7 +1503,7 @@ main() {
         disabled)
             cmd_disabled "$@"
             ;;
-        help|-h|--help)
+        help | -h | --help)
             usage
             ;;
         *)

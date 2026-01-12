@@ -83,7 +83,7 @@ parse_testmap() {
         log_error "Test map file not found: $TESTMAP_FILE"
         return 1
     fi
-    
+
     oradba_log "Parsing test map from $TESTMAP_FILE"
     return 0
 }
@@ -93,7 +93,7 @@ get_always_run_tests() {
     if [[ ! -f "$TESTMAP_FILE" ]]; then
         return 0
     fi
-    
+
     # Parse always_run section from YAML
     awk '
         /^always_run:/ { in_section=1; next }
@@ -108,11 +108,11 @@ get_always_run_tests() {
 # Get tests for a specific source file
 get_tests_for_file() {
     local source_file="$1"
-    
+
     if [[ ! -f "$TESTMAP_FILE" ]]; then
         return 0
     fi
-    
+
     # Simple YAML parsing - look for file in mappings section
     awk -v file="$source_file" '
         /^mappings:/ { in_mappings=1; next }
@@ -132,46 +132,46 @@ get_tests_for_file() {
 # Get tests matching pattern
 get_tests_for_pattern() {
     local changed_file="$1"
-    
+
     if [[ ! -f "$TESTMAP_FILE" ]]; then
         return 0
     fi
-    
+
     # Check patterns section
     # This is simplified - for complex patterns, consider using yq or python
     oradba_log "Checking patterns for: $changed_file"
-    
+
     # Pattern matching logic would go here
     # For now, handle some common patterns directly
-    
+
     # Test files run themselves
     if [[ "$changed_file" =~ ^tests/test_(.+)\.bats$ ]]; then
         echo "test_${BASH_REMATCH[1]}.bats"
         return 0
     fi
-    
+
     # Documentation doesn't need tests
     if [[ "$changed_file" =~ ^(doc|src/doc)/.*\.md$ ]]; then
         return 0
     fi
-    
+
     # SQL/RMAN scripts don't have tests
     if [[ "$changed_file" =~ ^src/(sql|rcv)/ ]]; then
         return 0
     fi
-    
+
     # Templates affect service management
     if [[ "$changed_file" =~ ^src/templates/ ]]; then
         echo "test_service_management.bats"
         return 0
     fi
-    
+
     # Makefile affects installer
     if [[ "$changed_file" == "Makefile" ]]; then
         echo "test_installer.bats"
         return 0
     fi
-    
+
     # VERSION file
     if [[ "$changed_file" == "VERSION" ]]; then
         echo "test_installer.bats"
@@ -183,42 +183,42 @@ get_tests_for_pattern() {
 # Get changed files using git
 get_changed_files() {
     local base="$1"
-    
-    if ! command -v git >/dev/null 2>&1; then
+
+    if ! command -v git > /dev/null 2>&1; then
         log_warn "git not found, cannot detect changes"
         return 1
     fi
-    
+
     if [[ ! -d "${PROJECT_ROOT}/.git" ]]; then
         log_warn "Not a git repository, cannot detect changes"
         return 1
     fi
-    
+
     # Check if base branch exists
-    if ! git rev-parse --verify "$base" >/dev/null 2>&1; then
+    if ! git rev-parse --verify "$base" > /dev/null 2>&1; then
         log_warn "Base branch '$base' not found, trying 'main'"
         base="main"
-        if ! git rev-parse --verify "$base" >/dev/null 2>&1; then
+        if ! git rev-parse --verify "$base" > /dev/null 2>&1; then
             log_warn "Branch 'main' not found either, using HEAD"
             base="HEAD"
         fi
     fi
-    
+
     oradba_log "Comparing against: $base"
-    
+
     # Get changed files (both staged and unstaged)
     {
         # Uncommitted changes
-        git diff --name-only "$base" 2>/dev/null
+        git diff --name-only "$base" 2> /dev/null
         # Staged changes
-        git diff --name-only --cached 2>/dev/null
+        git diff --name-only --cached 2> /dev/null
     } | sort -u
 }
 
 # Select tests based on changed files
 select_tests() {
     local changed_files=()
-    
+
     # Get changed files
     log_info "Detecting changed files..."
     while IFS= read -r file; do
@@ -227,7 +227,7 @@ select_tests() {
             oradba_log "Changed: $file"
         fi
     done < <(get_changed_files "$BASE_BRANCH")
-    
+
     if [[ ${#changed_files[@]} -eq 0 ]]; then
         log_warn "No changed files detected"
         log_info "Running only always-run tests (no code changes)"
@@ -239,12 +239,12 @@ select_tests() {
         done < <(get_always_run_tests)
         return 0
     fi
-    
+
     log_info "Found ${#changed_files[@]} changed file(s)"
-    
+
     # Collect unique test files
     declare -A test_set
-    
+
     # Always include core tests
     while IFS= read -r test; do
         if [[ -n "$test" ]]; then
@@ -252,7 +252,7 @@ select_tests() {
             oradba_log "Always run: $test"
         fi
     done < <(get_always_run_tests)
-    
+
     # Get tests for each changed file
     for file in "${changed_files[@]}"; do
         # Try direct mapping first
@@ -262,7 +262,7 @@ select_tests() {
                 oradba_log "Mapped $file -> $test"
             fi
         done < <(get_tests_for_file "$file")
-        
+
         # Try pattern matching
         while IFS= read -r test; do
             if [[ -n "$test" ]]; then
@@ -271,7 +271,7 @@ select_tests() {
             fi
         done < <(get_tests_for_pattern "$file")
     done
-    
+
     # Output unique test files
     for test in "${!test_set[@]}"; do
         if [[ -f "${TEST_DIR}/${test}" ]]; then
@@ -310,7 +310,7 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         *)

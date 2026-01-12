@@ -24,9 +24,9 @@ fi
 
 # Detect pre-Oracle installation mode
 PRE_ORACLE_MODE=false
-if type get_oratab_path &>/dev/null; then
+if type get_oratab_path &> /dev/null; then
     ORATAB_PATH=$(get_oratab_path)
-    if [[ ! -f "$ORATAB_PATH" ]] || ! grep -q "^[^#]" "$ORATAB_PATH" 2>/dev/null; then
+    if [[ ! -f "$ORATAB_PATH" ]] || ! grep -q "^[^#]" "$ORATAB_PATH" 2> /dev/null; then
         PRE_ORACLE_MODE=true
     fi
 else
@@ -74,10 +74,10 @@ EOF
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h | --help)
             usage
             ;;
-        -v|--verbose)
+        -v | --verbose)
             VERBOSE=true
             shift
             ;;
@@ -92,11 +92,11 @@ done
 test_item() {
     local test_name="$1"
     local test_command="$2"
-    local test_type="${3:-required}"  # required|optional
-    
+    local test_type="${3:-required}" # required|optional
+
     TOTAL=$((TOTAL + 1))
-    
-    if eval "${test_command}" >/dev/null 2>&1; then
+
+    if eval "${test_command}" > /dev/null 2>&1; then
         if [[ "${VERBOSE}" == "true" ]]; then
             echo -e "${GREEN}✓${NC} ${test_name}"
         fi
@@ -256,30 +256,30 @@ test_item ".oradba.checksum exists" "[[ -f '${ORADBA_BASE}/.oradba.checksum' ]]"
 if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
     MODIFIED_COUNT=0
     MISSING_COUNT=0
-    declare -A checked_files  # Track files to avoid duplicates
-    
+    declare -A checked_files # Track files to avoid duplicates
+
     while IFS= read -r line; do
         # Skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^# ]] && continue
-        
+
         # Parse checksum line: hash filename
         expected_hash=$(echo "$line" | awk '{print $1}')
         file_path=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
         full_path="${ORADBA_BASE}/${file_path}"
-        
+
         # Skip if already checked (handles duplicates in checksum file)
         [[ -n "${checked_files[$file_path]}" ]] && continue
         checked_files[$file_path]=1
-        
+
         if [[ -f "$full_path" ]]; then
-            if command -v sha256sum >/dev/null 2>&1; then
-                actual_hash=$(sha256sum "$full_path" 2>/dev/null | awk '{print $1}')
-            elif command -v shasum >/dev/null 2>&1; then
-                actual_hash=$(shasum -a 256 "$full_path" 2>/dev/null | awk '{print $1}')
+            if command -v sha256sum > /dev/null 2>&1; then
+                actual_hash=$(sha256sum "$full_path" 2> /dev/null | awk '{print $1}')
+            elif command -v shasum > /dev/null 2>&1; then
+                actual_hash=$(shasum -a 256 "$full_path" 2> /dev/null | awk '{print $1}')
             else
                 continue
             fi
-            
+
             if [[ "$expected_hash" != "$actual_hash" ]]; then
                 MODIFIED_COUNT=$((MODIFIED_COUNT + 1))
                 if [[ "${VERBOSE}" == "true" ]]; then
@@ -294,7 +294,7 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
             fi
         fi
     done < "${ORADBA_BASE}/.oradba.checksum"
-    
+
     if [[ $MODIFIED_COUNT -gt 0 || $MISSING_COUNT -gt 0 ]]; then
         if [[ "${VERBOSE}" == "false" ]]; then
             [[ $MODIFIED_COUNT -gt 0 ]] && echo -e "${YELLOW}⚠${NC} $MODIFIED_COUNT file(s) modified since installation"
@@ -319,7 +319,7 @@ fi
 
 if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
     # Check bash syntax without executing
-    if bash -n "${ORADBA_BASE}/bin/oraenv.sh" 2>/dev/null; then
+    if bash -n "${ORADBA_BASE}/bin/oraenv.sh" 2> /dev/null; then
         TOTAL=$((TOTAL + 1))
         PASSED=$((PASSED + 1))
         if [[ "${VERBOSE}" == "true" ]]; then
@@ -404,7 +404,7 @@ echo ""
 if [[ ${FAILED} -eq 0 ]]; then
     echo -e "${GREEN}✓ OraDBA installation is valid!${NC}"
     echo ""
-    
+
     if [[ "$PRE_ORACLE_MODE" == "true" ]]; then
         # Pre-Oracle mode instructions
         echo "Pre-Oracle Installation Detected:"

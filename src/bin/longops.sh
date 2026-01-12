@@ -86,23 +86,23 @@ EOF
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -o|--operation)
+            -o | --operation)
                 OPERATION_FILTER="$2"
                 shift 2
                 ;;
-            -a|--all)
+            -a | --all)
                 SHOW_ALL=true
                 shift
                 ;;
-            -w|--watch)
+            -w | --watch)
                 WATCH_MODE=true
                 shift
                 ;;
-            -i|--interval)
+            -i | --interval)
                 WATCH_INTERVAL="$2"
                 shift 2
                 ;;
-            -h|--help)
+            -h | --help)
                 usage
                 ;;
             -*)
@@ -122,12 +122,12 @@ parse_args() {
 monitor_longops() {
     local sid=$1
     local where_clause=""
-    
+
     # Build WHERE clause based on filters
     if [[ -n "${OPERATION_FILTER}" ]]; then
         where_clause="opname LIKE '${OPERATION_FILTER}'"
     fi
-    
+
     if [[ "${SHOW_ALL}" != "true" ]]; then
         if [[ -n "${where_clause}" ]]; then
             where_clause="${where_clause} AND totalwork != 0 AND sofar <> totalwork"
@@ -135,12 +135,12 @@ monitor_longops() {
             where_clause="totalwork != 0 AND sofar <> totalwork"
         fi
     fi
-    
+
     # Add WHERE keyword if we have conditions
     if [[ -n "${where_clause}" ]]; then
         where_clause="WHERE ${where_clause}"
     fi
-    
+
     # Execute SQL query
     sqlplus -S /nolog << EOF
 SET ECHO OFF
@@ -187,7 +187,7 @@ display_header() {
     local sid=$1
     local timestamp
     timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+
     echo "================================================================================"
     echo "Long Operations Monitor - ${sid} - ${timestamp}"
     if [[ -n "${OPERATION_FILTER}" ]]; then
@@ -199,40 +199,40 @@ display_header() {
 # Main monitoring function
 run_monitor() {
     local sid_to_monitor="${SID_LIST:-${ORACLE_SID}}"
-    
+
     # Check if we have a SID
     if [[ -z "${sid_to_monitor}" ]]; then
         echo "Error: No Oracle SID specified and ORACLE_SID is not set." >&2
         echo "Use -h or --help for usage information." >&2
         exit 1
     fi
-    
+
     # Watch mode - continuous monitoring
     if [[ "${WATCH_MODE}" == "true" ]]; then
         # Trap Ctrl+C for clean exit
         trap 'echo ""; echo "Monitoring stopped."; exit 0' INT TERM
-        
+
         echo "Starting watch mode (Ctrl+C to exit)..."
         echo ""
-        
+
         while true; do
             # Clear screen
             clear
-            
+
             # Loop over SID list
             for sid in ${sid_to_monitor}; do
                 display_header "${sid}"
-                
+
                 # Source Oracle environment if oraenv.sh is available
                 if [[ -f "${SCRIPT_DIR}/oraenv.sh" ]]; then
                     # shellcheck source=oraenv.sh
                     source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
                 fi
-                
+
                 monitor_longops "${sid}"
                 echo ""
             done
-            
+
             echo "Next refresh in ${WATCH_INTERVAL} seconds... (Ctrl+C to exit)"
             sleep "${WATCH_INTERVAL}"
         done
@@ -242,13 +242,13 @@ run_monitor() {
             echo "================================================================================"
             echo "Long Operations for ${sid}"
             echo "================================================================================"
-            
+
             # Source Oracle environment if oraenv.sh is available
             if [[ -f "${SCRIPT_DIR}/oraenv.sh" ]]; then
                 # shellcheck source=oraenv.sh
                 source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
             fi
-            
+
             monitor_longops "${sid}"
             echo ""
         done

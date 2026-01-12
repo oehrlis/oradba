@@ -96,17 +96,17 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 # Get list of databases from oratab
 get_databases() {
     local oratab_file="${ORATAB:-/etc/oratab}"
-    
+
     if [[ ! -f "${oratab_file}" ]]; then
         oradba_log ERROR "oratab file not found: ${oratab_file}"
         return 1
     fi
-    
+
     # Parse oratab, filter out comments and dummy entries
     grep -v '^#' "${oratab_file}" | grep -v '^$' | while IFS=: read -r sid home flag rest; do
         # Skip dummy entries
         [[ "${flag}" == "D" ]] && continue
-        
+
         echo "${sid}:${home}:${flag}"
     done
 }
@@ -117,7 +117,7 @@ should_autostart() {
     local sid="$1"
     local oratab_file="${ORATAB:-/etc/oratab}"
     local flag
-    
+
     flag=$(grep "^${sid}:" "${oratab_file}" | cut -d: -f3)
     [[ "${flag}" == "Y" ]]
 }
@@ -126,11 +126,11 @@ should_autostart() {
 ask_justification() {
     local action="$1"
     local count="$2"
-    
+
     if [[ "${FORCE_MODE}" == "true" ]]; then
         return 0
     fi
-    
+
     echo ""
     echo "=========================================="
     echo "WARNING: About to ${action} ALL databases"
@@ -138,63 +138,64 @@ ask_justification() {
     echo "This will affect ${count} database(s)"
     echo ""
     read -r -p "Please provide justification for this operation: " justification
-    
+
     if [[ -z "${justification}" ]]; then
         oradba_log ERROR "Operation cancelled: No justification provided"
         return 1
     fi
-    
+
     oradba_log INFO "Justification for ${action} all databases: ${justification}"
     read -r -p "Continue with operation? (yes/no): " confirm
-    
+
     if [[ "${confirm}" != "yes" ]]; then
         oradba_log INFO "Operation cancelled by user"
         return 1
     fi
-    
+
     return 0
 }
 
 # Start a database instance
 start_database() {
     local sid="$1"
-    
+
     oradba_log INFO "Starting database ${sid}..."
-    
+
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" >/dev/null 2>&1
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1
     fi
-    
+
     # Check if database is already running
     local status
-    status=$(sqlplus -s / as sysdba << EOF
+    status=$(
+        sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
-)
-    
+    )
+
     if [[ "${status}" =~ OPEN ]]; then
         oradba_log INFO "Database ${sid} is already running"
         return 0
     fi
-    
+
     # Start the database
     sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 STARTUP;
 EXIT;
 EOF
-    
+
     local rc=$?
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Database ${sid} started successfully"
-        
+
         # Open PDBs if requested
         if [[ "${OPEN_PDBS}" == "true" ]]; then
             open_all_pdbs "${sid}"
@@ -209,15 +210,15 @@ EOF
 # Open all PDBs
 open_all_pdbs() {
     local sid="$1"
-    
+
     oradba_log INFO "Opening all PDBs in ${sid}..."
-    
+
     sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
 WHENEVER SQLERROR CONTINUE
 ALTER PLUGGABLE DATABASE ALL OPEN;
 EXIT;
 EOF
-    
+
     if sqlplus -s / as sysdba <<< "SELECT COUNT(*) FROM v\$pdbs WHERE open_mode != 'READ WRITE';" | grep -q '^0$'; then
         oradba_log INFO "All PDBs opened successfully in ${sid}"
     else
@@ -228,50 +229,51 @@ EOF
 # Stop a database instance
 stop_database() {
     local sid="$1"
-    
+
     oradba_log INFO "Stopping database ${sid}..."
-    
+
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" >/dev/null 2>&1
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1
     fi
-    
+
     # Check if database is running
     local status
-    status=$(sqlplus -s / as sysdba << EOF
+    status=$(
+        sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
-)
-    
+    )
+
     if [[ ! "${status}" =~ (OPEN|MOUNTED) ]]; then
         oradba_log INFO "Database ${sid} is not running"
         return 0
     fi
-    
+
     # Try shutdown immediate with timeout
     oradba_log INFO "Attempting shutdown immediate for ${sid} (timeout: ${SHUTDOWN_TIMEOUT}s)"
-    
+
     timeout "${SHUTDOWN_TIMEOUT}" sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
 WHENEVER SQLERROR CONTINUE
 SHUTDOWN IMMEDIATE;
 EXIT;
 EOF
-    
+
     local rc=$?
-    
+
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Database ${sid} stopped successfully"
         return 0
     elif [[ ${rc} -eq 124 ]]; then
         # Timeout occurred
         oradba_log WARN "Shutdown immediate timed out for ${sid}, forcing shutdown abort"
-        
+
         sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
 SHUTDOWN ABORT;
 EXIT;
@@ -293,26 +295,27 @@ EOF
 # Show database status
 show_status() {
     local sid="$1"
-    
+
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         # shellcheck source=oraenv.sh
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" >/dev/null 2>&1
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
     else
         echo "${sid}: Unable to source environment"
         return 1
     fi
-    
+
     # Get database status
     local status
-    status=$(sqlplus -s / as sysdba << EOF
+    status=$(
+        sqlplus -s / as sysdba << EOF
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0
 SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
-)
-    
+    )
+
     if [[ -z "${status}" ]] || [[ "${status}" =~ ERROR ]]; then
         echo "${sid}: NOT RUNNING"
     else
@@ -334,26 +337,26 @@ ACTION="$1"
 shift
 
 case "${ACTION}" in
-    start|stop|restart|status) ;;
+    start | stop | restart | status) ;;
     *) usage ;;
 esac
 
 # Parse options
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -f|--force)
+        -f | --force)
             FORCE_MODE=true
             shift
             ;;
-        -t|--timeout)
+        -t | --timeout)
             SHUTDOWN_TIMEOUT="$2"
             shift 2
             ;;
-        -p|--open-pdbs)
+        -p | --open-pdbs)
             OPEN_PDBS=true
             shift
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         -*)
@@ -375,14 +378,14 @@ oradba_log INFO "User: $(whoami), Host: $(hostname)"
 if [[ ${#SIDS[@]} -eq 0 ]]; then
     # No SIDs specified, get all with :Y flag
     oradba_log INFO "No SIDs specified, processing all databases with :Y flag"
-    
+
     mapfile -t db_list < <(get_databases)
-    
+
     if [[ ${#db_list[@]} -eq 0 ]]; then
         oradba_log ERROR "No databases found in oratab"
         exit 1
     fi
-    
+
     # Filter for :Y flag
     for entry in "${db_list[@]}"; do
         IFS=: read -r sid home flag <<< "${entry}"
@@ -390,12 +393,12 @@ if [[ ${#SIDS[@]} -eq 0 ]]; then
             SIDS+=("${sid}")
         fi
     done
-    
+
     if [[ ${#SIDS[@]} -eq 0 ]]; then
         oradba_log ERROR "No databases marked for auto-start (:Y flag) in oratab"
         exit 1
     fi
-    
+
     # Ask for justification when operating on all
     if [[ "${ACTION}" != "status" ]]; then
         if ! ask_justification "${ACTION}" "${#SIDS[@]}"; then
@@ -444,7 +447,7 @@ done
 if [[ "${ACTION}" != "status" ]]; then
     oradba_log INFO "========== Operation completed =========="
     oradba_log INFO "Success: ${success_count}, Failures: ${failure_count}"
-    
+
     if [[ ${failure_count} -gt 0 ]]; then
         oradba_log WARN "Some databases failed to ${ACTION}"
         exit 1

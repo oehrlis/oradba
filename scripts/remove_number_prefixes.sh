@@ -39,7 +39,7 @@ echo "==============================="
 # Rename files
 for old_file in "${!FILE_MAP[@]}"; do
     new_file="${FILE_MAP[$old_file]}"
-    
+
     if [[ -f "${DOCS_DIR}/${old_file}" ]]; then
         git mv "${DOCS_DIR}/${old_file}" "${DOCS_DIR}/${new_file}"
         echo "✓ Renamed: ${old_file} -> ${new_file}"
@@ -52,7 +52,7 @@ echo ""
 echo "Updating mkdocs.yml..."
 
 # Update mkdocs.yml (using git so it tracks the change)
-cat > mkdocs.yml.new <<'EOF'
+cat > mkdocs.yml.new << 'EOF'
 site_name: OraDBA Documentation
 site_url: https://oehrlis.github.io/oradba
 site_description: Oracle Database Administration Toolset - Complete user guides and reference materials

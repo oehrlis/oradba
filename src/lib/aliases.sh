@@ -28,7 +28,7 @@ create_dynamic_alias() {
     local name="${1:?Alias name required}"
     local command="${2:?Alias command required}"
     local expand="${3:-false}"
-    
+
     if [[ "${expand}" == "true" ]]; then
         # shellcheck disable=SC2139  # Intentional: expand at definition
         safe_alias "${name}" "${command}"
@@ -43,31 +43,32 @@ create_dynamic_alias() {
 get_diagnostic_dest() {
     local diag_dest=""
     local sid="${ORACLE_SID:-}"
-    
+
     # Try to query database if ORACLE_SID is set and database is available
     if [[ -n "${sid}" ]] && [[ -n "${ORACLE_HOME}" ]] && [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
         # Query database for diagnostic_dest (suppress all errors)
-        diag_dest=$(sqlplus -S / as sysdba <<EOF 2>&1 | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | head -1
+        diag_dest=$(
+            sqlplus -S / as sysdba << EOF 2>&1 | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | head -1
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
 SELECT value FROM v\$parameter WHERE name = 'diagnostic_dest';
 EXIT;
 EOF
         )
-        
+
         # Clean up result (remove whitespace and check if it's a valid path)
         diag_dest=$(echo "${diag_dest}" | tr -d '[:space:]')
-        
+
         # If result contains error indicators or is too short, clear it
         if [[ "${diag_dest}" =~ (ERROR|ORA-|SP2-|Help:) ]] || [[ ${#diag_dest} -lt 5 ]]; then
             diag_dest=""
         fi
     fi
-    
+
     # Fallback to convention-based path if query failed
     if [[ -z "${diag_dest}" ]] || [[ "${diag_dest}" == "no rows selected" ]]; then
         diag_dest="${ORACLE_BASE}/diag/rdbms/${sid,,}/${sid}"
     fi
-    
+
     echo "${diag_dest}"
 }
 
@@ -87,71 +88,71 @@ has_rlwrap() {
 # Creates: taa, vaa, via, cdd, cddt, cdda aliases
 generate_sid_aliases() {
     local sid="${ORACLE_SID:-}"
-    
+
     # Only generate aliases if ORACLE_SID is set
     if [[ -z "${sid}" ]]; then
         return 0
     fi
-    
+
     # Get diagnostic_dest
     local diag_dest
     diag_dest=$(get_diagnostic_dest)
-    
+
     # Generate trace file aliases (tail/view/edit alert log and trace files)
     if [[ -d "${diag_dest}" ]]; then
         # Set alert log file path variable
         local trace_dir="${diag_dest}/trace"
         local alertlog_file="${trace_dir}/alert_${sid}.log"
-        
+
         # Override ORADBA_SID_ALERTLOG with queried path if different
         if [[ -f "${alertlog_file}" ]] && [[ "${alertlog_file}" != "${ORADBA_SID_ALERTLOG}" ]]; then
             export ORADBA_SID_ALERTLOG="${alertlog_file}"
         fi
-        
+
         # Alert log aliases using ORADBA_SID_ALERTLOG
         create_dynamic_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
         create_dynamic_alias vaa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then less ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
         create_dynamic_alias via 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then vi ${ORADBA_SID_ALERTLOG}; else echo "ORADBA_SID_ALERTLOG not defined or file not found"; fi'
-        
+
         # Diagnostic dest directory (cdd)
         create_dynamic_alias cdd "cd ${diag_dest}" "true"
-        
+
         # Trace directory (cddt)
         if [[ -d "${trace_dir}" ]]; then
             create_dynamic_alias cddt "cd ${trace_dir}" "true"
         fi
-        
+
         # Alert directory (cdda)
         local alert_dir="${diag_dest}/alert"
         if [[ -d "${alert_dir}" ]]; then
             create_dynamic_alias cdda "cd ${alert_dir}" "true"
         fi
     fi
-    
+
     # SQL*Plus with rlwrap if available
     if has_rlwrap; then
         create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
         create_dynamic_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
     fi
-    
+
     # ------------------------------------------------------------------------------
     # Service Management Aliases
     # ------------------------------------------------------------------------------
     # Convenient shortcuts for Oracle service management
-    
+
     # Database control aliases
     create_dynamic_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
     create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
     create_dynamic_alias dbstop '${ORADBA_BIN}/oradba_dbctl.sh stop'
     create_dynamic_alias dbrestart '${ORADBA_BIN}/oradba_dbctl.sh restart'
-    
+
     # Listener control wrapper (renamed to avoid conflict with Oracle's lsnrctl)
     create_dynamic_alias listener '${ORADBA_BIN}/oradba_lsnrctl.sh'
     create_dynamic_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
     create_dynamic_alias lsnrstop '${ORADBA_BIN}/oradba_lsnrctl.sh stop'
     create_dynamic_alias lsnrrestart '${ORADBA_BIN}/oradba_lsnrctl.sh restart'
     create_dynamic_alias lsnrstatus '${ORADBA_BIN}/oradba_lsnrctl.sh status'
-    
+
     # Combined services aliases
     create_dynamic_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
     create_dynamic_alias orastop '${ORADBA_BIN}/oradba_services.sh stop'

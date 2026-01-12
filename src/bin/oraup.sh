@@ -24,7 +24,7 @@ if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
 fi
 
 # Get oratab file path using centralized function
-if type get_oratab_path &>/dev/null; then
+if type get_oratab_path &> /dev/null; then
     ORATAB_FILE=$(get_oratab_path)
 else
     # Fallback if common.sh not sourced
@@ -82,7 +82,7 @@ EOF
 get_db_status() {
     local sid="$1"
     local sid_lower="${sid,,}"
-    
+
     # Check for both naming conventions:
     # - Oracle 23ai+: db_pmon_<SID> (uppercase)
     # - Oracle <23ai: ora_pmon_<sid> (lowercase)
@@ -101,40 +101,42 @@ get_db_status() {
 get_db_mode() {
     local sid="$1"
     local oracle_home="$2"
-    
+
     # Check if instance is running
     if [[ "$(get_db_status "$sid")" != "up" ]]; then
         echo "n/a"
         return
     fi
-    
+
     # Try to get open mode via SQL*Plus
     local mode
-    mode=$(ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2>/dev/null <<EOF
+    mode=$(
+        ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2> /dev/null << EOF
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 WHENEVER OSERROR EXIT FAILURE
 SELECT status FROM v\$instance;
 EXIT;
 EOF
-)
-    
+    )
+
     # Clean up output
     mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    
+
     # Check if we got a valid result
     if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
         echo "$mode" | tr '[:upper:]' '[:lower:]'
     else
         # If v$instance query failed, try v$database for open_mode
-        mode=$(ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2>/dev/null <<EOF
+        mode=$(
+            ORACLE_HOME="$oracle_home" ORACLE_SID="$sid" "$oracle_home/bin/sqlplus" -S / as sysdba 2> /dev/null << EOF
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
 SELECT open_mode FROM v\$database;
 EXIT;
 EOF
-)
+        )
         mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
+
         if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
             echo "$mode" | tr '[:upper:]' '[:lower:]'
         else
@@ -151,7 +153,7 @@ EOF
 get_listener_status() {
     local listener_name="${1:-LISTENER}"
     local oracle_home="$2"
-    
+
     # Check if listener process is running
     if ps -ef | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
         echo "up"
@@ -168,7 +170,7 @@ get_listener_status() {
 get_startup_flag() {
     local sid="$1"
     local flag
-    flag=$(grep "^${sid}:" "$ORATAB_FILE" 2>/dev/null | cut -d: -f3)
+    flag=$(grep "^${sid}:" "$ORATAB_FILE" 2> /dev/null | cut -d: -f3)
     echo "${flag:-N}"
 }
 
@@ -178,13 +180,13 @@ get_startup_flag() {
 # ------------------------------------------------------------------------------
 show_oracle_status() {
     local verbose="${1:-false}"
-    
+
     # Header
     echo ""
     echo "Oracle Environment Status"
     printf "%-17s : %-12s %-11s %s\n" "TYPE (Cluster|DG)" "SID/PROCESS" "STATUS" "HOME"
     echo "---------------------------------------------------------------------------------"
-    
+
     # Check if oratab exists
     if [[ ! -f "$ORATAB_FILE" ]]; then
         echo ""
@@ -201,11 +203,11 @@ show_oracle_status() {
         echo ""
         return 0
     fi
-    
+
     # Check if oratab has any entries
     local entry_count
     entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$ORATAB_FILE")
-    
+
     if [[ "$entry_count" -eq 0 ]]; then
         echo ""
         echo "  ℹ No database entries found in oratab"
@@ -217,16 +219,16 @@ show_oracle_status() {
         echo ""
         return 0
     fi
-    
+
     # Collect all entries first for sorting
     local -a dummy_entries
     local -a db_entries
-    
+
     while IFS=: read -r sid oracle_home startup_flag _rest; do
         # Skip comments and empty lines
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
         [[ -z "$sid" ]] && continue
-        
+
         # Collect entries based on type
         if [[ "$startup_flag" == "D" ]]; then
             dummy_entries+=("$sid:$oracle_home:$startup_flag")
@@ -234,38 +236,38 @@ show_oracle_status() {
             db_entries+=("$sid:$oracle_home:$startup_flag")
         fi
     done < "$ORATAB_FILE"
-    
+
     # Sort both arrays alphabetically by SID
     mapfile -t dummy_entries < <(printf '%s\n' "${dummy_entries[@]}" | sort)
     mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
-    
+
     # Display Oracle Homes first (if available)
-    if command -v list_oracle_homes &>/dev/null; then
+    if command -v list_oracle_homes &> /dev/null; then
         local -a homes
         mapfile -t homes < <(list_oracle_homes)
-        
+
         if [[ ${#homes[@]} -gt 0 ]]; then
             echo ""
             echo "Oracle Homes"
             echo "---------------------------------------------------------------------------------"
-            
+
             for home_line in "${homes[@]}"; do
                 # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
                 read -r name path ptype _order _desc <<< "$home_line"
-                
+
                 # Format product type for display
                 local ptype_display
                 case "$ptype" in
-                    database)   ptype_display="Database" ;;
-                    oud)        ptype_display="OUD" ;;
-                    client)     ptype_display="Client" ;;
-                    weblogic)   ptype_display="WebLogic" ;;
-                    oms)        ptype_display="OMS" ;;
-                    emagent)    ptype_display="EM Agent" ;;
-                    datasafe)   ptype_display="Data Safe" ;;
-                    *)          ptype_display="$ptype" ;;
+                    database) ptype_display="Database" ;;
+                    oud) ptype_display="OUD" ;;
+                    client) ptype_display="Client" ;;
+                    weblogic) ptype_display="WebLogic" ;;
+                    oms) ptype_display="OMS" ;;
+                    emagent) ptype_display="EM Agent" ;;
+                    datasafe) ptype_display="Data Safe" ;;
+                    *) ptype_display="$ptype" ;;
                 esac
-                
+
                 # Check if directory exists
                 local status
                 if [[ -d "$path" ]]; then
@@ -273,45 +275,45 @@ show_oracle_status() {
                 else
                     status="missing"
                 fi
-                
+
                 printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$name" "$status" "$path"
             done
-            
+
             echo ""
         fi
     fi
-    
+
     # Process dummy entries first
     for entry in "${dummy_entries[@]}"; do
         IFS=: read -r sid oracle_home startup_flag <<< "$entry"
         printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
     done
-    
+
     # Process DB instances
     for entry in "${db_entries[@]}"; do
         IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-        
+
         # Get status
         local status
         status=$(get_db_status "$sid")
-        
+
         # Get open mode if instance is up
         if [[ "$status" == "up" ]]; then
             local mode
             mode=$(get_db_mode "$sid" "$oracle_home")
             status="$mode"
         fi
-        
+
         # Display with startup flag
         printf "%-17s : %-12s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
     done
-    
+
     echo ""
-    
+
     # Check for listeners
     echo "Listener Status"
     echo "---------------------------------------------------------------------------------"
-    
+
     # Find unique Oracle homes
     local -a oracle_homes
     while IFS=: read -r sid oracle_home startup_flag _rest; do
@@ -319,12 +321,12 @@ show_oracle_status() {
         [[ -z "$sid" ]] && continue
         [[ -d "$oracle_home" ]] && oracle_homes+=("$oracle_home")
     done < "$ORATAB_FILE"
-    
+
     # Remove duplicates
     local -a unique_homes
     mapfile -t unique_homes < <(printf '%s\n' "${oracle_homes[@]}" | sort -u)
     oracle_homes=("${unique_homes[@]}")
-    
+
     # Check for listeners in each Oracle home
     local found_listener=false
     for oh in "${oracle_homes[@]}"; do
@@ -332,7 +334,7 @@ show_oracle_status() {
         for listener in LISTENER LISTENER_${HOSTNAME%%.*}; do
             local lstatus
             lstatus=$(get_listener_status "$listener" "$oh")
-            
+
             # Only show listeners that are actually running
             if [[ "$lstatus" == "up" ]]; then
                 printf "%-17s : %-12s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
@@ -340,7 +342,7 @@ show_oracle_status() {
             fi
         done
     done
-    
+
     if [[ "$found_listener" == "false" ]]; then
         # Check for any running listeners
         if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
@@ -349,7 +351,7 @@ show_oracle_status() {
             printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
         fi
     fi
-    
+
     echo ""
 }
 
@@ -359,19 +361,19 @@ show_oracle_status() {
 main() {
     local verbose=false
     local quiet=false
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -h|--help)
+            -h | --help)
                 show_usage
                 exit 0
                 ;;
-            -v|--verbose)
+            -v | --verbose)
                 verbose=true
                 shift
                 ;;
-            -q|--quiet)
+            -q | --quiet)
                 quiet=true
                 shift
                 ;;
@@ -382,7 +384,7 @@ main() {
                 ;;
         esac
     done
-    
+
     # Show status
     if [[ "$quiet" == "false" ]]; then
         show_oracle_status "$verbose"

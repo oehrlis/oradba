@@ -29,13 +29,14 @@ fi
 # ------------------------------------------------------------------------------
 check_database_connection() {
     local result
-    result=$(sqlplus -s / as sysdba << 'EOF' 2>/dev/null
+    result=$(
+        sqlplus -s / as sysdba << 'EOF' 2> /dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0
 SELECT status FROM v$instance;
 EXIT;
 EOF
-)
-    
+    )
+
     # If we got any status (STARTED, MOUNTED, OPEN), instance is accessible
     if [[ -n "$result" ]] && [[ "$result" =~ ^(STARTED|MOUNTED|OPEN) ]]; then
         return 0
@@ -50,7 +51,7 @@ EOF
 # Returns.: Open mode string or empty if not accessible
 # ------------------------------------------------------------------------------
 get_database_open_mode() {
-    sqlplus -s / as sysdba << 'EOF' 2>/dev/null
+    sqlplus -s / as sysdba << 'EOF' 2> /dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 TRIMSPOOL ON
 SELECT status FROM v$instance;
 EXIT;
@@ -80,7 +81,7 @@ SELECT
         (SELECT value/1024/1024/1024 FROM v$parameter WHERE name = '\''db_recovery_file_dest_size'\''), 2
     )
 FROM v$instance i;'
-    
+
     execute_db_query "$query" "delimited"
 }
 
@@ -91,12 +92,12 @@ FROM v$instance i;'
 # ------------------------------------------------------------------------------
 query_database_info() {
     local open_mode="$1"
-    
+
     # Only query if database is at least MOUNTED
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
-    
+
     local query="
 SELECT 
     d.name || '|' ||
@@ -109,7 +110,7 @@ SELECT
         'UNKNOWN'
     )
 FROM v\$database d;"
-    
+
     execute_db_query "$query" "delimited"
 }
 
@@ -120,16 +121,16 @@ FROM v\$database d;"
 # ------------------------------------------------------------------------------
 query_datafile_size() {
     local open_mode="$1"
-    
+
     # Only query if database is at least MOUNTED
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
-    
+
     local query='
 SELECT ROUND(SUM(bytes)/1024/1024/1024, 2)
 FROM v$datafile;'
-    
+
     execute_db_query "$query" "raw"
 }
 
@@ -140,13 +141,13 @@ FROM v$datafile;'
 # ------------------------------------------------------------------------------
 query_memory_usage() {
     local open_mode="$1"
-    
+
     # Query v\$sga and v\$pgastat - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
-    
+
     local query="
 SELECT 
     ROUND(SUM(CASE WHEN name = 'sga' THEN value ELSE 0 END)/1024/1024/1024, 2) || '|' ||
@@ -156,7 +157,7 @@ FROM (
     UNION ALL
     SELECT 'pga' name, value FROM v\$pgastat WHERE name = 'total PGA allocated'
 );"
-    
+
     execute_db_query "$query" "delimited"
 }
 
@@ -167,13 +168,13 @@ FROM (
 # ------------------------------------------------------------------------------
 query_sessions_info() {
     local open_mode="$1"
-    
+
     # Query v\$session - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
-    
+
     local query="
 SELECT 
     COUNT(DISTINCT CASE WHEN username IS NULL THEN sid END) || '|' ||
@@ -182,7 +183,7 @@ SELECT
     COUNT(CASE WHEN username IS NOT NULL THEN sid END)
 FROM v\$session
 WHERE type = 'USER';"
-    
+
     execute_db_query "$query" "delimited"
 }
 
@@ -193,13 +194,13 @@ WHERE type = 'USER';"
 # ------------------------------------------------------------------------------
 query_pdb_info() {
     local open_mode="$1"
-    
+
     # Query v\$pdbs - works in MOUNT and OPEN states
     # Skip only for STARTED (NOMOUNT)
     if [[ "$open_mode" == "STARTED" ]]; then
         return 1
     fi
-    
+
     local query="
 SELECT LISTAGG(
     name || '(' || 
@@ -213,7 +214,7 @@ SELECT LISTAGG(
     ', '
 ) WITHIN GROUP (ORDER BY name)
 FROM v\$pdbs;"
-    
+
     execute_db_query "$query" "raw"
 }
 
@@ -225,25 +226,25 @@ FROM v\$pdbs;"
 # ------------------------------------------------------------------------------
 format_uptime() {
     local startup_time="$1"
-    
+
     if [[ -z "$startup_time" ]]; then
         echo "Unknown"
         return
     fi
-    
+
     # Calculate uptime using date commands (cross-platform: macOS and Linux)
     local startup_epoch current_epoch uptime_seconds
     # Try macOS format first, then Linux format
-    startup_epoch=$(date -j -f "%Y-%m-%d %H:%M:%S" "$startup_time" "+%s" 2>/dev/null || \
-                    date -d "$startup_time" "+%s" 2>/dev/null || echo "0")
+    startup_epoch=$(date -j -f "%Y-%m-%d %H:%M:%S" "$startup_time" "+%s" 2> /dev/null \
+        || date -d "$startup_time" "+%s" 2> /dev/null || echo "0")
     current_epoch=$(date "+%s")
     uptime_seconds=$((current_epoch - startup_epoch))
-    
+
     local days hours minutes
     days=$((uptime_seconds / 86400))
-    hours=$(( (uptime_seconds % 86400) / 3600 ))
-    minutes=$(( (uptime_seconds % 3600) / 60 ))
-    
+    hours=$(((uptime_seconds % 86400) / 3600))
+    minutes=$(((uptime_seconds % 3600) / 60))
+
     printf "%s (%dd %dh %dm)" "$startup_time" "$days" "$hours" "$minutes"
 }
 
@@ -261,11 +262,11 @@ show_database_status() {
         printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
         printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
         printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
-        
+
         # Try to get version from Oracle Home
         local version=""
         if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
-            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
+            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2> /dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
         fi
         printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
         echo "-------------------------------------------------------------------------------"
@@ -274,7 +275,7 @@ show_database_status() {
         echo ""
         return 0
     fi
-    
+
     # Check if we can connect (for real SIDs)
     if ! check_database_connection; then
         # Database not accessible - show environment status
@@ -283,11 +284,11 @@ show_database_status() {
         printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
         printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
         printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
-        
+
         # Try to get version from Oracle Home
         local version=""
         if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
-            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2>/dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
+            version=$("${ORACLE_HOME}/bin/sqlplus" -version 2> /dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
         fi
         printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
         echo "-------------------------------------------------------------------------------"
@@ -296,23 +297,23 @@ show_database_status() {
         echo ""
         return 0
     fi
-    
+
     # Get open mode first
     local open_mode
     open_mode=$(get_database_open_mode | tr -d '[:space:]')
-    
+
     # Query instance info (always available)
     local instance_info
     instance_info=$(query_instance_info)
-    
+
     if [[ -z "$instance_info" ]]; then
         oradba_log ERROR "Unable to query instance information"
         return 1
     fi
-    
+
     # Parse instance info
     IFS='|' read -r instance_name db_status startup_time version _ sga_target pga_target fra_size <<< "$instance_info"
-    
+
     # Start output
     echo ""
     echo "-------------------------------------------------------------------------------"
@@ -323,13 +324,13 @@ show_database_status() {
     printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
     printf "%-15s: %s\n" "DB_STATUS" "$db_status"
     echo "-------------------------------------------------------------------------------"
-    
+
     # Query database info if MOUNTED or OPEN
     local db_info=""
     local db_name="" db_unique_name="" dbid="" log_mode="" db_role="" charset=""
     if [[ "$open_mode" != "STARTED" ]]; then
         db_info=$(query_database_info "$open_mode")
-        
+
         if [[ -n "$db_info" ]]; then
             IFS='|' read -r db_name db_unique_name dbid log_mode db_role charset <<< "$db_info"
             # Database identity (compact: one or two lines)
@@ -344,7 +345,7 @@ show_database_status() {
             oradba_log DEBUG "query_database_info returned empty for open_mode: $open_mode"
         fi
     fi
-    
+
     # Memory info
     local mem_usage
     mem_usage=$(query_memory_usage "$open_mode")
@@ -354,10 +355,10 @@ show_database_status() {
     else
         printf "%-15s: %sG SGA / 0G PGA (%sG pga_aggregate_target)\n" "MEMORY_SIZE" "$sga_target" "$pga_target"
     fi
-    
+
     # FRA size
     printf "%-15s: %sG\n" "FRA_SIZE" "${fra_size:-0}"
-    
+
     # Datafile size (for MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" ]]; then
         local df_size
@@ -366,10 +367,10 @@ show_database_status() {
             printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
         fi
     fi
-    
+
     # Uptime
     printf "%-15s: %s\n" "UPTIME" "$(format_uptime "$startup_time")"
-    
+
     # Status display - format depends on open_mode
     if [[ "$open_mode" == "STARTED" ]]; then
         # For NOMOUNT: show single status
@@ -382,7 +383,7 @@ show_database_status() {
             printf "%-15s: %s\n" "STATUS" "$open_mode"
         fi
     fi
-    
+
     # Session info (for MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" ]]; then
         local session_info
@@ -393,13 +394,13 @@ show_database_status() {
                 "$non_oracle_users" "$non_oracle_sessions" "$oracle_users" "$oracle_sessions"
         fi
     fi
-    
+
     # Database details (MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" && -n "$log_mode" ]]; then
         printf "%-15s: %s\n" "LOG_MODE" "$log_mode"
         printf "%-15s: %s\n" "CHARACTERSET" "${charset:-N/A}"
     fi
-    
+
     # PDB info (for MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" ]]; then
         local pdb_info
@@ -408,7 +409,7 @@ show_database_status() {
             printf "%-15s: %s\n" "PDB" "$pdb_info"
         fi
     fi
-    
+
     echo "-------------------------------------------------------------------------------"
     echo ""
 }

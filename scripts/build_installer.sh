@@ -60,7 +60,7 @@ cp -r src/* "$TEMP_TAR_DIR/"
 rm -rf "$TEMP_TAR_DIR/doc/javascripts"
 rm -rf "$TEMP_TAR_DIR/doc/stylesheets"
 rm -f "$TEMP_TAR_DIR/doc/index.md"
-rm -f "$TEMP_TAR_DIR/doc/oradba-user-guide.pdf" 2>/dev/null || true
+rm -f "$TEMP_TAR_DIR/doc/oradba-user-guide.pdf" 2> /dev/null || true
 
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
@@ -82,12 +82,12 @@ EXTENSION_VERSION_FILE="templates/oradba_extension/.version"
 # Function to get latest release info from GitHub
 get_latest_extension_release() {
     local api_url="https://api.github.com/repos/${EXTENSION_REPO}/releases/latest"
-    
+
     # Use curl with fallback to wget
     if command -v curl &> /dev/null; then
-        curl -sS "${api_url}" 2>/dev/null || echo "{}"
+        curl -sS "${api_url}" 2> /dev/null || echo "{}"
     elif command -v wget &> /dev/null; then
-        wget -qO- "${api_url}" 2>/dev/null || echo "{}"
+        wget -qO- "${api_url}" 2> /dev/null || echo "{}"
     else
         echo "{}"
     fi
@@ -99,7 +99,7 @@ CACHED_VERSION=""
 LATEST_VERSION=""
 
 if [[ -f "${EXTENSION_VERSION_FILE}" ]]; then
-    CACHED_VERSION=$(cat "${EXTENSION_VERSION_FILE}" 2>/dev/null || echo "")
+    CACHED_VERSION=$(cat "${EXTENSION_VERSION_FILE}" 2> /dev/null || echo "")
 fi
 
 echo "  Checking for latest release from ${EXTENSION_REPO}..."
@@ -108,10 +108,10 @@ RELEASE_INFO=$(get_latest_extension_release)
 if [[ -n "${RELEASE_INFO}" ]] && [[ "${RELEASE_INFO}" != "{}" ]]; then
     LATEST_VERSION=$(echo "${RELEASE_INFO}" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*": *"\(.*\)".*/\1/')
     TARBALL_URL=$(echo "${RELEASE_INFO}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
-    
+
     if [[ -n "${LATEST_VERSION}" ]]; then
         echo "  Latest version: ${LATEST_VERSION}"
-        
+
         if [[ "${CACHED_VERSION}" != "${LATEST_VERSION}" ]] || [[ ! -f "${EXTENSION_CACHE_FILE}" ]]; then
             echo "  New version available, downloading..."
             DOWNLOAD_EXTENSION=true
@@ -126,7 +126,7 @@ fi
 # Download if needed
 if [[ "${DOWNLOAD_EXTENSION}" == "true" ]] && [[ -n "${TARBALL_URL}" ]]; then
     echo "  Downloading from: ${TARBALL_URL}"
-    
+
     if command -v curl &> /dev/null; then
         curl -sS -L "${TARBALL_URL}" -o "${EXTENSION_CACHE_FILE}" || {
             echo "  Warning: Failed to download extension template"
@@ -141,7 +141,7 @@ if [[ "${DOWNLOAD_EXTENSION}" == "true" ]] && [[ -n "${TARBALL_URL}" ]]; then
         echo "  Warning: Neither curl nor wget available"
         DOWNLOAD_EXTENSION=false
     fi
-    
+
     if [[ "${DOWNLOAD_EXTENSION}" == "true" ]]; then
         echo "${LATEST_VERSION}" > "${EXTENSION_VERSION_FILE}"
         echo "  ✓ Downloaded extension template ${LATEST_VERSION}"
@@ -186,18 +186,18 @@ echo "Generating checksums..."
     echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
     echo "# Version: ${VERSION}"
     echo "#"
-    
+
     # Change to staging directory to generate relative paths
     cd "$TEMP_TAR_DIR" || exit 1
-    
+
     # Generate checksums for all files (excluding checksum file itself)
-    find bin lib sql rcv etc templates doc -type f 2>/dev/null | sort | while read -r file; do
+    find bin lib sql rcv etc templates doc -type f 2> /dev/null | sort | while read -r file; do
         sha256sum "$file"
     done
-    
+
     # Also checksum the VERSION and .install_info files
     sha256sum VERSION .install_info
-    
+
     cd - > /dev/null || exit 1
 } > "$TEMP_TAR_DIR/.oradba.checksum"
 

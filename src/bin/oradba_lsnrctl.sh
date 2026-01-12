@@ -83,21 +83,21 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 # Get first Oracle home from oratab
 get_first_oracle_home() {
     local oratab_file="${ORATAB:-/etc/oratab}"
-    
+
     if [[ ! -f "${oratab_file}" ]]; then
         oradba_log ERROR "oratab file not found: ${oratab_file}"
         return 1
     fi
-    
+
     # Get first valid Oracle home
     local oracle_home
     oracle_home=$(grep -v '^#' "${oratab_file}" | grep -v '^$' | grep -v ':D$' | head -1 | cut -d: -f2)
-    
+
     if [[ -z "${oracle_home}" ]]; then
         oradba_log ERROR "No Oracle home found in oratab"
         return 1
     fi
-    
+
     echo "${oracle_home}"
 }
 
@@ -105,45 +105,45 @@ get_first_oracle_home() {
 set_listener_env() {
     local listener_name="$1"
     local oracle_home
-    
+
     # Get Oracle home - try from listener configuration or use first from oratab
     oracle_home=$(get_first_oracle_home)
-    
+
     if [[ -z "${oracle_home}" ]]; then
         oradba_log ERROR "Cannot determine Oracle home"
         return 1
     fi
-    
+
     export ORACLE_HOME="${oracle_home}"
     export PATH="${ORACLE_HOME}/bin:${PATH}"
-    
+
     # Set TNS_ADMIN if not already set
     if [[ -z "${TNS_ADMIN}" ]]; then
         if [[ -d "${ORACLE_HOME}/network/admin" ]]; then
             export TNS_ADMIN="${ORACLE_HOME}/network/admin"
         fi
     fi
-    
+
     return 0
 }
 
 # Get list of running listeners
 get_running_listeners() {
     set_listener_env "LISTENER"
-    
+
     # Get list of listeners from lsnrctl
-    lsnrctl services 2>/dev/null | grep "^Listener" | awk '{print $2}' | sort -u
+    lsnrctl services 2> /dev/null | grep "^Listener" | awk '{print $2}' | sort -u
 }
 
 # Ask for justification when operating on all listeners
 ask_justification() {
     local action="$1"
     local count="$2"
-    
+
     if [[ "${FORCE_MODE}" == "true" ]]; then
         return 0
     fi
-    
+
     echo ""
     echo "=========================================="
     echo "WARNING: About to ${action} ALL listeners"
@@ -151,45 +151,45 @@ ask_justification() {
     echo "This will affect ${count} listener(s)"
     echo ""
     read -p "Please provide justification for this operation: " justification
-    
+
     if [[ -z "${justification}" ]]; then
         oradba_log ERROR "Operation cancelled: No justification provided"
         return 1
     fi
-    
+
     oradba_log INFO "Justification for ${action} all listeners: ${justification}"
     read -p "Continue with operation? (yes/no): " confirm
-    
+
     if [[ "${confirm}" != "yes" ]]; then
         oradba_log INFO "Operation cancelled by user"
         return 1
     fi
-    
+
     return 0
 }
 
 # Start a listener
 start_listener() {
     local listener_name="$1"
-    
+
     oradba_log INFO "Starting listener ${listener_name}..."
-    
+
     # Set environment
     if ! set_listener_env "${listener_name}"; then
         oradba_log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
-    
+
     # Check if listener is already running
-    lsnrctl status "${listener_name}" >/dev/null 2>&1
+    lsnrctl status "${listener_name}" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
         oradba_log INFO "Listener ${listener_name} is already running"
         return 0
     fi
-    
+
     # Start the listener
     lsnrctl start "${listener_name}" >> "${LOGFILE}" 2>&1
-    
+
     if [[ $? -eq 0 ]]; then
         oradba_log INFO "Listener ${listener_name} started successfully"
         return 0
@@ -202,25 +202,25 @@ start_listener() {
 # Stop a listener
 stop_listener() {
     local listener_name="$1"
-    
+
     oradba_log INFO "Stopping listener ${listener_name}..."
-    
+
     # Set environment
     if ! set_listener_env "${listener_name}"; then
         oradba_log ERROR "Failed to set environment for ${listener_name}"
         return 1
     fi
-    
+
     # Check if listener is running
-    lsnrctl status "${listener_name}" >/dev/null 2>&1
+    lsnrctl status "${listener_name}" > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
         oradba_log INFO "Listener ${listener_name} is not running"
         return 0
     fi
-    
+
     # Stop the listener
     lsnrctl stop "${listener_name}" >> "${LOGFILE}" 2>&1
-    
+
     if [[ $? -eq 0 ]]; then
         oradba_log INFO "Listener ${listener_name} stopped successfully"
         return 0
@@ -233,13 +233,13 @@ stop_listener() {
 # Show listener status
 show_status() {
     local listener_name="$1"
-    
+
     # Set environment
     if ! set_listener_env "${listener_name}"; then
         echo "${listener_name}: Unable to set environment"
         return 1
     fi
-    
+
     # Get listener status
     lsnrctl status "${listener_name}" 2>&1 | grep -q "is not running"
     if [[ $? -eq 0 ]]; then
@@ -263,18 +263,18 @@ ACTION="$1"
 shift
 
 case "${ACTION}" in
-    start|stop|restart|status) ;;
+    start | stop | restart | status) ;;
     *) usage ;;
 esac
 
 # Parse options
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -f|--force)
+        -f | --force)
             FORCE_MODE=true
             shift
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         -*)
@@ -297,7 +297,7 @@ if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     # No listeners specified, use default
     oradba_log INFO "No listeners specified, using default LISTENER"
     LISTENERS=("LISTENER")
-    
+
     # For status, show all running listeners
     if [[ "${ACTION}" == "status" ]]; then
         mapfile -t running < <(get_running_listeners)
@@ -308,7 +308,7 @@ if [[ ${#LISTENERS[@]} -eq 0 ]]; then
 else
     # Explicit listeners provided
     oradba_log INFO "Processing specified listeners: ${LISTENERS[*]}"
-    
+
     # Ask for justification if multiple listeners
     if [[ ${#LISTENERS[@]} -gt 1 ]] && [[ "${ACTION}" != "status" ]]; then
         if ! ask_justification "${ACTION}" "${#LISTENERS[@]}"; then
@@ -354,7 +354,7 @@ done
 if [[ "${ACTION}" != "status" ]]; then
     oradba_log INFO "========== Operation completed =========="
     oradba_log INFO "Success: ${success_count}, Failures: ${failure_count}"
-    
+
     if [[ ${failure_count} -gt 0 ]]; then
         oradba_log WARN "Some listeners failed to ${ACTION}"
         exit 1

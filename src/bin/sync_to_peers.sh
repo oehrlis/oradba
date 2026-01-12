@@ -55,14 +55,14 @@ SYNC_FAILURE=()
 # Load configuration files
 load_config() {
     local config_files=()
-    
+
     # Script-specific config
     if [[ -f "${SCRIPT_CONF}" ]]; then
         # shellcheck source=/dev/null
         source "${SCRIPT_CONF}"
         config_files+=("${SCRIPT_CONF}")
     fi
-    
+
     # Alternative config location
     if [[ -n "${ETC_BASE}" && -d "${ETC_BASE}" ]]; then
         local alt_conf="${ETC_BASE}/${SCRIPT_NAME%.sh}.conf"
@@ -72,17 +72,20 @@ load_config() {
             config_files+=("${alt_conf}")
         fi
     fi
-    
+
     # CLI-specified config
     if [[ -n "${CONFIG_FILE}" && -f "${CONFIG_FILE}" ]]; then
         # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
         config_files+=("${CONFIG_FILE}")
     fi
-    
+
     # Join config files with comma
-    LOADED_CONFIG=$(IFS=,; echo "${config_files[*]}")
-    
+    LOADED_CONFIG=$(
+        IFS=,
+        echo "${config_files[*]}"
+    )
+
     # Use env vars or fall back to defaults
     SSH_USER="${SSH_USER:-${SSH_USER_DEFAULT}}"
     SSH_PORT="${SSH_PORT:-${SSH_PORT_DEFAULT}}"
@@ -146,10 +149,19 @@ should_log() {
 parse_args() {
     while getopts ":nvdDqH:r:c:h" opt; do
         case "${opt}" in
-            n) DRYRUN=true; RSYNC_OPTS+=" --dry-run" ;;
-            v) VERBOSE=true; RSYNC_OPTS+=" -v" ;;
+            n)
+                DRYRUN=true
+                RSYNC_OPTS+=" --dry-run"
+                ;;
+            v)
+                VERBOSE=true
+                RSYNC_OPTS+=" -v"
+                ;;
             d) DEBUG=true ;;
-            D) DELETE=true; RSYNC_OPTS+=" --delete" ;;
+            D)
+                DELETE=true
+                RSYNC_OPTS+=" --delete"
+                ;;
             q) QUIET=true ;;
             H) IFS=' ' read -r -a PEER_HOSTS <<< "${OPTARG}" ;;
             r) REMOTE_BASE="${OPTARG}" ;;
@@ -159,21 +171,21 @@ parse_args() {
         esac
     done
     shift $((OPTIND - 1))
-    
+
     SOURCE="$1"
-    
+
     # Validate required argument
     if [[ -z "${SOURCE}" ]]; then
         echo "Error: Source file or folder is required." >&2
         usage
     fi
-    
+
     # Check source exists
     if [[ ! -e "${SOURCE}" ]]; then
         should_log ERROR && log ERROR "Source '${SOURCE}' does not exist."
         exit 1
     fi
-    
+
     # Validate peer hosts
     if [[ ${#PEER_HOSTS[@]} -eq 0 ]]; then
         should_log ERROR && log ERROR "PEER_HOSTS is empty. Configure via environment, config file, or -H option."
@@ -186,20 +198,20 @@ perform_sync() {
     local abs_source
     local rsync_source
     local this_host
-    
+
     # Get absolute path
     abs_source=$(realpath "${SOURCE}")
-    
+
     # Determine rsync source (add trailing slash for directories)
     if [[ -d "${abs_source}" ]]; then
         rsync_source="${abs_source%/}/"
     else
         rsync_source="${abs_source}"
     fi
-    
+
     this_host=$(hostname -s)
     should_log INFO && log INFO "Starting sync of '${rsync_source}' from ${this_host} to peers..."
-    
+
     # Sync to each peer host
     for host in "${PEER_HOSTS[@]}"; do
         # Skip self
@@ -207,11 +219,11 @@ perform_sync() {
             should_log DEBUG && log DEBUG "Skipping self (${this_host})"
             continue
         fi
-        
+
         # Determine target path
         local target_path="${REMOTE_BASE}"
         [[ -z "${target_path}" ]] && target_path="${abs_source}"
-        
+
         # Execute rsync
         should_log INFO && log INFO "Syncing to ${host}:${target_path} ..."
         # shellcheck disable=SC2086
@@ -223,7 +235,7 @@ perform_sync() {
             SYNC_FAILURE+=("${host}")
         fi
     done
-    
+
     should_log INFO && log INFO "Sync operation finished."
 }
 
@@ -232,7 +244,7 @@ show_summary() {
     if [[ "${VERBOSE}" == "true" && "${QUIET}" != "true" ]]; then
         local this_host
         this_host=$(hostname -s)
-        
+
         should_log INFO && log INFO "--- Sync Summary ---"
         should_log INFO && log INFO "Local  : ${this_host}"
         should_log INFO && log INFO "Success: ${SYNC_SUCCESS[*]:-none}"
@@ -246,7 +258,7 @@ main() {
     parse_args "$@"
     perform_sync
     show_summary
-    
+
     # Exit with error if any sync failed
     [[ ${#SYNC_FAILURE[@]} -gt 0 ]] && exit 1
     exit 0

@@ -132,11 +132,11 @@ list_homes() {
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -t|--type)
+            -t | --type)
                 filter_type="$2"
                 shift 2
                 ;;
-            -v|--verbose)
+            -v | --verbose)
                 verbose=true
                 shift
                 ;;
@@ -148,7 +148,7 @@ list_homes() {
     done
 
     # Check if config file exists
-    if ! get_oracle_homes_path >/dev/null 2>&1; then
+    if ! get_oracle_homes_path > /dev/null 2>&1; then
         log_warn "No Oracle Homes configuration found"
         echo "To add Oracle Homes, use: $SCRIPT_NAME add"
         return 0
@@ -172,7 +172,7 @@ list_homes() {
     echo ""
     echo "Registered Oracle Homes"
     echo "================================================================================"
-    
+
     if [[ "$verbose" == "true" ]]; then
         printf "%-15s %-12s %-12s %-5s %s\n" "NAME" "TYPE" "STATUS" "ORDER" "PATH"
         echo "--------------------------------------------------------------------------------"
@@ -185,7 +185,7 @@ list_homes() {
     while read -r line; do
         # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
         read -r name path ptype order alias_name desc <<< "$line"
-        
+
         # Check status
         local status
         if [[ -d "$path" ]]; then
@@ -193,7 +193,7 @@ list_homes() {
         else
             status="missing"
         fi
-        
+
         if [[ "$verbose" == "true" ]]; then
             printf "%-15s %-12s %-12s %-5s %s\n" "$name" "$ptype" "$status" "$order" "$path"
         else
@@ -205,7 +205,7 @@ list_homes() {
             printf "%-15s %-12s %-12s %s\n" "$name" "$ptype" "$status" "$display_desc"
         fi
     done <<< "$homes_output"
-    
+
     echo ""
 }
 
@@ -215,7 +215,7 @@ list_homes() {
 # ------------------------------------------------------------------------------
 show_home() {
     local name="$1"
-    
+
     if [[ -z "$name" ]]; then
         log_error "Oracle Home name required"
         echo "Usage: $SCRIPT_NAME show <name>"
@@ -231,11 +231,11 @@ show_home() {
 
     # Extract details
     read -r h_name h_path h_type h_order h_alias h_desc <<< "$home_info"
-    
+
     # Get additional info
     local status="missing"
     local detected_type="unknown"
-    
+
     if [[ -d "$h_path" ]]; then
         status="available"
         detected_type=$(detect_product_type "$h_path")
@@ -254,12 +254,12 @@ show_home() {
     echo "Status            : $status"
     echo "Description       : $h_desc"
     echo ""
-    
+
     # Show directory contents if available
     if [[ -d "$h_path" ]]; then
         echo "Directory Contents:"
         echo "--------------------------------------------------------------------------------"
-        find "$h_path" -maxdepth 1 -ls 2>/dev/null | head -10
+        find "$h_path" -maxdepth 1 -ls 2> /dev/null | head -10
         echo ""
     else
         echo "⚠ Warning: Oracle Home directory does not exist"
@@ -282,27 +282,27 @@ add_home() {
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -n|--name)
+            -n | --name)
                 name="$2"
                 shift 2
                 ;;
-            -p|--path)
+            -p | --path)
                 path="$2"
                 shift 2
                 ;;
-            -t|--type)
+            -t | --type)
                 ptype="$2"
                 shift 2
                 ;;
-            -a|--alias)
+            -a | --alias)
                 alias_name="$2"
                 shift 2
                 ;;
-            -o|--order)
+            -o | --order)
                 order="$2"
                 shift 2
                 ;;
-            -d|--desc)
+            -d | --desc)
                 desc="$2"
                 shift 2
                 ;;
@@ -322,7 +322,7 @@ add_home() {
             return 1
         fi
     fi
-    
+
     if [[ -z "$name" ]]; then
         log_error "Oracle Home name is required"
         return 1
@@ -335,7 +335,7 @@ add_home() {
     fi
 
     # Check if already exists
-    if is_oracle_home "$name" 2>/dev/null; then
+    if is_oracle_home "$name" 2> /dev/null; then
         log_error "Oracle Home '$name' already exists"
         return 1
     fi
@@ -348,7 +348,7 @@ add_home() {
             return 1
         fi
     fi
-    
+
     if [[ -z "$path" ]]; then
         log_error "ORACLE_HOME path is required"
         return 1
@@ -383,8 +383,7 @@ add_home() {
 
     # Validate product type
     case "$ptype" in
-        database|oud|client|weblogic|oms|emagent|datasafe)
-            ;;
+        database | oud | client | weblogic | oms | emagent | datasafe) ;;
         *)
             log_error "Invalid product type: $ptype"
             return 1
@@ -414,10 +413,10 @@ add_home() {
 
     # Get config file path
     local config_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     # Create directory if needed
     mkdir -p "${ORADBA_BASE}/etc"
-    
+
     # Create config file if it doesn't exist
     if [[ ! -f "$config_file" ]]; then
         cat > "$config_file" << 'EOF'
@@ -444,7 +443,7 @@ EOF
 
     # Add entry with alias_name
     echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}" >> "$config_file"
-    
+
     log_info "Oracle Home '$name' added successfully"
     echo ""
     echo "Configuration:"
@@ -457,7 +456,7 @@ EOF
     echo ""
     echo "To set environment: source oraenv.sh $name"
     echo ""
-    
+
     return 0
 }
 
@@ -467,7 +466,7 @@ EOF
 # ------------------------------------------------------------------------------
 remove_home() {
     local name="$1"
-    
+
     if [[ -z "$name" ]]; then
         log_error "Oracle Home name required"
         echo "Usage: $SCRIPT_NAME remove <name>"
@@ -475,7 +474,7 @@ remove_home() {
     fi
 
     # Check if exists
-    if ! is_oracle_home "$name" 2>/dev/null; then
+    if ! is_oracle_home "$name" 2> /dev/null; then
         log_error "Oracle Home '$name' not found"
         return 1
     fi
@@ -490,7 +489,7 @@ remove_home() {
     # Confirm removal
     echo ""
     echo "Remove Oracle Home: $name"
-    
+
     if [[ -t 0 ]]; then
         read -p "Are you sure? [y/N]: " confirm
         if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
@@ -503,14 +502,14 @@ remove_home() {
 
     # Create backup
     cp "$config_file" "${config_file}.bak"
-    
+
     # Remove entry
     sed -i.tmp "/^${name}:/d" "$config_file"
     rm -f "${config_file}.tmp"
-    
+
     log_info "Oracle Home '$name' removed successfully"
     echo ""
-    
+
     return 0
 }
 
@@ -526,7 +525,7 @@ discover_homes() {
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -b|--base)
+            -b | --base)
                 base_dir="$2"
                 shift 2
                 ;;
@@ -562,7 +561,7 @@ discover_homes() {
 
     # Search for Oracle Homes under product directory
     local product_dir="${base_dir}/product"
-    
+
     if [[ ! -d "$product_dir" ]]; then
         log_warn "No product directory found: $product_dir"
         return 0
@@ -575,63 +574,63 @@ discover_homes() {
     while IFS= read -r -d '' dir; do
         # Skip if too deep or symbolic links
         [[ -L "$dir" ]] && continue
-        
+
         # Detect product type
         local ptype
         ptype=$(detect_product_type "$dir")
-        
+
         # Skip unknown types
         [[ "$ptype" == "unknown" ]] && continue
-        
+
         ((found_count++))
-        
+
         # Generate name from path
         local dir_name
         dir_name=$(basename "$dir")
         local home_name
         home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_')
-        
+
         # Check if already registered
-        if is_oracle_home "$home_name" 2>/dev/null; then
+        if is_oracle_home "$home_name" 2> /dev/null; then
             echo "  [EXISTS] $home_name ($ptype) - $dir"
             continue
         fi
-        
+
         echo "  [FOUND]  $home_name ($ptype) - $dir"
-        
+
         if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
             # Add automatically
             if add_home --name "$home_name" --path "$dir" --type "$ptype" \
-                        --order "$((50 + found_count * 10))" \
-                        --desc "Auto-discovered $ptype" >/dev/null 2>&1; then
+                --order "$((50 + found_count * 10))" \
+                --desc "Auto-discovered $ptype" > /dev/null 2>&1; then
                 echo "           → Added successfully"
                 ((added_count++))
             else
                 echo "           → Failed to add"
             fi
         fi
-        
-    done < <(find "$product_dir" -maxdepth 2 -type d -print0 2>/dev/null)
+
+    done < <(find "$product_dir" -maxdepth 2 -type d -print0 2> /dev/null)
 
     echo ""
     echo "Discovery Summary:"
     echo "  Found: $found_count Oracle Home(s)"
-    
+
     if [[ "$auto_add" == "true" ]]; then
         echo "  Added: $added_count Oracle Home(s)"
     fi
-    
+
     if [[ "$dry_run" == "true" ]]; then
         echo "  (Dry run - no changes made)"
     fi
-    
+
     echo ""
-    
+
     if [[ $found_count -gt 0 ]] && [[ "$auto_add" == "false" ]]; then
         echo "To add discovered homes, use: $SCRIPT_NAME discover --auto-add"
         echo ""
     fi
-    
+
     return 0
 }
 
@@ -659,7 +658,7 @@ validate_homes() {
     # Validate specific home or all
     local homes_to_check
     if [[ -n "$name" ]]; then
-        if ! is_oracle_home "$name" 2>/dev/null; then
+        if ! is_oracle_home "$name" 2> /dev/null; then
             log_error "Oracle Home '$name' not found"
             return 1
         fi
@@ -670,22 +669,22 @@ validate_homes() {
 
     while read -r line; do
         [[ -z "$line" ]] && continue
-        
+
         read -r h_name h_path h_type h_order h_desc <<< "$line"
-        
+
         echo "Checking: $h_name ($h_type)"
-        
+
         # Check if path exists
         if [[ ! -d "$h_path" ]]; then
             echo "  ✗ ERROR: Directory does not exist: $h_path"
             ((error_count++))
         else
             echo "  ✓ Directory exists: $h_path"
-            
+
             # Verify detected type matches configured type
             local detected
             detected=$(detect_product_type "$h_path")
-            
+
             if [[ "$detected" != "$h_type" ]]; then
                 echo "  ⚠ WARNING: Detected type ($detected) differs from configured ($h_type)"
                 ((warn_count++))
@@ -693,7 +692,7 @@ validate_homes() {
                 echo "  ✓ Product type verified: $h_type"
             fi
         fi
-        
+
         echo ""
     done <<< "$homes_to_check"
 
@@ -701,7 +700,7 @@ validate_homes() {
     echo "  Errors  : $error_count"
     echo "  Warnings: $warn_count"
     echo ""
-    
+
     if [[ $error_count -eq 0 ]] && [[ $warn_count -eq 0 ]]; then
         echo "✓ All Oracle Homes are valid"
         echo ""
@@ -716,7 +715,7 @@ validate_homes() {
 # ------------------------------------------------------------------------------
 main() {
     local command="${1:-}"
-    
+
     if [[ -z "$command" ]] || [[ "$command" == "-h" ]] || [[ "$command" == "--help" ]]; then
         show_usage
         exit 0

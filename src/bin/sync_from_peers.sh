@@ -38,7 +38,7 @@ SYNC_FAILURE=()
 
 # - Default Values -------------------------------------------------------------
 SCRIPT_NAME=$(basename ${BASH_SOURCE[0]})
-SCRIPT_BIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
 SCRIPT_BASE=$(dirname ${SCRIPT_BIN_DIR})
 SCRIPT_ETC_DIR="${SCRIPT_BASE}/etc"
 SCRIPT_CONF="${SCRIPT_ETC_DIR}/${SCRIPT_NAME%.sh}.conf"
@@ -128,20 +128,33 @@ function log_message {
 while getopts ":p:nvdDqH:r:c:h" opt; do
     case "$opt" in
         p) REMOTE_PEER="$OPTARG" ;;
-        n) DRYRUN=true ; RSYNC_OPTS+=" --dry-run" ;;
-        v) VERBOSE=true ; RSYNC_OPTS+=" -v" ;;
+        n)
+            DRYRUN=true
+            RSYNC_OPTS+=" --dry-run"
+            ;;
+        v)
+            VERBOSE=true
+            RSYNC_OPTS+=" -v"
+            ;;
         d) DEBUG=true ;;
-        D) DELETE=true ; RSYNC_OPTS+=" --delete" ;;
+        D)
+            DELETE=true
+            RSYNC_OPTS+=" --delete"
+            ;;
         q) QUIET=true ;;
         H) IFS=' ' read -r -a PEER_HOSTS <<< "$OPTARG" ;;
         r) REMOTE_BASE="$OPTARG" ;;
-        c) CONFIG_FILE="$OPTARG" ; [[ -f "$CONFIG_FILE" ]] && { 
-            # shellcheck source=/dev/null
-            source "$CONFIG_FILE"; } ;;
-        h|*) Usage ;;
+        c)
+            CONFIG_FILE="$OPTARG"
+            [[ -f "$CONFIG_FILE" ]] && {
+                # shellcheck source=/dev/null
+                source "$CONFIG_FILE"
+            }
+            ;;
+        h | *) Usage ;;
     esac
 done
-shift $((OPTIND -1))
+shift $((OPTIND - 1))
 
 SOURCE="$1"
 [[ -z "$SOURCE" || -z "$REMOTE_PEER" ]] && Usage
