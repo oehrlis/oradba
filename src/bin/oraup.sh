@@ -256,8 +256,8 @@ show_oracle_status() {
             echo "---------------------------------------------------------------------------------"
 
             for home_line in "${homes[@]}"; do
-                # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER DESCRIPTION
-                read -r name path ptype _order _desc <<< "$home_line"
+                # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
+                read -r name path ptype _order alias_name _desc <<< "$home_line"
 
                 # Format product type for display
                 local ptype_display
@@ -272,6 +272,14 @@ show_oracle_status() {
                     *) ptype_display="$ptype" ;;
                 esac
 
+                # Determine display name (prefer alias if different from name)
+                local display_name
+                if [[ -n "$alias_name" && "$alias_name" != "$name" ]]; then
+                    display_name="$alias_name"
+                else
+                    display_name="$name"
+                fi
+
                 # Check if directory exists
                 local status
                 if [[ -d "$path" ]]; then
@@ -280,7 +288,7 @@ show_oracle_status() {
                     status="missing"
                 fi
 
-                printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$name" "$status" "$path"
+                printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$display_name" "$status" "$path"
             done
 
             echo ""
