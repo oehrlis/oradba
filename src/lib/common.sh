@@ -601,6 +601,30 @@ generate_sid_lists() {
 
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
+    # Add Oracle Home names and aliases to ORADBA_SIDLIST
+    local homes_config="${ORADBA_ETC}/oracle_homes.conf"
+    if [[ -f "${homes_config}" ]]; then
+        while IFS=: read -r name _path _type _order alias_name _desc; do
+            # Skip empty lines and comments
+            [[ -z "${name}" ]] && continue
+            [[ "${name}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Trim whitespace
+            name="${name#"${name%%[![:space:]]*}"}"
+            name="${name%"${name##*[![:space:]]}"}"
+            alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"
+            alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
+            
+            # Add Oracle Home name to all_sids list
+            all_sids="${all_sids}${all_sids:+ }${name}"
+            
+            # Add alias if it exists and is different from name
+            if [[ -n "${alias_name}" && "${alias_name}" != "${name}" && ! "${alias_name}" =~ [[:space:]] ]]; then
+                all_sids="${all_sids}${all_sids:+ }${alias_name}"
+            fi
+        done < "${homes_config}"
+    fi
+
     # Export the lists
     export ORADBA_SIDLIST="$all_sids"
     export ORADBA_REALSIDLIST="$real_sids"
@@ -817,17 +841,65 @@ get_oracle_homes_path() {
 }
 
 # Parse Oracle Home entry from oradba_homes.conf
+# Resolve Oracle Home alias to actual NAME
 # Arguments:
-#   $1 - Home name to parse
+#   $1 - Name or alias to resolve
+# Returns: Actual Oracle Home NAME (or original if not found)
+resolve_oracle_home_name() {
+    local name_or_alias="$1"
+    local homes_file
+
+    if [[ -z "${name_or_alias}" ]]; then
+        echo "${name_or_alias}"
+        return 1
+    fi
+
+    homes_file=$(get_oracle_homes_path) || {
+        echo "${name_or_alias}"
+        return 1
+    }
+
+    # Parse file and check both NAME and ALIAS_NAME
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
+        # Skip comments and empty lines
+        [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${h_name}" ]] && continue
+
+        # Check if match is NAME
+        if [[ "${h_name}" == "${name_or_alias}" ]]; then
+            echo "${h_name}"
+            return 0
+        fi
+
+        # Check if match is ALIAS_NAME (if alias exists and is not a description)
+        if [[ -n "${h_alias}" ]] && [[ ! "${h_alias}" =~ [[:space:]] ]]; then
+            if [[ "${h_alias}" == "${name_or_alias}" ]]; then
+                echo "${h_name}"
+                return 0
+            fi
+        fi
+    done < "${homes_file}"
+
+    # Not found, return original
+    echo "${name_or_alias}"
+    return 1
+}
+
+# Arguments:
+#   $1 - Home name or alias to parse
 # Returns: Space-separated: name path type order alias_name description
 parse_oracle_home() {
     local name="$1"
     local homes_file
+    local actual_name
 
     if [[ -z "${name}" ]]; then
         log_error "Home name required"
         return 1
     fi
+
+    # Resolve alias to actual name
+    actual_name=$(resolve_oracle_home_name "${name}")
 
     homes_file=$(get_oracle_homes_path) || return 1
 
@@ -837,7 +909,7 @@ parse_oracle_home() {
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
 
-        if [[ "${h_name}" == "${name}" ]]; then
+        if [[ "${h_name}" == "${actual_name}" ]]; then
             # If h_alias is empty or looks like a description, use h_name as alias
             if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
                 # h_alias is actually description, shift values
