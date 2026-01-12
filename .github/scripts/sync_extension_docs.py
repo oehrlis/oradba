@@ -10,6 +10,7 @@ import sys
 import yaml
 import shutil
 import subprocess
+import re
 from pathlib import Path
 from typing import Dict, List
 
@@ -123,9 +124,44 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
         shutil.move(str(readme_file), str(index_file))
         print(f"  ✓ Renamed README.md to index.md")
     
+    # Clean up broken links in synced documentation
+    cleanup_broken_links(target_docs)
+    
     # Create or update navigation metadata
     create_extension_nav(extension, target_docs)
+    leanup_broken_links(docs_dir: Path) -> None:
+    """Remove or fix broken links that point outside the doc directory."""
+    # Patterns for links that will be broken (point to source code, not docs)
+    broken_link_patterns = [
+        r'\[([^\]]+)\]\(\.\./lib/[^\)]+\)',      # ../lib/...
+        r'\[([^\]]+)\]\(\.\./bin/[^\)]+\)',      # ../bin/...
+        r'\[([^\]]+)\]\(\.\./CHANGELOG\.md\)',   # ../CHANGELOG.md
+        r'\[([^\]]+)\]\(\.\./Makefile\)',        # ../Makefile
+        r'\[([^\]]+)\]\(lib/README\.md\)',       # lib/README.md
+        r'\[([^\]]+)\]\(bin/[^\)]+\)',           # bin/...
+        r'\[([^\]]+)\]\(README\.md\)',           # README.md (in same dir as index.md)
+        r'\[([^\]]+)\]\(release_notes/\)',       # release_notes/
+        r'\[([^\]]+)\]\(etc/\)',                 # etc/
+    ]
     
+    files_cleaned = 0
+    for md_file in docs_dir.rglob('*.md'):
+        content = md_file.read_text(encoding='utf-8')
+        original_content = content
+        
+        # Remove broken links, keep the link text as plain text
+        for pattern in broken_link_patterns:
+            content = re.sub(pattern, r'\1', content)
+        
+        # Write back if changes were made
+        if content != original_content:
+            md_file.write_text(content, encoding='utf-8')
+            files_cleaned += 1
+    
+    if files_cleaned > 0:
+        print(f"  ✓ Cleaned broken links in {files_cleaned} file(s)")
+
+def c
     return True
 
 def create_extension_nav(extension: Dict, docs_dir: Path) -> None:
