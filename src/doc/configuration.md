@@ -462,7 +462,7 @@ Create a SID configuration manually if needed:
 
 ```bash
 # Copy from example
-cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example \
+cp ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example \
    ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 # Edit as needed
@@ -675,7 +675,7 @@ ls -l ${ORADBA_PREFIX}/etc/sid.FREE.conf
 vi ${ORADBA_PREFIX}/etc/sid.FREE.conf
 
 # Or copy from example
-cp ${ORADBA_PREFIX}/etc/sid.ORCL.conf.example \
+cp ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example \
    ${ORADBA_PREFIX}/etc/sid.FREE.conf
 ```
 
