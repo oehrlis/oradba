@@ -331,7 +331,7 @@ docs-html: docs-prepare ## Generate HTML user guide from markdown
 	@cp -r $(SRC_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
 	@if command -v pandoc >/dev/null 2>&1; then \
 		cd $(DIST_DIR)/.tmp_docs && \
-		pandoc ??-*.md -o ../oradba-user-guide.html \
+		pandoc *.md -o ../oradba-user-guide.html \
 			--metadata-file=../../$(DOC_DIR)/metadata.yml \
 			--css=../../$(DOC_DIR)/templates/pandoc-style.css \
 			--toc --toc-depth=3 \
@@ -341,7 +341,7 @@ docs-html: docs-prepare ## Generate HTML user guide from markdown
 	elif [ -n "$(DOCKER)" ]; then \
 		cd $(DIST_DIR)/.tmp_docs && \
 		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
-			??-*.md -o oradba-user-guide.html \
+			*.md -o oradba-user-guide.html \
 			--metadata-file=/doc/metadata.yml \
 			--css=/doc/templates/pandoc-style.css \
 			--toc --toc-depth=3 \
@@ -387,7 +387,7 @@ docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker
 	@if command -v docker >/dev/null 2>&1; then \
 		cd $(DIST_DIR)/.tmp_docs && \
 		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
-			??-*.md -o oradba-user-guide.pdf \
+			*.md -o oradba-user-guide.pdf \
 			--metadata-file=/doc/metadata.yml \
 			--toc --toc-depth=3 \
 			--pdf-engine=xelatex \
@@ -417,7 +417,7 @@ docs-check: ## Check if documentation source files exist
 	else \
 		echo -e "$(COLOR_GREEN)✓ Metadata file found: $(USER_DOC_METADATA)$(COLOR_RESET)"; \
 	fi
-	@chapter_count=$$(ls -1 $(USER_DOC_DIR)/??-*.md 2>/dev/null | wc -l | xargs); \
+	@chapter_count=$$(ls -1 $(USER_DOC_DIR)/*.md 2>/dev/null | wc -l | xargs); \
 	if [ "$$chapter_count" -eq 0 ]; then \
 		echo -e "$(COLOR_RED)✗ No documentation chapters found$(COLOR_RESET)"; \
 		exit 1; \

@@ -59,8 +59,9 @@ check_dependencies() {
 extract_nav_files() {
     log_info "Extracting file list from mkdocs.yml navigation..."
     
-    # Use Python to parse YAML and extract files in order
-    python3 <<'EOF'
+    # Try Python with PyYAML first
+    if command -v python3 >/dev/null 2>&1; then
+        python3 <<'EOF' 2>/dev/null && return 0
 import yaml
 import sys
 
@@ -84,9 +85,16 @@ try:
     for f in files:
         print(f)
 except Exception as e:
-    print(f"Error: {e}", file=sys.stderr)
     sys.exit(1)
 EOF
+    fi
+    
+    # Fallback: simple grep-based extraction
+    log_warn "PyYAML not available, using grep-based extraction"
+    grep -A 100 "^nav:" "${MKDOCS_CONFIG}" | \
+        grep "\.md$" | \
+        sed -E 's/.*: //' | \
+        tr -d ' "'
 }
 
 # Build PDF
