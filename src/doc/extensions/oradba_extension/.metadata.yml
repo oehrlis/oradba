@@ -1,0 +1,5 @@
+category: Development
+description: Template and example for creating OraDBA extensions
+repository: https://github.com/oehrlis/oradba_extension
+status: active
+title: OraDBA Extension Template

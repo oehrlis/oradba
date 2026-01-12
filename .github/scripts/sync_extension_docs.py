@@ -164,7 +164,7 @@ def main():
     repo_root = Path(__file__).parent.parent.parent
     registry_file = repo_root / '.github' / 'extensions.yml'
     docs_dir = repo_root / 'src' / 'doc'
-    index_file = docs_dir / '19-extensions-catalog.md'
+    index_file = docs_dir / 'extensions-catalog.md'
     work_dir = repo_root / '.extensions_work'
     
     print("🔄 OraDBA Extension Documentation Sync")

@@ -22,11 +22,15 @@ integrated into this site.
 
 <!-- This section is automatically updated by the documentation build workflow -->
 <!-- EXTENSIONS_LIST_START -->
+### OraDBA Extension Template
 
-No extensions with documentation are currently available. Extensions will appear here once
-they have documentation in their `doc/` directory and are registered in the extensions registry.
+**Repository:** [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)  
+**Category:** Development  
+**Status:** Active  
 
-To add your extension, see the [Extension System Guide](extensions.md).
+Template and example for creating OraDBA extensions
+
+[View Documentation](extensions/oradba_extension/index.md){ .md-button }
 
 <!-- EXTENSIONS_LIST_END -->
 
