@@ -403,11 +403,13 @@ add_home() {
     # Set alias_name default if not provided
     if [[ -z "$alias_name" ]]; then
         if [[ -t 0 ]]; then
-            read -p "Alias name (default: $name): " alias_name
+            # Suggest lowercase name as default (consistent with SID aliases)
+            local default_alias="${name,,}"
+            read -p "Alias name (default: $default_alias): " alias_name
         fi
-        # Use home name as default alias
+        # Use lowercase home name as default alias (consistent with SID aliases)
         if [[ -z "$alias_name" ]]; then
-            alias_name="$name"
+            alias_name="${name,,}"
         fi
     fi
 

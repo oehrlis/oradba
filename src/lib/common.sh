@@ -672,13 +672,14 @@ generate_oracle_home_aliases() {
         alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"
         alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
         
-        # Create alias for the Oracle Home name
+        # Create alias for the Oracle Home name (lowercase, consistent with SID aliases)
+        local name_lower="${name,,}"
         # shellcheck disable=SC2139
-        alias "${name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
-        oradba_log DEBUG "Created Oracle Home alias: ${name}"
+        alias "${name_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
+        oradba_log DEBUG "Created Oracle Home alias: ${name_lower}"
         
-        # Create alias for the alias name if it exists and is different
-        if [[ -n "${alias_name}" && "${alias_name}" != "${name}" ]]; then
+        # Create alias for the alias name if it exists and is different from lowercase name
+        if [[ -n "${alias_name}" && "${alias_name}" != "${name_lower}" ]]; then
             # shellcheck disable=SC2139
             alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
             oradba_log DEBUG "Created Oracle Home alias: ${alias_name} -> ${name}"
