@@ -82,6 +82,10 @@ src/
 │   └── README.md          # RMAN documentation
 ├── templates/              # Configuration templates
 │   ├── script_template.sh # Bash script template
+│   ├── etc/                # Config file examples
+│   │   ├── sync_to_peers.conf.example
+│   │   ├── sync_from_peers.conf.example
+│   │   └── README.md
 │   ├── logrotate/         # Log rotation templates
 │   │   ├── oradba.logrotate
 │   │   ├── oracle-alert.logrotate
