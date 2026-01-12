@@ -56,8 +56,8 @@ See [Quick Start Guide](quickstart.md) for detailed first steps.
 
 ## Finding What You Need
 
-| If you want to...      | Start here                                       |
-|------------------------|--------------------------------------------------|
+| If you want to...      | Start here                                    |
+|------------------------|-----------------------------------------------|
 | Learn what OraDBA is   | [Introduction](introduction.md)               |
 | Install OraDBA         | [Installation](installation.md)               |
 | Get started quickly    | [Quick Start](quickstart.md)                  |
