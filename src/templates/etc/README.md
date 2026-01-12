@@ -24,7 +24,8 @@ vi ${ORADBA_BASE}/etc/sync_to_peers.conf
 
 ## Configuration Files
 
-Configuration files in `${ORADBA_BASE}/etc/` are loaded automatically by their respective scripts. The scripts follow a hierarchical loading order:
+Configuration files in `${ORADBA_BASE}/etc/` are loaded automatically by their
+respective scripts. The scripts follow a hierarchical loading order:
 
 1. Script-specific config: `${ORADBA_BASE}/etc/<script_name>.conf`
 2. Alternative location: `${ETC_BASE}/<script_name>.conf` (if `ETC_BASE` is set)
