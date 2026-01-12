@@ -237,9 +237,13 @@ show_oracle_status() {
         fi
     done < "$ORATAB_FILE"
 
-    # Sort both arrays alphabetically by SID
-    mapfile -t dummy_entries < <(printf '%s\n' "${dummy_entries[@]}" | sort)
-    mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
+    # Sort both arrays alphabetically by SID (only if not empty)
+    if [[ ${#dummy_entries[@]} -gt 0 ]]; then
+        mapfile -t dummy_entries < <(printf '%s\n' "${dummy_entries[@]}" | sort)
+    fi
+    if [[ ${#db_entries[@]} -gt 0 ]]; then
+        mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
+    fi
 
     # Display Oracle Homes first (if available)
     if command -v list_oracle_homes &> /dev/null; then
