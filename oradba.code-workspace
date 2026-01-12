@@ -3,6 +3,15 @@
 		{
 			"name": "oradba",
 			"path": "."
+		},
+		{
+			"path": "../odb_datasafe"
+		},
+		{
+			"path": "../odb_autoupgrade"
+		},
+		{
+			"path": "../oradba_extension"
 		}
 	],
 	"settings": {
