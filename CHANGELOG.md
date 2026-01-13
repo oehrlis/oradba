@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.5] - 2026-01-13
+
+### Added
+
+- **Oracle Version Detection**: Added VERSION field to `oradba_homes.conf` for tracking Oracle Home versions
+  - Format: `NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION`
+  - Supports `AUTO` (dynamic detection), `XXYZ` (specific version like 1920), or `ERR` (no version)
+  - New `detect_oracle_version()` function with 4 detection methods (sqlplus, OPatch, inventory XML, path parsing)
+  - New `get_oracle_home_version()` helper function
+  - Version displayed in `oradba_homes.sh show` command
+  - `--version` parameter added to `oradba_homes.sh add` command
+
+### Changed
+
+- **Template Organization**: Moved `oradba_homes.conf.template` from `src/etc/` to `src/templates/etc/`
+  - Consistent with other configuration templates
+  - Improved discoverability
+
+### Enhanced
+
+- **ORACLE_BASE Derivation**: Improved intelligence for deriving ORACLE_BASE from ORACLE_HOME
+  - New `derive_oracle_base()` function searches upward for Oracle base indicators
+  - Correctly handles paths like `/appl/oracle/product/26.0.0/client` → `/appl/oracle`
+  - Looks for directories containing `product`, `oradata`, `oraInventory`, or `admin`
+  - Falls back to traditional two-levels-up method if needed
+  
+- **Non-Root ORATAB Access**: Fixed `vio` alias for systems without root access
+  - ORATAB_FILE now dynamically determined via `get_oratab_path()` function
+  - Removed hardcoded `/etc/oratab` default from `oradba_core.conf`
+  - Properly uses priority system for oratab file location
+  
+- **Oracle Home Parsing**: All Oracle Home functions updated to handle VERSION field
+  - `parse_oracle_home()` - Returns 7 fields instead of 6
+  - `list_oracle_homes()` - Parses and outputs VERSION
+  - `resolve_oracle_home_name()` - Handles VERSION in parsing
+  - `generate_sid_lists()` - Handles VERSION in parsing
+  - `generate_oracle_home_aliases()` - Handles VERSION in parsing
+  - `show_home()` - Displays configured and detected versions
+  - `list_homes()` - Handles VERSION field
+  - `validate_homes()` - Handles VERSION field
+
+### Fixed
+
+- **Shellcheck Warning**: Fixed SC2155 in `oraenv.sh` (declare and assign separately)
+
 ## [0.18.4] - 2026-01-13
 
 ### Fixed
