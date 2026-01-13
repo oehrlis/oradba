@@ -184,8 +184,8 @@ list_homes() {
 
     # Display homes
     while read -r line; do
-        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
-        read -r name path ptype order alias_name desc <<< "$line"
+        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
+        read -r name path ptype order alias_name desc version <<< "$line"
 
         # Check status
         local status
@@ -231,15 +231,22 @@ show_home() {
     fi
 
     # Extract details
-    read -r h_name h_path h_type h_order h_alias h_desc <<< "$home_info"
+    read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$home_info"
 
     # Get additional info
     local status="missing"
     local detected_type="unknown"
+    local detected_version="Unknown"
 
     if [[ -d "$h_path" ]]; then
         status="available"
         detected_type=$(detect_product_type "$h_path")
+        # Get actual version if AUTO
+        if [[ "${h_version}" == "AUTO" ]]; then
+            detected_version=$(detect_oracle_version "$h_path" "$detected_type")
+        else
+            detected_version="${h_version}"
+        fi
     fi
 
     # Display information
@@ -251,6 +258,8 @@ show_home() {
     echo "ORACLE_HOME       : $h_path"
     echo "Product Type      : $h_type"
     echo "Detected Type     : $detected_type"
+    echo "Version (config)  : ${h_version:-AUTO}"
+    echo "Version (detected): $detected_version"
     echo "Display Order     : $h_order"
     echo "Status            : $status"
     echo "Description       : $h_desc"
@@ -695,7 +704,7 @@ validate_homes() {
     while read -r line; do
         [[ -z "$line" ]] && continue
 
-        read -r h_name h_path h_type h_order h_desc <<< "$line"
+        read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$line"
 
         echo "Checking: $h_name ($h_type)"
 

@@ -51,7 +51,8 @@ load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf"
 
 # Set ORATAB_FILE dynamically if not already set
 if [[ -z "${ORATAB_FILE}" ]]; then
-    export ORATAB_FILE="$(get_oratab_path)"
+    ORATAB_FILE="$(get_oratab_path)"
+    export ORATAB_FILE
 fi
 
 # Source database functions library (optional, only if available)
