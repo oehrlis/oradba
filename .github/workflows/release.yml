@@ -77,7 +77,15 @@ jobs:
         id: release_notes
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          cat > release_notes.md <<EOF
+          RELEASE_NOTES_FILE="doc/releases/v${VERSION}.md"
+          
+          # Check if detailed release notes exist
+          if [ -f "$RELEASE_NOTES_FILE" ]; then
+            echo "Using detailed release notes from $RELEASE_NOTES_FILE"
+            cp "$RELEASE_NOTES_FILE" release_notes.md
+          else
+            echo "Release notes file not found, generating generic notes"
+            cat > release_notes.md <<EOF
           # oradba v${VERSION}
           
           Oracle Database Administration Toolset
@@ -102,6 +110,7 @@ jobs:
           - **oradba-user-guide.pdf**: Complete user documentation (PDF)
           - **oradba-user-guide.html**: Complete user documentation (HTML)
           EOF
+          fi
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
