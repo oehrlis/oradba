@@ -49,6 +49,11 @@ fi
 # Load local configuration (created during installation, contains coexistence mode)
 load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf"
 
+# Set ORATAB_FILE dynamically if not already set
+if [[ -z "${ORATAB_FILE}" ]]; then
+    export ORATAB_FILE="$(get_oratab_path)"
+fi
+
 # Source database functions library (optional, only if available)
 if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"
@@ -331,7 +336,7 @@ _oraenv_set_environment() {
             # Set ORACLE_BASE if not already set
             if [[ -z "${ORACLE_BASE}" ]]; then
                 local derived_base
-                derived_base="$(dirname "$(dirname "$ORACLE_HOME")")"
+                derived_base="$(derive_oracle_base "$ORACLE_HOME")"
                 export ORACLE_BASE="${derived_base}"
             fi
 
@@ -386,9 +391,9 @@ _oraenv_set_environment() {
 
     # Set ORACLE_BASE if not already set
     if [[ -z "${ORACLE_BASE}" ]]; then
-        # Try to derive from ORACLE_HOME
+        # Try to derive from ORACLE_HOME using intelligent method
         local derived_base
-        derived_base="$(dirname "$(dirname "$ORACLE_HOME")")"
+        derived_base="$(derive_oracle_base "$ORACLE_HOME")"
         export ORACLE_BASE="${derived_base}"
     fi
 

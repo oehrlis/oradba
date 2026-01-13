@@ -63,6 +63,7 @@ ADD OPTIONS:
     -a, --alias <name>      Alias name for shortcuts (default: same as name)
     -o, --order <num>       Display order (default: 50)
     -d, --desc <text>       Description
+    -v, --version <ver>     Oracle version (AUTO, XXYZ, or ERR; default: AUTO)
 
 DISCOVER OPTIONS:
     -b, --base <path>       Base directory to search (default: $ORACLE_BASE)
@@ -116,7 +117,7 @@ EXAMPLES:
 
 CONFIGURATION:
     Oracle Homes are stored in: \${ORADBA_BASE}/etc/oradba_homes.conf
-    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
 
 EOF
 }
@@ -278,6 +279,7 @@ add_home() {
     local order="50"
     local alias_name=""
     local desc=""
+    local version="AUTO"
 
     # Parse options
     while [[ $# -gt 0 ]]; do
@@ -304,6 +306,10 @@ add_home() {
                 ;;
             -d | --desc)
                 desc="$2"
+                shift 2
+                ;;
+            -v | --version)
+                version="$2"
                 shift 2
                 ;;
             *)
@@ -425,7 +431,7 @@ add_home() {
 # ------------------------------------------------------------------------------
 # Oracle Homes Configuration
 # ------------------------------------------------------------------------------
-# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
 #
 # NAME          - Unique identifier (auto-discovered or user-defined)
 # ORACLE_HOME   - Full path to Oracle Home directory
@@ -433,18 +439,20 @@ add_home() {
 # ORDER         - Display order (numeric, lower = displayed first)
 # ALIAS_NAME    - Optional alias for shortcuts (defaults to NAME)
 # DESCRIPTION   - Human-readable description
+# VERSION       - Oracle version (AUTO, XXYZ, or ERR; default: AUTO)
 #
 # Examples:
-# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:oud12:Oracle Unified Directory 12c
-# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:client:Oracle Client 19c
-# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:wls:WebLogic Server 14c
+# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:oud12:Oracle Unified Directory 12c:ERR
+# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:client:Oracle Client 19c:AUTO
+# CLIENT23:/appl/oracle/product/23.26.0.0/client:client:25:cli260:Oracle Client 23ai:AUTO
+# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:wls:WebLogic Server 14c:ERR
 # ------------------------------------------------------------------------------
 
 EOF
     fi
 
-    # Add entry with alias_name
-    echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}" >> "$config_file"
+    # Add entry with alias_name and version
+    echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$config_file"
 
     log_info "Oracle Home '$name' added successfully"
     echo ""
@@ -455,6 +463,7 @@ EOF
     echo "  Type        : $ptype"
     echo "  Order       : $order"
     echo "  Description : $desc"
+    echo "  Version     : $version"
     echo ""
     echo "To set environment: source oraenv.sh $name"
     echo ""
