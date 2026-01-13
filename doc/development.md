@@ -228,17 +228,67 @@ General utility scripts follow descriptive naming:
 | `sync_to_peers.sh`  | Peer synchronization       | `src/bin/` |
 | `sync_from_peers.sh`| Peer synchronization       | `src/bin/` |
 
+#### Peer Synchronization Scripts
+
+The peer synchronization scripts use rsync over SSH to maintain file consistency
+across multiple Oracle database hosts (RAC nodes, standby databases, etc.).
+
+**sync_to_peers.sh** - Push files/folders from current host to peer hosts:
+
+```bash
+# Sync tnsnames.ora to all configured peers
+sync_to_peers.sh $ORACLE_BASE/network/admin/tnsnames.ora
+
+# Sync with verbose output and dry-run
+sync_to_peers.sh -nv /opt/oracle/wallet
+```
+
+**sync_from_peers.sh** - Pull from source peer, then distribute to others:
+
+```bash
+# Fetch wallet from db01, then sync to all other peers
+sync_from_peers.sh -p db01 /opt/oracle/wallet
+
+# Fetch and distribute with custom remote path
+sync_from_peers.sh -p db01 -r /backup/wallet /opt/oracle/wallet
+```
+
+**Configuration:**
+
+Both scripts support the standard OraDBA configuration hierarchy:
+
+1. Script-specific config: `${ORADBA_BASE}/etc/sync_to_peers.conf`
+2. Alternative location: `${ETC_BASE}/sync_to_peers.conf` (if ETC_BASE set)
+3. CLI config file: `-c <config_file>`
+4. Environment variables: `PEER_HOSTS`, `SSH_USER`, `SSH_PORT`
+
+Example configuration (copy from `src/templates/etc/`):
+
+```bash
+# Peer hosts to sync to/from
+PEER_HOSTS=(db01 db02 db03)
+
+# SSH settings
+SSH_USER="oracle"
+SSH_PORT="22"
+
+# Additional rsync options
+# RSYNC_OPTS="-az --exclude='*.log'"
+```
+
+See templates in `src/templates/etc/sync_*.conf.example` for full examples.
+
 #### Configuration Files
 
 Format: `<scope>_<purpose>.conf` or `sid.<SID>.conf`
 
-| File                           | Purpose                    | Location    |
-|--------------------------------|----------------------------|-------------|
-| `oradba_core.conf`             | Core system configuration  | `src/etc/`  |
-| `oradba_standard.conf`         | Standard configurations    | `src/etc/`  |
-| `oradba_customer.conf.example` | Customer overrides         | `src/etc/`  |
-| `sid.<SID>.conf`               | SID-specific config        | `src/etc/`  |
-| `sid._DEFAULT_.conf`           | Default SID template       | `src/etc/`  |
+| File                           | Purpose                    | Location              |
+|--------------------------------|----------------------------|-----------------------|
+| `oradba_core.conf`             | Core system configuration  | `src/etc/`            |
+| `oradba_standard.conf`         | Standard configurations    | `src/etc/`            |
+| `oradba_customer.conf.example` | Customer overrides         | `src/templates/etc/`  |
+| `sid.<SID>.conf`               | SID-specific config        | `src/etc/`            |
+| `sid._DEFAULT_.conf`           | Default SID template       | `src/etc/`            |
 
 #### Library Files
 
@@ -554,7 +604,7 @@ The following files are preserved during updates:
 
 - `.install_info` - Installation metadata
 - `etc/oradba.conf` - Main configuration
-- `etc/oratab.example` - Custom oratab examples
+- `templates/etc/oratab.example` - Custom oratab examples
 
 ### Rollback
 

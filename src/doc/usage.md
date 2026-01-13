@@ -174,7 +174,7 @@ Create personal configuration file:
 
 ```bash
 # Copy example
-cp $ORADBA_PREFIX/src/etc/oradba_config.example ~/.oradba_config
+cp $ORADBA_PREFIX/templates/etc/oradba_config.example ~/.oradba_config
 
 # Edit
 vim ~/.oradba_config

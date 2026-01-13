@@ -547,7 +547,6 @@ Required documentation:
 - **doc/installation.md:** Installation guide
 - **doc/configuration.md:** Configuration reference
 - **doc/reference.md:** Complete API reference
-- **doc/changelog.md:** Version history
 
 ### Markdown Standards
 

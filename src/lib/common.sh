@@ -1221,7 +1221,7 @@ load_config() {
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 # Use word boundary regex pattern for proper matching
                 if [[ " ${ORADBA_REALSIDLIST} " =~ (^|[[:space:]])${sid}($|[[:space:]]) ]]; then
-                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${config_dir}/sid.ORACLE_SID.conf.example" >&2
+                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
                         # Source the newly created config file
@@ -1256,7 +1256,7 @@ create_sid_config() {
     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
-    local example_config="${config_dir}/sid.ORACLE_SID.conf.example"
+    local example_config="${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example"
     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
 
     # Check if config directory is writable

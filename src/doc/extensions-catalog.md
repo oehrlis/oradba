@@ -32,6 +32,26 @@ Template and example for creating OraDBA extensions
 
 [View Documentation](extensions/oradba_extension/index.md){ .md-button }
 
+### OraDBA Data Safe Extension
+
+**Repository:** [oehrlis/odb_datasafe](https://github.com/oehrlis/odb_datasafe)  
+**Category:** Operations  
+**Status:** Active  
+
+Tools for managing Oracle Data Safe targets in OCI with simplified CLI and comprehensive logging
+
+[View Documentation](extensions/odb_datasafe/index.md){ .md-button }
+
+### OraDBA AutoUpgrade Extension
+
+**Repository:** [oehrlis/odb_autoupgrade](https://github.com/oehrlis/odb_autoupgrade)  
+**Category:** Operations  
+**Status:** Active  
+
+Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrades
+
+[View Documentation](extensions/odb_autoupgrade/index.md){ .md-button }
+
 <!-- EXTENSIONS_LIST_END -->
 
 ## Contributing Extensions

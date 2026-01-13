@@ -15,11 +15,9 @@ completion in Oracle tools.
 |--------------------------------------------------------------|-----------|---------------------------------------|
 | [oradba_core.conf](oradba_core.conf)                         | Core      | Base configuration (required)         |
 | [oradba_standard.conf](oradba_standard.conf)                 | Standard  | Default aliases and functions         |
-| [oradba_customer.conf.example](oradba_customer.conf.example) | Example   | Customer customization template       |
 | [sid._DEFAULT_.conf](sid._DEFAULT_.conf)                     | Default   | Default SID configuration             |
-| [sid.ORCL.conf.example](sid.ORCL.conf.example)               | Example   | SID-specific configuration template   |
-| [oradba_config.example](oradba_config.example)               | Legacy    | Old configuration format (deprecated) |
-| [oratab.example](oratab.example)                             | Reference | Sample oratab file                    |
+
+Example configuration files are now located in `../templates/etc/`.
 
 ## rlwrap Files
 
@@ -72,7 +70,7 @@ Create customer configuration for site-specific settings:
 
 ```bash
 # Copy example template
-cp $ORADBA_BASE/etc/oradba_customer.conf.example \
+cp $ORADBA_BASE/templates/etc/oradba_customer.conf.example \
    $ORADBA_BASE/etc/oradba_customer.conf
 
 # Edit customizations
@@ -90,7 +88,7 @@ Create configuration for specific database:
 
 ```bash
 # Copy example template
-cp $ORADBA_BASE/etc/sid.ORCL.conf.example \
+cp $ORADBA_BASE/templates/etc/sid.ORACLE_SID.conf.example \
    $ORADBA_BASE/etc/sid.PRODDB.conf
 
 # Edit SID-specific settings
@@ -201,7 +199,7 @@ FREE:/opt/oracle/product/23ai/free:N
 ORCL:/opt/oracle/product/19c/dbhome:Y
 ```
 
-See [oratab.example](oratab.example) for sample entries.
+See [oratab.example](../templates/etc/oratab.example) for sample entries.
 
 ## Documentation
 

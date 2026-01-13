@@ -57,14 +57,10 @@ src/
 │   ├── aliases.sh         # Alias generation library
 │   ├── db_functions.sh    # Database functions library
 │   └── extensions.sh      # Extension system library
-├── etc/                    # Configuration files (13 files)
+├── etc/                    # Configuration files (9 files)
 │   ├── oradba_core.conf   # Core system configuration
 │   ├── oradba_standard.conf # Standard configuration
-│   ├── oradba_customer.conf.example # Customer config template
-│   ├── oradba_config.example # User config example
-│   ├── oratab.example     # Example oratab file
 │   ├── sid._DEFAULT_.conf # Default SID configuration
-│   ├── sid.ORACLE_SID.conf.example # SID-specific config template
 │   ├── rlwrap_filter_oracle # rlwrap filter for Oracle CLI
 │   ├── rlwrap_sqlplus_completions # SQL*Plus completions
 │   ├── rlwrap_rman_completions # RMAN completions
@@ -82,6 +78,15 @@ src/
 │   └── README.md          # RMAN documentation
 ├── templates/              # Configuration templates
 │   ├── script_template.sh # Bash script template
+│   ├── etc/                # Config file examples
+│   │   ├── oradba_customer.conf.example # Customer config template
+│   │   ├── oradba_config.example # Legacy config example
+│   │   ├── oratab.example # Example oratab file
+│   │   ├── sid.ORACLE_SID.conf.example # SID-specific config template
+│   │   ├── oradba_rman.conf.example # RMAN config template
+│   │   ├── sync_to_peers.conf.example
+│   │   ├── sync_from_peers.conf.example
+│   │   └── README.md
 │   ├── logrotate/         # Log rotation templates
 │   │   ├── oradba.logrotate
 │   │   ├── oracle-alert.logrotate
