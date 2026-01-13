@@ -192,7 +192,7 @@ parse_args() {
 
     # Validate peer hosts
     if [[ ${#PEER_HOSTS[@]} -eq 0 ]]; then
-        should_log ERROR && log ERROR "PEER_HOSTS is empty. Configure via environment, config file, or -H option."
+        should_log ERROR && oradba_log ERROR "PEER_HOSTS is empty. Configure via environment, config file, or -H option."
         exit 1
     fi
 }
@@ -218,14 +218,14 @@ perform_sync() {
     remote_path="${REMOTE_BASE}"
     [[ -z "${remote_path}" ]] && remote_path="${abs_source}"
 
-    should_log INFO && log INFO "Syncing from ${REMOTE_PEER}:${remote_path} to local: ${this_host}:${rsync_target}"
+    should_log INFO && oradba_log INFO "Syncing from ${REMOTE_PEER}:${remote_path} to local: ${this_host}:${rsync_target}"
 
     # Sync from remote peer to local
     # shellcheck disable=SC2086
     if rsync ${RSYNC_OPTS} -e "ssh -p ${SSH_PORT}" "${SSH_USER}@${REMOTE_PEER}:${remote_path}" "${rsync_target}"; then
-        should_log INFO && log INFO "Initial sync from ${REMOTE_PEER} succeeded"
+        should_log INFO && oradba_log INFO "Initial sync from ${REMOTE_PEER} succeeded"
     else
-        should_log ERROR && log ERROR "Initial sync from ${REMOTE_PEER} failed"
+        should_log ERROR && oradba_log ERROR "Initial sync from ${REMOTE_PEER} failed"
         exit 2
     fi
 
@@ -233,23 +233,23 @@ perform_sync() {
     for host in "${PEER_HOSTS[@]}"; do
         # Skip self and source peer
         if [[ "${host}" == "${this_host}" || "${host}" == "${REMOTE_PEER}" ]]; then
-            should_log DEBUG && log DEBUG "Skipping ${host}"
+            should_log DEBUG && oradba_log DEBUG "Skipping ${host}"
             continue
         fi
 
         # Execute rsync
-        should_log INFO && log INFO "Syncing to ${host}:${rsync_target} ..."
+        should_log INFO && oradba_log INFO "Syncing to ${host}:${rsync_target} ..."
         # shellcheck disable=SC2086
         if rsync ${RSYNC_OPTS} -e "ssh -p ${SSH_PORT}" "${rsync_target}" "${SSH_USER}@${host}:${rsync_target}"; then
-            should_log INFO && log INFO "Sync to ${host} completed"
+            should_log INFO && oradba_log INFO "Sync to ${host} completed"
             SYNC_SUCCESS+=("${host}")
         else
-            should_log ERROR && log ERROR "Failed to sync to ${host}"
+            should_log ERROR && oradba_log ERROR "Failed to sync to ${host}"
             SYNC_FAILURE+=("${host}")
         fi
     done
 
-    should_log INFO && log INFO "Sync operation finished."
+    should_log INFO && oradba_log INFO "Sync operation finished."
 }
 
 # Display summary
@@ -258,11 +258,11 @@ show_summary() {
         local this_host
         this_host=$(hostname -s)
 
-        should_log INFO && log INFO "--- Sync Summary ---"
-        should_log INFO && log INFO "Source : ${REMOTE_PEER}"
-        should_log INFO && log INFO "Local  : ${this_host}"
-        should_log INFO && log INFO "Success: ${SYNC_SUCCESS[*]:-none}"
-        should_log INFO && log INFO "Failed : ${SYNC_FAILURE[*]:-none}"
+        should_log INFO && oradba_log INFO "--- Sync Summary ---"
+        should_log INFO && oradba_log INFO "Source : ${REMOTE_PEER}"
+        should_log INFO && oradba_log INFO "Local  : ${this_host}"
+        should_log INFO && oradba_log INFO "Success: ${SYNC_SUCCESS[*]:-none}"
+        should_log INFO && oradba_log INFO "Failed : ${SYNC_FAILURE[*]:-none}"
     fi
 }
 
