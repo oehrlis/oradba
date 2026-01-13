@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Revision...: 0.18.2
 # Purpose....: Validate project structure and required files
 # Notes......: Checks for presence of all required files and directories.
 #              Verifies permissions and file formats.
@@ -105,21 +105,43 @@ check_file "src/bin/oraenv.sh"
 check_file "src/bin/oradba_install.sh"
 check_file "src/bin/oradba_check.sh"
 check_file "src/bin/oradba_version.sh"
+check_file "src/bin/oradba_validate.sh"
+check_file "src/bin/oradba_setup.sh"
+check_file "src/bin/oradba_homes.sh"
+check_file "src/bin/oradba_extension.sh"
+check_file "src/bin/oradba_dbctl.sh"
+check_file "src/bin/oradba_lsnrctl.sh"
+check_file "src/bin/oradba_services.sh"
+check_file "src/bin/oradba_services_root.sh"
+check_file "src/bin/oradba_rman.sh"
+check_file "src/bin/oradba_sqlnet.sh"
+check_file "src/bin/oradba_help.sh"
 check_file "src/bin/dbstatus.sh"
+check_file "src/bin/oraup.sh"
+check_file "src/bin/sync_to_peers.sh"
+check_file "src/bin/sync_from_peers.sh"
 check_file "src/lib/common.sh"
 check_file "src/lib/db_functions.sh"
 check_file "src/lib/aliases.sh"
 check_file "src/etc/oradba_core.conf"
 check_file "src/etc/oradba_standard.conf"
+check_file "src/etc/oradba_services.conf"
+check_file "src/etc/oradba_homes.conf.template"
+check_file "src/etc/sid._DEFAULT_.conf"
 
 echo ""
 echo "Checking examples..."
 check_file "src/sql/db_info.sql"
 check_file "src/sql/login.sql"
-check_file "src/rcv/backup_full.rman"
+check_file "src/rcv/backup_full.rcv"
+check_file "src/rcv/bck_inc0.rcv"
+check_file "src/rcv/bck_arc.rcv"
 check_file "src/templates/script_template.sh"
 check_file "src/templates/etc/oratab.example"
 check_file "src/templates/etc/oradba_config.example"
+check_file "src/templates/etc/oradba_customer.conf.example"
+check_file "src/templates/etc/sid.ORACLE_SID.conf.example"
+check_file "src/templates/etc/oradba_rman.conf.example"
 
 echo ""
 echo "Checking test structure..."
@@ -131,29 +153,42 @@ check_file "tests/test_db_functions.bats"
 check_file "tests/test_installer.bats"
 check_file "tests/test_oradba_check.bats"
 check_file "tests/test_oradba_version.bats"
+check_file "tests/test_oradba_homes.bats"
 check_file "tests/test_aliases.bats"
 check_file "tests/test_sid_config.bats"
+check_file "tests/test_extensions.bats"
+check_file "tests/test_oracle_homes.bats"
+check_file "tests/test_oradba_rman.bats"
+check_file "tests/test_oradba_sqlnet.bats"
+check_file "tests/test_service_management.bats"
 
 echo ""
 echo "Checking scripts directory..."
 check_dir "scripts"
 check_file "scripts/build_installer.sh"
 check_file "scripts/validate_project.sh"
+check_file "scripts/select_tests.sh"
+check_file "scripts/build_pdf.sh"
+check_file "scripts/archive_github_releases.sh"
 
 echo ""
 echo "Checking src/doc directory..."
 check_dir "src/doc"
-check_file "src/doc/README.md"
-check_file "src/doc/01-introduction.md"
-check_file "src/doc/02-installation.md"
-check_file "src/doc/03-quickstart.md"
-check_file "src/doc/04-environment.md"
-check_file "src/doc/05-configuration.md"
-check_file "src/doc/06-aliases.md"
-check_file "src/doc/08-sql-scripts.md"
-check_file "src/doc/09-rman-scripts.md"
-check_file "src/doc/12-troubleshooting.md"
-check_file "src/doc/13-reference.md"
+check_file "src/doc/index.md"
+check_file "src/doc/introduction.md"
+check_file "src/doc/installation.md"
+check_file "src/doc/quickstart.md"
+check_file "src/doc/environment.md"
+check_file "src/doc/configuration.md"
+check_file "src/doc/aliases.md"
+check_file "src/doc/sql-scripts.md"
+check_file "src/doc/rman-scripts.md"
+check_file "src/doc/troubleshooting.md"
+check_file "src/doc/reference.md"
+check_file "src/doc/extensions.md"
+check_file "src/doc/service-management.md"
+check_file "src/doc/sqlnet-config.md"
+check_dir "src/doc/images"
 
 echo ""
 echo "Checking GitHub issue templates..."
@@ -168,34 +203,38 @@ echo "Checking markdownlint configuration..."
 check_file ".markdownlint.json"
 
 echo ""
+echo "Checking additional configuration files..."
+check_file "mkdocs.yml"
+check_file "Makefile"
+check_file "oradba.code-workspace" "false"
+
+echo ""
 echo "Checking CI/CD configuration..."
 check_dir ".github/workflows"
 check_file ".github/workflows/ci.yml"
 check_file ".github/workflows/release.yml"
 check_file ".github/workflows/dependency-review.yml"
+check_file ".github/workflows/docs.yml"
 
 echo ""
 echo "Checking file permissions..."
-if [[ -x "scripts/build_installer.sh" ]]; then
-    echo "✓ scripts/build_installer.sh is executable"
-else
-    echo "✗ scripts/build_installer.sh is not executable"
-    ERRORS=$((ERRORS + 1))
-fi
+for script in scripts/build_installer.sh scripts/validate_project.sh scripts/select_tests.sh scripts/build_pdf.sh scripts/archive_github_releases.sh; do
+    if [[ -x "$script" ]]; then
+        echo "✓ $script is executable"
+    else
+        echo "✗ $script is not executable"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
 
-if [[ -x "scripts/validate_project.sh" ]]; then
-    echo "✓ scripts/validate_project.sh is executable"
-else
-    echo "✗ scripts/validate_project.sh is not executable"
-    ERRORS=$((ERRORS + 1))
-fi
-
-if [[ -x "src/bin/oraenv.sh" ]]; then
-    echo "✓ src/bin/oraenv.sh is executable"
-else
-    echo "✗ src/bin/oraenv.sh is not executable"
-    ERRORS=$((ERRORS + 1))
-fi
+for script in src/bin/*.sh; do
+    if [[ -x "$script" ]]; then
+        echo "✓ $script is executable"
+    else
+        echo "✗ $script is not executable"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
 
 if [[ -x "tests/run_tests.sh" ]]; then
     echo "✓ tests/run_tests.sh is executable"

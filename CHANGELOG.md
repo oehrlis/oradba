@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.3] - 2026-01-13
+
+### Changed
+
+- **File Headers Standardization**: Updated all source file headers to version 0.18.3 and date 2026.01.13
+  - Updated 22 shell scripts in `src/bin/` with standardized headers
+  - Updated 10 configuration files in `src/etc/` with standardized headers
+  - Updated 126 SQL scripts in `src/sql/` with standardized headers
+  - Updated 5 scripts in `scripts/` with standardized headers
+  - Consistent formatting across all file types (shell, SQL, config, RMAN)
+
 ### Enhanced
+
+- **Project Validation**: Improved `scripts/validate_project.sh` to match current repository structure
+  - Added validation for all new core scripts (oradba_validate.sh, oradba_setup.sh, oradba_homes.sh, etc.)
+  - Added validation for new configuration files (oradba_services.conf, oradba_homes.conf.template, sid._DEFAULT_.conf)
+  - Added validation for template files (oradba_customer.conf.example, sid.ORACLE_SID.conf.example, oradba_rman.conf.example)
+  - Added validation for new test files (test_oradba_homes.bats, test_extensions.bats, etc.)
+  - Added validation for additional scripts (select_tests.sh, build_pdf.sh, archive_github_releases.sh)
+  - Updated documentation file checks to new naming convention (removed numbered prefixes)
+  - Added check for docs.yml workflow
+  - Enhanced permission checks to loop through all scripts
+  - Removed obsolete file references (backup_full.rman, old doc naming)
 
 - **Oracle Home Status Display**: Improved status display for non-database Oracle Homes
   - Created `show_oracle_home_status()` function for client, OUD, WebLogic, OMS, etc.
@@ -15,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `show_database_status()` now detects non-database Oracle Homes and delegates appropriately
   - Export `ORADBA_CURRENT_HOME_TYPE` environment variable in `set_oracle_home_environment()`
   - Better distinction between database and non-database Oracle Home types
+
 - **Configuration Templates Organization**: Moved example configuration files to `src/templates/etc/`
   - Moved `oradba_config.example`, `oradba_customer.conf.example`, `oradba_rman.conf.example`, `oratab.example`,
     and `sid.ORACLE_SID.conf.example` from `src/etc/` to `src/templates/etc/`

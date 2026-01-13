@@ -32,7 +32,7 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 - **Version Management**: Version checking, integrity verification, and update detection
 - **SQL & RMAN Scripts**: Ready-to-use administration scripts with central logging
 - **Self-Contained Installer**: Single executable, no external dependencies
-- **Comprehensive Testing**: BATS test suite with 700+ tests and CI/CD integration
+- **Comprehensive Testing**: BATS test suite with 790+ tests and CI/CD integration
 
 ## Quick Start
 
