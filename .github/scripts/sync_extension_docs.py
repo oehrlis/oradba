@@ -77,6 +77,7 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
     # Define subdirectories to exclude from sync
     exclude_subdirs = [
         'release_notes',        # Release notes directory with broken links
+        'releases',             # Releases directory with broken links
         '.git',                 # Git directory
         '__pycache__',          # Python cache
     ]
@@ -138,12 +139,14 @@ def cleanup_broken_links(docs_dir: Path) -> None:
     broken_link_patterns = [
         r'\[([^\]]+)\]\(\.\./lib/[^\)]+\)',      # ../lib/...
         r'\[([^\]]+)\]\(\.\./bin/[^\)]+\)',      # ../bin/...
-        r'\[([^\]]+)\]\(\.\./CHANGELOG\.md\)',   # ../CHANGELOG.md
+        r'\[([^\]]+)\]\((?:\.\./)*CHANGELOG\.md[^\)]*\)',  # CHANGELOG.md (any ../prefix, with optional anchor)
+        r'\[([^\]]+)\]\((?:\.\./)*VERSION\)',      # VERSION (any ../prefix)
         r'\[([^\]]+)\]\(\.\./Makefile\)',        # ../Makefile
         r'\[([^\]]+)\]\(lib/README\.md\)',       # lib/README.md
         r'\[([^\]]+)\]\(bin/[^\)]+\)',           # bin/...
         r'\[([^\]]+)\]\(README\.md\)',           # README.md (in same dir as index.md)
-        r'\[([^\]]+)\]\(release_notes/\)',       # release_notes/
+        r'\[([^\]]+)\]\(release_notes/[^\)]*\)', # release_notes/
+        r'\[([^\]]+)\]\(releases/[^\)]*\)',      # releases/
         r'\[([^\]]+)\]\(etc/\)',                 # etc/
     ]
     

@@ -20,6 +20,15 @@
 templates/oradba_extension/
 !templates/oradba_extension/.gitkeep
 
+# Extension work directory (cloned repos during doc sync)
+.extensions_work/
+
+# Synced extension documentation files (generated during CI from external repos)
+# These documentation files are synced by .github/scripts/sync_extension_docs.py during the build
+# Excludes the synced documentation for odb_* extensions (odb_datasafe, odb_autoupgrade, etc.)
+# which are pulled from separate external repositories during the CI workflow
+src/doc/extensions/odb_*/
+
 # Generated documentation
 src/doc/*.pdf
 src/doc/*.html
