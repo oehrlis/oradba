@@ -641,6 +641,21 @@ release-prepare: release-check build ## Prepare release
 	@echo "  3. Create tag: make tag"
 	@echo "  4. Push changes: git push && git push --tags"
 
+.PHONY: release-notes
+release-notes: ## Update GitHub release with release notes
+	@echo -e "$(COLOR_BLUE)Updating GitHub release v$(VERSION) with notes...$(COLOR_RESET)"
+	@RELEASE_FILE="$(DOC_DIR)/releases/v$(VERSION).md"; \
+	if [ ! -f "$$RELEASE_FILE" ]; then \
+		echo -e "$(COLOR_RED)Error: Release notes file not found: $$RELEASE_FILE$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	if ! command -v gh &> /dev/null; then \
+		echo -e "$(COLOR_RED)Error: gh CLI not found. Install with: brew install gh$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	echo -e "$(COLOR_GREEN)Updating release v$(VERSION) with notes from $$RELEASE_FILE$(COLOR_RESET)"; \
+	gh release edit "v$(VERSION)" --notes-file "$$RELEASE_FILE"
+
 # ==============================================================================
 # Info
 # ==============================================================================

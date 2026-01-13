@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Release Notes Update**: Added `release-notes` target to Makefile for GitHub release management
+  - Automatically updates GitHub release with release notes from `doc/releases/v<VERSION>.md`
+  - Validates release notes file existence and `gh` CLI availability
+  - Usage: `make release-notes` (uses current VERSION file)
+  - Example: For v0.18.3, runs `gh release edit v0.18.3 --notes-file doc/releases/v0.18.3.md`
+
 ## [0.18.3] - 2026-01-13
 
 ### Changed
