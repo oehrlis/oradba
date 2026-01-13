@@ -22,11 +22,12 @@ setup() {
     
     # Create etc directory structure
     mkdir -p "${TEST_DIR}/etc"
+    mkdir -p "${TEST_DIR}/templates/etc"
     mkdir -p "${TEST_DIR}/lib"
     mkdir -p "${TEST_DIR}/logs"
     
     # Copy necessary files
-    cp "${PROJECT_ROOT}/src/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/etc/"
+    cp "${PROJECT_ROOT}/src/templates/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/templates/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
@@ -51,19 +52,19 @@ teardown() {
 
 # Basic template tests
 @test "sid.ORACLE_SID.conf.example template file exists" {
-    [[ -f "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" ]]
+    [[ -f "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" ]]
 }
 
 @test "Template contains expected variables" {
-    grep -q "ORADBA_DB_NAME=\"ORCL\"" "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example"
-    grep -q "ORADBA_TNS_ALIAS=\"ORCL\"" "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example"
+    grep -q "ORADBA_DB_NAME=\"ORCL\"" "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example"
+    grep -q "ORADBA_TNS_ALIAS=\"ORCL\"" "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example"
 }
 
 # SID replacement tests
 @test "sed correctly replaces ORCL with FREE" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"FREE\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -73,7 +74,7 @@ teardown() {
 @test "sed correctly replaces lowercase orcl with free" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Check for lowercase replacement in paths
     grep -q "rdbms/free/" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -82,7 +83,7 @@ teardown() {
 @test "sed works with different SID names" {
     for sid in "TEST" "PROD" "DEV123"; do
         sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-            "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+            "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
         
         [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
         grep -q "ORADBA_DB_NAME=\"${sid}\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -92,7 +93,7 @@ teardown() {
 @test "Created config file is valid bash syntax" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Try to source it
     bash -n "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -101,7 +102,7 @@ teardown() {
 @test "Created config preserves all settings" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Check key settings are present
     grep -q "ORADBA_DB_UNIQUE_NAME" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -117,7 +118,7 @@ teardown() {
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Date.......: .*/Date.......: ${today}/" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     grep -q "Date.......: ${today}" "${TEST_DIR}/etc/sid.${sid}.conf"
 }
@@ -129,7 +130,7 @@ teardown() {
     
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; \
          s/Auto-created on first environment switch/Auto-created: ${timestamp}/" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     grep -q "Auto-created:" "${TEST_DIR}/etc/sid.${sid}.conf"
 }
@@ -151,7 +152,7 @@ teardown() {
 @test "Works with single-letter SID" {
     local sid="X"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"X\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -160,7 +161,7 @@ teardown() {
 @test "Works with long SID name" {
     local sid="VERYLONGSIDNAME"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"VERYLONGSIDNAME\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -169,7 +170,7 @@ teardown() {
 @test "Handles SID with numbers" {
     local sid="DB19C"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     [[ -f "${TEST_DIR}/etc/sid.${sid}.conf" ]]
     grep -q "ORADBA_DB_NAME=\"DB19C\"" "${TEST_DIR}/etc/sid.${sid}.conf"
@@ -179,7 +180,7 @@ teardown() {
 @test "No residual ORCL values in created config" {
     local sid="FREE"
     sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g" \
-        "${TEST_DIR}/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
+        "${TEST_DIR}/templates/etc/sid.ORACLE_SID.conf.example" > "${TEST_DIR}/etc/sid.${sid}.conf"
     
     # Should not find ORCL except in comments/descriptions
     ! grep -E "^[^#]*=\".*ORCL" "${TEST_DIR}/etc/sid.${sid}.conf"

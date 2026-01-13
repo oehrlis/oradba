@@ -1002,7 +1002,7 @@ preserve_configs() {
     local preserve_files=(
         ".install_info"
         "etc/oradba.conf"
-        "etc/oratab.example"
+        "templates/etc/oratab.example"
     )
 
     for file in "${preserve_files[@]}"; do

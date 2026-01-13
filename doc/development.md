@@ -282,13 +282,13 @@ See templates in `src/templates/etc/sync_*.conf.example` for full examples.
 
 Format: `<scope>_<purpose>.conf` or `sid.<SID>.conf`
 
-| File                           | Purpose                    | Location    |
-|--------------------------------|----------------------------|-------------|
-| `oradba_core.conf`             | Core system configuration  | `src/etc/`  |
-| `oradba_standard.conf`         | Standard configurations    | `src/etc/`  |
-| `oradba_customer.conf.example` | Customer overrides         | `src/etc/`  |
-| `sid.<SID>.conf`               | SID-specific config        | `src/etc/`  |
-| `sid._DEFAULT_.conf`           | Default SID template       | `src/etc/`  |
+| File                           | Purpose                    | Location              |
+|--------------------------------|----------------------------|-----------------------|
+| `oradba_core.conf`             | Core system configuration  | `src/etc/`            |
+| `oradba_standard.conf`         | Standard configurations    | `src/etc/`            |
+| `oradba_customer.conf.example` | Customer overrides         | `src/templates/etc/`  |
+| `sid.<SID>.conf`               | SID-specific config        | `src/etc/`            |
+| `sid._DEFAULT_.conf`           | Default SID template       | `src/etc/`            |
 
 #### Library Files
 
@@ -604,7 +604,7 @@ The following files are preserved during updates:
 
 - `.install_info` - Installation metadata
 - `etc/oradba.conf` - Main configuration
-- `etc/oratab.example` - Custom oratab examples
+- `templates/etc/oratab.example` - Custom oratab examples
 
 ### Rollback
 

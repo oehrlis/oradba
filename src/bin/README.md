@@ -221,7 +221,7 @@ Create SID-specific configuration:
 
 ```bash
 # Copy example config
-cp ${ORADBA_BASE}/etc/oradba_rman.conf.example \
+cp ${ORADBA_BASE}/templates/etc/oradba_rman.conf.example \
    ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
 
 # Edit configuration
