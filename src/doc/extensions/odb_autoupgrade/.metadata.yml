@@ -1,0 +1,6 @@
+category: Operations
+description: Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database
+  upgrades
+repository: https://github.com/oehrlis/odb_autoupgrade
+status: active
+title: OraDBA AutoUpgrade Extension
