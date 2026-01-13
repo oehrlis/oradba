@@ -24,7 +24,8 @@ templates/oradba_extension/
 .extensions_work/
 
 # Synced extension documentation (generated during CI from external repos)
-# Only exclude odb_* extensions which are synced from external repositories
+# These are synced by .github/scripts/sync_extension_docs.py during the build
+# Currently excludes odb_* pattern extensions that are pulled from separate repositories
 src/doc/extensions/odb_*/
 
 # Generated documentation

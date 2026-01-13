@@ -139,11 +139,8 @@ def cleanup_broken_links(docs_dir: Path) -> None:
     broken_link_patterns = [
         r'\[([^\]]+)\]\(\.\./lib/[^\)]+\)',      # ../lib/...
         r'\[([^\]]+)\]\(\.\./bin/[^\)]+\)',      # ../bin/...
-        r'\[([^\]]+)\]\(\.\./CHANGELOG\.md[^\)]*\)',   # ../CHANGELOG.md (with optional anchor)
-        r'\[([^\]]+)\]\(CHANGELOG\.md[^\)]*\)',  # CHANGELOG.md (with optional anchor)
-        r'\[([^\]]+)\]\(\.\./\.\./CHANGELOG\.md[^\)]*\)',  # ../../CHANGELOG.md (with optional anchor)
-        r'\[([^\]]+)\]\(\.\./VERSION\)',         # ../VERSION
-        r'\[([^\]]+)\]\(\.\./\.\./VERSION\)',    # ../../VERSION
+        r'\[([^\]]+)\]\((\.\./)*CHANGELOG\.md[^\)]*\)',  # CHANGELOG.md (any ../prefix, with optional anchor)
+        r'\[([^\]]+)\]\((\.\./)*VERSION\)',      # VERSION (any ../prefix)
         r'\[([^\]]+)\]\(\.\./Makefile\)',        # ../Makefile
         r'\[([^\]]+)\]\(lib/README\.md\)',       # lib/README.md
         r'\[([^\]]+)\]\(bin/[^\)]+\)',           # bin/...
