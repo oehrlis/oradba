@@ -142,10 +142,13 @@ teardown() {
 }
 
 @test "discover_extensions finds multiple extensions" {
-    # Create multiple extensions
+    # Create multiple extensions with .extension marker files
     mkdir -p "${TEST_TEMP_DIR}/ext1/bin"
+    touch "${TEST_TEMP_DIR}/ext1/.extension"
     mkdir -p "${TEST_TEMP_DIR}/ext2/sql"
+    touch "${TEST_TEMP_DIR}/ext2/.extension"
     mkdir -p "${TEST_TEMP_DIR}/ext3/rcv"
+    touch "${TEST_TEMP_DIR}/ext3/.extension"
     
     # Discover
     local result
@@ -158,10 +161,11 @@ teardown() {
 }
 
 @test "get_all_extensions combines discovered and manual paths" {
-    # Create discovered extension
+    # Create discovered extension with .extension marker
     mkdir -p "${TEST_TEMP_DIR}/auto_ext/bin"
+    touch "${TEST_TEMP_DIR}/auto_ext/.extension"
     
-    # Create manual extension
+    # Create manual extension (doesn't need .extension marker as it's manually specified)
     mkdir -p "${TEST_TEMP_DIR}/manual_ext/bin"
     export ORADBA_EXTENSION_PATHS="${TEST_TEMP_DIR}/manual_ext"
     
