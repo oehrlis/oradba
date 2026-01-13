@@ -4,8 +4,8 @@
 -- Name......: aud_tabsize_show_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show Unified Audit trail table and partition size
 -- Notes.....:  
 -- Reference.: SYS (or grant manually to a DBA)

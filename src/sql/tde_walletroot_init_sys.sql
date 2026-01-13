@@ -4,8 +4,8 @@
 -- Name......: tde_walletroot_init_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Initialize init.ora parameter WALLET_ROOT based on value of
 --              AUDIT_FILE_DEST to setup TDE with software keystore. This
 --              script should run in CDB$ROOT. A manual restart

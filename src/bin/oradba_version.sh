@@ -5,8 +5,8 @@
 # Name.......: oradba_version.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.14.0
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Version and integrity checking utility for OraDBA installation
 # Notes......: Provides version info, integrity verification, and update checking
 # Reference..: https://github.com/oehrlis/oradba

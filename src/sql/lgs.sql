@@ -6,8 +6,8 @@
 -- Name......: lgs.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2018.12.11
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Report log swich per hour 30 days back		 	
 -- Usage.....: @lgs 
 -- Notes.....: 

@@ -4,8 +4,8 @@
 -- Name......: aud_top_policy_auddet.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show top unified audit events by unified_audit_policies, dbusername,
 --              action for current DBID
 -- Notes.....:  

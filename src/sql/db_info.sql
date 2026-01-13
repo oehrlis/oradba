@@ -4,8 +4,8 @@
 -- Name......: db_info.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......:2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Display comprehensive database information
 -- Notes.....: Shows database name, instance details, and datafile information.
 --              Run as: sqlplus / as sysdba @db_info.sql

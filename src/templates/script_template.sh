@@ -5,8 +5,8 @@
 # Name.......: script_template.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.14.0
+# Date.......: 2026.01.13
+# Revision...: 0.18.3
 # Purpose....: Template for creating new bash scripts
 # Notes......: Copy this template and modify as needed for new scripts.
 #              Update Name, Purpose, and Notes sections appropriately.

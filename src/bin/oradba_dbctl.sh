@@ -5,8 +5,8 @@
 # Name.......: oradba_dbctl.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
-# Revision...: 0.10.0
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Database start/stop control script for Oracle instances
 # Notes......: Can be used interactively or in runlevel/systemd scripts
 #              Honors oratab :Y flag by default, supports explicit SID override

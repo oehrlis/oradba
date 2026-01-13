@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
 # Name.......: archive_github_releases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.12
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Add archive notices to old GitHub releases
+# Notes......: Updates release descriptions with archive notices for outdated versions
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 set -euo pipefail

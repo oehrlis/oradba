@@ -4,8 +4,8 @@
 -- Name......: aud_top_host_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show top unified audit events by userhost for current DBID
 -- Notes.....:  
 -- Reference.: SYS (or grant manually to a DBA)

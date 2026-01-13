@@ -4,8 +4,8 @@
 # Name.......: oracle-trace.logrotate
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.22
-# Version....: v0.9.0
+# Date.......: 2026.01.13
+# Revision...: 0.18.3
 # Purpose....: Logrotate configuration for Oracle Database trace files
 # Notes......: Install to /etc/logrotate.d/oracle-trace
 #              Manages cleanup of background and user trace files

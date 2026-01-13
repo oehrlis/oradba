@@ -4,8 +4,8 @@
 -- Name......: aud_policies_gen_create_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Generate statements to create all audit policies as currently set
 --              in AUDIT_UNIFIED_ENABLED_POLICIES.
 -- Notes.....:  

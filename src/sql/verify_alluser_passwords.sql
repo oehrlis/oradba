@@ -4,8 +4,8 @@
 -- Name......: verify_alluser_passwords.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2018.12.11
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Wrapper script to check if any user in sys.user$  
 --              has a weak password. Passwords will be displayed
 -- Usage.....:  @verify_alluser_passwords

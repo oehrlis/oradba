@@ -5,8 +5,8 @@
 # Name.......: longops.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.24
-# Revision...: 0.9.1
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Monitor long-running operations in v$session_longops
 # Notes......: Generic script for monitoring RMAN, DataPump, and other operations
 # Reference..: https://github.com/oehrlis/oradba

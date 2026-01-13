@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
-# ============================================================================
-# Script Name: build_pdf.sh
-# Description: Build PDF documentation from markdown files using pandoc
-#              Reads order from mkdocs.yml navigation structure
-# Author: Stefan Oehrli
-# Version: 1.0.0
-# ============================================================================
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: build_pdf.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.13
+# Revision...: 
+# Purpose....: Build PDF documentation from markdown files using pandoc
+# Notes......: Reads order from mkdocs.yml navigation structure
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 set -euo pipefail
 

@@ -5,8 +5,8 @@
 # Name.......: oradba_rman.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.14.0
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: RMAN wrapper script for automated backup/recovery operations
 # Notes......: Supports parallel execution, template processing, and notifications
 #              Configuration: ${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf

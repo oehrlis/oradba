@@ -5,8 +5,8 @@
 # Name.......: oradba_services_root.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
-# Revision...: 0.10.0
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Root wrapper for Oracle service management
 # Notes......: Executes oradba_services.sh as oracle user
 #              Used by systemd/init.d for service startup

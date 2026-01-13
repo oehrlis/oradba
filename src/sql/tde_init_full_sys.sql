@@ -4,8 +4,8 @@
 -- Name......: tde_init_full_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Initialize TDE for a single tenant or container database. This
 --              scripts does use several other scripts to enable TDE and it
 --              also includes restart of the database. 

@@ -5,8 +5,8 @@
 # Name.......: extensions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.13.6
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Extension system library for OraDBA
 # Notes......: Provides functions for discovering, loading, and managing
 #              OraDBA extensions. Extensions are directories parallel to

@@ -4,8 +4,8 @@
 -- Name......: tde_walletroot_drop_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Reset init.ora parameter WALLET_ROOT for TDE. This script should
 --              run in CDB$ROOT. A manual restart of the database is mandatory to
 --              activate WALLET_ROOT.

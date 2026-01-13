@@ -4,8 +4,8 @@
 # Name.......: rcv_df.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.06
-# Revision...: 0.14.1
+# Date.......: 2026.01.13
+# Revision...: 0.18.3
 # Purpose....: Template for datafile recovery
 # Notes......: Recovers one or more datafiles using offline mode.
 #              Replace <DATAFILES> with actual datafile numbers or paths.

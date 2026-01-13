@@ -5,8 +5,8 @@
 # Name.......: imp_jobs.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.19
-# Revision...: 0.8.1
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Monitor DataPump import operations in v$session_longops (wrapper)
 # Notes......: Simple wrapper script for monitoring DataPump import operations
 # Reference..: https://github.com/oehrlis/oradba

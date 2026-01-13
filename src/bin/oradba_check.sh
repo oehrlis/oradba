@@ -5,8 +5,8 @@
 # Name.......: oradba_check.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.06
-# Revision...: 0.14.1
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: System prerequisites and Oracle environment verification script
 # Notes......: Validates system readiness for OraDBA installation and usage.
 #              Can be run standalone BEFORE installation to verify prerequisites,

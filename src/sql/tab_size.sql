@@ -4,8 +4,8 @@
 -- Name......: tab_size.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2018.10.24
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Table Average Row Length and Total Size Report
 -- Usage.....: @tab_size 
 -- Notes.....: 

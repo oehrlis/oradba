@@ -4,8 +4,8 @@
 # Name.......: rcv_arc.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.06
-# Revision...: 0.14.1
+# Date.......: 2026.01.13
+# Revision...: 0.18.3
 # Purpose....: Template for archivelog restore
 # Notes......: Restores archivelogs by sequence number range.
 #              Replace <FIRST_SEQUENCE> and <LAST_SEQUENCE> with actual values.

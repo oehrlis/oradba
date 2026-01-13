@@ -5,8 +5,8 @@
 # Name.......: db_functions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.05
-# Revision...: 0.13.6
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Database query and status functions for Oracle databases
 # Notes......: This library provides reusable functions to query database
 #              information from v$ views at different database states.

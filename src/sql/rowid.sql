@@ -4,8 +4,8 @@
 -- Name......: rowid.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Decode ROWID information for table rows
 -- Notes.....: Requires two parameters: table name and WHERE clause
 -- Usage.....: @rowid TABLE_NAME "WHERE_CLAUSE"

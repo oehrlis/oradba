@@ -5,8 +5,8 @@
 # Name.......: aliases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.04
-# Revision...: 0.13.4
+# Date.......: 2026.01.13
+# Revision...: 0.18.3
 # Purpose....: Dynamic alias generation functions for OraDBA
 # Notes......: Sourced from oradba_standard.conf. Generates SID-specific aliases
 # ------------------------------------------------------------------------------

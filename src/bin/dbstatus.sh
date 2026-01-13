@@ -5,8 +5,8 @@
 # Name.......: dbstatus.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
-# Revision...: 0.5.0
+# Date.......: 2026.01.13
+# Revision...: 
 # Purpose....: Display Oracle database status information
 # Notes......: This script displays comprehensive database status including
 #              instance state, uptime, database mode, and resource usage.

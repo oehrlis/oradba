@@ -4,8 +4,8 @@
 -- Name......: afails.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Alias for aud_logins_failed_aud.sql
 -- Notes.....: Simple wrapper script for failed login attempts
 -- Usage.....: @afails

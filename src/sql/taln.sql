@@ -4,8 +4,8 @@
 -- Name......: taln.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2018.12.11
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: List/query alert log
 -- Usage.....: @taln <NUMBER>
 -- Notes.....: 

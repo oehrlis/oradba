@@ -4,8 +4,8 @@
 -- Name......: tde_ops_show_dba_csv.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show TDE operations from V$SESSION_LONGOPS as CSV
 -- Notes.....:  
 -- Reference.: Requires access to V$SESSION_LONGOPS

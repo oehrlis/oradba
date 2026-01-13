@@ -4,8 +4,8 @@
 -- Name......: sdsec_sysobj.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show and create a list of granted SYS object privileges
 -- Notes.....: Requires DBA role or appropriate grants
 -- Usage.....: @sdsec_sysobj

@@ -4,8 +4,8 @@
 -- Name......: tde_ops_show_dba_run.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.01
--- Revision..: 0.9.5
+-- Date......: 2026.01.13
+-- Revision..: 0.18.3
 -- Purpose...: Show TDE running operations from V$SESSION_LONGOPS
 -- Notes.....:  
 -- Reference.: Requires access to V$SESSION_LONGOPS
