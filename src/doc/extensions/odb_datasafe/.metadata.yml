@@ -1,6 +1,0 @@
-category: Operations
-description: Tools for managing Oracle Data Safe targets in OCI with simplified CLI
-  and comprehensive logging
-repository: https://github.com/oehrlis/odb_datasafe
-status: active
-title: OraDBA Data Safe Extension
