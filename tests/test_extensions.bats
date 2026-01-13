@@ -165,7 +165,7 @@ teardown() {
     mkdir -p "${TEST_TEMP_DIR}/auto_ext/bin"
     touch "${TEST_TEMP_DIR}/auto_ext/.extension"
     
-    # Create manual extension (doesn't need .extension marker as it's manually specified)
+    # Create manual extension (manual extensions in ORADBA_EXTENSION_PATHS don't require .extension marker)
     mkdir -p "${TEST_TEMP_DIR}/manual_ext/bin"
     export ORADBA_EXTENSION_PATHS="${TEST_TEMP_DIR}/manual_ext"
     
