@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Extension Installation**: Fixed hidden files not being copied during extension installation from tarball
+  - Changed from `cp -R` with glob pattern to `rsync` or `tar` for reliable file copying
+  - Now properly installs `.extension`, `.checksumignore`, `.extension.checksum`, and other hidden files
+  - Fixes issue where extensions were installed without metadata files
+  - Falls back to tar if rsync is not available
+
 ### Added
 
 - **Release Notes Update**: Added `release-notes` target to Makefile for GitHub release management

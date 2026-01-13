@@ -1020,12 +1020,24 @@ cmd_add() {
         if [[ "${extracted_dir}" == "${extract_dir}" ]]; then
             # Files extracted flat, create target and copy
             mkdir -p "${ext_path}"
-            if ! cp -R "${extracted_dir}"/* "${ext_path}"/; then
-                echo "ERROR: Failed to copy extension files" >&2
-                rm -rf "${ext_path}"
-                rm -rf "${extract_dir}"
-                [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
-                return 1
+            # Use rsync or tar to preserve hidden files
+            if command -v rsync &> /dev/null; then
+                if ! rsync -a "${extracted_dir}/" "${ext_path}/"; then
+                    echo "ERROR: Failed to copy extension files" >&2
+                    rm -rf "${ext_path}"
+                    rm -rf "${extract_dir}"
+                    [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+                    return 1
+                fi
+            else
+                # Fallback: use tar to preserve all files including hidden ones
+                if ! (cd "${extracted_dir}" && tar cf - .) | (cd "${ext_path}" && tar xf -); then
+                    echo "ERROR: Failed to copy extension files" >&2
+                    rm -rf "${ext_path}"
+                    rm -rf "${extract_dir}"
+                    [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
+                    return 1
+                fi
             fi
         else
             # Normal directory structure, move it
