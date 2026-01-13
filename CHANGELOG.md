@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Enhanced
+
+- **Oracle Home Status Display**: Improved status display for non-database Oracle Homes
+  - Created `show_oracle_home_status()` function for client, OUD, WebLogic, OMS, etc.
+  - Shows `PRODUCT_TYPE` instead of inappropriate `STATUS: NOT STARTED` for client homes
+  - `show_database_status()` now detects non-database Oracle Homes and delegates appropriately
+  - Export `ORADBA_CURRENT_HOME_TYPE` environment variable in `set_oracle_home_environment()`
+  - Better distinction between database and non-database Oracle Home types
+
 ## [0.18.2] - 2026-01-12
 
 ### Fixed

@@ -1083,6 +1083,7 @@ set_oracle_home_environment() {
 
     # Set base environment
     export ORACLE_HOME="${oracle_home}"
+    export ORADBA_CURRENT_HOME_TYPE="${product_type}"
     
     # Set home tracking variables for PS1
     export ORADBA_CURRENT_HOME="${actual_name}"

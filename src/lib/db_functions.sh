@@ -249,11 +249,48 @@ format_uptime() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: show_oracle_home_status
+# Purpose.: Display Oracle Home environment info for non-database homes
+# Parameters: None (uses current ORACLE_HOME environment)
+# ------------------------------------------------------------------------------
+show_oracle_home_status() {
+    local product_type
+    local product_version
+    
+    # Get product type from ORADBA_CURRENT_HOME_TYPE if available
+    if [[ -n "${ORADBA_CURRENT_HOME_TYPE}" ]]; then
+        product_type="${ORADBA_CURRENT_HOME_TYPE}"
+    else
+        product_type="Oracle Home"
+    fi
+    
+    # Get Oracle version
+    product_version=$(get_oracle_version)
+    
+    echo ""
+    echo "-------------------------------------------------------------------------------"
+    printf "%-14s : %s\n" "ORACLE_BASE" "${ORACLE_BASE:-Not set}"
+    printf "%-14s : %s\n" "ORACLE_HOME" "${ORACLE_HOME:-Not set}"
+    printf "%-14s : %s\n" "TNS_ADMIN" "${TNS_ADMIN:-Not set}"
+    printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
+    echo "-------------------------------------------------------------------------------"
+    printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
+    echo "-------------------------------------------------------------------------------"
+    echo ""
+}
+
+# ------------------------------------------------------------------------------
 # Function: show_database_status
 # Purpose.: Display comprehensive database status based on open mode
 # Parameters: None (uses current ORACLE_SID environment)
 # ------------------------------------------------------------------------------
 show_database_status() {
+    # Check if this is a non-database Oracle Home
+    if [[ -n "${ORADBA_CURRENT_HOME_TYPE}" ]] && [[ "${ORADBA_CURRENT_HOME_TYPE}" != "database" ]]; then
+        show_oracle_home_status
+        return 0
+    fi
+    
     # Check if this is a dummy SID BEFORE attempting connection
     if is_dummy_sid; then
         # Dummy database - show environment only, no SQL queries
