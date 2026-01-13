@@ -82,16 +82,16 @@ teardown() {
     [[ "${result}" == *"test_ext1"* ]]
 }
 
-@test "discover_extensions finds extension with bin directory" {
-    # Create extension without metadata but with bin/
+@test "discover_extensions requires .extension marker file" {
+    # Create directory without .extension marker but with bin/
     mkdir -p "${TEST_TEMP_DIR}/test_ext2/bin"
     
     # Discover
     local result
     result=$(discover_extensions)
     
-    # Should find the extension
-    [[ "${result}" == *"test_ext2"* ]]
+    # Should NOT find the extension without .extension marker
+    [[ "${result}" != *"test_ext2"* ]]
 }
 
 @test "discover_extensions skips oradba directory" {
@@ -142,10 +142,13 @@ teardown() {
 }
 
 @test "discover_extensions finds multiple extensions" {
-    # Create multiple extensions
+    # Create multiple extensions with .extension marker files
     mkdir -p "${TEST_TEMP_DIR}/ext1/bin"
+    touch "${TEST_TEMP_DIR}/ext1/.extension"
     mkdir -p "${TEST_TEMP_DIR}/ext2/sql"
+    touch "${TEST_TEMP_DIR}/ext2/.extension"
     mkdir -p "${TEST_TEMP_DIR}/ext3/rcv"
+    touch "${TEST_TEMP_DIR}/ext3/.extension"
     
     # Discover
     local result
@@ -158,10 +161,11 @@ teardown() {
 }
 
 @test "get_all_extensions combines discovered and manual paths" {
-    # Create discovered extension
+    # Create discovered extension with .extension marker
     mkdir -p "${TEST_TEMP_DIR}/auto_ext/bin"
+    touch "${TEST_TEMP_DIR}/auto_ext/.extension"
     
-    # Create manual extension
+    # Create manual extension (manual extensions in ORADBA_EXTENSION_PATHS don't require .extension marker)
     mkdir -p "${TEST_TEMP_DIR}/manual_ext/bin"
     export ORADBA_EXTENSION_PATHS="${TEST_TEMP_DIR}/manual_ext"
     
@@ -1129,6 +1133,112 @@ EOF
     run validate_extension_structure "${TEST_TEMP_DIR}/invalid_ext"
     [[ "$status" -ne 0 ]]
     [[ "$output" == *"Invalid extension structure"* ]]
+}
+
+# ==============================================================================
+# Hyphenated Extension Names Tests (Issue #1)
+# ==============================================================================
+
+@test "load_extension handles extension names with hyphens" {
+    # Create extension with hyphenated name
+    mkdir -p "${TEST_TEMP_DIR}/oci-cli/bin"
+    cat > "${TEST_TEMP_DIR}/oci-cli/.extension" << 'EOF'
+name: oci-cli
+version: 1.0.0
+priority: 50
+enabled: true
+EOF
+    
+    # Load extension
+    load_extension "${TEST_TEMP_DIR}/oci-cli"
+    
+    # Should export sanitized variable names (hyphens replaced with underscores)
+    [[ -n "${ORADBA_EXT_OCI_CLI_PATH}" ]]
+    [[ "${ORADBA_EXT_OCI_CLI_PATH}" == *"oci-cli"* ]]
+    
+    # Should also export BASE variable with sanitized name
+    [[ -n "${OCI_CLI_BASE}" ]]
+    [[ "${OCI_CLI_BASE}" == *"oci-cli"* ]]
+    
+    # Clean up
+    unset ORADBA_EXT_OCI_CLI_PATH
+    unset OCI_CLI_BASE
+}
+
+@test "get_extension_property handles hyphenated names with config override" {
+    # Create extension with hyphenated name
+    mkdir -p "${TEST_TEMP_DIR}/my-ext/bin"
+    cat > "${TEST_TEMP_DIR}/my-ext/.extension" << 'EOF'
+name: my-ext
+priority: 50
+EOF
+    
+    # Set config override using sanitized name (hyphen -> underscore)
+    export ORADBA_EXT_MY_EXT_PRIORITY="10"
+    
+    # Get priority with config check
+    result=$(get_extension_priority "${TEST_TEMP_DIR}/my-ext")
+    
+    # Should use config override value
+    [[ "${result}" == "10" ]]
+    
+    unset ORADBA_EXT_MY_EXT_PRIORITY
+}
+
+@test "is_extension_enabled handles hyphenated names with config override" {
+    # Create extension with hyphenated name
+    mkdir -p "${TEST_TEMP_DIR}/my-ext-test/bin"
+    cat > "${TEST_TEMP_DIR}/my-ext-test/.extension" << 'EOF'
+name: my-ext-test
+enabled: true
+EOF
+    
+    # Override via config using sanitized name
+    export ORADBA_EXT_MY_EXT_TEST_ENABLED="false"
+    
+    # Check enabled (should use config)
+    run is_extension_enabled "my-ext-test" "${TEST_TEMP_DIR}/my-ext-test"
+    [[ "$status" -ne 0 ]]
+    
+    unset ORADBA_EXT_MY_EXT_TEST_ENABLED
+}
+
+@test "load_extensions works with multiple hyphenated extensions" {
+    # Create multiple extensions with hyphens
+    mkdir -p "${TEST_TEMP_DIR}/ext-one/bin"
+    cat > "${TEST_TEMP_DIR}/ext-one/.extension" << 'EOF'
+name: ext-one
+priority: 10
+EOF
+    
+    mkdir -p "${TEST_TEMP_DIR}/ext-two/bin"
+    cat > "${TEST_TEMP_DIR}/ext-two/.extension" << 'EOF'
+name: ext-two
+priority: 50
+EOF
+    
+    # Save original PATH
+    local orig_path="${PATH}"
+    
+    # Load all extensions
+    load_extensions
+    
+    # PATH should include both extensions
+    [[ "${PATH}" == *"ext-one/bin"* ]]
+    [[ "${PATH}" == *"ext-two/bin"* ]]
+    
+    # Should export sanitized variable names
+    [[ -n "${ORADBA_EXT_EXT_ONE_PATH}" ]]
+    [[ -n "${ORADBA_EXT_EXT_TWO_PATH}" ]]
+    [[ -n "${EXT_ONE_BASE}" ]]
+    [[ -n "${EXT_TWO_BASE}" ]]
+    
+    # Restore PATH
+    export PATH="${orig_path}"
+    unset ORADBA_EXT_EXT_ONE_PATH
+    unset ORADBA_EXT_EXT_TWO_PATH
+    unset EXT_ONE_BASE
+    unset EXT_TWO_BASE
 }
 
 # EOF
