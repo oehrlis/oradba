@@ -55,10 +55,6 @@ discover_extensions() {
         if [[ -f "${dir}/.extension" ]]; then
             extensions+=("${dir}")
             oradba_log DEBUG "Found extension with metadata: ${dir_name}"
-        elif [[ -d "${dir}/bin" ]] || [[ -d "${dir}/sql" ]] || [[ -d "${dir}/rcv" ]]; then
-            # Also discover extensions without metadata if they have expected directories
-            extensions+=("${dir}")
-            oradba_log DEBUG "Found extension without metadata: ${dir_name}"
         fi
     done
 
@@ -121,7 +117,9 @@ get_extension_property() {
     if [[ "${check_config}" == "true" ]]; then
         local ext_name
         ext_name="$(basename "${ext_path}")"
-        local config_var="ORADBA_EXT_${ext_name^^}_${property^^}"
+        # Sanitize extension name for use in variable names (replace hyphens with underscores)
+        local safe_ext_name="${ext_name//-/_}"
+        local config_var="ORADBA_EXT_${safe_ext_name^^}_${property^^}"
         value="${!config_var}"
     fi
 
@@ -448,12 +446,15 @@ load_extension() {
     # Create navigation alias (cd<extname> or cde<extname>)
     create_extension_alias "${ext_name}" "${ext_path}"
 
+    # Sanitize extension name for use in variable names (replace hyphens with underscores)
+    local safe_ext_name="${ext_name//-/_}"
+
     # Export extension path variables for reference
-    local var_name="ORADBA_EXT_${ext_name^^}_PATH"
+    local var_name="ORADBA_EXT_${safe_ext_name^^}_PATH"
     export "${var_name}=${ext_path}"
 
     # Export <EXTENSION>_BASE variable (e.g., USZ_BASE=/opt/oracle/local/usz)
-    local base_var="${ext_name^^}_BASE"
+    local base_var="${safe_ext_name^^}_BASE"
     export "${base_var}=${ext_path}"
 
     # Show version if available
