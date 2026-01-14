@@ -12,15 +12,15 @@ with unit tests for libraries and integration tests for scripts.
 
 | Test File                                                    | Component             | Tests | Description                           |
 |--------------------------------------------------------------|-----------------------|-------|---------------------------------------|
-| [test_aliases.bats](test_aliases.bats)                       | lib/aliases.sh        | 38    | Alias generation and management       |
-| [test_common.bats](test_common.bats)                         | lib/common.sh         | 32    | Core utility functions                |
-| [test_db_functions.bats](test_db_functions.bats)             | lib/db_functions.sh   | 24    | Database query and status functions   |
-| [test_execute_db_query.bats](test_execute_db_query.bats)     | lib/common.sh         | 22    | SQL query execution                   |
+| [test_aliases.bats](test_aliases.bats)                       | lib/oradba_aliases.sh        | 38    | Alias generation and management       |
+| [test_common.bats](test_common.bats)                         | lib/oradba_common.sh         | 32    | Core utility functions                |
+| [test_db_functions.bats](test_db_functions.bats)             | lib/oradba_db_functions.sh   | 24    | Database query and status functions   |
+| [test_execute_db_query.bats](test_execute_db_query.bats)     | lib/oradba_common.sh         | 22    | SQL query execution                   |
 | [test_extensions.bats](test_extensions.bats)                 | lib/extensions.sh     | 42    | Extension discovery and loading       |
 | [test_get_seps_pwd.bats](test_get_seps_pwd.bats)             | bin/get_seps_pwd.sh   | 31    | Wallet password utility               |
 | [test_installer.bats](test_installer.bats)                   | bin/oradba_install.sh | 64    | Installation and updates              |
 | [test_job_wrappers.bats](test_job_wrappers.bats)             | bin/*_jobs.sh         | 39    | Job monitoring wrappers               |
-| [test_logging.bats](test_logging.bats)                       | lib/common.sh         | 28    | Unified logging system                |
+| [test_logging.bats](test_logging.bats)                       | lib/oradba_common.sh         | 28    | Unified logging system                |
 | [test_longops.bats](test_longops.bats)                       | bin/longops.sh        | 26    | Long operations monitoring            |
 | [test_oradba_check.bats](test_oradba_check.bats)             | bin/oradba_check.sh   | 24    | System prerequisites checking         |
 | [test_oradba_help.bats](test_oradba_help.bats)               | bin/oradba_help.sh    | 12    | Help system and documentation         |
@@ -133,8 +133,8 @@ Tests requiring database are skipped if unavailable.
 
 ```text
 tests/
-├── test_common.bats           # Unit tests for lib/common.sh
-├── test_db_functions.bats     # Unit tests for lib/db_functions.sh
+├── test_common.bats           # Unit tests for lib/oradba_common.sh
+├── test_db_functions.bats     # Unit tests for lib/oradba_db_functions.sh
 ├── test_oraenv.bats           # Integration tests for oraenv.sh
 ├── test_installer.bats        # Build system tests
 ├── test_oradba_version.bats   # Version utility tests
@@ -199,8 +199,8 @@ Current coverage by component:
 
 | Component         | Functions    | Tested | Coverage |
 |-------------------|--------------|--------|----------|
-| common.sh         | ~30          | 11     | 37%      |
-| db_functions.sh   | ~15          | 23     | 100%*    |
+| oradba_common.sh         | ~30          | 11     | 37%      |
+| oradba_db_functions.sh   | ~15          | 23     | 100%*    |
 | oraenv.sh         | Main script  | 25     | High     |
 | oradba_version.sh | Main script  | 12     | High     |
 | Installer         | Build system | 3      | Basic    |
@@ -220,7 +220,7 @@ load test_helper
 setup() {
     # Setup test environment
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
-    source "${ORADBA_BASE}/src/lib/common.sh"
+    source "${ORADBA_BASE}/src/lib/oradba_common.sh"
 }
 
 @test "function returns expected value" {

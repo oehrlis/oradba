@@ -927,7 +927,7 @@ Phase 2 completes the configuration management system with:
   - ALIAS_NAME defaults to NAME if not specified (backward compatible)
   - Useful for distinguishing between auto-discovered NAME and user-preferred alias
   - Added `--alias` option to `oradba_homes.sh add` command
-  - New function `get_oracle_home_alias()` in common.sh
+  - New function `get_oracle_home_alias()` in oradba_common.sh
   - List display shows alias when different from home name
   - Updated documentation and tests
 
@@ -957,7 +957,7 @@ Phase 2 completes the configuration management system with:
 - **Oracle Homes Support (Phase 1)**: Core infrastructure for managing non-database Oracle products
   - New configuration file: `oradba_homes.conf` for registering Oracle Homes
   - Configuration format: `NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:DESCRIPTION`
-  - Core functions in common.sh:
+  - Core functions in oradba_common.sh:
     - `get_oracle_homes_path()`: Get path to oradba_homes.conf
     - `parse_oracle_home()`: Parse home entry by name
     - `list_oracle_homes()`: List all homes sorted by order with optional filtering
@@ -1038,7 +1038,7 @@ Phase 2 completes the configuration management system with:
 
 - **Code Quality**: Fixed all shellcheck and markdownlint warnings
   - `src/bin/oraup.sh`: SC2034 - Prefixed unused variables with underscore
-  - `src/lib/common.sh`: SC2155 - Separated ORACLE_HOSTNAME declaration and assignment
+  - `src/lib/oradba_common.sh`: SC2155 - Separated ORACLE_HOSTNAME declaration and assignment
   - `tests/test_oraenv.bats`: SC2076 - Removed quotes from regex patterns (3 locations)
   - `doc/releases/v0.18.0.md`: MD013 - Split long overview line
   - `doc/releases/v0.18.0.md`: MD040 - Added language specifiers to code blocks (2 locations)
@@ -1068,7 +1068,7 @@ Phase 2 completes the configuration management system with:
   - Symlink creation when /etc/oratab exists
   - Dummy database entry support for pre-Oracle testing
 
-- **Centralized oratab Priority System**: New `get_oratab_path()` function in common.sh
+- **Centralized oratab Priority System**: New `get_oratab_path()` function in oradba_common.sh
   - Priority 1: `$ORADBA_ORATAB` (explicit override)
   - Priority 2: `/etc/oratab` (system default)
   - Priority 3: `/var/opt/oracle/oratab` (Solaris/AIX)
@@ -1710,7 +1710,7 @@ immediately.
 ### Added
 
 - **Unified Configuration File Loader (#56 Phase 5)**: Consolidated configuration loading
-  - New function: `load_config_file()` in `src/lib/common.sh`
+  - New function: `load_config_file()` in `src/lib/oradba_common.sh`
     - Signature: `load_config_file <file_path> [required]`
     - Parameters:
       - `file_path` - Full path to configuration file (required)
@@ -1728,7 +1728,7 @@ immediately.
 
 ### Changed
 
-- Updated `src/lib/common.sh` from v0.13.2 to v0.13.5
+- Updated `src/lib/oradba_common.sh` from v0.13.2 to v0.13.5
   - Added `load_config_file()` function (lines 531-556)
   - **Refactored `load_config()` function**: Reduced from 83 lines to 61 lines (~27% reduction)
     - Eliminated 5 repetitive config loading blocks with duplicated logic
@@ -1765,7 +1765,7 @@ and configuration loading.
 ### Added
 
 - **Unified Alias Generation Helper (#56 Phase 4)**: Consolidated dynamic alias creation
-  - New function: `create_dynamic_alias()` in `src/lib/aliases.sh`
+  - New function: `create_dynamic_alias()` in `src/lib/oradba_aliases.sh`
     - Signature: `create_dynamic_alias <name> <command> [expand]`
     - Parameters:
       - `name` - Alias name (required)
@@ -1786,9 +1786,9 @@ and configuration loading.
 
 ### Changed
 
-- Updated `src/lib/aliases.sh` from v0.13.0 to v0.13.4
+- Updated `src/lib/oradba_aliases.sh` from v0.13.0 to v0.13.4
   - Added `create_dynamic_alias()` function (lines 18-38)
-- **Migrated 19 alias creation calls** in `src/lib/aliases.sh` to use `create_dynamic_alias()`
+- **Migrated 19 alias creation calls** in `src/lib/oradba_aliases.sh` to use `create_dynamic_alias()`
   - Eliminated repetitive `safe_alias` calls with manual shellcheck disables
   - All aliases maintain 100% backward-compatible behavior
   - Code patterns standardized:
@@ -1870,7 +1870,7 @@ and configuration loading.
 ### Added
 
 - **Unified SQL Query Executor (#56 Phase 2)**: Consolidated SQL*Plus query execution
-  - New function: `execute_db_query()` in `src/lib/common.sh`
+  - New function: `execute_db_query()` in `src/lib/oradba_common.sh`
     - Signature: `execute_db_query <query> [format]`
     - Parameters:
       - `query` - SQL query to execute (can be multiline)
@@ -1899,9 +1899,9 @@ and configuration loading.
 
 ### Changed
 
-- Updated `src/lib/common.sh` from v0.13.1 to v0.13.2
+- Updated `src/lib/oradba_common.sh` from v0.13.1 to v0.13.2
   - Added `execute_db_query()` function (lines 130-198)
-- **Migrated 6 database query functions** in `src/lib/db_functions.sh` to use `execute_db_query()`
+- **Migrated 6 database query functions** in `src/lib/oradba_db_functions.sh` to use `execute_db_query()`
   - Eliminated **~240 lines** of duplicated SQL*Plus boilerplate code
   - All functions maintain 100% backward-compatible signatures
   - Code reduction per function:
@@ -1998,7 +1998,7 @@ Resolves: #56 (Phase 2 - SQL Query Consolidation)
 
 ### Changed
 
-- Updated `src/lib/common.sh` from v0.11.0 to v0.13.1
+- Updated `src/lib/oradba_common.sh` from v0.11.0 to v0.13.1
   - Replaced individual `log_*` implementations with unified `log()` function
   - Deprecated functions now call `log()` internally for consistency
 - Updated documentation for new logging system
@@ -2162,7 +2162,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - Checks for `.BE_HOME`, `.TVDPERL_HOME` files and `BE_HOME` variable
   - New `oradba_local.conf`: Auto-generated configuration with detected mode
   - Safe alias system: Skips OraDBA aliases when BasEnv versions exist
-  - New functions in `common.sh`: `detect_basenv()`, `alias_exists()`, `safe_alias()`
+  - New functions in `oradba_common.sh`: `detect_basenv()`, `alias_exists()`, `safe_alias()`
   - All aliases converted to use `safe_alias()` function
   - Configuration variables: `ORADBA_COEXIST_MODE`, `ORADBA_FORCE`
   - Force mode: Set `ORADBA_FORCE=1` to override BasEnv aliases
@@ -2441,7 +2441,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - Separated variable declarations from assignments (SC2155)
   - Changed `"$@"` to `"$*"` for string concatenation (SC2124)
   - Added shellcheck directives for dynamic source and config files
-  - Proper variable usage in db_functions.sh (SC2034)
+  - Proper variable usage in oradba_db_functions.sh (SC2034)
 
 ### Fixed
 
@@ -3185,7 +3185,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 ### Added
 
 - **Version Management Infrastructure** (#6):
-  - Added comprehensive version management functions to `common.sh`
+  - Added comprehensive version management functions to `oradba_common.sh`
   - New functions: `get_oradba_version()`, `version_compare()`, `version_meets_requirement()`
   - Installation metadata management: `get_install_info()`, `set_install_info()`, `init_install_info()`
   - Display function: `show_version_info()` for version and installation details
@@ -3274,12 +3274,12 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - Added `ORADBA_SID_ALERTLOG` variable pointing to the standard text alert log
   - Aliases check if file exists before attempting to open it
   - Added `-n 50` to `taa` to show last 50 lines by default
-  - Both static (oradba_standard.conf) and dynamic (aliases.sh) aliases updated
+  - Both static (oradba_standard.conf) and dynamic (oradba_aliases.sh) aliases updated
   
 - **Alert log aliases**: Added fallback aliases for `taa`, `via`, and `vaa`
   - Fixed issue where aliases were not created if diagnostic directories didn't exist yet
   - Added static aliases based on ORACLE_BASE and ORACLE_SID in oradba_standard.conf
-  - Dynamic aliases from aliases.sh will still override these if diagnostic_dest exists
+  - Dynamic aliases from oradba_aliases.sh will still override these if diagnostic_dest exists
   - Also includes fallback aliases for `cdd`, `cddt`, `cdda` directory navigation
 
 ### Added
@@ -3364,8 +3364,8 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - Changed CONFIGURATION.md to optional (doesn't exist yet)
   - Changed ALIAS_HELP.txt to required (used by alih alias)
 - **Shellcheck warnings**:
-  - Fixed SC2034 in common.sh: Marked unused oracle_home variable with underscore
-  - Fixed SC2139 in common.sh: Added disable comment for intentional alias expansion
+  - Fixed SC2034 in oradba_common.sh: Marked unused oracle_home variable with underscore
+  - Fixed SC2139 in oradba_common.sh: Added disable comment for intentional alias expansion
   - Fixed SC2034 in oradba_validate.sh: Removed unused BLUE color variable
 
 ## [0.5.0] - 2025-12-16
@@ -3380,7 +3380,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - `sid.<ORACLE_SID>.conf`: Auto-created SID-specific configurations with database metadata
   - Configuration loading order: core → standard → customer → default → sid-specific
   - Auto-export all variables using `set -a`/`set +a` wrapper (export keyword optional)
-  - `load_config()` function in common.sh for configuration management
+  - `load_config()` function in oradba_common.sh for configuration management
   - `create_sid_config()` function for auto-creating SID configs from database metadata
   - Smart config generation: only writes non-default and valid values
   - Example configuration files: `sid.ORCL.conf.example`, `oradba_customer.conf.example`
@@ -3395,7 +3395,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - **Listener**: lstat, lstart, lstop, lsnr
   - **Database ops**: pmon, oratab, tns, sta
   - **Help**: alih, alig, version
-  - Dynamic alias generation in `lib/aliases.sh` based on diagnostic_dest
+  - Dynamic alias generation in `lib/oradba_aliases.sh` based on diagnostic_dest
   - rlwrap integration for SQL*Plus/RMAN with graceful fallback
   - SID aliases: Auto-generate lowercase aliases for all SIDs in oratab (e.g., `alias free='. oraenv.sh FREE'`)
 
@@ -3466,7 +3466,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
   - `cdta` → `cddt` (trace directory)
   - `cdaa` → `cdda` (alert directory)
   - Removed: `sqls` (redundant with sq)
-- Updated file headers to v0.5.0: oraenv.sh, common.sh, oradba_core.conf, oradba_standard.conf
+- Updated file headers to v0.5.0: oraenv.sh, oradba_common.sh, oradba_core.conf, oradba_standard.conf
 - Build process now auto-cleans test SID configs before packaging
 
 ### Fixed
@@ -3596,19 +3596,19 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 
 ### Added
 
-- New `src/lib/db_functions.sh` library with reusable database query functions
+- New `src/lib/oradba_db_functions.sh` library with reusable database query functions
 - Enhanced database status display showing detailed information based on database state
 - Support for querying database info at NOMOUNT, MOUNT, and OPEN states
 - Added `--status` flag to oraenv.sh for detailed database status display
 - Added `--silent` flag to oraenv.sh for non-interactive execution
 - Interactive SID selection with numbered list when no SID provided to oraenv.sh
 - User can select database by number or name from available instances
-- Comprehensive test suite for db_functions.sh library (test_db_functions.bats)
+- Comprehensive test suite for oradba_db_functions.sh library (test_db_functions.bats)
 - Extended test coverage for oraenv.sh with new behavior patterns
 - Automatic TTY detection for interactive vs non-interactive mode
 - Silent mode auto-selection when running without TTY (e.g., in scripts)
 - New `dbstatus.sh` standalone script for displaying database status information
-- Comprehensive documentation for db_functions.sh library (DB_FUNCTIONS.md)
+- Comprehensive documentation for oradba_db_functions.sh library (DB_FUNCTIONS.md)
 - Updated USAGE.md with documentation for enhanced oraenv.sh features and dbstatus.sh
 
 ### Changed
@@ -3676,7 +3676,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 ### Fixed
 
 - Makefile color output and command execution (fixed missing @echo statements)
-- Shellcheck SC2155 warnings by separating declaration and assignment (oraenv.sh, common.sh)
+- Shellcheck SC2155 warnings by separating declaration and assignment (oraenv.sh, oradba_common.sh)
 - Shellcheck SC2034 warning for unused force_mode variable (marked for future use)
 
 ## [0.2.1] - 2025-12-15
@@ -3744,7 +3744,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 
 - Initial release with core oradba functionality
 - Core oraenv.sh script for Oracle environment setup based on oratab
-- Common library (common.sh) with logging and utility functions
+- Common library (oradba_common.sh) with logging and utility functions
 - Self-contained installer with base64-encoded payload
 - Build script for creating installer (build_installer.sh)
 - Project validation script (validate_project.sh)
