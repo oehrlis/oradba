@@ -7,6 +7,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-01-14
+
+### Added
+
+- **Phase 3: Advanced Features** - Service status checking and change detection
+  - New `oradba_env_status.sh` library (8 functions) for service status checking:
+    - `oradba_check_db_status` - Check Oracle database instance status (OPEN/MOUNTED/NOMOUNT/SHUTDOWN)
+    - `oradba_check_asm_status` - Check ASM instance status (STARTED/MOUNTED/SHUTDOWN)
+    - `oradba_check_listener_status` - Check Oracle listener status (RUNNING/STOPPED)
+    - `oradba_check_process_running` - Generic process detection
+    - `oradba_check_datasafe_status` - Check Oracle Data Safe service status
+    - `oradba_check_oud_status` - Check Oracle Unified Directory instance status
+    - `oradba_check_wls_status` - Check WebLogic Server status
+    - `oradba_get_product_status` - Unified status check for any product type
+  
+  - New `oradba_env_changes.sh` library (7 functions) for configuration change detection:
+    - `oradba_get_file_signature` - Get file signature (timestamp:size)
+    - `oradba_store_file_signature` - Store signature for future comparison
+    - `oradba_check_file_changed` - Detect if file has changed
+    - `oradba_check_config_changes` - Check all config files for changes
+    - `oradba_init_change_tracking` - Initialize tracking for all config files
+    - `oradba_clear_change_tracking` - Clear all tracking data
+    - `oradba_auto_reload_on_change` - Auto-reload environment on config changes
+  
+  - **Enhanced `oradba_env.sh` command** with new subcommands:
+    - `status [SID]` - Check status of Oracle instances and services
+    - `changes` - Detect configuration file changes
+  
+  - **Status checking capabilities**:
+    - Database instance status (OPEN, MOUNTED, NOMOUNT, SHUTDOWN)
+    - ASM instance status (STARTED, MOUNTED, SHUTDOWN)
+    - Oracle listener status (RUNNING, STOPPED)
+    - Product-specific service checks (DataSafe, OUD, WLS)
+    - Process-based status detection with pgrep fallback
+  
+  - **Change detection features**:
+    - File signature tracking (timestamp + size)
+    - Automatic signature storage and comparison
+    - Multi-file change monitoring
+    - Config hierarchy change detection (core/standard/local/customer/SID)
+    - Cache directory for signature storage
+    - Manual and automatic change checking
+
+### Changed
+
+- **oradba_env.sh** - Updated to version 0.21.0
+  - Added Phase 3 library loading (status and changes)
+  - Enhanced usage information with new commands
+  - Integrated status checking for all product types
+  - Added change detection command
+
+- **oradba_env_status.sh** - Enhanced process checking
+  - Uses `pgrep` when available for better performance
+  - Falls back to `ps | grep` if pgrep not available
+  - Disabled SC2009 shellcheck warning for ps/grep fallback
+
+### Testing
+
+- **21 Unit Tests** for service status checking (test_oradba_env_status.bats):
+  - Process running detection tests
+  - Product status tests (CLIENT, ICLIENT, RDBMS, ASM, DataSafe, OUD, WLS)
+  - Database status checking tests
+  - ASM status checking tests
+  - Listener status checking tests
+  - Empty/invalid parameter handling tests
+  - Function export verification
+
+- **16 Unit Tests** for change detection (test_oradba_env_changes.bats):
+  - File signature generation tests
+  - Signature storage tests
+  - File change detection tests
+  - Config change monitoring tests
+  - Change tracking initialization/cleanup tests
+  - Complete workflow integration tests
+
+- **All Previous Tests Still Passing**:
+  - Phase 1: 22 unit tests ✅
+  - Phase 2: 28 unit tests ✅
+  - **Total: 87 unit tests** across all phases
+
+### Enhanced
+
+- **Multi-platform support** for change detection:
+  - macOS support (stat -f format)
+  - Linux support (stat -c format)
+  - Automatic platform detection
+
+- **ROOH Support** - Read-Only Oracle Home detection (from Phase 1, now documented)
+- **ASM Handling** - Full ASM instance support (from Phase 1, now documented)
+
+### Documentation
+
+- Updated `doc/oradba-env-design.md`:
+  - Marked Phase 2 as complete (v0.20.0)
+  - Updated Phase 3 status (IN PROGRESS)
+  - Documented completed Phase 3 items (ROOH, ASM)
+  
+### Compatibility
+
+- All Phase 1 functionality preserved (parser, builder, validator)
+- All Phase 2 functionality preserved (configuration system)
+- Backward compatible with existing environments
+- New features are optional (graceful degradation if libraries not found)
+
+### Deliverables
+
+Phase 3 delivers advanced monitoring and automation:
+- 2 new libraries (oradba_env_status.sh - 306 lines, oradba_env_changes.sh - 229 lines)
+- Enhanced oradba_env.sh command (2 new subcommands)
+- 37 new unit tests (all passing)
+- Service status checking for all product types
+- Configuration change detection and tracking
+- Cross-platform file monitoring
+
 ## [0.20.0] - 2026-01-14
 
 ### Added

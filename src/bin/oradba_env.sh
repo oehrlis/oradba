@@ -20,7 +20,7 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 readonly SCRIPT_NAME
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-readonly SCRIPT_VERSION="0.19.0"
+readonly SCRIPT_VERSION="0.20.0"
 
 # Setup ORADBA_BASE
 ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
@@ -48,6 +48,17 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_env_validator.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_env_validator.sh"
 fi
 
+# Source Phase 3 libraries (optional)
+if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
+    # shellcheck source=../lib/oradba_env_status.sh
+    source "${ORADBA_BASE}/lib/oradba_env_status.sh"
+fi
+
+if [[ -f "${ORADBA_BASE}/lib/oradba_env_changes.sh" ]]; then
+    # shellcheck source=../lib/oradba_env_changes.sh
+    source "${ORADBA_BASE}/lib/oradba_env_changes.sh"
+fi
+
 # Set ORATAB_FILE dynamically if not already set
 if [[ -z "${ORATAB_FILE}" ]]; then
     ORATAB_FILE="$(get_oratab_path 2>/dev/null || echo "/etc/oratab")"
@@ -67,8 +78,10 @@ Usage: ${SCRIPT_NAME} <command> [options]
 Commands:
   list [sids|homes|all]    List available Oracle SIDs and/or Oracle Homes
   show <SID|HOME>          Show detailed information about SID or Oracle Home
+  status [SID]             Check status of Oracle instances/services
   validate [level]         Validate current Oracle environment
                            Levels: basic, standard (default), full
+  changes                  Check for configuration file changes
   help                     Display this help message
   version                  Display version information
 
@@ -78,8 +91,11 @@ Examples:
   ${SCRIPT_NAME} list homes              # List only Oracle Homes
   ${SCRIPT_NAME} show ORCL               # Show details for ORCL SID
   ${SCRIPT_NAME} show /u01/app/oracle/product/19c
+  ${SCRIPT_NAME} status                  # Check status of current SID
+  ${SCRIPT_NAME} status ORCL             # Check status of specific SID
   ${SCRIPT_NAME} validate                # Validate current environment
   ${SCRIPT_NAME} validate full           # Full validation with database checks
+  ${SCRIPT_NAME} changes                 # Check for config changes
 
 Environment Variables:
   ORATAB_FILE            Path to oratab file (default: /etc/oratab)
@@ -256,6 +272,94 @@ cmd_validate() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: cmd_status
+# Purpose.: Check status of Oracle instance/service
+# ------------------------------------------------------------------------------
+cmd_status() {
+    local target="${1:-}"
+    
+    # If status library not loaded, inform user
+    if ! command -v oradba_get_product_status &>/dev/null; then
+        echo "Status checking not available (oradba_env_status.sh not found)"
+        return 1
+    fi
+    
+    # Use current SID if none specified
+    if [[ -z "$target" ]]; then
+        target="${ORACLE_SID:-}"
+        if [[ -z "$target" ]]; then
+            echo "ERROR: No SID specified and ORACLE_SID not set"
+            return 1
+        fi
+    fi
+    
+    # Get SID info from oratab or oradba_homes.conf
+    local sid_info
+    sid_info=$(oradba_get_sid_info "$target" 2>/dev/null)
+    
+    if [[ -z "$sid_info" ]]; then
+        echo "ERROR: SID '$target' not found"
+        return 1
+    fi
+    
+    # Parse SID info
+    local oracle_sid oracle_home oracle_flag
+    IFS=':' read -r oracle_sid oracle_home oracle_flag <<< "$sid_info"
+    
+    # Detect product type
+    local product_type
+    product_type=$(oradba_detect_product_type "$oracle_home")
+    
+    echo "=== Oracle Instance/Service Status ==="
+    echo "SID:          $oracle_sid"
+    echo "HOME:         $oracle_home"
+    echo "Product Type: $product_type"
+    echo ""
+    
+    # Get status
+    local status
+    status=$(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")
+    
+    echo "Status:       $status"
+    
+    # Check listener if RDBMS
+    if [[ "$product_type" == "RDBMS" || "$product_type" == "GRID" ]]; then
+        local listener_status
+        listener_status=$(oradba_check_listener_status "LISTENER" "$oracle_home" 2>/dev/null || echo "UNKNOWN")
+        echo "Listener:     $listener_status"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: cmd_changes
+# Purpose.: Check for configuration file changes
+# ------------------------------------------------------------------------------
+cmd_changes() {
+    # If changes library not loaded, inform user
+    if ! command -v oradba_check_config_changes &>/dev/null; then
+        echo "Change detection not available (oradba_env_changes.sh not found)"
+        return 1
+    fi
+    
+    echo "=== Configuration Change Detection ==="
+    echo ""
+    
+    local changes
+    changes=$(oradba_check_config_changes)
+    
+    if [[ -n "$changes" ]]; then
+        echo "Changed files detected:"
+        echo "$changes"
+        return 0
+    else
+        echo "No configuration changes detected."
+        return 1
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Function: cmd_version
 # Purpose.: Display version information
 # ------------------------------------------------------------------------------
@@ -282,8 +386,14 @@ main() {
         show)
             cmd_show "$@"
             ;;
+        status)
+            cmd_status "$@"
+            ;;
         validate)
             cmd_validate "$@"
+            ;;
+        changes)
+            cmd_changes "$@"
             ;;
         version)
             cmd_version
