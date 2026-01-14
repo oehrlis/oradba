@@ -32,7 +32,8 @@ function_name() {
 }
 ```
 
-### Key Elements:
+### Key Elements
+
 - **Function:** Name of the function
 - **Purpose.:** One-line description (note the period after Purpose)
 - **Args....:** Parameter descriptions with $1, $2, etc. (note the periods)
@@ -45,6 +46,7 @@ function_name() {
 ## Current Status
 
 ### Files with Good Headers ✅
+
 - `src/lib/oradba_env_parser.sh` - All functions properly documented
 - `src/lib/oradba_env_builder.sh` - All functions properly documented
 - `src/lib/oradba_env_validator.sh` - All functions properly documented
@@ -53,6 +55,7 @@ function_name() {
 - `src/lib/oradba_env_changes.sh` - All functions properly documented
 
 ### Files Needing Updates ⚠️
+
 - `src/lib/common.sh` - ~130 functions, many missing proper headers
 - `src/lib/aliases.sh` - Several functions need header updates
 - `src/lib/db_functions.sh` - Several functions need header updates
@@ -63,6 +66,7 @@ function_name() {
 ## Functions Needing Headers (common.sh)
 
 ### Priority 1: Core Utilities (High Usage)
+
 - `get_script_dir()` - Path resolution utility
 - `init_logging()` - Logging initialization
 - `init_session_log()` - Session log setup
@@ -75,6 +79,7 @@ function_name() {
 - `safe_alias()` - Safe alias creation
 
 ### Priority 2: Oracle Environment (Medium Usage)
+
 - `verify_oracle_env()` - Environment validation
 - `get_oracle_version()` - Version detection
 - `parse_oratab()` - Oratab parsing
@@ -87,6 +92,7 @@ function_name() {
 - `derive_oracle_base()` - ORACLE_BASE derivation
 
 ### Priority 3: Configuration & Display (Low Usage)
+
 - `configure_sqlpath()` - SQLPATH configuration
 - `show_sqlpath()` - SQLPATH display
 - `show_path()` - PATH display
@@ -99,7 +105,9 @@ function_name() {
 ## Implementation Strategy
 
 ### Phase 1: Update High-Priority Functions (5.3)
+
 Focus on most-used functions in common.sh:
+
 - Logging functions (init_logging, oradba_log, etc.)
 - Core utilities (get_script_dir, command_exists, etc.)
 - Database functions (execute_db_query, get_oratab_path, etc.)
@@ -108,6 +116,7 @@ Focus on most-used functions in common.sh:
 **Timeline:** Phase 5.3 (current phase)
 
 ### Phase 2: Complete common.sh (5.4)
+
 - Update remaining ~110 functions
 - Ensure consistency across all functions
 - Verify all parameters are documented
@@ -116,6 +125,7 @@ Focus on most-used functions in common.sh:
 **Timeline:** Phase 5.4
 
 ### Phase 3: Update Other Libraries (Future)
+
 - aliases.sh
 - db_functions.sh
 - extensions.sh
@@ -146,6 +156,7 @@ Copy-paste template for quick implementation:
 ## Quality Checks
 
 Before committing header updates:
+
 1. **Shellcheck:** Ensure no syntax errors introduced
 2. **Lint:** Run `make lint` to verify formatting
 3. **Tests:** Run `make test` to ensure no behavioral changes
@@ -179,14 +190,17 @@ Before committing header updates:
 ## Progress Tracking
 
 ### Completed
+
 - ✅ Phase 1-3 libraries (6 files, ~50 functions)
 - ✅ Test requirements documentation
 - ✅ init_session_log() header added
 
 ### In Progress
+
 - ⏳ common.sh high-priority functions
 
 ### Pending
+
 - ⏳ common.sh remaining functions
 - ⏳ aliases.sh, db_functions.sh, extensions.sh
 

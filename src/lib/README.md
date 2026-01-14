@@ -9,8 +9,8 @@ organized into three categories:
 
 1. **Phase 1-3 Libraries** (v0.19.0-v0.21.0): Modern library-based architecture with Parser, Builder, Validator,
 Config Manager, Status Display, and Change Tracker
-2. **Legacy Libraries**: Backward-compatible libraries (common.sh, db_functions.sh, aliases.sh) providing core
-utilities
+2. **Core Libraries**: Essential libraries (common.sh, db_functions.sh, aliases.sh) providing logging, database
+operations, and alias management - actively used across the system
 3. **Extension Framework**: Extensibility support for custom functionality
 
 ## Available Libraries
@@ -28,7 +28,7 @@ utilities
 
 **Total Phase 1-3 Functions:** 47 functions
 
-### Legacy Libraries (Backward Compatible)
+### Core Libraries (Active - Fully Integrated)
 
 | Library                                | Description                           | Functions     |
 |----------------------------------------|---------------------------------------|---------------|
@@ -36,7 +36,7 @@ utilities
 | [db_functions.sh](db_functions.sh)     | Database queries and status           | 11 functions  |
 | [aliases.sh](aliases.sh)               | Dynamic alias generation              | 5 functions   |
 
-**Total Legacy Functions:** 66 functions
+**Total Core Functions:** 66 functions
 
 ### Extension Framework
 
@@ -81,9 +81,9 @@ oradba_show_environment
 oradba_auto_reload_on_change
 ```
 
-### Legacy Library Usage
+### Core Library Usage
 
-Source libraries at the beginning of your scripts:
+Source core libraries at the beginning of your scripts:
 
 ```bash
 #!/usr/bin/env bash
@@ -198,7 +198,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `oradba_clear_change_tracking` - Clear stored signatures
 - `oradba_auto_reload_on_change` - Auto-reload environment on config change
 
-### Legacy Library Functions
+### Core Library Functions
 
 #### common.sh - Core Utilities
 
