@@ -1,12 +1,12 @@
-# OraDBA User Documentation
+# OraDBA v1.0.0 User Documentation
 
 Complete user guides and reference materials for the Oracle Database Administration Toolset.
 
-**Audience:** Database administrators, operators, and users of OraDBA
+**Version:** 1.0.0 | **Audience:** Database administrators, operators, and users of OraDBA
 
 !!! info "For Developers"
     See [Developer Documentation](https://github.com/oehrlis/oradba/tree/main/doc)
-    for contribution guides and technical details.
+    for contribution guides, API reference, and technical architecture.
 
 ## 📖 Documentation Formats
 
@@ -20,23 +20,50 @@ The complete OraDBA user documentation is available in multiple formats:
 
 ## 📚 Documentation Structure
 
-Use the navigation menu to explore:
-
 ### Getting Started
 
-Learn the basics and get OraDBA up and running quickly.
+| Document | Description |
+|----------|-------------|
+| [Introduction](introduction.md) | What is OraDBA and why use it |
+| [Quick Start](quickstart.md) | Get up and running in 5 minutes |
+| [Installation](installation.md) | Complete installation guide |
+| [Installation (Docker)](installation-docker.md) | Docker-specific installation |
+| [Usage Guide](usage.md) | Daily usage patterns and workflows |
 
-### Configuration
+### Configuration & Environment
 
-Customize OraDBA to match your environment and preferences.
+| Document | Description |
+|----------|-------------|
+| [Configuration System](configuration.md) | 6-level configuration hierarchy |
+| [Environment Management](environment.md) | Environment variables and setup |
+| [SQLNet Configuration](sqlnet-config.md) | SQLNet and network configuration |
 
-### Scripts & Tools
+### Commands & Features
 
-Discover the powerful SQL scripts, RMAN templates, and shell functions.
+| Document | Description |
+|----------|-------------|
+| [Aliases Reference](aliases.md) | Shell command aliases (sq, alih, etc.) |
+| [PDB Aliases](pdb-aliases.md) | Pluggable database shortcuts |
+| [Functions Reference](functions.md) | Available shell functions |
+| [Service Management](service-management.md) | Database service operations |
+| [SQL Scripts](sql-scripts.md) | SQL script library reference |
+| [RMAN Scripts](rman-scripts.md) | RMAN backup script templates |
+| [rlwrap Filter](rlwrap.md) | SQLPlus command-line enhancement |
 
-### Operations
+### Extensions & Customization
 
-Daily operations, troubleshooting, and reference materials.
+| Document | Description |
+|----------|-------------|
+| [Extension System](extensions.md) | Creating and using extensions |
+| [Extension Catalog](extensions-catalog.md) | Available extensions directory |
+
+### Operations & Support
+
+| Document | Description |
+|----------|-------------|
+| [Log Management](log-management.md) | Logging system and troubleshooting |
+| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
+| [Quick Reference](reference.md) | Command quick reference card |
 
 ## 🚀 Quick Start
 
@@ -76,6 +103,10 @@ See [Quick Start Guide](quickstart.md) for detailed first steps.
 
 ## 📄 License
 
-Copyright © 2025 Stefan Oehrli
+Copyright © 2026 Stefan Oehrli
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com/oehrlis/oradba/blob/main/LICENSE) for details.
+
+---
+
+**OraDBA v1.0.0** - Modern Oracle Database Administration Toolset
