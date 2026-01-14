@@ -44,9 +44,12 @@ oradba_parse_oratab() {
         # Skip if no HOME specified
         [[ -z "$oracle_home" ]] && continue
         
-        # If looking for specific SID
+        # If looking for specific SID (case-insensitive for convenience)
         if [[ -n "$target_sid" ]]; then
-            if [[ "$sid" == "$target_sid" ]]; then
+            # Convert both to uppercase for comparison
+            local sid_upper="${sid^^}"
+            local target_upper="${target_sid^^}"
+            if [[ "$sid_upper" == "$target_upper" ]]; then
                 echo "${sid}|${oracle_home}|${flag:-N}"
                 return 0
             fi
