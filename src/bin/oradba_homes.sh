@@ -63,6 +63,7 @@ ADD OPTIONS:
     -a, --alias <name>      Alias name for shortcuts (default: same as name)
     -o, --order <num>       Display order (default: 50)
     -d, --desc <text>       Description
+    -v, --version <ver>     Oracle version (AUTO, XXYZ, or ERR; default: AUTO)
 
 DISCOVER OPTIONS:
     -b, --base <path>       Base directory to search (default: $ORACLE_BASE)
@@ -116,7 +117,7 @@ EXAMPLES:
 
 CONFIGURATION:
     Oracle Homes are stored in: \${ORADBA_BASE}/etc/oradba_homes.conf
-    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+    Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
 
 EOF
 }
@@ -183,8 +184,8 @@ list_homes() {
 
     # Display homes
     while read -r line; do
-        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
-        read -r name path ptype order alias_name desc <<< "$line"
+        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
+        read -r name path ptype order alias_name desc version <<< "$line"
 
         # Check status
         local status
@@ -230,15 +231,22 @@ show_home() {
     fi
 
     # Extract details
-    read -r h_name h_path h_type h_order h_alias h_desc <<< "$home_info"
+    read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$home_info"
 
     # Get additional info
     local status="missing"
     local detected_type="unknown"
+    local detected_version="Unknown"
 
     if [[ -d "$h_path" ]]; then
         status="available"
         detected_type=$(detect_product_type "$h_path")
+        # Get actual version if AUTO
+        if [[ "${h_version}" == "AUTO" ]]; then
+            detected_version=$(detect_oracle_version "$h_path" "$detected_type")
+        else
+            detected_version="${h_version}"
+        fi
     fi
 
     # Display information
@@ -250,6 +258,8 @@ show_home() {
     echo "ORACLE_HOME       : $h_path"
     echo "Product Type      : $h_type"
     echo "Detected Type     : $detected_type"
+    echo "Version (config)  : ${h_version:-AUTO}"
+    echo "Version (detected): $detected_version"
     echo "Display Order     : $h_order"
     echo "Status            : $status"
     echo "Description       : $h_desc"
@@ -278,6 +288,7 @@ add_home() {
     local order="50"
     local alias_name=""
     local desc=""
+    local version="AUTO"
 
     # Parse options
     while [[ $# -gt 0 ]]; do
@@ -304,6 +315,10 @@ add_home() {
                 ;;
             -d | --desc)
                 desc="$2"
+                shift 2
+                ;;
+            -v | --version)
+                version="$2"
                 shift 2
                 ;;
             *)
@@ -425,7 +440,7 @@ add_home() {
 # ------------------------------------------------------------------------------
 # Oracle Homes Configuration
 # ------------------------------------------------------------------------------
-# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
 #
 # NAME          - Unique identifier (auto-discovered or user-defined)
 # ORACLE_HOME   - Full path to Oracle Home directory
@@ -433,18 +448,20 @@ add_home() {
 # ORDER         - Display order (numeric, lower = displayed first)
 # ALIAS_NAME    - Optional alias for shortcuts (defaults to NAME)
 # DESCRIPTION   - Human-readable description
+# VERSION       - Oracle version (AUTO, XXYZ, or ERR; default: AUTO)
 #
 # Examples:
-# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:oud12:Oracle Unified Directory 12c
-# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:client:Oracle Client 19c
-# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:wls:WebLogic Server 14c
+# OUD12:/u01/app/oracle/product/12.2.1.4/oud:oud:10:oud12:Oracle Unified Directory 12c:ERR
+# CLIENT19:/u01/app/oracle/product/19.0.0.0/client:client:20:client:Oracle Client 19c:AUTO
+# CLIENT23:/appl/oracle/product/23.26.0.0/client:client:25:cli260:Oracle Client 23ai:AUTO
+# WLS14:/u01/app/oracle/product/14.1.1.0/wls:weblogic:30:wls:WebLogic Server 14c:ERR
 # ------------------------------------------------------------------------------
 
 EOF
     fi
 
-    # Add entry with alias_name
-    echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}" >> "$config_file"
+    # Add entry with alias_name and version
+    echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$config_file"
 
     log_info "Oracle Home '$name' added successfully"
     echo ""
@@ -455,6 +472,7 @@ EOF
     echo "  Type        : $ptype"
     echo "  Order       : $order"
     echo "  Description : $desc"
+    echo "  Version     : $version"
     echo ""
     echo "To set environment: source oraenv.sh $name"
     echo ""
@@ -686,7 +704,7 @@ validate_homes() {
     while read -r line; do
         [[ -z "$line" ]] && continue
 
-        read -r h_name h_path h_type h_order h_desc <<< "$line"
+        read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$line"
 
         echo "Checking: $h_name ($h_type)"
 

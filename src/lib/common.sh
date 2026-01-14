@@ -605,7 +605,7 @@ generate_sid_lists() {
     local homes_config
     homes_config=$(get_oracle_homes_path 2>/dev/null) || homes_config=""
     if [[ -f "${homes_config}" ]]; then
-        while IFS=: read -r name _path _type _order alias_name _desc; do
+        while IFS=: read -r name _path _type _order alias_name _desc _version; do
             # Skip empty lines and comments
             [[ -z "${name}" ]] && continue
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
@@ -660,8 +660,8 @@ generate_oracle_home_aliases() {
     local name alias_name
     
     # Parse Oracle Homes config (skip comments and empty lines)
-    # File format: NAME:PATH:TYPE:ORDER:ALIAS_NAME:DESCRIPTION
-    while IFS=: read -r name _path _type _order alias_name _desc; do
+    # File format: NAME:PATH:TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
+    while IFS=: read -r name _path _type _order alias_name _desc _version; do
         # Skip empty lines and comments
         [[ -z "${name}" ]] && continue
         [[ "${name}" =~ ^[[:space:]]*# ]] && continue
@@ -869,7 +869,7 @@ resolve_oracle_home_name() {
     }
 
     # Parse file and check both NAME and ALIAS_NAME
-    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc h_version; do
         # Skip comments and empty lines
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
@@ -896,7 +896,7 @@ resolve_oracle_home_name() {
 
 # Arguments:
 #   $1 - Home name or alias to parse
-# Returns: Space-separated: name path type order alias_name description
+# Returns: Space-separated: name path type order alias_name description version
 parse_oracle_home() {
     local name="$1"
     local homes_file
@@ -912,8 +912,8 @@ parse_oracle_home() {
 
     homes_file=$(get_oracle_homes_path) || return 1
 
-    # Parse file: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
-    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
+    # Parse file: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc h_version; do
         # Skip comments and empty lines
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
@@ -922,10 +922,13 @@ parse_oracle_home() {
             # If h_alias is empty or looks like a description, use h_name as alias
             if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
                 # h_alias is actually description, shift values
-                h_desc="${h_alias} ${h_desc}"
+                h_version="${h_desc}"
+                h_desc="${h_alias}"
                 h_alias="${h_name}"
             fi
-            echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc}"
+            # Default version to AUTO if not specified
+            [[ -z "${h_version}" ]] && h_version="AUTO"
+            echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc} ${h_version}"
             return 0
         fi
     done < "${homes_file}"
@@ -936,7 +939,7 @@ parse_oracle_home() {
 # List all Oracle Homes from oradba_homes.conf
 # Arguments:
 #   $1 - Optional filter (product type)
-# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION
+# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
 list_oracle_homes() {
     local filter="$1"
     local homes_file
@@ -944,7 +947,7 @@ list_oracle_homes() {
     homes_file=$(get_oracle_homes_path) || return 1
 
     # Parse and optionally filter
-    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc; do
+    while IFS=: read -r h_name h_path h_type h_order h_alias h_desc h_version; do
         # Skip comments and empty lines
         [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
         [[ -z "${h_name}" ]] && continue
@@ -957,12 +960,16 @@ list_oracle_homes() {
         # If h_alias is empty or looks like a description, use h_name as alias
         if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
             # h_alias is actually description, shift values
-            h_desc="${h_alias} ${h_desc}"
+            h_version="${h_desc}"
+            h_desc="${h_alias}"
             h_alias="${h_name}"
         fi
+        
+        # Default version to AUTO if not specified
+        [[ -z "${h_version}" ]] && h_version="AUTO"
 
-        # Output: name path type order alias_name description
-        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc}"
+        # Output: name path type order alias_name description version
+        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc} ${h_version}"
     done < "${homes_file}" | sort -k4 -n
 }
 
@@ -1000,6 +1007,30 @@ get_oracle_home_type() {
 
     home_info=$(parse_oracle_home "${name}") || return 1
     echo "${home_info}" | awk '{print $3}'
+}
+
+# Get version for a named home
+# Arguments:
+#   $1 - Home name
+# Returns: Version (AUTO, XXYZ, ERR, or Unknown)
+get_oracle_home_version() {
+    local name="$1"
+    local home_info
+
+    home_info=$(parse_oracle_home "${name}") || return 1
+    local version
+    version=$(echo "${home_info}" | awk '{print $7}')
+    
+    # If version is AUTO, detect it dynamically
+    if [[ "${version}" == "AUTO" ]] || [[ -z "${version}" ]]; then
+        local oracle_home
+        oracle_home=$(echo "${home_info}" | awk '{print $2}')
+        local product_type
+        product_type=$(echo "${home_info}" | awk '{print $3}')
+        version=$(detect_oracle_version "${oracle_home}" "${product_type}")
+    fi
+    
+    echo "${version}"
 }
 
 # Detect product type from ORACLE_HOME path
@@ -1056,6 +1087,146 @@ detect_product_type() {
 
     echo "unknown"
     return 1
+}
+
+# Detect Oracle version from ORACLE_HOME
+# Arguments:
+#   $1 - ORACLE_HOME path
+#   $2 - Product type (optional, will detect if not provided)
+# Returns: Oracle version in format XXYZ (e.g., 1920 for 19.2.0) or "Unknown" or "ERR"
+detect_oracle_version() {
+    local oracle_home="$1"
+    local product_type="${2:-}"
+    local version=""
+
+    [[ -z "${oracle_home}" ]] && echo "Unknown" && return 1
+    [[ ! -d "${oracle_home}" ]] && echo "Unknown" && return 1
+
+    # Auto-detect product type if not provided
+    if [[ -z "${product_type}" ]]; then
+        product_type=$(detect_product_type "${oracle_home}")
+    fi
+
+    # For non-database products without version info, return ERR
+    if [[ "${product_type}" =~ ^(datasafe|weblogic|oms|emagent|oud)$ ]]; then
+        echo "ERR"
+        return 0
+    fi
+
+    # Method 1: Try sqlplus -version (for database and client homes)
+    if [[ -f "${oracle_home}/bin/sqlplus" ]]; then
+        local sqlplus_version
+        sqlplus_version=$("${oracle_home}/bin/sqlplus" -version 2>/dev/null | grep -i "Release" | head -1)
+        
+        if [[ -n "${sqlplus_version}" ]]; then
+            # Extract version like "19.21.0.0.0" or "23.0.0.0.0"
+            local ver_str
+            ver_str=$(echo "${sqlplus_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            
+            if [[ -n "${ver_str}" ]]; then
+                # Convert to XXYZ format: 19.21.0.0 -> 1921, 23.0.0.0 -> 2300
+                local major minor
+                major=$(echo "${ver_str}" | cut -d. -f1)
+                minor=$(echo "${ver_str}" | cut -d. -f2)
+                # Pad to 2 digits
+                printf "%02d%02d" "${major}" "${minor}"
+                return 0
+            fi
+        fi
+    fi
+
+    # Method 2: Try OPatch inventory
+    if [[ -f "${oracle_home}/OPatch/opatch" ]]; then
+        local opatch_version
+        opatch_version=$("${oracle_home}/OPatch/opatch" lsinventory 2>/dev/null | grep -i "Oracle Database" | head -1)
+        
+        if [[ -n "${opatch_version}" ]]; then
+            local ver_str
+            ver_str=$(echo "${opatch_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            
+            if [[ -n "${ver_str}" ]]; then
+                local major minor
+                major=$(echo "${ver_str}" | cut -d. -f1)
+                minor=$(echo "${ver_str}" | cut -d. -f2)
+                printf "%02d%02d" "${major}" "${minor}"
+                return 0
+            fi
+        fi
+    fi
+
+    # Method 3: Try inventory XML
+    if [[ -f "${oracle_home}/inventory/ContentsXML/comps.xml" ]]; then
+        local xml_version
+        xml_version=$(grep -i "VER=" "${oracle_home}/inventory/ContentsXML/comps.xml" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        
+        if [[ -n "${xml_version}" ]]; then
+            local major minor
+            major=$(echo "${xml_version}" | cut -d. -f1)
+            minor=$(echo "${xml_version}" | cut -d. -f2)
+            printf "%02d%02d" "${major}" "${minor}"
+            return 0
+        fi
+    fi
+
+    # Method 4: Extract from path (e.g., /product/19.0.0.0 or /product/23.26.0.0/client)
+    local path_version
+    path_version=$(echo "${oracle_home}" | grep -oE '/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    
+    if [[ -n "${path_version}" ]]; then
+        local major minor
+        major=$(echo "${path_version}" | cut -d. -f1)
+        minor=$(echo "${path_version}" | cut -d. -f2)
+        printf "%02d%02d" "${major}" "${minor}"
+        return 0
+    fi
+
+    echo "Unknown"
+    return 1
+}
+
+# Derive ORACLE_BASE from ORACLE_HOME intelligently
+# Arguments:
+#   $1 - ORACLE_HOME path
+# Returns: Derived ORACLE_BASE path
+# Logic: Search upward for directory containing "product", "oradata", or "oraInventory"
+#        For paths like /appl/oracle/product/26.0.0/client -> /appl/oracle
+derive_oracle_base() {
+    local oracle_home="$1"
+    local current_dir="${oracle_home}"
+    
+    [[ -z "${oracle_home}" ]] && return 1
+    [[ ! -d "${oracle_home}" ]] && return 1
+    
+    # Walk up the directory tree looking for Oracle base indicators
+    while [[ "${current_dir}" != "/" ]]; do
+        local parent_dir
+        parent_dir="$(dirname "${current_dir}")"
+        
+        # Check if current dir contains typical Oracle base subdirectories
+        if [[ -d "${parent_dir}/product" ]] || \
+           [[ -d "${parent_dir}/oradata" ]] || \
+           [[ -d "${parent_dir}/oraInventory" ]] || \
+           [[ -d "${parent_dir}/admin" ]]; then
+            echo "${parent_dir}"
+            return 0
+        fi
+        
+        # Stop if we've gone up too far (more than 5 levels)
+        local depth=0
+        local test_path="${oracle_home}"
+        while [[ "${test_path}" != "${parent_dir}" ]] && [[ "${test_path}" != "/" ]]; do
+            test_path="$(dirname "${test_path}")"
+            ((depth++))
+            if [[ ${depth} -gt 5 ]]; then
+                break 2
+            fi
+        done
+        
+        current_dir="${parent_dir}"
+    done
+    
+    # Fallback: use traditional two-levels-up method
+    dirname "$(dirname "${oracle_home}")"
 }
 
 # Set environment variables for an Oracle Home

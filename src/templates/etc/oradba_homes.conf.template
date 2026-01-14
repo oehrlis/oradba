@@ -19,7 +19,7 @@
 
 # Configuration Format
 # ====================
-# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION]
+# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
 #
 # Fields:
 #   NAME          - Unique identifier (auto-discovered or user-defined, e.g., OUD12C)
@@ -28,6 +28,10 @@
 #   ORDER         - Display order (lower numbers first, 10-based increments)
 #   ALIAS_NAME    - Optional user-friendly name for aliases (defaults to NAME)
 #   DESCRIPTION   - Optional human-readable description
+#   VERSION       - Oracle version (optional)
+#                   AUTO: Version determined dynamically (recommended)
+#                   XXYZ: Specific version (e.g., 1920 for Oracle 19.2.0)
+#                   ERR:  For products with no database components
 #
 # Product Types:
 #   oud          - Oracle Unified Directory
@@ -40,16 +44,17 @@
 #
 # Examples:
 # ---------
-# Basic format (ALIAS_NAME defaults to NAME):
+# Basic format (ALIAS_NAME defaults to NAME, VERSION defaults to AUTO):
 # OUD12C:/u01/app/oracle/product/oud12c:oud:10:Oracle Unified Directory 12c
 #
-# With custom alias name:
-# OUD12C:/u01/app/oracle/product/oud12c:oud:10:oud12:Oracle Unified Directory 12c
-# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:ds:Data Safe Connector
-# CLIENT19:/opt/oracle/product/19c/client:client:30:client:Oracle Client 19c
-# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:wls:WebLogic 14.1.1
-# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:oms:Enterprise Manager OMS 13c
-# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:agent:EM Agent 13.5
+# With custom alias name and version:
+# OUD12C:/u01/app/oracle/product/oud12c:oud:10:oud12:Oracle Unified Directory 12c:AUTO
+# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:ds:Data Safe Connector:ERR
+# CLIENT19:/opt/oracle/product/19c/client:client:30:client:Oracle Client 19c:AUTO
+# CLIENT23:/appl/oracle/product/23.26.0.0/client:client:35:cli260:Oracle Client 23ai:AUTO
+# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:wls:WebLogic 14.1.1:ERR
+# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:oms:Enterprise Manager OMS 13c:ERR
+# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:agent:EM Agent 13.5:ERR
 
 # Usage Notes
 # ===========
