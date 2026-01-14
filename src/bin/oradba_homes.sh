@@ -216,7 +216,16 @@ list_homes() {
             # Show alias name if different from name
             local display_desc="$desc"
             if [[ "$alias_name" != "$name" ]]; then
-                display_desc="[alias: $alias_name] $desc"
+                # Only prepend alias if description exists and is not empty
+                if [[ -n "$desc" ]]; then
+                    display_desc="[alias: $alias_name] $desc"
+                else
+                    display_desc="[alias: $alias_name]"
+                fi
+            fi
+            # Truncate description to fit in 80 char terminal (15+12+12+2 = 41, leaves 39 for desc)
+            if [[ ${#display_desc} -gt 39 ]]; then
+                display_desc="${display_desc:0:36}..."
             fi
             printf "%-15s %-12s %-12s %s\n" "$name" "$ptype" "$status" "$display_desc"
         fi
@@ -233,9 +242,38 @@ show_home() {
     local name="$1"
 
     if [[ -z "$name" ]]; then
-        log_error "Oracle Home name required"
-        echo "Usage: $SCRIPT_NAME show <name>"
+        log_error "Oracle Home name or path required"
+        echo "Usage: $SCRIPT_NAME show <name|path>"
         return 1
+    fi
+
+    # If name looks like a path, try to find it by path
+    if [[ "$name" == /* ]]; then
+        # Search for home by path
+        local homes_file
+        homes_file=$(get_oracle_homes_path) || {
+            log_error "No Oracle Homes configuration found"
+            return 1
+        }
+
+        # Find name by matching path
+        local found_name=""
+        while IFS=: read -r h_name h_path h_type h_order h_alias h_desc h_version; do
+            [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${h_name}" ]] && continue
+            
+            if [[ "${h_path}" == "${name}" ]]; then
+                found_name="$h_name"
+                break
+            fi
+        done < "${homes_file}"
+
+        if [[ -n "$found_name" ]]; then
+            name="$found_name"
+        else
+            log_error "Oracle Home with path '$name' not found"
+            return 1
+        fi
     fi
 
     # Parse home entry
@@ -368,6 +406,33 @@ add_home() {
     if is_oracle_home "$name" 2> /dev/null; then
         log_error "Oracle Home '$name' already exists"
         return 1
+    fi
+
+    # Check for alias conflict with existing SIDs
+    if [[ -n "$alias_name" ]]; then
+        # Check if any SID would create the same alias (lowercase SID = alias)
+        local oratab_file="${ORATAB_FILE:-/etc/oratab}"
+        if [[ -f "$oratab_file" ]]; then
+            while IFS=: read -r sid home flag; do
+                [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+                [[ -z "$sid" ]] && continue
+                
+                # SID creates lowercase alias
+                local sid_alias="${sid,,}"
+                if [[ "$sid_alias" == "$alias_name" ]]; then
+                    log_warn "Alias '$alias_name' conflicts with SID '$sid' (which creates alias '$sid_alias')"
+                    log_warn "This may cause confusion when sourcing environments"
+                    if [[ -t 0 ]]; then
+                        read -p "Continue anyway? [y/N]: " confirm
+                        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+                            echo "Cancelled."
+                            return 0
+                        fi
+                    fi
+                    break
+                fi
+            done < "$oratab_file"
+        fi
     fi
 
     if [[ -z "$path" ]]; then
@@ -854,25 +919,63 @@ import_config() {
     # Validate the input
     local errors=0
     local line_num=0
+    local valid_lines=0
 
     while IFS= read -r line; do
         ((line_num++))
 
         # Skip comments and empty lines
-        [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+        if [[ "$line" =~ ^#.*$ || -z "$line" ]]; then
+            continue
+        fi
 
-        # Check field count (expect at least 7 fields)
+        ((valid_lines++))
+
+        # Check field count (expect at least 3 fields: NAME:HOME:TYPE)
         local field_count
         field_count=$(echo "$line" | awk -F':' '{print NF}')
 
         if [[ $field_count -lt 3 ]]; then
-            log_error "Line $line_num: Invalid format (expected NAME:HOME:TYPE:...)"
+            log_error "Line $line_num: Invalid format (expected NAME:HOME:TYPE:ORDER[:ALIAS][:DESC][:VERSION])"
+            ((errors++))
+            continue
+        fi
+
+        # Validate field values
+        local h_name h_path h_type
+        IFS=: read -r h_name h_path h_type _ <<< "$line"
+
+        # Check name is not empty and alphanumeric
+        if [[ -z "$h_name" ]] || [[ ! "$h_name" =~ ^[A-Za-z0-9_]+$ ]]; then
+            log_error "Line $line_num: Invalid NAME '$h_name' (use only letters, numbers, underscores)"
             ((errors++))
         fi
+
+        # Check path is absolute
+        if [[ ! "$h_path" == /* ]]; then
+            log_error "Line $line_num: Invalid path '$h_path' (must be absolute path)"
+            ((errors++))
+        fi
+
+        # Check type is valid
+        case "$h_type" in
+            database|oud|client|weblogic|oms|emagent|datasafe) ;;
+            *)
+                log_error "Line $line_num: Invalid product type '$h_type'"
+                ((errors++)
+                ;;
+        esac
     done < "$temp_file"
 
+    # Check if we have any valid entries
+    if [[ $valid_lines -eq 0 ]]; then
+        log_error "No valid Oracle Home entries found in import file"
+        rm -f "$temp_file"
+        return 1
+    fi
+
     if [[ $errors -gt 0 ]]; then
-        log_error "Validation failed: $errors error(s) found"
+        log_error "Validation failed: $errors error(s) found in $line_num lines"
         rm -f "$temp_file"
         return 1
     fi
