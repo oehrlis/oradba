@@ -269,15 +269,17 @@ oradba_get_product_type() {
         fi
     fi
     
-    # Check for Grid Infrastructure
-    if [[ -f "${oracle_home}/bin/crsctl" ]] || [[ -f "${oracle_home}/bin/asmcmd" ]]; then
-        echo "GRID"
+    # Check for full RDBMS installation BEFORE Grid
+    # (database homes may include asmcmd for ASM support)
+    if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ -d "${oracle_home}/rdbms" ]]; then
+        echo "RDBMS"
         return 0
     fi
     
-    # Check for full RDBMS installation
-    if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ -d "${oracle_home}/rdbms" ]]; then
-        echo "RDBMS"
+    # Check for Grid Infrastructure (use Grid-specific binaries only)
+    # Note: asmcmd is also in database homes, so check for ocrcheck or crsctl
+    if [[ -f "${oracle_home}/bin/ocrcheck" ]] || [[ -f "${oracle_home}/bin/crsctl" ]]; then
+        echo "GRID"
         return 0
     fi
     
