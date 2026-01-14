@@ -11,28 +11,38 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
-- **Oracle Homes Support** (v0.18.0+): Unified management for all Oracle products beyond databases
-  - Support for OUD, WebLogic, Oracle Client, EM OMS/Agent, Data Safe connectors
-  - Auto-discovery under `$ORACLE_BASE/product`
-  - CLI tool for managing Oracle Homes (`oradba_homes.sh`)
-  - Integrated with `oraenv.sh` and `oraup.sh` for unified environment setup
-  - Product-specific environment variables and path configuration
-- **Pre-Oracle Installation Support** (v0.17.0+): Install and configure OraDBA before Oracle Database for CI/CD
-  Docker layering, and phased deployments
-- **Intelligent Environment Setup**: Automatic Oracle environment configuration based on oratab
-- **Hierarchical Configuration**: 5-level configuration system with flexible overrides
+### v1.0.0 Architecture
+
+- **Modular Library System** (v1.0.0): Clean separation of concerns with 6 specialized libraries
+  - Environment Parser - Extract and parse Oracle environment metadata
+  - Environment Builder - Construct complete Oracle environment variables
+  - Environment Validator - Multi-level validation (basic/standard/full)
+  - Configuration Manager - Section-based hierarchical configuration
+  - Status Checker - Real-time service and database status monitoring
+  - Change Detector - Configuration change tracking and auto-reload
+- **Hierarchical Configuration** (v1.0.0): 6-level INI-style configuration system
+  - Product sections: [RDBMS], [CLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
+  - Variable expansion: ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE}
+  - Override hierarchy: core → standard → local → customer → services → SID
+- **Oracle Homes Management** (v0.18.0+): Unified support for all Oracle products
+  - Database, Client, Instant Client, Grid Infrastructure, ASM
+  - Oracle Unified Directory, WebLogic Server, Data Safe connectors
+  - Auto-discovery, export/import, version tracking
+  - User-friendly aliases and integrated environment setup
+
+### Core Capabilities
+
+- **Intelligent Environment Setup**: Automatic configuration with product type detection
+- **Status & Monitoring**: Real-time service status, change detection, auto-reload
 - **Extension System**: Modular plugin architecture for custom scripts and tools
-- **Service Management**: Enterprise-grade database and listener lifecycle control with systemd/init.d integration
+- **Service Management**: Enterprise-grade database and listener lifecycle control
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management
-- **RMAN Wrapper**: Automated backup execution with parallel processing, template substitution, and notifications
+- **RMAN Wrapper**: Automated backup execution with parallel processing and notifications
 - **Long Operations Monitoring**: Real-time tracking of RMAN, DataPump, and other operations
-- **Database Status Display**: Compact, comprehensive database information for all states (OPEN/MOUNT/NOMOUNT)
-- **Peer Synchronization**: Distribute files across database peer hosts
-- **Wallet Utilities**: Extract passwords from Oracle Wallet
-- **Version Management**: Version checking, integrity verification, and update detection
+- **Database Status Display**: Comprehensive information for all states (OPEN/MOUNT/NOMOUNT)
 - **SQL & RMAN Scripts**: Ready-to-use administration scripts with central logging
 - **Self-Contained Installer**: Single executable, no external dependencies
-- **Comprehensive Testing**: BATS test suite with 790+ tests and CI/CD integration
+- **Comprehensive Testing**: BATS test suite with 533+ tests, 100% pass rate, CI/CD integration
 
 ## Quick Start
 
@@ -107,6 +117,11 @@ source oraenv.sh WLS14     # WebLogic Server
 
 # Interactive selection (displays both Oracle Homes and database SIDs)
 source oraenv.sh
+
+# Check environment status and changes (v1.0.0+)
+oradba_env.sh status FREE  # Check database/service status
+oradba_env.sh changes      # Detect configuration changes
+oradba_env.sh validate     # Validate current environment
 ```
 
 Manage Oracle Homes (v0.18.0+):
@@ -121,6 +136,10 @@ oradba_homes.sh discover --auto-add
 # Add Oracle Home manually
 oradba_homes.sh add --name OUD12 \
   --path /u01/app/oracle/product/12.2.1.4/oud --type oud
+
+# Export/import Oracle Homes configuration (v1.0.0+)
+oradba_homes.sh export > homes_backup.conf
+oradba_homes.sh import homes_backup.conf
 
 # Show environment status (includes Oracle Homes)
 oraup.sh
@@ -263,8 +282,7 @@ For contributors and developers:
 - **[Development Guide](doc/development.md)** - Workflow and standards
 - **[Architecture](doc/architecture.md)** - System design
 - **[API Reference](doc/api.md)** - Function and script APIs
-- **[Project Structure](doc/structure.md)** - Directory organization
-- **[Version Management](doc/version-management.md)** - Release process
+- **[Extension System](doc/extension-system.md)** - Extension development guide
 - **[Markdown Linting](doc/markdown-linting.md)** - Documentation standards
 
 ### Additional Resources
@@ -315,7 +333,7 @@ make build        # Build installer
 make check        # Run all quality checks
 ```
 
-See [doc/DEVELOPMENT.md](doc/DEVELOPMENT.md) for complete development guide.
+See [doc/development.md](doc/development.md) for complete development guide.
 
 ## Project Structure
 
