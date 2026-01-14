@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------
 # Name.......: matadata.yml
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2025.12.18
-# Revision...: 0.7.4
+# Date.......: 2026.01.14
+# Revision...: 1.0.0
 # Purpose....: Metadata file for pandoc coversion 
 # Notes......: 
 # Reference..: --
@@ -18,8 +18,8 @@ author:
 - Stefan Oehrli
 # date is set by pandoc, uncomment the date line to explicitly set a date
 # date: 2020 November 06
-version: "0.14.1"
-tvddocversion: 0.14.1
+version: "1.0.0"
+tvddocversion: 1.0.0
 lang: en-US
 
 # - Book settings --------------------------------------------------------------
@@ -36,7 +36,7 @@ geometry:
 
 # - Page Header/Footer ---------------------------------------------------------
 disable-header: true
-footer-left: "Copyright © 2025 OraDBA. All rights reserved."
+footer-left: "Copyright © 2026 OraDBA. All rights reserved."
 
 # - Titel Page -----------------------------------------------------------------
 titlepage: true

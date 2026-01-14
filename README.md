@@ -359,7 +359,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## License
 
-Copyright © 2025 Stefan Oehrli
+Copyright © 2026 Stefan Oehrli
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
 
