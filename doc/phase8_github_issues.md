@@ -419,7 +419,7 @@ Create performance testing framework to track and prevent performance regression
 
 **Metrics to Track:**
 
-- Environment load time (oradba.sh env <SID>)
+- Environment load time (oradba.sh env \<SID>)
 - Configuration parsing time
 - Oracle Home detection time
 - Alias generation time
