@@ -46,7 +46,8 @@ teardown() {
 
 @test "VERSION file contains valid semantic version" {
     version=$(cat "${PROJECT_ROOT}/VERSION")
-    [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    # Accept semantic version with optional -dev, -rc.X, -alpha, etc.
+    [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]
 }
 
 # ============================================================================

@@ -80,8 +80,8 @@ teardown() {
     run "$ORADBA_VERSION" --check
     [[ "$status" -eq 0 ]]
     [[ -n "$output" ]]
-    # Should match version pattern (e.g., 0.3.3 or 0.4.0)
-    [[ "$output" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    # Should match version pattern (e.g., 0.3.3, 0.4.0, 1.0.0-dev)
+    [[ "$output" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]
 }
 
 @test "oradba_version.sh --check fails without VERSION file" {
