@@ -509,3 +509,173 @@ EOF
     run bash -c "source '${PROJECT_ROOT}/src/lib/common.sh' && is_oracle_home OUD12"
     [ "$status" -eq 0 ]
 }
+# ------------------------------------------------------------------------------
+# Export/Import Tests
+# ------------------------------------------------------------------------------
+
+@test "oradba_homes.sh export: works with no config" {
+    run "$HOMES_SCRIPT" export
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "No Oracle Homes" ]]
+}
+
+@test "oradba_homes.sh export: exports existing config" {
+    # Add test homes
+    mkdir -p "${TEST_TEMP_DIR}/db19/bin"
+    mkdir -p "${TEST_TEMP_DIR}/db19/rdbms"
+    touch "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    chmod +x "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    
+    "$HOMES_SCRIPT" add --name DB19 --path "${TEST_TEMP_DIR}/db19" --type database < /dev/null >/dev/null 2>&1
+    
+    run "$HOMES_SCRIPT" export
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Oracle Homes Configuration Export" ]]
+    [[ "$output" =~ "DB19" ]]
+}
+
+@test "oradba_homes.sh export: includes export metadata" {
+    # Add a home
+    mkdir -p "${TEST_TEMP_DIR}/db19/bin"
+    touch "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    chmod +x "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    
+    "$HOMES_SCRIPT" add --name DB19 --path "${TEST_TEMP_DIR}/db19" < /dev/null >/dev/null 2>&1
+    
+    run "$HOMES_SCRIPT" export
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Exported:" ]]
+    [[ "$output" =~ "OraDBA Version:" ]]
+    [[ "$output" =~ "Format:" ]]
+}
+
+@test "oradba_homes.sh import: requires valid input" {
+    run bash -c "echo 'invalid' | '$HOMES_SCRIPT' import"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Invalid format" || "$output" =~ "Validation failed" ]]
+}
+
+@test "oradba_homes.sh import: imports from stdin" {
+    # Create valid config data
+    mkdir -p "${TEST_TEMP_DIR}/db19"
+    local config_data="# Test config
+DB19:${TEST_TEMP_DIR}/db19:database:10:db19:Oracle 19c:190000"
+    
+    run bash -c "echo '$config_data' | '$HOMES_SCRIPT' import"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Successfully imported" || "$output" =~ "Imported" ]]
+    
+    # Verify imported
+    run "$HOMES_SCRIPT" list
+    [[ "$output" =~ "DB19" ]]
+}
+
+@test "oradba_homes.sh import: imports from file" {
+    # Create test config file
+    mkdir -p "${TEST_TEMP_DIR}/db19"
+    local import_file="${TEST_TEMP_DIR}/import_test.conf"
+    cat > "$import_file" << EOF
+# Test import
+DB19:${TEST_TEMP_DIR}/db19:database:10:db19:Oracle 19c:190000
+EOF
+    
+    run "$HOMES_SCRIPT" import "$import_file"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Successfully imported" ]]
+    
+    # Verify
+    run "$HOMES_SCRIPT" list
+    [[ "$output" =~ "DB19" ]]
+}
+
+@test "oradba_homes.sh import: creates backup by default" {
+    # Create initial config with valid Oracle home structure
+    mkdir -p "${TEST_TEMP_DIR}/db19/bin"
+    mkdir -p "${TEST_TEMP_DIR}/db19/rdbms"
+    touch "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    chmod +x "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    
+    "$HOMES_SCRIPT" add --name DB19 --path "${TEST_TEMP_DIR}/db19" < /dev/null >/dev/null 2>&1
+    
+    # Import new config
+    mkdir -p "${TEST_TEMP_DIR}/db21/bin"
+    touch "${TEST_TEMP_DIR}/db21/bin/sqlplus"
+    local config_data="DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
+    
+    run bash -c "echo '$config_data' | '$HOMES_SCRIPT' import"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "backup" || "$output" =~ "Backup" ]]
+    
+    # Check backup file exists
+    run bash -c "ls ${ORADBA_BASE}/etc/oradba_homes.conf.bak.* 2>/dev/null | wc -l"
+    [ "$output" -ge 1 ]
+}
+
+@test "oradba_homes.sh import: --no-backup skips backup" {
+    # Create initial config with valid Oracle home structure
+    mkdir -p "${TEST_TEMP_DIR}/db19/bin"
+    mkdir -p "${TEST_TEMP_DIR}/db19/rdbms"
+    touch "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    chmod +x "${TEST_TEMP_DIR}/db19/bin/sqlplus"
+    
+    "$HOMES_SCRIPT" add --name DB19 --path "${TEST_TEMP_DIR}/db19" < /dev/null >/dev/null 2>&1
+    
+    # Import with --no-backup
+    mkdir -p "${TEST_TEMP_DIR}/db21/bin"
+    touch "${TEST_TEMP_DIR}/db21/bin/sqlplus"
+    local config_data="DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
+    
+    run bash -c "echo '$config_data' | '$HOMES_SCRIPT' import --no-backup"
+    [ "$status" -eq 0 ]
+    [[ ! "$output" =~ "backup" ]]
+}
+
+@test "oradba_homes.sh import: validates field count" {
+    # Invalid format - too few fields
+    local bad_config="BADNAME:${TEST_TEMP_DIR}"
+    
+    run bash -c "echo '$bad_config' | '$HOMES_SCRIPT' import"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Invalid format" ]]
+}
+
+@test "oradba_homes.sh export+import: round-trip test" {
+    # Add multiple homes
+    mkdir -p "${TEST_TEMP_DIR}/db19"
+    mkdir -p "${TEST_TEMP_DIR}/db21"
+    mkdir -p "${TEST_TEMP_DIR}/oud12"
+    
+    "$HOMES_SCRIPT" add --name DB19 --path "${TEST_TEMP_DIR}/db19" --type database < /dev/null >/dev/null 2>&1
+    "$HOMES_SCRIPT" add --name DB21 --path "${TEST_TEMP_DIR}/db21" --type database < /dev/null >/dev/null 2>&1
+    "$HOMES_SCRIPT" add --name OUD12 --path "${TEST_TEMP_DIR}/oud12" --type oud < /dev/null >/dev/null 2>&1
+    
+    # Export
+    local export_file="${TEST_TEMP_DIR}/export.conf"
+    "$HOMES_SCRIPT" export > "$export_file"
+    
+    # Clear config
+    rm -f "${ORADBA_BASE}/etc/oradba_homes.conf"
+    
+    # Import
+    "$HOMES_SCRIPT" import "$export_file" >/dev/null 2>&1
+    
+    # Verify all homes are back
+    run "$HOMES_SCRIPT" list
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "DB19" ]]
+    [[ "$output" =~ "DB21" ]]
+    [[ "$output" =~ "OUD12" ]]
+}
+
+@test "oradba_homes.sh import: shows summary" {
+    mkdir -p "${TEST_TEMP_DIR}/db19"
+    mkdir -p "${TEST_TEMP_DIR}/db21"
+    
+    local config_data="# Test
+DB19:${TEST_TEMP_DIR}/db19:database:10:db19:Oracle 19c:190000
+DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
+    
+    run bash -c "echo '$config_data' | '$HOMES_SCRIPT' import"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Imported 2 Oracle Home" ]]
+}

@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-01-14
+
+### Added
+
+- **Phase 4: Management Tools Enhancement** - Export/import functionality for Oracle Homes management
+  - **New `export` command** in `oradba_homes.sh`:
+    - Export Oracle Homes configuration to stdout
+    - Include metadata (export timestamp, OraDBA version)
+    - Format documentation in export header
+    - Support for backup and migration workflows
+  
+  - **New `import` command** in `oradba_homes.sh`:
+    - Import Oracle Homes configuration from file or stdin
+    - Automatic backup of existing configuration (default)
+    - `--no-backup` option to skip backup creation
+    - `--force` option for non-interactive import (reserved for future use)
+    - Input validation before import
+    - Configuration format verification
+    - Summary output showing number of imported homes
+  
+  - **Configuration management features**:
+    - Round-trip export/import capability
+    - Backup file creation with timestamp
+    - Format validation on import
+    - Field count verification
+    - Support for stdin and file input
+    - Comprehensive error handling
+
+### Enhanced
+
+- **Updated `oradba_homes.sh` usage documentation**:
+  - Added export and import command documentation
+  - Include import options (--force, --no-backup)
+  - Added examples for export/import workflows
+  - Enhanced global options section
+
+### Fixed
+
+- Fixed argument parsing in import_config function to properly handle --no-backup option
+- Fixed shellcheck SC2034 warning (unused force variable, prefixed with underscore)
+- Fixed shellcheck SC2155 warning (declare and assign separately for backup_file)
+
+### Testing
+
+- **11 new BATS tests** for export/import functionality:
+
+  - `export: works with no config` - Handles empty configuration gracefully
+  - `export: exports existing config` - Successfully exports homes configuration
+  - `export: includes export metadata` - Verifies metadata in export output
+  - `import: requires valid input` - Validates import format
+  - `import: imports from stdin` - Supports stdin input
+  - `import: imports from file` - Supports file input
+  - `import: creates backup by default` - Creates timestamped backup
+  - `import: --no-backup skips backup` - Respects --no-backup flag
+  - `import: validates field count` - Checks minimum field requirements
+  - `export+import: round-trip test` - Full workflow verification
+  - `import: shows summary` - Displays import statistics
+
+- **Total test suite**: 53 passing tests for oradba_homes.sh (42 existing + 11 new)
+
+### Documentation
+
+- Updated Phase 4 status in design document
+- Enhanced command-line help with export/import examples
+- Documented import validation process
+- Added backup strategy documentation
+
 ## [0.21.0] - 2026-01-14
 
 ### Added

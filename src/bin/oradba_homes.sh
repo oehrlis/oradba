@@ -51,6 +51,8 @@ COMMANDS:
     remove <name>       Remove an Oracle Home from configuration
     discover            Auto-discover Oracle Homes under ORACLE_BASE
     validate [name]     Validate Oracle Home(s) configuration
+    export              Export configuration to stdout
+    import [file]       Import configuration from file or stdin
 
 LIST OPTIONS:
     -t, --type <type>   Filter by product type (oud, client, weblogic, etc.)
@@ -69,6 +71,10 @@ DISCOVER OPTIONS:
     -b, --base <path>       Base directory to search (default: $ORACLE_BASE)
     --auto-add              Automatically add discovered homes
     --dry-run               Show what would be discovered without adding
+
+IMPORT OPTIONS:
+    --force                 Force import without confirmation
+    --no-backup             Skip backup of existing configuration
 
 GLOBAL OPTIONS:
     -h, --help              Show this help message
@@ -114,6 +120,15 @@ EXAMPLES:
 
     # Validate configuration
     $SCRIPT_NAME validate
+
+    # Export configuration (for backup)
+    $SCRIPT_NAME export > oradba_homes_backup.conf
+
+    # Import configuration from file
+    $SCRIPT_NAME import oradba_homes_backup.conf
+
+    # Import from stdin
+    cat oradba_homes_backup.conf | $SCRIPT_NAME import
 
 CONFIGURATION:
     Oracle Homes are stored in: \${ORADBA_BASE}/etc/oradba_homes.conf
@@ -745,6 +760,142 @@ validate_homes() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: export_config
+# Purpose.: Export Oracle Homes configuration
+# ------------------------------------------------------------------------------
+export_config() {
+    # Check if config file exists
+    local homes_file
+    homes_file=$(get_oracle_homes_path 2>/dev/null) || {
+        log_warn "No Oracle Homes configuration found"
+        return 1
+    }
+
+    if [[ ! -f "$homes_file" ]]; then
+        log_warn "Configuration file does not exist: $homes_file"
+        return 1
+    fi
+
+    # Output export header
+    cat << EOF
+# ======================================================================
+# Oracle Homes Configuration Export
+# ======================================================================
+# Exported: $(date '+%Y-%m-%d %H:%M:%S')
+# OraDBA Version: 0.21.0
+# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
+# ======================================================================
+
+EOF
+
+    # Output the configuration
+    cat "$homes_file"
+
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: import_config
+# Purpose.: Import Oracle Homes configuration
+# ------------------------------------------------------------------------------
+import_config() {
+    local input_file=""
+    local _force=false
+    local backup=true
+
+    # Parse options
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --force)
+                _force=true
+                shift
+                ;;
+            --no-backup)
+                backup=false
+                shift
+                ;;
+            -*)
+                log_error "Unknown option: $1"
+                return 1
+                ;;
+            *)
+                input_file="$1"
+                shift
+                ;;
+        esac
+    done
+
+    # Determine homes file location
+    local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+
+    # Create backup if file exists and backup is enabled
+    if [[ -f "$homes_file" ]] && [[ "$backup" == "true" ]]; then
+        local backup_file
+        backup_file="${homes_file}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$homes_file" "$backup_file"
+        echo "Created backup: $backup_file"
+    fi
+
+    # Read from stdin or file
+    local temp_file
+    temp_file=$(mktemp)
+
+    if [[ -n "$input_file" ]] && [[ "$input_file" != "-" ]]; then
+        if [[ ! -f "$input_file" ]]; then
+            log_error "Input file does not exist: $input_file"
+            rm -f "$temp_file"
+            return 1
+        fi
+        cat "$input_file" > "$temp_file"
+    else
+        cat > "$temp_file"
+    fi
+
+    # Validate the input
+    local errors=0
+    local line_num=0
+
+    while IFS= read -r line; do
+        ((line_num++))
+
+        # Skip comments and empty lines
+        [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+
+        # Check field count (expect at least 7 fields)
+        local field_count
+        field_count=$(echo "$line" | awk -F':' '{print NF}')
+
+        if [[ $field_count -lt 3 ]]; then
+            log_error "Line $line_num: Invalid format (expected NAME:HOME:TYPE:...)"
+            ((errors++))
+        fi
+    done < "$temp_file"
+
+    if [[ $errors -gt 0 ]]; then
+        log_error "Validation failed: $errors error(s) found"
+        rm -f "$temp_file"
+        return 1
+    fi
+
+    # Ensure directory exists
+    mkdir -p "$(dirname "$homes_file")"
+
+    # Import the configuration
+    cp "$temp_file" "$homes_file"
+    rm -f "$temp_file"
+
+    echo "Successfully imported Oracle Homes configuration"
+    echo "Configuration file: $homes_file"
+
+    # Show summary
+    local count
+    count=$(grep -v "^#" "$homes_file" | grep -v "^$" | wc -l | tr -d ' ')
+    echo "Imported $count Oracle Home(s)"
+
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Main
 # ------------------------------------------------------------------------------
 main() {
@@ -775,6 +926,12 @@ main() {
             ;;
         validate)
             validate_homes "$@"
+            ;;
+        export)
+            export_config "$@"
+            ;;
+        import)
+            import_config "$@"
             ;;
         *)
             log_error "Unknown command: $command"

@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Date:** 2026-01-14  
-**Status:** Phases 1-3 Complete (v0.19.0-v0.21.0), Phase 4 In Progress
+**Status:** Phases 1-3 Complete (v0.19.0-v0.21.0), Phase 4 Partially Complete (v0.22.0)
 
 ---
 
@@ -1225,11 +1225,20 @@ oradba_validate() {
 
 - [ ] Priority 3: OUD product support
 - [ ] Priority 3: WLS product support
-- [ ] Instance/domain status checking
+- [ ] Instance/domain status checking (Partially complete in Phase 3)
 - [ ] Enhance `oradba_homes.sh` to use new parsers
 - [ ] Auto-scan functionality (detect all products)
-- [ ] Export/import functionality
+- [x] Export/import functionality ✅
 - [ ] Configuration migration from old format
+
+**Deliverables (Partial - v0.22.0)**:
+
+- Enhanced `oradba_homes.sh` management utility with export/import commands
+- 11 new BATS tests for export/import functionality (53 total tests)
+- Configuration backup and migration capabilities
+- Full documentation in CHANGELOG and design doc
+
+**Commit**: TBD - Release v0.22.0 (partial implementation)
 
 ### Phase 5: Testing & Documentation (Week 6)
 
