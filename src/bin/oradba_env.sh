@@ -293,18 +293,18 @@ cmd_status() {
         fi
     fi
     
-    # Get SID info from oratab or oradba_homes.conf
+    # Get SID info from oratab
     local sid_info
-    sid_info=$(oradba_get_sid_info "$target" 2>/dev/null)
+    sid_info=$(oradba_find_sid "$target")
     
-    if [[ -z "$sid_info" ]]; then
-        echo "ERROR: SID '$target' not found"
+    if [[ $? -ne 0 ]] || [[ -z "$sid_info" ]]; then
+        echo "ERROR: SID '$target' not found in oratab"
         return 1
     fi
     
-    # Parse SID info
+    # Parse SID info (format: SID|ORACLE_HOME|FLAG)
     local oracle_sid oracle_home _oracle_flag
-    IFS=':' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
+    IFS='|' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
     
     # Detect product type
     local product_type
