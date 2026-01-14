@@ -48,7 +48,7 @@ oradba/
 │   └── templates/       # Template files
 │       └── script_template.sh
 ├── tests/               # BATS test files (658 tests across 20 files)
-│   ├── test_common.bats
+│   ├── test_oradba_common.bats
 │   ├── test_oraenv.bats
 │   ├── test_installer.bats
 │   └── run_tests.sh     # Test runner
@@ -358,10 +358,10 @@ BATS test files match the component they test:
 
 | Test File                 | Tests                      | Location  |
 |---------------------------|----------------------------|-----------|
-| `test_common.bats`        | oradba_common.sh library          | `tests/`  |
+| `test_oradba_common.bats`        | oradba_common.sh library          | `tests/`  |
 | `test_oraenv.bats`        | oraenv.sh script           | `tests/`  |
-| `test_aliases.bats`       | oradba_aliases.sh library         | `tests/`  |
-| `test_db_functions.bats`  | oradba_db_functions.sh library    | `tests/`  |
+| `test_oradba_aliases.bats`       | oradba_aliases.sh library         | `tests/`  |
+| `test_oradba_db_functions.bats`  | oradba_db_functions.sh library    | `tests/`  |
 | `test_oradba_help.bats`   | oradba_help.sh script      | `tests/`  |
 
 ### Build Scripts
@@ -416,8 +416,8 @@ make test DRY_RUN=1
 #   - test_installer.bats (always run)
 #   - test_oradba_version.bats (always run)
 #   - test_oraenv.bats (always run)
-#   - test_common.bats (affected by your changes)
-#   - test_aliases.bats (affected by your changes)
+#   - test_oradba_common.bats (affected by your changes)
+#   - test_oradba_aliases.bats (affected by your changes)
 ```
 
 **Full Testing (Before commits/releases):**
@@ -437,10 +437,10 @@ make ci
 
 ```bash
 # Run specific test file
-bats tests/test_common.bats
+bats tests/test_oradba_common.bats
 
 # Run with debug output
-DEBUG=1 bats tests/test_common.bats
+DEBUG=1 bats tests/test_oradba_common.bats
 
 # Run legacy test runner
 ./tests/run_tests.sh
@@ -679,8 +679,8 @@ always_run:
 # Map source files to test files
 mappings:
   src/lib/oradba_common.sh:
-    - test_common.bats
-    - test_aliases.bats
+    - test_oradba_common.bats
+    - test_oradba_aliases.bats
   
   src/bin/oradba_dbctl.sh:
     - test_service_management.bats
@@ -793,7 +793,7 @@ Scripts changed: true
 
 Selecting tests to run...
 Selected 5 test file(s):
-- test_db_functions.bats
+- test_oradba_db_functions.bats
 - test_installer.bats
 - test_oradba_version.bats
 - test_oraenv.bats
@@ -1295,7 +1295,7 @@ make test
 ./tests/run_tests.sh
 
 # Run specific test file
-bats tests/test_common.bats
+bats tests/test_oradba_common.bats
 bats tests/test_installer.bats
 ```
 
@@ -1761,7 +1761,7 @@ chmod +x script.sh
 DEBUG=1 ./tests/run_tests.sh
 
 # Run specific test
-bats -t tests/test_common.bats
+bats -t tests/test_oradba_common.bats
 ```
 
 ## Resources

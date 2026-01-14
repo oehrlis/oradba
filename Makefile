@@ -376,7 +376,7 @@ docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker
 		sed -i.bak -E 's|\]\(07-pdb-aliases\.md\)|](#pdb-alias-reference)|g' "$$file"; \
 		sed -i.bak -E 's|\]\(08-sql-scripts\.md\)|](#sql-scripts-reference)|g' "$$file"; \
 		sed -i.bak -E 's|\]\(09-rman-scripts\.md\)|](#rman-script-templates)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(10-functions\.md\)|](#database-functions-library-db_functions.sh)|g' "$$file"; \
+		sed -i.bak -E 's|\]\(10-functions\.md\)|](#database-functions-library-oradba_db_functions.sh)|g' "$$file"; \
 		sed -i.bak -E 's|\]\(11-rlwrap\.md\)|](#rlwrap-filter-configuration)|g' "$$file"; \
 		sed -i.bak -E 's|\]\(12-troubleshooting\.md\)|](#troubleshooting-guide)|g' "$$file"; \
 		sed -i.bak -E 's|\]\(13-reference\.md\)|](#quick-reference)|g' "$$file"; \

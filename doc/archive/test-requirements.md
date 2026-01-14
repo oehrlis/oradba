@@ -270,7 +270,7 @@ tests/
 
 - Existing test patterns: tests/test_oradba_homes.bats (53 tests)
 - BATS documentation: <https://github.com/bats-core/bats-core>
-- Mocking patterns: tests/test_common.bats
+- Mocking patterns: tests/test_oradba_common.bats
 
 ---
 

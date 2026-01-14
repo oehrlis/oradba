@@ -607,17 +607,6 @@ Phase 3 delivers advanced monitoring and automation:
   - Config hierarchy tests (core → standard → local override)
   - SID-specific config tests
   - Integration test with complete hierarchy
-
-- **23 Functional Tests** for integrated configuration system (functional_test_phase2.sh):
-  - Basic configuration loading
-  - Configuration hierarchy (core < standard < local)
-  - Product-specific sections (RDBMS, CLIENT, GRID)
-  - SID-specific configuration overrides
-  - Variable expansion in real scenarios
-  - Alias creation and verification
-  - Configuration validation (valid/invalid)
-  - ASM configuration handling
-  - Section listing functionality
   - Config value extraction
 
 ### Fixed
@@ -1576,7 +1565,7 @@ Phase 2 completes the configuration management system with:
   - Updated test suite inventory: 9 → 20 test files
   - Test coverage: 227 → 658 total tests (+189% growth)
   - Added 11 previously undocumented test files:
-    - test_aliases.bats (38 tests)
+    - test_oradba_aliases.bats (38 tests)
     - test_execute_db_query.bats (22 tests)
     - test_extensions.bats (42 tests)
     - test_logging.bats (28 tests)
@@ -1718,7 +1707,7 @@ immediately.
     - **Automatic logging**: Uses `log_debug()` for successful loads, `log_error()` for required file failures
     - **Shellcheck suppression**: Centralized `shellcheck source=/dev/null` directive
     - **Return codes**: 0 for success/skipped, 1 for required file missing
-  - **Test Suite**: 10 comprehensive BATS tests in `tests/test_common.bats` (32 total tests)
+  - **Test Suite**: 10 comprehensive BATS tests in `tests/test_oradba_common.bats` (32 total tests)
     - Function existence and parameter validation
     - Required vs optional config handling
     - Missing file behavior (error vs silent skip)
@@ -1775,7 +1764,7 @@ and configuration loading.
     - **Shellcheck suppression**: Automatically handles SC2139 for expanded aliases
     - **Coexistence mode support**: Internally calls `safe_alias()` respecting all modes
     - Returns: Exit code from `safe_alias` (0=created, 1=skipped, 2=error)
-  - **Test Suite**: 7 comprehensive BATS tests in `tests/test_aliases.bats` (38 total alias tests)
+  - **Test Suite**: 7 comprehensive BATS tests in `tests/test_oradba_aliases.bats` (38 total alias tests)
     - Function existence and parameter validation
     - Expanded vs non-expanded alias creation
     - Required parameter enforcement
@@ -3603,7 +3592,7 @@ export ORADBA_SHOW_DEPRECATION_WARNINGS=true
 - Added `--silent` flag to oraenv.sh for non-interactive execution
 - Interactive SID selection with numbered list when no SID provided to oraenv.sh
 - User can select database by number or name from available instances
-- Comprehensive test suite for oradba_db_functions.sh library (test_db_functions.bats)
+- Comprehensive test suite for oradba_db_functions.sh library (test_oradba_db_functions.bats)
 - Extended test coverage for oraenv.sh with new behavior patterns
 - Automatic TTY detection for interactive vs non-interactive mode
 - Silent mode auto-selection when running without TTY (e.g., in scripts)

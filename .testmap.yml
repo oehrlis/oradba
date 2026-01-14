@@ -16,9 +16,9 @@ always_run:
 mappings:
   # Core libraries - affect multiple tests
   src/lib/oradba_common.sh:
-    - test_common.bats
-    - test_aliases.bats
-    - test_db_functions.bats
+    - test_oradba_common.bats
+    - test_oradba_aliases.bats
+    - test_oradba_db_functions.bats
     - test_oraenv.bats
     - test_oradba_check.bats
     - test_service_management.bats
@@ -27,15 +27,15 @@ mappings:
     - test_execute_db_query.bats
   
   src/lib/oradba_aliases.sh:
-    - test_aliases.bats
+    - test_oradba_aliases.bats
   
   src/lib/oradba_db_functions.sh:
-    - test_db_functions.bats
+    - test_oradba_db_functions.bats
     - test_oraenv.bats
   
   src/lib/extensions.sh:
     - test_extensions.bats
-    - test_common.bats
+    - test_oradba_common.bats
   
   # Binaries - direct mapping
   src/bin/oradba_check.sh:
@@ -54,7 +54,7 @@ mappings:
     - test_oraup.bats
   
   src/bin/dbstatus.sh:
-    - test_db_functions.bats
+    - test_oradba_db_functions.bats
   
   src/bin/oradba_sqlnet.sh:
     - test_oradba_sqlnet.bats
@@ -121,12 +121,12 @@ mappings:
   
   # Configuration files
   src/etc/oradba_core.conf:
-    - test_common.bats
+    - test_oradba_common.bats
     - test_oradba_env_config.bats
   
   src/etc/oradba_standard.conf:
-    - test_aliases.bats
-    - test_common.bats
+    - test_oradba_aliases.bats
+    - test_oradba_common.bats
     - test_oradba_env_config.bats
   
   src/etc/oradba_services.conf:

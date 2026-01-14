@@ -52,9 +52,9 @@ Would execute 8 test file(s):
 - test_installer.bats (always run)
 - test_oradba_version.bats (always run)
 - test_oraenv.bats (always run)
-- test_common.bats (mapped)
-- test_aliases.bats (mapped)
-- test_db_functions.bats (mapped)
+- test_oradba_common.bats (mapped)
+- test_oradba_aliases.bats (mapped)
+- test_oradba_db_functions.bats (mapped)
 - test_oradba_check.bats (mapped)
 - test_service_management.bats (mapped)
 ```

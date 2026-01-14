@@ -176,22 +176,22 @@ test_templates() {
 }
 
 test_aliases() {
-    print_header "Testing Aliases in aliases.sh"
+    print_header "Testing Aliases in oradba_aliases.sh"
     
     print_test "Check if service management aliases are defined"
-    if grep -q "alias dbctl=" "${PROJECT_ROOT}/src/lib/aliases.sh"; then
+    if grep -q "alias dbctl=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
         print_pass "Database control aliases found"
     else
         print_fail "Database control aliases missing"
     fi
     
-    if grep -q "alias listener=" "${PROJECT_ROOT}/src/lib/aliases.sh"; then
+    if grep -q "alias listener=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
         print_pass "Listener control aliases found"
     else
         print_fail "Listener control aliases missing"
     fi
     
-    if grep -q "alias orastart=" "${PROJECT_ROOT}/src/lib/aliases.sh"; then
+    if grep -q "alias orastart=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
         print_pass "Combined service aliases found"
     else
         print_fail "Combined service aliases missing"

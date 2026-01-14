@@ -3,13 +3,13 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
-# Name.......: test_aliases.bats
+# Name.......: test_oradba_aliases.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
 # Revision...: 0.6.0
 # Purpose....: BATS tests for oradba_aliases.sh - dynamic alias generation
-# Notes......: Run with: bats test_aliases.bats
+# Notes......: Run with: bats test_oradba_aliases.bats
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004
 # ------------------------------------------------------------------------------

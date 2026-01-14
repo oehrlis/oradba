@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
-# Name.......: test_common.bats
+# Name.......: test_oradba_common.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.15

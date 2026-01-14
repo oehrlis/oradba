@@ -12,9 +12,9 @@ with unit tests for libraries and integration tests for scripts.
 
 | Test File                                                    | Component             | Tests | Description                           |
 |--------------------------------------------------------------|-----------------------|-------|---------------------------------------|
-| [test_aliases.bats](test_aliases.bats)                       | lib/oradba_aliases.sh        | 38    | Alias generation and management       |
-| [test_common.bats](test_common.bats)                         | lib/oradba_common.sh         | 32    | Core utility functions                |
-| [test_db_functions.bats](test_db_functions.bats)             | lib/oradba_db_functions.sh   | 24    | Database query and status functions   |
+| [test_oradba_aliases.bats](test_oradba_aliases.bats)                       | lib/oradba_aliases.sh        | 38    | Alias generation and management       |
+| [test_oradba_common.bats](test_oradba_common.bats)                         | lib/oradba_common.sh         | 32    | Core utility functions                |
+| [test_oradba_db_functions.bats](test_oradba_db_functions.bats)             | lib/oradba_db_functions.sh   | 24    | Database query and status functions   |
 | [test_execute_db_query.bats](test_execute_db_query.bats)     | lib/oradba_common.sh         | 22    | SQL query execution                   |
 | [test_extensions.bats](test_extensions.bats)                 | lib/extensions.sh     | 42    | Extension discovery and loading       |
 | [test_get_seps_pwd.bats](test_get_seps_pwd.bats)             | bin/get_seps_pwd.sh   | 31    | Wallet password utility               |
@@ -70,10 +70,10 @@ bats tests/test_oraenv.bats
 
 ```bash
 # Run test matching filter
-bats tests/test_common.bats --filter "log_info"
+bats tests/test_oradba_common.bats --filter "log_info"
 
 # Run by line number
-bats tests/test_common.bats:45
+bats tests/test_oradba_common.bats:45
 ```
 
 ### Test Output Options
@@ -133,8 +133,8 @@ Tests requiring database are skipped if unavailable.
 
 ```text
 tests/
-├── test_common.bats           # Unit tests for lib/oradba_common.sh
-├── test_db_functions.bats     # Unit tests for lib/oradba_db_functions.sh
+├── test_oradba_common.bats           # Unit tests for lib/oradba_common.sh
+├── test_oradba_db_functions.bats     # Unit tests for lib/oradba_db_functions.sh
 ├── test_oraenv.bats           # Integration tests for oraenv.sh
 ├── test_installer.bats        # Build system tests
 ├── test_oradba_version.bats   # Version utility tests
@@ -174,8 +174,8 @@ teardown() {
 
 Test individual functions in isolation:
 
-- **test_common.bats** - Logging, oratab parsing, utilities
-- **test_db_functions.bats** - Database query functions
+- **test_oradba_common.bats** - Logging, oratab parsing, utilities
+- **test_oradba_db_functions.bats** - Database query functions
 - **test_installer.bats** - Build script validation
 
 ### Integration Tests
@@ -327,7 +327,7 @@ chmod +x tests/run_tests.sh
 
 ```bash
 # Quick check
-bats tests/test_common.bats
+bats tests/test_oradba_common.bats
 
 # Watch for changes (requires entr)
 find src tests -name '*.sh' -o -name '*.bats' | entr bats tests/

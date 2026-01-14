@@ -14,7 +14,7 @@ helps prioritize cleanup and refactoring efforts.
 
 ### Key Findings
 
-- **3 Orphaned Functions** identified in oradba_common.sh
+- **3 Orphaned Functions** identified in oradba_common.shmmon.sh
 - **18 Scripts without tests** identified
 - **18 Test files** testing library modules (not scripts)
 - Most functions are actively used; orphaned items are candidates for removal
@@ -177,9 +177,9 @@ These test **libraries**, not standalone scripts - this is **CORRECT** and expec
 
 | Test File                        | Tests                       | Status   |
 |----------------------------------|-----------------------------|----------|
-| test_aliases.bats                | oradba_aliases.sh library          | ✅ VALID |
-| test_common.bats                 | oradba_common.sh library           | ✅ VALID |
-| test_db_functions.bats           | oradba_db_functions.sh library     | ✅ VALID |
+| test_oradba_aliases.bats                | oradba_aliases.sh library          | ✅ VALID |
+| test_oradba_common.bats                 | oradba_common.sh library           | ✅ VALID |
+| test_oradba_db_functions.bats           | oradba_db_functions.sh library     | ✅ VALID |
 | test_execute_db_query.bats       | execute_db_query() function | ✅ VALID |
 | test_extensions.bats             | extensions.sh library       | ✅ VALID |
 | test_installer.bats              | Installation functions      | ✅ VALID |

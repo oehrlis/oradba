@@ -1178,7 +1178,6 @@ oradba_validate() {
 - `src/lib/oradba_env_validator.sh` (7 functions, 285 lines)
 - `src/bin/oradba_env.sh` (command utility, 310 lines)
 - `tests/test_oradba_env_parser.bats` (22 unit tests)
-- `tests/functional_test_phase1.sh` (comprehensive functional test)
 
 **Commit**: beed9b9 - Release v0.19.0
 
@@ -1195,7 +1194,6 @@ oradba_validate() {
 - `src/lib/oradba_env_config.sh` (8 functions, 352 lines)
 - `src/templates/etc/oradba_environment.conf.template` (191 lines, all 9 product sections)
 - `tests/test_oradba_env_config.bats` (28 unit tests)
-- `tests/functional_test_phase2.sh` (23 functional tests)
 - Updated `oradba_env_builder.sh` and `oraenv.sh` integration
 
 **Commit**: 5b6a8a4 - Release v0.20.0

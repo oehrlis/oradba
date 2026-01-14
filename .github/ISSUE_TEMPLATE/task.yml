@@ -33,7 +33,7 @@ body:
       description: Which component does this task relate to?
       options:
         - Environment setup (oradba.env))
-        - Library functions (db_functions.sh, common.sh)
+        - Library functions (oradba_db_functions.sh, oradba_common.sh)
         - Installer (build/installation)
         - Tests (BATS test suite)
         - Documentation

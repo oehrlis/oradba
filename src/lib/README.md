@@ -412,11 +412,11 @@ Test library functions using BATS:
 
 ```bash
 # Run library tests
-bats tests/test_common.bats
-bats tests/test_db_functions.bats
+bats tests/test_oradba_common.bats
+bats tests/test_oradba_db_functions.bats
 
 # Run specific test
-bats tests/test_common.bats --filter "log_info"
+bats tests/test_oradba_common.bats --filter "log_info"
 ```
 
 See [development.md](../../doc/development.md) for complete testing guidelines.

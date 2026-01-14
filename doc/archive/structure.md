@@ -139,11 +139,11 @@ BATS test files:
 
 ```text
 tests/
-├── test_common.bats        # Common library tests
+├── test_oradba_common.bats        # Common library tests
 ├── test_oraenv.bats        # Environment script tests
 ├── test_installer.bats     # Installer tests
-├── test_aliases.bats       # Alias generation tests
-├── test_db_functions.bats  # Database functions tests
+├── test_oradba_aliases.bats       # Alias generation tests
+├── test_oradba_db_functions.bats  # Database functions tests
 ├── test_extensions.bats    # Extension system tests (31 tests)
 ├── test_oradba_version.bats # Version management tests
 ├── test_oradba_check.bats  # Configuration validation tests
@@ -312,7 +312,7 @@ make ci
 
 1. Add to src/lib/oradba_common.sh or src/lib/oradba_db_functions.sh
 2. Use header template from doc/templates/
-3. Add tests to tests/test_common.bats or tests/test_db_functions.bats
+3. Add tests to tests/test_oradba_common.bats or tests/test_oradba_db_functions.bats
 4. Update documentation in src/doc/10-functions.md
 
 ### New SQL Script

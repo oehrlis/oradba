@@ -352,14 +352,14 @@ fi
 
 ## Testing
 
-The library includes comprehensive test coverage in `tests/test_db_functions.bats`:
+The library includes comprehensive test coverage in `tests/test_oradba_db_functions.bats`:
 
 ```bash
 # Run all database function tests
-bats tests/test_db_functions.bats
+bats tests/test_oradba_db_functions.bats
 
 # Run specific test
-bats tests/test_db_functions.bats -f "check_database_connection"
+bats tests/test_oradba_db_functions.bats -f "check_database_connection"
 ```
 
 ## Utility Scripts
