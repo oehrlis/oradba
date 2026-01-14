@@ -134,12 +134,12 @@ patterns:
 
 ### Speed Improvements
 
-| Scenario             | Old Behavior       | New Behavior       | Time Saved           |
-|----------------------|--------------------|--------------------|----------------------|
-| Change 1 script      | 492 tests (~8 min) | ~10 tests (~1 min) | 7 minutes            |
+| Scenario                    | Old Behavior       | New Behavior       | Time Saved           |
+|-----------------------------|--------------------|--------------------|----------------------|
+| Change 1 script             | 492 tests (~8 min) | ~10 tests (~1 min) | 7 minutes            |
 | Change lib/oradba_common.sh | 492 tests (~8 min) | ~50 tests (~2 min) | 6 minutes            |
-| Documentation only   | 492 tests (~8 min) | 3 tests (~30 sec)  | 7.5 minutes          |
-| Full CI/Release      | 492 tests (~8 min) | 492 tests (~8 min) | No change (intended) |
+| Documentation only          | 492 tests (~8 min) | 3 tests (~30 sec)  | 7.5 minutes          |
+| Full CI/Release             | 492 tests (~8 min) | 492 tests (~8 min) | No change (intended) |
 
 ### Developer Experience
 

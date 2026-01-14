@@ -7,11 +7,13 @@ Shared shell libraries providing common functionality for OraDBA scripts and fun
 This directory contains reusable shell libraries that provide core functionality for OraDBA. The libraries are
 organized into three categories:
 
-1. **Environment Management Libraries** (oradba_env_*): Modern library-based architecture with Parser, Builder,
+1. **Environment Management Libraries** (oradba_env_*): Modern library-based
+   architecture with Parser, Builder,
 Validator, Config Manager, Status Display, and Change Tracker
-2. **Core Utility Libraries**: Essential libraries (oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh) providing logging,
-database operations, and alias management - actively used across the system
-3. **Extension Framework**: Extensibility support for custom functionality
+1. **Core Utility Libraries**: Essential libraries (oradba_common.sh,
+   oradba_db_functions.sh, oradba_aliases.sh) providing logging,
+   database operations, and alias management - actively used across the system
+1. **Extension Framework**: Extensibility support for custom functionality
 
 ## Available Libraries
 
@@ -30,11 +32,11 @@ database operations, and alias management - actively used across the system
 
 ### Core Utility Libraries
 
-| Library                                | Description                           | Functions     |
-|----------------------------------------|---------------------------------------|---------------|
-| [oradba_common.sh](oradba_common.sh)                 | Core utilities and logging            | 50 functions  |
-| [oradba_db_functions.sh](oradba_db_functions.sh)     | Database queries and status           | 11 functions  |
-| [oradba_aliases.sh](oradba_aliases.sh)               | Dynamic alias generation              | 5 functions   |
+| Library                                          | Description                 | Functions    |
+|--------------------------------------------------|-----------------------------|--------------|
+| [oradba_common.sh](oradba_common.sh)             | Core utilities and logging  | 50 functions |
+| [oradba_db_functions.sh](oradba_db_functions.sh) | Database queries and status | 11 functions |
+| [oradba_aliases.sh](oradba_aliases.sh)           | Dynamic alias generation    | 5 functions  |
 
 **Total Core Utility Functions:** 66 functions
 

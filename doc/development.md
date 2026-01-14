@@ -301,11 +301,11 @@ Format: `<purpose>.sh`
 
 Shared function libraries:
 
-| File              | Purpose                    | Location   |
-|-------------------|----------------------------|------------|
-| `oradba_common.sh`       | Common utility functions   | `src/lib/` |
-| `oradba_aliases.sh`      | Alias generation           | `src/lib/` |
-| `oradba_db_functions.sh` | Database functions         | `src/lib/` |
+| File                     | Purpose                  | Location   |
+|--------------------------|--------------------------|------------|
+| `oradba_common.sh`       | Common utility functions | `src/lib/` |
+| `oradba_aliases.sh`      | Alias generation         | `src/lib/` |
+| `oradba_db_functions.sh` | Database functions       | `src/lib/` |
 
 ### SQL Scripts
 
@@ -356,13 +356,13 @@ Format: `test_<component>.bats`
 
 BATS test files match the component they test:
 
-| Test File                 | Tests                      | Location  |
-|---------------------------|----------------------------|-----------|
-| `test_oradba_common.bats`        | oradba_common.sh library          | `tests/`  |
-| `test_oraenv.bats`        | oraenv.sh script           | `tests/`  |
-| `test_oradba_aliases.bats`       | oradba_aliases.sh library         | `tests/`  |
-| `test_oradba_db_functions.bats`  | oradba_db_functions.sh library    | `tests/`  |
-| `test_oradba_help.bats`   | oradba_help.sh script      | `tests/`  |
+| Test File                       | Tests                          | Location |
+|---------------------------------|--------------------------------|----------|
+| `test_oradba_common.bats`       | oradba_common.sh library       | `tests/` |
+| `test_oraenv.bats`              | oraenv.sh script               | `tests/` |
+| `test_oradba_aliases.bats`      | oradba_aliases.sh library      | `tests/` |
+| `test_oradba_db_functions.bats` | oradba_db_functions.sh library | `tests/` |
+| `test_oradba_help.bats`         | oradba_help.sh script          | `tests/` |
 
 ### Build Scripts
 

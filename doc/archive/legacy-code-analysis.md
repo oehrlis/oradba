@@ -27,8 +27,8 @@ helps prioritize cleanup and refactoring efforts.
 
 These functions are defined but never called:
 
-| Function                  | Library   | Recommendation                              |
-|---------------------------|-----------|---------------------------------------------|
+| Function                  | Library          | Recommendation                              |
+|---------------------------|------------------|---------------------------------------------|
 | `detect_basenv`           | oradba_common.sh | **REMOVE** - Likely legacy basenv detection |
 | `get_oracle_home_version` | oradba_common.sh | **REMOVE** - Superseded                     |
 | `show_version_info`       | oradba_common.sh | **REMOVE** - Replaced by script             |
@@ -175,26 +175,26 @@ The following scripts lack dedicated BATS test files:
 
 These test **libraries**, not standalone scripts - this is **CORRECT** and expected:
 
-| Test File                        | Tests                       | Status   |
-|----------------------------------|-----------------------------|----------|
-| test_oradba_aliases.bats                | oradba_aliases.sh library          | ✅ VALID |
-| test_oradba_common.bats                 | oradba_common.sh library           | ✅ VALID |
-| test_oradba_db_functions.bats           | oradba_db_functions.sh library     | ✅ VALID |
-| test_execute_db_query.bats       | execute_db_query() function | ✅ VALID |
-| test_extensions.bats             | extensions.sh library       | ✅ VALID |
-| test_installer.bats              | Installation functions      | ✅ VALID |
-| test_job_wrappers.bats           | Job wrapper functions       | ✅ VALID |
-| test_logging.bats                | Logging functions           | ✅ VALID |
-| test_logging_infrastructure.bats | Log infrastructure          | ✅ VALID |
-| test_oracle_homes.bats           | Oracle Homes functions      | ✅ VALID |
-| test_oradba_env_changes.bats     | oradba_env_changes.sh       | ✅ VALID |
-| test_oradba_env_config.bats      | oradba_env_config.sh        | ✅ VALID |
-| test_oradba_env_parser.bats      | oradba_env_parser.sh        | ✅ VALID |
-| test_oradba_env_status.bats      | oradba_env_status.bats      | ✅ VALID |
-| test_oratab_priority.bats        | Oratab priority handling    | ✅ VALID |
-| test_service_management.bats     | Service management tests    | ✅ VALID |
-| test_sid_config.bats             | SID configuration           | ✅ VALID |
-| test_sync_scripts.bats           | Sync script tests           | ✅ VALID |
+| Test File                        | Tests                          | Status   |
+|----------------------------------|--------------------------------|----------|
+| test_oradba_aliases.bats         | oradba_aliases.sh library      | ✅ VALID |
+| test_oradba_common.bats          | oradba_common.sh library       | ✅ VALID |
+| test_oradba_db_functions.bats    | oradba_db_functions.sh library | ✅ VALID |
+| test_execute_db_query.bats       | execute_db_query() function    | ✅ VALID |
+| test_extensions.bats             | extensions.sh library          | ✅ VALID |
+| test_installer.bats              | Installation functions         | ✅ VALID |
+| test_job_wrappers.bats           | Job wrapper functions          | ✅ VALID |
+| test_logging.bats                | Logging functions              | ✅ VALID |
+| test_logging_infrastructure.bats | Log infrastructure             | ✅ VALID |
+| test_oracle_homes.bats           | Oracle Homes functions         | ✅ VALID |
+| test_oradba_env_changes.bats     | oradba_env_changes.sh          | ✅ VALID |
+| test_oradba_env_config.bats      | oradba_env_config.sh           | ✅ VALID |
+| test_oradba_env_parser.bats      | oradba_env_parser.sh           | ✅ VALID |
+| test_oradba_env_status.bats      | oradba_env_status.bats         | ✅ VALID |
+| test_oratab_priority.bats        | Oratab priority handling       | ✅ VALID |
+| test_service_management.bats     | Service management tests       | ✅ VALID |
+| test_sid_config.bats             | SID configuration              | ✅ VALID |
+| test_sync_scripts.bats           | Sync script tests              | ✅ VALID |
 
 **Action:** No changes needed. These tests are correctly structured to test library functionality.
 

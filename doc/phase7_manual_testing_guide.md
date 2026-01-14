@@ -2,7 +2,9 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for manual testing of OraDBA v1.0.0 before release. The automated test suite (533+ BATS tests) covers unit and integration testing, but manual verification ensures real-world usability.
+This guide provides step-by-step instructions for manual testing of OraDBA
+v1.0.0 before release. The automated test suite (533+ BATS tests) covers unit
+and integration testing, but manual verification ensures real-world usability.
 
 **Status**: Phase 7 of 9 - Pre-Release Testing  
 **Automated Tests**: User will run separately (`make test-full`)  
@@ -138,6 +140,7 @@ rm -rf /tmp/oradba-test
 ```
 
 **Acceptance Criteria**:
+
 - ✅ Installation completes without errors
 - ✅ All expected directories and files created
 - ✅ VERSION matches 1.0.0-dev
@@ -186,6 +189,7 @@ oradba_homes.sh list
 ```
 
 **Acceptance Criteria**:
+
 - ✅ Environment sourced without errors
 - ✅ ORACLE_SID, ORACLE_HOME, ORACLE_BASE set correctly
 - ✅ All 4 environment libraries loaded
@@ -216,6 +220,7 @@ grep "^\[CLIENT\]" /tmp/oradba-test/etc/oradba_standard.conf
 ```
 
 **Acceptance Criteria**:
+
 - ✅ Core configuration loads without errors
 - ✅ Product sections ([RDBMS], [CLIENT], etc.) present
 - ✅ Configuration validation passes
@@ -243,6 +248,7 @@ rm -f /tmp/homes_export.conf
 ```
 
 **Acceptance Criteria**:
+
 - ✅ List command works (with or without homes)
 - ✅ Export produces valid output format
 - ✅ Import validates input format
@@ -276,6 +282,7 @@ done
 ```
 
 **Acceptance Criteria**:
+
 - ✅ README.md reflects v1.0.0 features
 - ✅ CHANGELOG.md has complete v1.0.0 entry
 - ✅ All phase reports present
@@ -304,6 +311,7 @@ grep -h "^oradba_[a-z_]*() {" src/lib/*.sh | wc -l
 ```
 
 **Acceptance Criteria**:
+
 - ✅ 0 shellcheck errors
 - ✅ 0 shellcheck warnings  
 - ✅ All libraries have function headers
@@ -345,6 +353,7 @@ head -20 dist/oradba_install.sh
 ```
 
 **Acceptance Criteria**:
+
 - ✅ Build completes without errors
 - ✅ All 3 artifacts created with reasonable sizes
 - ✅ Tarball contains all expected files
@@ -398,6 +407,7 @@ RESULTS
 ## Next Steps After Testing
 
 If all tests pass:
+
 1. ✅ Mark Phase 7 complete
 2. ✅ Document any minor issues for future releases
 3. ✅ Proceed to Phase 8: Version & Release Prep
@@ -407,6 +417,7 @@ If all tests pass:
    - Tag preparation
 
 If tests fail:
+
 1. ❌ Document failures in detail
 2. ❌ Fix critical issues
 3. ❌ Re-run affected tests
@@ -448,6 +459,7 @@ rm -rf /tmp/oradba-test
 ## Success Criteria
 
 Phase 7 is complete when:
+
 - ✅ All automated tests pass (528+/528)
 - ✅ All 6 manual scenarios pass
 - ✅ Build produces valid artifacts
@@ -459,4 +471,3 @@ Phase 7 is complete when:
 
 **Phase 7 Status**: Ready for user execution  
 **Next Phase**: Phase 8 - Version & Release Prep (after successful testing)
-

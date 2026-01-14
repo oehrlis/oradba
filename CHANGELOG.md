@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Environment Management (v0.19.0)
+
 - **Environment Parser Library** (oradba_env_parser.sh):
   - parse_oracle_home() - Extract ORACLE_HOME from oratab/homes
   - parse_oracle_base() - Determine ORACLE_BASE from inventory
@@ -70,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - And 6 more validation functions
 
 #### Configuration Management (v0.20.0)
+
 - **Configuration Library** (oradba_env_config.sh):
   - Section-based config processing: oradba_apply_config_section()
   - Hierarchical loading: oradba_load_generic_configs()
@@ -87,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - [DEFAULT], [RDBMS], [CLIENT], [ICLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
 
 #### Advanced Features (v0.21.0)
+
 - **Status Checking Library** (oradba_env_status.sh):
   - Database status: oradba_check_db_status() (OPEN/MOUNTED/SHUTDOWN)
   - ASM status: oradba_check_asm_status()
@@ -105,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `changes` subcommand - Detect config changes
 
 #### Management Tools (v0.22.0)
+
 - **Oracle Homes Export/Import**:
   - `oradba_homes.sh export` - Export configuration to stdout
   - `oradba_homes.sh import` - Import from file or stdin
