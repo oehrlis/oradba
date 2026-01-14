@@ -134,7 +134,7 @@ test: ## Run smart test selection (only tests affected by changes)
 
 .PHONY: test-full
 test-full: ## Run all tests (no smart selection)
-	@echo -e "$(COLOR_BLUE)Running full test suite (685 tests)...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Running full test suite (892 tests)...$(COLOR_RESET)"
 	@if [ -n "$(BATS)" ]; then \
 		$(BATS) $(TEST_DIR)/*.bats; \
 	else \
