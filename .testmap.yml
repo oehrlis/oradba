@@ -65,6 +65,20 @@ mappings:
   src/bin/oradba_rman.sh:
     - test_oradba_rman.bats
   
+  src/bin/oradba_homes.sh:
+    - test_oradba_homes.bats
+  
+  # Environment configuration scripts
+  src/lib/env_config.sh:
+    - test_oradba_env_config.bats
+    - test_oradba_env_parser.bats
+  
+  src/lib/env_status.sh:
+    - test_oradba_env_status.bats
+  
+  src/lib/env_changes.sh:
+    - test_oradba_env_changes.bats
+  
   # Service management scripts
   src/bin/oradba_dbctl.sh:
     - test_service_management.bats
@@ -108,10 +122,15 @@ mappings:
   # Configuration files
   src/etc/oradba_core.conf:
     - test_common.bats
+    - test_oradba_env_config.bats
   
   src/etc/oradba_standard.conf:
     - test_aliases.bats
     - test_common.bats
+    - test_oradba_env_config.bats
+  
+  src/etc/oradba_services.conf:
+    - test_service_management.bats
   
   src/etc/sid.ORCL.conf.example:
     - test_sid_config.bats
