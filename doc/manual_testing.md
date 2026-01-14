@@ -113,8 +113,13 @@ echo "ORACLE_BASE: $ORACLE_BASE"
 echo "ORADBA_BASE: $ORADBA_BASE"
 
 # 6. Verify library loading
-env | grep ORADBA_ENV_.*_LOADED
-# Expected: All 6 libraries should show "yes"
+echo "ORADBA_ENV_PARSER_LOADED: ${ORADBA_ENV_PARSER_LOADED:-not loaded}"
+echo "ORADBA_ENV_BUILDER_LOADED: ${ORADBA_ENV_BUILDER_LOADED:-not loaded}"
+echo "ORADBA_ENV_VALIDATOR_LOADED: ${ORADBA_ENV_VALIDATOR_LOADED:-not loaded}"
+echo "ORADBA_ENV_CONFIG_LOADED: ${ORADBA_ENV_CONFIG_LOADED:-not loaded}"
+echo "ORADBA_ENV_STATUS_LOADED: ${ORADBA_ENV_STATUS_LOADED:-not loaded}"
+echo "ORADBA_ENV_CHANGES_LOADED: ${ORADBA_ENV_CHANGES_LOADED:-not loaded}"
+# Expected: All 6 libraries should show "1"
 
 # 7. Test command availability
 type oradba_env.sh oradba_homes.sh oradba_validate.sh
@@ -213,6 +218,12 @@ type sq taa cdh cda cdb rmanc
 # 6. Test function availability
 type oradba_validate_oracle_home oradba_build_environment
 # Expected: Functions exported and available
+
+# Alternative: Check library loaded flags (not exported, use echo)
+[[ -n "${ORADBA_ENV_PARSER_LOADED}" ]] && echo "✓ Parser library loaded"
+[[ -n "${ORADBA_ENV_BUILDER_LOADED}" ]] && echo "✓ Builder library loaded"
+[[ -n "${ORADBA_ENV_VALIDATOR_LOADED}" ]] && echo "✓ Validator library loaded"
+[[ -n "${ORADBA_ENV_CONFIG_LOADED}" ]] && echo "✓ Config library loaded"
 ```
 
 **Pass Criteria**:
