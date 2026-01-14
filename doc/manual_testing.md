@@ -3,6 +3,7 @@
 ## Overview
 
 This document provides comprehensive manual testing procedures for OraDBA across three key areas:
+
 - **Installation**: Fresh installation and upgrade scenarios
 - **Configuration**: Environment setup and customization
 - **Daily Use**: Common DBA workflows and operations
@@ -73,6 +74,7 @@ rm -rf "$TEST_PREFIX"
 ```
 
 **Pass Criteria**:
+
 - ✅ All expected directories created
 - ✅ VERSION file matches build version
 - ✅ .install_info has correct metadata
@@ -120,6 +122,7 @@ type oradba_env.sh oradba_homes.sh oradba_validate.sh
 ```
 
 **Pass Criteria**:
+
 - ✅ Installation completes without errors
 - ✅ Oracle environment correctly detected
 - ✅ Environment sourcing works
@@ -167,6 +170,7 @@ head -n 10 "$INSTALL_PREFIX/lib/oradba_env_parser.sh"
 ```
 
 **Pass Criteria**:
+
 - ✅ Upgrade completes without errors
 - ✅ Custom configurations preserved
 - ✅ VERSION file updated
@@ -212,6 +216,7 @@ type oradba_validate_oracle_home oradba_build_environment
 ```
 
 **Pass Criteria**:
+
 - ✅ SID lookup is case-insensitive
 - ✅ ORACLE_* variables set correctly
 - ✅ PATH includes Oracle and OraDBA bins
@@ -258,6 +263,7 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 ```
 
 **Pass Criteria**:
+
 - ✅ Core configuration loads without errors
 - ✅ Product sections recognized
 - ✅ Custom configurations load
@@ -307,6 +313,7 @@ rm -f /tmp/homes_export.conf
 ```
 
 **Pass Criteria**:
+
 - ✅ List command works (empty or populated)
 - ✅ Add command registers home correctly
 - ✅ Export produces valid format
@@ -350,6 +357,7 @@ echo "Current SID: $ORACLE_SID"
 ```
 
 **Pass Criteria**:
+
 - ✅ Environment switches successfully
 - ✅ ORACLE_* variables update correctly
 - ✅ Aliases work in new environment
@@ -395,6 +403,7 @@ oradba_env.sh status <sid_lowercase>
 ```
 
 **Pass Criteria**:
+
 - ✅ List commands display available environments
 - ✅ Show command displays detailed information
 - ✅ Validate command checks environment
@@ -432,6 +441,7 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 ```
 
 **Pass Criteria**:
+
 - ✅ Validation checks all critical components
 - ✅ Reports success for valid environment
 - ✅ Reports failures for invalid environment
@@ -469,6 +479,7 @@ oradba_env.sh status +ASM
 ```
 
 **Pass Criteria**:
+
 - ✅ Status command runs without errors
 - ✅ Correctly identifies product type (RDBMS vs GRID)
 - ✅ Shows accurate database state
@@ -516,6 +527,7 @@ lsnrctl status
 ```
 
 **Pass Criteria**:
+
 - ✅ sq alias starts SQL*Plus correctly
 - ✅ Directory aliases navigate to correct locations
 - ✅ taa shows alert log
@@ -561,6 +573,7 @@ EOF
 ```
 
 **Pass Criteria**:
+
 - ✅ Multiple users can use OraDBA simultaneously
 - ✅ User-specific configurations work
 - ✅ No permission conflicts
@@ -595,6 +608,7 @@ oradba_env.sh list sids
 ```
 
 **Pass Criteria**:
+
 - ✅ Clear error messages for missing environments
 - ✅ No crashes or undefined behavior
 - ✅ Handles corrupted configuration files
@@ -620,6 +634,7 @@ chmod 755 "$ORACLE_HOME"  # Restore
 ```
 
 **Pass Criteria**:
+
 - ✅ Detects permission issues
 - ✅ Provides clear error messages
 - ✅ Suggests corrective actions
@@ -646,6 +661,7 @@ rm -rf "$TEST_PATH" /tmp/oradba-link
 ```
 
 **Pass Criteria**:
+
 - ✅ Handles or reports special characters appropriately
 - ✅ Works correctly with symbolic links
 - ✅ Path resolution works correctly
@@ -708,6 +724,7 @@ After completing manual tests, document results:
 ## 6. Quick Reference
 
 ### Essential Commands
+
 ```bash
 # Installation
 ./dist/oradba_install.sh --prefix <path> --yes
@@ -731,6 +748,7 @@ oradba_validate.sh           # Validate installation
 ```
 
 ### Common Aliases
+
 ```bash
 sq      # SQL*Plus
 taa     # Tail alert log
@@ -741,6 +759,7 @@ rmanc   # RMAN connect
 ```
 
 ### Test Tips
+
 1. **Always backup** before testing destructive operations
 2. **Use test environments** when possible
 3. **Document unexpected behavior** even if it doesn't fail

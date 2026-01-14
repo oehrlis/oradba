@@ -401,6 +401,8 @@ show_database_status() {
         local df_size
         df_size=$(query_datafile_size "$open_mode")
         if [[ -n "$df_size" ]]; then
+            # Trim any leading/trailing whitespace
+            df_size=$(echo "$df_size" | xargs)
             printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
         fi
     fi
