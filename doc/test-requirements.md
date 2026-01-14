@@ -25,6 +25,7 @@ code coverage and reliability.
 ### Test Requirements
 
 #### Unit Tests (Isolated Functions)
+
 - Environment detection and validation
 - SID argument parsing
 - Configuration file sourcing order
@@ -32,6 +33,7 @@ code coverage and reliability.
 - Help and version display
 
 #### Integration Tests  
+
 - Full environment setup with valid SID
 - Environment setup without SID (default behavior)
 - Multiple rapid sourcing (idempotency)
@@ -39,6 +41,7 @@ code coverage and reliability.
 - Interaction with oradba_homes.conf
 
 #### Edge Cases
+
 - Invalid SID handling
 - Missing Oracle homes
 - Corrupted configuration files
@@ -58,6 +61,7 @@ code coverage and reliability.
 ### Test Requirements
 
 #### Unit Tests
+
 - Command-line argument parsing (start/stop/restart/status)
 - SID validation and selection
 - Environment sourcing per SID
@@ -65,6 +69,7 @@ code coverage and reliability.
 - PDB opening logic
 
 #### Integration Tests (Mocked)
+
 - Start operation with valid SID
 - Stop operation with graceful shutdown
 - Restart sequence
@@ -73,6 +78,7 @@ code coverage and reliability.
 - Force mode operations
 
 #### Edge Cases
+
 - Invalid SID provided
 - Timeout during shutdown
 - Database already running/stopped
@@ -92,12 +98,14 @@ code coverage and reliability.
 ### Test Requirements
 
 #### Unit Tests
+
 - Command-line argument parsing
 - Listener name parsing
 - ORACLE_HOME detection
 - TNS_ADMIN configuration
 
 #### Integration Tests (Mocked)
+
 - Start default listener
 - Start named listener
 - Stop listener
@@ -106,6 +114,7 @@ code coverage and reliability.
 - Multiple listener handling
 
 #### Edge Cases
+
 - No Oracle homes available
 - Missing listener.ora
 - TNS_ADMIN not set
@@ -124,12 +133,14 @@ code coverage and reliability.
 ### Test Requirements
 
 #### Unit Tests
+
 - Configuration file loading
 - Service order parsing
 - Dependency validation
 - Start/stop sequence generation
 
 #### Integration Tests (Mocked)
+
 - Start all services in order
 - Stop all services in reverse order
 - Restart sequence
@@ -138,6 +149,7 @@ code coverage and reliability.
 - Configuration template auto-copy
 
 #### Edge Cases
+
 - Missing configuration file
 - Circular dependencies
 - Service start failures mid-sequence
@@ -157,6 +169,7 @@ code coverage and reliability.
 ### Test Requirements
 
 #### Unit Tests
+
 - Directory existence checks
 - File existence checks
 - Permission checks
@@ -164,6 +177,7 @@ code coverage and reliability.
 - Pre-Oracle mode detection
 
 #### Integration Tests
+
 - Full validation pass (all files present)
 - Partial installation (missing optional files)
 - Modified files detection
@@ -171,6 +185,7 @@ code coverage and reliability.
 - Verbose vs. quiet output
 
 #### Edge Cases
+
 - Completely missing installation
 - Corrupted checksum file
 - Permission issues
@@ -183,22 +198,26 @@ code coverage and reliability.
 ## Implementation Strategy
 
 ### Phase 1: Critical Tests (oradba_env.sh)
+
 - Focus on core environment setup
 - Test configuration loading
 - Validate SID handling
 - **Target:** v0.24.0
 
 ### Phase 2: Control Scripts
+
 - oradba_dbctl.sh, oradba_lsnrctl.sh
 - Focus on mocked integration tests
 - **Target:** v0.25.0
 
 ### Phase 3: Service Orchestration
+
 - oradba_services.sh
 - Complex dependency handling
 - **Target:** v0.26.0
 
 ### Phase 4: Validation & Utilities
+
 - oradba_validate.sh
 - Additional utility scripts
 - **Target:** v0.27.0
@@ -208,12 +227,14 @@ code coverage and reliability.
 ## Test Infrastructure
 
 ### Existing Patterns
+
 - Use BATS (Bash Automated Testing System)
 - Mock external dependencies (sqlplus, lsnrctl, etc.)
 - Use temporary directories for file operations
 - Isolate tests from real Oracle installations
 
 ### Helper Functions Needed
+
 - `mock_oratab()` - Create temporary oratab
 - `mock_oracle_home()` - Create fake ORACLE_HOME structure
 - `mock_config_files()` - Generate test configurations
@@ -221,7 +242,8 @@ code coverage and reliability.
 - `teardown_test_env()` - Clean up after tests
 
 ### Test Organization
-```
+
+```text
 tests/
 ├── test_oradba_env.bats          # Main environment tests
 ├── test_oradba_dbctl.bats        # Database control tests
@@ -247,7 +269,7 @@ tests/
 ## References
 
 - Existing test patterns: tests/test_oradba_homes.bats (53 tests)
-- BATS documentation: https://github.com/bats-core/bats-core
+- BATS documentation: <https://github.com/bats-core/bats-core>
 - Mocking patterns: tests/test_common.bats
 
 ---

@@ -15,7 +15,13 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-# Get the absolute path of the script directory
+# ------------------------------------------------------------------------------
+# Function: get_script_dir
+# Purpose.: Get the absolute path of the script directory
+# Args....: None
+# Returns.: 0 on success
+# Output..: Absolute directory path
+# ------------------------------------------------------------------------------
 get_script_dir() {
     local source="${BASH_SOURCE[0]}"
     while [ -h "$source" ]; do
@@ -31,9 +37,14 @@ get_script_dir() {
 # Unified Logging System
 # ------------------------------------------------------------------------------
 
-# Initialize logging infrastructure
-# Creates log directory and sets up log file paths
-# Falls back to user home directory if system directory not writable
+# ------------------------------------------------------------------------------
+# Function: init_logging
+# Purpose.: Initialize logging infrastructure and create log directories
+# Args....: None
+# Returns.: 0 on success
+# Output..: Creates ORADBA_LOG_DIR, sets ORADBA_LOG_FILE, ORADBA_ERROR_LOG
+# Notes...: Falls back to ${HOME}/.oradba/logs if /var/log not writable
+# ------------------------------------------------------------------------------
 init_logging() {
     local log_dir="${ORADBA_LOG_DIR:-}"
 
@@ -73,8 +84,13 @@ init_logging() {
     return 0
 }
 
-# Initialize session logging
-# Creates individual log file for current session with metadata header
+# ------------------------------------------------------------------------------
+# Function: init_session_log
+# Purpose.: Initialize session-specific log file for current execution
+# Args....: None
+# Returns.: 0 on success
+# Output..: Sets ORADBA_SESSION_LOG environment variable
+# ------------------------------------------------------------------------------
 init_session_log() {
     # Only create session log if enabled and logging is initialized
     if [[ "${ORADBA_SESSION_LOGGING:-false}" != "true" ]]; then
