@@ -145,9 +145,11 @@ def cleanup_broken_links(docs_dir: Path) -> None:
         r'\[([^\]]+)\]\(lib/README\.md\)',       # lib/README.md
         r'\[([^\]]+)\]\(bin/[^\)]+\)',           # bin/...
         r'\[([^\]]+)\]\(README\.md\)',           # README.md (in same dir as index.md)
+        r'\[([^\]]+)\]\(\.\./README\.md\)',      # ../README.md (parent directory README)
         r'\[([^\]]+)\]\(release_notes/[^\)]*\)', # release_notes/
         r'\[([^\]]+)\]\(releases/[^\)]*\)',      # releases/
         r'\[([^\]]+)\]\(etc/\)',                 # etc/
+        r'\[([^\]]+)\]\(\.\./datasafe/\)',       # ../datasafe/ (extension subdirectory)
     ]
     
     files_cleaned = 0
