@@ -413,7 +413,7 @@ add_home() {
         # Check if any SID would create the same alias (lowercase SID = alias)
         local oratab_file="${ORATAB_FILE:-/etc/oratab}"
         if [[ -f "$oratab_file" ]]; then
-            while IFS=: read -r sid home flag; do
+            while IFS=: read -r sid _home _flag; do
                 [[ "$sid" =~ ^[[:space:]]*# ]] && continue
                 [[ -z "$sid" ]] && continue
                 
@@ -962,7 +962,7 @@ import_config() {
             database|oud|client|weblogic|oms|emagent|datasafe) ;;
             *)
                 log_error "Line $line_num: Invalid product type '$h_type'"
-                ((errors++)
+                ((errors++))
                 ;;
         esac
     done < "$temp_file"
@@ -992,7 +992,7 @@ import_config() {
 
     # Show summary
     local count
-    count=$(grep -v "^#" "$homes_file" | grep -v "^$" | wc -l | tr -d ' ')
+    count=$(grep -v -c "^#\|^$" "$homes_file" 2>/dev/null || echo "0")
     echo "Imported $count Oracle Home(s)"
 
     return 0
