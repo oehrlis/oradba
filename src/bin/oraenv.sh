@@ -77,6 +77,11 @@ if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh"
 fi
 
+# Source configuration management library (Phase 2)
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_config.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_env_config.sh"
+fi
+
 # Global variables - declared at script level so they persist across functions
 # shellcheck disable=SC2034  # Used across functions in _oraenv_parse_args and _oraenv_main
 SHOW_ENV=true

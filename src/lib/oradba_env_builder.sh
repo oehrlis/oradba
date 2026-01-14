@@ -30,6 +30,14 @@ if [[ -z "${ORADBA_ENV_PARSER_LOADED}" ]]; then
     fi
 fi
 
+# Require config functions (Phase 2)
+if [[ -z "${ORADBA_ENV_CONFIG_LOADED}" ]]; then
+    if [[ -f "${ORADBA_BASE}/lib/oradba_env_config.sh" ]]; then
+        # shellcheck source=./oradba_env_config.sh
+        source "${ORADBA_BASE}/lib/oradba_env_config.sh"
+    fi
+fi
+
 # ------------------------------------------------------------------------------
 # Function: oradba_clean_path
 # Purpose.: Remove Oracle-related directories from PATH
@@ -448,6 +456,11 @@ oradba_build_environment() {
     # Special handling for ASM
     if oradba_is_asm_instance "$oracle_sid"; then
         oradba_set_asm_environment
+    fi
+    
+    # Apply configuration files (Phase 2)
+    if command -v oradba_apply_product_config &>/dev/null; then
+        oradba_apply_product_config "$product_type" "$oracle_sid"
     fi
     
     # Set tracking variables

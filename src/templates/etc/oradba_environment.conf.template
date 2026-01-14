@@ -1,0 +1,191 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_environment.conf.template
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026-01-14
+# Revision...: 0.19.1
+# Purpose....: Section-based environment configuration template
+# Notes......: Copy this file to one of the following locations:
+#              - oradba_local.conf (site/host-specific settings)
+#              - oradba_customer.conf (customer customizations)
+#              - etc/sid/sid.<SID>.conf (SID-specific settings)
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# ==============================================================================
+# Section: [DEFAULT]
+# Applied to all environments regardless of product type
+# ==============================================================================
+
+[DEFAULT]
+
+# Editor and terminal settings
+export EDITOR=vi
+export VISUAL=vi
+export ORACLE_TERM=xterm
+
+# NLS settings (default for all products)
+export NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+export NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
+export NLS_TIMESTAMP_FORMAT="YYYY-MM-DD HH24:MI:SS.FF"
+
+# Default aliases (available in all environments)
+alias ll='ls -la'
+alias h='history'
+alias c='clear'
+
+# ==============================================================================
+# Section: [RDBMS]
+# Applied only to Oracle Database (RDBMS) environments
+# ==============================================================================
+
+[RDBMS]
+
+# TNS and SQL settings
+export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+export SQLPATH="${ORADBA_BASE}/sql:${ORACLE_HOME}/rdbms/admin"
+export TWO_TASK=""
+
+# Oracle specific
+export ORACLE_PATH="${ORADBA_BASE}/sql"
+export ORACLE_DOC="${ORACLE_HOME}/doc"
+
+# Database aliases
+alias sqlplus='sqlplus -L'
+alias sqldba='sqlplus / as sysdba'
+alias rman='rman target /'
+alias dgmgrl='dgmgrl /'
+
+# Navigation aliases
+alias dbs='cd ${ORACLE_HOME}/dbs'
+alias admin='cd ${ORACLE_BASE}/admin'
+alias diag='cd ${ORACLE_BASE}/diag'
+alias trace='cd ${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}/trace'
+alias alert='tail -f ${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}/trace/alert_${ORACLE_SID}.log'
+
+# ==============================================================================
+# Section: [CLIENT]
+# Applied to full Oracle Client installations
+# ==============================================================================
+
+[CLIENT]
+
+# Client-specific paths
+export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+export SQLPATH="${ORADBA_BASE}/sql"
+export TWO_TASK=""
+
+# Client aliases
+alias sqlplus='sqlplus -L'
+alias tnsping='tnsping'
+
+# ==============================================================================
+# Section: [ICLIENT]
+# Applied to Oracle Instant Client installations
+# ==============================================================================
+
+[ICLIENT]
+
+# Instant Client specific
+export TNS_ADMIN="${ORADBA_BASE}/network/admin"
+export SQLPATH="${ORADBA_BASE}/sql"
+export NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+
+# Ensure library path is set (handled by builder, but can be overridden)
+# export LD_LIBRARY_PATH="${ORACLE_HOME}:${LD_LIBRARY_PATH}"
+
+# Instant Client aliases
+alias sqlplus='sqlplus -L'
+
+# ==============================================================================
+# Section: [GRID]
+# Applied to Grid Infrastructure environments
+# ==============================================================================
+
+[GRID]
+
+# Grid specific
+export ORACLE_TERM=xterm
+export GRID_HOME="${ORACLE_HOME}"
+
+# Grid aliases
+alias crsctl='crsctl'
+alias asmcmd='asmcmd'
+alias srvctl='srvctl'
+alias crs='crsctl stat res -t'
+alias asm='asmcmd'
+
+# Navigation aliases
+alias grid='cd ${GRID_HOME}'
+alias gridtrace='cd ${GRID_HOME}/log/${HOSTNAME}'
+
+# ==============================================================================
+# Section: [ASM]
+# Applied to ASM instances (+ASM*)
+# ==============================================================================
+
+[ASM]
+
+# ASM specific
+export ORACLE_SYSASM="TRUE"
+
+# ASM aliases
+alias asmcmd='asmcmd -p'
+alias asmdba='sqlplus / as sysasm'
+
+# ==============================================================================
+# Section: [DATASAFE]
+# Applied to Oracle Data Safe On-Premises Connector
+# ==============================================================================
+
+[DATASAFE]
+
+# DataSafe specific
+export DATASAFE_HOME="${ORACLE_HOME}"
+export DATASAFE_CONFIG="${ORACLE_HOME}/config"
+export DATASAFE_LOG="${ORACLE_HOME}/logs"
+
+# DataSafe aliases
+alias dsctl='${DATASAFE_HOME}/bin/datasafe-control'
+alias dslogs='cd ${DATASAFE_LOG}'
+
+# ==============================================================================
+# Section: [OUD]
+# Applied to Oracle Unified Directory instances
+# ==============================================================================
+
+[OUD]
+
+# OUD specific
+export OUD_INSTANCE_HOME="${ORACLE_HOME}/instances/${ORACLE_SID}"
+export OUD_INSTANCE_CONFIG="${OUD_INSTANCE_HOME}/OUD/config"
+
+# OUD aliases
+alias oudctl='${ORACLE_HOME}/bin/dsconfig'
+alias oudstatus='${ORACLE_HOME}/bin/status'
+alias oudlogs='cd ${OUD_INSTANCE_HOME}/OUD/logs'
+
+# ==============================================================================
+# Section: [WLS]
+# Applied to Oracle WebLogic Server domains
+# ==============================================================================
+
+[WLS]
+
+# WebLogic specific
+export WLS_HOME="${ORACLE_HOME}/wlserver"
+export DOMAIN_HOME="${WLS_DOMAIN_BASE}/${ORACLE_SID}"
+
+# WebLogic aliases
+alias wlsstart='${DOMAIN_HOME}/startWebLogic.sh'
+alias wlsstop='${DOMAIN_HOME}/bin/stopWebLogic.sh'
+alias wlsconsole='${DOMAIN_HOME}/bin/startManagedWebLogic.sh'
+alias wlslogs='cd ${DOMAIN_HOME}/servers/AdminServer/logs'
+
+# ==============================================================================
+# End of configuration template
+# ==============================================================================

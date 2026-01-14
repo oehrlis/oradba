@@ -7,6 +7,144 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-01-14
+
+### Added
+
+- **Phase 2: Configuration Management System** - Section-based hierarchical configuration for environment customization
+  - New `oradba_env_config.sh` library (8 functions) for configuration processing:
+    - `oradba_apply_config_section` - Parse and apply specific section from config file
+    - `oradba_load_generic_configs` - Load all configs in hierarchy order
+    - `oradba_load_sid_config` - Load SID-specific configuration overrides
+    - `oradba_apply_product_config` - Main entry point for product config application
+    - `oradba_expand_variables` - Expand ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE} variables
+    - `oradba_list_config_sections` - List all sections in config file
+    - `oradba_validate_config_file` - Syntax validation for config files
+    - `oradba_get_config_value` - Extract specific values from config sections
+  
+  - **Section-based configuration format** with INI-like syntax:
+    - `[DEFAULT]` - Variables applied to all product types
+    - `[RDBMS]` - Oracle Database specific settings
+    - `[CLIENT]` - Full Client specific settings
+    - `[ICLIENT]` - Instant Client specific settings
+    - `[GRID]` - Grid Infrastructure specific settings
+    - `[ASM]` - ASM instance specific settings
+    - `[DATASAFE]` - Oracle Data Safe specific settings
+    - `[OUD]` - Oracle Unified Directory specific settings
+    - `[WLS]` - WebLogic Server specific settings
+  
+  - **Hierarchical configuration loading** (later configs override earlier):
+    1. `oradba_core.conf` - System-wide core configuration
+    2. `oradba_standard.conf` - Standard organizational settings
+    3. `oradba_local.conf` - Local site-specific settings
+    4. `oradba_customer.conf` - Customer-specific overrides
+    5. `etc/sid/sid.<SID>.conf` - Instance-specific configurations
+  
+  - **New configuration template**: `oradba_environment.conf.template`
+    - Complete examples for all 9 product sections
+    - Variable expansion examples (${ORACLE_HOME}, ${ORACLE_SID})
+    - Product-specific aliases (70+ examples):
+      - RDBMS: sqlplus, sqldba, rman, dbs, admin, trace, alert
+      - GRID: crsctl, asmcmd, srvctl, crs, admin, log
+      - CLIENT: sqlplus, tnsping, tns
+      - And more for all products
+    - Navigation shortcuts per product type
+    - ASM special handling within RDBMS and GRID sections
+  
+  - **Variable expansion support** in config files:
+    - `${ORACLE_HOME}` - Expands to current Oracle Home path
+    - `${ORACLE_SID}` - Expands to current SID
+    - `${ORACLE_BASE}` - Expands to Oracle Base directory
+    - `${ORADBA_BASE}` - Expands to OraDBA installation directory
+    - Eval-based expansion within controlled config context
+  
+  - **Configuration validation framework**:
+    - Section header syntax checking
+    - Variable assignment validation
+    - Alias syntax verification
+    - Detects malformed sections and invalid syntax
+    - Provides clear error messages with line numbers
+
+### Changed
+
+- **oradba_env_builder.sh** - Enhanced to apply configuration after environment setup
+  - Added sourcing of `oradba_env_config.sh` library
+  - Integrated `oradba_apply_product_config` call in `oradba_build_environment`
+  - Configuration applied after product-specific environment, before ASM handling
+  - Graceful handling of missing config files
+
+- **oraenv.sh Integration** - Updated to source configuration management library
+  - Added conditional loading of `oradba_env_config.sh` (Phase 2)
+  - Configuration functions available when environment is loaded
+  - Maintains backward compatibility with Phase 1 functionality
+
+### Enhanced
+
+- **ASM Product Support** - ASM now recognized as standalone product type
+  - Added ASM case in `oradba_apply_product_config`
+  - ASM configs can be applied directly or as part of RDBMS/GRID
+  - Special handling for +ASM prefixed SIDs
+  - ASM-specific variables (ORACLE_SYSASM) supported
+
+### Testing
+
+- **28 Unit Tests** for configuration processor (test_oradba_env_config.bats):
+  - Section listing and parsing tests
+  - Config section application tests (export, alias, variable expansion)
+  - Validation tests (valid/invalid syntax detection)
+  - Config value extraction tests
+  - Variable expansion tests (ORACLE_HOME, ORACLE_SID, ORACLE_BASE)
+  - Product config application tests (all 9 products)
+  - Config hierarchy tests (core → standard → local override)
+  - SID-specific config tests
+  - Integration test with complete hierarchy
+
+- **23 Functional Tests** for integrated configuration system (functional_test_phase2.sh):
+  - Basic configuration loading
+  - Configuration hierarchy (core < standard < local)
+  - Product-specific sections (RDBMS, CLIENT, GRID)
+  - SID-specific configuration overrides
+  - Variable expansion in real scenarios
+  - Alias creation and verification
+  - Configuration validation (valid/invalid)
+  - ASM configuration handling
+  - Section listing functionality
+  - Config value extraction
+
+### Fixed
+
+- Configuration loading with missing files now handled gracefully (returns 0, no error)
+- SID config loading failure doesn't break product config application
+- Validation properly detects malformed section headers
+- ASM product type now fully supported as standalone configuration
+
+### Documentation
+
+- Phase 2 implementation documented in `doc/oradba-env-design.md`
+- Configuration template with comprehensive examples
+- All Phase 2 functions documented with purpose, arguments, returns, output
+
+### Compatibility
+
+- Phase 1 functionality fully preserved (parser, builder, validator)
+- All 22 Phase 1 unit tests still passing
+- Phase 1 functional tests still passing
+- Backward compatible with existing environment setup
+
+### Deliverables
+
+Phase 2 completes the configuration management system with:
+- 1 new library (oradba_env_config.sh, 349 lines, 8 functions)
+- 1 new template (oradba_environment.conf.template, 175 lines)
+- 28 unit tests (all passing)
+- 23 functional tests (all passing)
+- Updated integration in builder and oraenv.sh
+- Complete variable expansion support
+- Validation framework
+- 9 product sections supported
+- Hierarchical config loading (5 levels)
+- SID-specific override capability
+
 ## [0.19.0] - 2026-01-14
 
 ### Added
