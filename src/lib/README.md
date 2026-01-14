@@ -7,15 +7,15 @@ Shared shell libraries providing common functionality for OraDBA scripts and fun
 This directory contains reusable shell libraries that provide core functionality for OraDBA. The libraries are
 organized into three categories:
 
-1. **Phase 1-3 Libraries** (v0.19.0-v0.21.0): Modern library-based architecture with Parser, Builder, Validator,
-Config Manager, Status Display, and Change Tracker
-2. **Core Libraries**: Essential libraries (common.sh, db_functions.sh, aliases.sh) providing logging, database
-operations, and alias management - actively used across the system
+1. **Environment Management Libraries** (oradba_env_*): Modern library-based architecture with Parser, Builder,
+Validator, Config Manager, Status Display, and Change Tracker
+2. **Core Utility Libraries**: Essential libraries (common.sh, db_functions.sh, aliases.sh) providing logging,
+database operations, and alias management - actively used across the system
 3. **Extension Framework**: Extensibility support for custom functionality
 
 ## Available Libraries
 
-### Phase 1-3 Architecture Libraries (v0.19.0+)
+### Environment Management Libraries (oradba_env_*)
 
 | Library                                | Description                                  | Functions   |
 |----------------------------------------|----------------------------------------------|-------------|
@@ -26,9 +26,9 @@ operations, and alias management - actively used across the system
 | [oradba_env_status.sh]                 | Display environment and service status       | 8 functions |
 | [oradba_env_changes.sh]                | Track configuration changes and auto-reload  | 7 functions |
 
-**Total Phase 1-3 Functions:** 47 functions
+**Total Environment Libraries Functions:** 47 functions
 
-### Core Libraries (Active - Fully Integrated)
+### Core Utility Libraries
 
 | Library                                | Description                           | Functions     |
 |----------------------------------------|---------------------------------------|---------------|
@@ -36,7 +36,7 @@ operations, and alias management - actively used across the system
 | [db_functions.sh](db_functions.sh)     | Database queries and status           | 11 functions  |
 | [aliases.sh](aliases.sh)               | Dynamic alias generation              | 5 functions   |
 
-**Total Core Functions:** 66 functions
+**Total Core Utility Functions:** 66 functions
 
 ### Extension Framework
 
@@ -48,9 +48,9 @@ operations, and alias management - actively used across the system
 
 ## Usage
 
-### Phase 1-3 Library Usage (v0.19.0+)
+### Environment Library Usage
 
-The Phase 1-3 libraries are automatically loaded by `oradba_env.sh` (the main environment builder):
+The environment management libraries (oradba_env_*) are automatically loaded by `oradba_env.sh`:
 
 ```bash
 # In oradba_env.sh
@@ -81,9 +81,9 @@ oradba_show_environment
 oradba_auto_reload_on_change
 ```
 
-### Core Library Usage
+### Core Utility Library Usage
 
-Source core libraries at the beginning of your scripts:
+Source core utility libraries at the beginning of your scripts:
 
 ```bash
 #!/usr/bin/env bash
@@ -98,8 +98,8 @@ oradba_log INFO "Starting script..."
 db_status=$(get_db_status)
 oradba_log INFO "Database status: ${db_status}"
 
-# Legacy logging functions still work (backward compatible)
-log_info "Starting script..."  # Still supported but deprecated
+# Deprecated logging functions still work (backward compatible)
+log_info "Starting script..."  # Deprecated v0.13.1 - use oradba_log INFO
 log_info "Database status: ${db_status}"
 ```
 
@@ -116,7 +116,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 
 ## Library Functions
 
-### Phase 1-3 Architecture Functions
+### Environment Management Library Functions
 
 #### oradba_env_parser.sh - Configuration Parser
 
@@ -198,7 +198,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `oradba_clear_change_tracking` - Clear stored signatures
 - `oradba_auto_reload_on_change` - Auto-reload environment on config change
 
-### Core Library Functions
+### Core Utility Library Functions
 
 #### common.sh - Core Utilities
 
@@ -333,7 +333,7 @@ Libraries respect these environment variables:
 - `ORACLE_BASE` - Oracle base directory
 - `TNS_ADMIN` - TNS configuration directory
 
-### Phase 1-3 Variables (v0.19.0+)
+### Environment Library Variables
 
 - `ORADBA_PARSER_DEBUG` - Enable parser debug output
 - `ORADBA_VALIDATOR_STRICT` - Enable strict validation mode
