@@ -106,19 +106,19 @@ ls -la dist/oradba-1.0.0-dev.tar.gz dist/oradba_install.sh
 cd dist && sha256sum oradba_install.sh
 
 # 4. Test installation to temporary location
-mkdir -p /tmp/oradba-test
-./dist/oradba_install.sh --prefix /tmp/oradba-test --yes
+mkdir -p /opt/oracle/local/oradba
+./dist/oradba_install.sh --prefix /opt/oracle/local/oradba --yes
 
 # 5. Verify installation
-ls -la /tmp/oradba-test/
+ls -la /opt/oracle/local/oradba/
 # Expected: bin/, lib/, etc/, sql/, rcv/, templates/, .install_info, VERSION
 
 # 6. Check VERSION file
-cat /tmp/oradba-test/VERSION
+cat /opt/oracle/local/oradba/VERSION
 # Expected: 1.0.0-dev
 
 # 7. Check .install_info
-cat /tmp/oradba-test/.install_info
+cat /opt/oracle/local/oradba/.install_info
 # Expected fields:
 # - install_date=<timestamp>
 # - install_version=1.0.0-dev
@@ -128,15 +128,15 @@ cat /tmp/oradba-test/.install_info
 # - basenv_detected=no
 
 # 8. Verify core libraries present
-ls -la /tmp/oradba-test/lib/oradba_env_*.sh
+ls -la /opt/oracle/local/oradba/lib/oradba_env_*.sh
 # Expected: 6 files (parser, builder, validator, config, status, changes)
 
 # 9. Verify configuration files
-ls -la /tmp/oradba-test/etc/oradba_{core,standard,services}.conf
+ls -la /opt/oracle/local/oradba/etc/oradba_{core,standard,services}.conf
 # Expected: All 3 files present
 
 # 10. Cleanup
-rm -rf /tmp/oradba-test
+rm -rf /opt/oracle/local/oradba
 ```
 
 **Acceptance Criteria**:
@@ -156,7 +156,7 @@ rm -rf /tmp/oradba-test
 
 ```bash
 # 1. Source oraenv for existing SID
-source /tmp/oradba-test/bin/oraenv.sh <YOUR_SID>
+source /opt/oracle/local/oradba/bin/oraenv.sh <YOUR_SID>
 
 # 2. Verify environment variables
 echo $ORACLE_SID
@@ -203,20 +203,16 @@ oradba_homes.sh list
 
 ```bash
 # 1. Check core configuration loaded
-grep -l "oradba_core.conf" /tmp/oradba-test/etc/
+grep -l "oradba_core.conf" /opt/oracle/local/oradba/etc/
 # Expected: File exists
 
 # 2. Test configuration hierarchy
-cat /tmp/oradba-test/etc/oradba_core.conf | head -20
+cat /opt/oracle/local/oradba/etc/oradba_core.conf | head -20
 # Expected: Core defaults with [DEFAULT] section
 
-# 3. Test configuration validation
-oradba_validate_config.sh /tmp/oradba-test/etc/oradba_core.conf
-# Expected: Validation passes (if command exists)
-
-# 4. Check product sections
-grep "^\[RDBMS\]" /tmp/oradba-test/etc/oradba_standard.conf
-grep "^\[CLIENT\]" /tmp/oradba-test/etc/oradba_standard.conf
+# 3. Check product sections
+grep "^\[RDBMS\]" /opt/oracle/local/oradba/etc/oradba_standard.conf
+grep "^\[CLIENT\]" /opt/oracle/local/oradba/etc/oradba_standard.conf
 # Expected: Both sections found
 ```
 
@@ -435,10 +431,10 @@ make test-full
 make clean && make build
 
 # Install to test location
-./dist/oradba_install.sh --prefix /tmp/oradba-test --yes
+./dist/oradba_install.sh --prefix /opt/oracle/local/oradba --yes
 
 # Test environment loading
-source /tmp/oradba-test/bin/oraenv.sh <SID>
+source /opt/oracle/local/oradba/bin/oraenv.sh <SID>
 
 # Verify v1.0.0 features
 oradba_env.sh status
@@ -446,7 +442,7 @@ oradba_env.sh validate
 oradba_homes.sh export
 
 # Cleanup test installation
-rm -rf /tmp/oradba-test
+rm -rf /opt/oracle/local/oradba
 ```
 
 ## Expected Timeline
