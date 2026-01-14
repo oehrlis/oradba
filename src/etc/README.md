@@ -97,7 +97,22 @@ vi $ORADBA_BASE/etc/sid.PRODDB.conf
 # Add settings specific to PRODDB
 export ORADBA_NO_PDB_ALIASES="true"
 export TNS_ADMIN="/opt/oracle/network/admin"
+export CUSTOM_VAR="specific_to_PRODDB"
 ```
+
+**Environment Isolation**: SID-specific variables are automatically cleaned up when switching to a different SID. This ensures proper environment isolation:
+
+```bash
+# Set PRODDB environment
+source oraenv.sh PRODDB
+echo $CUSTOM_VAR  # Output: specific_to_PRODDB
+
+# Switch to TESTDB environment
+source oraenv.sh TESTDB
+echo $CUSTOM_VAR  # Output: <empty> - automatically cleaned up!
+```
+
+Variables from core, standard, customer, and `sid._DEFAULT_.conf` persist across SID switches (shared configuration), while variables from `sid.<SID>.conf` are SID-specific and cleaned up on environment changes.
 
 ### rlwrap Configuration
 

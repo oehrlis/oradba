@@ -25,6 +25,7 @@ mappings:
     - test_sid_config.bats
     - test_logging.bats
     - test_execute_db_query.bats
+    - manual/test_sid_variable_isolation.sh
   
   src/lib/oradba_aliases.sh:
     - test_oradba_aliases.bats
@@ -134,6 +135,12 @@ mappings:
   
   src/etc/sid.ORCL.conf.example:
     - test_sid_config.bats
+    - manual/test_sid_variable_isolation.sh
+  
+  # Templates for SID configuration
+  src/templates/etc/sid.ORACLE_SID.conf.example:
+    - test_sid_config.bats
+    - manual/test_sid_variable_isolation.sh
   
   # RMAN configuration
   src/rcv/*.rman:

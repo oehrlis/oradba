@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **SID Configuration Variable Isolation** (2026-01-14)
+  - Fixed environment pollution where SID-specific variables persisted across environment switches
+  - Added `cleanup_previous_sid_config()` to unset previous SID variables
+  - Added `capture_sid_config_vars()` to track new SID variables
+  - Variables from `sid.<SID>.conf` now properly cleaned up on SID switch
+  - Shared configs (core, standard, customer, sid._DEFAULT_) remain global as intended
+  - Test: `tests/manual/test_sid_variable_isolation.sh` (7 tests passing)
+
+- **oradba_homes.sh Critical Fixes** (2026-01-14)
+  - Fixed syntax error at line 966: missing closing parenthesis `((errors++)` → `((errors++))`
+  - Fixed show command to accept both paths and names/aliases
+  - Fixed description truncation in list output (now shows full text or truncates at 39 chars with ellipsis)
+  - Added alias conflict detection with existing SID aliases
+  - Improved import validation to reject invalid format, paths, and product types
+  - Fixed shellcheck warnings: unused variables (home, flag) → (_home, _flag)
+  - Improved grep usage: `grep | wc -l` → `grep -c` for better performance
+
+### Changed
+
+- **Environment Isolation** (2026-01-14)
+  - Enhanced `load_config()` to cleanup previous SID variables before loading new SID
+  - SID-specific variables now properly isolated between environments
+  - Critical Oracle/OraDBA variables (ORACLE_*, ORADBA_*, PATH, etc.) protected from cleanup
+
+### Added
+
+- **SID Variable Isolation Test** (2026-01-14)
+  - New test: `tests/manual/test_sid_variable_isolation.sh`
+  - 7 automated unit tests for cleanup/capture functions
+  - Manual test instructions for real Oracle environments
+  - Color-coded output and comprehensive test reporting
+
 ## [1.0.0] - 2026-01-XX
 
 ### Breaking Changes

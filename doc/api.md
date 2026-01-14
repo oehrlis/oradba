@@ -855,6 +855,69 @@ load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf" "false"
 - Includes centralized `shellcheck source=/dev/null` directive
 - Used internally by `load_config()` function
 
+### cleanup_previous_sid_config
+
+Clean up variables from previous SID-specific configuration (v1.0.0+).
+
+**Signature**: `cleanup_previous_sid_config`
+
+**Purpose**: Unsets variables that were set by the previous SID's configuration file to ensure environment isolation when switching between SIDs.
+
+**Behavior**:
+
+- Reads variable list from `ORADBA_PREV_SID_VARS`
+- Unsets each tracked variable except critical ones
+- Protected variables: `ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`, `ORADBA_*`, `PATH`, `LD_LIBRARY_PATH`, `TNS_ADMIN`, `NLS_LANG`
+- Clears `ORADBA_PREV_SID_VARS` after cleanup
+
+**Returns**: Always returns `0`
+
+**Example**:
+
+```bash
+# Called automatically by load_config()
+# Manual usage rarely needed, but possible:
+cleanup_previous_sid_config
+```
+
+**See Also**: `capture_sid_config_vars()`, `load_config()`
+
+### capture_sid_config_vars
+
+Capture and track variables set by SID-specific configuration (v1.0.0+).
+
+**Signature**: `capture_sid_config_vars <sid_config_file>`
+
+**Parameters**:
+
+- `sid_config_file` - Path to SID configuration file
+
+**Purpose**: Tracks which variables are added by a SID configuration file by comparing the environment before and after loading.
+
+**Behavior**:
+
+- Captures current exported variables (before loading)
+- Sources the SID config file with auto-export enabled
+- Captures exported variables after loading
+- Calculates difference and stores in `ORADBA_PREV_SID_VARS`
+- List used by `cleanup_previous_sid_config()` on next SID switch
+
+**Returns**:
+
+- `0` - Variables captured successfully
+- `1` - Configuration file not found
+
+**Example**:
+
+```bash
+# Called automatically by load_config()
+# Manual usage for testing:
+capture_sid_config_vars "$ORADBA_BASE/etc/sid.PRODDB.conf"
+echo "Tracked vars: $ORADBA_PREV_SID_VARS"
+```
+
+**See Also**: `cleanup_previous_sid_config()`, `load_config()`
+
 ### load_config
 
 Load hierarchical configuration files for OraDBA environment.
@@ -872,6 +935,15 @@ Load hierarchical configuration files for OraDBA environment.
 3. Customer configuration: `oradba_customer.conf` (optional)
 4. Default SID configuration: `sid._DEFAULT_.conf` (optional)
 5. SID-specific configuration: `sid.<ORACLE_SID>.conf` (optional, auto-created if enabled)
+
+**Environment Isolation** (v1.0.0+):
+
+SID-specific variables (from `sid.<SID>.conf`) are automatically tracked and cleaned up when switching to a different SID. This ensures proper environment isolation:
+
+- Variables from configs 1-4 persist across SID switches (shared configuration)
+- Variables from config 5 (`sid.<SID>.conf`) are SID-specific and cleaned up on switch
+- Uses `cleanup_previous_sid_config()` and `capture_sid_config_vars()` internally
+- Critical Oracle/OraDBA variables (ORACLE_*, ORADBA_*, PATH, etc.) are never cleaned up
 
 **Returns**:
 
@@ -892,6 +964,14 @@ if ! load_config "${ORACLE_SID}"; then
     echo "ERROR: Failed to load configuration"
     return 1
 fi
+
+# Environment isolation example
+# sid.PROD.conf: export CUSTOM_VAR="prod_value"
+# sid.TEST.conf: export CUSTOM_VAR="test_value"
+load_config "PROD"
+echo $CUSTOM_VAR  # Output: prod_value
+load_config "TEST"
+echo $CUSTOM_VAR  # Output: test_value (PROD's value cleaned up!)
 ```
 
 **Auto-export Behavior**:
