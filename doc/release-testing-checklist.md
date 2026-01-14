@@ -16,7 +16,7 @@ coexistence environments before publishing release.
 
 ### Build and Tests
 
-- [ ] All 492 tests passing locally (`make test-full`)
+- [ ] All 892 tests passing locally (`make test-full`)
 - [ ] Build succeeds (`make build`)
 - [ ] Distribution tarball created (`dist/oradba-X.X.X.tar.gz`)
 - [ ] Installer script created (`dist/oradba_install.sh`)
