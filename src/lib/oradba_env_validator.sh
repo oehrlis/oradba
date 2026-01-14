@@ -25,6 +25,7 @@ readonly ORADBA_ENV_VALIDATOR_LOADED=1
 # Args....: $1 - ORACLE_HOME (optional, uses $ORACLE_HOME if not provided)
 # Returns.: 0 if valid, 1 if not
 # ------------------------------------------------------------------------------
+# shellcheck disable=SC2120  # Optional argument pattern
 oradba_validate_oracle_home() {
     local oracle_home="${1:-${ORACLE_HOME}}"
     
