@@ -12,7 +12,7 @@ oradba is a professional Oracle Database administration toolset built on a modul
 The OraDBA system consists of multiple layers working together:
 
 - **Entry Points**: oraenv.sh wrapper, oradba_env.sh builder, oradba_homes.sh manager
-- **Phase 1-3 Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
+- **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
 - **Core Libraries**: common.sh (logging/utilities), db_functions.sh, aliases.sh
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
 - **Oracle Integration**: oratab, oradba_homes.conf, Oracle instances, listeners, PDBs
@@ -34,11 +34,11 @@ The OraDBA system consists of multiple layers working together:
 
 #### oradba_env.sh - Main Environment Builder
 
-**Purpose**: Build complete Oracle environment using Phase 1-3 libraries.
+**Purpose**: Build complete Oracle environment using Environment Management libraries.
 
 **Key Features**:
 
-- Load and coordinate Phase 1-3 libraries
+- Load and coordinate Environment Management libraries
 - Parse hierarchical configuration files
 - Build Oracle environment (PATH, LD_LIBRARY_PATH, etc.)
 - Validate Oracle installations
@@ -52,15 +52,15 @@ The OraDBA system consists of multiple layers working together:
 The execution flow shows:
 
 1. Wrapper receives SID/Home name
-2. Load Phase 1-3 libraries
+2. Load Environment Management libraries
 3. Parser merges 6 configuration levels
 4. Builder constructs environment variables
 5. Validator checks Oracle installation
 6. Status display shows summary
 
-### 2. Phase 1-3 Library System
+### 2. Environment Management Library System
 
-![Phase 1-3 Library Architecture](images/phase1-3-libraries.png)
+![Environment Management Library Architecture](images/phase1-3-libraries.png)
 
 #### Phase 1: Configuration Parser (oradba_env_parser.sh)
 
@@ -166,7 +166,7 @@ DBHOME19:/u01/app/oracle/product/19/dbhome_1:database:2:rdbms19:Oracle 19c:1920
 
 ![Configuration Hierarchy](images/config-hierarchy.png)
 
-Configuration flows through six levels, processed by Phase 1-3 libraries:
+Configuration flows through six levels, processed by Environment Management libraries:
 
 1. **Core** (`oradba_core.conf`) - System defaults, installation paths
 2. **Standard** (`oradba_standard.conf`) - Standard Oracle paths and settings
@@ -233,7 +233,7 @@ The parser reads from multiple sources (6 config files), resolves variable refer
 
 ## Design Principles
 
-1. **Library-Based Architecture**: Phase 1-3 libraries provide modular, testable components
+1. **Library-Based Architecture**: Environment Management libraries provide modular, testable components
 2. **Separation of Concerns**: Parser, Builder, Validator have distinct responsibilities
 3. **Hierarchical Configuration**: 6-level override system provides flexibility without complexity
 4. **Auto-Detection**: Intelligently derives ORACLE_BASE, product type, version
@@ -257,4 +257,4 @@ The parser reads from multiple sources (6 config files), resolves variable refer
 - [development.md](development.md) - Development guide
 - [README.md](README.md) - Developer documentation index
 - [../README.md](../README.md) - Main project documentation
-- [Phase 1-3 Design](oradba-env-design.md) - Detailed Phase 1-3 architecture
+- [Environment Management Design](oradba-env-design.md) - Detailed Environment Management library architecture
