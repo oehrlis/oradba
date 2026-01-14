@@ -443,28 +443,6 @@ command_exists() {
 # Coexistence Mode Functions (TVD BasEnv / DB*Star)
 # ------------------------------------------------------------------------------
 
-# Detect if TVD BasEnv or DB*Star is active
-# Checks for BE_HOME environment variable or .BE_HOME file in home directory
-# Returns: 0 if detected, 1 if not detected
-detect_basenv() {
-    # Check if BE_HOME is already set
-    if [[ -n "${BE_HOME}" ]]; then
-        return 0
-    fi
-
-    # Check for .BE_HOME file in home directory
-    if [[ -f "${HOME}/.BE_HOME" ]]; then
-        return 0
-    fi
-
-    # Check for .TVDPERL_HOME file (another basenv marker)
-    if [[ -f "${HOME}/.TVDPERL_HOME" ]]; then
-        return 0
-    fi
-
-    return 1
-}
-
 # Check if an alias or command already exists
 # Usage: alias_exists alias_name
 # Returns: 0 if exists, 1 if not
@@ -1007,30 +985,6 @@ get_oracle_home_type() {
 
     home_info=$(parse_oracle_home "${name}") || return 1
     echo "${home_info}" | awk '{print $3}'
-}
-
-# Get version for a named home
-# Arguments:
-#   $1 - Home name
-# Returns: Version (AUTO, XXYZ, ERR, or Unknown)
-get_oracle_home_version() {
-    local name="$1"
-    local home_info
-
-    home_info=$(parse_oracle_home "${name}") || return 1
-    local version
-    version=$(echo "${home_info}" | awk '{print $7}')
-    
-    # If version is AUTO, detect it dynamically
-    if [[ "${version}" == "AUTO" ]] || [[ -z "${version}" ]]; then
-        local oracle_home
-        oracle_home=$(echo "${home_info}" | awk '{print $2}')
-        local product_type
-        product_type=$(echo "${home_info}" | awk '{print $3}')
-        version=$(detect_oracle_version "${oracle_home}" "${product_type}")
-    fi
-    
-    echo "${version}"
 }
 
 # Detect product type from ORACLE_HOME path
@@ -1794,21 +1748,4 @@ add_to_sqlpath() {
     fi
 
     oradba_log DEBUG "Added to SQLPATH: ${new_path}"
-}
-
-# Show version information
-show_version_info() {
-    local version
-    version=$(get_oradba_version)
-
-    echo "OraDBA Version: ${version}"
-
-    if [[ -f "${ORADBA_BASE}/.install_info" ]]; then
-        echo ""
-        echo "Installation Details:"
-        echo "  Installed: $(get_install_info "install_date")"
-        echo "  Method: $(get_install_info "install_method")"
-        echo "  User: $(get_install_info "install_user")"
-        echo "  Prefix: $(get_install_info "install_prefix")"
-    fi
 }
