@@ -40,7 +40,7 @@ Template and example for creating OraDBA extensions
 
 Tools for managing Oracle Data Safe targets in OCI with simplified CLI and comprehensive logging
 
-[View Documentation](extensions/odb_datasafe/index.md){ .md-button }
+[View Documentation](https://github.com/oehrlis/odb_datasafe#readme){ .md-button }
 
 ### OraDBA AutoUpgrade Extension
 
@@ -50,7 +50,7 @@ Tools for managing Oracle Data Safe targets in OCI with simplified CLI and compr
 
 Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrades
 
-[View Documentation](extensions/odb_autoupgrade/index.md){ .md-button }
+[View Documentation](https://github.com/oehrlis/odb_autoupgrade#readme){ .md-button }
 
 <!-- EXTENSIONS_LIST_END -->
 
