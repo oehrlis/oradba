@@ -294,17 +294,21 @@ EOF
     [ "${DEFAULT_VAR}" = "default_value" ]
     [ "${RDBMS_VAR}" = "rdbms_value" ]
     
-    # Cleanup
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
+    # Restore original file from git
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
 }
 
 @test "apply_product_config: should handle missing config files gracefully" {
-    # Ensure config files don't exist
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
-    rm -f "${ORADBA_BASE}/etc/oradba_standard.conf"
+    # Backup and remove config files for this test
+    mv "${ORADBA_BASE}/etc/oradba_core.conf" "${ORADBA_BASE}/etc/oradba_core.conf.bak" 2>/dev/null || true
+    mv "${ORADBA_BASE}/etc/oradba_standard.conf" "${ORADBA_BASE}/etc/oradba_standard.conf.bak" 2>/dev/null || true
     
     run oradba_apply_product_config "RDBMS" "TESTDB"
     [ "$status" -eq 0 ]  # Should not fail
+    
+    # Restore original files
+    mv "${ORADBA_BASE}/etc/oradba_core.conf.bak" "${ORADBA_BASE}/etc/oradba_core.conf" 2>/dev/null || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
+    mv "${ORADBA_BASE}/etc/oradba_standard.conf.bak" "${ORADBA_BASE}/etc/oradba_standard.conf" 2>/dev/null || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_standard.conf 2>/dev/null || true
 }
 
 @test "apply_product_config: should apply SID-specific config if exists" {
@@ -325,7 +329,7 @@ EOF
     [ "${SID_SPECIFIC_VAR}" = "sid_value" ]
     
     # Cleanup
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
     rm -rf "${ORADBA_BASE}/etc/sid"
 }
 
@@ -353,8 +357,8 @@ EOF
     [ "${TEST_PRIORITY}" = "local" ]
     
     # Cleanup
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
-    rm -f "${ORADBA_BASE}/etc/oradba_standard.conf"
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_standard.conf 2>/dev/null || true
     rm -f "${ORADBA_BASE}/etc/oradba_local.conf"
 }
 
@@ -381,7 +385,7 @@ EOF
     done
     
     # Cleanup
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
 }
 
 # Integration test: Full configuration flow
@@ -425,7 +429,7 @@ EOF
     [ "${SID_SPECIFIC}" = "sid_value" ]        # From SID config
     
     # Cleanup
-    rm -f "${ORADBA_BASE}/etc/oradba_core.conf"
+    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
     rm -f "${ORADBA_BASE}/etc/oradba_local.conf"
     rm -rf "${ORADBA_BASE}/etc/sid"
 }
