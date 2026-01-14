@@ -295,6 +295,9 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
         [[ -n "${checked_files[$file_path]}" ]] && continue
         checked_files[$file_path]=1
 
+        # Skip files that are expected to be modified during normal operations
+        [[ "$file_path" == ".install_info" ]] && continue
+
         if [[ -f "$full_path" ]]; then
             if command -v sha256sum > /dev/null 2>&1; then
                 actual_hash=$(sha256sum "$full_path" 2> /dev/null | awk '{print $1}')
