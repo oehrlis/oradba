@@ -986,10 +986,14 @@ parse_oracle_home() {
     return 1
 }
 
-# List all Oracle Homes from oradba_homes.conf
-# Arguments:
-#   $1 - Optional filter (product type)
-# Output: One line per home: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
+# ------------------------------------------------------------------------------
+# Function: list_oracle_homes
+# Purpose.: List all Oracle Homes from oradba_homes.conf
+# Args....: $1 - (Optional) Filter by product type
+# Returns.: 0 on success, 1 if config file not found
+# Output..: One line per home: NAME PATH TYPE ORDER ALIAS DESCRIPTION VERSION
+# Notes...: Output sorted by ORDER (column 4), ascending
+# ------------------------------------------------------------------------------
 list_oracle_homes() {
     local filter="$1"
     local homes_file
@@ -1023,10 +1027,14 @@ list_oracle_homes() {
     done < "${homes_file}" | sort -k4 -n
 }
 
-# Get ORACLE_HOME path for a named home
-# Arguments:
-#   $1 - Home name
-# Returns: ORACLE_HOME path or empty if not found
+# ------------------------------------------------------------------------------
+# Function: get_oracle_home_path
+# Purpose.: Get ORACLE_HOME path for a registered Oracle Home
+# Args....: $1 - Oracle Home name
+# Returns.: 0 on success, 1 if not found
+# Output..: ORACLE_HOME path
+# Notes...: Reads from oradba_homes.conf, column 2 (PATH)
+# ------------------------------------------------------------------------------
 get_oracle_home_path() {
     local name="$1"
     local home_info
@@ -1035,10 +1043,14 @@ get_oracle_home_path() {
     echo "${home_info}" | awk '{print $2}'
 }
 
-# Get alias name for a named home
-# Arguments:
-#   $1 - Home name
-# Returns: Alias name or home name if not found
+# ------------------------------------------------------------------------------
+# Function: get_oracle_home_alias
+# Purpose.: Get alias name for a registered Oracle Home
+# Args....: $1 - Oracle Home name
+# Returns.: 0 on success, 1 if not found
+# Output..: Alias name (or home name if no alias defined)
+# Notes...: Reads from oradba_homes.conf, column 5 (ALIAS_NAME)
+# ------------------------------------------------------------------------------
 get_oracle_home_alias() {
     local name="$1"
     local home_info
@@ -1047,10 +1059,14 @@ get_oracle_home_alias() {
     echo "${home_info}" | awk '{print $5}'
 }
 
-# Get product type for a named home
-# Arguments:
-#   $1 - Home name
-# Returns: Product type (database, oud, client, etc.)
+# ------------------------------------------------------------------------------
+# Function: get_oracle_home_type
+# Purpose.: Get product type for a registered Oracle Home
+# Args....: $1 - Oracle Home name
+# Returns.: 0 on success, 1 if not found
+# Output..: Product type (database, client, oud, weblogic, oms, emagent, etc.)
+# Notes...: Reads from oradba_homes.conf, column 3 (TYPE)
+# ------------------------------------------------------------------------------
 get_oracle_home_type() {
     local name="$1"
     local home_info
@@ -1059,10 +1075,15 @@ get_oracle_home_type() {
     echo "${home_info}" | awk '{print $3}'
 }
 
-# Detect product type from ORACLE_HOME path
-# Arguments:
-#   $1 - ORACLE_HOME path
-# Returns: Detected product type or "unknown"
+# ------------------------------------------------------------------------------
+# Function: detect_product_type
+# Purpose.: Detect Oracle product type from ORACLE_HOME path
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success, 1 if unable to detect
+# Output..: Product type: database, client, oud, weblogic, oms, emagent,
+#           datasafe, or unknown
+# Notes...: Checks for specific files/directories to identify product type
+# ------------------------------------------------------------------------------
 detect_product_type() {
     local oracle_home="$1"
 
