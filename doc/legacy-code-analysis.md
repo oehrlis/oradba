@@ -27,11 +27,11 @@ helps prioritize cleanup and refactoring efforts.
 
 These functions are defined but never called:
 
-| Function | Library | Recommendation |
-| -------- | ------- | -------------- |
-| `detect_basenv` | common.sh | **REMOVE** - Likely legacy basenv detection |
-| `get_oracle_home_version` | common.sh | **REMOVE** - Superseded |
-| `show_version_info` | common.sh | **REMOVE** - Replaced by script |
+| Function                  | Library   | Recommendation                              |
+|---------------------------|-----------|---------------------------------------------|
+| `detect_basenv`           | common.sh | **REMOVE** - Likely legacy basenv detection |
+| `get_oracle_home_version` | common.sh | **REMOVE** - Superseded                     |
+| `show_version_info`       | common.sh | **REMOVE** - Replaced by script             |
 
 **Action:** Remove these 3 functions in Phase 5.1
 
@@ -72,6 +72,54 @@ These functions have limited usage and may need review:
 - Utility functions called sparingly (KEEP)
 - Candidates for consolidation (REFACTOR)
 - Legacy functions no longer needed (REMOVE)
+
+#### Review Completed
+
+After analyzing usage context, all low-usage functions are legitimate utilities:
+
+**KEEP - Core Utilities (common.sh):**
+
+- `get_script_dir` (2 uses) - Used in tests, utility for path resolution
+- `alias_exists` (2 uses) - Internal helper for alias management
+- `verify_oracle_env` (2 uses) - Used in tests, validates environment
+- `get_oracle_version` (2 uses) - Used in db_functions.sh, core functionality
+- `export_oracle_base_env` (2 uses) - Used in oraenv.sh, critical for setup
+- `resolve_oracle_home_name` (2 uses) - Internal, used twice in common.sh
+- `get_oracle_home_alias` (1 use) - Internal helper for home management
+- `detect_oracle_version` (2 uses) - Used in oradba_homes.sh, core function
+- `derive_oracle_base` (2 uses) - Used in oraenv.sh, critical for base setup
+- `set_install_info` (1 use) - Used in tests, version tracking
+- `init_install_info` (2 uses) - Used in tests, version initialization
+- `configure_sqlpath` (2 uses) - Used in oraenv.sh, configures SQL environment
+- `show_sqlpath` (2 uses) - Display utility, may be user-facing in future
+- `show_path` (1 use) - Display utility, mirrors show_sqlpath pattern
+- `show_config` (1 use) - Display utility, shows config hierarchy (user-facing)
+
+**KEEP - Extension System (extensions.sh):**
+
+- `generate_base_aliases` (2 uses) - Called at init, essential for alias system
+- `extension_provides` (1 use) - Internal helper for extension detection
+- `create_extension_alias` (2 uses) - Used in extension loading, essential
+- `list_extensions` (1 use) - User-facing command, likely to gain more usage
+- `show_extension_info` (2 uses) - Used in oradba_extension.sh, user-facing
+
+**KEEP - Other Modules:**
+
+- `show_oracle_home_status` (2 uses) - db_functions.sh, displays home info
+- `oradba_auto_reload_on_change` (2 uses) - oradba_env_changes.sh, exported func
+
+**Rationale:** All functions serve legitimate purposes:
+
+- Internal utilities with focused usage (alias_exists, resolve_oracle_home_name)
+- Core setup functions (export_oracle_base_env, derive_oracle_base)
+- User-facing display functions (show_config, show_sqlpath, show_path)
+- Extension system infrastructure (all extensions.sh functions)
+- Test support (set_install_info, init_install_info, verify_oracle_env)
+
+Low usage count doesn't indicate technical debt - these are specialized
+functions called at specific points in the lifecycle (init, setup, display).
+
+**Action:** No removals needed. Mark review as complete.
 
 ---
 
