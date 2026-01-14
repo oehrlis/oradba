@@ -308,7 +308,7 @@ cmd_status() {
     
     # Detect product type
     local product_type
-    product_type=$(oradba_detect_product_type "$oracle_home")
+    product_type=$(oradba_get_product_type "$oracle_home")
     
     echo "=== Oracle Instance/Service Status ==="
     echo "SID:          $oracle_sid"
