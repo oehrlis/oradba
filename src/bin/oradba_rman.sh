@@ -490,17 +490,14 @@ execute_rman_for_sid() {
 
     oradba_log INFO "Processing SID:     ${sid}"
 
-    # Set Oracle environment
+    # Set Oracle environment using OraDBA oraenv.sh wrapper
     export ORACLE_SID="${sid}"
-    export ORAENV_ASK=NO
-
-    # Source oraenv if available
-    if [[ -f /usr/local/bin/oraenv ]]; then
-        # shellcheck source=/dev/null
-        source /usr/local/bin/oraenv > /dev/null 2>&1
-    elif [[ -f "${ORACLE_HOME}/bin/oraenv" ]]; then
-        # shellcheck source=/dev/null
-        source "${ORACLE_HOME}/bin/oraenv" > /dev/null 2>&1
+    if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
+        # shellcheck source=oraenv.sh
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
+    else
+        oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
+        return 1
     fi
 
     # Validate ORACLE_HOME

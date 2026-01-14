@@ -127,25 +127,26 @@ functions called at specific points in the lifecycle (init, setup, display).
 
 The following scripts lack dedicated BATS test files:
 
-| Script | Category | Test Priority | Notes |
-| ------ | -------- | ------------- | ----- |
-| `dbstatus.sh` | Legacy? | LOW | May be superseded by oradba_env.sh status |
-| `exp_jobs.sh` | Job Wrapper | MEDIUM | Part of export/import job system |
-| `imp_jobs.sh` | Job Wrapper | MEDIUM | Part of export/import job system |
-| `rman_jobs.sh` | Job Wrapper | MEDIUM | RMAN backup job wrapper |
-| `oradba_dbctl.sh` | Control | HIGH | Database control - needs tests |
-| `oradba_lsnrctl.sh` | Control | HIGH | Listener control - needs tests |
-| `oradba_services.sh` | Service | HIGH | Service orchestration - needs tests |
-| `oradba_services_root.sh` | Service | HIGH | Root service management - needs tests |
-| `oradba_env.sh` | Core | HIGH | **CRITICAL** - Main environment script |
-| `oradba_extension.sh` | Extension | MEDIUM | Extension management |
-| `oradba_install.sh` | Setup | MEDIUM | Installation script |
-| `oradba_setup.sh` | Setup | MEDIUM | Setup script |
-| `oradba_logrotate.sh` | Utility | LOW | Log rotation utility |
-| `oradba_validate.sh` | Utility | MEDIUM | Environment validation |
-| `sessionsql.sh` | Legacy? | LOW | Session SQL utility - check if used |
-| `sync_from_peers.sh` | Sync | LOW | Peer sync - specialized use case |
-| `sync_to_peers.sh` | Sync | LOW | Peer sync - specialized use case |
+| Script                    | Category  | Priority | Notes                                     |
+|---------------------------|-----------|----------|-------------------------------------------|
+| `dbstatus.sh`             | Legacy?   | LOW      | May be superseded by oradba_env.sh status |
+| `exp_jobs.sh`             | Job Wrap  | MEDIUM   | Part of export/import job system          |
+| `imp_jobs.sh`             | Job Wrap  | MEDIUM   | Part of export/import job system          |
+| `rman_jobs.sh`            | Job Wrap  | MEDIUM   | RMAN backup job wrapper                   |
+| `oradba_dbctl.sh`         | Control   | HIGH     | Database control - needs tests            |
+| `oradba_lsnrctl.sh`       | Control   | HIGH     | Listener control - needs tests            |
+| `oradba_services.sh`      | Service   | HIGH     | Service orchestration - needs tests       |
+| `oradba_services_root.sh` | Service   | HIGH     | Root service management - needs tests     |
+| `oradba_env.sh`           | Core      | CRITICAL | **Main environment script**               |
+| `oradba_extension.sh`     | Extension | MEDIUM   | Extension management                      |
+| `oradba_install.sh`       | Setup     | MEDIUM   | Installation script                       |
+| `oradba_setup.sh`         | Setup     | MEDIUM   | Setup script                              |
+| `oradba_logrotate.sh`     | Utility   | LOW      | Log rotation utility                      |
+| `oradba_validate.sh`      | Utility   | MEDIUM   | Environment validation                    |
+| `sessionsql.sh`           | Legacy?   | LOW      | Session SQL utility - check if used       |
+| `sync_from_peers.sh`      | Sync      | LOW      | Peer sync - specialized use case          |
+| `sync_to_peers.sh`        | Sync      | LOW      | Peer sync - specialized use case          |
+| `get_seps_pwd.sh`         | Utility   | LOW      | Password utility - has tests              |
 
 **Recommendations:**
 
@@ -174,43 +175,45 @@ The following scripts lack dedicated BATS test files:
 
 These test **libraries**, not standalone scripts - this is **CORRECT** and expected:
 
-| Test File | Tests | Status |
-| --------- | ----- | ------ |
-| test_aliases.bats | aliases.sh library | ✅ VALID |
-| test_common.bats | common.sh library | ✅ VALID |
-| test_db_functions.bats | db_functions.sh library | ✅ VALID |
-| test_execute_db_query.bats | execute_db_query() function | ✅ VALID |
-| test_extensions.bats | extensions.sh library | ✅ VALID |
-| test_installer.bats | Installation functions | ✅ VALID |
-| test_job_wrappers.bats | Job wrapper functions | ✅ VALID |
-| test_logging.bats | Logging functions | ✅ VALID |
-| test_logging_infrastructure.bats | Log infrastructure | ✅ VALID |
-| test_oracle_homes.bats | Oracle Homes functions | ✅ VALID |
-| test_oradba_env_changes.bats | oradba_env_changes.sh | ✅ VALID |
-| test_oradba_env_config.bats | oradba_env_config.sh | ✅ VALID |
-| test_oradba_env_parser.bats | oradba_env_parser.sh | ✅ VALID |
-| test_oradba_env_status.bats | oradba_env_status.sh | ✅ VALID |
-| test_oratab_priority.bats | Oratab priority handling | ✅ VALID |
-| test_service_management.bats | Service management tests | ✅ VALID |
-| test_sid_config.bats | SID configuration | ✅ VALID |
-| test_sync_scripts.bats | Sync script tests | ✅ VALID |
+| Test File                        | Tests                       | Status   |
+|----------------------------------|-----------------------------|----------|
+| test_aliases.bats                | aliases.sh library          | ✅ VALID |
+| test_common.bats                 | common.sh library           | ✅ VALID |
+| test_db_functions.bats           | db_functions.sh library     | ✅ VALID |
+| test_execute_db_query.bats       | execute_db_query() function | ✅ VALID |
+| test_extensions.bats             | extensions.sh library       | ✅ VALID |
+| test_installer.bats              | Installation functions      | ✅ VALID |
+| test_job_wrappers.bats           | Job wrapper functions       | ✅ VALID |
+| test_logging.bats                | Logging functions           | ✅ VALID |
+| test_logging_infrastructure.bats | Log infrastructure          | ✅ VALID |
+| test_oracle_homes.bats           | Oracle Homes functions      | ✅ VALID |
+| test_oradba_env_changes.bats     | oradba_env_changes.sh       | ✅ VALID |
+| test_oradba_env_config.bats      | oradba_env_config.sh        | ✅ VALID |
+| test_oradba_env_parser.bats      | oradba_env_parser.sh        | ✅ VALID |
+| test_oradba_env_status.bats      | oradba_env_status.bats      | ✅ VALID |
+| test_oratab_priority.bats        | Oratab priority handling    | ✅ VALID |
+| test_service_management.bats     | Service management tests    | ✅ VALID |
+| test_sid_config.bats             | SID configuration           | ✅ VALID |
+| test_sync_scripts.bats           | Sync script tests           | ✅ VALID |
 
 **Action:** No changes needed. These tests are correctly structured to test library functionality.
 
 ### 3.2 Script Test Files (Existing)
 
-Scripts with test coverage:
+Scripts with test coverage (run via `make test-full`, 892 tests total):
 
-| Script | Test File | Status |
-| ------ | --------- | ------ |
-| oradba_check.sh | test_oradba_check.bats | ✅ HAS TESTS |
-| oradba_help.sh | test_oradba_help.bats | ✅ HAS TESTS |
-| oradba_homes.sh | test_oradba_homes.bats | ✅ HAS TESTS (53 tests) |
-| oradba_rman.sh | test_oradba_rman.bats | ✅ HAS TESTS |
-| oradba_sqlnet.sh | test_oradba_sqlnet.bats | ✅ HAS TESTS |
-| oradba_version.sh | test_oradba_version.bats | ✅ HAS TESTS |
-| oraenv.sh | test_oraenv.bats | ✅ HAS TESTS |
-| oraup.sh | test_oraup.bats | ✅ HAS TESTS |
+| Script            | Test File                | Status            |
+|-------------------|--------------------------|-------------------|
+| oradba_check.sh   | test_oradba_check.bats   | ✅ HAS TESTS      |
+| oradba_help.sh    | test_oradba_help.bats    | ✅ HAS TESTS      |
+| oradba_homes.sh   | test_oradba_homes.bats   | ✅ HAS TESTS (53) |
+| oradba_rman.sh    | test_oradba_rman.bats    | ✅ HAS TESTS      |
+| oradba_sqlnet.sh  | test_oradba_sqlnet.bats  | ✅ HAS TESTS      |
+| oradba_version.sh | test_oradba_version.bats | ✅ HAS TESTS      |
+| oraenv.sh         | test_oraenv.bats         | ✅ HAS TESTS      |
+| oraup.sh          | test_oraup.bats          | ✅ HAS TESTS      |
+| longops.sh        | test_longops.bats        | ✅ HAS TESTS      |
+| get_seps_pwd.sh   | test_get_seps_pwd.bats   | ✅ HAS TESTS      |
 
 ---
 
