@@ -307,25 +307,37 @@ flowchart TB
     end
     
     subgraph CLI["Command-Line Interface"]
-        C1[oraenv.sh Environment Setup]
-        C2[dbstatus.sh Status Display]
-        C3[50+ Shell Aliases sq, cdh, taa, etc.]
-        C4[Service Management orastart, dbctl, etc.]
+        C1[oraenv.sh Environment Wrapper]
+        C2[oradba_env.sh Main Environment Builder]
+        C3[oradba_homes.sh Oracle Homes Manager]
+        C4[dbstatus.sh Status Display]
+        C5[50+ Shell Aliases sq, cdh, taa, etc.]
+        C6[Service Management orastart, dbctl, etc.]
     end
     
     subgraph Core["Core Libraries"]
-        L1[common.sh oradba_log, Validation, BasEnv Detection]
+        L1[common.sh oradba_log, Validation, Utilities]
         L2[db_functions.sh DB Operations]
         L3[aliases.sh Safe Alias Generation]
     end
     
-    subgraph Config["Configuration System"]
-        CF1[System Defaults oradba_core.conf]
-        CF1A[Auto-Generated oradba_local.conf]
-        CF2[Standard Settings oradba_standard.conf]
-        CF3[Customer Overrides oradba_customer.conf]
-        CF4[SID Configs sid.*.conf]
-        CF5[Environment Variables]
+    subgraph Phase1_3["Phase 1-3 Libraries"]
+        P1[oradba_env_parser.sh Config File Parser]
+        P2[oradba_env_builder.sh Environment Builder]
+        P3[oradba_env_validator.sh Validation Engine]
+        P4[oradba_env_config.sh Config Manager]
+        P5[oradba_env_status.sh Status Display]
+        P6[oradba_env_changes.sh Change Detection]
+    end
+    
+    subgraph Config["Configuration System Phase 1-4"]
+        CF1[Core: oradba_core.conf]
+        CF2[Standard: oradba_standard.conf]
+        CF3[Local: oradba_local.conf Auto-Generated]
+        CF4[Customer: oradba_customer.conf Site-Specific]
+        CF5[SID: sid.*.conf Database-Specific]
+        CF6[Defaults: sid._DEFAULT_.conf]
+        CF7[Oracle Homes: oradba_homes.conf]
     end
     
     subgraph Scripts["Script Collections"]
@@ -342,27 +354,31 @@ flowchart TB
     end
     
     U1 --> C1
-    U1 --> C2
-    U1 --> C3
     U1 --> C4
+    U1 --> C5
+    U1 --> C6
     U2 --> CLI
     U3 --> CLI
     
-    C1 --> L1
-    C2 --> L1
-    C2 --> L2
-    C3 --> L3
+    C1 --> C2
+    C2 --> Phase1_3
+    C3 --> Phase1_3
+    C4 --> L1
     C4 --> L2
+    C5 --> L3
+    C6 --> L2
     
+    Phase1_3 --> Config
     L1 --> Config
     L2 --> Config
     L3 --> Config
     
-    CF1 -.->|Override| CF1A
-    CF1A -.->|Override| CF2
+    CF1 -.->|Override| CF2
     CF2 -.->|Override| CF3
     CF3 -.->|Override| CF4
     CF4 -.->|Override| CF5
+    CF5 -.->|Uses| CF6
+    CF7 -.->|Manages| O1
     
     C1 --> S1
     C1 --> S2
@@ -388,58 +404,69 @@ Shows the complete environment setup process.
 
 ```mermaid
 flowchart TD
-    A[User: source oraenv.sh SID] --> B{SID Provided?}
+    A[User: source oraenv.sh SID] --> B[oraenv.sh Wrapper Script]
     
-    B -->|No| C[List Available SIDs]
-    C --> D[User Selects SID]
-    D --> E[Validate SID]
+    B --> C{SID Provided?}
     
-    B -->|Yes| E
+    C -->|No| D[List Available SIDs/Homes]
+    D --> E[User Selects SID/Home]
+    E --> F[Call oradba_env.sh]
     
-    E --> F{SID in Oratab?}
-    F -->|No| G[❌ Error: SID not found]
-    F -->|Yes| H[Parse Oratab Entry]
+    C -->|Yes| F
     
-    H --> I[Extract ORACLE_HOME]
-    I --> J{ORACLE_HOME Exists?}
-    J -->|No| K[❌ Error: Invalid ORACLE_HOME]
-    L --> M[Set ORACLE_SID]
+    F --> G[oradba_env.sh Main Builder]
+    G --> H[Load Phase 1-3 Libraries]
     
-    M --> N[Set Oracle Environment:<br/>ORACLE_HOME, ORACLE_BASE]
-    N --> O[Load Core Configuration:<br/>oradba_core.conf<br/>oradba_local.conf]
+    H --> I[oradba_env_parser.sh]
+    I --> J[Parse Configuration Files:<br/>1. oradba_core.conf<br/>2. oradba_standard.conf<br/>3. oradba_local.conf<br/>4. oradba_customer.conf<br/>5. sid.SID.conf sid._DEFAULT_.conf]
     
-    O --> PB{Coexist Mode Active?}
-    PB -->|Yes| PC[Enable BasEnv Coexistence]
-    PB -->|No| Q
-    PC --> Q[Load Standard Configuration:<br/>oradba_standard.conf<br/>oradba_customer.conf]
-    Q --> S{SID Config Exists?}
-    S -->|Yes| T[Load sid.SID.conf]
-    S -->|No| SA{Auto-Create Enabled?}
+    J --> K[oradba_env_builder.sh]
+    K --> L{SID or Oracle Home?}
     
-    SA -->|Yes & SID in Oratab| SB[Auto-create sid.SID.conf from template]
-    SA -->|No| U[Skip SID config]
-    SB --> T
+    L -->|SID| M[Query oratab for ORACLE_HOME]
+    L -->|Home Name| N[Query oradba_homes.conf]
     
-    T --> V[Update Environment:<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, NLS Variables]
-    U --> V
+    M --> O[Resolve ORACLE_HOME path]
+    N --> O
     
-    V --> Z[Export All ORACLE_ Variables]
+    O --> P{ORACLE_HOME Valid?}
+    P -->|No| Q[❌ Error: Invalid ORACLE_HOME]
+    P -->|Yes| R[Set Base Environment:<br/>ORACLE_SID, ORACLE_HOME<br/>ORACLE_BASE auto-derived]
     
-    Z --> AA{CDB Database?}
-    AA -->|Yes| AB[Generate PDB Aliases]
-    AA -->|No| AC[Skip PDB Aliases]
+    R --> S[oradba_env_validator.sh]
+    S --> T[Validate Configuration:<br/>- Check ORACLE_HOME exists<br/>- Verify binaries present<br/>- Detect product type<br/>- Detect version]
     
-    AB --> AD[Generate Standard Aliases]
-    AC --> AD
+    T --> U{Validation Pass?}
+    U -->|No| V[❌ Error: Validation failed]
+    U -->|Yes| W[Build Environment:<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, NLS_LANG<br/>SQLPATH, ORACLE_DOC_PATH]
     
-    AD --> AE[Source aliases.sh]
-    AE --> AF[Display Environment Info]
-    AF --> AG[✅ Environment Ready]
+    W --> X{Coexistence Mode?}
+    X -->|Yes BasEnv| Y[Enable safe_alias mode]
+    X -->|No| Z[Standard alias mode]
     
-    style AG fill:#90EE90
-    style G fill:#FFB6C6
-    style K fill:#FFB6C6
-    style AB fill:#87CEEB
+    Y --> AA[Generate Aliases]
+    Z --> AA
+    
+    AA --> AB{CDB Database?}
+    AB -->|Yes| AC[Detect PDBs]
+    AB -->|No| AD[Skip PDB aliases]
+    
+    AC --> AE[Generate PDB Aliases]
+    AE --> AF[Generate Standard Aliases]
+    AD --> AF
+    
+    AF --> AG[Source aliases.sh]
+    AG --> AH[oradba_env_status.sh]
+    AH --> AI[Display Environment Summary:<br/>- ORACLE_SID / Home<br/>- Version & Product Type<br/>- Key Paths<br/>- Loaded Configs]
+    
+    AI --> AJ[✅ Environment Ready]
+    
+    style AJ fill:#90EE90
+    style Q fill:#FFB6C6
+    style V fill:#FFB6C6
+    style I fill:#87CEEB
+    style K fill:#FFD700
+    style S fill:#DDA0DD
 ```
 
 ## 8. Configuration Hierarchy
@@ -448,46 +475,58 @@ Shows the 5-level configuration override system.
 
 ```mermaid
 flowchart TB
-    subgraph Level1["Level 1: System Defaults"]
-        L1[oradba_core.conf Hardcoded defaults PREFIX, VERSION, etc.]
+    subgraph Processing["Phase 1-3 Processing"]
+        P1[Parser: oradba_env_parser.sh]
+        P2[Builder: oradba_env_builder.sh]
+        P3[Validator: oradba_env_validator.sh]
     end
     
-    subgraph Level1B["Level 1B: Auto-Detected"]
-        L1B[oradba_local.conf Coexistence mode BasEnv detection]
+    subgraph Level1["Level 1: Core Defaults"]
+        L1[oradba_core.conf System defaults PREFIX, VERSION, PATHS]
     end
     
     subgraph Level2["Level 2: Standard Settings"]
-        L2[oradba_standard.conf Standard paths ORACLE_BASE patterns]
+        L2[oradba_standard.conf Standard paths Oracle patterns]
     end
     
-    subgraph Level3["Level 3: Customer Overrides"]
-        L3[oradba_customer.conf Site-specific RMAN catalog, TNS_ADMIN]
+    subgraph Level3["Level 3: Local Settings"]
+        L3[oradba_local.conf Auto-detected Coexistence mode Installation paths]
     end
     
-    subgraph Level4["Level 4: SID Configuration"]
-        L4[sid.SID.conf Database-specific Custom aliases, paths Auto-created if missing]
+    subgraph Level4["Level 4: Customer Overrides"]
+        L4[oradba_customer.conf Site-specific RMAN catalog, TNS_ADMIN]
     end
     
-    subgraph Level5["Level 5: Runtime"]
-        L5[Environment Variables Command-line Args Highest priority]
+    subgraph Level5["Level 5: SID Configuration"]
+        L5[sid.SID.conf Database-specific Custom aliases, paths]
+        L5D[sid._DEFAULT_.conf Template for new SIDs]
+    end
+    
+    subgraph Level6["Level 6: Runtime"]
+        L6[Environment Variables Command-line Args Highest priority]
     end
     
     subgraph Result["Final Configuration"]
         R[Active Environment All variables resolved]
     end
     
-    L1 -->|Lowest Priority| L1B
-    L1B --> L2
-    L2 --> L3
-    L3 --> L4
-    L4 -->|Highest Priority| L5
-    L5 --> R
+    L1 -->|Priority 1| P1
+    L2 -->|Priority 2| P1
+    L3 -->|Priority 3| P1
+    L4 -->|Priority 4| P1
+    L5 -->|Priority 5| P1
+    L5D -.->|Template for| L5
+    L6 -->|Priority 6 Highest| P1
     
-    L1 -.->|Can be overridden by| L1B
-    L1B -.->|Can be overridden by| L2
-    L2 -.->|Can be overridden by| L3
-    L3 -.->|Can be overridden by| L4
-    L4 -.->|Can be overridden by| L5
+    P1 --> P2
+    P2 --> P3
+    P3 --> R
+    
+    L1 -.->|Overridden by| L2
+    L2 -.->|Overridden by| L3
+    L3 -.->|Overridden by| L4
+    L4 -.->|Overridden by| L5
+    L5 -.->|Overridden by| L6
     
     style L1 fill:#FFE4B5
     style L1B fill:#F5DEB3
@@ -505,55 +544,73 @@ Shows the complete configuration loading and environment setup sequence.
 ```mermaid
 sequenceDiagram
     participant User
-    participant oraenv.sh
-    participant Oratab
+    participant oraenv.sh as oraenv.sh (Wrapper)
+    participant oradba_env as oradba_env.sh (Builder)
+    participant Parser as oradba_env_parser.sh
+    participant Builder as oradba_env_builder.sh
+    participant Validator as oradba_env_validator.sh
     participant Config as Config Files
+    participant Homes as oradba_homes.conf
+    participant Oratab
     participant Aliases as aliases.sh
-    participant Oracle as Oracle Env
+    participant Status as oradba_env_status.sh
     
     User->>oraenv.sh: source oraenv.sh FREE
-    oraenv.sh->>oraenv.sh: Validate arguments
+    oraenv.sh->>oraenv.sh: Parse arguments
+    oraenv.sh->>oradba_env: Call oradba_env.sh FREE
     
-    oraenv.sh->>Oratab: Parse oratab
-    Oratab-->>oraenv.sh: Return ORACLE_HOME path
+    oradba_env->>Parser: Load parser library
+    Parser->>Config: Parse oradba_core.conf
+    Config-->>Parser: Core settings
     
-    oraenv.sh->>oraenv.sh: Validate ORACLE_HOME exists
+    Parser->>Config: Parse oradba_standard.conf
+    Config-->>Parser: Standard settings
     
-    oraenv.sh->>Config: Load oradba_core.conf
-    Config-->>oraenv.sh: System defaults
+    Parser->>Config: Parse oradba_local.conf
+    Config-->>Parser: Local settings (coexistence mode)
     
-    oraenv.sh->>Config: Load oradba_local.conf
-    Config-->>oraenv.sh: Coexistence mode (if detected)
+    Parser->>Config: Parse oradba_customer.conf
+    Config-->>Parser: Customer overrides
     
-    oraenv.sh->>Config: Load oradba_standard.conf
-    Config-->>oraenv.sh: Standard settings
+    Parser->>Config: Parse sid.FREE.conf or sid._DEFAULT_.conf
+    Config-->>Parser: SID-specific settings
     
-    oraenv.sh->>Config: Load oradba_customer.conf
-    Config-->>oraenv.sh: Customer overrides
+    Parser-->>oradba_env: Merged configuration
     
-    oraenv.sh->>Config: Check sid.FREE.conf exists
-    alt Config file exists
-        Config-->>oraenv.sh: Load sid.FREE.conf
-    else Auto-create enabled & SID in oratab
-        oraenv.sh->>Config: Auto-create from template
-        Config-->>oraenv.sh: New config created
-    else Auto-create disabled
-        Config-->>oraenv.sh: Skip SID config
+    oradba_env->>Builder: Load builder library
+    
+    alt FREE is SID
+        Builder->>Oratab: Query oratab for FREE
+        Oratab-->>Builder: ORACLE_HOME=/path/to/home
+    else FREE is Home Name
+        Builder->>Homes: Query oradba_homes.conf
+        Homes-->>Builder: ORACLE_HOME=/path/to/home
     end
     
-    oraenv.sh->>Oracle: Export Environment Variables:<br/>ORACLE_SID, ORACLE_HOME, ORACLE_BASE<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, NLS_LANG
+    Builder->>Builder: Derive ORACLE_BASE
+    Builder->>Builder: Build PATH, LD_LIBRARY_PATH
+    Builder->>Builder: Set TNS_ADMIN, SQLPATH
+    Builder-->>oradba_env: Environment built
     
-    oraenv.sh->>Aliases: Check if CDB
-    Aliases-->>oraenv.sh: CDB=true
+    oradba_env->>Validator: Load validator library
+    Validator->>Validator: Check ORACLE_HOME exists
+    Validator->>Validator: Verify binaries present
+    Validator->>Validator: Detect product type
+    Validator->>Validator: Detect Oracle version
+    Validator-->>oradba_env: Validation passed
     
-    oraenv.sh->>Aliases: Generate PDB aliases
-    Aliases-->>oraenv.sh: PDB shortcuts created
+    oradba_env->>Aliases: Generate aliases
+    Aliases->>Aliases: Check coexistence mode
+    Aliases->>Aliases: Detect CDB/PDBs
+    Aliases->>Aliases: Create safe aliases
+    Aliases-->>oradba_env: 50+ aliases ready
     
-    oraenv.sh->>Aliases: Generate standard aliases
-    Aliases-->>oraenv.sh: 50+ aliases loaded
+    oradba_env->>Status: Display environment
+    Status->>Status: Format output
+    Status-->>User: Environment summary
     
-    oraenv.sh->>User: Display environment info
-    oraenv.sh-->>User: ✅ Environment ready
+    oradba_env-->>oraenv.sh: Environment ready
+    oraenv.sh-->>User: ✅ Environment loaded
 ```
 
 ## 10. Installation Flow
@@ -739,6 +796,114 @@ flowchart TD
     style N fill:#FFD700
 ```
 
+## 13. Phase 1-3 Library Architecture (v0.19.0-v0.21.0)
+
+Shows the new library-based configuration system introduced in Phase 1-3.
+
+```mermaid
+flowchart TB
+    subgraph Entry["Entry Points"]
+        E1[oraenv.sh Wrapper]
+        E2[oradba_env.sh Main Builder]
+        E3[oradba_homes.sh Home Manager]
+    end
+    
+    subgraph Phase1["Phase 1: Configuration Parser"]
+        P1[oradba_env_parser.sh]
+        P1A[parse_config_file]
+        P1B[merge_configs]
+        P1C[resolve_variables]
+    end
+    
+    subgraph Phase2["Phase 2: Environment Builder"]
+        P2[oradba_env_builder.sh]
+        P2A[build_oracle_env]
+        P2B[derive_oracle_base]
+        P2C[construct_path]
+        P2D[set_tns_admin]
+    end
+    
+    subgraph Phase3["Phase 3: Validation & Display"]
+        P3A[oradba_env_validator.sh]
+        P3A1[validate_oracle_home]
+        P3A2[detect_product_type]
+        P3A3[detect_version]
+        
+        P3B[oradba_env_config.sh]
+        P3B1[get_config_value]
+        P3B2[set_config_value]
+        
+        P3C[oradba_env_status.sh]
+        P3C1[show_environment]
+        P3C2[show_config_sources]
+        
+        P3D[oradba_env_changes.sh]
+        P3D1[track_changes]
+        P3D2[show_diff]
+    end
+    
+    subgraph ConfigFiles["Configuration Files"]
+        C1[oradba_core.conf]
+        C2[oradba_standard.conf]
+        C3[oradba_local.conf]
+        C4[oradba_customer.conf]
+        C5[sid.SID.conf]
+        C6[sid._DEFAULT_.conf]
+        C7[oradba_homes.conf]
+    end
+    
+    subgraph Common["Common Libraries"]
+        L1[common.sh Logging & Utilities]
+        L2[aliases.sh Safe Alias Generation]
+    end
+    
+    E1 --> E2
+    E2 --> P1
+    E3 --> P1
+    
+    P1 --> P1A
+    P1 --> P1B
+    P1 --> P1C
+    
+    ConfigFiles --> P1A
+    P1C --> P2
+    
+    P2 --> P2A
+    P2 --> P2B
+    P2 --> P2C
+    P2 --> P2D
+    
+    P2 --> P3A
+    P2 --> P3B
+    P2 --> P3C
+    
+    P3A --> P3A1
+    P3A --> P3A2
+    P3A --> P3A3
+    
+    P3B --> P3B1
+    P3B --> P3B2
+    
+    P3C --> P3C1
+    P3C --> P3C2
+    
+    P3D --> P3D1
+    P3D --> P3D2
+    
+    P1 --> L1
+    P2 --> L1
+    P3A --> L1
+    P3C --> L1
+    
+    E2 --> L2
+    
+    style Phase1 fill:#87CEEB
+    style Phase2 fill:#90EE90
+    style Phase3 fill:#FFD700
+    style ConfigFiles fill:#FFE4B5
+    style Common fill:#DDA0DD
+```
+
 ## Diagram Sources
 
 - **CI/CD Pipeline**: Shows GitHub Actions workflows with smart vs full test selection and documentation deployment
@@ -746,10 +911,22 @@ flowchart TD
 - **Development Workflow**: Developer decision tree for testing and releasing
 - **Performance Comparison**: Visual time savings comparison
 - **Test Selection Decision**: Simplified logic for test selection
-- **Architecture System**: OraDBA layered system architecture with oradba_log() function
-- **oraenv.sh Flow**: Complete environment setup with SID config auto-creation (v0.14.0)
-- **Configuration Hierarchy**: 6-level configuration override with auto-created SID configs
-- **Configuration Sequence**: Config loading with auto-creation alt flow (v0.14.0)
-- **Installation Flow**: Self-extracting installer with BasEnv detection
-- **Alias Generation**: Dynamic alias generation with safe_alias() coexistence
-- **SID Config Auto-Creation**: Automatic config generation from templates (v0.14.0)
+- **Architecture System**: OraDBA layered system architecture with Phase 1-3 libraries and Phase 1-4 configuration system
+- **oraenv.sh Flow**: Complete environment setup with Phase 1-3 library integration and oradba_env.sh wrapper
+- **Configuration Hierarchy**: 6-level configuration with Phase 1-3 processing (parser, builder, validator)
+- **Configuration Sequence**: Library-based configuration loading with oradba_env_parser.sh, builder, and validator
+- **Installation Flow**: Self-extracting installer with BasEnv detection and oradba_local.conf generation
+- **Alias Generation**: Dynamic alias generation with safe_alias() coexistence mode
+- **SID Config Auto-Creation**: Automatic config generation from sid._DEFAULT_.conf template (v0.14.0)
+- **Phase 1-3 Library Architecture**: Detailed view of library relationships and function calls (v0.19.0-v0.21.0)
+
+## Version History
+
+- **v0.22.0**: Updated diagrams to reflect Phase 1-4 configuration system
+  - Added Phase 1-3 library components to Architecture diagram
+  - Updated Configuration Hierarchy to show 6 levels with Phase 1-3 processing
+  - Revised oraenv.sh flow to show wrapper → oradba_env.sh → libraries pattern
+  - Updated Configuration Sequence to show library-based loading
+  - Added new Phase 1-3 Library Architecture diagram
+- **v0.14.0**: Added SID config auto-creation diagrams
+- **v0.13.x**: Initial CI/CD and test selection diagrams
