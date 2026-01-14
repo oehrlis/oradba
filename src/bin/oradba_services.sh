@@ -99,6 +99,19 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 
 # Load configuration file
 load_config() {
+    # Copy example config if it doesn't exist
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        local example_file="${ORADBA_BASE}/templates/etc/oradba_services.conf.example"
+        if [[ -f "${example_file}" ]]; then
+            oradba_log INFO "Configuration file not found, copying from template"
+            mkdir -p "$(dirname "${CONFIG_FILE}")"
+            cp "${example_file}" "${CONFIG_FILE}"
+            oradba_log INFO "Created ${CONFIG_FILE} from template"
+        else
+            oradba_log WARN "No configuration template found at ${example_file}"
+        fi
+    fi
+    
     if [[ -f "${CONFIG_FILE}" ]]; then
         oradba_log INFO "Loading configuration from ${CONFIG_FILE}"
         # shellcheck source=/dev/null

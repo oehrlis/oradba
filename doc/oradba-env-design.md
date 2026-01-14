@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Date:** 2026-01-14  
-**Status:** Phases 1-3 Complete (v0.19.0-v0.21.0), Phase 4 Partially Complete (v0.22.0)
+**Status:** Phases 1-4 Partially Complete (v0.19.0-v0.22.0), Phase 5 In Progress
 
 ---
 
@@ -1221,35 +1221,110 @@ oradba_validate() {
 
 **Commit**: 40b8d84 - Release v0.21.0
 
-### Phase 4: Priority 3 Products & Management Tools (Week 5) 🔄 IN PROGRESS
+### Phase 4: Priority 3 Products & Management Tools (Week 5) ✅ PARTIALLY COMPLETE
 
-- [ ] Priority 3: OUD product support
-- [ ] Priority 3: WLS product support
-- [ ] Instance/domain status checking (Partially complete in Phase 3)
-- [ ] Enhance `oradba_homes.sh` to use new parsers
-- [ ] Auto-scan functionality (detect all products)
+- [ ] Priority 3: OUD product support (Deferred to Phase 6)
+- [ ] Priority 3: WLS product support (Deferred to Phase 6)
+- [x] Instance/domain status checking (Complete in Phase 3) ✅
+- [ ] Enhance `oradba_homes.sh` to use new parsers (Deferred)
+- [ ] Auto-scan functionality (Exists, enhancement deferred)
 - [x] Export/import functionality ✅
-- [ ] Configuration migration from old format
+- [ ] Configuration migration from old format (Deferred)
 
-**Deliverables (Partial - v0.22.0)**:
+**Deliverables (v0.22.0)**:
 
 - Enhanced `oradba_homes.sh` management utility with export/import commands
 - 11 new BATS tests for export/import functionality (53 total tests)
 - Configuration backup and migration capabilities
+- Moved `oradba_services.conf` to templates with auto-copy functionality
 - Full documentation in CHANGELOG and design doc
 
-**Commit**: TBD - Release v0.22.0 (partial implementation)
+**Commit**: 0069edc - Release v0.22.0 (partial implementation)
 
-### Phase 5: Testing & Documentation (Week 6)
+### Phase 5: Code Quality & Documentation (Week 6) 🔄 IN PROGRESS
 
-- [ ] Comprehensive testing (19c, 21c, 23ai, Free)
-- [ ] Test with ASM instances
-- [ ] Test with client-only installations
-- [ ] Test with Instant Client (various versions)
-- [ ] Test with DataSafe
-- [ ] Test with OUD/WLS (if available)
-- [ ] Update user documentation
-- [ ] Create migration guide
+**Focus**: Improve code maintainability, update documentation, and prepare for production use
+
+#### 5.1 Code Quality Improvements
+
+- [ ] Analyze and identify legacy/orphaned functions and scripts
+- [ ] Remove or refactor unused code
+- [ ] Update function headers to current standards
+- [ ] Standardize error handling across all scripts
+- [ ] Improve code comments and inline documentation
+- [ ] Verify all scripts follow consistent patterns
+
+#### 5.2 Script Enhancements
+
+- [ ] Update `oradba_validate_env.sh` to use new configuration system
+- [ ] Enhance product-specific control scripts:
+  - [ ] `oradba_rman.sh` - Use new environment sourcing
+  - [ ] `oradba_dbctl.sh` - Use new environment sourcing
+  - [ ] `oradba_dsctl.sh` - Use new environment sourcing
+  - [ ] `oradba_oudctl.sh` - Use new environment sourcing
+- [ ] Create generic status script framework:
+  - [ ] Generic home status
+  - [ ] Database-specific status
+  - [ ] OUD-specific status
+  - [ ] DataSafe-specific status
+  - [ ] WebLogic-specific status
+
+#### 5.3 Documentation Updates
+
+- [ ] Update `doc/images/source/diagrams-mermaid.md` to reflect new configuration system
+- [ ] Rework development documentation:
+  - [ ] Update build and test procedures
+  - [ ] Document new configuration hierarchy
+  - [ ] Add troubleshooting guide
+  - [ ] Update contribution guidelines
+- [ ] Rework user documentation:
+  - [ ] Quick start guide
+  - [ ] Configuration guide
+  - [ ] Migration from basenv guide
+  - [ ] Command reference
+  - [ ] Common use cases and examples
+
+#### 5.4 Testing & Validation
+
+- [ ] Comprehensive testing across Oracle versions:
+  - [ ] Oracle 19c (various patch levels)
+  - [ ] Oracle 21c
+  - [ ] Oracle 23ai
+  - [ ] Oracle Free
+- [ ] Product-specific testing:
+  - [ ] ASM instances
+  - [ ] Client-only installations
+  - [ ] Instant Client (multiple versions)
+  - [ ] DataSafe (if available)
+  - [ ] OUD/WLS (if available)
+- [ ] Platform testing:
+  - [ ] Oracle Linux 8/9
+  - [ ] Red Hat Enterprise Linux
+  - [ ] macOS (development/testing)
+- [ ] Integration testing:
+  - [ ] Multi-home environments
+  - [ ] Mixed product types
+  - [ ] Configuration hierarchy validation
+  - [ ] Environment switching workflows
+
+#### 5.5 Migration & Compatibility
+
+- [ ] Create migration scripts/tools:
+  - [ ] basenv → oradba migration tool
+  - [ ] Configuration format converter
+  - [ ] Validation of migrated configurations
+- [ ] Document breaking changes
+- [ ] Create compatibility matrix
+- [ ] Provide rollback procedures
+
+**Deliverables (Target v0.23.0)**:
+
+- Clean, well-documented codebase
+- Comprehensive user and developer documentation
+- Updated Mermaid diagrams reflecting current architecture
+- Migration tools and guides
+- Validated testing across multiple platforms and Oracle versions
+- Production-ready release
 
 ### Phase 6: Nice-to-Have Features (Future)
 
