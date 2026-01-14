@@ -4,8 +4,8 @@
 This guide provides comprehensive development information for OraDBA v1.0.0 contributors.
 
 > **Note:** This document consolidates all essential development practices.
-> For detailed CI optimization strategies and markdown linting configuration history, 
-> see [archive/ci_optimization.md](archive/ci_optimization.md) and 
+> For detailed CI optimization strategies and markdown linting configuration history,
+> see [archive/ci_optimization.md](archive/ci_optimization.md) and
 > [archive/markdown-linting.md](archive/markdown-linting.md).
 
 ## CI/CD Pipeline
@@ -686,7 +686,7 @@ mappings:
     - test_service_management.bats
 ```
 
-For detailed technical documentation on smart test selection implementation, 
+For detailed technical documentation on smart test selection implementation,
 see [archive/smart-test-selection.md](archive/smart-test-selection.md).
 
 ### BATS Testing Framework
@@ -1611,7 +1611,7 @@ gh workflow run release.yml -f version=0.8.2
 
 1. **Use execute_db_query() instead of inline sqlplus**
 
-   ```bash
+```bash
    # Good (v0.13.2+)
    query_database_name() {
        local query="SELECT name FROM v\$database;"
@@ -1621,15 +1621,15 @@ gh workflow run release.yml -f version=0.8.2
    # Bad (old pattern - avoid)
    query_database_name() {
        result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-   SET PAGESIZE 0 LINESIZE 500...
-   SELECT name FROM v$database;
-   EOF
-   )
+SET PAGESIZE 0 LINESIZE 500...
+SELECT name FROM v$database;
+EOF
+)
        echo "$result" | grep -v "^SP2-"
    }
-   ```
+```
 
-2. **Always escape dollar signs in SQL**
+1. **Always escape dollar signs in SQL**
 
    ```bash
    # Good
@@ -1640,7 +1640,7 @@ gh workflow run release.yml -f version=0.8.2
    local query="SELECT name FROM v$database;"
    ```
 
-3. **Use double quotes for queries with single quotes**
+2. **Use double quotes for queries with single quotes**
 
    ```bash
    # Good - double quotes, escape $
@@ -1654,7 +1654,7 @@ gh workflow run release.yml -f version=0.8.2
    local query='SELECT name || '\''|'\'' || status FROM v$instance'
    ```
 
-4. **Choose appropriate format**
+3. **Choose appropriate format**
 
    - Use `raw` for multi-line output or single values
    - Use `delimited` for pipe-separated values (extracts first line only)
@@ -1674,7 +1674,7 @@ gh workflow run release.yml -f version=0.8.2
        FROM v\$database;" "delimited")
    ```
 
-5. **Handle query failures properly**
+4. **Handle query failures properly**
 
    ```bash
    if ! result=$(execute_db_query "$query" "raw"); then

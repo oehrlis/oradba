@@ -4,8 +4,8 @@ The OraDBA extension system allows you to add custom scripts, SQL files, and RMA
 scripts in a modular way without modifying the core OraDBA installation.
 
 > **Note:** This document provides complete extension development guidance for v1.0.0.
-> For detailed implementation patterns and integration examples from the development process, 
-> see [archive/extension-docs-implementation.md](archive/extension-docs-implementation.md) and 
+> For detailed implementation patterns and integration examples from the development process,
+> see [archive/extension-docs-implementation.md](archive/extension-docs-implementation.md) and
 > [archive/extension-docs-integration.md](archive/extension-docs-integration.md).
 
 ## Overview

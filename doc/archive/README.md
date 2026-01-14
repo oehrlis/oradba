@@ -1,6 +1,7 @@
 # Archived Documentation
 
-This directory contains historical and temporary documentation that was useful during development but is no longer needed for v1.0.0 release.
+This directory contains historical and temporary documentation that was useful
+during development but is no longer needed for v1.0.0 release.
 
 ## Archived Files
 
@@ -26,6 +27,7 @@ This directory contains historical and temporary documentation that was useful d
 ## Why Archived?
 
 These documents were valuable during development phases but are no longer relevant for:
+
 - Current development (v1.0.0+)
 - New contributors
 - User documentation

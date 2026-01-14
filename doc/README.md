@@ -5,12 +5,12 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 
 **Audience:** Project contributors, developers extending OraDBA, maintainers
 
-**For Users:** See [User Documentation](../src/doc/README.md) for usage guides and reference materials.
+**For Users:** See [User Documentation](../src/doc/index.md) for usage guides and reference materials.
 
 ## Quick Navigation
 
 | Category | Document | Description |
-|----------|----------|-------------|
+| -------- | -------- | ----------- |
 | **Getting Started** | [development.md](development.md) | Complete development guide - setup, workflow, testing, CI/CD |
 | **Architecture** | [architecture.md](architecture.md) | System design, components, and architectural decisions |
 | **API Reference** | [api.md](api.md) | Complete function reference for all libraries |
@@ -25,6 +25,7 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 New to OraDBA development? Start here:
 
 1. **[development.md](development.md)** - Read the complete development guide
+
    - Project structure and setup
    - Development workflow and Git practices
    - Testing with BATS framework
@@ -39,6 +40,7 @@ New to OraDBA development? Start here:
    - Extension framework
 
 3. **[api.md](api.md)** - Learn the API
+
    - Core utility functions
    - Environment management functions
    - Extension framework functions
@@ -48,6 +50,7 @@ New to OraDBA development? Start here:
 ### Development & Workflow
 
 **[development.md](development.md)** - Complete development guide (42K, comprehensive)
+
 - Project structure and components
 - Development environment setup
 - Testing with BATS framework
@@ -59,6 +62,7 @@ New to OraDBA development? Start here:
 - Contribution guidelines
 
 **Quick development cycle:**
+
 ```bash
 # Clone and setup
 git clone https://github.com/oehrlis/oradba.git
@@ -78,6 +82,7 @@ make dist              # Create distribution archive
 ### Architecture & Design
 
 **[architecture.md](architecture.md)** - System architecture
+
 - Overall design principles and philosophy
 - Library-based modular architecture
 - Component interactions
@@ -87,6 +92,7 @@ make dist              # Create distribution archive
 - Extension framework integration
 
 **[oradba-env-design.md](oradba-env-design.md)** - Environment library design (46K, detailed)
+
 - Environment Management Libraries (oradba_env_*)
 - Parser, Builder, Validator, Config Manager
 - Status Display and Change Tracking
@@ -97,6 +103,7 @@ make dist              # Create distribution archive
 ### Technical Reference
 
 **[api.md](api.md)** - Complete API documentation (43K)
+
 - **Core Utility Libraries**
   - common.sh (50 functions) - Logging, validation, config management
   - db_functions.sh (11 functions) - Database operations
@@ -111,6 +118,7 @@ make dist              # Create distribution archive
 - Usage examples and best practices
 
 **[extension-system.md](extension-system.md)** - Extension development (21K)
+
 - Extension framework overview
 - Extension structure and metadata
 - Lifecycle (discover → load → activate → manage)
@@ -123,6 +131,7 @@ make dist              # Create distribution archive
 ## Testing & Release
 
 **[release-testing-checklist.md](release-testing-checklist.md)** - Pre-release testing checklist
+
 - Installation testing (multiple platforms)
 - Core functionality verification
 - Extension system testing
@@ -132,6 +141,7 @@ make dist              # Create distribution archive
 - Upgrade testing
 
 **[v1.0.0-release-plan.md](v1.0.0-release-plan.md)** - v1.0.0 release preparation
+
 - 9 phases: Documentation → Testing → Release
 - Estimated 52-78 hours
 - Phase 1: Development Documentation ⏳ **IN PROGRESS**
@@ -140,19 +150,22 @@ make dist              # Create distribution archive
 ## Templates & Standards
 
 **[templates/](templates/)** - File templates
+
 - Shell script header template
 - SQL script header template
 - RMAN script header template
 - Configuration file template
 
 **Documentation Standards:**
+
 - Use ATX-style headers (`#` instead of underlines)
 - One sentence per line for easier diffs
-- Code blocks must specify language (```bash, ```sql, etc.)
+- Code blocks must specify language (`bash`, `sql`, etc.)
 - Internal links use relative paths
 - Run `make lint-md` to validate markdown
 
 **Code Standards:**
+
 - Shellcheck clean (no errors)
 - shfmt formatted (Google style)
 - Function headers required (see [src/lib/README.md](../src/lib/README.md))
@@ -163,6 +176,7 @@ make dist              # Create distribution archive
 **[archive/](archive/)** - Historical and detailed implementation documentation
 
 The archive contains:
+
 - **Temporary Planning Docs** - Phase 5 planning documents (function headers, legacy analysis, smart testing, version management)
 - **Detailed Implementation Docs** - Deep dives into specific systems (CI optimization, markdown linting, extension implementation patterns)
 
@@ -247,7 +261,7 @@ make release           # Full release process
 - **Markdown Style:**
   - Use ATX-style headers (`#` instead of underlines)
   - One sentence per line for easier diffs and reviews
-  - Code blocks must specify language (```bash, ```sql, etc.)
+  - Code blocks must specify language (`bash`, `sql`, etc.)
   - Use tables for structured data
   - Use lists for sequences and options
 
@@ -280,7 +294,7 @@ make release           # Full release process
 ### Documentation Types
 
 | Type | Location | Purpose | Audience |
-|------|----------|---------|----------|
+| ---- | -------- | ------- | -------- |
 | **Developer Docs** | `doc/` | Architecture, API, internals, contribution guides | Contributors, maintainers |
 | **User Docs** | `src/doc/` | Usage guides, troubleshooting, reference | End users, administrators |
 | **Library Docs** | `src/lib/README.md` | Function reference, usage examples | Developers, extension authors |
@@ -297,7 +311,7 @@ make release           # Full release process
 
 ## Related Documentation
 
-- **[User Documentation](../src/doc/README.md)** - Complete usage guides and reference
+- **[User Documentation](../src/doc/index.md)** - Complete usage guides and reference
 - **[Library Documentation](../src/lib/README.md)** - Function reference for all libraries
 - **[Project README](../README.md)** - Project overview and quick start
 - **[Contributing Guidelines](../CONTRIBUTING.md)** - How to contribute to OraDBA
