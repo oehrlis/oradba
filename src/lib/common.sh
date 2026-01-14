@@ -373,16 +373,15 @@ EOF
 # oratab Priority & Detection
 # ------------------------------------------------------------------------------
 
-# Get oratab file path with priority system
-# Priority:
-#   1. $ORADBA_ORATAB (explicit override)
-#   2. /etc/oratab (system default)
-#   3. /var/opt/oracle/oratab (Solaris/AIX)
-#   4. ${ORADBA_BASE}/etc/oratab (temporary for pre-Oracle installations)
-#   5. ${HOME}/.oratab (user fallback)
-#
-# Returns: Path to oratab file (even if doesn't exist)
-# Exit code: 0 if file exists, 1 if doesn't exist
+# ------------------------------------------------------------------------------
+# Function: get_oratab_path
+# Purpose.: Determine the correct oratab file path using priority order
+# Args....: None
+# Returns.: 0 if oratab found, 1 if not found
+# Output..: Prints path to oratab file (even if doesn't exist)
+# Notes...: Priority: ORADBA_ORATAB > /etc/oratab > /var/opt/oracle/oratab >
+#           ${ORADBA_BASE}/etc/oratab > ${HOME}/.oratab
+# ------------------------------------------------------------------------------
 get_oratab_path() {
     local oratab_path=""
 
@@ -433,8 +432,14 @@ get_oratab_path() {
     return 1
 }
 
-# Check if current ORACLE_SID is a dummy database (oratab flag :D)
-# Returns: 0 if dummy, 1 if not dummy or can't determine
+# ------------------------------------------------------------------------------
+# Function: is_dummy_sid
+# Purpose.: Check if current Oracle SID is marked as dummy/template in oratab
+# Args....: None (uses ORACLE_SID environment variable)
+# Returns.: 0 if SID is dummy (:D flag in oratab), 1 otherwise
+# Output..: None
+# Notes...: Dummy entries are marked with ':D' flag in oratab file
+# ------------------------------------------------------------------------------
 is_dummy_sid() {
     local sid="${ORACLE_SID}"
     local oratab_file
@@ -450,7 +455,13 @@ is_dummy_sid() {
     return 1
 }
 
-# Check if a command exists
+# ------------------------------------------------------------------------------
+# Function: command_exists
+# Purpose.: Check if a command is available in PATH
+# Args....: $1 - Command name to check
+# Returns.: 0 if command exists, 1 otherwise
+# Output..: None
+# ------------------------------------------------------------------------------
 command_exists() {
     command -v "$1" > /dev/null 2>&1
 }
@@ -459,9 +470,14 @@ command_exists() {
 # Coexistence Mode Functions (TVD BasEnv / DB*Star)
 # ------------------------------------------------------------------------------
 
-# Check if an alias or command already exists
-# Usage: alias_exists alias_name
-# Returns: 0 if exists, 1 if not
+# ------------------------------------------------------------------------------
+# Function: alias_exists
+# Purpose.: Check if an alias or command already exists
+# Args....: $1 - Alias or command name to check
+# Returns.: 0 if exists (as alias or command), 1 if not
+# Output..: None
+# Notes...: Checks both shell aliases and commands in PATH
+# ------------------------------------------------------------------------------
 alias_exists() {
     local name="$1"
 
@@ -507,7 +523,14 @@ safe_alias() {
     return 0
 }
 
-# Verify Oracle environment variables
+# ------------------------------------------------------------------------------
+# Function: verify_oracle_env
+# Purpose.: Verify required Oracle environment variables are set
+# Args....: None
+# Returns.: 0 if all required vars set, 1 if any missing
+# Output..: Error message listing missing variables
+# Notes...: Checks ORACLE_SID and ORACLE_HOME
+# ------------------------------------------------------------------------------
 verify_oracle_env() {
     local required_vars=("ORACLE_SID" "ORACLE_HOME")
     local missing_vars=()
@@ -526,7 +549,14 @@ verify_oracle_env() {
     return 0
 }
 
-# Get Oracle version
+# ------------------------------------------------------------------------------
+# Function: get_oracle_version
+# Purpose.: Retrieve Oracle database version from sqlplus
+# Args....: None
+# Returns.: 0 on success, 1 on error
+# Output..: Oracle version string (e.g., 19.0.0.0)
+# Notes...: Requires ORACLE_HOME to be set and sqlplus to be executable
+# ------------------------------------------------------------------------------
 get_oracle_version() {
     if [[ -z "${ORACLE_HOME}" ]]; then
         oradba_log ERROR "ORACLE_HOME not set"
@@ -541,7 +571,15 @@ get_oracle_version() {
     fi
 }
 
-# Parse oratab file
+# ------------------------------------------------------------------------------
+# Function: parse_oratab
+# Purpose.: Parse oratab file to get Oracle home path for a SID
+# Args....: $1 - Oracle SID to look up
+#           $2 - (Optional) Path to oratab file (defaults to get_oratab_path)
+# Returns.: 0 if SID found, 1 if not found or error
+# Output..: Oracle home path for the specified SID
+# Notes...: Skips comment lines and dummy entries (:D flag)
+# ------------------------------------------------------------------------------
 parse_oratab() {
     local sid="$1"
     local oratab_file="${2:-$(get_oratab_path)}"
@@ -555,8 +593,14 @@ parse_oratab() {
     grep -i "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
 }
 
-# Generate SID lists and aliases from oratab
-# Usage: generate_sid_lists [oratab_file]
+# ------------------------------------------------------------------------------
+# Function: generate_sid_lists
+# Purpose.: Generate SID lists and aliases from oratab and Oracle Homes config
+# Args....: $1 - (Optional) Path to oratab file (defaults to get_oratab_path)
+# Returns.: 0 on success, 1 if oratab not found
+# Output..: Sets ORADBA_SIDLIST and ORADBA_REALSIDLIST environment variables
+# Notes...: SIDLIST includes all SIDs and aliases, REALSIDLIST excludes dummies
+# ------------------------------------------------------------------------------
 generate_sid_lists() {
     local oratab_file="${1:-$(get_oratab_path)}"
 
@@ -630,12 +674,15 @@ generate_sid_lists() {
     return 0
 }
 
-# Generate aliases for registered Oracle Homes
-# Usage: generate_oracle_home_aliases
-# Creates shell aliases for all registered Oracle Homes (both NAME and ALIAS_NAME)
-# Example: If home is registered as DBHOMEFREE with alias rdbms26:
-#   - alias DBHOMEFREE='. oraenv.sh DBHOMEFREE'
-#   - alias rdbms26='. oraenv.sh DBHOMEFREE'
+# ------------------------------------------------------------------------------
+# Function: generate_oracle_home_aliases
+# Purpose.: Create shell aliases for all registered Oracle Homes
+# Args....: None
+# Returns.: 0 on success
+# Output..: Creates shell aliases for Oracle Home switching
+# Notes...: Creates aliases for both NAME and ALIAS_NAME entries
+#           Example: DBHOMEFREE and rdbms26 both point to same home
+# ------------------------------------------------------------------------------
 generate_oracle_home_aliases() {
     local homes_config
     
@@ -830,8 +877,14 @@ validate_directory() {
 # Oracle Homes Management Functions
 # ------------------------------------------------------------------------------
 
-# Get path to oradba_homes.conf file
-# Returns: Path to oradba_homes.conf or empty if not found
+# ------------------------------------------------------------------------------
+# Function: get_oracle_homes_path
+# Purpose.: Get path to oradba_homes.conf configuration file
+# Args....: None
+# Returns.: 0 if file exists, 1 if not found
+# Output..: Prints path to oradba_homes.conf
+# Notes...: Looks for ${ORADBA_BASE}/etc/oradba_homes.conf
+# ------------------------------------------------------------------------------
 get_oracle_homes_path() {
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
 
@@ -843,11 +896,14 @@ get_oracle_homes_path() {
     return 1
 }
 
-# Parse Oracle Home entry from oradba_homes.conf
-# Resolve Oracle Home alias to actual NAME
-# Arguments:
-#   $1 - Name or alias to resolve
-# Returns: Actual Oracle Home NAME (or original if not found)
+# ------------------------------------------------------------------------------
+# Function: resolve_oracle_home_name
+# Purpose.: Resolve Oracle Home alias to actual NAME from oradba_homes.conf
+# Args....: $1 - Name or alias to resolve
+# Returns.: 0 on success, 1 if not found or error
+# Output..: Actual Oracle Home NAME (or original if not found)
+# Notes...: Checks both NAME and ALIAS_NAME columns in oradba_homes.conf
+# ------------------------------------------------------------------------------
 resolve_oracle_home_name() {
     local name_or_alias="$1"
     local homes_file
@@ -1154,12 +1210,15 @@ detect_oracle_version() {
     return 1
 }
 
-# Derive ORACLE_BASE from ORACLE_HOME intelligently
-# Arguments:
-#   $1 - ORACLE_HOME path
-# Returns: Derived ORACLE_BASE path
-# Logic: Search upward for directory containing "product", "oradata", or "oraInventory"
-#        For paths like /appl/oracle/product/26.0.0/client -> /appl/oracle
+# ------------------------------------------------------------------------------
+# Function: derive_oracle_base
+# Purpose.: Derive ORACLE_BASE from ORACLE_HOME by searching upward
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success, 1 if unable to derive
+# Output..: Derived ORACLE_BASE path
+# Notes...: Searches upward for directory containing "product", "oradata",
+#           "oraInventory", or "admin" (max 5 levels)
+# ------------------------------------------------------------------------------
 derive_oracle_base() {
     local oracle_home="$1"
     local current_dir="${oracle_home}"
@@ -1616,8 +1675,14 @@ configure_sqlpath() {
     oradba_log DEBUG "SQLPATH configured: ${SQLPATH}"
 }
 
-# Display current SQLPATH directories
-# Usage: show_sqlpath
+# ------------------------------------------------------------------------------
+# Function: show_sqlpath
+# Purpose.: Display current SQLPATH directories with existence check
+# Args....: None
+# Returns.: 0 on success, 1 if SQLPATH not set
+# Output..: Numbered list of SQLPATH directories with status indicators
+# Notes...: Shows [✓] for existing directories, [✗ not found] for missing ones
+# ------------------------------------------------------------------------------
 show_sqlpath() {
     if [[ -z "${SQLPATH}" ]]; then
         echo "SQLPATH is not set"
@@ -1638,8 +1703,14 @@ show_sqlpath() {
     done
 }
 
-# Display current PATH directories (mirrors show_sqlpath output)
-# Usage: show_path
+# ------------------------------------------------------------------------------
+# Function: show_path
+# Purpose.: Display current PATH directories with existence check
+# Args....: None
+# Returns.: 0 on success, 1 if PATH not set
+# Output..: Numbered list of PATH directories with status indicators
+# Notes...: Shows [✓] for existing directories, [✗ not found] for missing ones
+# ------------------------------------------------------------------------------
 show_path() {
     if [[ -z "${PATH}" ]]; then
         echo "PATH is not set"
@@ -1660,8 +1731,15 @@ show_path() {
     done
 }
 
-# Display OraDBA configuration hierarchy and load order
-# Usage: show_config
+# ------------------------------------------------------------------------------
+# Function: show_config
+# Purpose.: Display OraDBA configuration hierarchy and load order
+# Args....: None
+# Returns.: 0 on success
+# Output..: Formatted display of configuration files with status
+# Notes...: Shows Phase 1-4 config hierarchy: core → standard → customer →
+#           local → SID-specific, with [✓ loaded] or [✗ MISSING] status
+# ------------------------------------------------------------------------------
 show_config() {
     local sid="${ORACLE_SID:-<not set>}"
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
