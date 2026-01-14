@@ -6,16 +6,16 @@ bash --version
 
 echo ""
 echo "=== File Info ==="
-file /opt/oracle/local/oradba/lib/common.sh
+file /opt/oracle/local/oradba/lib/oradba_common.sh
 
 echo ""
 echo "=== Checksum ==="
-cksum /opt/oracle/local/oradba/lib/common.sh
+cksum /opt/oracle/local/oradba/lib/oradba_common.sh
 
 echo ""
 echo "=== Line Endings Check ==="
 # Check for CRLF
-if grep -q $'\r' /opt/oracle/local/oradba/lib/common.sh; then
+if grep -q $'\r' /opt/oracle/local/oradba/lib/oradba_common.sh; then
     echo "WARNING: File contains CRLF (Windows) line endings!"
 else
     echo "OK: File uses LF (Unix) line endings"
@@ -23,19 +23,19 @@ fi
 
 echo ""
 echo "=== Guard Section (lines 118-150) ===" 
-sed -n '118,150p' /opt/oracle/local/oradba/lib/common.sh
+sed -n '118,150p' /opt/oracle/local/oradba/lib/oradba_common.sh
 
 echo ""
 echo "=== Count if statements in guard ==="
-sed -n '118,147p' /opt/oracle/local/oradba/lib/common.sh | grep -c "if \[\["
+sed -n '118,147p' /opt/oracle/local/oradba/lib/oradba_common.sh | grep -c "if \[\["
 
 echo ""
 echo "=== Count fi statements in guard ==="
-sed -n '118,147p' /opt/oracle/local/oradba/lib/common.sh | grep -c "^[[:space:]]*fi"
+sed -n '118,147p' /opt/oracle/local/oradba/lib/oradba_common.sh | grep -c "^[[:space:]]*fi"
 
 echo ""
 echo "=== Syntax check on full file ==="
-bash -n /opt/oracle/local/oradba/lib/common.sh
+bash -n /opt/oracle/local/oradba/lib/oradba_common.sh
 if [[ $? -eq 0 ]]; then
     echo "OK: No syntax errors found"
 else
@@ -80,8 +80,8 @@ else
 fi
 
 echo ""
-echo "=== Attempt to source actual common.sh ==="
-bash -c 'source /opt/oracle/local/oradba/lib/common.sh 2>&1' || echo "FAILED as expected"
+echo "=== Attempt to source actual oradba_common.sh ==="
+bash -c 'source /opt/oracle/local/oradba/lib/oradba_common.sh 2>&1' || echo "FAILED as expected"
 
 echo ""
 echo "=== Shell options ==="
@@ -89,4 +89,4 @@ set -o
 
 echo ""
 echo "=== Check for hidden characters around line 156 ==="
-sed -n '145,160p' /opt/oracle/local/oradba/lib/common.sh | od -c | head -30
+sed -n '145,160p' /opt/oracle/local/oradba/lib/oradba_common.sh | od -c | head -30

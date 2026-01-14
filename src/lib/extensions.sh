@@ -17,7 +17,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-# Requires: common.sh must be sourced first
+# Requires: oradba_common.sh must be sourced first
 
 # ------------------------------------------------------------------------------
 # Extension Discovery Functions
@@ -428,7 +428,7 @@ load_extension() {
 
     # Add to SQLPATH (sql directory)
     if [[ -d "${ext_path}/sql" ]]; then
-        # Use add_to_sqlpath from common.sh if available, otherwise append
+        # Use add_to_sqlpath from oradba_common.sh if available, otherwise append
         if command -v add_to_sqlpath > /dev/null 2>&1; then
             add_to_sqlpath "${ext_path}/sql"
         else
