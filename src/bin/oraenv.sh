@@ -65,6 +65,18 @@ if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && [[ -f "${_ORAENV_BASE
     source "${_ORAENV_BASE_DIR}/lib/extensions.sh"
 fi
 
+# Source new environment management libraries (Phase 1 - v0.19.0)
+export ORADBA_BASE="${_ORAENV_BASE_DIR}"
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_parser.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_env_parser.sh"
+fi
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_builder.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_env_builder.sh"
+fi
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh"
+fi
+
 # Global variables - declared at script level so they persist across functions
 # shellcheck disable=SC2034  # Used across functions in _oraenv_parse_args and _oraenv_main
 SHOW_ENV=true

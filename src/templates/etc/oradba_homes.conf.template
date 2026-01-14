@@ -4,72 +4,118 @@
 # Name.......: oradba_homes.conf.template
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Version....: 
-# Purpose....: Configuration file for Oracle Homes (non-database products)
-# Notes......: This file registers Oracle products beyond databases:
+# Date.......: 2026.01.14
+# Version....: 0.19.0
+# Purpose....: Configuration file for Oracle Homes (all Oracle products)
+# Notes......: This file registers all Oracle products including:
+#              - Oracle Database (RDBMS)
+#              - Oracle Grid Infrastructure
+#              - Oracle Client (full and instant client)
 #              - Oracle Unified Directory (OUD)
 #              - Oracle Data Safe On-Premises Connector
-#              - Oracle Client installations
-#              - WebLogic, OMS, EM Agent, etc.
+#              - Oracle WebLogic Server
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-# Configuration Format
-# ====================
-# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
+# Configuration Format (Version 0.19.0+)
+# =======================================
+# ORACLE_HOME;Product;Version;Edition;DB_Type;Position;Dummy_SID;Short_Name;Description
 #
-# Fields:
-#   NAME          - Unique identifier (auto-discovered or user-defined, e.g., OUD12C)
-#   ORACLE_HOME   - Full path to Oracle home directory
-#   PRODUCT_TYPE  - Product type identifier (see below)
-#   ORDER         - Display order (lower numbers first, 10-based increments)
-#   ALIAS_NAME    - Optional user-friendly name for aliases (defaults to NAME)
-#   DESCRIPTION   - Optional human-readable description
-#   VERSION       - Oracle version (optional)
-#                   AUTO: Version determined dynamically (recommended)
-#                   XXYZ: Specific version (e.g., 1920 for Oracle 19.2.0)
-#                   ERR:  For products with no database components
+# Fields (semicolon-delimited):
+#   1. ORACLE_HOME   - Full path to Oracle home directory (REQUIRED)
+#   2. Product       - Product type (RDBMS|CLIENT|ICLIENT|GRID|DATASAFE|OUD|WLS)
+#   3. Version       - Oracle version (e.g., 19.0.0.0.0, 21.3.0.0.0)
+#   4. Edition       - Edition (EE|SE2|XE|N/A) for RDBMS/CLIENT, N/A for others
+#   5. DB_Type       - Database type (SI|RAC|DG|RAC-DG|N/A) for RDBMS, N/A for others
+#   6. Position      - Display order (lower numbers first, 10-based increments)
+#   7. Dummy_SID     - Default SID for non-database products (e.g., dummy)
+#   8. Short_Name    - Short identifier (e.g., DB19, CL21, IC19)
+#   9. Description   - Human-readable description
 #
-# Product Types:
-#   oud          - Oracle Unified Directory
-#   datasafe     - Oracle Data Safe On-Premises Connector
-#   client       - Oracle Client (SQL*Plus, networking tools)
-#   weblogic     - Oracle WebLogic Server
-#   oms          - Oracle Enterprise Manager OMS
-#   emagent      - Oracle Enterprise Manager Agent
-#   database     - Oracle Database (typically managed via oratab)
+# Product Types (Priority 1):
+#   RDBMS        - Oracle Database Server (databases managed via /etc/oratab)
+#   CLIENT       - Oracle Full Client (SQL*Plus, networking tools, libraries)
+#   ICLIENT      - Oracle Instant Client (lightweight client)
+#   GRID         - Oracle Grid Infrastructure (Clusterware + ASM)
 #
-# Examples:
-# ---------
-# Basic format (ALIAS_NAME defaults to NAME, VERSION defaults to AUTO):
-# OUD12C:/u01/app/oracle/product/oud12c:oud:10:Oracle Unified Directory 12c
+# Product Types (Priority 2):
+#   DATASAFE     - Oracle Data Safe On-Premises Connector
 #
-# With custom alias name and version:
-# OUD12C:/u01/app/oracle/product/oud12c:oud:10:oud12:Oracle Unified Directory 12c:AUTO
-# DATASAFE:/opt/oracle/product/datasafe:datasafe:20:ds:Data Safe Connector:ERR
-# CLIENT19:/opt/oracle/product/19c/client:client:30:client:Oracle Client 19c:AUTO
-# CLIENT23:/appl/oracle/product/23.26.0.0/client:client:35:cli260:Oracle Client 23ai:AUTO
-# WLS14:/u01/app/oracle/middleware/wls14:weblogic:40:wls:WebLogic 14.1.1:ERR
-# OMS13:/u01/app/oracle/middleware/oms13c:oms:50:oms:Enterprise Manager OMS 13c:ERR
-# AGENT13:/u01/app/oracle/agent/agent_13.5.0.0.0:emagent:60:agent:EM Agent 13.5:ERR
+# Product Types (Priority 3):
+#   OUD          - Oracle Unified Directory
+#   WLS          - Oracle WebLogic Server
+#
+# Version Format:
+#   - Use full dotted notation: 19.0.0.0.0, 21.3.0.0.0
+#   - Use AUTO for automatic detection
+#   - Use N/A if version not applicable
+#
+# Examples - Oracle Database (RDBMS):
+# ------------------------------------
+# Oracle Database 19c Enterprise Edition (Single Instance)
+/u01/app/oracle/product/19.0.0.0/dbhome_1;RDBMS;19.0.0.0.0;EE;SI;10;ORCL;DB19;Oracle Database 19c Enterprise Edition
+
+# Oracle Database 21c Express Edition
+/opt/oracle/product/21c/dbhomeXE;RDBMS;21.3.0.0.0;XE;SI;20;XE;XE21;Oracle Database 21c Express Edition
+
+# Examples - Grid Infrastructure:
+# --------------------------------
+# Grid Infrastructure 19c for standalone server (Oracle Restart)
+/u01/app/19.0.0.0/grid;GRID;19.0.0.0.0;N/A;N/A;15;+ASM;GRID19;Grid Infrastructure 19c
+
+# Examples - Oracle Client:
+# --------------------------
+# Full Oracle Client 19c
+/opt/oracle/product/19c/client;CLIENT;19.0.0.0.0;N/A;N/A;30;dummy;CL19;Oracle Client 19c
+
+# Oracle Client 23ai
+/opt/oracle/product/23.26.0.0/client;CLIENT;23.26.0.0.0;N/A;N/A;35;dummy;CL23;Oracle Client 23ai
+
+# Examples - Instant Client:
+# ---------------------------
+# Instant Client 19.19
+/opt/oracle/instantclient_19_19;ICLIENT;19.19.0.0.0;N/A;N/A;40;dummy;IC19;Oracle Instant Client 19.19
+
+# Examples - DataSafe (Priority 2):
+# ----------------------------------
+# DataSafe On-Premises Connector
+/opt/oracle/product/datasafe;DATASAFE;1.0.0.0.0;N/A;N/A;50;dummy;DS;Oracle Data Safe Connector
+
+# Examples - OUD (Priority 3):
+# -----------------------------
+# Oracle Unified Directory 12c
+/u01/app/oracle/product/oud12c;OUD;12.2.1.4.0;N/A;N/A;60;oud1;OUD12;Oracle Unified Directory 12c
+
+# Examples - WebLogic (Priority 3):
+# ----------------------------------
+# WebLogic Server 14c
+/u01/app/oracle/middleware/wls14;WLS;14.1.1.0.0;N/A;N/A;70;dummy;WLS14;Oracle WebLogic Server 14.1.1
 
 # Usage Notes
 # ===========
 # - One entry per line (empty lines and comments ignored)
-# - Names must be unique
-# - Use consistent ORDER increments (10, 20, 30...) for easy reordering
+# - Fields are semicolon-delimited (no spaces around semicolons recommended)
 # - ORACLE_HOME paths must be absolute
-# - To activate a home: source oraenv.sh <NAME>
-# - List all homes: oraup.sh
+# - Use consistent Position increments (10, 20, 30...) for easy reordering
+# - To activate a home: source oraenv.sh <SID_or_HOME>
+# - List all homes: oradba.sh env list
 #
-# Coexistence with oratab:
-#   - This file is for non-database Oracle products
-#   - Database homes continue to use /etc/oratab
-#   - oraenv.sh checks both locations
-#   - oraup.sh displays both databases and homes
+# Field Guidelines:
+#   - Version: Use AUTO for automatic detection, or specific version
+#   - Edition: Use EE, SE2, XE for RDBMS; N/A for others
+#   - DB_Type: Use SI, RAC, DG, RAC-DG for RDBMS; N/A for others
+#   - Position: Lower numbers appear first in listings
+#   - Dummy_SID: Used for non-database products as environment identifier
+#   - Short_Name: Used for aliases and quick reference
+#
+# Coexistence with /etc/oratab:
+#   - Database SIDs are managed in /etc/oratab (Oracle standard)
+#   - This file extends environment management to all Oracle products
+#   - Both files are read when building environment
+#   - oratab takes precedence for database SID conflicts
+
 
 # Your Oracle Homes Configuration
 # ================================
