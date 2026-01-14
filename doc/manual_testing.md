@@ -289,8 +289,8 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 oradba_homes.sh list
 
 # 2. Add Oracle Home
-# NOTE: Check for alias conflicts first! If SID 'FREE' exists,
-# it already creates alias 'free', causing potential confusion.
+# NOTE: System will warn if alias conflicts with existing SID alias
+# Example: SID 'FREE' creates alias 'free', avoid using 'free' as home alias
 oradba_homes.sh add \
   --name "dbhome_free26ai" \
   --path "$ORACLE_HOME" \
@@ -298,11 +298,13 @@ oradba_homes.sh add \
   --alias "free26ai" \
   --version "23.26.0.0" \
   --desc "Oracle AI Database 26ai Free"
+# Expected: Success message with configuration summary
+# If alias conflicts with SID, warning shown and confirmation requested
 
 # 3. Verify home registered
 oradba_homes.sh list
-# Expected: Home listed with name, type, status, and description
-# Note: List output shows NAME not full path
+# Expected: Home listed with name, type, status, and full description
+# Note: Description may be truncated if longer than 39 characters
 
 # 4. Test export functionality
 oradba_homes.sh export > /tmp/homes_export.conf
@@ -312,8 +314,8 @@ head -10 /tmp/homes_export.conf
 # Expected: Header with metadata, then home entries
 
 # 6. Test home metadata retrieval
-# NOTE: show command uses alias/name, not path
-oradba_homes.sh show "free26ai"  # Use alias from step 2
+# NOTE: show command now supports both alias/name AND path
+oradba_homes.sh show "free26ai"  # By alias
 # Expected: Detailed information including:
 #   - Name, Alias, ORACLE_HOME path
 #   - Product Type (detected and configured)
@@ -321,22 +323,31 @@ oradba_homes.sh show "free26ai"  # Use alias from step 2
 #   - Status and Description
 #   - Directory contents
 
-# 7. Verify show displays full description
-oradba_homes.sh show "free26ai" | grep -i "description"
-# Expected: Full description text (check for truncation)
+# 7. Test show by path
+oradba_homes.sh show "$ORACLE_HOME"  # By path
+# Expected: Same detailed information as by alias
 
-# 8. Test show with non-existent home
+# 8. Verify show displays full description
+oradba_homes.sh show "free26ai" | grep -i "description"
+# Expected: Full description text
+
+# 9. Test show with non-existent home
 oradba_homes.sh show "nonexistent"
 # Expected: Error message about home not found
 
-# 9. Test import with valid export
+# 10. Test import with valid export
 oradba_homes.sh import < /tmp/homes_export.conf
-# Expected: Imports successfully
+# Expected: Imports successfully, shows count of imported homes
 
-# NOTE: Import validation appears to accept invalid format without error
-# This may be a bug - invalid input should be rejected
+# 11. Test import validation with invalid format
+echo "# Invalid format" | oradba_homes.sh import --no-backup
+# Expected: Validation error - no valid Oracle Home entries found
 
-# 10. Cleanup
+# 12. Test import validation with malformed entry
+echo "BADNAME:/not/absolute:badtype:50" | oradba_homes.sh import --no-backup
+# Expected: Validation errors for invalid name format, path, and type
+
+# 13. Cleanup
 rm -f /tmp/homes_export.conf
 ```
 
@@ -344,10 +355,11 @@ rm -f /tmp/homes_export.conf
 
 - ✅ List command works (empty or populated)
 - ✅ Add command registers home correctly
+- ✅ Add command warns on alias conflicts with SIDs
 - ✅ Export produces valid format
-- ✅ Show displays home metadata
-- ✅ Update modifies metadata
-- ✅ Import validates format
+- ✅ Show displays home metadata (by name/alias or path)
+- ✅ List shows full or truncated descriptions appropriately
+- ✅ Import validates format and rejects invalid entries
 
 ---
 
