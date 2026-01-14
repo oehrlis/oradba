@@ -170,7 +170,7 @@ teardown() {
     # Should detect change
     run oradba_check_config_changes
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "oradba_core.conf" ]]
+    [[ "$output" =~ oradba_core.conf ]]
     
     # Cleanup
     rm -f "${ORADBA_BASE}/etc/oradba_core.conf"

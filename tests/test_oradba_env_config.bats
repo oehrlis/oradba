@@ -255,21 +255,21 @@ EOF
 @test "expand_variables: should expand ORACLE_HOME" {
     run oradba_expand_variables '${ORACLE_HOME}/bin'
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "/bin" ]]
-    [[ "$output" =~ "${ORACLE_HOME}" ]]
+    [[ "$output" =~ /bin ]]
+    [[ "$output" =~ ${ORACLE_HOME} ]]
 }
 
 @test "expand_variables: should expand ORACLE_SID" {
     run oradba_expand_variables '${ORACLE_SID}_backup'
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "${ORACLE_SID}_backup" ]]
+    [[ "$output" =~ ${ORACLE_SID}_backup ]]
 }
 
 @test "expand_variables: should expand ORACLE_BASE" {
     run oradba_expand_variables '${ORACLE_BASE}/admin'
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "/admin" ]]
-    [[ "$output" =~ "${ORACLE_BASE}" ]]
+    [[ "$output" =~ /admin ]]
+    [[ "$output" =~ ${ORACLE_BASE} ]]
 }
 
 @test "expand_variables: should handle string without variables" {

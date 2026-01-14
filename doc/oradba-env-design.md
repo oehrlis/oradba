@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Date:** 2026-01-14  
-**Status:** Phase 1 Complete (v0.19.0), Phase 2 Complete (v0.20.0), Phase 3 In Progress
+**Status:** Phases 1-3 Complete (v0.19.0-v0.21.0), Phase 4 In Progress
 
 ---
 
@@ -1200,18 +1200,28 @@ oradba_validate() {
 
 **Commit**: 5b6a8a4 - Release v0.20.0
 
-### Phase 3: Advanced Features - Priority 1 & 2 (Week 4) 🔄 IN PROGRESS
+### Phase 3: Advanced Features - Priority 1 & 2 (Week 4) ✅ COMPLETE - v0.21.0
 
 - [x] Read-Only Oracle Home detection (implemented in Phase 1)
 - [x] ASM instance handling (implemented in Phase 1)
-- [ ] Priority 2: DataSafe product support
-- [ ] Service availability checking (running/stopped)
-- [ ] Change detection mechanism
-- [ ] Environment caching (optional)
-- [ ] Validation framework enhancement (product-specific logic)
-- [ ] Install validation command (`oradba env validate install`)
+- [x] Service availability checking (running/stopped)
+- [x] Change detection mechanism
+- [ ] Priority 2: DataSafe product support (template exists, needs real testing)
+- [ ] Environment caching (deferred - not critical)
+- [ ] Validation framework enhancement (product-specific logic - partial)
+- [ ] Install validation command (`oradba env validate install` - deferred)
 
-### Phase 4: Priority 3 Products & Management Tools (Week 5)
+**Deliverables**:
+
+- `src/lib/oradba_env_status.sh` (8 functions, 327 lines)
+- `src/lib/oradba_env_changes.sh` (7 functions, 259 lines)
+- `tests/test_oradba_env_status.bats` (21 unit tests)
+- `tests/test_oradba_env_changes.bats` (16 unit tests)
+- Enhanced `oradba_env.sh` with status and changes commands
+
+**Commit**: 40b8d84 - Release v0.21.0
+
+### Phase 4: Priority 3 Products & Management Tools (Week 5) 🔄 IN PROGRESS
 
 - [ ] Priority 3: OUD product support
 - [ ] Priority 3: WLS product support

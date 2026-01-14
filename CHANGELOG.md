@@ -114,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deliverables
 
 Phase 3 delivers advanced monitoring and automation:
+
 - 2 new libraries (oradba_env_status.sh - 306 lines, oradba_env_changes.sh - 229 lines)
 - Enhanced oradba_env.sh command (2 new subcommands)
 - 37 new unit tests (all passing)
@@ -248,6 +249,7 @@ Phase 3 delivers advanced monitoring and automation:
 ### Deliverables
 
 Phase 2 completes the configuration management system with:
+
 - 1 new library (oradba_env_config.sh, 349 lines, 8 functions)
 - 1 new template (oradba_environment.conf.template, 175 lines)
 - 28 unit tests (all passing)

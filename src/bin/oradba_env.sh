@@ -303,8 +303,8 @@ cmd_status() {
     fi
     
     # Parse SID info
-    local oracle_sid oracle_home oracle_flag
-    IFS=':' read -r oracle_sid oracle_home oracle_flag <<< "$sid_info"
+    local oracle_sid oracle_home _oracle_flag
+    IFS=':' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
     
     # Detect product type
     local product_type
