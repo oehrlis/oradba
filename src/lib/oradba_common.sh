@@ -1461,6 +1461,82 @@ is_oracle_home() {
     parse_oracle_home "${name}" > /dev/null 2>&1
 }
 
+# ------------------------------------------------------------------------------
+# Function: cleanup_previous_sid_config
+# Purpose.: Unset variables from previous SID-specific configuration
+# Args....: None
+# Returns.: 0 - Always successful
+# Output..: Debug messages about cleanup
+# Notes...: Uses ORADBA_PREV_SID_VARS to track and unset variables set by
+#           previous SID configuration. This ensures clean environment isolation
+#           when switching between SIDs.
+# ------------------------------------------------------------------------------
+cleanup_previous_sid_config() {
+    if [[ -n "${ORADBA_PREV_SID_VARS:-}" ]]; then
+        oradba_log DEBUG "Cleaning up variables from previous SID configuration"
+        
+        # Unset each variable that was set by previous SID config
+        local var
+        for var in ${ORADBA_PREV_SID_VARS}; do
+            # Skip critical Oracle and OraDBA variables
+            case "$var" in
+                ORACLE_SID|ORACLE_HOME|ORACLE_BASE|ORADBA_*|PATH|LD_LIBRARY_PATH|TNS_ADMIN|NLS_LANG)
+                    continue
+                    ;;
+                *)
+                    oradba_log DEBUG "Unsetting SID-specific variable: $var"
+                    unset "$var"
+                    ;;
+            esac
+        done
+        
+        # Clear the tracking variable
+        unset ORADBA_PREV_SID_VARS
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Function: capture_sid_config_vars
+# Purpose.: Capture variables set by SID-specific configuration
+# Args....: $1 - SID configuration file path
+# Returns.: 0 - Successfully captured variables
+#           1 - Configuration file not found
+# Output..: None (sets ORADBA_PREV_SID_VARS)
+# Notes...: Compares environment before and after loading SID config to track
+#           which variables were added. Stores list in ORADBA_PREV_SID_VARS for
+#           cleanup when switching SIDs.
+# ------------------------------------------------------------------------------
+capture_sid_config_vars() {
+    local sid_config="$1"
+    
+    [[ ! -f "$sid_config" ]] && return 1
+    
+    # Get current exported variables (variable names only)
+    local vars_before
+    vars_before=$(compgen -e | sort)
+    
+    # Source the SID config
+    set -a
+    # shellcheck source=/dev/null
+    source "$sid_config"
+    set +a
+    
+    # Get variables after loading config
+    local vars_after
+    vars_after=$(compgen -e | sort)
+    
+    # Find new variables (difference)
+    local new_vars
+    new_vars=$(comm -13 <(echo "$vars_before") <(echo "$vars_after") | tr '\n' ' ')
+    
+    # Store for cleanup on next SID switch
+    export ORADBA_PREV_SID_VARS="$new_vars"
+    
+    oradba_log DEBUG "Captured SID-specific variables: ${new_vars:-<none>}"
+    
+    return 0
+}
+
 # Configuration Management
 # ------------------------------------------------------------------------------
 
@@ -1512,6 +1588,10 @@ load_config() {
 
     oradba_log DEBUG "Loading OraDBA configuration for SID: ${sid:-<none>}"
 
+    # Clean up variables from previous SID configuration
+    # This ensures environment isolation when switching between SIDs
+    cleanup_previous_sid_config
+
     # Enable auto-export of all variables (set -a)
     # This ensures all variables in config files are exported to environment
     # even if 'export' keyword is forgotten
@@ -1534,14 +1614,17 @@ load_config() {
     # 4. Load default SID configuration (optional)
     load_config_file "${config_dir}/sid._DEFAULT_.conf"
 
-    # 5. Load SID-specific configuration (optional)
+    # Disable auto-export before SID config (we'll track variables manually)
+    set +a
+
+    # 5. Load SID-specific configuration with variable tracking
     if [[ -n "${sid}" ]]; then
         local sid_config="${config_dir}/sid.${sid}.conf"
 
         # Check if SID config exists
         if [[ -f "${sid_config}" ]]; then
-            # Config exists - load it
-            load_config_file "${sid_config}"
+            # Config exists - load it with variable tracking
+            capture_sid_config_vars "${sid_config}"
         else
             # Config doesn't exist - check if we should auto-create it
             if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
@@ -1551,8 +1634,8 @@ load_config() {
                     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
-                        # Source the newly created config file
-                        load_config_file "${sid_config}"
+                        # Source the newly created config file with variable tracking
+                        capture_sid_config_vars "${sid_config}"
                     else
                         echo "[WARN] Failed to auto-create SID config for ${sid}" >&2
                         oradba_log WARN "Failed to auto-create SID config for ${sid}"
@@ -1566,9 +1649,6 @@ load_config() {
             fi
         fi
     fi
-
-    # Disable auto-export (set +a)
-    set +a
 
     oradba_log DEBUG "Configuration loading complete"
     return 0
