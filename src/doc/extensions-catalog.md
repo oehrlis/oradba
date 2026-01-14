@@ -1,8 +1,8 @@
 # Extensions
 
 OraDBA supports extensions to add custom functionality without modifying the core
-installation. Official extensions are listed below and their documentation is
-integrated into this site.
+installation. Official extensions are listed below with links to their documentation
+in their respective GitHub repositories.
 
 ## Official Extensions
 
@@ -13,8 +13,8 @@ integrated into this site.
     - Has its own repository and version numbers
     - Follows the standard OraDBA directory structure (bin/, sql/, rcv/, lib/, etc.)
     - Is automatically discovered when placed parallel to OraDBA installation
-    - Has its documentation maintained in its own repository (in `doc/` directory)
-    - Documentation is linked here but maintained separately from main OraDBA docs
+    - Maintains its own documentation in its GitHub repository
+    - Can be installed using the OraDBA extension management tools
     
     For details on creating extensions, see the [Extension System Guide](extensions.md).
 
@@ -30,7 +30,7 @@ integrated into this site.
 
 Template and example for creating OraDBA extensions
 
-[View Documentation](extensions/oradba_extension/index.md){ .md-button }
+[View Documentation](https://github.com/oehrlis/oradba_extension#readme){ .md-button }
 
 ### OraDBA Data Safe Extension
 
@@ -59,24 +59,23 @@ Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrad
 To have your extension listed here:
 
 1. **Follow the structure** - Use the standard OraDBA extension layout
-2. **Add documentation** - Include markdown docs in a `docs/` directory in your repo
-3. **Submit a request** - Open an issue or PR to add your extension to the registry
+2. **Add documentation** - Include markdown docs in your repository's README
+3. **Submit a request** - Open an issue or PR to add your extension to this catalog
 4. **Review process** - Extensions are reviewed for quality and compatibility
 
-### Extension Documentation Requirements
+### Extension Documentation
 
-Each extension should provide documentation in its `doc/` directory:
+Each extension maintains its own documentation in its GitHub repository. At minimum,
+the README should include:
 
-- `index.md` - Overview, installation, quick start
-- `configuration.md` - Configuration options and examples
-- `reference.md` - Command/script reference
-- `changelog.md` - Version history
+- Overview and features
+- Installation instructions
+- Configuration options
+- Usage examples and command reference
+- Changelog and version history
 
-**Note:** Extension documentation is maintained separately in each extension's
-repository and linked from this catalog. It is not included in the main
-OraDBA PDF documentation.
-
-See the [Extension Template](https://github.com/oehrlis/oradba_extension) for examples.
+See the [Extension Template](https://github.com/oehrlis/oradba_extension) for a
+complete example with comprehensive documentation structure.
 
 ## Creating Your Own Extension
 
