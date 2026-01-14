@@ -1,37 +1,43 @@
 # Environment Management
 
-**Purpose:** Comprehensive guide to `oraenv.sh` - OraDBA's core component for managing Oracle database environments,
-setting variables, and switching between databases.
+**Purpose:** Comprehensive guide to `oraenv.sh` and `oradba_env.sh` - OraDBA's core components for managing Oracle
+database environments using the Phase 1-3 library system.
 
 **Audience:** All users - essential for daily OraDBA use.
 
 ## Introduction
 
-This chapter covers the `oraenv.sh` script in detail - OraDBA's core component
-for managing Oracle database environments. Learn how to use it effectively in
-interactive shells, scripts, and automation.
+This chapter covers OraDBA's environment management system in detail. The system uses a wrapper pattern where
+`oraenv.sh` calls `oradba_env.sh`, which coordinates Phase 1-3 libraries to parse configuration, build the environment,
+and validate Oracle installations.
 
-## oraenv.sh Overview
+## Architecture Overview
 
-The `oraenv.sh` script sets up your Oracle environment based on the oratab file.
-It configures all necessary environment variables, loads OraDBA configurations,
-and can display database status.
+OraDBA's environment management consists of:
+
+- **oraenv.sh**: Lightweight wrapper script (user entry point)
+- **oradba_env.sh**: Main environment builder (coordinates libraries)
+- **Phase 1 (Parser)**: `oradba_env_parser.sh` - Parses and merges 6 config levels
+- **Phase 2 (Builder)**: `oradba_env_builder.sh` - Constructs Oracle environment
+- **Phase 3 (Validator/Status)**: Validates installation and displays status
 
 ![oraenv.sh Flow](images/oraenv-flow.png){ width=80% }
 
-The flow diagram shows how oraenv.sh processes oratab entries, validates the
-environment, loads hierarchical configurations, generates aliases, and displays
-database status.
+The flow diagram shows the complete process: wrapper → builder → parser → builder → validator → status
+display.
+
+## oraenv.sh - Wrapper Script
+
+The `oraenv.sh` script is the user-facing entry point. It provides a simple interface while delegating the heavy
+lifting to `oradba_env.sh` and Phase 1-3 libraries.
 
 **Key features:**
 
-- Intelligent environment setup from oratab
-- Interactive SID selection with numbered list
-- Silent mode for scripting
-- Automatic database status display
-- Hierarchical configuration loading
-- PDB alias generation for multitenant databases
-- Profile integration support
+- Lightweight wrapper with minimal logic
+- Calls oradba_env.sh with SID or Oracle Home name
+- Supports interactive SID selection
+- Silent mode for scripting  
+- Compatible with existing workflows
 
 ## Basic Usage
 

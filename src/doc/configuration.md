@@ -1,42 +1,47 @@
 # Configuration System
 
-**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system - the canonical reference for all
-configuration files, variables, and customization options.
+**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system implemented in Phase 1-4
+(v0.19.0-v0.22.0) - the canonical reference for all configuration files, variables, and customization options.
 
 **Audience:** Users who need to customize OraDBA behavior, paths, or database-specific settings.
 
 ## Introduction
 
-OraDBA uses a hierarchical configuration system that allows flexible
-customization at multiple levels. This chapter explains how to configure OraDBA
-to match your environment and preferences.
+OraDBA uses a sophisticated library-based configuration system (Phase 1-3) that provides flexible customization at
+multiple levels. The system parses, merges, and validates configuration from six sources, allowing you to customize
+globally or per-database without modifying base files.
 
 ## Configuration Hierarchy
 
-Configuration files are loaded in a specific order, with later files overriding earlier settings:
+Configuration files are loaded and merged by `oradba_env_parser.sh` in a specific order, with later files overriding
+earlier settings:
 
 1. **oradba_core.conf** - Core system settings (required, don't modify)
-2. **oradba_standard.conf** - Standard environment and aliases (required, don't modify)  
-3. **oradba_customer.conf** - Your global custom settings (optional, **recommended for customization**)
-4. **sid._DEFAULT_.conf** - Default settings for all databases (optional)
-5. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created)
+2. **oradba_standard.conf** - Standard environment and aliases (required, don't modify)
+3. **oradba_local.conf** - Auto-detected local settings (auto-generated, don't modify)
+4. **oradba_customer.conf** - Your global custom settings (optional, **recommended for customization**)
+5. **sid._DEFAULT_.conf** - Default template for all databases (optional)
+6. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created from
+   template)
 
 ![Configuration Hierarchy](images/config-hierarchy.png){ width=80% }
 
-The diagram illustrates the 5-level configuration hierarchy with override
-relationships. Later configurations override earlier settings, allowing flexible
-customization without modifying base files.
+The diagram illustrates the 6-level configuration hierarchy with Phase 1-3 processing. The Parser reads all levels,
+the Builder constructs the environment, and the Validator verifies Oracle installations.
 
 ![Configuration Load Sequence](images/config-sequence.png){ width=80% }
 
-The sequence diagram shows the step-by-step process of loading and applying configurations during environment setup.
+The sequence diagram shows the library-based processing: oraenv.sh wrapper → oradba_env.sh builder → Phase 1-3
+libraries (Parser, Builder, Validator) working together to create the final environment.
 
-This hierarchical approach means:
+**Key Benefits:**
 
-- Base settings work everywhere
-- You can customize globally or per-database
+- Base settings work everywhere (levels 1-2)
+- Auto-detected settings adapt to your system (level 3)
+- Customize globally or per-database (levels 4-6)
 - Your customizations survive updates
 - Later configurations override earlier ones
+- All processing is validated and logged
 
 ## Configuration Files
 
@@ -118,6 +123,30 @@ alias cdh='cd ${ORACLE_HOME}'
 
 **When to Edit:** Not recommended. Override settings in `oradba_customer.conf`
 instead to preserve your changes during updates.
+
+### oradba_local.conf - Auto-Detected Settings
+
+**Location:** `${ORADBA_PREFIX}/etc/oradba_local.conf`
+
+**Purpose:** Auto-generated file containing locally-detected settings
+
+**Created By:** Installer during installation, automatically maintained
+
+**Key Settings:**
+
+```bash
+# Installation detection
+ORADBA_PREFIX="/opt/oradba"
+ORADBA_INSTALL_TYPE="standalone"    # or "coexist"
+ORADBA_INSTALL_DATE="2026-01-14"
+ORADBA_VERSION="0.22.0"
+
+# Coexistence mode (if TVD BasEnv detected)
+ORADBA_COEXIST_MODE="basenv"        # Present if BasEnv installed
+BE_HOME="/opt/tvd/basenv"           # BasEnv installation path
+```
+
+**When to Edit:** Never - this file is auto-generated and auto-maintained. If you need to override these settings, use `oradba_customer.conf`.
 
 ### oradba_customer.conf - Your Customizations ⭐
 
