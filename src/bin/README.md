@@ -283,7 +283,7 @@ See [Configuration](../doc/05-configuration.md) for details.
 ### Script Standards
 
 1. **Header**: Include standard header with purpose, usage, and version
-2. **Functions**: Use functions from `lib/common.sh` and `lib/db_functions.sh`
+2. **Functions**: Use functions from `lib/oradba_common.sh` and `lib/oradba_db_functions.sh`
 3. **Error Handling**: Check return codes and provide meaningful errors
 4. **Documentation**: Include usage examples in header comments
 5. **Testing**: Write BATS tests for new functionality
