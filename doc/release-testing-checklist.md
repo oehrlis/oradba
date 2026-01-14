@@ -112,6 +112,41 @@ sq           # Should launch sqlplus
 - [ ] `sid.ORCL.conf` loaded (if exists)
 - [ ] `ORADBA_COEXIST_MODE=standalone` set
 
+### SID Configuration Isolation (v1.0.0+)
+
+**Test SID-specific variable cleanup:**
+
+```bash
+# Create test SID config with custom variable
+echo 'export CUSTOM_TEST_VAR="VALUE_FROM_ORCL"' >> /opt/oracle/local/oradba/etc/sid.ORCL.conf
+
+# Source first environment
+source oraenv.sh ORCL
+echo $CUSTOM_TEST_VAR    # Should show: VALUE_FROM_ORCL
+
+# Create second SID config
+echo 'export CUSTOM_TEST_VAR="VALUE_FROM_FREE"' >> /opt/oracle/local/oradba/etc/sid.FREE.conf
+
+# Switch to second environment
+source oraenv.sh FREE
+echo $CUSTOM_TEST_VAR    # Should show: VALUE_FROM_FREE
+
+# Switch back to first environment
+source oraenv.sh ORCL
+echo $CUSTOM_TEST_VAR    # Should show: VALUE_FROM_ORCL (not FREE value!)
+
+# Switch to environment without custom variable
+source oraenv.sh PROD
+echo $CUSTOM_TEST_VAR    # Should be empty (variable cleaned up)
+```
+
+- [ ] SID-specific variables isolated per environment
+- [ ] Variables from previous SID cleaned up on switch
+- [ ] Core Oracle variables (ORACLE_SID, ORACLE_HOME, etc.) persist
+- [ ] PATH, LD_LIBRARY_PATH remain functional
+- [ ] Can run automated test: `tests/manual/test_sid_variable_isolation.sh`
+- [ ] All 7 isolation tests pass
+
 ### Update Installation
 
 **Test Update from Previous Version:**
@@ -276,6 +311,93 @@ alias taa    # Should be BasEnv version again
 - [ ] TVDPERL_HOME unchanged (if exists)
 - [ ] BasEnv functions still available
 - [ ] Can still use BasEnv commands normally
+
+## Oracle Homes Management Testing (v1.0.0+)
+
+### Basic Operations
+
+**Test oradba_homes.sh commands:**
+
+```bash
+# List homes
+oradba_homes.sh list
+
+# Add new home
+oradba_homes.sh add DB19 /u01/app/oracle/product/19c/dbhome_1 database 10 "db19" "Oracle 19c Database"
+
+# Show home by name
+oradba_homes.sh show DB19
+
+# Show home by path
+oradba_homes.sh show /u01/app/oracle/product/19c/dbhome_1
+
+# Remove home
+oradba_homes.sh remove DB19
+```
+
+- [ ] List command shows all homes with proper formatting
+- [ ] Description not truncated (or shown with ellipsis if >39 chars)
+- [ ] Add command accepts parameters in correct order
+- [ ] Show by name works correctly
+- [ ] Show by path works correctly (v1.0.0+ feature)
+- [ ] Remove command works
+
+### Validation and Error Handling (v1.0.0+)
+
+**Test alias conflict detection:**
+
+```bash
+# Try to add home with alias matching existing SID
+oradba_homes.sh add TEST /path/to/home database 10 "ORCL" "Test"
+# Should ERROR: alias conflicts with SID
+
+# Add home with unique alias
+oradba_homes.sh add TEST /path/to/home database 10 "testhome" "Test"
+# Should succeed
+```
+
+- [ ] Alias conflict with SID detected and prevented
+- [ ] Error message clearly explains the issue
+- [ ] Valid aliases accepted
+
+**Test import validation:**
+
+```bash
+# Create invalid import file (missing fields)
+echo "INVALID:FORMAT" > /tmp/test_import.txt
+oradba_homes.sh import /tmp/test_import.txt
+# Should ERROR with validation message
+
+# Create valid import file
+cat > /tmp/valid_import.txt <<EOF
+HOME1:/path/to/home1:database:10:alias1:Description 1:AUTO
+HOME2:/path/to/home2:client:20:alias2:Description 2:2300
+EOF
+oradba_homes.sh import /tmp/valid_import.txt
+# Should succeed
+```
+
+- [ ] Import validation rejects invalid formats
+- [ ] Import validation accepts valid formats
+- [ ] Error messages indicate line numbers and issues
+- [ ] Valid imports processed correctly
+
+### Edge Cases
+
+**Test special characters and long descriptions:**
+
+```bash
+# Long description (should be truncated with ellipsis)
+oradba_homes.sh add LONG /path database 10 "long" "This is a very long description that should be truncated properly when displayed in list output"
+
+# Show full description
+oradba_homes.sh show LONG   # Should show full description
+```
+
+- [ ] Long descriptions handled correctly
+- [ ] List shows truncated version with "..."
+- [ ] Show displays full description
+- [ ] Special characters in paths handled correctly
 
 ## Documentation Verification
 
