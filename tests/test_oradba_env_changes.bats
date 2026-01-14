@@ -131,7 +131,7 @@ teardown() {
     
     # Cleanup
     rm -f "${ORADBA_BASE}/etc/oradba_homes.conf"
-    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
+    [[ -f "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" ]] && mv "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" "${ORADBA_BASE}/etc/oradba_core.conf" || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
 }
 
 # Test oradba_clear_change_tracking
@@ -176,7 +176,7 @@ teardown() {
     [[ "$output" =~ oradba_core.conf ]]
     
     # Cleanup
-    git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
+    [[ -f "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" ]] && mv "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" "${ORADBA_BASE}/etc/oradba_core.conf" || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
 }
 
 # Integration tests
