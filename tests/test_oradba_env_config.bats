@@ -374,6 +374,9 @@ EOF
 
 # Test product-specific sections
 @test "apply_product_config: should handle all product types" {
+    # Backup original file
+    [[ -f "${ORADBA_BASE}/etc/oradba_core.conf" ]] && cp "${ORADBA_BASE}/etc/oradba_core.conf" "${ORADBA_BASE}/etc/oradba_core.conf.test_backup"
+    
     mkdir -p "${ORADBA_BASE}/etc"
     
     for product in RDBMS CLIENT ICLIENT GRID ASM DATASAFE OUD WLS; do
