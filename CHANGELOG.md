@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-dev] - 2026-01-14
+
+### Changed
+
+- **Version Strategy**: Updated to 1.0.0-dev for testing phase before v1.0.0 release
+  - Internal versions v0.19.0-v0.22.0 implemented Phase 1-4 architecture changes
+  - v1.0.0 represents breaking changes with complete architecture rewrite
+  - No production deployments exist requiring migration
+  - Testing phase before official v1.0.0 release
+
+- **Documentation Updates** (Phase 5.3):
+  - Updated [doc/architecture.md](doc/architecture.md) to reflect Phase 1-4 library-based system
+  - Updated [src/doc/configuration.md](src/doc/configuration.md) with 6-level hierarchy
+  - Updated [src/doc/environment.md](src/doc/environment.md) with wrapper pattern
+  - Removed all legacy content (no migration documentation needed)
+  - Focus exclusively on current Phase 1-4 architecture
+
 ## [0.22.0] - 2026-01-14
 
 ### Added
