@@ -139,38 +139,46 @@ ORACLE_HOME;Product;Version;Edition;Position;Dummy_SID;Short_Name;Description
 
 **Field Definitions**:
 
-| Field       | Type    | Description                   | Example                                   |
-|-------------|---------|-------------------------------|-------------------------------------------|
-| ORACLE_HOME | Path    | Absolute path to Oracle home  | `/u01/app/oracle/product/19.0.0/dbhome_1` |
-| Product     | String  | Product type                  | `RDBMS`, `GRID`, `CLIENT`, `OUD`, `WLS`   |
-| Version     | String  | Version in XYYZZ format       | `190000` (19.0.0), `210300` (21.3.0)      |
-| Edition     | String  | License edition               | `EE`, `SE2`, `XE`, `FREE`, `GRID`, `N/A`  |
-| Position    | Integer | Display order (10, 20, 30...) | `10`                                      |
-| Dummy_SID   | String  | Dummy SID for this home       | `db19c`, `grid19c`                        |
-| Short_Name  | String  | Human-readable short name     | `19c`, `21c Free`                         |
-| Description | String  | Optional description          | `Oracle Database 19c Enterprise Edition`  |
+| Field       | Type    | Description                   | Example                                                        |
+|-------------|---------|-------------------------------|----------------------------------------------------------------|
+| ORACLE_HOME | Path    | Absolute path to Oracle home  | `/u01/app/oracle/product/19.0.0/dbhome_1`                      |
+| Product     | String  | Product type                  | `RDBMS`, `GRID`, `CLIENT`, `ICLIENT`, `DATASAFE`, `OUD`, `WLS` |
+| Version     | String  | Version in XXYYZZ format      | `190000` (19.0.0), `210300` (21.3.0), `192100` (IC 19.21)      |
+| Edition     | String  | License edition               | `EE`, `SE2`, `XE`, `FREE`, `GRID`, `N/A`                       |
+| DB_Type     | String  | Database type (RDBMS only)    | `SINGLE`, `RAC`, `STANDBY`, `DG`, `N/A`                        |
+| Position    | Integer | Display order (10, 20, 30...) | `10`                                                           |
+| Dummy_SID   | String  | Dummy SID for this home       | `db19c`, `grid19c`, `ic19c`                                    |
+| Short_Name  | String  | Human-readable short name     | `19c EE`, `21c Free`, `IC 19.21`                               |
+| Description | String  | Optional description          | `Oracle Database 19c Enterprise Edition`                       |
 
 **Example**:
 
 ```conf
-# Format: ORACLE_HOME;Product;Version;Edition;Position;Dummy_SID;Short_Name;Description
+# Format: ORACLE_HOME;Product;Version;Edition;DB_Type;Position;Dummy_SID;Short_Name;Description
 #
-# RDBMS Homes
-/u01/app/oracle/product/19.0.0/dbhome_1;RDBMS;190000;EE;10;db19c;19c EE;Oracle Database 19c Enterprise Edition
-/u01/app/oracle/product/21.0.0/dbhome_1;RDBMS;210000;FREE;20;db21c;21c Free;Oracle Database 21c Free
-/u01/app/oracle/product/23.0.0/dbhome_1;RDBMS;230000;FREE;30;db23c;23ai Free;Oracle Database 23ai Free
+# Priority 1: RDBMS Homes
+/u01/app/oracle/product/19.0.0/dbhome_1;RDBMS;190000;EE;SINGLE;10;db19c;19c EE;Oracle Database 19c Enterprise Edition
+/u01/app/oracle/product/21.0.0/dbhome_1;RDBMS;210000;FREE;SINGLE;20;db21c;21c Free;Oracle Database 21c Free
+/u01/app/oracle/product/23.0.0/dbhome_1;RDBMS;230000;FREE;SINGLE;30;db23c;23ai Free;Oracle Database 23ai Free
 
-# Grid Infrastructure / ASM
-/u01/app/oracle/product/19.0.0/grid;GRID;190000;GRID;15;grid19c;Grid 19c;Oracle Grid Infrastructure 19c
+# Priority 1: Grid Infrastructure / ASM
+/u01/app/oracle/product/19.0.0/grid;GRID;190000;GRID;N/A;15;grid19c;Grid 19c;Oracle Grid Infrastructure 19c
 
-# Client-only installations
-/u01/app/oracle/product/19.0.0/client;CLIENT;190000;N/A;40;client19c;Client 19c;Oracle Client 19c
+# Priority 1: Client Installations
+/u01/app/oracle/product/19.0.0/client;CLIENT;190000;N/A;N/A;40;client19c;Client 19c;Oracle Client 19c Full
 
-# Oracle Unified Directory
-/u01/app/oracle/product/oud12c;OUD;120214;N/A;50;oud12c;OUD 12c;Oracle Unified Directory 12.2.1.4
+# Priority 1: Instant Client
+/opt/oracle/instantclient_19_21;ICLIENT;192100;N/A;N/A;45;ic19c;IC 19.21;Oracle Instant Client 19.21
+/opt/oracle/instantclient_21_13;ICLIENT;211300;N/A;N/A;46;ic21c;IC 21.13;Oracle Instant Client 21.13
 
-# WebLogic Server
-/u01/app/oracle/middleware/wls14c;WLS;141100;N/A;60;wls14c;WLS 14c;WebLogic Server 14.1.1.0
+# Priority 2: Oracle DataSafe
+/u01/app/oracle/datasafe;DATASAFE;010000;N/A;N/A;50;datasafe;DataSafe;Oracle DataSafe On-Premises Connector
+
+# Priority 3: Oracle Unified Directory
+/u01/app/oracle/product/oud12c;OUD;120214;N/A;N/A;60;oud12c;OUD 12c;Oracle Unified Directory 12.2.1.4
+
+# Priority 3: WebLogic Server
+/u01/app/oracle/middleware/wls14c;WLS;141100;N/A;N/A;70;wls14c;WLS 14c;WebLogic Server 14.1.1.0
 ```
 
 **Parsing Rules**:
@@ -204,30 +212,52 @@ export ORACLE_TERM=xterm
 export NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
 
 # Section: [RDBMS]
-# Applied only to RDBMS homes
+# Applied only to RDBMS homes (Priority 1)
 
 TNS_ADMIN="${ORACLE_HOME}/network/admin"
 SQLPATH="${ORADBA_BASE}/sql:${ORACLE_HOME}/rdbms/admin"
 
+# Section: [CLIENT]
+# Applied to full Oracle Client installations (Priority 1)
+
+TNS_ADMIN="${ORACLE_HOME}/network/admin"
+SQLPATH="${ORADBA_BASE}/sql"
+
+# Section: [ICLIENT]
+# Applied to Oracle Instant Client (Priority 1)
+
+TNS_ADMIN="${ORADBA_BASE}/network/admin"
+LD_LIBRARY_PATH="${ORACLE_HOME}:${LD_LIBRARY_PATH}"
+export NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+
 # Section: [GRID]
-# Applied only to Grid Infrastructure homes
+# Applied only to Grid Infrastructure homes (Priority 1)
 
 ORACLE_TERM=hft
 
 # Section: [ASM]
-# Applied to ASM instances
+# Applied to ASM instances (Priority 1)
 
-# No specific settings yet
+# ASM uses sysasm privilege
+export ORACLE_SYSASM="TRUE"
+
+# Section: [DATASAFE]
+# Applied to DataSafe installations (Priority 2)
+
+DATASAFE_HOME="${ORACLE_HOME}"
+DATASAFE_CONFIG="${ORACLE_HOME}/config"
 
 # Section: [OUD]
-# Applied to OUD instances
+# Applied to OUD instances (Priority 3)
 
 OUD_INSTANCE_HOME="${ORACLE_HOME}/instances/${ORACLE_SID}"
+OUD_INSTANCE_CONFIG="${OUD_INSTANCE_HOME}/OUD/config"
 
 # Section: [WLS]
-# Applied to WebLogic domains
+# Applied to WebLogic domains (Priority 3)
 
 DOMAIN_HOME="${WLS_DOMAIN_BASE}/${ORACLE_SID}"
+WLS_HOME="${ORACLE_HOME}/wlserver"
 ```
 
 **Variable Expansion**:
@@ -567,7 +597,102 @@ oradba_set_asm_environment() {
 
 ---
 
-### 6.5 Configuration Section Processing
+### 6.5 Product Type Detection
+
+**Auto-Detection Strategy**:
+
+```bash
+oradba_detect_product_type() {
+    local oracle_home="$1"
+    local product_type="UNKNOWN"
+    
+    # Priority 1: Check oradba_homes.conf first
+    local registered_type=$(oradba_get_home_metadata "$oracle_home" "Product")
+    if [[ -n "$registered_type" ]]; then
+        echo "$registered_type"
+        return 0
+    fi
+    
+    # Fallback: Heuristic detection
+    
+    # Check for Instant Client (no bin directory, just libraries)
+    if [[ ! -d "${oracle_home}/bin" ]] && \
+       [[ -f "${oracle_home}/libclntsh.so" || -f "${oracle_home}/libclntsh.dylib" ]]; then
+        product_type="ICLIENT"
+    # Check for Grid Infrastructure
+    elif [[ -f "${oracle_home}/bin/crsctl" ]] && [[ -f "${oracle_home}/bin/asmcmd" ]]; then
+        product_type="GRID"
+    # Check for RDBMS
+    elif [[ -f "${oracle_home}/bin/sqlplus" ]] && \
+         [[ -d "${oracle_home}/rdbms" || -f "${oracle_home}/bin/oracle" ]]; then
+        product_type="RDBMS"
+    # Check for full Client
+    elif [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -d "${oracle_home}/rdbms" ]]; then
+        product_type="CLIENT"
+    # Check for DataSafe
+    elif [[ -f "${oracle_home}/bin/datasafe" || -d "${oracle_home}/datasafe" ]]; then
+        product_type="DATASAFE"
+    # Check for OUD
+    elif [[ -f "${oracle_home}/bin/oud-setup" ]] || \
+         [[ -d "${oracle_home}/OUD" || -d "${oracle_home}/oud" ]]; then
+        product_type="OUD"
+    # Check for WebLogic
+    elif [[ -f "${oracle_home}/wlserver/server/bin/setWLSEnv.sh" ]] || \
+         [[ -d "${oracle_home}/wlserver" ]]; then
+        product_type="WLS"
+    fi
+    
+    echo "$product_type"
+}
+```
+
+### 6.6 Product-Specific Environment Setup
+
+**ICLIENT (Instant Client) Specifics**:
+
+```bash
+oradba_set_iclient_environment() {
+    local oracle_home="$1"
+    
+    # Instant Client has no bin directory, ORACLE_HOME is the lib directory
+    export ORACLE_HOME="$oracle_home"
+    
+    # Add ORACLE_HOME to LD_LIBRARY_PATH (it IS the library directory)
+    export LD_LIBRARY_PATH="${ORACLE_HOME}:${LD_LIBRARY_PATH}"
+    
+    # Add sqlplus to PATH if sqlplus package is installed
+    if [[ -f "${ORACLE_HOME}/sqlplus" ]]; then
+        export PATH="${ORACLE_HOME}:${PATH}"
+    fi
+    
+    # Set default NLS_LANG if not set
+    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
+    
+    # TNS_ADMIN must be set externally (no default location in IC)
+    export TNS_ADMIN="${TNS_ADMIN:-${ORADBA_BASE}/network/admin}"
+}
+```
+
+**DATASAFE Specifics**:
+
+```bash
+oradba_set_datasafe_environment() {
+    local oracle_home="$1"
+    
+    export DATASAFE_HOME="$oracle_home"
+    export DATASAFE_CONFIG="${oracle_home}/config"
+    
+    # Add DataSafe binaries to PATH
+    if [[ -d "${oracle_home}/bin" ]]; then
+        export PATH="${oracle_home}/bin:${PATH}"
+    fi
+    
+    # DataSafe-specific variables
+    export DATASAFE_LOG="${DATASAFE_HOME}/logs"
+}
+```
+
+### 6.7 Configuration Section Processing
 
 **Parser**:
 
@@ -663,9 +788,10 @@ oradba_homes.sh list
 
 # Add Oracle home
 oradba_homes.sh add <ORACLE_HOME> [options]
-  --product RDBMS|GRID|CLIENT|OUD|WLS
+  --product RDBMS|GRID|CLIENT|ICLIENT|DATASAFE|OUD|WLS
   --version 190000
-  --edition EE|SE2|XE|FREE
+  --edition EE|SE2|XE|FREE|N/A
+  --db-type SINGLE|RAC|STANDBY|DG|N/A
   --dummy-sid db19c
   --description "Oracle 19c EE"
 
@@ -752,24 +878,61 @@ fi
 
 ### 9.1 Validation Levels
 
-**Level 1 - Basic**:
+**Level 1 - Basic** (All Products):
 
-- ORACLE_HOME exists
+- ORACLE_HOME/installation directory exists
 - ORACLE_HOME is readable
-- oratab entry exists
+- oratab entry exists (if applicable)
+- Product type detected correctly
 
-**Level 2 - Standard**:
+**Level 2 - Standard** (Product-Specific):
 
-- Critical binaries exist (sqlplus, etc.)
+*Priority 1 - RDBMS/CLIENT/ICLIENT:*
+
+- Critical binaries exist (sqlplus for RDBMS/CLIENT/ICLIENT)
 - Library directories exist
-- Basic connectivity (can connect to idle instance)
+- Version detection via sqlplus (RDBMS/CLIENT/ICLIENT only)
+- TNS configuration accessible
 
-**Level 3 - Full**:
+*Priority 1 - GRID/ASM:*
 
-- Database is accessible
-- Version detection
+- Grid binaries exist (crsctl, asmcmd)
+- Grid infrastructure status
+- ASM instance status (if ASM)
+
+*Priority 2 - DATASAFE:*
+
+- DataSafe installation detected
+- Service status (running/stopped)
+- Configuration files accessible
+
+*Priority 3 - OUD:*
+
+- OUD installation detected
+- Instance directory exists
+- Instance status (running/stopped)
+
+*Priority 3 - WLS:*
+
+- WebLogic installation detected
+- Domain exists
+- Server status (running/stopped)
+
+**Level 3 - Full** (Product-Specific):
+
+*RDBMS Only:*
+
+- Database connectivity check
+- Database status (OPEN/MOUNTED/NOMOUNT)
+- Database role (PRIMARY/STANDBY)
 - Configuration consistency checks
 - Permission validation
+
+*Other Products:*
+
+- Configuration consistency checks
+- Permission validation
+- Service health checks
 
 **Implementation**:
 
@@ -795,48 +958,192 @@ oradba_validate() {
     if [[ ! -r "$ORACLE_HOME" ]]; then
         echo "ERROR: ORACLE_HOME is not readable"
         ((errors++))
+**Implementation**:
+```bash
+oradba_validate() {
+    local sid="$1"
+    local level="${2:-standard}"  # basic|standard|full
+    
+    local errors=0
+    local warnings=0
+    local product_type="$ORADBA_PRODUCT_TYPE"  # Set by environment builder
+    
+    echo "Validating environment for: $sid"
+    echo "Product: $product_type | Level: $level"
+    echo "========================================"
+    
+    # Level 1: Basic (All Products)
+    if [[ ! -d "$ORACLE_HOME" ]]; then
+        echo "ERROR: ORACLE_HOME does not exist: $ORACLE_HOME"
+        ((errors++))
+        return 1
+    fi
+    echo "✓ ORACLE_HOME exists: $ORACLE_HOME"
+    
+    if [[ ! -r "$ORACLE_HOME" ]]; then
+        echo "ERROR: ORACLE_HOME is not readable"
+        ((errors++))
     else
         echo "✓ ORACLE_HOME is readable"
     fi
     
-    # Level 2: Standard
+    # Level 2: Standard (Product-Specific)
     if [[ "$level" != "basic" ]]; then
-        local binaries=("sqlplus" "tnsping" "lsnrctl")
-        for bin in "${binaries[@]}"; do
-            if [[ -x "${ORACLE_HOME}/bin/${bin}" ]]; then
-                echo "✓ ${bin} found"
-            else
-                echo "WARNING: ${bin} not found or not executable"
-                ((warnings++))
-            fi
-        done
-        
-        # Check library directories
-        if [[ -d "${ORACLE_HOME}/lib" ]] || [[ -d "${ORACLE_HOME}/lib64" ]]; then
-            echo "✓ Library directories exist"
-        else
-            echo "ERROR: No lib directories found"
-            ((errors++))
-        fi
+        case "$product_type" in
+            RDBMS|CLIENT|ICLIENT)
+                # Priority 1: Database and Client validation
+                if [[ "$product_type" == "ICLIENT" ]]; then
+                    # Instant Client: check library files
+                    if [[ -f "${ORACLE_HOME}/libclntsh.so" ]] || \
+                       [[ -f "${ORACLE_HOME}/libclntsh.dylib" ]]; then
+                        echo "✓ Instant Client libraries found"
+                    else
+                        echo "ERROR: Instant Client libraries not found"
+                        ((errors++))
+                    fi
+                else
+                    # Full installations: check bin directory
+                    local binaries=("sqlplus")
+                    [[ "$product_type" == "RDBMS" ]] && binaries+=("tnsping" "lsnrctl")
+                    
+                    for bin in "${binaries[@]}"; do
+                        if [[ -x "${ORACLE_HOME}/bin/${bin}" ]]; then
+                            echo "✓ ${bin} found"
+                        else
+                            echo "WARNING: ${bin} not found or not executable"
+                            ((warnings++))
+                        fi
+                    done
+                fi
+                
+                # Version detection for RDBMS/CLIENT/ICLIENT (via sqlplus)
+                if command -v sqlplus &> /dev/null; then
+                    local version=$(oradba_get_db_version)
+                    if [[ -n "$version" ]]; then
+                        echo "✓ Oracle version: $version"
+                    else
+                        echo "WARNING: Could not detect Oracle version"
+                        ((warnings++))
+                    fi
+                fi
+                ;;
+                
+            GRID|ASM)
+                # Priority 1: Grid/ASM validation
+                local grid_bins=("crsctl" "asmcmd")
+                for bin in "${grid_bins[@]}"; do
+                    if [[ -x "${ORACLE_HOME}/bin/${bin}" ]]; then
+                        echo "✓ ${bin} found"
+                    else
+                        echo "WARNING: ${bin} not found"
+                        ((warnings++))
+                    fi
+                done
+                
+                # Check Grid status
+                if command -v crsctl &> /dev/null; then
+                    if crsctl check crs &> /dev/null; then
+                        echo "✓ Grid Infrastructure is running"
+                    else
+                        echo "WARNING: Grid Infrastructure is not running"
+                        ((warnings++))
+                    fi
+                fi
+                ;;
+                
+            DATASAFE)
+                # Priority 2: DataSafe validation
+                if [[ -d "${ORACLE_HOME}/config" ]]; then
+                    echo "✓ DataSafe configuration directory found"
+                else
+                    echo "WARNING: DataSafe configuration directory not found"
+                    ((warnings++))
+                fi
+                
+                # Check service status (product-specific script)
+                if [[ -x "${ORACLE_HOME}/bin/datasafe_status.sh" ]]; then
+                    if "${ORACLE_HOME}/bin/datasafe_status.sh" &> /dev/null; then
+                        echo "✓ DataSafe service is running"
+                    else
+                        echo "INFO: DataSafe service is not running"
+                    fi
+                fi
+                ;;
+                
+            OUD)
+                # Priority 3: OUD validation
+                if [[ -n "$OUD_INSTANCE_HOME" ]] && [[ -d "$OUD_INSTANCE_HOME" ]]; then
+                    echo "✓ OUD instance directory found: $OUD_INSTANCE_HOME"
+                    
+                    # Check instance status
+                    if [[ -x "${ORACLE_HOME}/bin/status" ]]; then
+                        if "${ORACLE_HOME}/bin/status" &> /dev/null; then
+                            echo "✓ OUD instance is running"
+                        else
+                            echo "INFO: OUD instance is not running"
+                        fi
+                    fi
+                else
+                    echo "WARNING: OUD instance directory not found"
+                    ((warnings++))
+                fi
+                ;;
+                
+            WLS)
+                # Priority 3: WebLogic validation
+                if [[ -d "${DOMAIN_HOME}" ]]; then
+                    echo "✓ WebLogic domain found: $DOMAIN_HOME"
+                    
+                    # Check if AdminServer is running
+                    if pgrep -f "weblogic.Name=AdminServer.*${DOMAIN_HOME}" &> /dev/null; then
+                        echo "✓ WebLogic AdminServer is running"
+                    else
+                        echo "INFO: WebLogic AdminServer is not running"
+                    fi
+                else
+                    echo "WARNING: WebLogic domain directory not found"
+                    ((warnings++))
+                fi
+                ;;
+        esac
     fi
     
-    # Level 3: Full
+    # Level 3: Full (RDBMS-specific connectivity)
     if [[ "$level" == "full" ]]; then
-        # Try to detect version
-        local version=$(oradba_get_db_version)
-        if [[ -n "$version" ]]; then
-            echo "✓ Oracle version: $version"
+        if [[ "$product_type" == "RDBMS" ]]; then
+            # Database connectivity and status check
+            if command -v sqlplus &> /dev/null; then
+                local db_status=$(oradba_get_db_status)
+                case "$db_status" in
+                    OPEN)
+                        echo "✓ Database is OPEN and accessible"
+                        ;;
+                    MOUNTED)
+                        echo "✓ Database is MOUNTED"
+                        ((warnings++))
+                        ;;
+                    NOMOUNT)
+                        echo "WARNING: Database is in NOMOUNT state"
+                        ((warnings++))
+                        ;;
+                    DOWN)
+                        echo "WARNING: Database is not running"
+                        ((warnings++))
+                        ;;
+                    *)
+                        echo "WARNING: Could not determine database status"
+                        ((warnings++))
+                        ;;
+                esac
+                
+                # Check database role
+                local db_role=$(oradba_get_db_role)
+                if [[ -n "$db_role" ]]; then
+                    echo "✓ Database role: $db_role"
+                fi
+            fi
         else
-            echo "WARNING: Could not detect Oracle version"
-            ((warnings++))
-        fi
-        
-        # Try basic SQL*Plus connectivity
-        if echo "exit" | sqlplus -s / as sysdba > /dev/null 2>&1; then
-            echo "✓ SQL*Plus connectivity successful"
-        else
-            echo "WARNING: Could not connect with SQL*Plus"
-            ((warnings++))
+            echo "INFO: Full validation only applicable to RDBMS product type"
         fi
     fi
     
@@ -850,14 +1157,19 @@ oradba_validate() {
 
 ## 10. Implementation Roadmap
 
-### Phase 1: Core Foundation (Week 1-2)
+### Phase 1: Core Foundation - Priority 1 Products (Week 1-2)
 
 - [ ] Create `oradba_env_parser.sh` with oratab parsing
 - [ ] Create `oradba_env_builder.sh` with basic environment setup
 - [ ] Implement PATH and LD_LIBRARY_PATH management
-- [ ] Create `oradba_homes.conf` parser
+- [ ] Create `oradba_homes.conf` parser with new format (including DB_Type)
+- [ ] Support RDBMS product type
+- [ ] Support CLIENT product type (full installation)
+- [ ] Support ICLIENT product type (Instant Client)
+- [ ] Support GRID/ASM product type
 - [ ] Basic integration with `oradba.sh env` command
 - [ ] Unit tests for parsers
+- [ ] Config file linting (development/build)
 
 ### Phase 2: Configuration System (Week 3)
 
@@ -867,18 +1179,24 @@ oradba_validate() {
 - [ ] Variable expansion in config files
 - [ ] Config validation
 
-### Phase 3: Advanced Features (Week 4)
+### Phase 3: Advanced Features - Priority 1 & 2 (Week 4)
 
 - [ ] Read-Only Oracle Home detection
 - [ ] ASM instance handling
+- [ ] Priority 2: DataSafe product support
+- [ ] Service availability checking (running/stopped)
 - [ ] Change detection mechanism
 - [ ] Environment caching (optional)
-- [ ] Validation framework
+- [ ] Validation framework with product-specific logic
+- [ ] Install validation command (`oradba validate install`)
 
-### Phase 4: Management Tools (Week 5)
+### Phase 4: Priority 3 Products & Management Tools (Week 5)
 
+- [ ] Priority 3: OUD product support
+- [ ] Priority 3: WLS product support
+- [ ] Instance/domain status checking
 - [ ] Enhance `oradba_homes.sh` to use new parsers
-- [ ] Auto-scan functionality
+- [ ] Auto-scan functionality (detect all products)
 - [ ] Export/import functionality
 - [ ] Configuration migration from old format
 
@@ -887,6 +1205,8 @@ oradba_validate() {
 - [ ] Comprehensive testing (19c, 21c, 23ai, Free)
 - [ ] Test with ASM instances
 - [ ] Test with client-only installations
+- [ ] Test with Instant Client (various versions)
+- [ ] Test with DataSafe
 - [ ] Test with OUD/WLS (if available)
 - [ ] Update user documentation
 - [ ] Create migration guide
@@ -913,24 +1233,49 @@ oradba_validate() {
 - Parse oratab with comments and empty lines
 - Source environment for valid SID
 - Handle non-existent SID gracefully
+- Config file linting validation
 
-**Advanced Tests**:
+**Priority 1 Tests - Core Database & Client**:
 
-- Multiple Oracle homes (different versions)
+- Multiple Oracle homes (different RDBMS versions: 19c, 21c, 23ai)
+- Full Oracle Client environment
+- Oracle Instant Client environment (various versions)
 - ASM instance environment
 - Dummy SID environment
 - ROOH detection and handling
-- Config file section processing
+- Version detection via sqlplus
+- Database connectivity check (RDBMS only)
+- Database status detection (OPEN/MOUNTED/NOMOUNT)
+
+**Priority 2 Tests - DataSafe**:
+
+- DataSafe installation detection
+- DataSafe service status checking
+- DataSafe configuration access
+
+**Priority 3 Tests - OUD & WLS**:
+
+- OUD instance environment
+- OUD instance status checking
+- WLS domain environment
+- WLS AdminServer status checking
+
+**Cross-Product Tests**:
+
+- Config file section processing (all product types)
 - Config file variable expansion
+- Product type detection
+- Mixed environments (DB + Client + Instant Client)
 
 **Edge Cases**:
 
-- Missing oratab file
+- Missing oratab file (client-only, OUD, WLS scenarios)
 - Missing oradba_homes.conf
 - Circular variable references in configs
 - Very long PATH/LD_LIBRARY_PATH
 - Special characters in paths
 - Symlinked Oracle homes
+- Instant Client without sqlplus (basic package)
 
 ### 11.2 Test Structure
 
@@ -977,11 +1322,13 @@ tests/
 - **Q**: Should `/etc/oratab` always be a symlink to `$ORADBA_BASE/etc/oratab`?
   - **Consideration**: System may already have oratab managed by Oracle installer
   - **Recommendation**: Read from `/etc/oratab` if exists, fallback to `$ORADBA_BASE/etc/oratab`
+  - **Decision**: Allow both, oradba can manage its own oratab when no system oratab exists
 
 ### 13.2 Caching
 
 - **Q**: Implement caching from day one or add later?
   - **Recommendation**: Add in Phase 3, keep it optional
+  - **Decision**: Approved - Phase 3 implementation
 
 ### 13.3 Error Handling
 
@@ -989,26 +1336,87 @@ tests/
   - **Option A**: Exit with error
   - **Option B**: Show available SIDs and prompt
   - **Recommendation**: Option A for scripting, Option B for interactive
+  - **Decision**: Implement both modes, detect TTY for interactive
 
 ### 13.4 Product Detection
 
 - **Q**: How to detect product type if not in oradba_homes.conf?
-  - **Heuristics**:
-    - Check for `grid` in path → GRID
-    - Check for `sqlplus` → RDBMS
-    - Check for `oud-setup` → OUD
-    - Check for `wlst.sh` → WLS
+  - **Solution**: Implement robust heuristic detection (see section 6.5)
+  - **Priority order**:
+    1. Check oradba_homes.conf (explicit registration)
+    2. Instant Client detection (no bin dir, has libclntsh)
+    3. Grid Infrastructure (crsctl + asmcmd)
+    4. RDBMS (sqlplus + oracle binary or rdbms dir)
+    5. Full Client (sqlplus but no rdbms dir)
+    6. DataSafe (datasafe binary or dir)
+    7. OUD (oud-setup or OUD dir)
+    8. WebLogic (wlserver dir)
+
+### 13.5 Instant Client Versioning
+
+- **Q**: How to handle multiple Instant Client versions?
+  - **Challenge**: IC uses directory names like `instantclient_19_21`, `instantclient_21_13`
+  - **Solution**: Parse directory name for version, store as XXYYZZ format
+  - **Example**: `instantclient_19_21` → version `192100`
+
+### 13.6 Database Type Metadata
+
+- **Q**: Should DB_Type be auto-detected or manually set?
+  - **Recommendation**: Manual setting in oradba_homes.conf
+  - **Rationale**: RAC/Standby detection requires database to be running
+  - **Auto-detection**: Can be added later for validation/reporting
+
+### 13.7 Config File Linting
+
+- **Q**: What linting checks are required?
+  - **Syntax checks**:
+    - Valid section headers `[SECTION]`
+    - Valid variable assignments (no typos in variable names)
+    - No circular variable references
+    - Valid shell syntax (via `bash -n`)
+  - **Semantic checks**:
+    - Required sections present
+    - No conflicting variable definitions
+    - Referenced paths exist (warnings only)
+  - **Implementation**: Shell script `oradba_lint_config.sh` in dev tools
 
 ---
 
 ## 14. Success Criteria
 
+### Performance
+
 - ✅ Source environment in < 0.5 seconds (without cache)
 - ✅ Source environment in < 0.1 seconds (with cache)
+
+### Compatibility
+
 - ✅ 100% oratab format compatibility
 - ✅ Support 0 to N Oracle homes
-- ✅ Work with empty/missing oratab
-- ✅ Pass all test scenarios
+- ✅ Work with empty/missing oratab (client-only, OUD, WLS scenarios)
+
+### Product Support (Priority Order)
+
+- ✅ Priority 1: RDBMS (all versions 19c+)
+- ✅ Priority 1: Full Oracle Client
+- ✅ Priority 1: Oracle Instant Client (multiple versions)
+- ✅ Priority 1: Grid Infrastructure / ASM
+- ✅ Priority 2: Oracle DataSafe
+- ✅ Priority 3: Oracle Unified Directory
+- ✅ Priority 3: WebLogic Server
+
+### Validation
+
+- ✅ Config file linting in dev/build
+- ✅ Install validation command works
+- ✅ Product-specific validation (basic/standard/full)
+- ✅ Version detection via sqlplus (RDBMS/CLIENT/ICLIENT)
+- ✅ Database connectivity check (RDBMS only)
+- ✅ Service status check (DATASAFE/OUD/WLS)
+
+### Quality
+
+- ✅ Pass all test scenarios (priority-based)
 - ✅ Documentation complete
 - ✅ Zero dependencies beyond bash + POSIX tools
 
