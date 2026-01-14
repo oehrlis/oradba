@@ -16,6 +16,13 @@ This directory contains historical and temporary documentation that was useful d
 - **legacy-code-analysis.md** - Analysis of old codebase before Phase 1-4 rewrite (historical reference)
 - **structure.md** - Old project structure documentation (outdated after v0.19.0+ changes)
 
+### Detailed Implementation Docs (Consolidated)
+
+- **ci_optimization.md** - CI/CD optimization details (covered in development.md)
+- **markdown-linting.md** - Markdown linting setup (covered in development.md)
+- **extension-docs-implementation.md** - Extension implementation details (covered in extension-system.md)
+- **extension-docs-integration.md** - Extension integration patterns (covered in extension-system.md)
+
 ## Why Archived?
 
 These documents were valuable during development phases but are no longer relevant for:
@@ -24,7 +31,7 @@ These documents were valuable during development phases but are no longer releva
 - User documentation
 - Maintenance
 
-They are preserved here for historical reference only.
+Core concepts have been integrated into main documentation. These are preserved here for historical reference only.
 
 ---
 
