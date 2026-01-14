@@ -21,18 +21,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
 
 # Source common library
-if [[ ! -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+if [[ ! -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     echo "ERROR: Cannot find common.sh library" >&2
     exit 1
 fi
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 # Source database functions library
-if [[ ! -f "${ORADBA_BASE}/lib/db_functions.sh" ]]; then
+if [[ ! -f "${ORADBA_BASE}/lib/oradba_db_functions.sh" ]]; then
     log_error "Cannot find db_functions.sh library"
     exit 1
 fi
-source "${ORADBA_BASE}/lib/db_functions.sh"
+source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
 
 # Script variables
 SCRIPT_NAME="$(basename "$0")"

@@ -20,11 +20,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
 
 # Source common library
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common library at ${ORADBA_BASE}/lib/common.sh" >&2
+    echo "ERROR: Cannot find common library at ${ORADBA_BASE}/lib/oradba_common.sh" >&2
     exit 1
 fi
 

@@ -23,18 +23,18 @@ ORADBA_BIN="${SCRIPT_DIR}"
 ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 
 # Source common functions
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common.sh library"
     exit 1
 fi
 
 # Source DB functions
-if [[ -f "${ORADBA_BASE}/lib/db_functions.sh" ]]; then
-    # shellcheck source=../lib/db_functions.sh
-    source "${ORADBA_BASE}/lib/db_functions.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_db_functions.sh" ]]; then
+    # shellcheck source=../lib/oradba_db_functions.sh
+    source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
 fi
 
 # ------------------------------------------------------------------------------

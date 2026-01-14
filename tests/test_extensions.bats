@@ -26,8 +26,8 @@ setup() {
     ORIGINAL_TEST_SQLPATH="${SQLPATH:-}"
     
     # Source common library
-    # shellcheck source=../src/lib/common.sh
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    # shellcheck source=../src/lib/oradba_common.sh
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Source extensions library
     # shellcheck source=../src/lib/extensions.sh

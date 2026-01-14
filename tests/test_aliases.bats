@@ -25,10 +25,10 @@ setup() {
     
     # Source the common library first (provides log functions)
     export ORADBA_PREFIX="${PROJECT_ROOT}/src"
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Source the aliases library
-    source "${PROJECT_ROOT}/src/lib/aliases.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
     
     # Create temp directory for tests
     TEMP_TEST_DIR="${BATS_TMPDIR}/oradba_aliases_test_$$"
@@ -55,7 +55,7 @@ teardown() {
 # ------------------------------------------------------------------------------
 
 @test "aliases.sh can be sourced" {
-    run bash -c "source '${PROJECT_ROOT}/src/lib/aliases.sh'; echo 'OK'"
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'; echo 'OK'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
 }
@@ -478,8 +478,8 @@ teardown() {
         export ORACLE_SID='AUTOTEST'
         export ORACLE_BASE='${TEMP_TEST_DIR}/oracle'
         export ORADBA_PREFIX='${PROJECT_ROOT}/src'
-        source '${PROJECT_ROOT}/src/lib/common.sh'
-        source '${PROJECT_ROOT}/src/lib/aliases.sh'
+        source '${PROJECT_ROOT}/src/lib/oradba_common.sh'
+        source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'
         echo OK
     "
     [ "$status" -eq 0 ]
@@ -490,7 +490,7 @@ teardown() {
     unset ORACLE_SID
     
     # Should not fail to source
-    run bash -c "source '${PROJECT_ROOT}/src/lib/aliases.sh'; echo 'OK'"
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'; echo 'OK'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
 }

@@ -69,7 +69,7 @@
 - [ ] Terminology consistent with v1.0.0
   - "Environment Management Libraries" not "Phase 1-3"
   - "Core Utility Libraries" not "Legacy Libraries"
-  - Correct library names (oradba_env_*, common.sh, etc.)
+  - Correct library names (oradba_env_*, oradba_common.sh, etc.)
 - [ ] All examples tested and working
 - [ ] File paths correct for v1.0.0 structure
 - [ ] Configuration examples match current system

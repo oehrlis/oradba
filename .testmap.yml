@@ -15,7 +15,7 @@ always_run:
 # When a source file changes, run the associated tests
 mappings:
   # Core libraries - affect multiple tests
-  src/lib/common.sh:
+  src/lib/oradba_common.sh:
     - test_common.bats
     - test_aliases.bats
     - test_db_functions.bats
@@ -26,10 +26,10 @@ mappings:
     - test_logging.bats
     - test_execute_db_query.bats
   
-  src/lib/aliases.sh:
+  src/lib/oradba_aliases.sh:
     - test_aliases.bats
   
-  src/lib/db_functions.sh:
+  src/lib/oradba_db_functions.sh:
     - test_db_functions.bats
     - test_oraenv.bats
   

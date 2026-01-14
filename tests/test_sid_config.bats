@@ -30,7 +30,7 @@ setup() {
     cp "${PROJECT_ROOT}/src/templates/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/templates/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
-    cp "${PROJECT_ROOT}/src/lib/common.sh" "${TEST_DIR}/lib/"
+    cp "${PROJECT_ROOT}/src/lib/oradba_common.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
     export ORADBA_PREFIX="${TEST_DIR}"
@@ -40,7 +40,7 @@ setup() {
     export ORADBA_DEBUG="false"
     
     # Source common.sh for tests that need functions
-    source "${TEST_DIR}/lib/common.sh"
+    source "${TEST_DIR}/lib/oradba_common.sh"
 }
 
 # Teardown function - runs after each test
@@ -137,15 +137,15 @@ teardown() {
 
 # Integration test with create_sid_config function
 @test "create_sid_config function exists in common.sh" {
-    grep -q "^create_sid_config()" "${TEST_DIR}/lib/common.sh"
+    grep -q "^create_sid_config()" "${TEST_DIR}/lib/oradba_common.sh"
 }
 
 @test "create_sid_config function checks for template" {
-    grep -q "sid.ORACLE_SID.conf.example" "${TEST_DIR}/lib/common.sh"
+    grep -q "sid.ORACLE_SID.conf.example" "${TEST_DIR}/lib/oradba_common.sh"
 }
 
 @test "create_sid_config uses sed for replacement" {
-    grep -q "sed.*ORCL.*\${sid}" "${TEST_DIR}/lib/common.sh"
+    grep -q "sed.*ORCL.*\${sid}" "${TEST_DIR}/lib/oradba_common.sh"
 }
 
 # Edge cases

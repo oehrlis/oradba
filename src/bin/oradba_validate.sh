@@ -17,9 +17,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"
 
 # Source common library for oratab detection
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 fi
 
 # Detect pre-Oracle installation mode
@@ -190,9 +190,9 @@ else
     echo "Checking Library Files..."
 fi
 
-test_item "common.sh exists" "[[ -f '${ORADBA_BASE}/lib/common.sh' ]]"
-test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/aliases.sh' ]]"
-test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/db_functions.sh' ]]" "optional"
+test_item "common.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_common.sh' ]]"
+test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_aliases.sh' ]]"
+test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_db_functions.sh' ]]" "optional"
 test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
 
 # Phase 1-3 libraries (new configuration system)

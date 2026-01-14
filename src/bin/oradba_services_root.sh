@@ -30,8 +30,8 @@ SERVICES_SCRIPT="${ORADBA_BASE}/bin/oradba_services.sh"
 LOGFILE="/var/log/oracle/oradba_services_root.log"
 
 # Source common functions
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common.sh library"
     exit 1

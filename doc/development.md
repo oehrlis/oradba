@@ -37,7 +37,7 @@ oradba/
 │   ├── bin/             # Executable scripts
 │   │   └── oraenv.sh    # Core environment setup script
 │   ├── lib/             # Library functions
-│   │   └── common.sh    # Common utility functions
+│   │   └── oradba_common.sh    # Common utility functions
 │   ├── etc/             # Configuration files
 │   │   └── oradba.conf  # Main configuration
 │   ├── sql/             # SQL scripts
@@ -83,7 +83,7 @@ The core script that sets up Oracle environment variables based on oratab config
 source oraenv.sh FREE
 ```
 
-### common.sh
+### oradba_common.sh
 
 Library of common functions used across scripts.
 
@@ -303,9 +303,9 @@ Shared function libraries:
 
 | File              | Purpose                    | Location   |
 |-------------------|----------------------------|------------|
-| `common.sh`       | Common utility functions   | `src/lib/` |
-| `aliases.sh`      | Alias generation           | `src/lib/` |
-| `db_functions.sh` | Database functions         | `src/lib/` |
+| `oradba_common.sh`       | Common utility functions   | `src/lib/` |
+| `oradba_aliases.sh`      | Alias generation           | `src/lib/` |
+| `oradba_db_functions.sh` | Database functions         | `src/lib/` |
 
 ### SQL Scripts
 
@@ -358,10 +358,10 @@ BATS test files match the component they test:
 
 | Test File                 | Tests                      | Location  |
 |---------------------------|----------------------------|-----------|
-| `test_common.bats`        | common.sh library          | `tests/`  |
+| `test_common.bats`        | oradba_common.sh library          | `tests/`  |
 | `test_oraenv.bats`        | oraenv.sh script           | `tests/`  |
-| `test_aliases.bats`       | aliases.sh library         | `tests/`  |
-| `test_db_functions.bats`  | db_functions.sh library    | `tests/`  |
+| `test_aliases.bats`       | oradba_aliases.sh library         | `tests/`  |
+| `test_db_functions.bats`  | oradba_db_functions.sh library    | `tests/`  |
 | `test_oradba_help.bats`   | oradba_help.sh script      | `tests/`  |
 
 ### Build Scripts
@@ -678,7 +678,7 @@ always_run:
 
 # Map source files to test files
 mappings:
-  src/lib/common.sh:
+  src/lib/oradba_common.sh:
     - test_common.bats
     - test_aliases.bats
   

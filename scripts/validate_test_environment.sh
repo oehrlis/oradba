@@ -207,9 +207,9 @@ validate_source_structure() {
     
     # Check core libraries
     CORE_LIBS=(
-        "src/lib/common.sh"
-        "src/lib/db_functions.sh"
-        "src/lib/aliases.sh"
+        "src/lib/oradba_common.sh"
+        "src/lib/oradba_db_functions.sh"
+        "src/lib/oradba_aliases.sh"
     )
     
     CORE_COUNT=0

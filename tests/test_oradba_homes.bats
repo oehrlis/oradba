@@ -31,7 +31,7 @@ setup() {
     mkdir -p "${ORACLE_BASE}/product"
     
     # Source common library for tests
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
 }
 
 # Cleanup after tests
@@ -506,7 +506,7 @@ EOF
     "$HOMES_SCRIPT" add --name OUD12 --path "${TEST_TEMP_DIR}/oud_home" --type oud < /dev/null >/dev/null 2>&1
     
     # Verify is_oracle_home recognizes it
-    run bash -c "source '${PROJECT_ROOT}/src/lib/common.sh' && is_oracle_home OUD12"
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && is_oracle_home OUD12"
     [ "$status" -eq 0 ]
 }
 # ------------------------------------------------------------------------------

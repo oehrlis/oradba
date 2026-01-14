@@ -13,7 +13,7 @@ The OraDBA system consists of multiple layers working together:
 
 - **Entry Points**: oraenv.sh wrapper, oradba_env.sh builder, oradba_homes.sh manager
 - **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
-- **Core Libraries**: common.sh (logging/utilities), db_functions.sh, aliases.sh
+- **Core Libraries**: oradba_common.sh (logging/utilities), oradba_db_functions.sh, oradba_aliases.sh
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
 - **Oracle Integration**: oratab, oradba_homes.conf, Oracle instances, listeners, PDBs
 
@@ -138,7 +138,7 @@ DBHOME19:/u01/app/oracle/product/19/dbhome_1:database:2:rdbms19:Oracle 19c:1920
 
 ### 4. Common Libraries
 
-**common.sh** - Core utilities (1800+ lines, 130+ functions):
+**oradba_common.sh** - Core utilities (1800+ lines, 130+ functions):
 
 - **Logging**: `oradba_log()` with levels (DEBUG, INFO, WARN, ERROR)
 - **Validation**: `verify_oracle_env()`, `command_exists()`
@@ -146,14 +146,14 @@ DBHOME19:/u01/app/oracle/product/19/dbhome_1:database:2:rdbms19:Oracle 19c:1920
 - **Configuration**: `get_oratab_path()`, `get_oracle_homes_path()`
 - **Display**: `show_config()`, `show_sqlpath()`, `show_path()`
 
-**db_functions.sh** - Database operations:
+**oradba_db_functions.sh** - Database operations:
 
 - Database start/stop/status
 - Listener management
 - Session management
 - Query execution helpers
 
-**aliases.sh** - Safe alias generation:
+**oradba_aliases.sh** - Safe alias generation:
 
 - `safe_alias()` - Respects coexistence mode
 - Standard aliases (sq, rmanc, cdh, taa, via, etc.)
@@ -221,7 +221,7 @@ The environment setup follows a structured, library-based sequence:
 4. **Builder** (oradba_env_builder.sh) queries oratab or oradba_homes.conf, derives paths, constructs environment
 5. **Validator** (oradba_env_validator.sh) checks ORACLE_HOME, detects type/version
 6. **Status** (oradba_env_status.sh) displays environment summary
-7. **Aliases** (aliases.sh) generates database and PDB shortcuts
+7. **Aliases** (oradba_aliases.sh) generates database and PDB shortcuts
 
 ### Configuration Processing Pipeline
 

@@ -28,9 +28,9 @@ else
 fi
 
 # Source required libraries
-# shellcheck source=../lib/common.sh
-if [[ -f "${BASE_DIR}/lib/common.sh" ]]; then
-    source "${BASE_DIR}/lib/common.sh"
+# shellcheck source=../lib/oradba_common.sh
+if [[ -f "${BASE_DIR}/lib/oradba_common.sh" ]]; then
+    source "${BASE_DIR}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common.sh library" >&2
     exit 1

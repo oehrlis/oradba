@@ -252,7 +252,7 @@ EOF
     mv "$homes_conf" "${ORADBA_BASE}/etc/oradba_homes.conf"
     
     # Source common.sh to get Oracle Homes functions
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Verify is_oracle_home works
     run is_oracle_home "OUD12"
@@ -277,14 +277,14 @@ OUD12:${oud_home}:oud:10:Oracle Unified Directory
 EOF
     
     # Source common library first
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Source oraenv with Oracle Home name - check actual result
     result=$(bash -c "
         export ORADBA_BASE='${ORADBA_BASE}'
         export ORATAB_FILE='$MOCK_ORATAB'
         export ORADBA_PREFIX='${PROJECT_ROOT}/src'
-        source '${PROJECT_ROOT}/src/lib/common.sh' 2>/dev/null
+        source '${PROJECT_ROOT}/src/lib/oradba_common.sh' 2>/dev/null
         source '$ORAENV_SCRIPT' OUD12 --silent 2>&1 || true
         echo \"HOME=\${ORACLE_HOME}\"
         echo \"SID=\${ORACLE_SID}\"
@@ -319,7 +319,7 @@ EOF
         export ORADBA_BASE='${ORADBA_BASE}'
         export ORATAB_FILE='$MOCK_ORATAB'
         export ORADBA_PREFIX='${PROJECT_ROOT}/src'
-        source '${PROJECT_ROOT}/src/lib/common.sh' 2>/dev/null
+        source '${PROJECT_ROOT}/src/lib/oradba_common.sh' 2>/dev/null
         source '$ORAENV_SCRIPT' FREE --silent 2>&1 || true
         echo \$ORACLE_HOME
     " 2>&1)

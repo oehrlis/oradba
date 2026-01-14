@@ -15,16 +15,16 @@ OraDBA v1.0.0 uses a modular library architecture:
    - See [../src/lib/README.md](../src/lib/README.md) for function listings
 
 2. **Core Utility Libraries** (3 libraries, 66 functions) - **Documented below**
-   - common.sh (50 functions) - Logging, utilities, configuration
-   - db_functions.sh (11 functions) - Database operations
-   - aliases.sh (5 functions) - Alias management
+   - oradba_common.sh (50 functions) - Logging, utilities, configuration
+   - oradba_db_functions.sh (11 functions) - Database operations
+   - oradba_aliases.sh (5 functions) - Alias management
 
 3. **Extension Framework** (extensions.sh, 20 functions) - **Documented below**
    - Extension lifecycle and management
 
 ## Common Library Functions
 
-This document describes the public API of the oradba common library (`src/lib/common.sh`).
+This document describes the public API of the oradba common library (`src/lib/oradba_common.sh`).
 
 ## Logging Functions
 
@@ -1490,7 +1490,7 @@ create_sid_config "PRODDB"
 
 ## Database Functions
 
-Complete documentation for `src/lib/db_functions.sh` module.
+Complete documentation for `src/lib/oradba_db_functions.sh` module.
 
 ### check_database_connection
 
@@ -1962,7 +1962,7 @@ Use the script template from `src/templates/script_template.sh` for new scripts.
 # Header (use doc/templates/header.sh)
 
 # Source common library
-source "${ORADBA_BASE}/src/lib/common.sh"
+source "${ORADBA_BASE}/src/lib/oradba_common.sh"
 
 # Define functions
 usage() { ... }
@@ -2016,7 +2016,7 @@ Standard return codes across all scripts:
    ```bash
    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
    ORADBA_BASE="$(dirname "$(dirname "$SCRIPT_DIR")")"
-   source "${ORADBA_BASE}/src/lib/common.sh"
+   source "${ORADBA_BASE}/src/lib/oradba_common.sh"
    ```
 
 ## See Also

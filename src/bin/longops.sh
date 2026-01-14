@@ -23,9 +23,9 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 readonly SCRIPT_NAME
 
 # Source common functions if available
-if [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${SCRIPT_DIR}/../lib/common.sh"
+if [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${SCRIPT_DIR}/../lib/oradba_common.sh"
 fi
 
 # Default values

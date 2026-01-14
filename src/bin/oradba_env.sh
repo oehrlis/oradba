@@ -27,9 +27,9 @@ ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
 export ORADBA_BASE
 
 # Source required libraries
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common library" >&2
     exit 1

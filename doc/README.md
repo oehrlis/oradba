@@ -105,9 +105,9 @@ make dist              # Create distribution archive
 **[api.md](api.md)** - Complete API documentation (43K)
 
 - **Core Utility Libraries**
-  - common.sh (50 functions) - Logging, validation, config management
-  - db_functions.sh (11 functions) - Database operations
-  - aliases.sh (5 functions) - Alias management
+  - oradba_common.sh (50 functions) - Logging, validation, config management
+  - oradba_db_functions.sh (11 functions) - Database operations
+  - oradba_aliases.sh (5 functions) - Alias management
 - **Environment Management Libraries** (6 libraries, 47 functions)
   - Environment parsing, building, validation
   - Configuration management
@@ -211,7 +211,7 @@ OraDBA v1.0.0 is built on a modular library architecture:
    - Parser → Builder → Validator → Config → Status → Changes
 
 2. **Core Utility Libraries**: 3 libraries, 66 functions
-   - common.sh, db_functions.sh, aliases.sh
+   - oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh
    - Foundational utilities used throughout OraDBA
 
 3. **Extension Framework**: extensions.sh, 20 functions

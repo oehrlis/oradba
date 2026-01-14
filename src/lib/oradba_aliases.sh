@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Administration Toolset (https://www.oradba.ch)
 # ------------------------------------------------------------------------------
-# Name.......: aliases.sh
+# Name.......: oradba_aliases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.13

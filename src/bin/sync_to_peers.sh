@@ -27,8 +27,8 @@ readonly SCRIPT_ETC_DIR="${SCRIPT_BASE}/etc"
 readonly SCRIPT_CONF="${SCRIPT_ETC_DIR}/${SCRIPT_NAME%.sh}.conf"
 
 # Source common functions
-if [[ -f "${SCRIPT_BASE}/lib/common.sh" ]]; then
-    source "${SCRIPT_BASE}/lib/common.sh"
+if [[ -f "${SCRIPT_BASE}/lib/oradba_common.sh" ]]; then
+    source "${SCRIPT_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common.sh library"
     exit 1

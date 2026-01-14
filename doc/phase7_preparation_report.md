@@ -119,7 +119,7 @@ The automated test suite (533+ tests) and build system are ready for execution. 
 4. **Source Structure** (8 checks)
    - Core directories exist (bin, lib, etc, sql, rcv, templates)
    - All 6 environment libraries present
-   - All 3 core libraries present (common.sh, db_functions.sh, aliases.sh)
+   - All 3 core libraries present (oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh)
 
 5. **Documentation** (4 checks)
    - README.md contains v1.0.0 references
@@ -172,7 +172,7 @@ The automated test suite (533+ tests) and build system are ready for execution. 
 
 **Source Structure**:
 - Environment libraries: 6 files (parser, builder, validator, config, status, changes) ✅
-- Core libraries: 3 files (common.sh, db_functions.sh, aliases.sh) ✅
+- Core libraries: 3 files (oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh) ✅
 - Core config files: 3 files (oradba_core.conf, oradba_standard.conf, oradba_services.conf) ✅
 
 **Documentation**:

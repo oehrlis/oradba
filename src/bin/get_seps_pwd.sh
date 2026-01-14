@@ -26,8 +26,8 @@ SCRIPT_BASE="$(dirname "${SCRIPT_DIR}")"
 readonly SCRIPT_BASE
 
 # Source common functions
-if [[ -f "${SCRIPT_BASE}/lib/common.sh" ]]; then
-    source "${SCRIPT_BASE}/lib/common.sh"
+if [[ -f "${SCRIPT_BASE}/lib/oradba_common.sh" ]]; then
+    source "${SCRIPT_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find common.sh library"
     exit 1

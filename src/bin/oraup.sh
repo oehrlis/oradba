@@ -18,9 +18,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
 
 # Source common library if available
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_BASE}/lib/common.sh"
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 fi
 
 # Get oratab file path using centralized function

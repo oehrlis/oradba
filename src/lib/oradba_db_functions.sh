@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
-# Name.......: db_functions.sh
+# Name.......: oradba_db_functions.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.13
@@ -18,7 +18,7 @@
 
 # Check if common library is loaded
 if ! command -v log_error &> /dev/null; then
-    echo "ERROR: db_functions.sh requires common.sh to be sourced first"
+    echo "ERROR: oradba_db_functions.sh requires oradba_common.sh to be sourced first"
     return 1
 fi
 

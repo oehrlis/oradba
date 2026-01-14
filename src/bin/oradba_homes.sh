@@ -22,11 +22,11 @@ ORADBA_PREFIX="$(dirname "$SCRIPT_DIR")"
 export ORADBA_BASE="${ORADBA_BASE:-${ORADBA_PREFIX}}"
 
 # Source common library
-if [[ -f "${ORADBA_PREFIX}/lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${ORADBA_PREFIX}/lib/common.sh"
+if [[ -f "${ORADBA_PREFIX}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_PREFIX}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common library at ${ORADBA_PREFIX}/lib/common.sh" >&2
+    echo "ERROR: Cannot find common library at ${ORADBA_PREFIX}/lib/oradba_common.sh" >&2
     exit 1
 fi
 

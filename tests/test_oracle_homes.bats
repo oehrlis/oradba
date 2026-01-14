@@ -22,7 +22,7 @@ setup() {
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
     
     # Source the common library
-    source "${PROJECT_ROOT}/src/lib/common.sh"
+    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"

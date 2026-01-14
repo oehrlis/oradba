@@ -7,7 +7,7 @@
 setup() {
     # Source common library
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
-    source "${ORADBA_BASE}/lib/common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     
     # Create temporary test directories
     export TEST_DIR="${BATS_TEST_TMPDIR}/oratab_test_$$"

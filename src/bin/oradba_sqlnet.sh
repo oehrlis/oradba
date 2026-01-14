@@ -26,7 +26,7 @@ SCRIPT_VERSION="0.1.0"
 # Determine ORADBA_BASE
 if [[ -n "${ORADBA_BASE}" ]]; then
     : # ORADBA_BASE already set
-elif [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
+elif [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then
     ORADBA_BASE="$(cd "${SCRIPT_DIR}/.." && pwd)"
 else
     echo "ERROR: Cannot determine ORADBA_BASE" >&2

@@ -32,10 +32,10 @@ export ORADBA_PREFIX="${_ORAENV_BASE_DIR}"
 export ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
 
 # Source common library first (provides load_config function)
-if [[ -f "${_ORAENV_BASE_DIR}/lib/common.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/common.sh"
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_common.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common library at ${_ORAENV_BASE_DIR}/lib/common.sh"
+    echo "ERROR: Cannot find common library at ${_ORAENV_BASE_DIR}/lib/oradba_common.sh"
     return 1
 fi
 
@@ -56,8 +56,8 @@ if [[ -z "${ORATAB_FILE}" ]]; then
 fi
 
 # Source database functions library (optional, only if available)
-if [[ -f "${_ORAENV_BASE_DIR}/lib/db_functions.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/db_functions.sh"
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_db_functions.sh" ]]; then
+    source "${_ORAENV_BASE_DIR}/lib/oradba_db_functions.sh"
 fi
 
 # Source extension system library (optional, only if enabled)
