@@ -245,9 +245,11 @@ else
 fi
 
 test_item "README.md exists" "[[ -f '${ORADBA_BASE}/../README.md' ]]" "optional"
-test_item "06-aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/06-aliases.md' ]]"
-test_item "05-configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/05-configuration.md' ]]" "optional"
+test_item "CHANGELOG.md exists" "[[ -f '${ORADBA_BASE}/../CHANGELOG.md' ]]" "optional"
+test_item "User documentation directory exists" "[[ -d '${ORADBA_BASE}/doc' ]]"
 test_item "index.md exists" "[[ -f '${ORADBA_BASE}/doc/index.md' ]]"
+test_item "aliases.md exists" "[[ -f '${ORADBA_BASE}/doc/aliases.md' ]]"
+test_item "configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/configuration.md' ]]" "optional"
 test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
 
 # Check SQL files
