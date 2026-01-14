@@ -163,7 +163,8 @@ echo $ORACLE_SID
 echo $ORACLE_HOME
 echo $ORACLE_BASE
 echo $ORADBA_BASE
-echo $ORADBA_CURRENT_HOME
+# Note: ORADBA_CURRENT_HOME only set if Oracle Homes registered
+echo $ORADBA_CURRENT_HOME  # May be empty if oradba_homes.conf not configured
 
 # 3. Check library loading
 echo $ORADBA_ENV_PARSER_LOADED
