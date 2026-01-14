@@ -215,7 +215,7 @@ See [oratab.example](../templates/etc/oratab.example) for sample entries.
 1. Add variable to appropriate configuration file
 2. Document variable purpose and default value
 3. Update configuration documentation
-4. Add validation in `lib/common.sh` if needed
+4. Add validation in `lib/oradba_common.sh` if needed
 5. Write tests for configuration behavior
 
 ### Configuration Best Practices

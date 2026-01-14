@@ -14,7 +14,7 @@ helps prioritize cleanup and refactoring efforts.
 
 ### Key Findings
 
-- **3 Orphaned Functions** identified in common.sh
+- **3 Orphaned Functions** identified in oradba_common.sh
 - **18 Scripts without tests** identified
 - **18 Test files** testing library modules (not scripts)
 - Most functions are actively used; orphaned items are candidates for removal
@@ -29,9 +29,9 @@ These functions are defined but never called:
 
 | Function                  | Library   | Recommendation                              |
 |---------------------------|-----------|---------------------------------------------|
-| `detect_basenv`           | common.sh | **REMOVE** - Likely legacy basenv detection |
-| `get_oracle_home_version` | common.sh | **REMOVE** - Superseded                     |
-| `show_version_info`       | common.sh | **REMOVE** - Replaced by script             |
+| `detect_basenv`           | oradba_common.sh | **REMOVE** - Likely legacy basenv detection |
+| `get_oracle_home_version` | oradba_common.sh | **REMOVE** - Superseded                     |
+| `show_version_info`       | oradba_common.sh | **REMOVE** - Replaced by script             |
 
 **Action:** Remove these 3 functions in Phase 5.1
 
@@ -39,7 +39,7 @@ These functions are defined but never called:
 
 These functions have limited usage and may need review:
 
-#### common.sh
+#### oradba_common.sh
 
 - `get_script_dir` (2 uses)
 - `alias_exists` (2 uses)
@@ -59,8 +59,8 @@ These functions have limited usage and may need review:
 
 #### Other Libraries
 
-- `generate_base_aliases` - aliases.sh (2 uses)
-- `show_oracle_home_status` - db_functions.sh (2 uses)
+- `generate_base_aliases` - oradba_aliases.sh (2 uses)
+- `show_oracle_home_status` - oradba_db_functions.sh (2 uses)
 - `extension_provides` - extensions.sh (1 use)
 - `create_extension_alias` - extensions.sh (2 uses)
 - `list_extensions` - extensions.sh (1 use)
@@ -77,14 +77,14 @@ These functions have limited usage and may need review:
 
 After analyzing usage context, all low-usage functions are legitimate utilities:
 
-**KEEP - Core Utilities (common.sh):**
+**KEEP - Core Utilities (oradba_common.sh):**
 
 - `get_script_dir` (2 uses) - Used in tests, utility for path resolution
 - `alias_exists` (2 uses) - Internal helper for alias management
 - `verify_oracle_env` (2 uses) - Used in tests, validates environment
-- `get_oracle_version` (2 uses) - Used in db_functions.sh, core functionality
+- `get_oracle_version` (2 uses) - Used in oradba_db_functions.sh, core functionality
 - `export_oracle_base_env` (2 uses) - Used in oraenv.sh, critical for setup
-- `resolve_oracle_home_name` (2 uses) - Internal, used twice in common.sh
+- `resolve_oracle_home_name` (2 uses) - Internal, used twice in oradba_common.sh
 - `get_oracle_home_alias` (1 use) - Internal helper for home management
 - `detect_oracle_version` (2 uses) - Used in oradba_homes.sh, core function
 - `derive_oracle_base` (2 uses) - Used in oraenv.sh, critical for base setup
@@ -105,7 +105,7 @@ After analyzing usage context, all low-usage functions are legitimate utilities:
 
 **KEEP - Other Modules:**
 
-- `show_oracle_home_status` (2 uses) - db_functions.sh, displays home info
+- `show_oracle_home_status` (2 uses) - oradba_db_functions.sh, displays home info
 - `oradba_auto_reload_on_change` (2 uses) - oradba_env_changes.sh, exported func
 
 **Rationale:** All functions serve legitimate purposes:
@@ -177,9 +177,9 @@ These test **libraries**, not standalone scripts - this is **CORRECT** and expec
 
 | Test File                        | Tests                       | Status   |
 |----------------------------------|-----------------------------|----------|
-| test_aliases.bats                | aliases.sh library          | ✅ VALID |
-| test_common.bats                 | common.sh library           | ✅ VALID |
-| test_db_functions.bats           | db_functions.sh library     | ✅ VALID |
+| test_aliases.bats                | oradba_aliases.sh library          | ✅ VALID |
+| test_common.bats                 | oradba_common.sh library           | ✅ VALID |
+| test_db_functions.bats           | oradba_db_functions.sh library     | ✅ VALID |
 | test_execute_db_query.bats       | execute_db_query() function | ✅ VALID |
 | test_extensions.bats             | extensions.sh library       | ✅ VALID |
 | test_installer.bats              | Installation functions      | ✅ VALID |
@@ -227,7 +227,7 @@ Most scripts are not documented in user-facing documentation. This is tracked se
 
 ### Phase 5.1 - Immediate Cleanup
 
-1. **Remove 3 orphaned functions from common.sh:**
+1. **Remove 3 orphaned functions from oradba_common.sh:**
 
    ```bash
    - detect_basenv()

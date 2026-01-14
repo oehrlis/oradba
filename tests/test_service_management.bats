@@ -193,27 +193,27 @@ setup() {
 # Alias Tests
 # ------------------------------------------------------------------------------
 
-@test "aliases.sh contains dbctl alias" {
+@test "oradba_aliases.sh contains dbctl alias" {
     grep -q "create_dynamic_alias dbctl" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
-@test "aliases.sh contains dbstart alias" {
+@test "oradba_aliases.sh contains dbstart alias" {
     grep -q "create_dynamic_alias dbstart" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
-@test "aliases.sh contains dbstop alias" {
+@test "oradba_aliases.sh contains dbstop alias" {
     grep -q "create_dynamic_alias dbstop" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
-@test "aliases.sh contains lsnrctl alias" {
+@test "oradba_aliases.sh contains lsnrctl alias" {
     grep -q "create_dynamic_alias listener" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
-@test "aliases.sh contains orastart alias" {
+@test "oradba_aliases.sh contains orastart alias" {
     grep -q "create_dynamic_alias orastart" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
-@test "aliases.sh contains orastop alias" {
+@test "oradba_aliases.sh contains orastop alias" {
     grep -q "create_dynamic_alias orastop" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
 }
 
@@ -271,16 +271,16 @@ setup() {
 # Integration Tests
 # ------------------------------------------------------------------------------
 
-@test "oradba_dbctl.sh can source common.sh" {
-    grep -q "source.*common.sh" "${PROJECT_ROOT}/src/bin/oradba_dbctl.sh"
+@test "oradba_dbctl.sh can source oradba_common.sh" {
+    grep -q "source.*oradba_common.sh" "${PROJECT_ROOT}/src/bin/oradba_dbctl.sh"
 }
 
-@test "oradba_lsnrctl.sh can source common.sh" {
-    grep -q "source.*common.sh" "${PROJECT_ROOT}/src/bin/oradba_lsnrctl.sh"
+@test "oradba_lsnrctl.sh can source oradba_common.sh" {
+    grep -q "source.*oradba_common.sh" "${PROJECT_ROOT}/src/bin/oradba_lsnrctl.sh"
 }
 
-@test "oradba_services.sh can source common.sh" {
-    grep -q "source.*common.sh" "${PROJECT_ROOT}/src/bin/oradba_services.sh"
+@test "oradba_services.sh can source oradba_common.sh" {
+    grep -q "source.*oradba_common.sh" "${PROJECT_ROOT}/src/bin/oradba_services.sh"
 }
 
 @test "scripts reference oraenv.sh for environment" {

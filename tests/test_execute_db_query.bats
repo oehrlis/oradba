@@ -9,19 +9,19 @@
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.04
 # Revision...: 0.13.2
-# Purpose....: Bats tests for execute_db_query function in common.sh
+# Purpose....: Bats tests for execute_db_query function in oradba_common.sh
 # Notes......: Tests the unified SQL*Plus query executor
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004
 # -----------------------------------------------------------------------
 
-# Source the common.sh library
+# Source the oradba_common.sh library
 setup() {
     # Get the directory of the test file
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     REPO_ROOT="$(dirname "$TEST_DIR")"
     
-    # Source common.sh
+    # Source oradba_common.sh
     source "$REPO_ROOT/src/lib/oradba_common.sh"
 }
 
@@ -162,7 +162,7 @@ setup() {
 # Documentation Tests
 # =======================================================================
 
-@test "execute_db_query is documented in common.sh" {
+@test "execute_db_query is documented in oradba_common.sh" {
     # Check for function comments/documentation
     run grep -B 10 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
     [ "$status" -eq 0 ]

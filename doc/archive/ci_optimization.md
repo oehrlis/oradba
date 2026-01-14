@@ -174,7 +174,7 @@ git push
 #### Example 2: Bug Fix
 
 ```bash
-# Fix bug in src/lib/common.sh
+# Fix bug in src/lib/oradba_common.sh
 git commit -m "fix: resolve path issue"
 git push
 ```

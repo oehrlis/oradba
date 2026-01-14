@@ -53,9 +53,9 @@ src/
 │   ├── imp_jobs.sh        # Import job wrapper
 │   └── rman_jobs.sh       # RMAN job wrapper
 ├── lib/                    # Shared libraries (4 libraries)
-│   ├── common.sh          # Common utility functions
-│   ├── aliases.sh         # Alias generation library
-│   ├── db_functions.sh    # Database functions library
+│   ├── oradba_common.sh          # Common utility functions
+│   ├── oradba_aliases.sh         # Alias generation library
+│   ├── oradba_db_functions.sh    # Database functions library
 │   └── extensions.sh      # Extension system library
 ├── etc/                    # Configuration files (9 files)
 │   ├── oradba_core.conf   # Core system configuration
@@ -250,9 +250,9 @@ When referencing paths in scripts:
 ```bash
 # Distribution files (installed)
 $ORADBA_PREFIX/src/bin/oraenv.sh
-$ORADBA_PREFIX/src/lib/common.sh
-$ORADBA_PREFIX/src/lib/aliases.sh
-$ORADBA_PREFIX/src/lib/db_functions.sh
+$ORADBA_PREFIX/src/lib/oradba_common.sh
+$ORADBA_PREFIX/src/lib/oradba_aliases.sh
+$ORADBA_PREFIX/src/lib/oradba_db_functions.sh
 
 # Build scripts (development)
 ./scripts/build_installer.sh
@@ -310,7 +310,7 @@ make ci
 
 ### New Library Function
 
-1. Add to src/lib/common.sh or src/lib/db_functions.sh
+1. Add to src/lib/oradba_common.sh or src/lib/oradba_db_functions.sh
 2. Use header template from doc/templates/
 3. Add tests to tests/test_common.bats or tests/test_db_functions.bats
 4. Update documentation in src/doc/10-functions.md

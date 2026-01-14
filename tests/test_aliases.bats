@@ -8,7 +8,7 @@
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
 # Revision...: 0.6.0
-# Purpose....: BATS tests for aliases.sh - dynamic alias generation
+# Purpose....: BATS tests for oradba_aliases.sh - dynamic alias generation
 # Notes......: Run with: bats test_aliases.bats
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004
@@ -54,7 +54,7 @@ teardown() {
 # Basic Function Tests
 # ------------------------------------------------------------------------------
 
-@test "aliases.sh can be sourced" {
+@test "oradba_aliases.sh can be sourced" {
     run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'; echo 'OK'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
@@ -463,7 +463,7 @@ teardown() {
 # Auto-Generation Tests
 # ------------------------------------------------------------------------------
 
-@test "aliases.sh auto-generates aliases if ORACLE_SID is set on load" {
+@test "oradba_aliases.sh auto-generates aliases if ORACLE_SID is set on load" {
     export ORACLE_SID="AUTOTEST"
     export ORACLE_BASE="${TEMP_TEST_DIR}/oracle"
     
@@ -471,7 +471,7 @@ teardown() {
     local diag_dest="${ORACLE_BASE}/diag/rdbms/autotest/AUTOTEST"
     mkdir -p "${diag_dest}/alert"
     
-    # Source aliases.sh (which auto-generates if ORACLE_SID is set)
+    # Source oradba_aliases.sh (which auto-generates if ORACLE_SID is set)
     # Should not fail
     run bash -c "
         shopt -s expand_aliases
@@ -486,7 +486,7 @@ teardown() {
     [[ "$output" =~ "OK" ]]
 }
 
-@test "aliases.sh doesn't fail if ORACLE_SID is not set on load" {
+@test "oradba_aliases.sh doesn't fail if ORACLE_SID is not set on load" {
     unset ORACLE_SID
     
     # Should not fail to source
@@ -520,7 +520,7 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
-@test "aliases.sh functions don't pollute environment with unexpected variables" {
+@test "oradba_aliases.sh functions don't pollute environment with unexpected variables" {
     # Run alias generation
     export ORACLE_SID="TESTDB"
     export ORACLE_BASE="${TEMP_TEST_DIR}/oracle"

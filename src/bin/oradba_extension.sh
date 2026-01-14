@@ -32,7 +32,7 @@ fi
 if [[ -f "${BASE_DIR}/lib/oradba_common.sh" ]]; then
     source "${BASE_DIR}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common.sh library" >&2
+    echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 1
 fi
 

@@ -27,7 +27,7 @@ ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common.sh library" >&2
+    echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 3
 fi
 
@@ -174,7 +174,7 @@ EOF
 # ------------------------------------------------------------------------------
 # Logging setup
 # ------------------------------------------------------------------------------
-# Use common.sh's unified oradba_log() function with optional file logging
+# Use oradba_common.sh's unified oradba_log() function with optional file logging
 # Enable file logging to script log
 export ORADBA_LOG_FILE="${SCRIPT_LOG}"
 

@@ -39,7 +39,7 @@ setup() {
     export ORADBA_LOG="${TEST_DIR}/logs"
     export ORADBA_DEBUG="false"
     
-    # Source common.sh for tests that need functions
+    # Source oradba_common.sh for tests that need functions
     source "${TEST_DIR}/lib/oradba_common.sh"
 }
 
@@ -136,7 +136,7 @@ teardown() {
 }
 
 # Integration test with create_sid_config function
-@test "create_sid_config function exists in common.sh" {
+@test "create_sid_config function exists in oradba_common.sh" {
     grep -q "^create_sid_config()" "${TEST_DIR}/lib/oradba_common.sh"
 }
 

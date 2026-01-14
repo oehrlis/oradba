@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD013 -->
-# Database Functions Library (db_functions.sh)
+# Database Functions Library (oradba_db_functions.sh)
 
 **Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views.
 
@@ -9,21 +9,21 @@
 
 - ORACLE_HOME and ORACLE_SID environment variables set
 - Oracle SQL*Plus available
-- `common.sh` library sourced
+- `oradba_common.sh` library sourced
 
 ## Overview
 
-The `db_functions.sh` library provides reusable functions to query Oracle database information from v$ views. Functions are designed to work gracefully with databases in different states: NOMOUNT, MOUNT, and OPEN.
+The `oradba_db_functions.sh` library provides reusable functions to query Oracle database information from v$ views. Functions are designed to work gracefully with databases in different states: NOMOUNT, MOUNT, and OPEN.
 
 ## Location
 
 ```bash
-${ORADBA_BASE}/lib/db_functions.sh
+${ORADBA_BASE}/lib/oradba_db_functions.sh
 ```
 
 ## Dependencies
 
-- `common.sh` - Must be sourced before db_functions.sh
+- `oradba_common.sh` - Must be sourced before oradba_db_functions.sh
 - Oracle SQL*Plus
 - ORACLE_HOME and ORACLE_SID environment variables
 
@@ -31,10 +31,10 @@ ${ORADBA_BASE}/lib/db_functions.sh
 
 ```bash
 # Source common library first
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 # Source database functions
-source "${ORADBA_BASE}/lib/db_functions.sh"
+source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
 
 # Use functions
 if check_database_connection; then
@@ -258,7 +258,7 @@ The library automatically handles different database states:
 All functions include error handling:
 
 - Return appropriate exit codes
-- Log errors using `log_error()` from common.sh
+- Log errors using `log_error()` from oradba_common.sh
 - Gracefully handle missing or inaccessible views
 - Validate environment (ORACLE_HOME, ORACLE_SID)
 
@@ -268,8 +268,8 @@ All functions include error handling:
 
 ```bash
 #!/usr/bin/env bash
-source /opt/oradba/lib/common.sh
-source /opt/oradba/lib/db_functions.sh
+source /opt/oradba/lib/oradba_common.sh
+source /opt/oradba/lib/oradba_db_functions.sh
 
 if check_database_connection; then
     show_database_status
@@ -283,8 +283,8 @@ fi
 
 ```bash
 #!/usr/bin/env bash
-source /opt/oradba/lib/common.sh
-source /opt/oradba/lib/db_functions.sh
+source /opt/oradba/lib/oradba_common.sh
+source /opt/oradba/lib/oradba_db_functions.sh
 
 mode=$(get_database_open_mode)
 
@@ -313,8 +313,8 @@ esac
 
 ```bash
 #!/usr/bin/env bash
-source /opt/oradba/lib/common.sh
-source /opt/oradba/lib/db_functions.sh
+source /opt/oradba/lib/oradba_common.sh
+source /opt/oradba/lib/oradba_db_functions.sh
 
 # Get mode first
 mode=$(get_database_open_mode)

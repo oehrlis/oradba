@@ -8,7 +8,7 @@
 # Editor.....: Stefan Oehrli
 # Date.......: 2025.12.16
 # Revision...: 0.1.0
-# Purpose....: Test suite for db_functions.sh library
+# Purpose....: Test suite for oradba_db_functions.sh library
 # Notes......: Uses BATS (Bash Automated Testing System)
 #              These tests check the database query functions
 # Reference..: https://github.com/oehrlis/oradba
@@ -116,9 +116,9 @@ setup() {
     [ "$status" -eq 1 ]
 }
 
-# Test: Library requires common.sh
-@test "db_functions.sh requires common.sh" {
-    # This test verifies that db_functions checks for common.sh
+# Test: Library requires oradba_common.sh
+@test "oradba_db_functions.sh requires oradba_common.sh" {
+    # This test verifies that db_functions checks for oradba_common.sh
     # We've already loaded it in setup, so we check if log_error exists
     type -t log_error | grep -q "function"
 }

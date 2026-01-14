@@ -41,7 +41,7 @@ fi
 
 # Load core configuration (provides base settings for oratab, paths, etc.)
 # Note: Full hierarchical config (including SID-specific) is loaded after setting ORACLE_SID
-# Use load_config_file from common.sh for unified config loading
+# Use load_config_file from oradba_common.sh for unified config loading
 if ! load_config_file "${ORADBA_CONFIG_DIR}/oradba_core.conf" "true"; then
     return 1
 fi

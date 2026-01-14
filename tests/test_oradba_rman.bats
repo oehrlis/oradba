@@ -381,8 +381,8 @@ teardown() {
     [[ "$status" -le 3 ]]
 }
 
-@test "oradba_rman.sh handles missing common.sh gracefully" {
-    skip "Cannot test common.sh loading after script already sourced it"
+@test "oradba_rman.sh handles missing oradba_common.sh gracefully" {
+    skip "Cannot test oradba_common.sh loading after script already sourced it"
 }
 
 # ------------------------------------------------------------------------------

@@ -305,7 +305,7 @@ fi
 
 # Load OraDBA
 ORADBA_PREFIX="/opt/oradba"
-source "${ORADBA_PREFIX}/lib/common.sh"
+source "${ORADBA_PREFIX}/lib/oradba_common.sh"
 
 # Generate SID list
 generate_sid_lists "/etc/oratab"
@@ -533,7 +533,7 @@ sqlplus / as sysdba <<< "SELECT CDB FROM v\$database;"
 echo $ORADBA_NO_PDB_ALIASES
 
 # Manually regenerate PDB aliases
-source $ORADBA_PREFIX/lib/common.sh
+source $ORADBA_PREFIX/lib/oradba_common.sh
 generate_pdb_aliases
 ```
 

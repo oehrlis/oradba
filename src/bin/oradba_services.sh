@@ -26,7 +26,7 @@ ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common.sh library"
+    echo "ERROR: Cannot find oradba_common.sh library"
     exit 1
 fi
 

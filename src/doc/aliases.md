@@ -630,10 +630,10 @@ echo $ORADBA_LOAD_ALIASES
 DEBUG=1 source oraenv.sh FREE
 ```
 
-**Verify aliases.sh exists:**
+**Verify oradba_aliases.sh exists:**
 
 ```bash
-ls -l ${ORADBA_PREFIX}/lib/aliases.sh
+ls -l ${ORADBA_PREFIX}/lib/oradba_aliases.sh
 ```
 
 ### Dynamic Aliases Not Generated

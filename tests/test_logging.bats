@@ -248,8 +248,8 @@ setup() {
     [[ "$output" =~ "Missing required Oracle environment variables" ]]
 }
 
-@test "deprecated functions work in common.sh context" {
-    # Test that existing common.sh functions using log_* still work
+@test "deprecated functions work in oradba_common.sh context" {
+    # Test that existing oradba_common.sh functions using log_* still work
     run bash -c "unset ORACLE_HOME && source ${PROJECT_ROOT}/src/lib/oradba_common.sh && get_oracle_version 2>&1"
     [ "$status" -eq 1 ]
     [[ "$output" =~ \[ERROR\] ]]

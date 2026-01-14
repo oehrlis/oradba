@@ -190,9 +190,9 @@ else
     echo "Checking Library Files..."
 fi
 
-test_item "common.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_common.sh' ]]"
-test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_aliases.sh' ]]"
-test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_db_functions.sh' ]]" "optional"
+test_item "oradba_common.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_common.sh' ]]"
+test_item "oradba_aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_aliases.sh' ]]"
+test_item "oradba_db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_db_functions.sh' ]]" "optional"
 test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
 
 # Phase 1-3 libraries (new configuration system)

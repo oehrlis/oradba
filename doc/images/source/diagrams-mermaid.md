@@ -121,7 +121,7 @@ flowchart TB
     end
     
     subgraph Examples["Example Mappings"]
-        V[src/lib/common.sh affects 6 tests]
+        V[src/lib/oradba_common.sh affects 6 tests]
         W[src/bin/oradba_dbctl.sh → test_service_management.bats]
         X[*.md files → no tests needed]
     end
@@ -245,7 +245,7 @@ flowchart LR
     A[Changed File] --> B{File Type?}
     
     B -->|Core Script oraenv.sh| C[Always Run]
-    B -->|Library common.sh| D[Multiple Tests]
+    B -->|Library oradba_common.sh| D[Multiple Tests]
     B -->|Feature dbctl.sh| E[Specific Test]
     B -->|Documentation *.md| F[No Tests]
     B -->|Test File *.bats| G[Run Self]
@@ -316,9 +316,9 @@ flowchart TB
     end
     
     subgraph Core["Core Libraries"]
-        L1[common.sh oradba_log, Validation, Utilities]
-        L2[db_functions.sh DB Operations]
-        L3[aliases.sh Safe Alias Generation]
+        L1[oradba_common.sh oradba_log, Validation, Utilities]
+        L2[oradba_db_functions.sh DB Operations]
+        L3[oradba_aliases.sh Safe Alias Generation]
     end
     
     subgraph Phase1_3["Phase 1-3 Libraries"]
@@ -455,7 +455,7 @@ flowchart TD
     AE --> AF[Generate Standard Aliases]
     AD --> AF
     
-    AF --> AG[Source aliases.sh]
+    AF --> AG[Source oradba_aliases.sh]
     AG --> AH[oradba_env_status.sh]
     AH --> AI[Display Environment Summary:<br/>- ORACLE_SID / Home<br/>- Version & Product Type<br/>- Key Paths<br/>- Loaded Configs]
     
@@ -552,7 +552,7 @@ sequenceDiagram
     participant Config as Config Files
     participant Homes as oradba_homes.conf
     participant Oratab
-    participant Aliases as aliases.sh
+    participant Aliases as oradba_aliases.sh
     participant Status as oradba_env_status.sh
     
     User->>oraenv.sh: source oraenv.sh FREE
@@ -697,7 +697,7 @@ Shows how shell aliases are dynamically generated based on database type.
 ```mermaid
 flowchart TD
     A[oraenv.sh Sourced] --> B[Environment Variables Set]
-    B --> C[Source lib/aliases.sh]
+    B --> C[Source lib/oradba_aliases.sh]
     
     C --> CA{Coexist Mode?}
     CA -->|Yes| CB[Use safe_alias function]
@@ -853,8 +853,8 @@ flowchart TB
     end
     
     subgraph Common["Common Libraries"]
-        L1[common.sh Logging & Utilities]
-        L2[aliases.sh Safe Alias Generation]
+        L1[oradba_common.sh Logging & Utilities]
+        L2[oradba_aliases.sh Safe Alias Generation]
     end
     
     E1 --> E2

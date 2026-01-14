@@ -9,7 +9,7 @@ organized into three categories:
 
 1. **Environment Management Libraries** (oradba_env_*): Modern library-based architecture with Parser, Builder,
 Validator, Config Manager, Status Display, and Change Tracker
-2. **Core Utility Libraries**: Essential libraries (common.sh, db_functions.sh, aliases.sh) providing logging,
+2. **Core Utility Libraries**: Essential libraries (oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh) providing logging,
 database operations, and alias management - actively used across the system
 3. **Extension Framework**: Extensibility support for custom functionality
 
@@ -32,9 +32,9 @@ database operations, and alias management - actively used across the system
 
 | Library                                | Description                           | Functions     |
 |----------------------------------------|---------------------------------------|---------------|
-| [common.sh](common.sh)                 | Core utilities and logging            | 50 functions  |
-| [db_functions.sh](db_functions.sh)     | Database queries and status           | 11 functions  |
-| [aliases.sh](aliases.sh)               | Dynamic alias generation              | 5 functions   |
+| [oradba_common.sh](oradba_common.sh)                 | Core utilities and logging            | 50 functions  |
+| [oradba_db_functions.sh](oradba_db_functions.sh)     | Database queries and status           | 11 functions  |
+| [oradba_aliases.sh](oradba_aliases.sh)               | Dynamic alias generation              | 5 functions   |
 
 **Total Core Utility Functions:** 66 functions
 
@@ -90,8 +90,8 @@ Source core utility libraries at the beginning of your scripts:
 # Your script
 
 # Source required libraries
-source "${ORADBA_BASE}/lib/common.sh"
-source "${ORADBA_BASE}/lib/db_functions.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
+source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
 
 # Use library functions (v0.13.1+ unified logging)
 oradba_log INFO "Starting script..."
@@ -109,9 +109,9 @@ Libraries are automatically sourced by OraDBA configuration:
 
 ```bash
 # In oradba_core.conf
-source "${ORADBA_BASE}/lib/common.sh"
-source "${ORADBA_BASE}/lib/db_functions.sh"
-source "${ORADBA_BASE}/lib/aliases.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
+source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
+source "${ORADBA_BASE}/lib/oradba_aliases.sh"
 ```
 
 ## Library Functions
@@ -200,7 +200,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 
 ### Core Utility Library Functions
 
-#### common.sh - Core Utilities
+#### oradba_common.sh - Core Utilities
 
 **Logging Functions (v0.13.1+):**
 
@@ -275,7 +275,7 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `execute_db_query` - Execute SQL queries with standardized configuration
 - `get_script_dir` - Get directory of running script
 
-#### db_functions.sh - Database Operations
+#### oradba_db_functions.sh - Database Operations
 
 **Database Connection:**
 
@@ -297,9 +297,9 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 - `show_database_status` - Display comprehensive database status
 - `format_uptime` - Format uptime from startup timestamp
 
-**Note**: All query functions use `execute_db_query()` from common.sh (v0.13.2+)
+**Note**: All query functions use `execute_db_query()` from oradba_common.sh (v0.13.2+)
 
-#### aliases.sh - Alias Generation
+#### oradba_aliases.sh - Alias Generation
 
 **Alias Functions:**
 

@@ -158,7 +158,7 @@ Installation Details:
 #!/usr/bin/env bash
 # Check if OraDBA version meets requirements
 
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 REQUIRED_VERSION="0.6.0"
 CURRENT_VERSION=$(get_oradba_version)
@@ -178,7 +178,7 @@ log_info "Version check passed: ${CURRENT_VERSION}"
 #!/usr/bin/env bash
 # Update installation info after configuration change
 
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 set_install_info "last_config_update" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 set_install_info "config_version" "2"
@@ -192,7 +192,7 @@ log_info "Configuration metadata updated"
 #!/usr/bin/env bash
 # Check if a feature is available in current version
 
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 CURRENT_VERSION=$(get_oradba_version)
 
@@ -213,7 +213,7 @@ fi
 #!/usr/bin/env bash
 # Show detailed installation information
 
-source "${ORADBA_BASE}/lib/common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 show_version_info
 

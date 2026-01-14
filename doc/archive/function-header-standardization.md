@@ -56,14 +56,14 @@ function_name() {
 
 ### Files Needing Updates ⚠️
 
-- `src/lib/common.sh` - ~130 functions, many missing proper headers
-- `src/lib/aliases.sh` - Several functions need header updates
-- `src/lib/db_functions.sh` - Several functions need header updates
+- `src/lib/oradba_common.sh` - ~130 functions, many missing proper headers
+- `src/lib/oradba_aliases.sh` - Several functions need header updates
+- `src/lib/oradba_db_functions.sh` - Several functions need header updates
 - `src/lib/extensions.sh` - Several functions need header updates
 
 ---
 
-## Functions Needing Headers (common.sh)
+## Functions Needing Headers (oradba_common.sh)
 
 ### Priority 1: Core Utilities (High Usage)
 
@@ -106,7 +106,7 @@ function_name() {
 
 ### Phase 1: Update High-Priority Functions (5.3)
 
-Focus on most-used functions in common.sh:
+Focus on most-used functions in oradba_common.sh:
 
 - Logging functions (init_logging, oradba_log, etc.)
 - Core utilities (get_script_dir, command_exists, etc.)
@@ -115,19 +115,19 @@ Focus on most-used functions in common.sh:
 **Target:** Add headers to 20 most-used functions  
 **Timeline:** Phase 5.3 (current phase)
 
-### Phase 2: Complete common.sh (5.4)
+### Phase 2: Complete oradba_common.sh (5.4)
 
 - Update remaining ~110 functions
 - Ensure consistency across all functions
 - Verify all parameters are documented
 
-**Target:** 100% header coverage in common.sh  
+**Target:** 100% header coverage in oradba_common.sh  
 **Timeline:** Phase 5.4
 
 ### Phase 3: Update Other Libraries (Future)
 
-- aliases.sh
-- db_functions.sh
+- oradba_aliases.sh
+- oradba_db_functions.sh
 - extensions.sh
 
 **Target:** All libraries with consistent headers  
@@ -197,12 +197,12 @@ Before committing header updates:
 
 ### In Progress
 
-- ⏳ common.sh high-priority functions
+- ⏳ oradba_common.sh high-priority functions
 
 ### Pending
 
-- ⏳ common.sh remaining functions
-- ⏳ aliases.sh, db_functions.sh, extensions.sh
+- ⏳ oradba_common.sh remaining functions
+- ⏳ oradba_aliases.sh, oradba_db_functions.sh, extensions.sh
 
 ---
 

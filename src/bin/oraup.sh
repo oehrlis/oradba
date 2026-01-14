@@ -27,7 +27,7 @@ fi
 if type get_oratab_path &> /dev/null; then
     ORATAB_FILE=$(get_oratab_path)
 else
-    # Fallback if common.sh not sourced
+    # Fallback if oradba_common.sh not sourced
     ORATAB_FILE="${ORATAB_FILE:-/etc/oratab}"
     if [[ ! -f "$ORATAB_FILE" ]]; then
         for alt_oratab in "/var/opt/oracle/oratab" "${ORADBA_BASE}/etc/oratab" "${HOME}/.oratab"; do

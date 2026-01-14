@@ -27,7 +27,7 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=../lib/oradba_common.sh
     source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common.sh library"
+    echo "ERROR: Cannot find oradba_common.sh library"
     exit 1
 fi
 

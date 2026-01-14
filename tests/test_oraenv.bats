@@ -121,9 +121,9 @@ teardown() {
     grep -A 30 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
 }
 
-@test "oraenv.sh loads db_functions.sh if available" {
+@test "oraenv.sh loads oradba_db_functions.sh if available" {
     # Check that oraenv sources db_functions
-    grep -q "db_functions.sh" "$ORAENV_SCRIPT"
+    grep -q "oradba_db_functions.sh" "$ORAENV_SCRIPT"
 }
 
 @test "oraenv.sh has show_database_status integration" {
@@ -251,7 +251,7 @@ EOF
     mkdir -p "${ORADBA_BASE}/etc"
     mv "$homes_conf" "${ORADBA_BASE}/etc/oradba_homes.conf"
     
-    # Source common.sh to get Oracle Homes functions
+    # Source oradba_common.sh to get Oracle Homes functions
     source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Verify is_oracle_home works

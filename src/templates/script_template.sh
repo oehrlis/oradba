@@ -10,7 +10,7 @@
 # Purpose....: Template for creating new bash scripts
 # Notes......: Copy this template and modify as needed for new scripts.
 #              Update Name, Purpose, and Notes sections appropriately.
-#              Uses unified oradba_log() function from common.sh
+#              Uses unified oradba_log() function from oradba_common.sh
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
@@ -22,11 +22,11 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 ORADBA_BASE="$(dirname "$(dirname "${SCRIPT_DIR}")")"
 
 # Source common library
-if [[ -f "${ORADBA_BASE}/lib/common.sh" ]]; then
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=/dev/null
-    source "${ORADBA_BASE}/lib/common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common.sh library" >&2
+    echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 3
 fi
 
