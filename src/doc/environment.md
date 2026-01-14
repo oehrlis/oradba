@@ -1,15 +1,15 @@
 # Environment Management
 
 **Purpose:** Comprehensive guide to `oraenv.sh` and `oradba_env.sh` - OraDBA's core components for managing Oracle
-database environments using the Phase 1-3 library system.
+database environments using the Environment Management library system.
 
 **Audience:** All users - essential for daily OraDBA use.
 
 ## Introduction
 
 This chapter covers OraDBA's environment management system in detail. The system uses a wrapper pattern where
-`oraenv.sh` calls `oradba_env.sh`, which coordinates Phase 1-3 libraries to parse configuration, build the environment,
-and validate Oracle installations.
+`oraenv.sh` calls `oradba_env.sh`, which coordinates Environment Management libraries (oradba_env_*) to parse
+configuration, build the environment, and validate Oracle installations.
 
 ## Architecture Overview
 
@@ -29,7 +29,7 @@ display.
 ## oraenv.sh - Wrapper Script
 
 The `oraenv.sh` script is the user-facing entry point. It provides a simple interface while delegating the heavy
-lifting to `oradba_env.sh` and Phase 1-3 libraries.
+lifting to `oradba_env.sh` and Environment Management libraries.
 
 **Key features:**
 

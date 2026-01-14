@@ -22,48 +22,48 @@ The complete OraDBA user documentation is available in multiple formats:
 
 ### Getting Started
 
-| Document | Description |
-|----------|-------------|
-| [Introduction](introduction.md) | What is OraDBA and why use it |
-| [Quick Start](quickstart.md) | Get up and running in 5 minutes |
-| [Installation](installation.md) | Complete installation guide |
-| [Installation (Docker)](installation-docker.md) | Docker-specific installation |
-| [Usage Guide](usage.md) | Daily usage patterns and workflows |
+| Document                                        | Description                        |
+| ----------------------------------------------- | ---------------------------------- |
+| [Introduction](introduction.md)                 | What is OraDBA and why use it      |
+| [Quick Start](quickstart.md)                    | Get up and running in 5 minutes    |
+| [Installation](installation.md)                 | Complete installation guide        |
+| [Installation (Docker)](installation-docker.md) | Docker-specific installation       |
+| [Usage Guide](usage.md)                         | Daily usage patterns and workflows |
 
 ### Configuration & Environment
 
-| Document | Description |
-|----------|-------------|
-| [Configuration System](configuration.md) | 6-level configuration hierarchy |
-| [Environment Management](environment.md) | Environment variables and setup |
-| [SQLNet Configuration](sqlnet-config.md) | SQLNet and network configuration |
+| Document                                    | Description                        |
+| ------------------------------------------- | ---------------------------------- |
+| [Configuration System](configuration.md)    | 6-level configuration hierarchy    |
+| [Environment Management](environment.md)    | Environment variables and setup    |
+| [SQLNet Configuration](sqlnet-config.md)    | SQLNet and network configuration   |
 
 ### Commands & Features
 
-| Document | Description |
-|----------|-------------|
-| [Aliases Reference](aliases.md) | Shell command aliases (sq, alih, etc.) |
-| [PDB Aliases](pdb-aliases.md) | Pluggable database shortcuts |
-| [Functions Reference](functions.md) | Available shell functions |
-| [Service Management](service-management.md) | Database service operations |
-| [SQL Scripts](sql-scripts.md) | SQL script library reference |
-| [RMAN Scripts](rman-scripts.md) | RMAN backup script templates |
-| [rlwrap Filter](rlwrap.md) | SQLPlus command-line enhancement |
+| Document                                    | Description                            |
+|---------------------------------------------|----------------------------------------|
+| [Aliases Reference](aliases.md)             | Shell command aliases (sq, alih, etc.) |
+| [PDB Aliases](pdb-aliases.md)               | Pluggable database shortcuts           |
+| [Functions Reference](functions.md)         | Available shell functions              |
+| [Service Management](service-management.md) | Database service operations            |
+| [SQL Scripts](sql-scripts.md)               | SQL script library reference           |
+| [RMAN Scripts](rman-scripts.md)             | RMAN backup script templates           |
+| [rlwrap Filter](rlwrap.md)                  | SQLPlus command-line enhancement       |
 
 ### Extensions & Customization
 
-| Document | Description |
-|----------|-------------|
-| [Extension System](extensions.md) | Creating and using extensions |
-| [Extension Catalog](extensions-catalog.md) | Available extensions directory |
+| Document                                    | Description                     |
+| ------------------------------------------- | ------------------------------- |
+| [Extension System](extensions.md)           | Creating and using extensions   |
+| [Extension Catalog](extensions-catalog.md)  | Available extensions directory  |
 
 ### Operations & Support
 
-| Document | Description |
-|----------|-------------|
-| [Log Management](log-management.md) | Logging system and troubleshooting |
-| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
-| [Quick Reference](reference.md) | Command quick reference card |
+| Document                                | Description                          |
+| --------------------------------------- | ------------------------------------ |
+| [Log Management](log-management.md)     | Logging system and troubleshooting   |
+| [Troubleshooting](troubleshooting.md)   | Common issues and solutions          |
+| [Quick Reference](reference.md)         | Command quick reference card         |
 
 ## 🚀 Quick Start
 

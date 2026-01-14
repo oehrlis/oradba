@@ -32,15 +32,18 @@ OraDBA's core feature is automatic Oracle environment configuration based on you
 
 ### Hierarchical Configuration System
 
-Flexible 5-level configuration with override capability:
+Flexible 6-level configuration hierarchy with override capability:
 
 1. **oradba_core.conf**: Core system settings (installation paths, behavior)
 2. **oradba_standard.conf**: Standard aliases and variables (50+ aliases)
-3. **oradba_customer.conf**: Customer-specific overrides (optional)
-4. **sid._DEFAULT_.conf**: Default SID template
-5. **sid.\<SID>.conf**: Auto-created per-SID configs with database metadata
+3. **oradba_local.conf**: Auto-generated local system configuration
+4. **oradba_customer.conf**: Customer-specific overrides (optional)
+5. **sid._DEFAULT_.conf**: Default SID template
+6. **sid.\<SID>.conf**: Auto-created per-SID configs with database metadata
 
 Later levels override earlier settings, giving you complete control without modifying base configurations.
+
+See [Configuration System](configuration.md) for complete details.
 
 ### Comprehensive Alias System
 

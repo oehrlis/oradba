@@ -7,9 +7,9 @@
 
 ## Introduction
 
-OraDBA uses a sophisticated library-based configuration system (Phase 1-3) that provides flexible customization at
-multiple levels. The system parses, merges, and validates configuration from six sources, allowing you to customize
-globally or per-database without modifying base files.
+OraDBA uses a sophisticated library-based configuration system powered by the Environment Management libraries
+(oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates
+configuration from six sources, allowing you to customize globally or per-database without modifying base files.
 
 ## Configuration Hierarchy
 
@@ -26,13 +26,13 @@ earlier settings:
 
 ![Configuration Hierarchy](images/config-hierarchy.png){ width=80% }
 
-The diagram illustrates the 6-level configuration hierarchy with Phase 1-3 processing. The Parser reads all levels,
-the Builder constructs the environment, and the Validator verifies Oracle installations.
+The diagram illustrates the 6-level configuration hierarchy with Environment Management library processing. The Parser
+reads all levels, the Builder constructs the environment, and the Validator verifies Oracle installations.
 
 ![Configuration Load Sequence](images/config-sequence.png){ width=80% }
 
-The sequence diagram shows the library-based processing: oraenv.sh wrapper → oradba_env.sh builder → Phase 1-3
-libraries (Parser, Builder, Validator) working together to create the final environment.
+The sequence diagram shows the library-based processing: oraenv.sh wrapper → oradba_env.sh builder → Environment
+Management libraries (Parser, Builder, Validator) working together to create the final environment.
 
 **Key Benefits:**
 
