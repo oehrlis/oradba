@@ -261,7 +261,18 @@ oradba_log() {
 #      oradba_log DEBUG "message" instead of log_debug "message"
 # ------------------------------------------------------------------------------
 
-# Show deprecation warning if opt-in enabled
+# Function: _show_deprecation_warning
+# Purpose: Display deprecation warning for legacy logging functions (internal helper)
+# Arguments:
+#   $1 - Function name being deprecated
+#   $2 - New syntax to use instead
+# Returns:
+#   0 - Always successful
+# Output:
+#   Deprecation warning to stderr (if ORADBA_SHOW_DEPRECATION_WARNINGS=true)
+# Example:
+#   _show_deprecation_warning "log_info" "oradba_log INFO"
+# Note: Only shows each warning once per session
 _show_deprecation_warning() {
     local func_name="$1"
     local new_syntax="$2"
@@ -277,25 +288,65 @@ _show_deprecation_warning() {
     fi
 }
 
-# Deprecated: log_info - use oradba_log INFO instead
+# Function: log_info
+# Purpose: Log informational message (DEPRECATED - use oradba_log INFO instead)
+# Arguments:
+#   $* - Message to log
+# Returns:
+#   Return code from oradba_log
+# Output:
+#   Formatted log message to stdout/file
+# Example:
+#   log_info "Database connected successfully"
+# Deprecated: v0.13.1 - Use oradba_log INFO "message" instead
 log_info() {
     _show_deprecation_warning "log_info" "oradba_log INFO"
     oradba_log INFO "$*"
 }
 
-# Deprecated: log_warn - use oradba_log WARN instead
+# Function: log_warn
+# Purpose: Log warning message (DEPRECATED - use oradba_log WARN instead)
+# Arguments:
+#   $* - Warning message to log
+# Returns:
+#   Return code from oradba_log
+# Output:
+#   Formatted warning message to stderr/file
+# Example:
+#   log_warn "Configuration file not found, using defaults"
+# Deprecated: v0.13.1 - Use oradba_log WARN "message" instead
 log_warn() {
     _show_deprecation_warning "log_warn" "oradba_log WARN"
     oradba_log WARN "$*"
 }
 
-# Deprecated: log_error - use oradba_log ERROR instead
+# Function: log_error
+# Purpose: Log error message (DEPRECATED - use oradba_log ERROR instead)
+# Arguments:
+#   $* - Error message to log
+# Returns:
+#   Return code from oradba_log
+# Output:
+#   Formatted error message to stderr/file
+# Example:
+#   log_error "Failed to connect to database"
+# Deprecated: v0.13.1 - Use oradba_log ERROR "message" instead
 log_error() {
     _show_deprecation_warning "log_error" "oradba_log ERROR"
     oradba_log ERROR "$*"
 }
 
-# Deprecated: log_debug - use oradba_log DEBUG instead
+# Function: log_debug
+# Purpose: Log debug message (DEPRECATED - use oradba_log DEBUG instead)
+# Arguments:
+#   $* - Debug message to log
+# Returns:
+#   Return code from oradba_log
+# Output:
+#   Formatted debug message (only if ORADBA_LOG_LEVEL=DEBUG)
+# Example:
+#   log_debug "Entering function: validate_config"
+# Deprecated: v0.13.1 - Use oradba_log DEBUG "message" instead
 log_debug() {
     _show_deprecation_warning "log_debug" "oradba_log DEBUG"
     oradba_log DEBUG "$*"
@@ -494,9 +545,20 @@ alias_exists() {
     return 1
 }
 
-# Safe alias creation - respects coexistence mode
-# Usage: safe_alias alias_name "alias_value"
-# Returns: 0 if created, 1 if skipped (coexist mode and exists), 2 if error
+# Function: safe_alias
+# Purpose: Create alias respecting coexistence mode with other Oracle environments
+# Arguments:
+#   $1 - Alias name
+#   $2 - Alias value/command
+# Returns:
+#   0 - Alias created successfully
+#   1 - Alias skipped (coexistence mode and already exists)
+#   2 - Error creating alias
+# Output:
+#   Debug message if alias skipped
+# Example:
+#   safe_alias "ora19" "set_oracle_env 19.0.0"
+# Note: Respects ORADBA_COEXIST_MODE and ORADBA_FORCE settings
 safe_alias() {
     local name="$1"
     local value="$2"
@@ -833,6 +895,20 @@ load_rman_catalog_connection() {
 }
 
 # Export common Oracle environment variables
+# Function: export_oracle_base_env
+# Purpose: Export common Oracle environment variables
+# Arguments:
+#   None
+# Returns:
+#   0 - Always successful
+# Output:
+#   None (exports variables)
+# Example:
+#   export_oracle_base_env
+# Variables Exported:
+#   - PATH (with Oracle bin directories)
+#   - LD_LIBRARY_PATH (with Oracle lib directories)
+#   - TNS_ADMIN, NLS_LANG, and other Oracle settings
 export_oracle_base_env() {
     # Set common paths if not already set
     export PATH="${ORACLE_HOME}/bin:${PATH}"
@@ -850,6 +926,20 @@ export_oracle_base_env() {
 }
 
 # Validate directory path
+# Function: validate_directory
+# Purpose: Validate directory exists and optionally create it
+# Arguments:
+#   $1 - Directory path to validate
+#   $2 - Create flag (optional): "create" to create if missing
+# Returns:
+#   0 - Directory exists or was created successfully
+#   1 - Directory doesn't exist (and create flag not set)
+#   2 - Failed to create directory
+# Output:
+#   Error messages to stderr if directory validation/creation fails
+# Example:
+#   validate_directory "/u01/app/oracle" "create"
+#   validate_directory "$ORACLE_HOME"  # Just check, don't create
 validate_directory() {
     local dir="$1"
     local create="${2:-false}"
@@ -947,6 +1037,18 @@ resolve_oracle_home_name() {
 # Arguments:
 #   $1 - Home name or alias to parse
 # Returns: Space-separated: name path type order alias_name description version
+# Function: parse_oracle_home
+# Purpose: Parse Oracle Home configuration entry from oradba_homes.conf
+# Arguments:
+#   $1 - Oracle Home name or alias to parse
+# Returns:
+#   0 - Successfully parsed
+#   1 - Oracle Home not found
+# Output:
+#   Space-separated values: name alias type path version
+# Example:
+#   read -r oh_name oh_alias oh_type oh_path oh_version < <(parse_oracle_home "ora19")
+#   # Returns: "ora19 19c database /u01/app/oracle/product/19.3.0/dbhome_1 19.3.0"
 parse_oracle_home() {
     local name="$1"
     local homes_file
@@ -1284,6 +1386,21 @@ derive_oracle_base() {
 #   $1 - Oracle Home name or alias
 #   $2 - ORACLE_HOME path (optional, will be detected if not provided)
 # Sets: ORACLE_HOME and product-specific variables
+# Function: set_oracle_home_environment
+# Purpose: Set environment variables for a specific Oracle Home
+# Arguments:
+#   $1 - Oracle Home name or alias
+#   $2 - Oracle Home path (optional, will lookup if not provided)
+# Returns:
+#   0 - Environment set successfully
+#   1 - Oracle Home not found or invalid
+# Output:
+#   Debug/error messages via oradba_log
+# Example:
+#   set_oracle_home_environment "ora19"
+#   set_oracle_home_environment "ora21" "/u01/app/oracle/product/21.3.0/dbhome_1"
+# Variables Set:
+#   ORACLE_HOME, ORACLE_BASE, PATH, LD_LIBRARY_PATH, etc.
 set_oracle_home_environment() {
     local name="$1"
     local oracle_home="$2"
@@ -1358,6 +1475,21 @@ set_oracle_home_environment() {
 # Arguments:
 #   $1 - Name to check
 # Returns: 0 if it's an Oracle Home, 1 otherwise
+# Function: is_oracle_home
+# Purpose: Check if given name refers to an Oracle Home (vs database SID)
+# Arguments:
+#   $1 - Name to check (Oracle Home name/alias or SID)
+# Returns:
+#   0 - Name is an Oracle Home
+#   1 - Name is not an Oracle Home (likely a SID)
+# Output:
+#   None
+# Example:
+#   if is_oracle_home "ora19"; then
+#       echo "This is an Oracle Home"
+#   else
+#       echo "This is a database SID"
+#   fi
 is_oracle_home() {
     local name="$1"
 
@@ -1376,6 +1508,19 @@ is_oracle_home() {
 #   required  - "true" for required (return error if missing), "false" for optional (default: "false")
 # Returns: 0 if loaded successfully or skipped (optional), 1 if failed (required file missing)
 # Notes: Automatically logs debug messages and handles shellcheck source disable
+# Function: load_config_file
+# Purpose: Load single configuration file with error handling
+# Arguments:
+#   $1 - Configuration file path
+#   $2 - Required flag (optional): "required" to fail if file missing
+# Returns:
+#   0 - File loaded successfully (or optional and not found)
+#   1 - Required file not found or failed to source
+# Output:
+#   Debug messages about file loading
+# Example:
+#   load_config_file "${ORADBA_BASE}/etc/oradba_core.conf" "required"
+#   load_config_file "${ORADBA_BASE}/etc/oradba_customer.conf"  # Optional
 load_config_file() {
     local file_path="${1:?Config file path required}"
     local required="${2:-false}"
@@ -1400,6 +1545,25 @@ load_config_file() {
 # Usage: load_config [ORACLE_SID]
 # Loads configuration in order: core -> standard -> customer -> default -> sid-specific
 # Later configs override earlier settings
+# Function: load_config
+# Purpose: Load hierarchical configuration files in priority order (6 levels)
+# Arguments:
+#   $1 - ORACLE_SID (optional, loads SID-specific config if provided)
+# Returns:
+#   0 - Configuration loaded successfully
+#   1 - Failed to load required configuration files
+# Output:
+#   Debug messages about which files are loaded
+# Example:
+#   load_config "ORCL"  # Loads all configs + ORCL-specific
+#   load_config         # Loads only global configs
+# Configuration Hierarchy:
+#   1. oradba_core.conf (required)
+#   2. oradba_standard.conf
+#   3. oradba_local.conf (auto-generated)
+#   4. oradba_customer.conf
+#   5. sid.SID.conf or sid._DEFAULT_.conf
+#   6. Environment variables
 load_config() {
     local sid="${1:-${ORACLE_SID}}"
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
@@ -1472,6 +1636,19 @@ load_config() {
 # Only tracks static metadata: DB_NAME, DB_UNIQUE_NAME, DBID, DB_VERSION, NLS_LANG
 # Does not track dynamic state like DB_ROLE or OPEN_MODE
 # Usage: create_sid_config <ORACLE_SID>
+# Function: create_sid_config
+# Purpose: Create SID-specific configuration file from template
+# Arguments:
+#   $1 - ORACLE_SID for which to create configuration
+# Returns:
+#   0 - Configuration file created successfully
+#   1 - Failed to create configuration file
+# Output:
+#   Info messages about file creation
+# Example:
+#   create_sid_config "ORCL"
+# Creates:
+#   ${ORADBA_BASE}/etc/sid.ORCL.conf from template
 create_sid_config() {
     local sid="$1"
     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
@@ -1518,6 +1695,18 @@ create_sid_config() {
 # ------------------------------------------------------------------------------
 
 # Get OraDBA version from VERSION file
+# Function: get_oradba_version
+# Purpose: Get OraDBA version from VERSION file
+# Arguments:
+#   None
+# Returns:
+#   0 - Version retrieved successfully
+#   1 - VERSION file not found
+# Output:
+#   Version string (e.g., "1.0.0-dev") or "unknown"
+# Example:
+#   version=$(get_oradba_version)
+#   echo "OraDBA version: $version"
 get_oradba_version() {
     local version_file="${ORADBA_BASE}/VERSION"
 
@@ -1530,6 +1719,20 @@ get_oradba_version() {
 
 # Compare two semantic versions
 # Returns: 0 if equal, 1 if v1 > v2, 2 if v1 < v2
+# Function: version_compare
+# Purpose: Compare two semantic version strings
+# Arguments:
+#   $1 - First version string (e.g., "1.2.3")
+#   $2 - Second version string (e.g., "1.2.0")
+# Returns:
+#   0 - Versions are equal
+#   1 - First version is greater
+#   2 - Second version is greater
+# Output:
+#   None
+# Example:
+#   version_compare "1.2.3" "1.2.0"
+#   result=$?  # Returns 1 (first > second)
 version_compare() {
     local v1="$1"
     local v2="$2"
@@ -1563,6 +1766,20 @@ version_compare() {
 
 # Check if version meets minimum requirement
 # Usage: version_meets_requirement "0.6.1" "0.6.0"
+# Function: version_meets_requirement
+# Purpose: Check if current version meets minimum requirement
+# Arguments:
+#   $1 - Current version string
+#   $2 - Required version string
+# Returns:
+#   0 - Current version meets requirement (>=)
+#   1 - Current version does not meet requirement
+# Output:
+#   None
+# Example:
+#   if version_meets_requirement "1.2.3" "1.2.0"; then
+#       echo "Version requirement satisfied"
+#   fi
 version_meets_requirement() {
     local current_version="$1"
     local required_version="$2"
@@ -1576,6 +1793,18 @@ version_meets_requirement() {
 
 # Get installation metadata
 # Supports both old format (install_version) and new format (version)
+# Function: get_install_info
+# Purpose: Get installation metadata value by key
+# Arguments:
+#   $1 - Metadata key to retrieve
+# Returns:
+#   0 - Key found and value retrieved
+#   1 - Key not found or .install_info file doesn't exist
+# Output:
+#   Value for the specified key
+# Example:
+#   install_date=$(get_install_info "install_date")
+#   install_method=$(get_install_info "install_method")
 get_install_info() {
     local key="$1"
     local install_info="${ORADBA_BASE}/.install_info"
@@ -1590,6 +1819,19 @@ get_install_info() {
 
 # Set installation metadata
 # Uses lowercase keys without quotes for consistency with installer
+# Function: set_install_info
+# Purpose: Set installation metadata key-value pair
+# Arguments:
+#   $1 - Metadata key
+#   $2 - Metadata value
+# Returns:
+#   0 - Key-value set successfully
+#   1 - Failed to write to .install_info file
+# Output:
+#   None
+# Example:
+#   set_install_info "install_date" "2026-01-14"
+#   set_install_info "install_method" "git_clone"
 set_install_info() {
     local key="$1"
     local value="$2"
@@ -1613,6 +1855,19 @@ set_install_info() {
 
 # Initialize installation info file
 # Uses lowercase keys without quotes to match installer format
+# Function: init_install_info
+# Purpose: Initialize installation info file with metadata
+# Arguments:
+#   None
+# Returns:
+#   0 - Installation info initialized successfully
+#   1 - Failed to create .install_info file
+# Output:
+#   Info message about initialization
+# Example:
+#   init_install_info
+# Creates:
+#   ${ORADBA_BASE}/.install_info with install metadata
 init_install_info() {
     local version="$1"
     local install_info="${ORADBA_BASE}/.install_info"
@@ -1643,6 +1898,21 @@ EOF
 #   6. User custom SQL directory
 #   7. Custom SQLPATH from config
 #   8. Existing SQLPATH entries (if preserve enabled)
+# Function: configure_sqlpath
+# Purpose: Configure SQLPATH for SQL*Plus script discovery with priority order
+# Arguments:
+#   None
+# Returns:
+#   0 - SQLPATH configured successfully
+# Output:
+#   None (exports SQLPATH variable)
+# Example:
+#   configure_sqlpath
+# SQLPATH Priority:
+#   1. ${ORADBA_BASE}/sql (OraDBA scripts)
+#   2. ${ORACLE_BASE}/dba/sql (local DBA scripts)
+#   3. ${ORACLE_HOME}/sqlplus/admin (Oracle scripts)
+#   4. Existing SQLPATH entries
 configure_sqlpath() {
     local sqlpath_parts=()
 
@@ -1836,6 +2106,18 @@ show_config() {
 
 # Add directory to SQLPATH
 # Usage: add_to_sqlpath <directory>
+# Function: add_to_sqlpath
+# Purpose: Add directory to SQLPATH if not already present
+# Arguments:
+#   $1 - Directory path to add to SQLPATH
+# Returns:
+#   0 - Directory added or already in SQLPATH
+#   1 - Directory doesn't exist
+# Output:
+#   Debug message if directory added
+# Example:
+#   add_to_sqlpath "/u01/app/oracle/dba/sql"
+#   add_to_sqlpath "${ORADBA_BASE}/sql"
 add_to_sqlpath() {
     local new_path="${1}"
 

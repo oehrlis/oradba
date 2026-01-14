@@ -4,23 +4,84 @@ Shared shell libraries providing common functionality for OraDBA scripts and fun
 
 ## Overview
 
-This directory contains reusable shell libraries that provide core functionality
-for OraDBA. These libraries are sourced by executable scripts and configuration
-files to provide logging, database operations, alias generation, and utility functions.
+This directory contains reusable shell libraries that provide core functionality for OraDBA. The libraries are
+organized into three categories:
+
+1. **Phase 1-3 Libraries** (v0.19.0-v0.21.0): Modern library-based architecture with Parser, Builder, Validator,
+Config Manager, Status Display, and Change Tracker
+2. **Legacy Libraries**: Backward-compatible libraries (common.sh, db_functions.sh, aliases.sh) providing core
+utilities
+3. **Extension Framework**: Extensibility support for custom functionality
 
 ## Available Libraries
 
-| Library                            | Description                 | Functions     |
-|------------------------------------|-----------------------------|---------------|
-| [common.sh](common.sh)             | Core utilities and logging  | ~30 functions |
-| [db_functions.sh](db_functions.sh) | Database queries and status | ~15 functions |
-| [aliases.sh](aliases.sh)           | Dynamic alias generation    | ~10 functions |
+### Phase 1-3 Architecture Libraries (v0.19.0+)
 
-**Total Libraries:** 3
+| Library                                | Description                                  | Functions   |
+|----------------------------------------|----------------------------------------------|-------------|
+| [oradba_env_parser.sh]                 | Parse oratab and Oracle Homes configuration  | 8 functions |
+| [oradba_env_builder.sh]                | Build Oracle environment variables           | 9 functions |
+| [oradba_env_validator.sh]              | Validate Oracle installations                | 7 functions |
+| [oradba_env_config.sh]                 | Configuration management and retrieval       | 8 functions |
+| [oradba_env_status.sh]                 | Display environment and service status       | 8 functions |
+| [oradba_env_changes.sh]                | Track configuration changes and auto-reload  | 7 functions |
+
+**Total Phase 1-3 Functions:** 47 functions
+
+### Legacy Libraries (Backward Compatible)
+
+| Library                                | Description                           | Functions     |
+|----------------------------------------|---------------------------------------|---------------|
+| [common.sh](common.sh)                 | Core utilities and logging            | 50 functions  |
+| [db_functions.sh](db_functions.sh)     | Database queries and status           | 11 functions  |
+| [aliases.sh](aliases.sh)               | Dynamic alias generation              | 5 functions   |
+
+**Total Legacy Functions:** 66 functions
+
+### Extension Framework
+
+| Library                            | Description                       | Functions     |
+|------------------------------------|-----------------------------------|---------------|
+| [extensions.sh](extensions.sh)     | Extension loading and management  | 20 functions  |
+
+**Total Library Functions:** 133 functions across 10 libraries (10,586 lines of code)
 
 ## Usage
 
-### In Scripts
+### Phase 1-3 Library Usage (v0.19.0+)
+
+The Phase 1-3 libraries are automatically loaded by `oradba_env.sh` (the main environment builder):
+
+```bash
+# In oradba_env.sh
+source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
+source "${ORADBA_BASE}/lib/oradba_env_builder.sh"
+source "${ORADBA_BASE}/lib/oradba_env_validator.sh"
+source "${ORADBA_BASE}/lib/oradba_env_config.sh"
+source "${ORADBA_BASE}/lib/oradba_env_status.sh"
+source "${ORADBA_BASE}/lib/oradba_env_changes.sh"
+
+# Parser loads and parses configuration
+oradba_parse_oratab
+oradba_parse_homes
+
+# Builder constructs environment
+oradba_build_environment "$ORACLE_SID"
+
+# Validator verifies installation
+oradba_validate_oracle_home "$ORACLE_HOME"
+
+# Config manager provides access
+db_name=$(oradba_get_config "database.name")
+
+# Status displays current state
+oradba_show_environment
+
+# Change tracker monitors config files
+oradba_auto_reload_on_change
+```
+
+### Legacy Library Usage
 
 Source libraries at the beginning of your scripts:
 
@@ -55,118 +116,228 @@ source "${ORADBA_BASE}/lib/aliases.sh"
 
 ## Library Functions
 
-### common.sh - Core Utilities
+### Phase 1-3 Architecture Functions
 
-**Logging Functions:**
+#### oradba_env_parser.sh - Configuration Parser
 
-**New in v0.13.1**: Unified logging with configurable levels
+**Oratab Parsing:**
 
-- `log` - Unified logging function with level filtering (DEBUG|INFO|WARN|ERROR)
+- `oradba_parse_oratab` - Parse /etc/oratab and build SID-to-HOME mappings
+- `oradba_find_sid` - Find ORACLE_HOME for given SID
+- `oradba_list_all_sids` - List all SIDs from oratab
+
+**Oracle Homes Parsing:**
+
+- `oradba_parse_homes` - Parse oradba_homes.conf for Oracle Home definitions
+- `oradba_find_home` - Find Oracle Home by name or alias
+- `oradba_get_home_metadata` - Get metadata for Oracle Home
+- `oradba_list_all_homes` - List all registered Oracle Homes
+- `oradba_get_product_type` - Get product type from Oracle Home
+
+#### oradba_env_builder.sh - Environment Builder
+
+**Environment Construction:**
+
+- `oradba_build_environment` - Main entry point: build complete Oracle environment
+- `oradba_derive_oracle_base` - Derive ORACLE_BASE from ORACLE_HOME or conventions
+- `oradba_construct_path` - Build PATH with Oracle binaries
+- `oradba_construct_ld_library_path` - Build LD_LIBRARY_PATH with Oracle libraries
+- `oradba_set_oracle_sid` - Set ORACLE_SID and related variables
+- `oradba_set_tns_admin` - Set TNS_ADMIN based on conventions
+- `oradba_set_nls_settings` - Set NLS_LANG and locale settings
+- `oradba_export_environment` - Export all Oracle environment variables
+- `oradba_clean_environment` - Clean up environment before rebuild
+
+#### oradba_env_validator.sh - Environment Validator
+
+**Validation Functions:**
+
+- `oradba_validate_oracle_home` - Validate ORACLE_HOME directory structure
+- `oradba_validate_oracle_base` - Validate ORACLE_BASE directory
+- `oradba_validate_sid` - Validate SID exists in oratab
+- `oradba_check_oracle_executable` - Check Oracle binaries exist and are executable
+- `oradba_detect_product_type` - Detect Oracle product type (DB, Grid, Client)
+- `oradba_detect_version` - Detect Oracle version from inventory or binaries
+- `oradba_verify_complete_environment` - Comprehensive environment verification
+
+#### oradba_env_config.sh - Configuration Manager
+
+**Configuration Access:**
+
+- `oradba_get_config` - Get configuration value by key (supports dot notation)
+- `oradba_set_config` - Set configuration value
+- `oradba_load_config_file` - Load single configuration file
+- `oradba_merge_configs` - Merge multiple configuration sources
+- `oradba_resolve_variables` - Resolve variable references in configuration
+- `oradba_show_config` - Display current configuration
+- `oradba_save_config` - Save configuration to file
+- `oradba_reset_config` - Reset configuration to defaults
+
+#### oradba_env_status.sh - Status Display
+
+**Status Functions:**
+
+- `oradba_show_environment` - Display complete Oracle environment
+- `oradba_show_config_sources` - Show which config files were loaded
+- `oradba_check_db_status` - Check if database is running
+- `oradba_check_asm_status` - Check ASM instance status
+- `oradba_check_listener_status` - Check listener status
+- `oradba_check_process_running` - Check if Oracle process is running
+- `oradba_check_datasafe_status` - Check Oracle Data Safe status
+- `oradba_check_oud_status` - Check Oracle Unified Directory status
+
+#### oradba_env_changes.sh - Change Tracker
+
+**Change Tracking:**
+
+- `oradba_get_file_signature` - Get file checksum/timestamp
+- `oradba_store_file_signature` - Store file signature for comparison
+- `oradba_check_file_changed` - Check if file changed since last signature
+- `oradba_check_config_changes` - Check if any config files changed
+- `oradba_init_change_tracking` - Initialize change tracking system
+- `oradba_clear_change_tracking` - Clear stored signatures
+- `oradba_auto_reload_on_change` - Auto-reload environment on config change
+
+### Legacy Library Functions
+
+#### common.sh - Core Utilities
+
+**Logging Functions (v0.13.1+):**
+
+- `oradba_log` - Unified logging function with level filtering (DEBUG|INFO|WARN|ERROR)
+- `init_logging` - Initialize logging system with log file and level
+- `init_session_log` - Create session-specific log file
 - `log_info` - Information messages (deprecated, use `oradba_log INFO`)
 - `log_warn` - Warning messages (deprecated, use `oradba_log WARN`)
 - `log_error` - Error messages (deprecated, use `oradba_log ERROR`)
 - `log_debug` - Debug messages (deprecated, use `oradba_log DEBUG`)
-- `log_msg` - Generic logging with custom level (deprecated)
 
 **oratab Management:**
 
+- `get_oratab_path` - Get path to oratab file (OS-specific)
 - `parse_oratab` - Parse oratab file entries
-- `list_oracle_sids` - List all Oracle SIDs from oratab
-- `get_oracle_home` - Get ORACLE_HOME for specific SID
-- `validate_sid` - Check if SID exists in oratab
-- `find_sid_case_insensitive` - Case-insensitive SID matching
+- `is_dummy_sid` - Check if SID is a dummy entry
+- `generate_sid_lists` - Generate lists of database and non-database SIDs
+
+**Oracle Homes Management:**
+
+- `get_oracle_homes_path` - Get path to oradba_homes.conf
+- `resolve_oracle_home_name` - Resolve Oracle Home name from alias or path
+- `parse_oracle_home` - Parse Oracle Home configuration entry
+- `list_oracle_homes` - List all registered Oracle Homes
+- `get_oracle_home_path` - Get path for Oracle Home by name
+- `get_oracle_home_alias` - Get alias for Oracle Home
+- `get_oracle_home_type` - Get type (db, grid, client) for Oracle Home
+- `detect_product_type` - Auto-detect Oracle product type
+- `detect_oracle_version` - Auto-detect Oracle version
+- `derive_oracle_base` - Derive ORACLE_BASE from conventions
+- `set_oracle_home_environment` - Set environment for Oracle Home
+- `is_oracle_home` - Check if name is an Oracle Home (vs SID)
 
 **Environment Functions:**
 
-- `validate_oracle_env` - Check Oracle environment variables
-- `check_oracle_home` - Verify ORACLE_HOME validity
-- `set_oracle_env` - Set Oracle environment for SID
-- `cleanup_path` - Remove duplicate PATH entries
+- `verify_oracle_env` - Verify Oracle environment variables are set
+- `get_oracle_version` - Get Oracle version string
+- `export_oracle_base_env` - Export common Oracle environment variables
+- `validate_directory` - Validate and optionally create directory
+- `command_exists` - Check if command is in PATH
+- `alias_exists` - Check if alias is defined
+- `safe_alias` - Create alias respecting coexistence mode
 
-**Configuration:**
+**Configuration Management:**
 
-- `load_config` - Load configuration file
-- `get_config_value` - Get configuration parameter value
-- `set_sqlpath` - Configure SQL*Plus SQLPATH
+- `load_config_file` - Load single configuration file with error handling
+- `load_config` - Load hierarchical configuration files (6-level system)
+- `create_sid_config` - Create SID-specific configuration file
+- `configure_sqlpath` - Configure SQLPATH for SQL*Plus
+- `add_to_sqlpath` - Add directory to SQLPATH
+- `show_sqlpath` - Display current SQLPATH
+- `show_path` - Display current PATH with formatting
+- `show_config` - Display current OraDBA configuration
 
-**Database Query Functions:**
+**Versioning and Installation:**
 
-**New in v0.13.2**: Unified SQL*Plus query executor
+- `get_oradba_version` - Get OraDBA version from VERSION file
+- `version_compare` - Compare two semantic versions
+- `version_meets_requirement` - Check if version meets minimum
+- `get_install_info` - Get installation metadata by key
+- `set_install_info` - Set installation metadata
+- `init_install_info` - Initialize installation info file
+
+**Alias Generation:**
+
+- `generate_oracle_home_aliases` - Generate Oracle Home navigation aliases
+- `generate_pdb_aliases` - Generate PDB-specific aliases
+- `load_rman_catalog_connection` - Load RMAN catalog connection string
+
+**Database Query Functions (v0.13.2+):**
 
 - `execute_db_query` - Execute SQL queries with standardized configuration
-  - Parameters: `<query>` `[format]` (format: raw|delimited)
-  - Returns: Query results or error code
-  - Eliminates SQL*Plus boilerplate duplication
+- `get_script_dir` - Get directory of running script
 
-**Utility Functions:**
+#### db_functions.sh - Database Operations
 
-- `is_sourced` - Check if script is being sourced
-- `command_exists` - Check if command is available
-- `get_timestamp` - Generate timestamp for logging
+**Database Connection:**
 
-### db_functions.sh - Database Operations
+- `check_database_connection` - Check if database is accessible
+- `get_database_open_mode` - Get current database open mode
 
-**Status Functions:**
+**Query Functions (v0.13.2+):**
 
-- `get_db_status` - Get database open mode
-- `is_db_running` - Check if database is running
-- `get_instance_name` - Get instance name
-- `get_db_version` - Get database version
-- `get_db_name` - Get database name
+- `query_instance_info` - Query v$instance and v$parameter
+- `query_database_info` - Query v$database information
+- `query_datafile_size` - Query total datafile size in GB
+- `query_memory_usage` - Query SGA/PGA memory usage
+- `query_sessions_info` - Query session information
+- `query_pdb_info` - Query pluggable database information
 
-**Note**: These functions use `execute_db_query()` as of v0.13.2
+**Display Functions:**
 
-- `query_instance_info` - Get instance information (name, status, version, memory)
-- `query_database_info` - Get database information (name, DBID, log mode, role)
-- `query_datafile_size` - Get total datafile size in GB
-- `query_memory_usage` - Get SGA/PGA memory usage
-- `query_sessions_info` - Get session count statistics
-- `query_pdb_info` - Get PDB information (CDB only)
-- `sql_query` - Execute SQL query and return result (deprecated - use execute_db_query)
-- `sql_query_silent` - Execute SQL without output (deprecated)
-- `is_cdb` - Check if database is a container database
-- `get_pdb_list` - List all PDBs in CDB
-- `get_pdb_status` - Get PDB open mode
-- `validate_pdb` - Check if PDB exists
+- `show_oracle_home_status` - Display Oracle Home environment info
+- `show_database_status` - Display comprehensive database status
+- `format_uptime` - Format uptime from startup timestamp
 
-**Query Functions:**
+**Note**: All query functions use `execute_db_query()` from common.sh (v0.13.2+)
 
-- `sql_query` - Execute SQL query and return result
-- `sql_query_silent` - Execute SQL without output
-- `get_db_parameter` - Get database parameter value
-- `get_session_count` - Count active sessions
-
-**Monitoring:**
-
-- `get_memory_usage` - Get SGA/PGA usage
-- `get_tablespace_usage` - Get tablespace usage
-- `check_alert_log` - Check for errors in alert log
-
-### aliases.sh - Alias Generation
+#### aliases.sh - Alias Generation
 
 **Alias Functions:**
 
-- `generate_standard_aliases` - Create standard OraDBA aliases
-- `generate_pdb_aliases` - Create PDB-specific aliases
-- `generate_sid_aliases` - Create SID-specific aliases
-- `cleanup_aliases` - Remove old dynamic aliases
-- `list_oradba_aliases` - Show all OraDBA aliases
+- `create_dynamic_alias` - Create dynamic alias with expansion handling
+- `generate_sid_aliases` - Generate SID-specific aliases (taa, vaa, via, cdd, cddt, cdda)
+- `generate_base_aliases` - Generate OraDBA base directory alias (cdbase)
+- `has_rlwrap` - Check if rlwrap command is available
+- `get_diagnostic_dest` - Get diagnostic_dest from database or conventions
 
-**Helper Functions:**
+### Extension Framework
 
-- `create_alias` - Create single alias safely
-- `alias_exists` - Check if alias already exists
-- `get_alias_definition` - Get current alias definition
+#### extensions.sh - Extension Management
+
+- 20 functions for loading, validating, and managing OraDBA extensions
+- See [Extension System Documentation](../../doc/extension-system.md) for details
 
 ## Configuration
 
 Libraries respect these environment variables:
 
+### Core Variables
+
 - `ORADBA_BASE` - Installation directory
 - `ORADBA_LOG_LEVEL` - Logging verbosity (INFO, WARN, ERROR, DEBUG)
 - `ORADBA_LOG_FILE` - Log file location
+
+### Oracle Variables
+
 - `ORACLE_SID` - Current Oracle SID
 - `ORACLE_HOME` - Oracle installation directory
+- `ORACLE_BASE` - Oracle base directory
+- `TNS_ADMIN` - TNS configuration directory
+
+### Phase 1-3 Variables (v0.19.0+)
+
+- `ORADBA_PARSER_DEBUG` - Enable parser debug output
+- `ORADBA_VALIDATOR_STRICT` - Enable strict validation mode
+- `ORADBA_CONFIG_RELOAD` - Auto-reload on configuration changes
 
 ## Error Handling
 
