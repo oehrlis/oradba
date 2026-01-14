@@ -177,9 +177,34 @@ show_config_help() {
     done
 
     echo ""
+    echo -e "${COLOR_BOLD}Oracle Environment Registries:${COLOR_RESET}"
+    echo ""
+    
+    # Check oratab
+    local oratab_file="${ORATAB_FILE:-/etc/oratab}"
+    if [[ -f "$oratab_file" ]]; then
+        printf "  ${COLOR_GREEN}✓${COLOR_RESET} %-30s %s\n" "$oratab_file" "Traditional SID registry"
+    else
+        printf "  ${COLOR_YELLOW}○${COLOR_RESET} %-30s %s\n" "$oratab_file" "Traditional SID registry (not found)"
+    fi
+    
+    # Check oradba_homes.conf
+    local homes_file="${etc_dir}/oradba_homes.conf"
+    if [[ -f "$homes_file" ]]; then
+        printf "  ${COLOR_GREEN}✓${COLOR_RESET} %-30s %s\n" "oradba_homes.conf" "Oracle Homes registry (v1.0.0+)"
+    else
+        printf "  ${COLOR_YELLOW}○${COLOR_RESET} %-30s %s\n" "oradba_homes.conf" "Oracle Homes registry (optional)"
+    fi
+
+    echo ""
     echo -e "${COLOR_BLUE}Edit configuration:${COLOR_RESET}"
     echo "  vic    # Edit customer config"
     echo "  vii    # Edit SID-specific config"
+    echo ""
+    echo -e "${COLOR_BLUE}Manage Oracle Homes:${COLOR_RESET}"
+    echo "  oradba_homes.sh list           # List registered Oracle Homes"
+    echo "  oradba_homes.sh add <path>     # Register new Oracle Home"
+    echo "  oradba_homes.sh help           # Full Oracle Homes commands"
     echo ""
     echo -e "${COLOR_BLUE}For detailed information:${COLOR_RESET}"
     echo "  https://oehrlis.github.io/oradba/05-configuration/"
