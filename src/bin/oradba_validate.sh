@@ -159,10 +159,12 @@ else
 fi
 
 test_item "oraenv.sh exists" "[[ -f '${ORADBA_BASE}/bin/oraenv.sh' ]]"
+test_item "oradba_env.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_env.sh' ]]"
 test_item "oradba_check.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_check.sh' ]]"
 test_item "oradba_check.sh is executable" "[[ -x '${ORADBA_BASE}/bin/oradba_check.sh' ]]"
 test_item "oradba_version.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
 test_item "oradba_version.sh is executable" "[[ -x '${ORADBA_BASE}/bin/oradba_version.sh' ]]"
+test_item "oradba_homes.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_homes.sh' ]]" "optional"
 test_item "oradba_help.sh exists" "[[ -f '${ORADBA_BASE}/bin/oradba_help.sh' ]]" "optional"
 test_item "dbstatus.sh exists" "[[ -f '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
 test_item "dbstatus.sh is executable" "[[ -x '${ORADBA_BASE}/bin/dbstatus.sh' ]]" "optional"
@@ -193,21 +195,41 @@ test_item "aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/aliases.sh' ]]"
 test_item "db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/db_functions.sh' ]]" "optional"
 test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
 
+# Phase 1-3 libraries (new configuration system)
+test_item "oradba_env_parser.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_parser.sh' ]]"
+test_item "oradba_env_builder.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_builder.sh' ]]"
+test_item "oradba_env_validator.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_validator.sh' ]]" "optional"
+test_item "oradba_env_config.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_config.sh' ]]" "optional"
+test_item "oradba_env_status.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_status.sh' ]]" "optional"
+test_item "oradba_env_changes.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_changes.sh' ]]" "optional"
+
 # Check configuration files
 if [[ "${VERBOSE}" == "true" ]]; then
     echo ""
-    echo "Checking Configuration Files..."
+    echo "Checking Configuration Files (Phase 1-4 System)..."
     echo "-------------------------------------------------------------------------------"
 else
     echo "Checking Configuration Files..."
 fi
 
+# Core required configs (Phase 1-3)
 test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf' ]]"
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
 test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.conf' ]]"
+
+# Optional user configs (Phase 1-3)
+test_item "oradba_local.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_local.conf' ]]" "optional"
+test_item "oradba_customer.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_customer.conf' ]]" "optional"
+
+# Templates (should exist for user creation)
 test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/oradba_customer.conf.example' ]]"
 test_item "sid.ORACLE_SID.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example' ]]"
+test_item "oradba_services.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/oradba_services.conf.example' ]]" "optional"
+
+# Service configs (optional, may be created by user)
 test_item "oradba_services.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_services.conf' ]]" "optional"
+
+# Completions (optional)
 test_item "rlwrap_sqlplus_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_sqlplus_completions' ]]" "optional"
 test_item "rlwrap_rman_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_rman_completions' ]]" "optional"
 test_item "rlwrap_lsnrctl_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_lsnrctl_completions' ]]" "optional"
