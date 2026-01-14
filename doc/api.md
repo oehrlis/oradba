@@ -1,5 +1,27 @@
 # oradba API Documentation
 
+Complete function reference for OraDBA v1.0.0 libraries.
+
+> **Note:** This document primarily covers Core Utility Libraries and the Extension Framework.  
+> For **Environment Management Libraries** (oradba_env_*), see [../src/lib/README.md](../src/lib/README.md).  
+> Complete environment library API documentation is planned for a future update.
+
+## Library Organization
+
+OraDBA v1.0.0 uses a modular library architecture:
+
+1. **Environment Management Libraries** (6 libraries, 47 functions)
+   - Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
+   - See [../src/lib/README.md](../src/lib/README.md) for function listings
+
+2. **Core Utility Libraries** (3 libraries, 66 functions) - **Documented below**
+   - common.sh (50 functions) - Logging, utilities, configuration
+   - db_functions.sh (11 functions) - Database operations
+   - aliases.sh (5 functions) - Alias management
+
+3. **Extension Framework** (extensions.sh, 20 functions) - **Documented below**
+   - Extension lifecycle and management
+
 ## Common Library Functions
 
 This document describes the public API of the oradba common library (`src/lib/common.sh`).

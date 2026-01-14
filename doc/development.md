@@ -1,7 +1,12 @@
 <!-- markdownlint-disable MD036 -->
 # Development Guide
 
-This guide provides detailed information for developers working on oradba.
+This guide provides comprehensive development information for OraDBA v1.0.0 contributors.
+
+> **Note:** This document consolidates all essential development practices.
+> For detailed CI optimization strategies and markdown linting configuration history, 
+> see [archive/ci_optimization.md](archive/ci_optimization.md) and 
+> [archive/markdown-linting.md](archive/markdown-linting.md).
 
 ## CI/CD Pipeline
 
@@ -681,7 +686,8 @@ mappings:
     - test_service_management.bats
 ```
 
-See [Smart Test Selection Guide](smart-test-selection.md) for complete documentation.
+For detailed technical documentation on smart test selection implementation, 
+see [archive/smart-test-selection.md](archive/smart-test-selection.md).
 
 ### BATS Testing Framework
 
