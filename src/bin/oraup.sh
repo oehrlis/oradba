@@ -23,6 +23,12 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_common.sh"
 fi
 
+# Source status library if available
+if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
+    # shellcheck source=../lib/oradba_env_status.sh
+    source "${ORADBA_BASE}/lib/oradba_env_status.sh"
+fi
+
 # Get oratab file path using centralized function
 if type get_oratab_path &> /dev/null; then
     ORATAB_FILE=$(get_oratab_path)
@@ -407,6 +413,7 @@ show_oracle_status() {
                     database) ptype_display="Database" ;;
                     oud) ptype_display="OUD" ;;
                     client) ptype_display="Client" ;;
+                    iclient) ptype_display="Instant Client" ;;
                     weblogic) ptype_display="WebLogic" ;;
                     oms) ptype_display="OMS" ;;
                     emagent) ptype_display="EM Agent" ;;
@@ -422,12 +429,20 @@ show_oracle_status() {
                     display_name="$name"
                 fi
 
-                # Check if directory exists
+                # Check status based on product type
                 local status
-                if [[ -d "$path" ]]; then
-                    status="available"
-                else
+                if [[ ! -d "$path" ]]; then
                     status="missing"
+                elif [[ "$ptype" == "datasafe" ]]; then
+                    # For DataSafe, check if connector is running
+                    if command -v oradba_check_datasafe_status &>/dev/null; then
+                        status=$(oradba_check_datasafe_status "$path" 2>/dev/null || echo "available")
+                        status="${status,,}"  # lowercase
+                    else
+                        status="available"
+                    fi
+                else
+                    status="available"
                 fi
 
                 printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$display_name" "$status" "$path"
@@ -435,7 +450,9 @@ show_oracle_status() {
         fi
 
         # Display dummy entries (these are also Oracle Homes)
-        if [[ ${#dummy_entries[@]} -gt 0 ]]; then
+        # Only display dummy entries if we have actual database entries
+        # This hides client-only dummy entries when there are no databases
+        if [[ ${#dummy_entries[@]} -gt 0 && ${#db_entries[@]} -gt 0 ]]; then
             for entry in "${dummy_entries[@]}"; do
                 IFS=: read -r sid oracle_home startup_flag <<< "$entry"
                 printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"

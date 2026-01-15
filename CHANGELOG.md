@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added proper LD_LIBRARY_PATH setup: `$ORACLE_HOME/oracle_cman_home/lib`
   - Validation no longer requires sqlplus for DataSafe homes
   - Status checks support Data Safe connectors showing RUNNING/STOPPED/UNKNOWN
+  - `oraup.sh` now displays DataSafe connectors with live status
 
 - **PATH Deduplication** (2026-01-15)
   - Added `oradba_dedupe_path()` function to remove duplicate PATH entries
@@ -27,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PATH directories now validated for existence before addition
   - Non-existent directories no longer added to PATH
   - Prevents warning messages about missing directories
+  
+- **Client Display Improvements** (2026-01-15)
+  - `oraup.sh` now hides dummy entries for client-only installations
+  - Cleaner output when no databases are installed
+  - Added "Instant Client" product type display name
 
 - **Archived Version Warning** (2026-01-15)
   - Added notification in `oradba_install.sh` for archived pre-1.0 releases
