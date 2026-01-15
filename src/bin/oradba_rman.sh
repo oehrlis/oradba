@@ -435,8 +435,8 @@ EOF
     local spfile_backup_clause=""
     local spfile_backup_enabled="${RMAN_SPFILE_BACKUP:-true}"
     if [[ "${spfile_backup_enabled}" == "true" ]]; then
-        # Use single quotes to avoid sed quoting issues - RMAN accepts either
-        spfile_backup_clause="sql 'create pfile=''${backup_path_tag}init_${oracle_sid}_${start_date}'' from spfile';"
+        # Use double quotes and escape for sed - RMAN accepts both styles
+        spfile_backup_clause="sql \"create pfile=\\'${backup_path_tag}init_${oracle_sid}_${start_date}\\' from spfile\";"
         oradba_log DEBUG "  SPFILE Backup: Enabled"
     else
         oradba_log DEBUG "  SPFILE Backup: Disabled"
@@ -452,11 +452,15 @@ EOF
 
     # Process the template
     # Use @ as delimiter instead of / to avoid conflicts with file paths
+    # Escape newlines in multi-line values for sed
+    local channel_block_escaped="${channel_block//$'\n'/\\n}"
+    local release_block_escaped="${release_block//$'\n'/\\n}"
+    
     if [[ "${spfile_backup_enabled}" == "true" ]]; then
         # SPFILE backup enabled - substitute the tag with the command
         sed -e "s@<SPFILE_BACKUP>@${spfile_backup_clause}@g" \
-            -e "s@<ALLOCATE_CHANNELS>@${channel_block}@g" \
-            -e "s@<RELEASE_CHANNELS>@${release_block}@g" \
+            -e "s@<ALLOCATE_CHANNELS>@${channel_block_escaped}@g" \
+            -e "s@<RELEASE_CHANNELS>@${release_block_escaped}@g" \
             -e "s@<FORMAT>@${format_clause}@g" \
             -e "s@<TAG>@${tag_clause}@g" \
             -e "s@<COMPRESSION>@${compression_clause}@g" \
@@ -488,8 +492,8 @@ EOF
     else
         # SPFILE backup disabled - remove lines containing the tag
         sed -e "/<SPFILE_BACKUP>/d" \
-            -e "s@<ALLOCATE_CHANNELS>@${channel_block}@g" \
-            -e "s@<RELEASE_CHANNELS>@${release_block}@g" \
+            -e "s@<ALLOCATE_CHANNELS>@${channel_block_escaped}@g" \
+            -e "s@<RELEASE_CHANNELS>@${release_block_escaped}@g" \
             -e "s@<FORMAT>@${format_clause}@g" \
             -e "s@<TAG>@${tag_clause}@g" \
             -e "s@<COMPRESSION>@${compression_clause}@g" \
