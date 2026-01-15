@@ -36,6 +36,16 @@ fi
 # ------------------------------------------------------------------------------
 TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
 SCRIPT_LOG="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
+
+# Create log directory if it doesn't exist
+LOG_DIR="$(dirname "${SCRIPT_LOG}")"
+if [[ ! -d "${LOG_DIR}" ]]; then
+    if ! mkdir -p "${LOG_DIR}" 2>/dev/null; then
+        # If we can't create the default log directory, use temp directory
+        SCRIPT_LOG="${TMPDIR:-/tmp}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
+    fi
+fi
+
 TEMP_DIR="${TMPDIR:-/tmp}/oradba_rman_$$"
 FAILED_SIDS=()
 SUCCESSFUL_SIDS=()
