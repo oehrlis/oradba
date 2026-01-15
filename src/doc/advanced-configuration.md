@@ -426,7 +426,7 @@ cdn             # cd $ORACLE_BASE_HOME/network/admin
 vi $ORACLE_BASE_HOME/dbs/initROOHDB.ora
 
 # Creating password file
-orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=welcome1
+orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=your_secure_password
 
 # Checking tnsnames
 cat $ORACLE_BASE_HOME/network/admin/tnsnames.ora
@@ -495,7 +495,7 @@ echo $ORADBA_ROOH
 echo $ORADBA_DBS
 
 # Fix: Files should be in ORACLE_BASE_HOME/dbs
-orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB
+orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=your_secure_password
 ```
 
 **Issue: tnsnames.ora not found**
@@ -628,9 +628,12 @@ PATH_PREPEND=${ORACLE_HOME}/bin:${ORACLE_HOME}/oud/bin
 # In /opt/oradba/etc/oradba_customer.conf
 [CORE]
 # Development servers get extra tools
+# Note: Conditional logic in config files should be used sparingly
+# Consider using separate config files per environment instead
 if [[ "$(hostname)" =~ dev ]]; then
     PATH_PREPEND=/opt/devtools/bin
 fi
+# Alternative: Create separate oradba_customer.conf.dev and link it
 ```
 
 **Technique 2: Version-specific paths**
@@ -1120,12 +1123,13 @@ tail -f $DOMAIN_HOME/servers/AdminServer/logs/access.log
 
 # Check: Server status via WLST
 wlst.sh <<EOF
-connect('weblogic','welcome1','t3://localhost:7001')
+connect('weblogic','${ADMIN_PASSWORD}','t3://localhost:7001')
 serverRuntime()
 print 'Server State:', cmo.getState()
 disconnect()
 exit()
 EOF
+# Note: Set ADMIN_PASSWORD environment variable or use password file
 ```
 
 ## Configuration Troubleshooting
@@ -1540,7 +1544,8 @@ cat > bin/backup_all.sh <<'EOF'
 #!/usr/bin/env bash
 # Team standard backup script
 for sid in $(grep -v "^#" /etc/oratab | cut -d: -f1); do
-    source oraenv.sh $sid --silent
+    # Source environment using dot notation for compatibility
+    . oraenv.sh $sid --silent
     oradba_rman.sh --sid $sid --rcv backup_full.rcv
 done
 EOF
