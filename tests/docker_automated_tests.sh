@@ -121,7 +121,7 @@ test_installation() {
     
     # Test 2: Installation
     test_start "Fresh installation to $INSTALL_PREFIX"
-    if "$PROJECT_ROOT/dist/oradba_install.sh" --prefix "$INSTALL_PREFIX" --yes >> "$TEST_RESULTS_FILE" 2>&1; then
+    if "$PROJECT_ROOT/dist/oradba_install.sh" --prefix "$INSTALL_PREFIX" --silent >> "$TEST_RESULTS_FILE" 2>&1; then
         test_pass "Installation completed"
     else
         test_fail "Installation failed"
