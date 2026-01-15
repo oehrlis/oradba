@@ -273,7 +273,7 @@ show_oracle_status() {
 
     # Check if oratab has any entries
     local entry_count
-    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$ORATAB_FILE")
+    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$ORATAB_FILE") || entry_count=0
 
     if [[ "$entry_count" -eq 0 ]]; then
         # Try to auto-discover running instances if enabled

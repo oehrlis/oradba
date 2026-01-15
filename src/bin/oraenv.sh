@@ -410,7 +410,7 @@ _oraenv_set_environment() {
         # Try auto-discovery if oratab is empty and feature is enabled
         if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]]; then
             local entry_count
-            entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2>/dev/null || echo "0")
+            entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2>/dev/null) || entry_count=0
             
             if [[ "$entry_count" -eq 0 ]]; then
                 local discovered_oratab
