@@ -65,8 +65,21 @@ jobs:
       
       - name: Generate documentation
         run: |
+          echo "Generating PDF and HTML documentation..."
           docker pull oehrlis/pandoc:latest
-          make docs-pdf docs-html || echo "Documentation generation failed, continuing..."
+          make docs-pdf docs-html
+          
+          # Verify docs were generated
+          if [ ! -f dist/oradba-user-guide.pdf ]; then
+            echo "ERROR: PDF documentation not generated"
+            exit 1
+          fi
+          if [ ! -f dist/oradba-user-guide.html ]; then
+            echo "ERROR: HTML documentation not generated"
+            exit 1
+          fi
+          echo "Documentation generated successfully ✓"
+          ls -lh dist/oradba-user-guide.*
       
       - name: Build distribution
         run: |
@@ -111,6 +124,28 @@ jobs:
           - **oradba-user-guide.html**: Complete user documentation (HTML)
           EOF
           fi
+      
+      - name: Verify release assets exist
+        run: |
+          echo "Verifying all release assets exist..."
+          MISSING=0
+          for file in \
+            "dist/oradba_install.sh" \
+            "dist/oradba_check.sh" \
+            "dist/oradba-${{ steps.version.outputs.version }}.tar.gz" \
+            "dist/oradba-user-guide.pdf" \
+            "dist/oradba-user-guide.html"; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Missing required file: $file"
+              MISSING=1
+            else
+              echo "✓ Found: $file ($(du -h "$file" | cut -f1))"
+            fi
+          done
+          if [ $MISSING -eq 1 ]; then
+            exit 1
+          fi
+          echo "All release assets verified ✓"
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
