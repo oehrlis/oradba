@@ -130,6 +130,7 @@ CHECKS PERFORMED:
     - Checksum tools (sha256sum/shasum)
     - Base64 encoder (for installer with embedded payload)
     - Optional tools (rlwrap, curl/wget, less)
+    - GitHub connectivity (for updates and direct installation)
     - Disk space availability
     - Oracle environment variables (ORACLE_HOME, ORACLE_BASE, etc.)
     - Oracle binaries and tools (sqlplus, rman, lsnrctl)
@@ -330,6 +331,55 @@ check_optional_tools() {
     fi
     if [[ -z "$download_tool" ]]; then
         log_warn "curl/wget not found - Required for GitHub installation mode"
+    fi
+}
+
+# =============================================================================
+# GitHub Connectivity Check
+# =============================================================================
+check_github_connectivity() {
+    log_header "GitHub Connectivity"
+
+    # Check if we have curl or wget available
+    local download_tool=""
+    if command -v curl > /dev/null 2>&1; then
+        download_tool="curl"
+    elif command -v wget > /dev/null 2>&1; then
+        download_tool="wget"
+    else
+        log_warn "curl/wget not available - Cannot check GitHub connectivity"
+        log_info "  Note: GitHub update/installation features may not work"
+        return 0
+    fi
+
+    # Try to access GitHub API with timeout
+    local github_url="https://api.github.com/repos/oehrlis/oradba/releases/latest"
+    local github_accessible=false
+    local timeout=5
+
+    if [[ "$download_tool" == "curl" ]]; then
+        if curl -sf --connect-timeout "$timeout" --max-time $((timeout + 2)) "$github_url" > /dev/null 2>&1; then
+            github_accessible=true
+        fi
+    elif [[ "$download_tool" == "wget" ]]; then
+        if wget -q --timeout="$timeout" --tries=1 -O /dev/null "$github_url" > /dev/null 2>&1; then
+            github_accessible=true
+        fi
+    fi
+
+    if [[ "$github_accessible" == "true" ]]; then
+        log_pass "GitHub API accessible (api.github.com)"
+        if [[ "$VERBOSE" == "true" ]]; then
+            log_info "$(printf '  %-16s %s' 'Repository:' 'oehrlis/oradba')"
+            log_info "$(printf '  %-16s %s' 'Features:' 'Update checks, direct installation')"
+        fi
+    else
+        log_warn "GitHub API not accessible (timeout: ${timeout}s)"
+        log_info "  Note: GitHub-based updates and installation may not work"
+        if [[ "$VERBOSE" == "true" ]]; then
+            log_info "$(printf '  %-16s %s' 'Possible causes:' 'Firewall, proxy, or network restrictions')"
+            log_info "$(printf '  %-16s %s' 'Workaround:' 'Download releases manually or use tarball installation')"
+        fi
     fi
 }
 
@@ -611,6 +661,7 @@ critical_failed=false
 
 check_system_tools || critical_failed=true
 [[ "$QUIET" != "true" ]] && check_optional_tools
+[[ "$QUIET" != "true" ]] && check_github_connectivity
 check_disk_space || critical_failed=true
 
 # Oracle-related checks (informational)
