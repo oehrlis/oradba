@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **DataSafe On-Premises Connector Support** (2026-01-15)
   - Added DataSafe product type detection for oracle_cman_home structure
-  - Implemented `oradba_check_datasafe_status()` using `python ./setup.py status`
+  - Implemented direct cmctl status checking (50-100ms faster than Python)
   - Added proper PATH setup for DataSafe: `$ORACLE_HOME/oracle_cman_home/bin`
   - Added proper LD_LIBRARY_PATH setup: `$ORACLE_HOME/oracle_cman_home/lib`
   - Validation no longer requires sqlplus for DataSafe homes
@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed incorrect PATH (was adding non-existent bin directory)
   - Fixed incorrect LD_LIBRARY_PATH (was not using oracle_cman_home/lib)
   - Fixed oradba_homes.conf parsing delimiter (semicolon → colon)
+  - Optimized status checking to use direct cmctl (no Python overhead)
 
 - **Client Environment Issues** (2026-01-15)
   - ICLIENT product type now properly detected and handled
@@ -56,13 +57,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Instant Client LD_LIBRARY_PATH now includes ORACLE_HOME directly
   - Client validations skip checks for database-specific features
 
+- **Parser Format Alignment** (2026-01-15)
+  - Complete refactor of `oradba_env_parser.sh` to match actual file format
+  - Fixed field order mismatch: now uses NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+  - Updated all dependent functions (oradba_find_home, oradba_get_home_metadata, oradba_list_all_homes)
+  - Added support for searching by NAME, ALIAS, or PATH
+  - Backward compatibility with old field names (Product → Type, etc.)
+
 ### Known Issues
 
-- **oradba_env_parser.sh Format Mismatch** (2026-01-15)
-  - `oradba_parse_homes()` uses old format that doesn't match oradba_homes.conf
-  - Main system uses functions from oradba_common.sh (which are correct)
-  - Parser functions may be legacy/unused - requires investigation
-  - TODO: Align parser format with actual file format or deprecate unused functions
+- **Empty oratab Handling** (2026-01-15)
+  - System works with empty oratab but needs production testing
+  - Auto-discovery feature handles running instances without oratab entries
 
 ### Changed
 

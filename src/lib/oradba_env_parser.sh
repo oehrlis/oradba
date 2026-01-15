@@ -68,13 +68,14 @@ oradba_parse_oratab() {
 # Function: oradba_parse_homes
 # Purpose.: Parse oradba_homes.conf file
 # Args....: $1 - oradba_homes.conf file path (optional, defaults to ${ORADBA_BASE}/etc/oradba_homes.conf)
-#          $2 - ORACLE_HOME to find (optional, if empty returns all)
+#          $2 - NAME or ALIAS to find (optional, if empty returns all)
 # Returns.: 0 on success, 1 on error
-# Output..: Format: ORACLE_HOME|Product|Version|Edition|DB_Type|Position|Dummy_SID|Short_Name|Description
+# Output..: Format: NAME|PATH|TYPE|ORDER|ALIAS|DESCRIPTION|VERSION
+# Notes...: Format matches actual file: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
 # ------------------------------------------------------------------------------
 oradba_parse_homes() {
     local homes_file="$1"
-    local target_home="$2"
+    local target_name="$2"
     
     # Default to standard location if not provided
     if [[ -z "$homes_file" ]] || [[ ! -f "$homes_file" ]]; then
@@ -87,41 +88,40 @@ oradba_parse_homes() {
     fi
     
     # Parse homes file
-    while IFS=':' read -r oracle_home product version edition db_type position dummy_sid short_name description; do
+    # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+    while IFS=':' read -r name path ptype order alias_name desc version; do
         # Skip comments and empty lines
-        [[ -z "$oracle_home" ]] && continue
-        [[ "$oracle_home" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$name" ]] && continue
+        [[ "$name" =~ ^[[:space:]]*# ]] && continue
         
         # Trim whitespace
-        oracle_home=$(echo "$oracle_home" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        product=$(echo "$product" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        ptype=$(echo "$ptype" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        order=$(echo "$order" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        alias_name=$(echo "$alias_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        desc=$(echo "$desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         version=$(echo "$version" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        edition=$(echo "$edition" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        db_type=$(echo "$db_type" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        position=$(echo "$position" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        dummy_sid=$(echo "$dummy_sid" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        short_name=$(echo "$short_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        description=$(echo "$description" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         
         # Set defaults for optional fields
-        [[ -z "$position" ]] && position="50"
-        [[ -z "$edition" ]] && edition="N/A"
-        [[ -z "$db_type" ]] && db_type="N/A"
+        [[ -z "$order" ]] && order="50"
+        [[ -z "$alias_name" ]] && alias_name="$name"
+        [[ -z "$version" ]] && version="AUTO"
         
-        # If looking for specific home
-        if [[ -n "$target_home" ]]; then
-            if [[ "$oracle_home" == "$target_home" ]]; then
-                echo "${oracle_home}|${product}|${version}|${edition}|${db_type}|${position}|${dummy_sid}|${short_name}|${description}"
+        # If looking for specific home by NAME or ALIAS
+        if [[ -n "$target_name" ]]; then
+            if [[ "$name" == "$target_name" ]] || [[ "$alias_name" == "$target_name" ]]; then
+                echo "${name}|${path}|${ptype}|${order}|${alias_name}|${desc}|${version}"
                 return 0
             fi
         else
             # Return all entries
-            echo "${oracle_home}|${product}|${version}|${edition}|${db_type}|${position}|${dummy_sid}|${short_name}|${description}"
+            echo "${name}|${path}|${ptype}|${order}|${alias_name}|${desc}|${version}"
         fi
     done < "$homes_file"
     
     # If looking for specific home and not found
-    [[ -n "$target_home" ]] && return 1
+    [[ -n "$target_name" ]] && return 1
     return 0
 }
 
@@ -144,21 +144,54 @@ oradba_find_sid() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_find_home
-# Purpose.: Find ORACLE_HOME in oradba_homes.conf
-# Args....: $1 - ORACLE_HOME to find
+# Purpose.: Find Oracle Home by NAME, ALIAS, or PATH in oradba_homes.conf
+# Args....: $1 - NAME, ALIAS, or PATH to find
 #          $2 - oradba_homes.conf file path (optional)
 # Returns.: 0 on success, 1 if not found
-# Output..: ORACLE_HOME|Product|Version|Edition|DB_Type|Position|Dummy_SID|Short_Name|Description
+# Output..: NAME|PATH|TYPE|ORDER|ALIAS|DESCRIPTION|VERSION
 # ------------------------------------------------------------------------------
 oradba_find_home() {
-    local oracle_home="$1"
+    local search_term="$1"
     local homes_file="$2"
     
-    if [[ -z "$oracle_home" ]]; then
+    if [[ -z "$search_term" ]]; then
         return 1
     fi
     
-    oradba_parse_homes "$homes_file" "$oracle_home"
+    # Try as NAME/ALIAS first
+    local result
+    result=$(oradba_parse_homes "$homes_file" "$search_term")
+    if [[ -n "$result" ]]; then
+        echo "$result"
+        return 0
+    fi
+    
+    # Try as PATH
+    local homes_file_path="${homes_file:-${ORADBA_BASE}/etc/oradba_homes.conf}"
+    [[ ! -f "$homes_file_path" ]] && return 1
+    
+    while IFS=':' read -r name path ptype order alias_name desc version; do
+        [[ -z "$name" ]] && continue
+        [[ "$name" =~ ^[[:space:]]*# ]] && continue
+        
+        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        if [[ "$path" == "$search_term" ]]; then
+            # Trim and set defaults
+            name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            ptype=$(echo "$ptype" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            order=$(echo "$order" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            alias_name=$(echo "$alias_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            desc=$(echo "$desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            version=$(echo "$version" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            [[ -z "$order" ]] && order="50"
+            [[ -z "$alias_name" ]] && alias_name="$name"
+            [[ -z "$version" ]] && version="AUTO"
+            echo "${name}|${path}|${ptype}|${order}|${alias_name}|${desc}|${version}"
+            return 0
+        fi
+    done < "$homes_file_path"
+    
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -214,17 +247,17 @@ oradba_list_all_sids() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_list_all_homes
-# Purpose.: List all Oracle Homes from oradba_homes.conf, sorted by position
+# Purpose.: List all Oracle Homes from oradba_homes.conf, sorted by order
 # Args....: $1 - oradba_homes.conf file path (optional)
 # Returns.: 0 on success
-# Output..: Format: ORACLE_HOME|Product|Short_Name (sorted by position)
+# Output..: Format: NAME|PATH|TYPE|ORDER|ALIAS (sorted by order)
 # ------------------------------------------------------------------------------
 oradba_list_all_homes() {
     local homes_file="$1"
     
-    # Parse and sort by position
-    oradba_parse_homes "$homes_file" | sort -t'|' -k6 -n | while IFS='|' read -r oracle_home product version edition db_type position dummy_sid short_name description; do
-        echo "${oracle_home}|${product}|${short_name}"
+    # Parse and sort by order (field 4)
+    oradba_parse_homes "$homes_file" | sort -t'|' -k4 -n | while IFS='|' read -r name path ptype order alias_name desc version; do
+        echo "${name}|${path}|${ptype}|${order}|${alias_name}"
     done
 }
 
@@ -243,9 +276,14 @@ oradba_get_product_type() {
     
     # First check oradba_homes.conf
     local product
-    product=$(oradba_get_home_metadata "$oracle_home" "Product" 2>/dev/null)
-    if [[ -n "$product" ]]; then
-        echo "$product"
+    product=$(oradba_get_home_metadata "$oracle_home" "Type" 2>/dev/null)
+    if [[ -n "$product" ]] && [[ "$product" != "N/A" ]]; then
+        # Convert to uppercase for consistency
+        echo "${product^^}"
+        return 0
+    fi
+        # Convert to uppercase for consistency
+        echo "${product^^}"
         return 0
     fi
     

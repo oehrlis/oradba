@@ -211,41 +211,32 @@ oradba_check_datasafe_status() {
 # Args....: $1 - ORACLE_HOME (DataSafe connector path)
 # Returns.: 0 if running, 1 if not running
 # Output..: Status string (RUNNING|STOPPED|UNKNOWN)
+# Notes...: Uses direct cmctl command (faster than Python setup.py)
 # ------------------------------------------------------------------------------
 oradba_check_datasafe_status() {
     local oracle_home="$1"
+    local cmctl="${oracle_home}/oracle_cman_home/bin/cmctl"
     
     [[ -z "$oracle_home" ]] && {
         echo "UNKNOWN"
         return 1
     }
     
-    # Check if setup.py exists
-    if [[ ! -f "${oracle_home}/setup.py" ]]; then
+    # Check if cmctl exists
+    if [[ ! -x "$cmctl" ]]; then
         echo "UNKNOWN"
         return 1
     fi
     
-    # Try python setup.py status
-    local python_cmd=""
-    if command -v python3 &>/dev/null; then
-        python_cmd="python3"
-    elif command -v python &>/dev/null; then
-        python_cmd="python"
-    else
-        echo "UNKNOWN"
-        return 1
-    fi
-    
-    # Change to ORACLE_HOME and run status check
+    # Direct cmctl command - faster and more reliable than Python
     local status_output
-    status_output=$(cd "$oracle_home" && "$python_cmd" ./setup.py status 2>&1)
+    status_output=$("$cmctl" show services -c cust_cman 2>&1)
     
-    # Check if connector is running (look for "already started" or status output indicating running)
-    if echo "$status_output" | grep -qi "already started\\|status READY"; then
+    # Check if connector is running
+    if echo "$status_output" | grep -qi "status READY"; then
         echo "RUNNING"
         return 0
-    elif echo "$status_output" | grep -qi "not started\\|stopped"; then
+    elif echo "$status_output" | grep -qi "not started\\|stopped\\|no instance"; then
         echo "STOPPED"
         return 1
     fi
