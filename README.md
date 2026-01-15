@@ -21,12 +21,12 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
   - Status Checker - Real-time service and database status monitoring
   - Change Detector - Configuration change tracking and auto-reload
 - **Hierarchical Configuration** (v1.0.0): 6-level INI-style configuration system
-  - Product sections: [RDBMS], [CLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
+  - Product sections: [RDBMS], [CLIENT], [ICLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
   - Variable expansion: ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE}
   - Override hierarchy: core → standard → local → customer → services → SID
 - **Oracle Homes Management** (v0.18.0+): Unified support for all Oracle products
-  - Database, Client, Instant Client, Grid Infrastructure, ASM
-  - Oracle Unified Directory, WebLogic Server, Data Safe connectors
+  - Database, Client, Instant Client (ICLIENT), Grid Infrastructure, ASM
+  - Oracle Unified Directory (OUD), WebLogic Server (WLS), Data Safe On-Premises Connectors (DATASAFE)
   - Auto-discovery, export/import, version tracking
   - User-friendly aliases and integrated environment setup
 - **Auto-Discovery of Running Instances** (v1.0.0): Zero-config instant startup
@@ -39,8 +39,8 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ### Core Capabilities
 
-- **Intelligent Environment Setup**: Automatic configuration with product type detection
-- **Status & Monitoring**: Real-time service status, change detection, auto-reload
+- **Intelligent Environment Setup**: Automatic configuration with product type detection (RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS)
+- **Status & Monitoring**: Real-time service status for databases, listeners, and Data Safe connectors with change detection and auto-reload
 - **Extension System**: Modular plugin architecture for custom scripts and tools
 - **Service Management**: Enterprise-grade database and listener lifecycle control
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management

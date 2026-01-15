@@ -97,7 +97,13 @@ The execution flow shows:
 **oradba_env_validator.sh**:
 
 - `validate_oracle_home` - Check ORACLE_HOME exists and is valid
-- `detect_product_type` - Identify database, client, OUD, WebLogic, etc.
+- `detect_product_type` - Identify product types:
+  - ICLIENT: Instant Client (libclntsh.so, no bin directory)
+  - DATASAFE: Data Safe (oracle_cman_home, cmctl binary)
+  - GRID: Grid Infrastructure (crsctl, asmcmd)
+  - RDBMS: Database (oracle binary, rdbms directory)
+  - CLIENT: Full client (sqlplus, no rdbms)
+  - OUD, WLS: Other Oracle products
 - `detect_version` - Determine Oracle version
 
 **oradba_env_config.sh**:
@@ -111,6 +117,7 @@ The execution flow shows:
 - `show_config_sources` - Show which configs were loaded
 - `oradba_check_db_status` - Check database status (OPEN/MOUNTED/etc.)
 - `oradba_check_listener_status` - Check listener status
+- `oradba_check_datasafe_status` - Check Data Safe connector status (cmctl)
 
 **oradba_env_changes.sh**:
 
@@ -126,7 +133,16 @@ The execution flow shows:
 - Register Oracle Homes with metadata (name, path, type, version, alias)
 - List and query registered homes  
 - Export/import configuration for backup and migration
-- Support for different product types (database, client, OUD, WebLogic, OMS, etc.)
+- Support for different product types:
+  - **RDBMS**: Oracle Database (Standard/Enterprise Edition)
+  - **CLIENT**: Full Oracle Client with admin tools
+  - **ICLIENT**: Oracle Instant Client (lightweight, no bin directory)
+  - **GRID**: Grid Infrastructure (CRS/ASM)
+  - **ASM**: Automatic Storage Management
+  - **DATASAFE**: Data Safe On-Premises Connectors (uses oracle_cman_home)
+  - **OUD**: Oracle Unified Directory
+  - **WLS**: WebLogic Server
+  - **OMS**: Oracle Management Server
 
 **Configuration File** (`oradba_homes.conf`):
 
