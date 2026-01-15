@@ -418,7 +418,13 @@ _oraenv_set_environment() {
                 
                 if [[ -n "$discovered_oratab" ]]; then
                     log_info "Auto-discovered running Oracle instances (not in oratab)"
-                    log_info "These are temporary entries - add them to $oratab_file if needed"
+                    
+                    # Persist discovered instances to oratab
+                    if command -v persist_discovered_instances &> /dev/null; then
+                        persist_discovered_instances "$discovered_oratab" "$oratab_file"
+                    else
+                        log_info "These are temporary entries - add them to $oratab_file if needed"
+                    fi
                     
                     # If no SID was requested, use first discovered instance
                     if [[ -z "$requested_sid" ]]; then

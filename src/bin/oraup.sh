@@ -282,10 +282,20 @@ show_oracle_status() {
             discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
             
             if [[ -n "$discovered_oratab" ]]; then
+                # Persist discovered instances to oratab
+                local persist_msg=""
+                if command -v persist_discovered_instances &> /dev/null; then
+                    if persist_discovered_instances "$discovered_oratab" "$ORATAB_FILE" 2>&1 | grep -q "permission denied"; then
+                        persist_msg="(saved to local oratab - see warnings above)"
+                    else
+                        persist_msg="(saved to $ORATAB_FILE)"
+                    fi
+                else
+                    persist_msg="(temporary - add to $ORATAB_FILE manually)"
+                fi
+                
                 echo ""
-                echo "  ℹ Auto-discovered running Oracle instances (temporary entries)"
-                echo ""
-                echo "  These instances are not in oratab. Add them to: $ORATAB_FILE"
+                echo "  ℹ Auto-discovered running Oracle instances $persist_msg"
                 echo ""
                 
                 # Process discovered entries

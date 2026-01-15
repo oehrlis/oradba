@@ -979,6 +979,120 @@ discover_running_oracle_instances() {
     fi
 }
 
+# Persist discovered instances to oratab
+# ------------------------------------------------------------------------------
+# Function: persist_discovered_instances
+# Purpose.: Write auto-discovered instances to oratab file with fallback
+# Args....: $1 - Discovered oratab entries (multi-line string)
+#           $2 - Target oratab file (optional, defaults to ORATAB_FILE)
+# Returns.: 0 - Successfully persisted
+#           1 - Failed to persist
+# Output..: Appends entries to oratab, logs warnings/info
+# Notes...: - Tries system oratab first (e.g., /etc/oratab)
+#           - Falls back to local oratab if permission denied
+#           - Checks for duplicates before adding
+#           - Updates ORATAB_FILE if fallback used
+#           Example: persist_discovered_instances "$discovered_data"
+persist_discovered_instances() {
+    local discovered_oratab="$1"
+    local oratab_file="${2:-${ORATAB_FILE}}"
+    
+    # Validate input
+    if [[ -z "$discovered_oratab" ]]; then
+        oradba_log DEBUG "No discovered instances to persist"
+        return 1
+    fi
+    
+    # Check if oratab file exists
+    if [[ ! -f "$oratab_file" ]]; then
+        oradba_log WARN "Oratab file does not exist: $oratab_file"
+        # Try to create it if we have permissions
+        if ! touch "$oratab_file" 2>/dev/null; then
+            oradba_log WARN "Cannot create oratab file: $oratab_file (permission denied)"
+            oratab_file="${ORADBA_PREFIX}/etc/oratab"
+        fi
+    fi
+    
+    # Try to write to target oratab
+    if [[ -w "$oratab_file" ]]; then
+        local added_count=0
+        
+        # Add each discovered instance if not already present
+        while IFS=: read -r sid oracle_home startup_flag; do
+            [[ -z "$sid" ]] && continue
+            
+            # Check for duplicate
+            if grep -q "^${sid}:" "$oratab_file" 2>/dev/null; then
+                oradba_log DEBUG "Instance $sid already in $oratab_file - skipping"
+            else
+                echo "${sid}:${oracle_home}:${startup_flag}" >> "$oratab_file"
+                oradba_log INFO "Added $sid to $oratab_file"
+                ((added_count++))
+            fi
+        done <<< "$discovered_oratab"
+        
+        if [[ $added_count -gt 0 ]]; then
+            oradba_log INFO "Successfully added $added_count instance(s) to $oratab_file"
+            return 0
+        else
+            oradba_log INFO "All discovered instances already exist in $oratab_file"
+            return 0
+        fi
+    else
+        # Permission denied - fallback to local oratab
+        local local_oratab="${ORADBA_PREFIX}/etc/oratab"
+        
+        oradba_log WARN "Cannot write to system oratab: $oratab_file (permission denied)"
+        oradba_log WARN "Falling back to local oratab: $local_oratab"
+        
+        # Create local oratab if it doesn't exist
+        if [[ ! -f "$local_oratab" ]]; then
+            if ! touch "$local_oratab" 2>/dev/null; then
+                oradba_log ERROR "Cannot create local oratab: $local_oratab"
+                return 1
+            fi
+            oradba_log INFO "Created local oratab: $local_oratab"
+        fi
+        
+        # Check if local oratab is writable
+        if [[ ! -w "$local_oratab" ]]; then
+            oradba_log ERROR "Local oratab is not writable: $local_oratab"
+            return 1
+        fi
+        
+        local added_count=0
+        
+        # Add entries to local oratab
+        while IFS=: read -r sid oracle_home startup_flag; do
+            [[ -z "$sid" ]] && continue
+            
+            # Check for duplicate
+            if grep -q "^${sid}:" "$local_oratab" 2>/dev/null; then
+                oradba_log DEBUG "Instance $sid already in local oratab - skipping"
+            else
+                echo "${sid}:${oracle_home}:${startup_flag}" >> "$local_oratab"
+                oradba_log INFO "Added $sid to local oratab: $local_oratab"
+                ((added_count++))
+            fi
+        done <<< "$discovered_oratab"
+        
+        if [[ $added_count -gt 0 ]]; then
+            oradba_log WARN "Added $added_count instance(s) to local oratab"
+            oradba_log WARN "ACTION REQUIRED: Manually sync entries from $local_oratab to $oratab_file"
+            oradba_log WARN "Suggested command: sudo cat $local_oratab >> $oratab_file"
+            
+            # Update ORATAB_FILE to point to local version for current session
+            export ORATAB_FILE="$local_oratab"
+            oradba_log INFO "ORATAB_FILE updated to: $local_oratab (current session only)"
+            
+            return 0
+        else
+            oradba_log INFO "All discovered instances already exist in local oratab"
+            return 0
+        fi
+    fi
+}
+
 # Export common Oracle environment variables
 # ------------------------------------------------------------------------------
 # Function: export_oracle_base_env
