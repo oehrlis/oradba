@@ -51,6 +51,7 @@ COMMANDS:
     remove <name>       Remove an Oracle Home from configuration
     discover            Auto-discover Oracle Homes under ORACLE_BASE
     validate [name]     Validate Oracle Home(s) configuration
+    dedupe              Remove duplicate entries from configuration
     export              Export configuration to stdout
     import [file]       Import configuration from file or stdin
 
@@ -513,6 +514,24 @@ add_home() {
 
     # Create directory if needed
     mkdir -p "${ORADBA_BASE}/etc"
+
+    # Check for duplicates (by NAME or PATH)
+    if [[ -f "$config_file" ]]; then
+        # Check if NAME already exists
+        if grep -q "^${name}:" "$config_file"; then
+            log_error "Oracle Home '$name' already exists"
+            log_info "Use '$SCRIPT_NAME remove $name' to remove it first"
+            return 1
+        fi
+        # Check if PATH already exists
+        if grep -q ":${path}:" "$config_file"; then
+            local existing_name
+            existing_name=$(grep ":${path}:" "$config_file" | head -1 | cut -d':' -f1)
+            log_error "Path '$path' is already registered as '$existing_name'"
+            log_info "Use '$SCRIPT_NAME remove $existing_name' to remove it first"
+            return 1
+        fi
+    fi
 
     # Create config file if it doesn't exist
     if [[ ! -f "$config_file" ]]; then
@@ -999,6 +1018,94 @@ import_config() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: dedupe_homes
+# Purpose.: Remove duplicate entries from configuration
+# ------------------------------------------------------------------------------
+dedupe_homes() {
+    local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+    
+    # Check if config file exists
+    if [[ ! -f "$homes_file" ]]; then
+        log_warn "No Oracle Homes configuration found"
+        return 0
+    fi
+    
+    echo ""
+    echo "Removing Duplicate Entries"
+    echo "================================================================================"
+    echo ""
+    
+    # Create temp file
+    local temp_file="${homes_file}.dedup.$$"
+    local seen_names=()
+    local seen_paths=()
+    local removed_count=0
+    local kept_count=0
+    
+    # Copy header/comments
+    grep -E '^#|^$' "$homes_file" > "$temp_file"
+    
+    # Process entries
+    while IFS=':' read -r name path ptype order alias_name desc version; do
+        # Skip comments and empty lines
+        [[ -z "$name" ]] && continue
+        [[ "$name" =~ ^[[:space:]]*# ]] && continue
+        
+        # Trim whitespace
+        name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        
+        # Check for duplicate NAME
+        local name_seen=false
+        for seen in "${seen_names[@]}"; do
+            if [[ "$seen" == "$name" ]]; then
+                name_seen=true
+                break
+            fi
+        done
+        
+        # Check for duplicate PATH
+        local path_seen=false
+        for seen in "${seen_paths[@]}"; do
+            if [[ "$seen" == "$path" ]]; then
+                path_seen=true
+                break
+            fi
+        done
+        
+        if [[ "$name_seen" == "true" ]]; then
+            echo "  Removed duplicate NAME: $name"
+            ((removed_count++))
+        elif [[ "$path_seen" == "true" ]]; then
+            echo "  Removed duplicate PATH: $path (name: $name)"
+            ((removed_count++))
+        else
+            # Keep this entry
+            echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$temp_file"
+            seen_names+=("$name")
+            seen_paths+=("$path")
+            ((kept_count++))
+        fi
+    done < "$homes_file"
+    
+    echo ""
+    if [[ $removed_count -gt 0 ]]; then
+        # Create backup
+        cp "$homes_file" "${homes_file}.backup.$(date +%Y%m%d_%H%M%S)"
+        # Replace with deduplicated version
+        mv "$temp_file" "$homes_file"
+        echo "✓ Removed $removed_count duplicate(s), kept $kept_count entry/entries"
+        echo "  Backup created: ${homes_file}.backup.*"
+    else
+        rm -f "$temp_file"
+        echo "✓ No duplicates found ($kept_count entry/entries)"
+    fi
+    echo ""
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Main
 # ------------------------------------------------------------------------------
 main() {
@@ -1029,6 +1136,9 @@ main() {
             ;;
         validate)
             validate_homes "$@"
+            ;;
+        dedupe)
+            dedupe_homes "$@"
             ;;
         export)
             export_config "$@"
