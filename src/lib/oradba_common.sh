@@ -1600,8 +1600,12 @@ set_oracle_home_environment() {
         oracle_home=$(get_oracle_home_path "${actual_name}") || return 1
     fi
 
-    # Detect product type
-    product_type=$(detect_product_type "${oracle_home}")
+    # Get product type from config first, fall back to detection
+    product_type=$(get_oracle_home_type "${actual_name}" 2>/dev/null)
+    if [[ -z "${product_type}" ]] || [[ "${product_type}" == "unknown" ]]; then
+        # Fallback to filesystem detection
+        product_type=$(detect_product_type "${oracle_home}")
+    fi
 
     # Set base environment
     export ORACLE_HOME="${oracle_home}"

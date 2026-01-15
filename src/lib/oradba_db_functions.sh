@@ -264,8 +264,20 @@ show_oracle_home_status() {
         product_type="Oracle Home"
     fi
     
-    # Get Oracle version
-    product_version=$(get_oracle_version)
+    # Get Oracle version only for products that have sqlplus
+    case "${product_type}" in
+        database|client|RDBMS|CLIENT)
+            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+            ;;
+        datasafe|DATASAFE|oud|OUD|weblogic|WLS|oms|OMS|emagent)
+            # These products don't have sqlplus - version detection not applicable
+            product_version="N/A"
+            ;;
+        *)
+            # Try to get version, but don't show errors
+            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+            ;;
+    esac
     
     echo ""
     echo "-------------------------------------------------------------------------------"
