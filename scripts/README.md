@@ -5,8 +5,11 @@ Utility scripts for building, testing, and maintaining OraDBA.
 ## Available Scripts
 
 - **[build_installer.sh](build_installer.sh)** - Build self-contained installer
+- **[build_pdf.sh](build_pdf.sh)** - Build PDF documentation using Docker/Pandoc
 - **[select_tests.sh](select_tests.sh)** - Pick BATS tests based on changed files
 - **[validate_project.sh](validate_project.sh)** - Validate project structure and compliance
+- **[validate_test_environment.sh](validate_test_environment.sh)** - Validate testing environment for v1.0.0
+- **[archive_github_releases.sh](archive_github_releases.sh)** - Archive GitHub release notes locally
 
 ## Usage
 
@@ -28,7 +31,34 @@ make lint
 ./scripts/validate_project.sh
 ```
 
-Runs markdownlint and shellcheck validation.
+Validates project structure, checks all required files, and verifies file counts.
+
+### Validate Test Environment
+
+```bash
+./scripts/validate_test_environment.sh
+```
+
+Validates testing environment setup for v1.0.0 release, checks BATS installation,
+version files, and test infrastructure.
+
+### Build PDF Documentation
+
+```bash
+make docs-pdf
+# or directly
+./scripts/build_pdf.sh
+```
+
+Builddevelopment.md](../doc/developmentith Pandoc and Eisvogel template.
+
+### Archive GitHub Releases
+
+```bash
+./scripts/archive_github_releases.sh
+```
+
+Downloads and archives GitHub release notes to `doc/releases/archive/`.
 
 ### Select Tests
 
