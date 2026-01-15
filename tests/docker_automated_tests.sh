@@ -218,6 +218,23 @@ test_installation() {
     else
         test_fail "Missing configs: ${missing_configs[*]}"
     fi
+    
+    # Test 7: Update/Reinstall (simulate by installing again)
+    test_start "Update installation (reinstall same version)"
+    # This tests that installing over existing installation works
+    if "$PROJECT_ROOT/dist/oradba_install.sh" --base /opt/oracle --silent >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Reinstallation/update completed"
+    else
+        test_fail "Reinstallation failed"
+    fi
+    
+    # Test 8: Force reinstall
+    test_start "Force reinstall with --force flag"
+    if "$PROJECT_ROOT/dist/oradba_install.sh" --base /opt/oracle --force --silent >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Force reinstall completed"
+    else
+        test_fail "Force reinstall failed"
+    fi
 }
 
 # ------------------------------------------------------------------------------
