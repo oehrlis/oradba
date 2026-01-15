@@ -163,6 +163,75 @@ get_listener_status() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: should_show_listener_status
+# Purpose.: Determine if listener status section should be displayed
+# Returns.: 0 if should show, 1 if should not show
+# Note....: Listener status is only shown when ALL conditions are met:
+#           1. tnslsnr process is running
+#           2. listener.ora exists in TNS_ADMIN (or default location)
+#           3. Oracle database binary is installed (oratab entries exist)
+# ------------------------------------------------------------------------------
+should_show_listener_status() {
+    # Condition 1: Check if any tnslsnr process is running
+    if ! ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
+        return 1  # No listener process running
+    fi
+
+    # Condition 2: Check if listener.ora exists
+    local listener_ora_found=false
+    
+    # Check TNS_ADMIN if set
+    if [[ -n "${TNS_ADMIN}" && -f "${TNS_ADMIN}/listener.ora" ]]; then
+        listener_ora_found=true
+    else
+        # Check common locations across Oracle homes from oratab
+        while IFS=: read -r sid oracle_home startup_flag _rest; do
+            [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$sid" ]] && continue
+            [[ ! -d "$oracle_home" ]] && continue
+            
+            if [[ -f "${oracle_home}/network/admin/listener.ora" ]]; then
+                listener_ora_found=true
+                break
+            fi
+        done < "$ORATAB_FILE" 2>/dev/null
+    fi
+    
+    if [[ "$listener_ora_found" == "false" ]]; then
+        return 1  # No listener.ora found
+    fi
+
+    # Condition 3: Check if Oracle database binary is installed
+    # This means checking for:
+    # - Non-empty oratab with database entries, OR
+    # - Oracle home with database binary (oracle executable)
+    local has_database=false
+    
+    # Check oratab for database entries (not dummy, not client-only)
+    while IFS=: read -r sid oracle_home startup_flag _rest; do
+        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$sid" ]] && continue
+        [[ ! -d "$oracle_home" ]] && continue
+        
+        # Skip dummy entries
+        [[ "$startup_flag" == "D" ]] && continue
+        
+        # Check if oracle binary exists (indicates database home, not client)
+        if [[ -f "${oracle_home}/bin/oracle" ]]; then
+            has_database=true
+            break
+        fi
+    done < "$ORATAB_FILE" 2>/dev/null
+    
+    if [[ "$has_database" == "false" ]]; then
+        return 1  # No database binary found
+    fi
+
+    # All conditions met
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: get_startup_flag
 # Purpose.: Get startup flag from oratab (Y/N/D)
 # Returns.: Startup flag
@@ -324,49 +393,55 @@ show_oracle_status() {
 
     echo ""
 
-    # Check for listeners
-    echo "Listener Status"
-    echo "---------------------------------------------------------------------------------"
+    # Check if listener status should be displayed
+    # Only show if all conditions are met:
+    # 1. tnslsnr process running
+    # 2. listener.ora exists
+    # 3. Oracle database binary installed
+    if should_show_listener_status; then
+        echo "Listener Status"
+        echo "---------------------------------------------------------------------------------"
 
-    # Find unique Oracle homes
-    local -a oracle_homes
-    while IFS=: read -r sid oracle_home startup_flag _rest; do
-        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
-        [[ -z "$sid" ]] && continue
-        [[ -d "$oracle_home" ]] && oracle_homes+=("$oracle_home")
-    done < "$ORATAB_FILE"
+        # Find unique Oracle homes
+        local -a oracle_homes
+        while IFS=: read -r sid oracle_home startup_flag _rest; do
+            [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$sid" ]] && continue
+            [[ -d "$oracle_home" ]] && oracle_homes+=("$oracle_home")
+        done < "$ORATAB_FILE"
 
-    # Remove duplicates
-    local -a unique_homes
-    mapfile -t unique_homes < <(printf '%s\n' "${oracle_homes[@]}" | sort -u)
-    oracle_homes=("${unique_homes[@]}")
+        # Remove duplicates
+        local -a unique_homes
+        mapfile -t unique_homes < <(printf '%s\n' "${oracle_homes[@]}" | sort -u)
+        oracle_homes=("${unique_homes[@]}")
 
-    # Check for listeners in each Oracle home
-    local found_listener=false
-    for oh in "${oracle_homes[@]}"; do
-        # Check common listener names
-        for listener in LISTENER LISTENER_${HOSTNAME%%.*}; do
-            local lstatus
-            lstatus=$(get_listener_status "$listener" "$oh")
+        # Check for listeners in each Oracle home
+        local found_listener=false
+        for oh in "${oracle_homes[@]}"; do
+            # Check common listener names
+            for listener in LISTENER LISTENER_${HOSTNAME%%.*}; do
+                local lstatus
+                lstatus=$(get_listener_status "$listener" "$oh")
 
-            # Only show listeners that are actually running
-            if [[ "$lstatus" == "up" ]]; then
-                printf "%-17s : %-12s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
-                found_listener=true
-            fi
+                # Only show listeners that are actually running
+                if [[ "$lstatus" == "up" ]]; then
+                    printf "%-17s : %-12s %-11s %s\n" "Listener" "$listener" "$lstatus" "$oh"
+                    found_listener=true
+                fi
+            done
         done
-    done
 
-    if [[ "$found_listener" == "false" ]]; then
-        # Check for any running listeners
-        if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
-            printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "up" "(running)"
-        else
-            printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
+        if [[ "$found_listener" == "false" ]]; then
+            # Check for any running listeners
+            if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
+                printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "up" "(running)"
+            else
+                printf "%-17s : %-12s %-11s %s\n" "Listener" "LISTENER" "down" "n/a"
+            fi
         fi
-    fi
 
-    echo ""
+        echo ""
+    fi
 }
 
 # ------------------------------------------------------------------------------
