@@ -43,26 +43,26 @@ TESTS_SKIPPED=0
 # ------------------------------------------------------------------------------
 
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*" | tee -a "$TEST_RESULTS_FILE"
+    echo -e "${BLUE}[INFO]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
 }
 
 log_success() {
-    echo -e "${GREEN}[PASS]${NC} $*" | tee -a "$TEST_RESULTS_FILE"
+    echo -e "${GREEN}[PASS]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
 }
 
 log_error() {
-    echo -e "${RED}[FAIL]${NC} $*" | tee -a "$TEST_RESULTS_FILE"
+    echo -e "${RED}[FAIL]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
 }
 
 log_skip() {
-    echo -e "${YELLOW}[SKIP]${NC} $*" | tee -a "$TEST_RESULTS_FILE"
+    echo -e "${YELLOW}[SKIP]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
 }
 
 log_section() {
-    echo "" | tee -a "$TEST_RESULTS_FILE"
-    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE"
-    echo -e "${BLUE}$*${NC}" | tee -a "$TEST_RESULTS_FILE"
-    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE"
+    echo "" | tee -a "$TEST_RESULTS_FILE" || true
+    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE" || true
+    echo -e "${BLUE}$*${NC}" | tee -a "$TEST_RESULTS_FILE" || true
+    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE" || true
 }
 
 # Test result tracking
