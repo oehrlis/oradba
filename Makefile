@@ -152,6 +152,26 @@ test-integration: ## Run integration tests only
 	@echo -e "$(COLOR_BLUE)Running integration tests...$(COLOR_RESET)"
 	@$(BATS) $(TEST_DIR)/integration/*.bats 2>/dev/null || echo "No integration tests found"
 
+.PHONY: test-docker
+test-docker: build ## Run Docker-based automated integration tests (requires Docker)
+	@echo -e "$(COLOR_BLUE)Running Docker-based integration tests...$(COLOR_RESET)"
+	@if [ -n "$(DOCKER)" ]; then \
+		bash $(TEST_DIR)/run_docker_tests.sh --no-build; \
+	else \
+		echo -e "$(COLOR_RED)Error: Docker not found. Install Docker first.$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+
+.PHONY: test-docker-keep
+test-docker-keep: build ## Run Docker tests and keep container for inspection
+	@echo -e "$(COLOR_BLUE)Running Docker-based integration tests (keeping container)...$(COLOR_RESET)"
+	@if [ -n "$(DOCKER)" ]; then \
+		bash $(TEST_DIR)/run_docker_tests.sh --no-build --keep-container; \
+	else \
+		echo -e "$(COLOR_RED)Error: Docker not found. Install Docker first.$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+
 .PHONY: lint
 lint: lint-shell lint-scripts lint-markdown ## Run all linters
 
