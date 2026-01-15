@@ -250,6 +250,25 @@ process_template() {
     oradba_log DEBUG "  Compression: ${compression}"
     [[ -n "${backup_path}" ]] && oradba_log DEBUG "  Backup Path: ${backup_path}"
 
+    # Check if input file exists, or create a dummy template for dry-run mode
+    if [[ ! -f "${input_file}" ]]; then
+        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+            oradba_log DEBUG "Input file missing in dry-run mode, creating dummy template"
+            # Create a minimal dummy template for dry-run processing
+            cat > "${input_file}" <<'EOF'
+# Dummy RMAN template for dry-run mode
+RUN {
+    <ALLOCATE_CHANNELS>
+    BACKUP <COMPRESSION> DATABASE <FORMAT> <TAG>;
+    <RELEASE_CHANNELS>
+}
+EOF
+        else
+            oradba_log ERROR "Template file not found: ${input_file}"
+            return 1
+        fi
+    fi
+
     # Build channel allocation block
     local channel_block=""
     for ((i = 1; i <= channels; i++)); do
@@ -545,15 +564,21 @@ execute_rman_for_sid() {
     oradba_log INFO "  ORACLE_HOME:      ${ORACLE_HOME}"
     oradba_log INFO "  Log file:         ${sid_log}"
 
-    # Find RMAN script
+    # Find RMAN script (more lenient in dry-run mode)
     local rman_script=""
     if [[ -f "${rcv_script}" ]]; then
         rman_script="${rcv_script}"
     elif [[ -f "${ORADBA_BASE}/rcv/${rcv_script}" ]]; then
         rman_script="${ORADBA_BASE}/rcv/${rcv_script}"
     else
-        oradba_log ERROR "RMAN script not found: ${rcv_script}"
-        return 1
+        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+            oradba_log WARN "RMAN script not found: ${rcv_script} (dry-run mode, continuing)"
+            # In dry-run mode, use the specified path even if file doesn't exist
+            rman_script="${rcv_script}"
+        else
+            oradba_log ERROR "RMAN script not found: ${rcv_script}"
+            return 1
+        fi
     fi
 
     # Process template to temporary file
