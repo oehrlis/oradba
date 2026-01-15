@@ -1356,7 +1356,10 @@ ORATAB_HEADER
         # Add dummy entry if in pre-Oracle mode
         if [[ -n "$DUMMY_ORACLE_HOME" ]] || [[ ! -f "/etc/oratab" ]]; then
             log_info "  Adding dummy Oracle entry: dummy:${dummy_home}:N"
-            echo "# Dummy entry for pre-Oracle environment (remove after Oracle installation)" >> "$oratab_path"
+            echo "# Dummy entry for pre-Oracle environment" >> "$oratab_path"
+            echo "# To hide this entry from oraup status display:" >> "$oratab_path"
+            echo "#   1. Set ORADBA_SHOW_DUMMY_ENTRIES=false in oradba_customer.conf, OR" >> "$oratab_path"
+            echo "#   2. Remove this entry once Oracle is installed" >> "$oratab_path"
             echo "dummy:${dummy_home}:N" >> "$oratab_path"
         fi
 

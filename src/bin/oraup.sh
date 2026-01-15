@@ -446,6 +446,8 @@ show_oracle_status() {
                     if command -v oradba_check_datasafe_status &>/dev/null; then
                         status=$(oradba_check_datasafe_status "$path" 2>/dev/null || echo "available")
                         status="${status,,}"  # lowercase
+                        status="${status// /}"  # remove spaces
+                        status="${status//$'\n'/}"  # remove newlines
                     else
                         status="available"
                     fi
@@ -457,9 +459,10 @@ show_oracle_status() {
             done
         fi
 
-        # Display dummy entries only if we have actual database entries
-        # This hides dummy entries in client-only or non-database environments
-        if [[ ${#dummy_entries[@]} -gt 0 && ${#db_entries[@]} -gt 0 ]]; then
+        # Display dummy entries only if enabled and we have actual database entries
+        # ORADBA_SHOW_DUMMY_ENTRIES: Set to "false" to hide dummy entries (default: true)
+        local show_dummy="${ORADBA_SHOW_DUMMY_ENTRIES:-true}"
+        if [[ "$show_dummy" != "false" ]] && [[ ${#dummy_entries[@]} -gt 0 && ${#db_entries[@]} -gt 0 ]]; then
             for entry in "${dummy_entries[@]}"; do
                 IFS=: read -r sid oracle_home startup_flag <<< "$entry"
                 
