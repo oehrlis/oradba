@@ -1,8 +1,21 @@
 # Archived Release Notes
 
-This directory contains release notes for older OraDBA versions (v0.9.4 through v0.16.0).
+This directory contains release notes for older OraDBA versions (v0.9.4 through v0.18.5).
 
 ## Available Releases
+
+### v0.18.x Series (Pre-1.0)
+
+- [v0.18.5](v0.18.5.md) - Final pre-1.0 release
+- [v0.18.4](v0.18.4.md) - Bug fixes
+- [v0.18.3](v0.18.3.md) - Improvements
+- [v0.18.2](v0.18.2.md) - Updates
+- [v0.18.1](v0.18.1.md) - ALIAS_NAME support for Oracle Homes
+- [v0.18.0](v0.18.0.md) - Enhanced testing framework
+
+### v0.17.x Series
+
+- [v0.17.0](v0.17.0.md) - Configuration enhancements
 
 ### v0.16.x Series
 

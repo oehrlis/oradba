@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **Documentation Cleanup** (2026-01-15)
+  - Archived `v1.0.0-release-plan.md` to `doc/archive/` (release complete)
+  - Archived `release-testing-checklist.md` to `doc/archive/` (superseded by automated_testing.md and manual_testing.md)
+  - Updated `doc/README.md` to reflect current documentation structure
+  - Added clarification note to `doc/oradba-env-design.md` (design reference document)
+  - Kept design document for historical design rationale
+  - Commit: 58703eb
+
 ## [1.0.0] - 2026-01-15
 
 ### Added
