@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.01.13
-# Revision...: 
+# Revision...: 1.1.0
 # Purpose....: System prerequisites and Oracle environment verification script
 # Notes......: Validates system readiness for OraDBA installation and usage.
 #              Can be run standalone BEFORE installation to verify prerequisites,
@@ -26,13 +26,17 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Try to read version from VERSION file, fall back to hardcoded version
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERSION_FILE="${SCRIPT_DIR}/../../VERSION"
+# Try installed location first (bin/../VERSION), then repo location (src/bin/../../VERSION)
+VERSION_FILE="${SCRIPT_DIR}/../VERSION"
+if [[ ! -f "$VERSION_FILE" ]]; then
+    VERSION_FILE="${SCRIPT_DIR}/../../VERSION"
+fi
 if [[ -f "$VERSION_FILE" ]]; then
     # shellcheck disable=SC2034  # Used in usage() function
     SCRIPT_VERSION="$(head -1 "$VERSION_FILE" | tr -d '[:space:]')"
 else
     # shellcheck disable=SC2034  # Used in usage() function
-    SCRIPT_VERSION="0.14.1" # Fallback version for standalone distribution
+    SCRIPT_VERSION="1.1.0" # Fallback version for standalone distribution
 fi
 
 # Colors for output
