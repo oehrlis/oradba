@@ -205,7 +205,8 @@ main() {
         container_log=$(docker exec "$CONTAINER_NAME" sh -c "ls -t /tmp/oradba_test_results_*.log 2>/dev/null | head -1")
         
         if [[ -n "$container_log" ]]; then
-            local results_file="$PROJECT_ROOT/tests/results/$(basename "$container_log")"
+            local results_file
+            results_file="$PROJECT_ROOT/tests/results/$(basename "$container_log")"
             docker cp "$CONTAINER_NAME:$container_log" "$results_file" 2>/dev/null || true
             
             if [[ -f "$results_file" ]]; then
@@ -225,7 +226,8 @@ main() {
         container_log=$(docker exec "$CONTAINER_NAME" sh -c "ls -t /tmp/oradba_test_results_*.log 2>/dev/null | head -1")
         
         if [[ -n "$container_log" ]]; then
-            local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
+            local results_file
+            results_file="$PROJECT_ROOT/tests/results/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
             docker cp "$CONTAINER_NAME:$container_log" "$results_file" 2>/dev/null || true
             
             if [[ -f "$results_file" ]]; then

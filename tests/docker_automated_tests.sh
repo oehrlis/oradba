@@ -1032,7 +1032,8 @@ test_utilities() {
     # Test 4: Version information
     test_start "Version information available"
     if [[ -f "$INSTALL_PREFIX/VERSION" ]] && grep -q "^[0-9]" "$INSTALL_PREFIX/VERSION" 2>/dev/null; then
-        local version=$(cat "$INSTALL_PREFIX/VERSION" 2>/dev/null)
+        local version
+        version=$(cat "$INSTALL_PREFIX/VERSION" 2>/dev/null)
         test_pass "Version information available: $version"
     else
         test_pass "Version file checked (specific version format may vary)"
