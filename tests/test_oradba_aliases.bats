@@ -741,8 +741,8 @@ EOF
     
     generate_sid_aliases
     
-    # Check if alias exists
-    run bash -c "alias tnsping"
+    # Check if alias exists (don't use bash -c as aliases aren't exported)
+    run alias tnsping
     [ "$status" -eq 0 ]
     [[ "$output" =~ "oradba_tnsping" ]]
 }
