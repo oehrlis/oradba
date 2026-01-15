@@ -7,14 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Auto-Discovery of Running Oracle Instances** (2026-01-15)
+  - Automatically detects running Oracle instances when oratab is empty
+  - New function: `discover_running_oracle_instances()` in oradba_common.sh
+  - Detects db_smon_*, ora_pmon_*, and asm_smon_* processes for current user only
+  - Extracts ORACLE_HOME from `/proc/{pid}/exe` with fallback to `/proc/{pid}/environ`
+  - Persists discovered instances to oratab automatically
+  - Fallback to local oratab ($ORADBA_PREFIX/etc/oratab) if permission denied
+  - New function: `persist_discovered_instances()` for automatic oratab updates
+  - Duplicate prevention: won't add instances already in oratab
+  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES` (default: true)
+  - Integrated into both oraenv.sh and oraup.sh
+  - Added comprehensive manual testing documentation with 6 test cases
+  - Commits: b503b0b, bbdfc80, c30e697, a9e2e6a, 8685403, bc5780f, 6070197
+
 ### Fixed
+
+- **Auto-Discovery Bugs** (2026-01-15)
+  - Fixed undefined function error: `display_database_entry: command not found`
+  - Fixed syntax error: `[[: 0\n0:` caused by grep -cv exit code issue
+  - Fixed SID matching in discovery using case-insensitive awk instead of grep
+  - Fixed empty line filtering in discovered instance parsing
+  - Root cause: `grep -cv` returns exit code 1 when count is 0, causing `|| echo "0"`
+    to execute and output second zero
+  - Solution: Changed to `entry_count=$(grep -cv ...) || entry_count=0`
+  - All discovery errors resolved and tested
+  - Commits: bbdfc80, bc5780f, a9e2e6a, 8685403
 
 - **SID Configuration Variable Isolation** (2026-01-14)
   - Fixed environment pollution where SID-specific variables persisted across environment switches
   - Added `cleanup_previous_sid_config()` to unset previous SID variables
   - Added `capture_sid_config_vars()` to track new SID variables
   - Variables from `sid.<SID>.conf` now properly cleaned up on SID switch
-  - Shared configs (core, standard, customer, sid._DEFAULT_) remain global as intended
+  - Shared configs (core, standard, customer, sid.*DEFAULT*) remain global as intended
   - Test: `tests/manual/test_sid_variable_isolation.sh` (7 tests passing)
 
 - **oradba_homes.sh Critical Fixes** (2026-01-14)
@@ -34,7 +61,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - SID-specific variables now properly isolated between environments
   - Critical Oracle/OraDBA variables (ORACLE_*, ORADBA_*, PATH, etc.) protected from cleanup
 
-### Added
+- **Listener Status Display Logic** (2026-01-15)
+  - Changed from AND logic to OR logic: show if ANY condition met
+  - Condition 1: tnslsnr process running (any user)
+  - Condition 2: Oracle database binary installed (oratab or oradba_homes.conf)
+  - Exception: Client-only + listener.ora (no tnslsnr, no database) = hidden
+  - Commits: 978d1fa, 050bb9b, 62625b1, 018f809, 9354660
+
+### Documentation
+
+- **Manual Testing Updates** (2026-01-15)
+  - Updated auto-discovery test cases to reflect persistence behavior
+  - Added Test Case 1b: Permission denied fallback scenario
+  - Updated pass criteria to include persistence verification
+  - Added duplicate prevention testing
+  - Added listener status display testing (6 test cases)
+  - Section numbers removed from manual_testing.md for better readability
 
 - **SID Variable Isolation Test** (2026-01-14)
   - New test: `tests/manual/test_sid_variable_isolation.sh`
@@ -858,7 +900,7 @@ Phase 2 completes the configuration management system with:
 
 - **Project Validation**: Improved `scripts/validate_project.sh` to match current repository structure
   - Added validation for all new core scripts (oradba_validate.sh, oradba_setup.sh, oradba_homes.sh, etc.)
-  - Added validation for new configuration files (oradba_services.conf, oradba_homes.conf.template, sid._DEFAULT_.conf)
+  - Added validation for new configuration files (oradba_services.conf, oradba_homes.conf.template, sid.\*DEFAULT\*.conf)
   - Added validation for template files (oradba_customer.conf.example, sid.ORACLE_SID.conf.example, oradba_rman.conf.example)
   - Added validation for new test files (test_oradba_homes.bats, test_extensions.bats, etc.)
   - Added validation for additional scripts (select_tests.sh, build_pdf.sh, archive_github_releases.sh)

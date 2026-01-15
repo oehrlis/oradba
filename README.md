@@ -29,6 +29,13 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
   - Oracle Unified Directory, WebLogic Server, Data Safe connectors
   - Auto-discovery, export/import, version tracking
   - User-friendly aliases and integrated environment setup
+- **Auto-Discovery of Running Instances** (v1.0.0): Zero-config instant startup
+  - Automatically detects running Oracle instances when oratab is empty
+  - Persists discovered instances to oratab (or local oratab if permission denied)
+  - Supports database instances (db_smon_*, ora_pmon_*) and ASM (+ASM)
+  - Current user filtering for security
+  - Duplicate prevention for idempotent operations
+  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES`
 
 ### Core Capabilities
 

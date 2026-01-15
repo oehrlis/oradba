@@ -461,7 +461,7 @@ Listener status should be displayed when ANY of the following conditions are met
 1. `tnslsnr` process is running, OR
 2. Oracle database binary is installed (oratab entry and/or oradba_homes.conf database home)
 
-**Exception**: Client-only installation with only `listener.ora` (no tnslsnr, no database home) 
+**Exception**: Client-only installation with only `listener.ora` (no tnslsnr, no database home)
 should NOT show listener status.
 
 ```bash
@@ -590,7 +590,7 @@ oradba_env.sh list
 
 ### Auto-Discovery of Running Instances
 
-**Objective**: Verify automatic detection and temporary registration of running Oracle instances when oratab is empty
+**Objective**: Verify automatic detection and persistence of running Oracle instances when oratab is empty
 
 **Auto-Discovery Requirements**:
 
@@ -599,13 +599,13 @@ When oratab has no entries AND `ORADBA_AUTO_DISCOVER_INSTANCES=true`:
 1. Detect running Oracle processes owned by current user (`db_smon_*`, `ora_pmon_*`, `asm_smon_*`)
 2. Extract SID from process name
 3. Determine `ORACLE_HOME` from `/proc/<pid>/exe` symlink
-4. Create temporary oratab entries (not persisted to file)
-5. Display entries in `oraup.sh` with info message
+4. **Persist entries to oratab** (or local oratab if permission denied)
+5. Display entries in `oraup.sh` with status message
 6. Auto-source first discovered instance in `oraenv.sh` if no SID specified
 
 ```bash
-# Test Case 1: Empty oratab with running database instance
-# Expected: Auto-discovery finds instance, displays in oraup, auto-sources in oraenv
+# Test Case 1: Empty oratab with running database instance (with sudo)
+# Expected: Auto-discovery finds instance, persists to /etc/oratab, auto-sources
 
 # 1. Backup oratab
 sudo cp /etc/oratab /etc/oratab.backup
@@ -619,28 +619,59 @@ ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep
 
 # 4. Check oraup.sh output
 oraup.sh
-# Expected: Shows "Auto-discovered running Oracle instances (temporary entries)"
-#           Lists discovered SID with ORACLE_HOME
-#           Shows message about adding to oratab
+# Expected: Shows "Auto-discovered running Oracle instances (saved to /etc/oratab)"
+#           Lists discovered SID with ORACLE_HOME and status
+#           Entry added to /etc/oratab
 
-# 5. Test auto-sourcing in oraenv.sh
+# 5. Verify entry was added to oratab
+grep "^FREE:" /etc/oratab
+# Expected: Shows "FREE:/opt/oracle/product/.../dbhomeFree:N"
+
+# 6. Test auto-sourcing in oraenv.sh
 unset ORACLE_SID ORACLE_HOME
 source "$ORADBA_BASE/bin/oraenv.sh"
-# Expected: Auto-selects first discovered instance
-#           Shows info message about discovery
+# Expected: Auto-selects first instance from oratab (now persisted)
 #           Sets ORACLE_SID and ORACLE_HOME
 #           Environment fully functional
 
-# 6. Verify environment was set
+# 7. Verify environment was set
 echo "ORACLE_SID: $ORACLE_SID"
 echo "ORACLE_HOME: $ORACLE_HOME"
 # Expected: Variables set correctly
 
-# 7. Restore oratab
+# 8. Restore oratab
 sudo mv /etc/oratab.backup /etc/oratab
 
+# Test Case 1b: Empty oratab with running database instance (without sudo)
+# Expected: Auto-discovery finds instance, persists to local oratab, shows warning
+
+# 1. Backup oratab (as non-root user)
+cp /etc/oratab /tmp/oratab.backup 2>/dev/null || sudo cp /etc/oratab /tmp/oratab.backup
+
+# 2. Make oratab read-only (simulate permission denied)
+sudo chmod 444 /etc/oratab
+
+# 3. Run oraup.sh
+oraup.sh
+# Expected: Shows warning "Cannot write to system oratab: /etc/oratab"
+#           Shows "Falling back to local oratab: $ORADBA_PREFIX/etc/oratab"
+#           Shows "ACTION REQUIRED: Manually sync entries..."
+#           Shows suggested command: sudo cat ... >> /etc/oratab
+
+# 4. Verify entry in local oratab
+cat "$ORADBA_PREFIX/etc/oratab" | grep "^FREE:"
+# Expected: Shows entry in local file
+
+# 5. Check that system oratab unchanged
+sudo grep "^FREE:" /etc/oratab
+# Expected: Entry NOT in system file (permission denied)
+
+# 6. Restore permissions and oratab
+sudo chmod 644 /etc/oratab
+sudo mv /tmp/oratab.backup /etc/oratab
+
 # Test Case 2: Multiple running instances
-# Expected: All instances discovered, first one auto-selected
+# Expected: All instances discovered and persisted, first one auto-selected
 
 # 1. Ensure multiple instances running (if available)
 ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep
@@ -739,12 +770,14 @@ sudo mv /etc/oratab.backup /etc/oratab
 
 **Pass Criteria**:
 
-- ✅ Empty oratab + running instance auto-discovered
-- ✅ Multiple instances all discovered, first selected
-- ✅ ASM/Grid instances detected
-- ✅ Warning for other-user processes, current user discovered
-- ✅ Feature disabled = no discovery
-- ✅ No instances = standard message
+- ✅ Empty oratab + running instance auto-discovered and persisted to /etc/oratab
+- ✅ Permission denied → entries saved to local oratab with clear warnings
+- ✅ Multiple instances all discovered and persisted, first selected
+- ✅ ASM/Grid instances detected and persisted
+- ✅ Warning for other-user processes, current user discovered and persisted
+- ✅ Feature disabled = no discovery, no persistence
+- ✅ No instances = standard message, no files modified
+- ✅ Duplicate prevention: running discovery twice doesn't create duplicates
 
 ---
 
