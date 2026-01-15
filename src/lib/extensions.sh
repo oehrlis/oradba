@@ -287,64 +287,62 @@ remove_extension_paths() {
 
 # Deduplicate PATH (keep first occurrence)
 # Usage: deduplicate_path
+# Note: Uses oradba_dedupe_path() from oradba_env_builder.sh
 deduplicate_path() {
-    local seen=()
-    local new_path=""
-
-    IFS=':' read -ra path_parts <<< "${PATH}"
-    for part in "${path_parts[@]}"; do
-        # Skip empty parts
-        [[ -z "${part}" ]] && continue
-
-        # Check if already seen
-        local found=false
-        for seen_part in "${seen[@]}"; do
-            if [[ "${part}" == "${seen_part}" ]]; then
-                found=true
-                break
+    if command -v oradba_dedupe_path >/dev/null 2>&1; then
+        export PATH="$(oradba_dedupe_path "${PATH}")"
+    else
+        # Fallback if oradba_dedupe_path not available
+        local seen=()
+        local new_path=""
+        IFS=':' read -ra path_parts <<< "${PATH}"
+        for part in "${path_parts[@]}"; do
+            [[ -z "${part}" ]] && continue
+            local found=false
+            for seen_part in "${seen[@]}"; do
+                if [[ "${part}" == "${seen_part}" ]]; then
+                    found=true
+                    break
+                fi
+            done
+            if [[ "${found}" == "false" ]]; then
+                seen+=("${part}")
+                new_path="${new_path:+${new_path}:}${part}"
             fi
         done
-
-        # Add if not seen
-        if [[ "${found}" == "false" ]]; then
-            seen+=("${part}")
-            new_path="${new_path:+${new_path}:}${part}"
-        fi
-    done
-
-    export PATH="${new_path}"
+        export PATH="${new_path}"
+    fi
 }
 
 # Deduplicate SQLPATH (keep first occurrence)
 # Usage: deduplicate_sqlpath
+# Note: Uses oradba_dedupe_path() from oradba_env_builder.sh
 deduplicate_sqlpath() {
     [[ -z "${SQLPATH}" ]] && return 0
 
-    local seen=()
-    local new_sqlpath=""
-
-    IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
-    for part in "${sqlpath_parts[@]}"; do
-        # Skip empty parts
-        [[ -z "${part}" ]] && continue
-
-        # Check if already seen
-        local found=false
-        for seen_part in "${seen[@]}"; do
-            if [[ "${part}" == "${seen_part}" ]]; then
-                found=true
-                break
+    if command -v oradba_dedupe_path >/dev/null 2>&1; then
+        export SQLPATH="$(oradba_dedupe_path "${SQLPATH}")"
+    else
+        # Fallback if oradba_dedupe_path not available
+        local seen=()
+        local new_sqlpath=""
+        IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
+        for part in "${sqlpath_parts[@]}"; do
+            [[ -z "${part}" ]] && continue
+            local found=false
+            for seen_part in "${seen[@]}"; do
+                if [[ "${part}" == "${seen_part}" ]]; then
+                    found=true
+                    break
+                fi
+            done
+            if [[ "${found}" == "false" ]]; then
+                seen+=("${part}")
+                new_sqlpath="${new_sqlpath:+${new_sqlpath}:}${part}"
             fi
         done
-
-        # Add if not seen
-        if [[ "${found}" == "false" ]]; then
-            seen+=("${part}")
-            new_sqlpath="${new_sqlpath:+${new_sqlpath}:}${part}"
-        fi
-    done
-
-    export SQLPATH="${new_sqlpath}"
+        export SQLPATH="${new_sqlpath}"
+    fi
 }
 
 # Load all enabled extensions
