@@ -148,7 +148,8 @@ test_installation() {
     # Test 4: VERSION file
     test_start "VERSION file exists and readable"
     if [[ -f "$INSTALL_PREFIX/VERSION" ]]; then
-        local version=$(cat "$INSTALL_PREFIX/VERSION")
+        local version
+        version=$(cat "$INSTALL_PREFIX/VERSION")
         test_pass "VERSION: $version"
     else
         test_fail "VERSION file not found"
@@ -305,7 +306,8 @@ test_auto_discovery() {
     # Check for running instances
     test_start "Verify Oracle instance is running"
     if ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep > /dev/null; then
-        local instance_count=$(ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep | wc -l)
+        local instance_count
+        instance_count=$(ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep | wc -l)
         test_pass "$instance_count Oracle instance(s) running"
     else
         test_skip "No running Oracle instances - skipping auto-discovery tests"
@@ -325,7 +327,8 @@ test_auto_discovery() {
     
     # Test auto-discovery in oraup.sh
     test_start "Auto-discovery via oraup.sh"
-    local oraup_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
+    local oraup_output
+    oraup_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
     
     if echo "$oraup_output" | grep -q "Auto-discovered.*Oracle instance"; then
         test_pass "Auto-discovery detected running instances"
@@ -337,7 +340,8 @@ test_auto_discovery() {
     
     # Test persistence to oratab
     test_start "Auto-discovered instance persisted to oratab"
-    local entry_count=$(grep -cv "^#\|^[[:space:]]*$" /etc/oratab 2>/dev/null || echo 0)
+    local entry_count
+    entry_count=$(grep -cv "^#\|^[[:space:]]*$" /etc/oratab 2>/dev/null || echo 0)
     
     if [[ $entry_count -gt 0 ]]; then
         test_pass "$entry_count instance(s) added to oratab"
@@ -396,7 +400,8 @@ test_oracle_homes() {
     
     # Test 2: Add Oracle Home
     test_start "Add Oracle Home to registry"
-    local test_home_name="test_free26ai_$(date +%s)"
+    local test_home_name
+    test_home_name="test_free26ai_$(date +%s)"
     
     if "$INSTALL_PREFIX/bin/oradba_homes.sh" add \
         --name "$test_home_name" \
@@ -463,7 +468,8 @@ test_database_status() {
     
     # Test 2: Check for required sections
     test_start "Status output has required sections"
-    local status_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
+    local status_output
+    status_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
     local has_sections=true
     
     if ! echo "$status_output" | grep -q "Oracle Environment Status"; then

@@ -1,6 +1,7 @@
 # OraDBA Automated Testing
 
-This directory contains automated test scripts for OraDBA, designed to partially automate the manual tests documented in `../doc/manual_testing.md`.
+This directory contains automated test scripts for OraDBA, designed to
+partially automate the manual tests documented in `../doc/manual_testing.md`.
 
 ## Quick Start
 
@@ -16,6 +17,7 @@ Run automated tests in an Oracle 26ai Free Docker container:
 ### run_docker_tests.sh
 
 Wrapper script that:
+
 1. Builds OraDBA distribution (`make build`)
 2. Pulls/starts Oracle 26ai Free Docker container
 3. Waits for database to be ready
@@ -48,6 +50,7 @@ Wrapper script that:
 Core test script that runs inside the container. Tests:
 
 **Installation Tests:**
+
 - Build artifacts exist
 - Fresh installation
 - Directory structure
@@ -56,12 +59,14 @@ Core test script that runs inside the container. Tests:
 - Configuration files
 
 **Environment Loading Tests:**
+
 - Source oraenv.sh
 - ORACLE_SID, ORACLE_HOME, ORACLE_BASE set correctly
 - PATH updated
 - Libraries loaded
 
 **Auto-Discovery Tests:**
+
 - Backup/restore oratab
 - Verify running instances
 - Clear oratab test
@@ -69,17 +74,20 @@ Core test script that runs inside the container. Tests:
 - Persistence to oratab (system or local fallback)
 
 **Oracle Homes Management Tests:**
+
 - List homes
 - Add home
 - Show home details
 - Export/import
 
 **Database Status Tests:**
+
 - oraup.sh execution
 - Required sections present
 - Listener status (if running)
 
 **Aliases Tests:**
+
 - Common aliases available (sq, cdh, cda, cdb, taa)
 
 **Can be run standalone inside container:**
@@ -101,7 +109,7 @@ Test results are saved to `/tmp/oradba_test_results_YYYYMMDD_HHMMSS.log` with:
 
 **Example Output:**
 
-```
+```text
 ================================================================================
 TEST SUMMARY
 ================================================================================
@@ -120,9 +128,11 @@ Results saved to: /tmp/oradba_test_results_20260115_143022.log
 
 ## Manual Tests Coverage
 
-These automated tests cover approximately **60-70%** of the manual tests in `../doc/manual_testing.md`:
+These automated tests cover approximately **60-70%** of the manual tests in
+`../doc/manual_testing.md`:
 
 **Fully Automated:**
+
 - ✅ Installation: Fresh installation (standalone)
 - ✅ Installation: Fresh installation (with Oracle)
 - ✅ Configuration: Environment loading
@@ -132,10 +142,12 @@ These automated tests cover approximately **60-70%** of the manual tests in `../
 - ✅ Daily Use: Common aliases
 
 **Partially Automated:**
+
 - ⚠️ Configuration: Configuration hierarchy (basic validation only)
 - ⚠️ Daily Use: Environment switching (single switch tested)
 
 **Not Automated (Still Manual):**
+
 - ❌ Installation: Upgrade installation (requires prior version)
 - ❌ Configuration: Coexistence with TVD BasEnv
 - ❌ Daily Use: Multi-user environment testing
