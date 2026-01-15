@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatically deduplicates PATH after environment setup
   - Automatically deduplicates LD_LIBRARY_PATH and platform equivalents
   - Prevents repeated JDK paths and other duplicates from accumulating
+  - Final deduplication after custom config loading ensures all paths cleaned
+  - Consolidated all deduplication functions to use single source of truth
+  
+- **Dummy Entry Configuration** (2026-01-15)
+  - Added `ORADBA_SHOW_DUMMY_ENTRIES` configuration variable (default: true)
+  - Set to false in oradba_customer.conf to hide dummy entries
+  - Useful for environments that will never have Oracle installations
+  - Enhanced installer comments with instructions to hide dummy entries
   
 - **Directory Existence Validation** (2026-01-15)
   - PATH directories now validated for existence before addition
@@ -68,12 +76,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed incorrect LD_LIBRARY_PATH (was not using oracle_cman_home/lib)
   - Fixed oradba_homes.conf parsing delimiter (semicolon → colon)
   - Optimized status checking to use direct cmctl (no Python overhead)
+  - `set_oracle_home_environment()` now reads product type from config first
+  - Falls back to filesystem detection only if not in oradba_homes.conf
+  - `show_oracle_home_status()` skips sqlplus version check for non-DB products
+  - Version shown as 'N/A' for products without sqlplus
+
+- **PATH Duplication Issues** (2026-01-15)
+  - Fixed custom variables (JAVA_HOME, etc.) being added multiple times
+  - Final PATH deduplication now runs after all config files loaded
+  - Consolidated deduplication functions to use single implementation
+  - `deduplicate_path()` and `deduplicate_sqlpath()` now use `oradba_dedupe_path()`
+  - Includes fallback for standalone use
+
+- **Oracle Homes Duplicate Prevention** (2026-01-15)
+  - Added duplicate detection before adding entries to oradba_homes.conf
+  - Checks both NAME and PATH fields for existing entries
+  - Shows clear error with existing entry name if duplicate found
+  - New `dedupe` command to clean existing duplicates
+  - Prevents DataSafe and other homes from appearing twice
 
 - **Client Environment Issues** (2026-01-15)
   - ICLIENT product type now properly detected and handled
   - Instant Client PATH now includes ORACLE_HOME directly (not bin subdir)
   - Instant Client LD_LIBRARY_PATH now includes ORACLE_HOME directly
   - Client validations skip checks for database-specific features
+  - Added 'iclient' to valid product types in oradba_homes.sh
+
+- **Display Issues** (2026-01-15)
+  - Fixed DataSafe status line break in oraup.sh display
+  - Status field now strips newlines and extra spaces
+  - Ensures single-line display for all Oracle Home status
+
+- **Version Detection** (2026-01-15)
+  - Fixed oradba_check.sh version display (was showing 0.14.1)
+  - Checks installed location first (bin/../VERSION)
+  - Falls back to repo location (src/bin/../../VERSION)
+  - Final fallback to hardcoded version (1.1.0)
 
 - **Parser Format Alignment** (2026-01-15)
   - Complete refactor of `oradba_env_parser.sh` to match actual file format

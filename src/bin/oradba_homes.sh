@@ -86,6 +86,7 @@ PRODUCT TYPES:
     database        Oracle Database
     oud             Oracle Unified Directory
     client          Oracle Client
+    iclient         Oracle Instant Client
     weblogic        WebLogic Server
     oms             Enterprise Manager OMS
     emagent         Enterprise Manager Agent
@@ -470,7 +471,7 @@ add_home() {
             ptype=$(detect_product_type "$path")
             log_info "Auto-detected product type: $ptype"
         elif [[ -t 0 ]]; then
-            read -p "Product type (database/oud/client/weblogic/oms/emagent/datasafe): " ptype
+            read -p "Product type (database/oud/client/iclient/weblogic/oms/emagent/datasafe): " ptype
         else
             log_error "Product type is required when path doesn't exist (--type)"
             return 1
@@ -543,7 +544,7 @@ add_home() {
 #
 # NAME          - Unique identifier (auto-discovered or user-defined)
 # ORACLE_HOME   - Full path to Oracle Home directory
-# PRODUCT_TYPE  - database, oud, client, weblogic, oms, emagent, datasafe
+# PRODUCT_TYPE  - database, oud, client, iclient, weblogic, oms, emagent, datasafe
 # ORDER         - Display order (numeric, lower = displayed first)
 # ALIAS_NAME    - Optional alias for shortcuts (defaults to NAME)
 # DESCRIPTION   - Human-readable description
