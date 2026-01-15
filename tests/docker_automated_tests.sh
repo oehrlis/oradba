@@ -139,6 +139,8 @@ test_installation() {
     
     # Test 2: Installation
     test_start "Fresh installation to $INSTALL_PREFIX"
+    # Create parent directory if it doesn't exist
+    mkdir -p /opt/oracle/local 2>/dev/null || true
     # Use --base to install to /opt/oracle/local/oradba (or omit to use default)
     if "$PROJECT_ROOT/dist/oradba_install.sh" --base /opt/oracle --silent >> "$TEST_RESULTS_FILE" 2>&1; then
         test_pass "Installation completed"
