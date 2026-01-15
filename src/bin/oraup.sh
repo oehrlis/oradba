@@ -168,8 +168,9 @@ get_listener_status() {
 # Returns.: 0 if should show, 1 if should not show
 # Note....: Listener status is shown when ANY of these conditions are met:
 #           1. tnslsnr process is running, OR
-#           2. listener.ora exists in TNS_ADMIN (or default location), OR
-#           3. Oracle database binary is installed (oratab/oradba_homes entries)
+#           2. Oracle database binary is installed (oratab/oradba_homes entries), OR
+#           3. listener.ora exists WITH database home (not client-only)
+#           Exception: Client-only + listener.ora = DON'T show
 # ------------------------------------------------------------------------------
 should_show_listener_status() {
     # Condition 1: Check if any tnslsnr process is running
@@ -177,24 +178,9 @@ should_show_listener_status() {
         return 0  # Listener process running - show status
     fi
 
-    # Condition 2: Check if listener.ora exists
-    # Check TNS_ADMIN if set
-    if [[ -n "${TNS_ADMIN}" && -f "${TNS_ADMIN}/listener.ora" ]]; then
-        return 0  # listener.ora found - show status
-    fi
+    # Condition 2: Check if Oracle database binary is installed
+    local has_database=false
     
-    # Check common locations across Oracle homes from oratab
-    while IFS=: read -r sid oracle_home startup_flag _rest; do
-        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
-        [[ -z "$sid" ]] && continue
-        [[ ! -d "$oracle_home" ]] && continue
-        
-        if [[ -f "${oracle_home}/network/admin/listener.ora" ]]; then
-            return 0  # listener.ora found - show status
-        fi
-    done < "$ORATAB_FILE" 2>/dev/null
-
-    # Condition 3: Check if Oracle database binary is installed
     # Check oratab for database entries (not dummy, not client-only)
     while IFS=: read -r sid oracle_home startup_flag _rest; do
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
@@ -206,12 +192,13 @@ should_show_listener_status() {
         
         # Check if oracle binary exists (indicates database home, not client)
         if [[ -f "${oracle_home}/bin/oracle" ]]; then
-            return 0  # Database home found - show status
+            has_database=true
+            break
         fi
     done < "$ORATAB_FILE" 2>/dev/null
     
     # Also check oradba_homes.conf for database homes
-    if command -v list_oracle_homes &> /dev/null; then
+    if [[ "$has_database" == "false" ]] && command -v list_oracle_homes &> /dev/null; then
         local -a homes
         mapfile -t homes < <(list_oracle_homes)
         
@@ -221,12 +208,24 @@ should_show_listener_status() {
             
             # Check if it's a database home and oracle binary exists
             if [[ "$ptype" == "database" && -f "${path}/bin/oracle" ]]; then
-                return 0  # Database home found in oradba_homes.conf - show status
+                has_database=true
+                break
             fi
         done
     fi
+    
+    # If we have a database home, show listener status
+    if [[ "$has_database" == "true" ]]; then
+        return 0  # Database home found - show status
+    fi
 
-    # No conditions met - don't show listener status
+    # Condition 3: Check if listener.ora exists
+    # BUT only show if we also have a database home (not client-only)
+    # Since we already checked and has_database=false at this point,
+    # we don't show status even if listener.ora exists
+    # (this handles the client-only + listener.ora case)
+
+    # No valid conditions met - don't show listener status
     return 1
 }
 

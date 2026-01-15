@@ -459,10 +459,10 @@ oradba_env.sh status <sid_lowercase>
 Listener status should be displayed when ANY of the following conditions are met:
 
 1. `tnslsnr` process is running, OR
-2. `listener.ora` exists in `$TNS_ADMIN` or Oracle home network/admin, OR
-3. Oracle database binary is installed (oratab entry and/or oradba_homes.conf database home)
+2. Oracle database binary is installed (oratab entry and/or oradba_homes.conf database home)
 
-Status is ONLY hidden when NONE of these conditions are met.
+**Exception**: Client-only installation with only `listener.ora` (no tnslsnr, no database home) 
+should NOT show listener status.
 
 ```bash
 # Test Case 1: All conditions met
@@ -493,55 +493,43 @@ oradba_env.sh list
 oradba_env.sh list
 # Expected: "Listener Status" section shown
 
-# Test Case 3: Only listener.ora file (no process, no database home)
-# Expected: Listener status section SHOWN (config condition met)
-
-# 1. Ensure listener process stopped
-lsnrctl stop
-
-# 2. Verify listener.ora exists
-ls -la "$TNS_ADMIN/listener.ora"
-# Expected: File exists
-
-# 3. Verify no database homes
-# 4. Check status output
-oradba_env.sh list
-# Expected: "Listener Status" section shown
-
-# Test Case 4: Only database home (no process, no listener.ora)
+# Test Case 3: Only database home (no process, no listener.ora)
 # Expected: Listener status section SHOWN (database home condition met)
 
-# 1. Backup and remove listener.ora
-cp "$TNS_ADMIN/listener.ora" /tmp/listener.ora.backup
-mv "$TNS_ADMIN/listener.ora" "$TNS_ADMIN/listener.ora.disabled"
+# 1. Stop listener if running
+lsnrctl stop
 
-# 2. Verify file missing
+# 2. Backup and remove listener.ora
+cp "$TNS_ADMIN/listener.ora" /tmp/listener.ora.backup 2>/dev/null || true
+mv "$TNS_ADMIN/listener.ora" "$TNS_ADMIN/listener.ora.disabled" 2>/dev/null || true
+
+# 3. Verify file missing
 ls "$TNS_ADMIN/listener.ora" 2>&1
 # Expected: File not found
 
-# 3. Verify database home exists
+# 4. Verify database home exists
 grep "$ORACLE_HOME" /etc/oratab || oradba_homes.sh list | grep "database"
 # Expected: Database home found
 
-# 4. Ensure no listener process
+# 5. Ensure no listener process
 ps -ef | grep tnslsnr | grep -v grep
 # Expected: No process
 
-# 5. Check status output
+# 6. Check status output
 oradba_env.sh list
 # Expected: "Listener Status" section shown (database home condition met)
 
 # 6. Restore listener.ora
-mv /tmp/listener.ora.backup "$TNS_ADMIN/listener.ora"
+mv /tmp/listener.ora.backup "$TNS_ADMIN/listener.ora" 2>/dev/null || true
 
-# Test Case 5: No conditions met (completely empty environment)
+# Test Case 4: No conditions met (completely empty environment)
 # Expected: Listener status section NOT shown
 
 # 1. Stop all listeners
 lsnrctl stop
 
 # 2. Remove listener.ora
-mv "$TNS_ADMIN/listener.ora" "$TNS_ADMIN/listener.ora.disabled"
+mv "$TNS_ADMIN/listener.ora" "$TNS_ADMIN/listener.ora.disabled" 2>/dev/null || true
 
 # 3. Clear oratab (test environment only!)
 sudo mv /etc/oratab /etc/oratab.disabled
@@ -552,10 +540,10 @@ oradba_env.sh list
 
 # 5. Restore environment
 sudo mv /etc/oratab.disabled /etc/oratab
-mv "$TNS_ADMIN/listener.ora.disabled" "$TNS_ADMIN/listener.ora"
+mv "$TNS_ADMIN/listener.ora.disabled" "$TNS_ADMIN/listener.ora" 2>/dev/null || true
 
-# Test Case 6: Client-only installation with listener.ora
-# Expected: Listener status section SHOWN (config condition met)
+# Test Case 5: Client-only installation with listener.ora (EXCEPTION)
+# Expected: Listener status section NOT shown
 
 # 1. Source client-only environment (if available)
 source "$ORADBA_BASE/bin/oraenv.sh" CLIENT19
@@ -568,19 +556,35 @@ ls "$ORACLE_HOME/bin/oracle" 2>&1
 ls "$ORACLE_HOME/network/admin/listener.ora"
 # Expected: File exists
 
-# 4. Check status output
+# 4. Ensure no listener process running
+ps -ef | grep tnslsnr | grep -v grep
+# Expected: No process
+
+# 5. Check status output
 oradba_env.sh list
-# Expected: "Listener Status" section shown (listener.ora condition met)
+# Expected: NO "Listener Status" section (client-only + listener.ora exception)
+
+# Test Case 6: Client-only with listener.ora BUT tnslsnr running
+# Expected: Listener status section SHOWN (tnslsnr overrides exception)
+
+# 1. Source client-only environment
+source "$ORADBA_BASE/bin/oraenv.sh" CLIENT19
+
+# 2. Start listener
+lsnrctl start
+
+# 3. Check status output
+oradba_env.sh list
+# Expected: "Listener Status" section shown (tnslsnr running condition met)
 ```
 
 **Pass Criteria**:
 
-- ✅ Listener status shown when any condition met (tnslsnr OR listener.ora OR database home)
-- ✅ Listener status shown with only tnslsnr process running
-- ✅ Listener status shown with only listener.ora file
+- ✅ Listener status shown when tnslsnr process running
 - ✅ Listener status shown with only database home registered
 - ✅ Listener status NOT shown when no conditions met
-- ✅ Client-only installations with listener.ora show listener status
+- ✅ Listener status NOT shown for client-only + listener.ora (no tnslsnr)
+- ✅ Listener status shown for client-only + listener.ora + tnslsnr running
 
 ### Environment Validation
 
