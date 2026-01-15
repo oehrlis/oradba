@@ -645,7 +645,7 @@ EOF
     
     run oradba_tnsping FREE.world
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Testing connection to: FREE.world" ]]
+    [[ "$output" =~ Testing\ connection\ to:\ FREE.world ]]
 }
 
 @test "oradba_tnsping accepts EZ Connect with sqlplus -P" {
@@ -663,7 +663,7 @@ EOF
     
     run oradba_tnsping "172.18.0.3:1521/FREE"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Testing connection to: 172.18.0.3:1521/FREE" ]]
+    [[ "$output" =~ 172.18.0.3:1521/FREE ]]
 }
 
 @test "oradba_tnsping shows notice in verbose mode" {

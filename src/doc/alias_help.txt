@@ -30,6 +30,10 @@
  sqoh            --> SQL*Plus as SYSOPER with rlwrap (history + tab completion)
  sessionsql      --> Show active database sessions (script)
 
+ NETWORK CONNECTIVITY
+ -------------------------------------------------------------------------------
+ tnsping         --> TNS ping (uses sqlplus -P for Instant Client)
+
  RMAN ALIASES
  -------------------------------------------------------------------------------
  rmanc           --> RMAN target / catalog (uses ORADBA_RMAN_CATALOG_CONNECTION)

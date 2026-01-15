@@ -48,6 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Displays informative message when installing versions 0.9.4 through 0.18.5
   - Warns users that archived versions are for historical reference only
   - Recommends upgrading to v1.0.0 or later for production use
+
+- **TNS Ping Wrapper for Instant Client** (2026-01-15)
+  - Added `oradba_tnsping()` function with transparent fallback to sqlplus -P
+  - Automatically uses native tnsping when available (database/client installations)
+  - Falls back to sqlplus -P for Instant Client environments (no tnsping)
+  - Supports TNS names (FREE, FREE.world) and EZ Connect format (host:port/service)
+  - Rejects connect descriptors with helpful error message (sqlplus -P limitation)
+  - Shows informational notice in verbose/debug mode when using fallback
+  - Created tnsping alias automatically via generate_sid_aliases()
   - Includes link to specific release notes on GitHub
 
 ### Fixed
