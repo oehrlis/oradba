@@ -135,34 +135,18 @@ log_error() {
 check_archived_version() {
     local version="$1"
     
-    # List of archived pre-1.0 releases
-    local archived_versions=(
-        "0.9.4" "0.9.5"
-        "0.10.0" "0.10.1" "0.10.2" "0.10.3" "0.10.4" "0.10.5"
-        "0.11.0" "0.11.1"
-        "0.12.0" "0.12.1"
-        "0.13.0" "0.13.1" "0.13.2" "0.13.3" "0.13.4" "0.13.5"
-        "0.14.0" "0.14.1" "0.14.2"
-        "0.15.0"
-        "0.16.0"
-        "0.17.0"
-        "0.18.0" "0.18.1" "0.18.2" "0.18.3" "0.18.4" "0.18.5"
-    )
-    
-    # Check if version is in archived list
-    for archived in "${archived_versions[@]}"; do
-        if [[ "$version" == "$archived" ]]; then
-            echo ""
-            log_info "========================================================"
-            log_info "NOTE: Version ${version} is an archived pre-1.0 release"
-            log_info "========================================================"
-            log_info "This version is maintained for historical reference only."
-            log_info "For production use, consider upgrading to v1.0.0 or later."
-            log_info "Release notes: https://github.com/oehrlis/oradba/releases/tag/v${version}"
-            echo ""
-            return 0
-        fi
-    done
+    # Check if version starts with 0. (any 0.x.x version is pre-1.0)
+    if [[ "$version" =~ ^0\. ]]; then
+        echo ""
+        log_info "========================================================"
+        log_info "NOTE: Version ${version} is an archived pre-1.0 release"
+        log_info "========================================================"
+        log_info "This version is maintained for historical reference only."
+        log_info "For production use, consider upgrading to v1.0.0 or later."
+        log_info "Release notes: https://github.com/oehrlis/oradba/releases/tag/v${version}"
+        echo ""
+        return 0
+    fi
     
     return 1
 }
