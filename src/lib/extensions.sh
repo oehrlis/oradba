@@ -290,7 +290,9 @@ remove_extension_paths() {
 # Note: Uses oradba_dedupe_path() from oradba_env_builder.sh
 deduplicate_path() {
     if command -v oradba_dedupe_path >/dev/null 2>&1; then
-        export PATH="$(oradba_dedupe_path "${PATH}")"
+        local deduped_path
+        deduped_path="$(oradba_dedupe_path "${PATH}")"
+        export PATH="${deduped_path}"
     else
         # Fallback if oradba_dedupe_path not available
         local seen=()
@@ -321,7 +323,9 @@ deduplicate_sqlpath() {
     [[ -z "${SQLPATH}" ]] && return 0
 
     if command -v oradba_dedupe_path >/dev/null 2>&1; then
-        export SQLPATH="$(oradba_dedupe_path "${SQLPATH}")"
+        local deduped_sqlpath
+        deduped_sqlpath="$(oradba_dedupe_path "${SQLPATH}")"
+        export SQLPATH="${deduped_sqlpath}"
     else
         # Fallback if oradba_dedupe_path not available
         local seen=()
