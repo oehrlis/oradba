@@ -43,26 +43,38 @@ TESTS_SKIPPED=0
 # ------------------------------------------------------------------------------
 
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
+    local msg="${BLUE}[INFO]${NC} $*"
+    echo -e "$msg"
+    echo -e "$msg" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
 }
 
 log_success() {
-    echo -e "${GREEN}[PASS]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
+    local msg="${GREEN}[PASS]${NC} $*"
+    echo -e "$msg"
+    echo -e "$msg" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
 }
 
 log_error() {
-    echo -e "${RED}[FAIL]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
+    local msg="${RED}[FAIL]${NC} $*"
+    echo -e "$msg"
+    echo -e "$msg" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
 }
 
 log_skip() {
-    echo -e "${YELLOW}[SKIP]${NC} $*" | tee -a "$TEST_RESULTS_FILE" || true
+    local msg="${YELLOW}[SKIP]${NC} $*"
+    echo -e "$msg"
+    echo -e "$msg" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
 }
 
 log_section() {
-    echo "" | tee -a "$TEST_RESULTS_FILE" || true
-    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE" || true
-    echo -e "${BLUE}$*${NC}" | tee -a "$TEST_RESULTS_FILE" || true
-    echo "================================================================================" | tee -a "$TEST_RESULTS_FILE" || true
+    echo ""
+    echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo "================================================================================"
+    echo "================================================================================" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo -e "${BLUE}$*${NC}"
+    echo -e "${BLUE}$*${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo "================================================================================"
+    echo "================================================================================" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
 }
 
 # Test result tracking
@@ -534,29 +546,41 @@ test_aliases() {
 print_summary() {
     log_section "TEST SUMMARY"
     
-    echo "" | tee -a "$TEST_RESULTS_FILE"
-    echo "Total Tests:   $TESTS_TOTAL" | tee -a "$TEST_RESULTS_FILE"
-    echo -e "${GREEN}Passed:        $TESTS_PASSED${NC}" | tee -a "$TEST_RESULTS_FILE"
-    echo -e "${RED}Failed:        $TESTS_FAILED${NC}" | tee -a "$TEST_RESULTS_FILE"
-    echo -e "${YELLOW}Skipped:       $TESTS_SKIPPED${NC}" | tee -a "$TEST_RESULTS_FILE"
-    echo "" | tee -a "$TEST_RESULTS_FILE"
+    echo ""
+    echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo "Total Tests:   $TESTS_TOTAL"
+    echo "Total Tests:   $TESTS_TOTAL" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo -e "${GREEN}Passed:        $TESTS_PASSED${NC}"
+    echo -e "${GREEN}Passed:        $TESTS_PASSED${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo -e "${RED}Failed:        $TESTS_FAILED${NC}"
+    echo -e "${RED}Failed:        $TESTS_FAILED${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo -e "${YELLOW}Skipped:       $TESTS_SKIPPED${NC}"
+    echo -e "${YELLOW}Skipped:       $TESTS_SKIPPED${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo ""
+    echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
     
     local pass_rate=0
     if [[ $TESTS_TOTAL -gt 0 ]]; then
         pass_rate=$((TESTS_PASSED * 100 / TESTS_TOTAL))
     fi
     
-    echo "Pass Rate:     ${pass_rate}%" | tee -a "$TEST_RESULTS_FILE"
-    echo "" | tee -a "$TEST_RESULTS_FILE"
+    echo "Pass Rate:     ${pass_rate}%"
+    echo "Pass Rate:     ${pass_rate}%" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    echo ""
+    echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
     
     if [[ $TESTS_FAILED -eq 0 ]]; then
-        echo -e "${GREEN}✓ ALL TESTS PASSED${NC}" | tee -a "$TEST_RESULTS_FILE"
-        echo "" | tee -a "$TEST_RESULTS_FILE"
+        echo -e "${GREEN}✓ ALL TESTS PASSED${NC}"
+        echo -e "${GREEN}✓ ALL TESTS PASSED${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+        echo ""
+        echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
         echo "Results saved to: $TEST_RESULTS_FILE"
         return 0
     else
-        echo -e "${RED}✗ SOME TESTS FAILED${NC}" | tee -a "$TEST_RESULTS_FILE"
-        echo "" | tee -a "$TEST_RESULTS_FILE"
+        echo -e "${RED}✗ SOME TESTS FAILED${NC}"
+        echo -e "${RED}✗ SOME TESTS FAILED${NC}" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+        echo ""
+        echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
         echo "Results saved to: $TEST_RESULTS_FILE"
         return 1
     fi
@@ -571,7 +595,8 @@ main() {
     log_info "Test Results: $TEST_RESULTS_FILE"
     log_info "Installation Prefix: $INSTALL_PREFIX"
     log_info "Project Root: $PROJECT_ROOT"
-    echo "" | tee -a "$TEST_RESULTS_FILE"
+    echo ""
+    echo "" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
     
     # Run test suites
     test_installation
