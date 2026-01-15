@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-15
+
 ### Added
 
 - **DataSafe On-Premises Connector Support** (2026-01-15)
@@ -17,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validation no longer requires sqlplus for DataSafe homes
   - Status checks support Data Safe connectors showing RUNNING/STOPPED/UNKNOWN
   - `oraup.sh` now displays DataSafe connectors with live status
+
+- **Instant Client (ICLIENT) Product Type** (2026-01-15)
+  - Added ICLIENT as distinct product type (separate from CLIENT)
+  - Auto-detection based on libclntsh.so presence and missing bin directory
+  - Proper PATH setup: ORACLE_HOME directly (not bin subdirectory)
+  - Proper LD_LIBRARY_PATH setup: ORACLE_HOME directly
+  - Validation adjusted for client-only features
 
 - **PATH Deduplication** (2026-01-15)
   - Added `oradba_dedupe_path()` function to remove duplicate PATH entries
@@ -64,11 +73,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added support for searching by NAME, ALIAS, or PATH
   - Backward compatibility with old field names (Product → Type, etc.)
 
-### Known Issues
-
-- **Empty oratab Handling** (2026-01-15)
-  - System works with empty oratab but needs production testing
-  - Auto-discovery feature handles running instances without oratab entries
+- **Code Quality Issues** (2026-01-15)
+  - Fixed duplicate lines in `oradba_env_parser.sh` causing parse errors
+  - Fixed SC2155 shellcheck warning (declare and assign separately)
+  - Fixed markdown line length issues (MD013)
 
 ### Changed
 
@@ -90,6 +98,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **User Documentation Updates** (2026-01-15)
+  - Updated README.md with DataSafe and Instant Client support details
+  - Added ICLIENT to Hierarchical Configuration product sections
+  - Expanded Oracle Homes Management with all product types
+  - Updated Intelligent Environment Setup to list all supported types
+  - Enhanced Status & Monitoring description for Data Safe connectors
+
+- **Developer Documentation Updates** (2026-01-15)
+  - Updated doc/architecture.md with comprehensive product type list
+  - Added descriptions for RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS, OMS
+  - Enhanced Validator section with product detection logic details
+  - Added oradba_check_datasafe_status to Status section
+
+- **Release Notes** (2026-01-15)
+  - Created comprehensive v1.1.0 release notes
+  - Documented all new features, fixes, and improvements
+  - Added migration guide and known issues
+
 - **Documentation Cleanup** (2026-01-15)
   - Archived `v1.0.0-release-plan.md` to `doc/archive/` (release complete)
   - Archived `release-testing-checklist.md` to `doc/archive/` (superseded by automated_testing.md and manual_testing.md)
@@ -97,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added clarification note to `doc/oradba-env-design.md` (design reference document)
   - Kept design document for historical design rationale
   - Commit: 58703eb
+
 - **README Updates for v1.0.0** (2026-01-15)
   - Updated test count from 892 to 910 tests in `tests/README.md`
   - Fixed environment library count (6 libraries, not 4) in test documentation
@@ -108,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed markdown linting errors (trailing spaces, line length, table alignment)
   - Verified documentation accuracy across all project README files
   - Commit: 3afacc1
+
 - **Validation Script Updates** (2026-01-15)
   - Updated `scripts/validate_project.sh` to reflect v1.0.0 structure
   - Removed checks for archived files: `structure.md`, `version-management.md`, `markdown-linting.md`
