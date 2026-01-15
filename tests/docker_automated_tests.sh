@@ -25,17 +25,8 @@
 # ------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-# Save test results outside container in mounted volume
-# Try project path first, fall back to /oradba if in container
-if [[ -d "$PROJECT_ROOT/tests" ]]; then
-    TEST_RESULTS_DIR="$PROJECT_ROOT/tests/results"
-elif [[ -d "/oradba/tests" ]]; then
-    TEST_RESULTS_DIR="/oradba/tests/results"
-else
-    TEST_RESULTS_DIR="/tmp"
-fi
-mkdir -p "$TEST_RESULTS_DIR" 2>/dev/null || true
-TEST_RESULTS_FILE="${TEST_RESULTS_FILE:-$TEST_RESULTS_DIR/oradba_test_results_$(date +%Y%m%d_%H%M%S).log}"
+# Test results go to /tmp inside container (will be copied out by run_docker_tests.sh)
+TEST_RESULTS_FILE="${TEST_RESULTS_FILE:-/tmp/oradba_test_results_$(date +%Y%m%d_%H%M%S).log}"
 # Use default installation location: /opt/oracle/local/oradba
 INSTALL_PREFIX="${ORADBA_TEST_PREFIX:-/opt/oracle/local/oradba}"
 
@@ -813,7 +804,7 @@ test_enhanced_oracle_homes() {
     
     # Test 4: Export Oracle Homes configuration
     test_start "Export Oracle Homes configuration"
-    local export_file="$TEST_RESULTS_DIR/oradba_homes_export_$$.conf"
+    local export_file="/tmp/oradba_homes_export_$$.conf"
     
     if "$INSTALL_PREFIX/bin/oradba_homes.sh" export > "$export_file" 2>&1; then
         test_pass "Export successful: $export_file"

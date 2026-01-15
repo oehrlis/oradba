@@ -199,9 +199,9 @@ main() {
         echo ""
         log_success "Tests completed successfully"
         
-        # Copy results file
-        local results_file
-        results_file="/tmp/oradba_test_results_$(date +%Y%m%d_%H%M%S).log"
+        # Copy results file to host tests/results directory
+        mkdir -p "$PROJECT_ROOT/tests/results" 2>/dev/null || true
+        local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_$(date +%Y%m%d_%H%M%S).log"
         docker exec "$CONTAINER_NAME" sh -c "cat /tmp/oradba_test_results_*.log" > "$results_file" 2>/dev/null || true
         
         if [[ -f "$results_file" ]]; then
@@ -215,8 +215,8 @@ main() {
         log_error "Tests failed"
         
         # Try to copy results even on failure
-        local results_file
-        results_file="/tmp/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
+        mkdir -p "$PROJECT_ROOT/tests/results" 2>/dev/null || true
+        local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
         docker exec "$CONTAINER_NAME" sh -c "cat /tmp/oradba_test_results_*.log" > "$results_file" 2>/dev/null || true
         
         if [[ -f "$results_file" ]]; then
