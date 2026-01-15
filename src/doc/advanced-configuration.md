@@ -425,8 +425,10 @@ cdn             # cd $ORACLE_BASE_HOME/network/admin
 # Editing init.ora
 vi $ORACLE_BASE_HOME/dbs/initROOHDB.ora
 
-# Creating password file
-orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=your_secure_password
+# Creating password file (prompts for password)
+orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB
+# Alternative: Use environment variable
+# orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=${ORACLE_PWD}
 
 # Checking tnsnames
 cat $ORACLE_BASE_HOME/network/admin/tnsnames.ora
@@ -494,8 +496,10 @@ source oraenv.sh ROOHDB
 echo $ORADBA_ROOH
 echo $ORADBA_DBS
 
-# Fix: Files should be in ORACLE_BASE_HOME/dbs
-orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=your_secure_password
+# Fix: Files should be in ORACLE_BASE_HOME/dbs (prompts for password)
+orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB
+# Alternative: Use environment variable for automation
+# orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=${ORACLE_PWD}
 ```
 
 **Issue: tnsnames.ora not found**
