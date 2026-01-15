@@ -26,8 +26,15 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Save test results outside container in mounted volume
-mkdir -p "$PROJECT_ROOT/tests/results" 2>/dev/null || mkdir -p "/oradba/tests/results" 2>/dev/null || true
-TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-${PROJECT_ROOT}/tests/results}"
+# Try project path first, fall back to /oradba if in container
+if [[ -d "$PROJECT_ROOT/tests" ]]; then
+    TEST_RESULTS_DIR="$PROJECT_ROOT/tests/results"
+elif [[ -d "/oradba/tests" ]]; then
+    TEST_RESULTS_DIR="/oradba/tests/results"
+else
+    TEST_RESULTS_DIR="/tmp"
+fi
+mkdir -p "$TEST_RESULTS_DIR" 2>/dev/null || true
 TEST_RESULTS_FILE="${TEST_RESULTS_FILE:-$TEST_RESULTS_DIR/oradba_test_results_$(date +%Y%m%d_%H%M%S).log}"
 # Use default installation location: /opt/oracle/local/oradba
 INSTALL_PREFIX="${ORADBA_TEST_PREFIX:-/opt/oracle/local/oradba}"
