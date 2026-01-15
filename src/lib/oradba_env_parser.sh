@@ -304,7 +304,12 @@ oradba_get_product_type() {
         return 0
     fi
     
-    # Check for DataSafe
+    # Check for DataSafe (On-Premises Connector structure)
+    # DataSafe connectors have oracle_cman_home subdirectory
+    if [[ -d "${oracle_home}/oracle_cman_home" ]] && [[ -f "${oracle_home}/setup.py" ]]; then
+        echo "DATASAFE"
+        return 0
+    fi
     if [[ -d "${oracle_home}/datasafe" ]] || [[ -f "${oracle_home}/bin/datasafe" ]]; then
         echo "DATASAFE"
         return 0

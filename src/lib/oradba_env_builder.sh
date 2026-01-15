@@ -19,6 +19,45 @@
 [[ -n "${ORADBA_ENV_BUILDER_LOADED}" ]] && return 0
 readonly ORADBA_ENV_BUILDER_LOADED=1
 
+# ------------------------------------------------------------------------------
+# Function: oradba_dedupe_path
+# Purpose.: Remove duplicate entries from PATH-like variables
+# Args....: $1 - Path string (colon-separated)
+# Returns.: Deduplicated path string
+# ------------------------------------------------------------------------------
+oradba_dedupe_path() {
+    local input_path="$1"
+    local -a seen_paths
+    local -a result_paths
+    local dir
+    
+    # Split on colon and process each directory
+    IFS=':' read -ra dirs <<< "$input_path"
+    for dir in "${dirs[@]}"; do
+        # Skip empty entries
+        [[ -z "$dir" ]] && continue
+        
+        # Check if we've seen this path before
+        local already_seen=0
+        for seen in "${seen_paths[@]}"; do
+            if [[ "$dir" == "$seen" ]]; then
+                already_seen=1
+                break
+            fi
+        done
+        
+        # Add if not seen
+        if [[ $already_seen -eq 0 ]]; then
+            seen_paths+=("$dir")
+            result_paths+=("$dir")
+        fi
+    done
+    
+    # Join with colons
+    local IFS=':'
+    echo "${result_paths[*]}"
+}
+
 # Require parser functions
 if [[ -z "${ORADBA_ENV_PARSER_LOADED}" ]]; then
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_parser.sh" ]]; then
@@ -107,8 +146,10 @@ oradba_add_oracle_path() {
             ;;
             
         DATASAFE)
-            # DataSafe: bin directory
-            if [[ -d "${oracle_home}/bin" ]]; then
+            # DataSafe: oracle_cman_home/bin directory
+            if [[ -d "${oracle_home}/oracle_cman_home/bin" ]]; then
+                new_path="${oracle_home}/oracle_cman_home/bin"
+            elif [[ -d "${oracle_home}/bin" ]]; then
                 new_path="${oracle_home}/bin"
             fi
             ;;
@@ -130,9 +171,11 @@ oradba_add_oracle_path() {
             ;;
     esac
     
-    # Prepend to PATH
-    if [[ -n "$new_path" ]]; then
+    # Prepend to PATH only if directory exists
+    if [[ -n "$new_path" ]] && [[ -d "$new_path" ]]; then
         export PATH="${new_path}:${PATH}"
+        # Deduplicate PATH to avoid repeated entries
+        export PATH="$(oradba_dedupe_path "$PATH")"
     fi
 }
 
@@ -190,7 +233,16 @@ oradba_set_lib_path() {
             fi
             ;;
             
-        OUD|WLS|DATASAFE)
+        DATASAFE)
+            # DataSafe: oracle_cman_home/lib directory
+            if [[ -d "${oracle_home}/oracle_cman_home/lib" ]]; then
+                lib_path="${oracle_home}/oracle_cman_home/lib"
+            elif [[ -d "${oracle_home}/lib" ]]; then
+                lib_path="${oracle_home}/lib"
+            fi
+            ;;
+            
+        OUD|WLS)
             # These products may have lib directories
             if [[ -d "${oracle_home}/lib" ]]; then
                 lib_path="${oracle_home}/lib"
@@ -203,8 +255,9 @@ oradba_set_lib_path() {
     if [[ -n "$existing" ]]; then
         lib_path="${lib_path:+${lib_path}:}${existing}"
     fi
-    
-    # Export library path variable
+        # Deduplicate library path
+    lib_path=\"$(oradba_dedupe_path \"$lib_path\")\"
+        # Export library path variable
     if [[ -n "$lib_path" ]]; then
         export ${lib_var}="$lib_path"
     fi

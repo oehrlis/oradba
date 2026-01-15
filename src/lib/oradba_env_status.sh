@@ -206,6 +206,55 @@ oradba_check_datasafe_status() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_check_datasafe_status
+# Purpose.: Check if DataSafe On-Premises Connector is running
+# Args....: $1 - ORACLE_HOME (DataSafe connector path)
+# Returns.: 0 if running, 1 if not running
+# Output..: Status string (RUNNING|STOPPED|UNKNOWN)
+# ------------------------------------------------------------------------------
+oradba_check_datasafe_status() {
+    local oracle_home="$1"
+    
+    [[ -z "$oracle_home" ]] && {
+        echo "UNKNOWN"
+        return 1
+    }
+    
+    # Check if setup.py exists
+    if [[ ! -f "${oracle_home}/setup.py" ]]; then
+        echo "UNKNOWN"
+        return 1
+    fi
+    
+    # Try python setup.py status
+    local python_cmd=""
+    if command -v python3 &>/dev/null; then
+        python_cmd="python3"
+    elif command -v python &>/dev/null; then
+        python_cmd="python"
+    else
+        echo "UNKNOWN"
+        return 1
+    fi
+    
+    # Change to ORACLE_HOME and run status check
+    local status_output
+    status_output=$(cd "$oracle_home" && "$python_cmd" ./setup.py status 2>&1)
+    
+    # Check if connector is running (look for "already started" or status output indicating running)
+    if echo "$status_output" | grep -qi "already started\\|status READY"; then
+        echo "RUNNING"
+        return 0
+    elif echo "$status_output" | grep -qi "not started\\|stopped"; then
+        echo "STOPPED"
+        return 1
+    fi
+    
+    echo "UNKNOWN"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_check_oud_status
 # Purpose.: Check if Oracle Unified Directory instance is running
 # Args....: $1 - OUD instance name/path

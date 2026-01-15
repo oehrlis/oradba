@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **DataSafe On-Premises Connector Support** (2026-01-15)
+  - Added DataSafe product type detection for oracle_cman_home structure
+  - Implemented `oradba_check_datasafe_status()` using `python ./setup.py status`
+  - Added proper PATH setup for DataSafe: `$ORACLE_HOME/oracle_cman_home/bin`
+  - Added proper LD_LIBRARY_PATH setup: `$ORACLE_HOME/oracle_cman_home/lib`
+  - Validation no longer requires sqlplus for DataSafe homes
+  - Status checks support Data Safe connectors showing RUNNING/STOPPED/UNKNOWN
+
+- **PATH Deduplication** (2026-01-15)
+  - Added `oradba_dedupe_path()` function to remove duplicate PATH entries
+  - Automatically deduplicates PATH after environment setup
+  - Automatically deduplicates LD_LIBRARY_PATH and platform equivalents
+  - Prevents repeated JDK paths and other duplicates from accumulating
+  
+- **Directory Existence Validation** (2026-01-15)
+  - PATH directories now validated for existence before addition
+  - Non-existent directories no longer added to PATH
+  - Prevents warning messages about missing directories
+
 - **Archived Version Warning** (2026-01-15)
   - Added notification in `oradba_install.sh` for archived pre-1.0 releases
   - Displays informative message when installing versions 0.9.4 through 0.18.5
@@ -17,6 +36,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Includes link to specific release notes on GitHub
 
 ### Fixed
+
+- **DataSafe Environment Issues** (2026-01-15)
+  - Fixed "Unknown product type" error for DataSafe homes
+  - Fixed "sqlplus not found" error (sqlplus not required for DataSafe)
+  - Fixed incorrect PATH (was adding non-existent bin directory)
+  - Fixed incorrect LD_LIBRARY_PATH (was not using oracle_cman_home/lib)
+
+- **Client Environment Issues** (2026-01-15)
+  - ICLIENT product type now properly detected and handled
+  - Instant Client PATH now includes ORACLE_HOME directly (not bin subdir)
+  - Instant Client LD_LIBRARY_PATH now includes ORACLE_HOME directly
+  - Client validations skip checks for database-specific features
 
 ### Changed
 

@@ -116,6 +116,17 @@ oradba_check_oracle_binaries() {
                 fi
             done
             ;;
+            
+        DATASAFE)
+            # DataSafe: Check for setup.py and python
+            if [[ -n "$ORACLE_HOME" ]] && [[ -f "${ORACLE_HOME}/setup.py" ]]; then
+                if ! command -v python &> /dev/null && ! command -v python3 &> /dev/null; then
+                    echo "WARNING: python not found (needed for DataSafe connector management)" >&2
+                    ((missing++))
+                fi
+            fi
+            # DataSafe doesn't have sqlplus - skip that check
+            ;;
     esac
     
     [[ $missing -eq 0 ]] && return 0
