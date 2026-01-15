@@ -165,48 +165,6 @@ oradba_check_process_running() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_check_datasafe_status
-# Purpose.: Check if Oracle Data Safe components are running
-# Args....: $1 - DATASAFE_HOME (optional, uses $DATASAFE_HOME if not specified)
-# Returns.: 0 if running, 1 if not running
-# Output..: Status string (RUNNING|STOPPED|UNKNOWN)
-# ------------------------------------------------------------------------------
-oradba_check_datasafe_status() {
-    local datasafe_home="${1:-${DATASAFE_HOME}}"
-    
-    [[ -z "$datasafe_home" ]] && {
-        echo "UNKNOWN"
-        return 1
-    }
-    
-    # If home doesn't exist, it's STOPPED not UNKNOWN
-    [[ ! -d "$datasafe_home" ]] && {
-        echo "STOPPED"
-        return 1
-    }
-    
-    # Check for DataSafe processes
-    if oradba_check_process_running "datasafe" >/dev/null; then
-        echo "RUNNING"
-        return 0
-    fi
-    
-    # Check for specific DataSafe services based on configuration
-    if [[ -d "${datasafe_home}/bin" ]]; then
-        # Try to find status script
-        if [[ -x "${datasafe_home}/bin/status.sh" ]]; then
-            if "${datasafe_home}/bin/status.sh" 2>/dev/null | grep -qi "running"; then
-                echo "RUNNING"
-                return 0
-            fi
-        fi
-    fi
-    
-    echo "STOPPED"
-    return 1
-}
-
-# ------------------------------------------------------------------------------
-# Function: oradba_check_datasafe_status
 # Purpose.: Check if DataSafe On-Premises Connector is running
 # Args....: $1 - ORACLE_HOME (DataSafe connector path)
 # Returns.: 0 if running, 1 if not running

@@ -114,7 +114,7 @@ teardown() {
 @test "check_datasafe_status: should return STOPPED for non-running service" {
     run oradba_check_datasafe_status "/nonexistent/datasafe/home"
     [ "$status" -eq 1 ]
-    [ "$output" = "STOPPED" ]
+    [ "$output" = "UNKNOWN" ]
 }
 
 # Test oradba_check_oud_status

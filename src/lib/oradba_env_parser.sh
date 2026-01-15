@@ -216,20 +216,19 @@ oradba_get_home_metadata() {
     local entry
     entry=$(oradba_find_home "$oracle_home" "$homes_file") || return 1
     
-    # Split entry into fields
-    IFS='|' read -r _home product version edition db_type position dummy_sid short_name description <<< "$entry"
+    # Split entry into fields (Format: NAME|PATH|TYPE|ORDER|ALIAS|DESCRIPTION|VERSION)
+    IFS='|' read -r name path ptype order alias_name description version <<< "$entry"
     
-    # Return requested field
+    # Return requested field (with backward compatibility for old names)
     case "$field" in
-        Product)     echo "$product" ;;
-        Version)     echo "$version" ;;
-        Edition)     echo "$edition" ;;
-        DB_Type)     echo "$db_type" ;;
-        Position)    echo "$position" ;;
-        Dummy_SID)   echo "$dummy_sid" ;;
-        Short_Name)  echo "$short_name" ;;
-        Description) echo "$description" ;;
-        *)           echo "N/A"; return 0 ;;
+        Name|Short_Name) echo "$name" ;;
+        Path)            echo "$path" ;;
+        Type|Product)    echo "$ptype" ;;
+        Order|Position)  echo "$order" ;;
+        Alias|Dummy_SID) echo "$alias_name" ;;
+        Description)     echo "$description" ;;
+        Version)         echo "$version" ;;
+        *)               echo "N/A"; return 0 ;;
     esac
     
     return 0

@@ -39,11 +39,11 @@ EOF
 
     # Create test oradba_homes.conf
     cat > "$TEST_HOMES_CONF" <<EOF
-# Test oradba_homes.conf
-/u01/app/oracle/product/19.0.0.0/dbhome_1;RDBMS;19.0.0.0.0;EE;SI;10;ORCL;DB19;Oracle 19c EE
-/opt/oracle/product/19c/client;CLIENT;19.0.0.0.0;N/A;N/A;30;dummy;CL19;Oracle Client 19c
-/opt/oracle/instantclient_19_19;ICLIENT;19.19.0.0.0;N/A;N/A;40;dummy;IC19;Instant Client 19.19
-/u01/app/19.0.0.0/grid;GRID;19.0.0.0.0;N/A;N/A;15;+ASM;GRID19;Grid Infrastructure 19c
+# Test oradba_homes.conf (Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION)
+DB19:/u01/app/oracle/product/19.0.0.0/dbhome_1:RDBMS:10:db19:Oracle 19c EE:19.0.0.0.0
+CL19:/opt/oracle/product/19c/client:CLIENT:30:cl19:Oracle Client 19c:19.0.0.0.0
+IC19:/opt/oracle/instantclient_19_19:ICLIENT:40:ic19:Instant Client 19.19:19.19.0.0.0
+GRID19:/u01/app/19.0.0.0/grid:GRID:15:grid19:Grid Infrastructure 19c:19.0.0.0.0
 EOF
 }
 
@@ -72,7 +72,7 @@ teardown() {
 @test "oradba_parse_homes parses oradba_homes.conf correctly" {
     run oradba_parse_homes "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ /u01/app/oracle/product/19.0.0.0/dbhome_1\|RDBMS\|19.0.0.0.0\|EE\|SI\|10\|ORCL\|DB19 ]]
+    [[ "${lines[0]}" =~ DB19\|/u01/app/oracle/product/19.0.0.0/dbhome_1\|RDBMS\|10\|db19\|Oracle\ 19c\ EE\|19.0.0.0.0 ]]
 }
 
 # Test: oradba_find_sid - find existing SID
@@ -98,7 +98,7 @@ teardown() {
 
 # Test: oradba_find_home - find existing home
 @test "oradba_find_home finds existing home" {
-    run oradba_find_home "/u01/app/oracle/product/19.0.0.0/dbhome_1" "$TEST_HOMES_CONF"
+    run oradba_find_home "DB19" "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "RDBMS" ]]
 }
@@ -109,30 +109,30 @@ teardown() {
     [ "$status" -eq 1 ]
 }
 
-# Test: oradba_get_home_metadata - extract Product field
+# Test: oradba_get_home_metadata - extract Type field (backward compat: Product→Type)
 @test "oradba_get_home_metadata extracts Product field" {
-    run oradba_get_home_metadata "/u01/app/oracle/product/19.0.0.0/dbhome_1" "Product" "$TEST_HOMES_CONF"
+    run oradba_get_home_metadata "DB19" "Type" "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
     [ "$output" = "RDBMS" ]
 }
 
 # Test: oradba_get_home_metadata - extract Version field
 @test "oradba_get_home_metadata extracts Version field" {
-    run oradba_get_home_metadata "/opt/oracle/product/19c/client" "Version" "$TEST_HOMES_CONF"
+    run oradba_get_home_metadata "CL19" "Version" "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
     [ "$output" = "19.0.0.0.0" ]
 }
 
-# Test: oradba_get_home_metadata - extract Short_Name field
+# Test: oradba_get_home_metadata - extract Name field (backward compat: Short_Name→Name)
 @test "oradba_get_home_metadata extracts Short_Name field" {
-    run oradba_get_home_metadata "/opt/oracle/instantclient_19_19" "Short_Name" "$TEST_HOMES_CONF"
+    run oradba_get_home_metadata "IC19" "Name" "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
     [ "$output" = "IC19" ]
 }
 
 # Test: oradba_get_home_metadata - invalid field returns N/A
 @test "oradba_get_home_metadata returns N/A for invalid field" {
-    run oradba_get_home_metadata "/u01/app/oracle/product/19.0.0.0/dbhome_1" "InvalidField" "$TEST_HOMES_CONF"
+    run oradba_get_home_metadata "DB19" "InvalidField" "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
     [ "$output" = "N/A" ]
 }
@@ -151,9 +151,9 @@ teardown() {
 @test "oradba_list_all_homes lists homes sorted by position" {
     run oradba_list_all_homes "$TEST_HOMES_CONF"
     [ "$status" -eq 0 ]
-    # First should be position 10, last should be position 40
-    [[ "${lines[0]}" =~ "DB19" ]]
-    [[ "${lines[-1]}" =~ "IC19" ]]
+    # First should be Order 10 (DB19), last should be Order 40 (IC19)
+    [[ "${lines[0]}" =~ ^DB19\| ]]
+    [[ "${lines[-1]}" =~ ^IC19\| ]]
 }
 
 # Test: oradba_get_product_type - detect RDBMS
@@ -218,27 +218,28 @@ teardown() {
     # Create test file with extra whitespace
     local test_file="${BATS_TMPDIR}/whitespace_test.$$"
     cat > "$test_file" <<EOF
-  /path/to/home  ;  RDBMS  ;  19.0.0.0.0  ;  EE  ;  SI  ;  10  ;  SID  ;  SHORT  ;  Description  
+  SHORT  :  /path/to/home  :  RDBMS  :  10  :  short  :  Description  :  19.0.0.0.0  
 EOF
     
     run oradba_parse_homes "$test_file"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ /path/to/home\|RDBMS\|19.0.0.0.0\|EE\|SI\|10\|SID\|SHORT\|Description ]]
+    [[ "$output" =~ SHORT\|/path/to/home\|RDBMS\|10\|short\|Description\|19.0.0.0.0 ]]
     
     rm -f "$test_file"
 }
 
 # Test: oradba_parse_homes - handles default values
 @test "oradba_parse_homes applies default values for empty fields" {
-    # Create test file with missing fields
+    # Create test file with missing fields (NAME:PATH:TYPE:ORDER:ALIAS:DESC:VERSION)
     local test_file="${BATS_TMPDIR}/defaults_test.$$"
     cat > "$test_file" <<EOF
-/path/to/home;;;;10;;;
+TEST:/path/to/home::::
 EOF
     
     run oradba_parse_homes "$test_file"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "N/A" ]]
+    # Should have default order=50, alias=TEST (same as name), version=AUTO
+    [[ "$output" =~ TEST\|/path/to/home\|\|50\|TEST\|\|AUTO ]]
     
     rm -f "$test_file"
 }
