@@ -167,7 +167,8 @@ main() {
     if docker run -d \
         --name "$CONTAINER_NAME" \
         -e ORACLE_PWD=Oracle123 \
-        -v "$PROJECT_ROOT:/oradba:ro" \
+        -v "$PROJECT_ROOT/dist:/oradba/dist:ro" \
+        -v "$PROJECT_ROOT/tests:/oradba/tests:ro" \
         "$DOCKER_IMAGE" > /dev/null; then
         log_success "Container started: $CONTAINER_NAME"
     else
