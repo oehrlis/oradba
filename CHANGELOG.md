@@ -32,6 +32,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated all README files to reference v1.0.0 as current release
   - Fixed markdown linting errors (trailing spaces, line length, table alignment)
   - Verified documentation accuracy across all project README files
+  - Commit: 3afacc1
+- **Validation Script Updates** (2026-01-15)
+  - Updated `scripts/validate_project.sh` to reflect v1.0.0 structure
+  - Removed checks for archived files: `structure.md`, `version-management.md`, `markdown-linting.md`
+  - Content now covered in `development.md` and `architecture.md`
+  - Fixed `oradba_homes.conf.template` path check (moved to `src/templates/etc/`)
+  - Added checks for all 6 environment management libraries (parser, builder, validator, config, status, changes)
+  - Added file counting for SQL scripts (126) and RMAN scripts (34)
+  - Added checks for all 28 BATS test files (was checking only 15)
+  - Reorganized sections: core libraries, environment libraries, configuration files, template examples
+  - All validation checks now pass successfully
 
 ## [1.0.0] - 2026-01-15
 
