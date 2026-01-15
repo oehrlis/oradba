@@ -531,11 +531,28 @@ execute_rman_for_sid() {
         fi
     fi
 
-    # Validate admin directory exists
+    # Set ORADBA_ORA_ADMIN_SID if not already set (needed for template processing)
+    if [[ -z "${ORADBA_ORA_ADMIN_SID}" && -n "${ORACLE_BASE}" ]]; then
+        export ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${sid}"
+        oradba_log DEBUG "Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
+    elif [[ -z "${ORADBA_ORA_ADMIN_SID}" && "${OPT_DRY_RUN}" == "true" ]]; then
+        # In dry-run mode without ORACLE_BASE, use a dummy path
+        export ORADBA_ORA_ADMIN_SID="${ORADBA_BASE}/admin/${sid}"
+        oradba_log DEBUG "Dry-run mode: Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
+    fi
+
+    # Validate admin directory exists (create if needed in dry-run mode)
     if [[ -n "${ORADBA_ORA_ADMIN_SID}" && ! -d "${ORADBA_ORA_ADMIN_SID}" ]]; then
-        oradba_log ERROR "Admin directory does not exist: ${ORADBA_ORA_ADMIN_SID}"
-        oradba_log ERROR "Expected structure: \${ORACLE_BASE}/admin/${sid}"
-        return 1
+        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+            oradba_log DEBUG "Creating admin directory for dry-run: ${ORADBA_ORA_ADMIN_SID}"
+            mkdir -p "${ORADBA_ORA_ADMIN_SID}/log" "${ORADBA_ORA_ADMIN_SID}/backup" || {
+                oradba_log WARN "Cannot create admin directory in dry-run mode: ${ORADBA_ORA_ADMIN_SID}"
+            }
+        else
+            oradba_log ERROR "Admin directory does not exist: ${ORADBA_ORA_ADMIN_SID}"
+            oradba_log ERROR "Expected structure: \${ORACLE_BASE}/admin/${sid}"
+            return 1
+        fi
     fi
 
     # Load SID-specific configuration
