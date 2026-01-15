@@ -537,6 +537,9 @@ test_aliases() {
         source "$INSTALL_PREFIX/bin/oraenv.sh" "$ORACLE_SID" >> "$TEST_RESULTS_FILE" 2>&1 || true
     fi
     
+    # Enable alias expansion in non-interactive shell
+    shopt -s expand_aliases
+    
     # Test common aliases
     local aliases=("sq" "cdh" "cda" "cdb" "taa")
     
