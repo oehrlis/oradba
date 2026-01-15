@@ -161,8 +161,9 @@ fi
 
 # Substitute version in installer
 echo "Substituting version ${VERSION} in oradba_install.sh..."
-sed -i.bak "s/__VERSION__/${VERSION}/g" "$TEMP_TAR_DIR/bin/oradba_install.sh"
-rm -f "$TEMP_TAR_DIR/bin/oradba_install.sh.bak"
+# Use temp file for better cross-platform compatibility
+sed "s/__VERSION__/${VERSION}/g" "$TEMP_TAR_DIR/bin/oradba_install.sh" > "$TEMP_TAR_DIR/bin/oradba_install.sh.tmp"
+mv "$TEMP_TAR_DIR/bin/oradba_install.sh.tmp" "$TEMP_TAR_DIR/bin/oradba_install.sh"
 
 # Note: oradba_install.sh is already included in src/bin/
 
@@ -226,8 +227,9 @@ fi
 
 # Copy installer to output and inject version
 cp "src/bin/oradba_install.sh" "$INSTALLER_OUTPUT"
-sed -i.bak "s/__VERSION__/${VERSION}/g" "$INSTALLER_OUTPUT"
-rm -f "${INSTALLER_OUTPUT}.bak"
+# Use temp file for better cross-platform compatibility
+sed "s/__VERSION__/${VERSION}/g" "$INSTALLER_OUTPUT" > "$INSTALLER_OUTPUT.tmp"
+mv "$INSTALLER_OUTPUT.tmp" "$INSTALLER_OUTPUT"
 
 # Append base64 encoded payload (reusing the distribution tarball)
 echo "Creating installer with embedded payload..."
@@ -245,8 +247,9 @@ fi
 
 # Copy check script to output and inject version
 cp "src/bin/oradba_check.sh" "$CHECK_SCRIPT_OUTPUT"
-sed -i.bak "s/SCRIPT_VERSION=\"[^\"]*\"/SCRIPT_VERSION=\"${VERSION}\"/" "$CHECK_SCRIPT_OUTPUT"
-rm -f "${CHECK_SCRIPT_OUTPUT}.bak"
+# Use temp file for better cross-platform compatibility
+sed "s/SCRIPT_VERSION=\"[^\"]*\"/SCRIPT_VERSION=\"${VERSION}\"/" "$CHECK_SCRIPT_OUTPUT" > "$CHECK_SCRIPT_OUTPUT.tmp"
+mv "$CHECK_SCRIPT_OUTPUT.tmp" "$CHECK_SCRIPT_OUTPUT"
 
 # Make check script executable
 chmod +x "$CHECK_SCRIPT_OUTPUT"
