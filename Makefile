@@ -544,7 +544,8 @@ clean-test-configs: ## Clean test-generated SID config files
 clean-all: clean clean-test-configs clean-extensions docs-clean ## Deep clean (including caches, test configs, extensions, and docs)
 	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
-	@echo -e "$(COLOR_GREEN)✓ Deep cleaned$(COLOR_RESET)"
+	@rm -rf tests/results/*.log 2>/dev/null || true
+	@echo -e "$(COLOR_GREEN)✓ Deep cleaned (including test results)$(COLOR_RESET)"
 
 # ==============================================================================
 # Development Tools

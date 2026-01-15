@@ -199,13 +199,18 @@ main() {
         echo ""
         log_success "Tests completed successfully"
         
-        # Copy results file to host tests/results directory
+        # Copy results file to host tests/results directory using docker cp
         mkdir -p "$PROJECT_ROOT/tests/results" 2>/dev/null || true
-        local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_$(date +%Y%m%d_%H%M%S).log"
-        docker exec "$CONTAINER_NAME" sh -c "cat /tmp/oradba_test_results_*.log" > "$results_file" 2>/dev/null || true
+        local container_log
+        container_log=$(docker exec "$CONTAINER_NAME" sh -c "ls -t /tmp/oradba_test_results_*.log 2>/dev/null | head -1")
         
-        if [[ -f "$results_file" ]]; then
-            log_info "Test results saved to: $results_file"
+        if [[ -n "$container_log" ]]; then
+            local results_file="$PROJECT_ROOT/tests/results/$(basename "$container_log")"
+            docker cp "$CONTAINER_NAME:$container_log" "$results_file" 2>/dev/null || true
+            
+            if [[ -f "$results_file" ]]; then
+                log_info "Test results saved to: $results_file"
+            fi
         fi
         
         exit 0
@@ -214,13 +219,18 @@ main() {
         echo ""
         log_error "Tests failed"
         
-        # Try to copy results even on failure
+        # Try to copy results even on failure using docker cp
         mkdir -p "$PROJECT_ROOT/tests/results" 2>/dev/null || true
-        local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
-        docker exec "$CONTAINER_NAME" sh -c "cat /tmp/oradba_test_results_*.log" > "$results_file" 2>/dev/null || true
+        local container_log
+        container_log=$(docker exec "$CONTAINER_NAME" sh -c "ls -t /tmp/oradba_test_results_*.log 2>/dev/null | head -1")
         
-        if [[ -f "$results_file" ]]; then
-            log_info "Test results saved to: $results_file"
+        if [[ -n "$container_log" ]]; then
+            local results_file="$PROJECT_ROOT/tests/results/oradba_test_results_failed_$(date +%Y%m%d_%H%M%S).log"
+            docker cp "$CONTAINER_NAME:$container_log" "$results_file" 2>/dev/null || true
+            
+            if [[ -f "$results_file" ]]; then
+                log_info "Test results saved to: $results_file"
+            fi
         fi
         
         exit 1

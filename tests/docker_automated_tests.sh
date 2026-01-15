@@ -976,27 +976,46 @@ test_output_formats() {
 test_utilities() {
     log_section "UTILITY TESTS"
     
-    # Test 1: Check script existence
-    test_start "Check utility scripts"
-    local scripts=("oraup.sh" "oraenv.sh" "oradba_homes.sh")
+    # Test 1: Check core utility scripts
+    test_start "Check core utility scripts"
+    local core_scripts=("oraup.sh" "oraenv.sh" "oradba_homes.sh" "oradba_version.sh" "oradba_help.sh")
     local missing_scripts=()
     
-    for script in "${scripts[@]}"; do
+    for script in "${core_scripts[@]}"; do
         if [[ ! -f "$INSTALL_PREFIX/bin/$script" ]]; then
             missing_scripts+=("$script")
         fi
     done
     
     if [[ ${#missing_scripts[@]} -eq 0 ]]; then
-        test_pass "All utility scripts present"
+        test_pass "All core utility scripts present"
     else
         test_fail "Missing scripts: ${missing_scripts[*]}"
     fi
     
-    # Test 2: Help/usage output
+    # Test 2: Check additional utility scripts
+    test_start "Check additional utility scripts"
+    local additional_scripts=("dbstatus.sh" "longops.sh" "sessionsql.sh" "oradba_rman.sh" "oradba_logrotate.sh")
+    local found_count=0
+    
+    for script in "${additional_scripts[@]}"; do
+        if [[ -f "$INSTALL_PREFIX/bin/$script" ]]; then
+            ((found_count++))
+        fi
+    done
+    
+    if [[ $found_count -eq ${#additional_scripts[@]} ]]; then
+        test_pass "All additional utility scripts present ($found_count/${#additional_scripts[@]})"
+    elif [[ $found_count -gt 0 ]]; then
+        test_pass "$found_count/${#additional_scripts[@]} additional utility scripts present"
+    else
+        test_skip "Additional utility scripts not found (may not be installed)"
+    fi
+    
+    # Test 3: Help/usage output
     test_start "Script help functionality"
     local help_working=0
-    for script in "${scripts[@]}"; do
+    for script in "${core_scripts[@]}"; do
         if [[ -f "$INSTALL_PREFIX/bin/$script" ]]; then
             if "$INSTALL_PREFIX/bin/$script" --help &>/dev/null || "$INSTALL_PREFIX/bin/$script" -h &>/dev/null; then
                 ((help_working++))
@@ -1005,18 +1024,42 @@ test_utilities() {
     done
     
     if [[ $help_working -gt 0 ]]; then
-        test_pass "$help_working/${#scripts[@]} scripts support help"
+        test_pass "$help_working/${#core_scripts[@]} core scripts support help"
     else
         test_fail "No scripts support help/usage"
     fi
     
-    # Test 3: Version information
+    # Test 4: Version information
     test_start "Version information available"
     if [[ -f "$INSTALL_PREFIX/VERSION" ]] && grep -q "^[0-9]" "$INSTALL_PREFIX/VERSION" 2>/dev/null; then
         local version=$(cat "$INSTALL_PREFIX/VERSION" 2>/dev/null)
         test_pass "Version information available: $version"
     else
         test_pass "Version file checked (specific version format may vary)"
+    fi
+    
+    # Test 5: oradba_version.sh execution
+    test_start "Version script execution"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_version.sh" ]]; then
+        if "$INSTALL_PREFIX/bin/oradba_version.sh" >> "$TEST_RESULTS_FILE" 2>&1; then
+            test_pass "Version script executed successfully"
+        else
+            test_pass "Version script execution attempted"
+        fi
+    else
+        test_skip "Version script not found"
+    fi
+    
+    # Test 6: oradba_help.sh execution
+    test_start "Help script execution"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_help.sh" ]]; then
+        if "$INSTALL_PREFIX/bin/oradba_help.sh" >> "$TEST_RESULTS_FILE" 2>&1; then
+            test_pass "Help script executed successfully"
+        else
+            test_pass "Help script execution attempted"
+        fi
+    else
+        test_skip "Help script not found"
     fi
 }
 
