@@ -282,10 +282,6 @@ oradba_get_product_type() {
         echo "${product^^}"
         return 0
     fi
-        # Convert to uppercase for consistency
-        echo "${product^^}"
-        return 0
-    fi
     
     # Auto-detect based on directory structure
     # Check for Instant Client (libraries without bin directory, or with libclntsh in root)

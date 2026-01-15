@@ -50,7 +50,7 @@ This affects all six environment management libraries:
 - `oradba_env_parser.sh`
 - `oradba_env_validator.sh`
 - `oradba_env_changes.sh`
-- `oradba_env_status.sh`   
+- `oradba_env_status.sh`
 
 ### Data Safe Home
 

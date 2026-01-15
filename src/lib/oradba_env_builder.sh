@@ -175,7 +175,9 @@ oradba_add_oracle_path() {
     if [[ -n "$new_path" ]] && [[ -d "$new_path" ]]; then
         export PATH="${new_path}:${PATH}"
         # Deduplicate PATH to avoid repeated entries
-        export PATH="$(oradba_dedupe_path "$PATH")"
+        local deduped_path
+        deduped_path="$(oradba_dedupe_path "$PATH")"
+        export PATH="$deduped_path"
     fi
 }
 

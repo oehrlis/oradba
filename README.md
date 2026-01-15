@@ -39,8 +39,10 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ### Core Capabilities
 
-- **Intelligent Environment Setup**: Automatic configuration with product type detection (RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS)
-- **Status & Monitoring**: Real-time service status for databases, listeners, and Data Safe connectors with change detection and auto-reload
+- **Intelligent Environment Setup**: Automatic configuration with product type detection
+  (RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS)
+- **Status & Monitoring**: Real-time service status for databases, listeners, and Data Safe
+  connectors with change detection and auto-reload
 - **Extension System**: Modular plugin architecture for custom scripts and tools
 - **Service Management**: Enterprise-grade database and listener lifecycle control
 - **50+ Shell Aliases**: SQL*Plus, RMAN, navigation, diagnostics, and service management
