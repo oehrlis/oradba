@@ -128,7 +128,9 @@ test_installation() {
         test_pass "oradba_install.sh found"
     else
         test_fail "oradba_install.sh not found - run 'make build' first"
-        return 1
+        # Skip remaining installation tests if installer not found
+        log_info "Skipping remaining installation tests"
+        return 0
     fi
     
     # Test 2: Installation
@@ -137,7 +139,9 @@ test_installation() {
         test_pass "Installation completed"
     else
         test_fail "Installation failed"
-        return 1
+        # Skip remaining tests if installation failed
+        log_info "Skipping remaining installation tests"
+        return 0
     fi
     
     # Test 3: Directory structure
