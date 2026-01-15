@@ -435,7 +435,8 @@ EOF
     local spfile_backup_clause=""
     local spfile_backup_enabled="${RMAN_SPFILE_BACKUP:-true}"
     if [[ "${spfile_backup_enabled}" == "true" ]]; then
-        spfile_backup_clause="sql \"create pfile=''${backup_path_tag}init_${oracle_sid}_${start_date}'' from spfile\";"
+        # Use single quotes to avoid sed quoting issues - RMAN accepts either
+        spfile_backup_clause="sql 'create pfile=''${backup_path_tag}init_${oracle_sid}_${start_date}'' from spfile';"
         oradba_log DEBUG "  SPFILE Backup: Enabled"
     else
         oradba_log DEBUG "  SPFILE Backup: Disabled"
@@ -449,55 +450,62 @@ EOF
     local restore_point="${RMAN_RESTORE_POINT:-}"
     [[ -n "${restore_point}" ]] && oradba_log DEBUG "  Restore Point: ${restore_point}"
 
-    # Process the template using a more robust method
-    # Read the template content into a variable
-    local template_content
-    if ! template_content="$(cat "${input_file}")"; then
-        oradba_log ERROR "Failed to read template file: ${input_file}"
-        return 1
-    fi
-
-    # Replace template tags using parameter expansion instead of sed
-    # This avoids delimiter conflicts and is more robust
-    local processed_content="${template_content}"
-    
-    # Handle conditional SPFILE backup
+    # Process the template
+    # Use @ as delimiter instead of / to avoid conflicts with file paths
     if [[ "${spfile_backup_enabled}" == "true" ]]; then
-        processed_content="${processed_content//<SPFILE_BACKUP>/${spfile_backup_clause}}"
+        # SPFILE backup enabled - substitute the tag with the command
+        sed -e "s@<SPFILE_BACKUP>@${spfile_backup_clause}@g" \
+            -e "s@<ALLOCATE_CHANNELS>@${channel_block}@g" \
+            -e "s@<RELEASE_CHANNELS>@${release_block}@g" \
+            -e "s@<FORMAT>@${format_clause}@g" \
+            -e "s@<TAG>@${tag_clause}@g" \
+            -e "s@<COMPRESSION>@${compression_clause}@g" \
+            -e "s@<BACKUP_PATH>@${backup_path_tag}@g" \
+            -e "s@<BCK_PATH>@${backup_path_tag}@g" \
+            -e "s@<ORACLE_SID>@${oracle_sid}@g" \
+            -e "s@<START_DATE>@${start_date}@g" \
+            -e "s@#<SET_COMMANDS>@${set_commands}@g" \
+            -e "s@<SET_COMMANDS>@${set_commands}@g" \
+            -e "s@<TABLESPACES>@${tablespaces_clause}@g" \
+            -e "s@<DATAFILES>@${datafiles_clause}@g" \
+            -e "s@<PLUGGABLE_DATABASE>@${pluggable_database_clause}@g" \
+            -e "s@<SECTION_SIZE>@${section_size_clause}@g" \
+            -e "s@<ARCHIVE_RANGE>@${archive_range}@g" \
+            -e "s@<ARCHIVE_PATTERN>@${archive_pattern_clause}@g" \
+            -e "s@<RESYNC_CATALOG>@${resync_catalog_clause}@g" \
+            -e "s@<BACKUP_KEEP_TIME>@${backup_keep_time}@g" \
+            -e "s@<RESTORE_POINT>@${restore_point}@g" \
+            -e "s@<CUSTOM_PARAM_1>@${custom_param_1}@g" \
+            -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
+            -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
+            "${input_file}" > "${output_file}"
     else
-        # Remove lines containing <SPFILE_BACKUP>
-        processed_content="$(echo "${processed_content}" | grep -v "<SPFILE_BACKUP>")"
-    fi
-    
-    # Replace all template tags
-    processed_content="${processed_content//<ALLOCATE_CHANNELS>/${channel_block}}"
-    processed_content="${processed_content//<RELEASE_CHANNELS>/${release_block}}"
-    processed_content="${processed_content//<FORMAT>/${format_clause}}"
-    processed_content="${processed_content//<TAG>/${tag_clause}}"
-    processed_content="${processed_content//<COMPRESSION>/${compression_clause}}"
-    processed_content="${processed_content//<BACKUP_PATH>/${backup_path_tag}}"
-    processed_content="${processed_content//<BCK_PATH>/${backup_path_tag}}"
-    processed_content="${processed_content//<ORACLE_SID>/${oracle_sid}}"
-    processed_content="${processed_content//<START_DATE>/${start_date}}"
-    processed_content="${processed_content//#<SET_COMMANDS>/${set_commands}}"
-    processed_content="${processed_content//<SET_COMMANDS>/${set_commands}}"
-    processed_content="${processed_content//<TABLESPACES>/${tablespaces_clause}}"
-    processed_content="${processed_content//<DATAFILES>/${datafiles_clause}}"
-    processed_content="${processed_content//<PLUGGABLE_DATABASE>/${pluggable_database_clause}}"
-    processed_content="${processed_content//<SECTION_SIZE>/${section_size_clause}}"
-    processed_content="${processed_content//<ARCHIVE_RANGE>/${archive_range}}"
-    processed_content="${processed_content//<ARCHIVE_PATTERN>/${archive_pattern_clause}}"
-    processed_content="${processed_content//<RESYNC_CATALOG>/${resync_catalog_clause}}"
-    processed_content="${processed_content//<BACKUP_KEEP_TIME>/${backup_keep_time}}"
-    processed_content="${processed_content//<RESTORE_POINT>/${restore_point}}"
-    processed_content="${processed_content//<CUSTOM_PARAM_1>/${custom_param_1}}"
-    processed_content="${processed_content//<CUSTOM_PARAM_2>/${custom_param_2}}"
-    processed_content="${processed_content//<CUSTOM_PARAM_3>/${custom_param_3}}"
-    
-    # Write the processed content to output file
-    if ! printf '%s\n' "${processed_content}" > "${output_file}"; then
-        oradba_log ERROR "Failed to write processed template to: ${output_file}"
-        return 1
+        # SPFILE backup disabled - remove lines containing the tag
+        sed -e "/<SPFILE_BACKUP>/d" \
+            -e "s@<ALLOCATE_CHANNELS>@${channel_block}@g" \
+            -e "s@<RELEASE_CHANNELS>@${release_block}@g" \
+            -e "s@<FORMAT>@${format_clause}@g" \
+            -e "s@<TAG>@${tag_clause}@g" \
+            -e "s@<COMPRESSION>@${compression_clause}@g" \
+            -e "s@<BACKUP_PATH>@${backup_path_tag}@g" \
+            -e "s@<BCK_PATH>@${backup_path_tag}@g" \
+            -e "s@<ORACLE_SID>@${oracle_sid}@g" \
+            -e "s@<START_DATE>@${start_date}@g" \
+            -e "s@#<SET_COMMANDS>@${set_commands}@g" \
+            -e "s@<SET_COMMANDS>@${set_commands}@g" \
+            -e "s@<TABLESPACES>@${tablespaces_clause}@g" \
+            -e "s@<DATAFILES>@${datafiles_clause}@g" \
+            -e "s@<PLUGGABLE_DATABASE>@${pluggable_database_clause}@g" \
+            -e "s@<SECTION_SIZE>@${section_size_clause}@g" \
+            -e "s@<ARCHIVE_RANGE>@${archive_range}@g" \
+            -e "s@<ARCHIVE_PATTERN>@${archive_pattern_clause}@g" \
+            -e "s@<RESYNC_CATALOG>@${resync_catalog_clause}@g" \
+            -e "s@<BACKUP_KEEP_TIME>@${backup_keep_time}@g" \
+            -e "s@<RESTORE_POINT>@${restore_point}@g" \
+            -e "s@<CUSTOM_PARAM_1>@${custom_param_1}@g" \
+            -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
+            -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
+            "${input_file}" > "${output_file}"
     fi
 
     oradba_log DEBUG "Template processed successfully: ${output_file}"
