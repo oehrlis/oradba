@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cleaned up `BASH_FUNC_*` entries visible in environment output
   - Affected files: `oradba_env_config.sh`, `oradba_env_builder.sh`,
     `oradba_env_parser.sh`, `oradba_env_validator.sh`, `oradba_env_changes.sh`,
-    å`oradba_env_status.sh`
+    `oradba_env_status.sh`
 
 ### Documentation
 
