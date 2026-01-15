@@ -192,11 +192,8 @@ main() {
     echo ""
     echo "================================================================================"
     
-    # Copy test script to container and run
-    if docker exec "$CONTAINER_NAME" bash -c "
-        chmod +x /oradba/tests/docker_automated_tests.sh && \
-        /oradba/tests/docker_automated_tests.sh
-    "; then
+    # Run test script (no need to chmod - volume is read-only)
+    if docker exec "$CONTAINER_NAME" bash /oradba/tests/docker_automated_tests.sh; then
         echo "================================================================================"
         echo ""
         log_success "Tests completed successfully"
