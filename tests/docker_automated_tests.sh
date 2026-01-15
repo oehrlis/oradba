@@ -15,7 +15,10 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -e  # Exit on error
+# NOTE: set -e disabled due to docker exec environment issues
+# In docker exec context, functions with ((TESTS_TOTAL++)) followed by
+# other commands can trigger unexpected exits even with || true guards
+# set -e  # Exit on error
 
 # ------------------------------------------------------------------------------
 # Configuration
