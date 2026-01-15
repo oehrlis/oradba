@@ -534,10 +534,24 @@ status: ## Show git status and current version
 # ==============================================================================
 
 .PHONY: clean
-clean: ## Clean build artifacts
+clean: ## Clean build artifacts (preserves documentation)
 	@echo -e "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
+	@# Preserve documentation files if they exist
+	@if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ] || [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
+		mkdir -p .tmp_docs_preserve; \
+		mv $(DIST_DIR)/oradba-user-guide.pdf .tmp_docs_preserve/ 2>/dev/null || true; \
+		mv $(DIST_DIR)/oradba-user-guide.html .tmp_docs_preserve/ 2>/dev/null || true; \
+		echo -e "$(COLOR_YELLOW)  Preserving documentation files during clean...$(COLOR_RESET)"; \
+	fi
 	@rm -rf $(DIST_DIR)
 	@rm -rf build
+	@# Restore documentation files
+	@if [ -d .tmp_docs_preserve ]; then \
+		mkdir -p $(DIST_DIR); \
+		mv .tmp_docs_preserve/* $(DIST_DIR)/ 2>/dev/null || true; \
+		rm -rf .tmp_docs_preserve; \
+		echo -e "$(COLOR_YELLOW)  Documentation files restored$(COLOR_RESET)"; \
+	fi
 	@find . -name "*.log" -type f -delete 2>/dev/null || true
 	@find . -name "*.tmp" -type f -delete 2>/dev/null || true
 	@find . -name "*~" -type f -delete 2>/dev/null || true
@@ -561,7 +575,7 @@ clean-test-configs: ## Clean test-generated SID config files
 	@echo -e "$(COLOR_GREEN)✓ Test config files cleaned$(COLOR_RESET)"
 
 .PHONY: clean-all
-clean-all: clean clean-test-configs clean-extensions docs-clean ## Deep clean (including caches, test configs, extensions, and docs)
+clean-all: clean clean-test-configs clean-extensions docs-clean ## Deep clean including documentation (removes everything)
 	@echo -e "$(COLOR_BLUE)Deep cleaning...$(COLOR_RESET)"
 	@rm -rf .bats-cache 2>/dev/null || true
 	@rm -rf tests/results/*.log 2>/dev/null || true
