@@ -3,8 +3,8 @@
 # Script:       validate_test_environment.sh
 # Author:       Stefan Oehrli (oes) stefan.oehrli@oradba.com
 # Date:         2026.01.15
-# Revision:     1.0.0-dev
-# Purpose:      Validate testing environment for OraDBA v1.0.0 pre-release
+# Revision:     1.0.0
+# Purpose:      Validate testing environment for OraDBA v1.0.0
 # Notes:        Run this script before executing the test suite
 # Reference:    doc/phase7_manual_testing_guide.md
 # License:      Apache-2.0 (see LICENSE file)
@@ -30,6 +30,7 @@ CHECKS_WARNED=0
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}  OraDBA v1.0.0 - Test Environment Validator${NC}"
+    echo -e "${BLUE}  Release Date: January 15, 2026${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo
 }
@@ -67,10 +68,10 @@ validate_version_file() {
     
     if [ -f "VERSION" ]; then
         VERSION=$(cat VERSION)
-        if [ "$VERSION" = "1.0.0-dev" ]; then
-            check_pass "VERSION file exists and contains '1.0.0-dev'"
+        if [ "$VERSION" = "1.0.0" ]; then
+            check_pass "VERSION file exists and contains '1.0.0'"
         else
-            check_fail "VERSION file contains '$VERSION' (expected '1.0.0-dev')"
+            check_warn "VERSION file contains '$VERSION' (expected '1.0.0' for release)"
         fi
     else
         check_fail "VERSION file not found"

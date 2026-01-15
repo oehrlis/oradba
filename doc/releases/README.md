@@ -5,7 +5,8 @@ This directory contains release notes for OraDBA versions.
 
 ### v1.0.0 - First Stable Release (2026-01-15)
 
-- [v1.0.0](v1.0.0.md) - **Latest**: First production-ready release with comprehensive testing infrastructure, auto-discovery, enhanced service management, and complete documentation
+- [v1.0.0](v1.0.0.md) - **Latest**: First production-ready release with comprehensive
+  testing infrastructure, auto-discovery, enhanced service management, and complete documentation
 
 ## Archived Releases
 

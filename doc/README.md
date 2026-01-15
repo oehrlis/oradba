@@ -9,16 +9,16 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 
 ## Quick Navigation
 
-| Category               | Document                                                     | Description                                                  |
-|------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
-| **Getting Started**    | [development.md](development.md)                 | Complete development guide - setup, workflow, testing, CI/CD |
-| **Architecture**       | [architecture.md](architecture.md)               | System design, components, and architectural decisions       |
-| **API Reference**      | [api.md](api.md)                                 | Complete function reference for all libraries                |
-| **Environment Design** | [oradba-env-design.md](oradba-env-design.md)     | Original design document with rationale (reference)          |
-| **Extension System**   | [extension-system.md](extension-system.md)       | Extension development guide and API                          |
-| **Testing**            | [automated_testing.md](automated_testing.md)     | Automated testing guide and framework                        |
-| **Testing**            | [manual_testing.md](manual_testing.md)           | Manual testing procedures                                    |
-| **Archive**            | [archive/](archive/)                             | Historical docs, completed plans, legacy references          |
+| Category               | Document                                         | Description                                          |
+|------------------------|--------------------------------------------------|------------------------------------------------------|
+| **Getting Started**    | [development.md](development.md)                 | Complete development guide - setup, workflow, CI/CD  |
+| **Architecture**       | [architecture.md](architecture.md)               | System design, components, architectural decisions   |
+| **API Reference**      | [api.md](api.md)                                 | Complete function reference for all libraries        |
+| **Environment Design** | [oradba-env-design.md](oradba-env-design.md)     | Original design document with rationale (reference)  |
+| **Extension System**   | [extension-system.md](extension-system.md)       | Extension development guide and API                  |
+| **Testing**            | [automated_testing.md](automated_testing.md)     | Automated testing guide and framework                |
+| **Testing**            | [manual_testing.md](manual_testing.md)           | Manual testing procedures                            |
+| **Archive**            | [archive/](archive/)                             | Historical docs, completed plans, legacy references  |
 
 ## Getting Started
 

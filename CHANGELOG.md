@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added clarification note to `doc/oradba-env-design.md` (design reference document)
   - Kept design document for historical design rationale
   - Commit: 58703eb
+- **README Updates for v1.0.0** (2026-01-15)
+  - Updated test count from 892 to 910 tests in `tests/README.md`
+  - Fixed environment library count (6 libraries, not 4) in test documentation
+  - Updated version to 1.0.0 in validation scripts: `validate_project.sh`, `validate_test_environment.sh`
+  - Updated `script_template.sh` to v1.0.0
+  - Expanded `src/log/README.md` with comprehensive logging documentation
+  - Added log location priority, naming conventions, rotation guidance
+  - Updated all README files to reference v1.0.0 as current release
+  - Fixed markdown linting errors (trailing spaces, line length, table alignment)
+  - Verified documentation accuracy across all project README files
 
 ## [1.0.0] - 2026-01-15
 

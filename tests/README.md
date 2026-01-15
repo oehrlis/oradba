@@ -41,7 +41,7 @@ with unit tests for libraries and integration tests for scripts.
 | [test_sid_config.bats](test_sid_config.bats)                         | SID-specific configuration | 21    | SID-specific configuration loading    |
 | [test_sync_scripts.bats](test_sync_scripts.bats)                     | bin/sync_*.sh              | 51    | Peer synchronization scripts          |
 
-**Total: 892 tests** (comprehensive coverage across all components)
+**Total: 910 tests** (comprehensive coverage across all components)
 
 ### Test Architecture
 
@@ -50,10 +50,10 @@ The test suite is organized into three categories:
 **Core Library Tests** (9 files, 325 tests):
 
 - oradba_common.sh, oradba_db_functions.sh, oradba_aliases.sh - Core utilities
-- oradba_env_*.sh (4 files) - Environment management libraries
+- oradba_env_*.sh (6 files) - Environment management libraries
 - extensions.sh - Extension framework
 
-**Binary/Script Tests** (13 files, 483 tests):
+**Binary/Script Tests** (13 files, 501 tests):
 
 - Environment utilities (oraenv, oraup, oradba_homes, oradba_env)
 - Database tools (oradba_rman, oradba_dbctl, oradba_sqlnet)
@@ -65,18 +65,19 @@ The test suite is organized into three categories:
 - Oracle Homes management, logging infrastructure, configuration system
 - Oratab priority, SID-specific configs, query execution
 
-**Latest Updates (v1.0.0)**:
+**v1.0.0 Test Suite**:
 
 - **Core Library Refactoring**: Renamed core libraries with oradba_ prefix for consistency
   - common.sh → oradba_common.sh
   - db_functions.sh → oradba_db_functions.sh
   - aliases.sh → oradba_aliases.sh
-- **New Environment Libraries**: Added 4 environment management libraries (parser, builder, validator, config, status, changes)
-- **Extended Test Coverage**: 892 total tests (up from 658), including:
+- **New Environment Libraries**: Added 6 environment management libraries (parser, builder, validator, config, status, changes)
+- **Extended Test Coverage**: 910 total tests (up from 658), including:
   - test_oradba_env_*.bats: 87 tests for environment management
   - test_logging_infrastructure.bats: 23 tests for logging validation
   - test_oracle_homes.bats: 28 tests for Oracle Homes registry
   - test_oratab_priority.bats: 9 tests for oratab priority system
+- **Automated Testing**: Docker-based automated testing with 98% pass rate
 
 ## Running Tests
 

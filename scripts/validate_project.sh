@@ -5,8 +5,8 @@
 # Name.......: validate_project.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.2
+# Date.......: 2026.01.15
+# Revision...: 1.0.0
 # Purpose....: Validate project structure and required files
 # Notes......: Checks for presence of all required files and directories.
 #              Verifies permissions and file formats.

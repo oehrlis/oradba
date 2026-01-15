@@ -1,6 +1,6 @@
 # oradba Environment Management System - Design Document
 
-> **Note:** This is the original design document for the environment management system 
+> **Note:** This is the original design document for the environment management system
 > implemented in v1.0.0. It provides design rationale and architectural decisions.
 > For current implementation details, see [architecture.md](architecture.md).
 
