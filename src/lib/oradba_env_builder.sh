@@ -518,6 +518,12 @@ oradba_build_environment() {
         oradba_apply_product_config "$product_type" "$oracle_sid"
     fi
     
+    # Final PATH deduplication after all configs loaded
+    # This ensures custom PATH additions from config files are deduplicated
+    local final_path
+    final_path="$(oradba_dedupe_path "$PATH")"
+    export PATH="$final_path"
+    
     # Set tracking variables
     export ORADBA_ENV_LOADED=1
     export ORADBA_CURRENT_SID="$oracle_sid"
