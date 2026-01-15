@@ -425,8 +425,16 @@ _oraenv_set_environment() {
                         oratab_entry=$(echo "$discovered_oratab" | head -n1)
                         log_info "Auto-selecting first discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
                     else
-                        # Try to find requested SID in discovered instances
-                        oratab_entry=$(echo "$discovered_oratab" | grep -i "^${requested_sid}:" | head -n1)
+                        # Try to find requested SID in discovered instances (case-insensitive)
+                        # Use awk for more robust matching
+                        oratab_entry=$(echo "$discovered_oratab" | awk -F: -v sid="$requested_sid" 'tolower($1) == tolower(sid) {print; exit}')
+                        
+                        if [[ -z "$oratab_entry" ]]; then
+                            log_debug "SID '$requested_sid' not found in discovered instances"
+                            log_debug "Discovered entries: $discovered_oratab"
+                        else
+                            log_info "Found discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+                        fi
                     fi
                 fi
             fi
