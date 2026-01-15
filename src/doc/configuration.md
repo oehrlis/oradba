@@ -580,6 +580,78 @@ ORADBA_RLWRAP_FILTER="true"
 
 See [rlwrap Filter Configuration](rlwrap.md) for setup details.
 
+### Scenario 7: Auto-Discovery of Running Instances (v1.0.0+)
+
+**Problem:** Working with Oracle instances that aren't registered in oratab,
+or oratab is empty
+
+**Solution:** Auto-discovery is enabled by default. When oraenv.sh is sourced
+and no instances are found in oratab, OraDBA automatically detects running
+Oracle processes (db_smon, ora_pmon, asm_smon) for the current user and
+extracts their ORACLE_HOME.
+
+**How it works:**
+
+1. Checks for existing oratab entries
+2. If empty or SID not found, scans for running Oracle processes
+3. Extracts ORACLE_HOME from `/proc/<pid>/exe` symlink
+4. Attempts to persist discovered instances to oratab
+5. Falls back to local oratab if system oratab is not writable
+
+**Example - First login with empty oratab:**
+
+```bash
+$ source oraenv.sh
+
+[INFO] No Oracle instances or homes found in /etc/oratab
+[INFO] Discovering running Oracle instances...
+[INFO] Auto-discovered Oracle instance: FREE (/u01/app/oracle/product/23ai/dbhomeFree)
+[INFO] Discovered 1 running Oracle instance(s)
+[WARN] Cannot write to system oratab: /etc/oratab (permission denied)
+[WARN] Falling back to local oratab: /opt/oradba/etc/oratab
+[INFO] Added FREE to local oratab: /opt/oradba/etc/oratab
+[WARN] ACTION REQUIRED: Manually sync entries from /opt/oradba/etc/oratab to /etc/oratab
+[WARN] Suggested command: sudo cat /opt/oradba/etc/oratab >> /etc/oratab
+[INFO] ORATAB_FILE updated to: /opt/oradba/etc/oratab (current session only)
+
+Select Oracle SID or Oracle Home:
+  [1] FREE (/u01/app/oracle/product/23ai/dbhomeFree)
+Selection [1-1, or 0 to cancel]: 1
+```
+
+**Disable auto-discovery:**
+
+```bash
+# oradba_customer.conf
+ORADBA_AUTO_DISCOVER_INSTANCES="false"
+```
+
+**Security Note:** Auto-discovery only detects Oracle processes running as the
+current user. Processes owned by other users are detected but not included
+(a warning is logged).
+
+**Persistence Behavior:**
+
+- **With write permission**: Discovered instances are added directly to system
+  oratab (`/etc/oratab`)
+- **Without write permission**: Falls back to local oratab
+  (`${ORADBA_PREFIX}/etc/oratab`) and updates `ORATAB_FILE` for current session
+- **Duplicate prevention**: Checks before adding - won't duplicate existing
+  entries
+
+**Manual sync after permission-denied fallback:**
+
+```bash
+# As root or with sudo
+sudo cat /opt/oradba/etc/oratab >> /etc/oratab
+
+# Verify
+cat /etc/oratab | grep FREE
+```
+
+See [Troubleshooting Guide](troubleshooting.md#auto-discovery-issues)
+for common auto-discovery scenarios and solutions.
+
 ## Configuration Variables Reference
 
 ### Core System Variables
@@ -596,13 +668,14 @@ See [rlwrap Filter Configuration](rlwrap.md) for setup details.
 
 ### Behavior Variables
 
-| Variable                          | Default | Description                                     |
-|-----------------------------------|---------|-------------------------------------------------|
-| `ORADBA_LOAD_ALIASES`             | `true`  | Load aliases and functions                      |
-| `ORADBA_SHOW_DB_STATUS`           | `true`  | Show database status on environment switch      |
-| `ORADBA_AUTO_CREATE_SID_CONFIG`   | `true`  | Auto-create SID configurations (real SIDs only) |
-| `ORADBA_RLWRAP_FILTER`            | `false` | Enable password filtering in rlwrap             |
-| `ORADBA_AUTO_DISCOVER_EXTENSIONS` | `true`  | Auto-discover extensions in standard locations  |
+| Variable                            | Default | Description                                        |
+|-------------------------------------|---------|----------------------------------------------------|
+| `ORADBA_LOAD_ALIASES`               | `true`  | Load aliases and functions                         |
+| `ORADBA_SHOW_DB_STATUS`             | `true`  | Show database status on environment switch         |
+| `ORADBA_AUTO_CREATE_SID_CONFIG`     | `true`  | Auto-create SID configurations (real SIDs only)    |
+| `ORADBA_AUTO_DISCOVER_INSTANCES`    | `true`  | Auto-discover running Oracle instances (v1.0.0+)   |
+| `ORADBA_RLWRAP_FILTER`              | `false` | Enable password filtering in rlwrap                |
+| `ORADBA_AUTO_DISCOVER_EXTENSIONS`   | `true`  | Auto-discover extensions in standard locations     |
 
 ### Extension System Variables
 

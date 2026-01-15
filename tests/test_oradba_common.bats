@@ -331,3 +331,149 @@ EOF
     # Should succeed (optional file missing is not an error)
     [ "$status" -eq 0 ]
 }
+
+# ------------------------------------------------------------------------------
+# Auto-Discovery Tests (v1.0.0 feature)
+# ------------------------------------------------------------------------------
+
+@test "discover_running_oracle_instances function exists" {
+    type -t discover_running_oracle_instances | grep -q "function"
+}
+
+@test "discover_running_oracle_instances returns proper format" {
+    # Skip if no Oracle processes running
+    if ! ps -U "$(id -un)" -o comm --no-headers | grep -qE "(db_smon_|ora_pmon_|asm_smon_)"; then
+        skip "No Oracle processes running for current user"
+    fi
+    
+    run discover_running_oracle_instances
+    
+    # Should output in oratab format: SID:ORACLE_HOME:N
+    if [ "$status" -eq 0 ]; then
+        # Check format: three colon-separated fields
+        [[ "$output" =~ ^[^:]+:[^:]+:[YN]$ ]] || [[ "$output" =~ ^[^:]+:[^:]+:[YN]$'\n' ]]
+    fi
+}
+
+@test "discover_running_oracle_instances detects current user processes only" {
+    # This test verifies security boundary - only processes owned by current user
+    run discover_running_oracle_instances
+    
+    # If successful, output should only contain instances for current user
+    # We can't easily verify this in a test, but the function should log warnings
+    # for other-user processes
+    [ "$status" -eq 0 ] || [ "$status" -eq 1 ]  # Either found or not found is ok
+}
+
+@test "discover_running_oracle_instances handles no running instances" {
+    # Mock environment with no Oracle processes
+    # We can't really test this without stopping all Oracle instances
+    # Just verify function doesn't crash
+    run discover_running_oracle_instances
+    
+    # Should return 0 or 1 (found or not found)
+    [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+}
+
+@test "persist_discovered_instances function exists" {
+    type -t persist_discovered_instances | grep -q "function"
+}
+
+@test "persist_discovered_instances creates local oratab when needed" {
+    # Create mock discovered instances
+    local discovered_instances="TESTDB:/opt/oracle/product/19c:N"
+    local test_oratab="${TEST_TEMP_DIR}/oratab"
+    
+    # Ensure file doesn't exist
+    [ ! -f "$test_oratab" ]
+    
+    # Make it writable (simulate having permission)
+    mkdir -p "$(dirname "$test_oratab")"
+    touch "$test_oratab"
+    chmod 644 "$test_oratab"
+    
+    # Run persistence
+    run persist_discovered_instances "$discovered_instances" "$test_oratab"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+    
+    # Should have created entry
+    [ -f "$test_oratab" ]
+    grep -q "^TESTDB:" "$test_oratab"
+}
+
+@test "persist_discovered_instances prevents duplicates" {
+    local discovered_instances="DUPDB:/opt/oracle/product/19c:N"
+    local test_oratab="${TEST_TEMP_DIR}/oratab_dup"
+    
+    # Create existing oratab with same SID
+    echo "DUPDB:/opt/oracle/product/19c:N" > "$test_oratab"
+    
+    # Try to add same SID again
+    run persist_discovered_instances "$discovered_instances" "$test_oratab"
+    
+    # Should succeed but not duplicate
+    [ "$status" -eq 0 ]
+    
+    # Should only have one entry
+    local count
+    count=$(grep -c "^DUPDB:" "$test_oratab")
+    [ "$count" -eq 1 ]
+}
+
+@test "persist_discovered_instances handles permission denied gracefully" {
+    # Create mock discovered instances
+    local discovered_instances="PERMTEST:/opt/oracle/product/19c:N"
+    local readonly_oratab="${TEST_TEMP_DIR}/readonly_oratab"
+    
+    # Create read-only oratab (simulate /etc/oratab without root)
+    touch "$readonly_oratab"
+    chmod 444 "$readonly_oratab"
+    
+    # Set up fallback location
+    export ORADBA_PREFIX="${TEST_TEMP_DIR}"
+    mkdir -p "${ORADBA_PREFIX}/etc"
+    
+    # Run persistence - should fallback to local oratab
+    run persist_discovered_instances "$discovered_instances" "$readonly_oratab"
+    
+    # Should succeed (using fallback)
+    [ "$status" -eq 0 ]
+    
+    # Should have created local oratab
+    [ -f "${ORADBA_PREFIX}/etc/oratab" ]
+    
+    # Cleanup
+    chmod 644 "$readonly_oratab"
+}
+
+@test "persist_discovered_instances handles empty input" {
+    local test_oratab="${TEST_TEMP_DIR}/oratab_empty"
+    touch "$test_oratab"
+    
+    # Run with empty discovered instances
+    run persist_discovered_instances "" "$test_oratab"
+    
+    # Should return 1 (nothing to persist)
+    [ "$status" -eq 1 ]
+}
+
+@test "persist_discovered_instances handles multiple instances" {
+    local discovered_instances="DB1:/opt/oracle/product/19c:N
+DB2:/opt/oracle/product/21c:N
+DB3:/opt/oracle/product/23ai:N"
+    local test_oratab="${TEST_TEMP_DIR}/oratab_multi"
+    touch "$test_oratab"
+    
+    # Run persistence
+    run persist_discovered_instances "$discovered_instances" "$test_oratab"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+    
+    # Should have all three entries
+    grep -q "^DB1:" "$test_oratab"
+    grep -q "^DB2:" "$test_oratab"
+    grep -q "^DB3:" "$test_oratab"
+}

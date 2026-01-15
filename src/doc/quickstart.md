@@ -106,6 +106,36 @@ PRODDB:/u01/app/oracle/product/21.0.0/dbhome_1:N
 It doesn't trigger automatic database startup but helps identify production vs
 development databases.
 
+**Auto-Discovery (v1.0.0+):** If your oratab is empty or a database is running
+but not registered, OraDBA can automatically discover it:
+
+```bash
+# Source oraenv.sh with empty oratab
+$ source oraenv.sh
+
+[INFO] No Oracle instances or homes found in /etc/oratab
+[INFO] Discovering running Oracle instances...
+[INFO] Auto-discovered Oracle instance: FREE (/u01/app/oracle/product/23ai/dbhomeFree)
+[INFO] Discovered 1 running Oracle instance(s)
+
+# OraDBA attempts to persist to oratab
+# If permission denied, falls back to local oratab
+
+Select Oracle SID or Oracle Home:
+  [1] FREE (/u01/app/oracle/product/23ai/dbhomeFree)
+Selection [1-1, or 0 to cancel]: 1
+
+# Environment is set, instance is now registered
+```
+
+To disable auto-discovery:
+
+```bash
+export ORADBA_AUTO_DISCOVER_INSTANCES="false"
+```
+
+See [Configuration Guide - Scenario 7](configuration.md#scenario-7-auto-discovery) for details.
+
 ### 2. Set Your Oracle Environment
 
 Use `oraenv.sh` to set up your Oracle environment:

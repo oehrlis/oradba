@@ -642,6 +642,181 @@ rm -rf /tmp/oradba-test /tmp/fake-oracle
 
 **Related Chapters:** [Installation](installation.md#pre-oracle-installation)
 
+### Issue: Auto-Discovery Not Finding Running Instances (v1.0.0+) {#auto-discovery-issues}
+
+**Symptom:** Oracle instances are running but auto-discovery doesn't detect them.
+
+**Likely Cause:**
+
+1. Auto-discovery is disabled
+2. Instances running as different user
+3. Process names don't match expected patterns
+4. `/proc` filesystem not accessible
+
+**Check:**
+
+```bash
+# Verify auto-discovery is enabled
+echo $ORADBA_AUTO_DISCOVER_INSTANCES  # Should be "true" or empty (default is true)
+
+# Check for running Oracle processes manually
+ps -ef | grep -E "(smon_|pmon_)" | grep -v grep
+
+# Check processes for current user
+ps -U $(id -un) -o pid,comm | grep -E "(db_smon_|ora_pmon_|asm_smon_)"
+
+# Test discovery function directly
+source /opt/oradba/lib/oradba_common.sh
+discover_running_oracle_instances
+```
+
+**Fix:**
+
+```bash
+# Enable auto-discovery explicitly
+export ORADBA_AUTO_DISCOVER_INSTANCES="true"
+source oraenv.sh
+
+# If instances run as different user (e.g., 'oracle' user)
+# You need to switch to that user first
+sudo su - oracle
+source /opt/oradba/bin/oraenv.sh
+
+# Or manually add to oratab
+ps -U oracle -o pid,comm | grep -E "(smon_|pmon_)" | head -1
+# Note the SID from process name, find ORACLE_HOME
+sudo sh -c 'echo "FREE:/u01/app/oracle/product/23ai/dbhomeFree:N" >> /etc/oratab'
+```
+
+**Related Chapters:** [Configuration](configuration.md#scenario-7-auto-discovery), [Quick Start](quickstart.md)
+
+### Issue: Permission Denied Writing to oratab
+
+**Symptom:** Auto-discovery finds instances but can't persist them:
+
+```text
+[WARN] Cannot write to system oratab: /etc/oratab (permission denied)
+[WARN] Falling back to local oratab: /opt/oradba/etc/oratab
+```
+
+**Likely Cause:** Running as non-root user without write permission to
+`/etc/oratab`.
+
+**Check:**
+
+```bash
+# Check oratab permissions
+ls -l /etc/oratab
+
+# Check if you have write access
+test -w /etc/oratab && echo "Writable" || echo "Not writable"
+
+# Check local oratab location
+ls -l $ORADBA_PREFIX/etc/oratab
+```
+
+**Fix (Option 1 - Use Local oratab):**
+
+```bash
+# This works automatically - OraDBA falls back to local oratab
+# Just use the local copy for your session
+source oraenv.sh
+
+# Verify it's using local oratab
+echo $ORATAB_FILE  # Should show /opt/oradba/etc/oratab
+```
+
+**Fix (Option 2 - Sync to System oratab):**
+
+```bash
+# Manually copy discovered entries to system oratab (requires root/sudo)
+sudo cat $ORADBA_PREFIX/etc/oratab >> /etc/oratab
+
+# Or edit directly
+sudo vi /etc/oratab
+# Add: FREE:/u01/app/oracle/product/23ai/dbhomeFree:N
+
+# Verify
+grep FREE /etc/oratab
+
+# Next login will use system oratab
+source oraenv.sh FREE
+```
+
+**Fix (Option 3 - Make /etc/oratab Group-Writable):**
+
+```bash
+# As root, make oratab writable by dba group
+sudo chmod 664 /etc/oratab
+sudo chgrp dba /etc/oratab
+
+# Verify
+ls -l /etc/oratab
+# Should show: -rw-rw-r-- 1 root dba
+
+# Now discovery can persist directly
+source oraenv.sh
+```
+
+**Related Chapters:** [Configuration](configuration.md#scenario-7-auto-discovery), [Installation](installation.md)
+
+### Issue: Listener Status Not Displayed
+
+**Symptom:** Listener status is not shown by `oraup.sh` or when switching environments.
+
+**Likely Cause:**
+
+1. No listener running
+2. Listener name doesn't match SID
+3. Client-only ORACLE_HOME (no listener expected)
+4. Grid Infrastructure listener (managed separately)
+
+**Check:**
+
+```bash
+# Check if listener is running
+ps -ef | grep tnslsnr | grep -v grep
+
+# Check listener status manually
+lsnrctl status
+
+# Check listener for specific SID
+lsnrctl status LISTENER_FREE
+
+# Verify ORACLE_HOME type
+ls -l $ORACLE_HOME/bin/lsnrctl
+ls -l $ORACLE_HOME/bin/sqlplus
+```
+
+**Behavior (v1.0.0+):**
+
+Listener status is shown when:
+
+- SID matches listener name (e.g., SID=FREE, listener=LISTENER_FREE or
+  LISTENER), OR
+- Client-only ORACLE_HOME (has sqlplus but no lsnrctl) - shows status even
+  without listener
+
+Listener status is hidden when:
+
+- Grid Infrastructure home (listener managed by Grid)
+- Tool-only homes (OUD, OID, BI, etc.)
+
+**Fix:**
+
+```bash
+# Start listener if not running
+lsnrctl start LISTENER_FREE
+
+# Check status to see if it appears now
+oraup.sh
+
+# Or manually check
+lsnrctl status LISTENER_FREE
+```
+
+**Related Chapters:** [Service Management](service-management.md), [Usage Guide](usage.md)
+
 ## Log Files
 
 Check log files for errors:
