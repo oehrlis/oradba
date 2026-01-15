@@ -861,13 +861,15 @@ Clean up variables from previous SID-specific configuration (v1.0.0+).
 
 **Signature**: `cleanup_previous_sid_config`
 
-**Purpose**: Unsets variables that were set by the previous SID's configuration file to ensure environment isolation when switching between SIDs.
+**Purpose**: Unsets variables that were set by the previous SID's configuration file to ensure
+environment isolation when switching between SIDs.
 
 **Behavior**:
 
 - Reads variable list from `ORADBA_PREV_SID_VARS`
 - Unsets each tracked variable except critical ones
-- Protected variables: `ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`, `ORADBA_*`, `PATH`, `LD_LIBRARY_PATH`, `TNS_ADMIN`, `NLS_LANG`
+- Protected variables: `ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`, `ORADBA_*`, `PATH`,
+  `LD_LIBRARY_PATH`, `TNS_ADMIN`, `NLS_LANG`
 - Clears `ORADBA_PREV_SID_VARS` after cleanup
 
 **Returns**: Always returns `0`
@@ -892,7 +894,8 @@ Capture and track variables set by SID-specific configuration (v1.0.0+).
 
 - `sid_config_file` - Path to SID configuration file
 
-**Purpose**: Tracks which variables are added by a SID configuration file by comparing the environment before and after loading.
+**Purpose**: Tracks which variables are added by a SID configuration file by comparing the
+environment before and after loading.
 
 **Behavior**:
 
@@ -938,7 +941,8 @@ Load hierarchical configuration files for OraDBA environment.
 
 **Environment Isolation** (v1.0.0+):
 
-SID-specific variables (from `sid.<SID>.conf`) are automatically tracked and cleaned up when switching to a different SID. This ensures proper environment isolation:
+SID-specific variables (from `sid.<SID>.conf`) are automatically tracked and cleaned up when
+switching to a different SID. This ensures proper environment isolation:
 
 - Variables from configs 1-4 persist across SID switches (shared configuration)
 - Variables from config 5 (`sid.<SID>.conf`) are SID-specific and cleaned up on switch

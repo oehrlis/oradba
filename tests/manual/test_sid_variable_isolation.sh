@@ -76,7 +76,7 @@ info ""
 
 # Create test directory
 TEST_DIR=$(mktemp -d)
-trap "rm -rf '$TEST_DIR'" EXIT
+trap 'rm -rf "$TEST_DIR"' EXIT
 
 info "Test directory: $TEST_DIR"
 

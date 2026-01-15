@@ -20,10 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **oradba_homes.sh Critical Fixes** (2026-01-14)
   - Fixed syntax error at line 966: missing closing parenthesis `((errors++)` → `((errors++))`
   - Fixed show command to accept both paths and names/aliases
-  - Fixed description truncation in list output (now shows full text or truncates at 39 chars with ellipsis)
+  - Fixed description truncation in list output (now shows full text or truncates at 39 chars
+    with ellipsis)
   - Added alias conflict detection with existing SID aliases
   - Improved import validation to reject invalid format, paths, and product types
-  - Fixed shellcheck warnings: unused variables (home, flag) → (_home, _flag)
+  - Fixed shellcheck warnings: unused variables (home, flag) → (underscore_home, underscore_flag)
   - Improved grep usage: `grep | wc -l` → `grep -c` for better performance
 
 ### Changed
