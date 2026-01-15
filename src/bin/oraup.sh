@@ -407,26 +407,34 @@ show_oracle_status() {
                 # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
                 read -r name path ptype _order alias_name _desc _version <<< "$home_line"
 
+                # Skip client/iclient homes - they don't need to be displayed
+                [[ "$ptype" == "client" || "$ptype" == "iclient" ]] && continue
+
                 # Format product type for display
                 local ptype_display
                 case "$ptype" in
                     database) ptype_display="Database" ;;
                     oud) ptype_display="OUD" ;;
-                    client) ptype_display="Client" ;;
-                    iclient) ptype_display="Instant Client" ;;
                     weblogic) ptype_display="WebLogic" ;;
                     oms) ptype_display="OMS" ;;
                     emagent) ptype_display="EM Agent" ;;
                     datasafe) ptype_display="Data Safe" ;;
-                    *) ptype_display="$ptype" ;;
+                    grid) ptype_display="Grid Infrastructure" ;;
+                    *) ptype_display="${ptype^}" ;;  # Capitalize first letter
                 esac
 
-                # Determine display name (prefer alias if different from name)
+                # Determine display name based on product type
                 local display_name
-                if [[ -n "$alias_name" && "$alias_name" != "$name" ]]; then
-                    display_name="$alias_name"
-                else
+                if [[ "$ptype" == "datasafe" ]]; then
+                    # For DataSafe, show the connector name (NAME field)
                     display_name="$name"
+                else
+                    # For others, prefer alias if different from name
+                    if [[ -n "$alias_name" && "$alias_name" != "$name" ]]; then
+                        display_name="$alias_name"
+                    else
+                        display_name="$name"
+                    fi
                 fi
 
                 # Check status based on product type
@@ -449,13 +457,21 @@ show_oracle_status() {
             done
         fi
 
-        # Display dummy entries (these are also Oracle Homes)
-        # Only display dummy entries if we have actual database entries
-        # This hides client-only dummy entries when there are no databases
+        # Display dummy entries only if we have actual database entries
+        # This hides dummy entries in client-only or non-database environments
         if [[ ${#dummy_entries[@]} -gt 0 && ${#db_entries[@]} -gt 0 ]]; then
             for entry in "${dummy_entries[@]}"; do
                 IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-                printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+                
+                # Skip client/iclient dummy entries
+                local is_client=false
+                if [[ ! -f "${oracle_home}/bin/oracle" ]]; then
+                    is_client=true
+                fi
+                
+                [[ "$is_client" == "true" ]] && continue
+                
+                printf "%-17s : %-12s %-11s %s\n" "RDBMS (dummy)" "$sid" "n/a" "$oracle_home"
             done
         fi
 

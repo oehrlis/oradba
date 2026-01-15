@@ -72,6 +72,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Display Improvements** (2026-01-15)
+  - oraup.sh now hides client/iclient homes from Oracle Homes section
+  - Data Safe connectors now show proper status (running/stopped) with connector name
+  - Dummy entries for client-only installations are no longer displayed
+  - Grid Infrastructure product type now shows as "Grid Infrastructure" instead of "grid"
+  - Product type display uses proper capitalization
+
 - **Environment Management Cleanup** (2026-01-15)
   - Removed unnecessary function exports from all 6 environment management libraries
   - Eliminated 47 `export -f` statements that were polluting bash environment
