@@ -263,14 +263,18 @@ _oraenv_prompt_sid() {
             if [[ -n "$discovered_oratab" ]]; then
                 log_info "Auto-discovered running Oracle instances (not in oratab)"
                 
-                # Extract SIDs from discovered entries
-                mapfile -t sids < <(echo "$discovered_oratab" | awk -F: '{print $1}')
-                total_entries=${#sids[@]}
+                # Extract SIDs from discovered entries (filter empty lines)
+                mapfile -t sids < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
                 
-                if [[ $total_entries -eq 0 ]]; then
+                # Recalculate total entries
+                local discovered_count=${#sids[@]}
+                
+                if [[ $discovered_count -eq 0 ]]; then
                     log_error "No Oracle instances or homes found"
                     return 1
                 fi
+                
+                total_entries=$discovered_count
             else
                 log_error "No Oracle instances or homes found"
                 return 1
