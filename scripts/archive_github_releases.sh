@@ -5,8 +5,8 @@
 # Name.......: archive_github_releases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.01.15
+# Revision...: 1.0.0
 # Purpose....: Add archive notices to old GitHub releases
 # Notes......: Updates release descriptions with archive notices for outdated versions
 # Reference..: https://github.com/oehrlis/oradba
@@ -21,7 +21,7 @@ REPO="oehrlis/oradba"
 DRY_RUN=false
 CURRENT_VERSION=""  # Will be fetched from GitHub
 
-# Archived releases (v0.9.4 through v0.16.0)
+# Archived releases (v0.9.4 through v0.18.5 - pre-1.0 releases)
 ARCHIVED_RELEASES=(
     v0.9.4 v0.9.5
     v0.10.0 v0.10.1 v0.10.2 v0.10.3 v0.10.4 v0.10.5
@@ -31,6 +31,8 @@ ARCHIVED_RELEASES=(
     v0.14.0 v0.14.1 v0.14.2
     v0.15.0
     v0.16.0
+    v0.17.0
+    v0.18.0 v0.18.1 v0.18.2 v0.18.3 v0.18.4 v0.18.5
 )
 
 # Colors
