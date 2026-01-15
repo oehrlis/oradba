@@ -5,8 +5,8 @@
 # Name.......: oradba_homes.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.01.15
+# Revision...: 1.0.0
 # Purpose....: Manage Oracle Homes configuration for non-database products
 # Notes......: Provides commands to add, remove, list, and discover Oracle Homes
 # Reference..: https://github.com/oehrlis/oradba

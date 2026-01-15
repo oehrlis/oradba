@@ -5,8 +5,8 @@
 # Name.......: oradba_env.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-14
-# Revision...: 0.19.0
+# Date.......: 2026-01-15
+# Revision...: 1.0.0
 # Purpose....: Oracle environment management utility
 # Notes......: Provides commands to list, validate, and manage Oracle environments
 #              Part of Phase 1 implementation
@@ -20,7 +20,7 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 readonly SCRIPT_NAME
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-readonly SCRIPT_VERSION="0.20.0"
+readonly SCRIPT_VERSION="1.0.0"
 
 # Setup ORADBA_BASE
 ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
