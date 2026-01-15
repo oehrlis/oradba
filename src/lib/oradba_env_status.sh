@@ -321,13 +321,3 @@ oradba_get_product_status() {
             ;;
     esac
 }
-
-# Export functions
-export -f oradba_check_db_status
-export -f oradba_check_asm_status
-export -f oradba_check_listener_status
-export -f oradba_check_process_running
-export -f oradba_check_datasafe_status
-export -f oradba_check_oud_status
-export -f oradba_check_wls_status
-export -f oradba_get_product_status

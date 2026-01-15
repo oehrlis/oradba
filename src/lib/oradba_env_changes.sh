@@ -248,12 +248,3 @@ oradba_auto_reload_on_change() {
     
     return 1
 }
-
-# Export functions
-export -f oradba_get_file_signature
-export -f oradba_store_file_signature
-export -f oradba_check_file_changed
-export -f oradba_check_config_changes
-export -f oradba_init_change_tracking
-export -f oradba_clear_change_tracking
-export -f oradba_auto_reload_on_change

@@ -331,11 +331,5 @@ oradba_validate_environment() {
     return 1
 }
 
-# Export functions for use by other scripts
-export -f oradba_validate_oracle_home
-export -f oradba_validate_sid
-export -f oradba_check_oracle_binaries
-export -f oradba_check_db_running
-export -f oradba_get_db_version
-export -f oradba_get_db_status
-export -f oradba_validate_environment
+# Functions are available when this library is sourced
+# No need to export - reduces environment pollution

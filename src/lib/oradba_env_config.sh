@@ -341,12 +341,5 @@ oradba_get_config_value() {
     return 1
 }
 
-# Export functions for use by other scripts
-export -f oradba_apply_config_section
-export -f oradba_load_generic_configs
-export -f oradba_load_sid_config
-export -f oradba_apply_product_config
-export -f oradba_expand_variables
-export -f oradba_list_config_sections
-export -f oradba_validate_config_file
-export -f oradba_get_config_value
+# Functions are available when this library is sourced
+# No need to export - reduces environment pollution

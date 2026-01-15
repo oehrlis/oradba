@@ -314,12 +314,5 @@ oradba_get_product_type() {
     return 1
 }
 
-# Export functions for use by other scripts
-export -f oradba_parse_oratab
-export -f oradba_parse_homes
-export -f oradba_find_sid
-export -f oradba_find_home
-export -f oradba_get_home_metadata
-export -f oradba_list_all_sids
-export -f oradba_list_all_homes
-export -f oradba_get_product_type
+# Functions are available when this library is sourced
+# No need to export - reduces environment pollution

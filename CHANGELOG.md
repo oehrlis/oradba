@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Environment Management Cleanup** (2026-01-15)
+  - Removed unnecessary function exports from all 6 environment management libraries
+  - Eliminated 47 `export -f` statements that were polluting bash environment
+  - Functions remain available when libraries are sourced (no functionality change)
+  - Cleaned up `BASH_FUNC_*` entries visible in environment output
+  - Affected files: `oradba_env_config.sh`, `oradba_env_builder.sh`, `oradba_env_parser.sh`, `oradba_env_validator.sh`, `oradba_env_changes.sh`, `oradba_env_status.sh`
+
 ### Documentation
 
 - **Documentation Cleanup** (2026-01-15)

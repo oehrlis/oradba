@@ -472,13 +472,5 @@ oradba_build_environment() {
     return 0
 }
 
-# Export functions for use by other scripts
-export -f oradba_clean_path
-export -f oradba_add_oracle_path
-export -f oradba_set_lib_path
-export -f oradba_detect_rooh
-export -f oradba_is_asm_instance
-export -f oradba_set_oracle_vars
-export -f oradba_set_asm_environment
-export -f oradba_set_product_environment
-export -f oradba_build_environment
+# Functions are available when this library is sourced
+# No need to export - reduces environment pollution
