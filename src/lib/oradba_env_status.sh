@@ -178,6 +178,12 @@ oradba_check_datasafe_status() {
         return 1
     }
     
+    # If home doesn't exist, it's STOPPED not UNKNOWN
+    [[ ! -d "$datasafe_home" ]] && {
+        echo "STOPPED"
+        return 1
+    }
+    
     # Check for DataSafe processes
     if oradba_check_process_running "datasafe" >/dev/null; then
         echo "RUNNING"

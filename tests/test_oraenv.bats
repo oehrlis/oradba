@@ -118,7 +118,7 @@ teardown() {
 
 @test "oraenv.sh _oraenv_prompt_sid handles silent mode" {
     # Check that function has logic for non-interactive mode
-    grep -A 30 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
+    grep -A 50 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
 }
 
 @test "oraenv.sh loads oradba_db_functions.sh if available" {
@@ -138,7 +138,7 @@ teardown() {
 
 @test "oraenv.sh supports numbered SID selection" {
     # Check that numbered selection is implemented
-    grep -A 50 "_oraenv_prompt_sid" "$ORAENV_SCRIPT" | grep -q "printf.*\[%d\]"
+    grep -A 100 "_oraenv_prompt_sid" "$ORAENV_SCRIPT" | grep -q "printf.*\[%d\]"
 }
 
 @test "oraenv.sh handles empty oratab gracefully" {

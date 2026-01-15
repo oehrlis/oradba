@@ -765,7 +765,15 @@ main() {
                 shift 2
                 ;;
             --parallel)
-                OPT_PARALLEL="$2"
+                case "$2" in
+                    background|gnu)
+                        OPT_PARALLEL="$2"
+                        ;;
+                    *)
+                        echo "ERROR: Invalid parallel method: $2 (must be background or gnu)" >&2
+                        exit 2
+                        ;;
+                esac
                 shift 2
                 ;;
             --backup-path)

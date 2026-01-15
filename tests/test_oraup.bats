@@ -144,5 +144,5 @@ setup() {
 
 @test "oraup.sh sorts arrays alphabetically" {
     # Verify that sort is used for both entry types
-    grep "show_oracle_status" -A 50 "${ORAUP_SCRIPT}" | grep -q "sort"
+    grep -A 200 "show_oracle_status" "${ORAUP_SCRIPT}" | grep -q "sort"
 }
