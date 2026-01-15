@@ -87,7 +87,7 @@ oradba_parse_homes() {
     fi
     
     # Parse homes file
-    while IFS=';' read -r oracle_home product version edition db_type position dummy_sid short_name description; do
+    while IFS=':' read -r oracle_home product version edition db_type position dummy_sid short_name description; do
         # Skip comments and empty lines
         [[ -z "$oracle_home" ]] && continue
         [[ "$oracle_home" =~ ^[[:space:]]*# ]] && continue

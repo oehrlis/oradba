@@ -48,12 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed "sqlplus not found" error (sqlplus not required for DataSafe)
   - Fixed incorrect PATH (was adding non-existent bin directory)
   - Fixed incorrect LD_LIBRARY_PATH (was not using oracle_cman_home/lib)
+  - Fixed oradba_homes.conf parsing delimiter (semicolon → colon)
 
 - **Client Environment Issues** (2026-01-15)
   - ICLIENT product type now properly detected and handled
   - Instant Client PATH now includes ORACLE_HOME directly (not bin subdir)
   - Instant Client LD_LIBRARY_PATH now includes ORACLE_HOME directly
   - Client validations skip checks for database-specific features
+
+### Known Issues
+
+- **oradba_env_parser.sh Format Mismatch** (2026-01-15)
+  - `oradba_parse_homes()` uses old format that doesn't match oradba_homes.conf
+  - Main system uses functions from oradba_common.sh (which are correct)
+  - Parser functions may be legacy/unused - requires investigation
+  - TODO: Align parser format with actual file format or deprecate unused functions
 
 ### Changed
 
