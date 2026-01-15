@@ -12,9 +12,9 @@ Use this guide for release testing, regression testing, or verification after mo
 
 ---
 
-## 1. Installation Testing
+## Installation Testing
 
-### 1.1 Fresh Installation (Standalone)
+### Fresh Installation (Standalone)
 
 **Objective**: Verify clean installation without existing Oracle environment
 
@@ -82,7 +82,7 @@ rm -rf "$TEST_PREFIX"
 - ✅ All 3 core config files present
 - ✅ Templates directory populated
 
-### 1.2 Fresh Installation (With Oracle Environment)
+### Fresh Installation (With Oracle Environment)
 
 **Objective**: Verify installation in active Oracle environment
 
@@ -134,7 +134,7 @@ type oradba_env.sh oradba_homes.sh oradba_validate.sh
 - ✅ All libraries load successfully
 - ✅ Commands accessible in PATH
 
-### 1.3 Upgrade Installation
+### Upgrade Installation
 
 **Objective**: Verify upgrade preserves user customizations
 
@@ -184,9 +184,9 @@ head -n 10 "$INSTALL_PREFIX/lib/oradba_env_parser.sh"
 
 ---
 
-## 2. Configuration Testing
+## Configuration Testing
 
-### 2.1 Environment Loading
+### Environment Loading
 
 **Objective**: Verify environment setup works correctly
 
@@ -234,7 +234,7 @@ type oradba_validate_oracle_home oradba_build_environment
 - ✅ Standard aliases available
 - ✅ Library functions accessible
 
-### 2.2 Configuration Hierarchy
+### Configuration Hierarchy
 
 **Objective**: Verify configuration loading precedence
 
@@ -280,7 +280,7 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 - ✅ Custom configurations load
 - ✅ Configuration hierarchy respected (system → user)
 
-### 2.3 Oracle Homes Management
+### Oracle Homes Management
 
 **Objective**: Verify Oracle Homes registry functionality
 
@@ -363,9 +363,9 @@ rm -f /tmp/homes_export.conf
 
 ---
 
-## 3. Daily Use Testing
+## Daily Use Testing
 
-### 3.1 Environment Switching
+### Environment Switching
 
 **Objective**: Verify switching between different environments
 
@@ -403,7 +403,7 @@ echo "Current SID: $ORACLE_SID"
 - ✅ Aliases work in new environment
 - ✅ Can switch back without issues
 
-### 3.2 Environment Information Commands
+### Environment Information Commands
 
 **Objective**: Verify information display commands
 
@@ -450,7 +450,7 @@ oradba_env.sh status <sid_lowercase>
 - ✅ Status command shows database state
 - ✅ Commands work with case-insensitive SID
 
-### 3.3 Listener Status Display Conditions
+### Listener Status Display Conditions
 
 **Objective**: Verify listener status is shown only when appropriate conditions are met
 
@@ -571,7 +571,7 @@ oradba_env.sh list
 - ✅ Listener status NOT shown for client-only installations
 - ✅ Edge cases handled correctly (partial conditions)
 
-### 3.4 Environment Validation
+### Environment Validation
 
 **Objective**: Verify environment validation checks
 
@@ -608,7 +608,7 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 - ✅ Reports failures for invalid environment
 - ✅ Provides actionable error messages
 
-### 3.5 Database Status Checking
+### Database Status Checking
 
 **Objective**: Verify database status detection
 
@@ -647,7 +647,7 @@ oradba_env.sh status +ASM
 - ✅ Shows listener status
 - ✅ Handles different database states
 
-### 3.6 Common DBA Aliases
+### Common DBA Aliases
 
 **Objective**: Verify standard aliases work correctly
 
@@ -695,7 +695,7 @@ lsnrctl status
 - ✅ rmanc starts RMAN
 - ✅ Listener commands work if available
 
-### 3.7 Multi-User Environment
+### Multi-User Environment
 
 **Objective**: Verify OraDBA works with multiple users
 
@@ -742,9 +742,9 @@ EOF
 
 ---
 
-## 4. Edge Cases & Error Handling
+## Edge Cases & Error Handling
 
-### 4.1 Missing Oracle Environment
+### Missing Oracle Environment
 
 **Objective**: Verify graceful handling when Oracle not available
 
@@ -775,7 +775,7 @@ oradba_env.sh list sids
 - ✅ Handles corrupted configuration files
 - ✅ Provides actionable guidance
 
-### 4.2 Permission Issues
+### Permission Issues
 
 **Objective**: Verify behavior with insufficient permissions
 
@@ -801,7 +801,7 @@ chmod 755 "$ORACLE_HOME"  # Restore
 - ✅ Suggests corrective actions
 - ✅ Fails safely without corruption
 
-### 4.3 Special Characters in Paths
+### Special Characters in Paths
 
 **Objective**: Verify handling of paths with special characters
 
@@ -829,7 +829,7 @@ rm -rf "$TEST_PATH" /tmp/oradba-link
 
 ---
 
-## 5. Test Results Template
+## Test Results Template
 
 After completing manual tests, document results:
 
@@ -883,7 +883,7 @@ After completing manual tests, document results:
 
 ---
 
-## 6. Quick Reference
+## Quick Reference
 
 ### Essential Commands
 
