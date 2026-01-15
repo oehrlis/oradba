@@ -105,7 +105,8 @@ wait_for_database() {
     log_info "Waiting for database to be ready (max ${max_wait}s)..."
     
     while [[ $elapsed -lt $max_wait ]]; do
-        if docker exec "$container" sh -c 'echo "SELECT 1 FROM DUAL;" | sqlplus -s / as sysdba' 2>&1 | grep -q "^1"; then
+        # SQL*Plus outputs with leading whitespace, so match flexible pattern
+        if docker exec "$container" sh -c 'echo "SELECT 1 FROM DUAL;" | sqlplus -s / as sysdba' 2>&1 | grep -q -E "^\s+1$"; then
             log_success "Database is ready"
             return 0
         fi
