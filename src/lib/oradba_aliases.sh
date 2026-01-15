@@ -80,6 +80,64 @@ has_rlwrap() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_tnsping
+# Purpose.: Wrapper for tnsping that falls back to sqlplus -P for Instant Client
+# Args....: All arguments passed to tnsping/sqlplus -P
+# Returns.: Exit code from tnsping or sqlplus -P
+# Notes...: sqlplus -P limitations:
+#           - Does NOT support full connect descriptors like "(DESCRIPTION=...)"
+#           - Supports: TNS names (FREE, FREE.world), EZ Connect (host:port/service)
+#           - Shows notice in verbose/debug mode when falling back to sqlplus -P
+# ------------------------------------------------------------------------------
+oradba_tnsping() {
+    # Only work if ORACLE_HOME is set
+    if [[ -z "${ORACLE_HOME}" ]]; then
+        echo "Error: ORACLE_HOME not set" >&2
+        return 1
+    fi
+
+    local tnsping_cmd="${ORACLE_HOME}/bin/tnsping"
+    local target="$1"
+    
+    # Validate that a target was provided
+    if [[ -z "${target}" ]]; then
+        echo "Usage: tnsping <tnsname|host:port/service>" >&2
+        return 1
+    fi
+    
+    # Check if native tnsping exists
+    if [[ -x "${tnsping_cmd}" ]]; then
+        "${tnsping_cmd}" "$@"
+    else
+        # Instant Client fallback: check if target looks like a connect descriptor
+        if [[ "${target}" =~ ^\(DESCRIPTION ]]; then
+            echo "Error: sqlplus -P does not support full connect descriptors" >&2
+            echo "       Use TNS name or EZ Connect format: host:port/service" >&2
+            return 1
+        fi
+        
+        # Find sqlplus (could be in bin/ or directly in ORACLE_HOME for IC)
+        local sqlplus_cmd=""
+        if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
+            sqlplus_cmd="${ORACLE_HOME}/bin/sqlplus"
+        elif [[ -x "${ORACLE_HOME}/sqlplus" ]]; then
+            sqlplus_cmd="${ORACLE_HOME}/sqlplus"
+        else
+            echo "Error: Neither tnsping nor sqlplus found in ORACLE_HOME" >&2
+            return 1
+        fi
+        
+        # Show notice in verbose/debug mode
+        if [[ "${ORADBA_LOG_LEVEL}" == "DEBUG" ]] || [[ "${DEBUG}" == "1" ]] || [[ "${ORADBA_VERBOSE}" == "true" ]]; then
+            echo "Notice: Using sqlplus -P (tnsping not available in Instant Client)" >&2
+        fi
+        
+        # Use sqlplus -P
+        "${sqlplus_cmd}" -P "$@"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Dynamic Alias Generation
 # ------------------------------------------------------------------------------
 
@@ -134,6 +192,9 @@ generate_sid_aliases() {
         create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
         create_dynamic_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
     fi
+
+    # TNS ping wrapper (supports both native tnsping and Instant Client sqlplus -P)
+    create_dynamic_alias tnsping 'oradba_tnsping'
 
     # ------------------------------------------------------------------------------
     # Service Management Aliases

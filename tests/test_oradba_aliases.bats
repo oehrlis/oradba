@@ -531,3 +531,234 @@ teardown() {
     run bash -c "declare -p sid 2>&1"
     [[ "$output" =~ (not found|not set) ]]
 }
+# ------------------------------------------------------------------------------
+# TNS Ping Wrapper Tests
+# ------------------------------------------------------------------------------
+
+@test "oradba_tnsping function exists" {
+    type oradba_tnsping
+}
+
+@test "oradba_tnsping requires ORACLE_HOME" {
+    unset ORACLE_HOME
+    run oradba_tnsping FREE
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "ORACLE_HOME not set" ]]
+}
+
+@test "oradba_tnsping requires target argument" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/product/19c"
+    run oradba_tnsping
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Usage:" ]]
+}
+
+@test "oradba_tnsping uses native tnsping when available" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/product/19c"
+    mkdir -p "${ORACLE_HOME}/bin"
+    
+    # Create mock tnsping
+    cat > "${ORACLE_HOME}/bin/tnsping" <<'EOF'
+#!/usr/bin/env bash
+echo "TNS Ping Utility for Linux: Version 19.0.0.0.0 - Production"
+echo "Used parameter files:"
+echo "Attempting to contact $1"
+echo "OK (10 msec)"
+EOF
+    chmod +x "${ORACLE_HOME}/bin/tnsping"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "TNS Ping Utility" ]]
+    [[ "$output" =~ "FREE" ]]
+}
+
+@test "oradba_tnsping falls back to sqlplus -P for Instant Client (bin/sqlplus)" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    mkdir -p "${ORACLE_HOME}/bin"
+    
+    # No tnsping, but sqlplus in bin/
+    cat > "${ORACLE_HOME}/bin/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "sqlplus -P called with: $2"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/bin/sqlplus"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "sqlplus -P called with: FREE" ]]
+}
+
+@test "oradba_tnsping falls back to sqlplus -P for Instant Client (direct sqlplus)" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    mkdir -p "${ORACLE_HOME}"
+    
+    # No tnsping, sqlplus directly in ORACLE_HOME
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "sqlplus -P called with: $2"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "sqlplus -P called with: FREE" ]]
+}
+
+@test "oradba_tnsping rejects connect descriptors with sqlplus -P" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    mkdir -p "${ORACLE_HOME}"
+    
+    # Only sqlplus available
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+echo "Should not reach here"
+exit 1
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    # Try with connect descriptor
+    run oradba_tnsping "(DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=FREE))(ADDRESS=(PROTOCOL=tcp)(HOST=172.18.0.3)(PORT=1521)))"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "does not support full connect descriptors" ]]
+    [[ "$output" =~ "TNS name or EZ Connect" ]]
+}
+
+@test "oradba_tnsping accepts TNS name with sqlplus -P" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    mkdir -p "${ORACLE_HOME}"
+    
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "Testing connection to: $2"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping FREE.world
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Testing connection to: FREE.world" ]]
+}
+
+@test "oradba_tnsping accepts EZ Connect with sqlplus -P" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    mkdir -p "${ORACLE_HOME}"
+    
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "Testing connection to: $2"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping "172.18.0.3:1521/FREE"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Testing connection to: 172.18.0.3:1521/FREE" ]]
+}
+
+@test "oradba_tnsping shows notice in verbose mode" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    export ORADBA_VERBOSE="true"
+    mkdir -p "${ORACLE_HOME}"
+    
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "Connection test"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Notice: Using sqlplus -P" ]]
+}
+
+@test "oradba_tnsping shows notice in debug mode" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    export ORADBA_LOG_LEVEL="DEBUG"
+    mkdir -p "${ORACLE_HOME}"
+    
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "Connection test"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Notice: Using sqlplus -P" ]]
+}
+
+@test "oradba_tnsping does not show notice in normal mode" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/instantclient_19_19"
+    unset ORADBA_VERBOSE
+    unset ORADBA_LOG_LEVEL
+    unset DEBUG
+    mkdir -p "${ORACLE_HOME}"
+    
+    cat > "${ORACLE_HOME}/sqlplus" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == "-P" ]]; then
+    echo "Connection test"
+    exit 0
+fi
+EOF
+    chmod +x "${ORACLE_HOME}/sqlplus"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 0 ]
+    [[ ! "$output" =~ "Notice:" ]]
+}
+
+@test "oradba_tnsping fails when neither tnsping nor sqlplus available" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/empty"
+    mkdir -p "${ORACLE_HOME}/bin"
+    
+    run oradba_tnsping FREE
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Neither tnsping nor sqlplus found" ]]
+}
+
+@test "tnsping alias is created when ORACLE_SID is set" {
+    export ORACLE_SID="TESTDB"
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/product/19c"
+    mkdir -p "${ORACLE_HOME}/bin"
+    
+    generate_sid_aliases
+    
+    # Check if alias exists
+    run bash -c "alias tnsping"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "oradba_tnsping" ]]
+}
+
+@test "oradba_tnsping passes multiple arguments correctly" {
+    export ORACLE_HOME="${TEMP_TEST_DIR}/oracle/product/19c"
+    mkdir -p "${ORACLE_HOME}/bin"
+    
+    # Create mock tnsping that shows all arguments
+    cat > "${ORACLE_HOME}/bin/tnsping" <<'EOF'
+#!/usr/bin/env bash
+echo "Arguments: $@"
+EOF
+    chmod +x "${ORACLE_HOME}/bin/tnsping"
+    
+    run oradba_tnsping FREE 10
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Arguments: FREE 10" ]]
+}
