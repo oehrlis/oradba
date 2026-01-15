@@ -295,16 +295,30 @@ show_oracle_status() {
                     db_entries+=("$sid:$oracle_home:$startup_flag")
                 done <<< "$discovered_oratab"
                 
-                # Display discovered entries
+                # Display discovered entries (same format as normal entries)
                 if [[ ${#db_entries[@]} -gt 0 ]]; then
                     mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
                     
                     for entry in "${db_entries[@]}"; do
                         IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-                        display_database_entry "$sid" "$oracle_home" "$startup_flag"
+                        
+                        # Get status
+                        local status
+                        status=$(get_db_status "$sid")
+                        
+                        # Get open mode if instance is up
+                        if [[ "$status" == "up" ]]; then
+                            local mode
+                            mode=$(get_db_mode "$sid" "$oracle_home")
+                            status="$mode"
+                        fi
+                        
+                        # Display with startup flag (N for auto-discovered)
+                        printf "%-17s : %-12s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
                     done
                 fi
                 
+                echo ""
                 echo "---------------------------------------------------------------------------------"
                 echo ""
                 return 0
