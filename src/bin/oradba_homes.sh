@@ -478,7 +478,7 @@ add_home() {
 
     # Validate product type
     case "$ptype" in
-        database | oud | client | weblogic | oms | emagent | datasafe) ;;
+        database | oud | client | iclient | weblogic | oms | emagent | datasafe) ;;
         *)
             log_error "Invalid product type: $ptype"
             return 1
@@ -959,7 +959,7 @@ import_config() {
 
         # Check type is valid
         case "$h_type" in
-            database|oud|client|weblogic|oms|emagent|datasafe) ;;
+            database|oud|client|iclient|weblogic|oms|emagent|datasafe) ;;
             *)
                 log_error "Line $line_num: Invalid product type '$h_type'"
                 ((errors++))
