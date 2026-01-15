@@ -1,7 +1,7 @@
 # OraDBA Automated Testing
 
 This directory contains automated test scripts for OraDBA, designed to
-partially automate the manual tests documented in `../doc/manual_testing.md`.
+partially automate the manual tests documented in `manual_testing.md`.
 
 ## Quick Start
 
@@ -258,6 +258,6 @@ docker exec -it oradba-test-XXXXX bash
 
 ## See Also
 
-- [Manual Testing Guide](../doc/manual_testing.md) - Complete manual test procedures
-- [Development Guide](../doc/development.md) - Development workflow
-- [Release Testing Checklist](../doc/release-testing-checklist.md) - Pre-release verification
+- [Manual Testing Guide](manual_testing.md) - Complete manual test procedures
+- [Development Guide](development.md) - Development workflow
+- [Release Testing Checklist](release-testing-checklist.md) - Pre-release verification
