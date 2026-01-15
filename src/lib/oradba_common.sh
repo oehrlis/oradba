@@ -1601,8 +1601,10 @@ set_oracle_home_environment() {
     fi
 
     # Get product type from config first, fall back to detection
-    product_type=$(get_oracle_home_type "${actual_name}" 2>/dev/null)
-    if [[ -z "${product_type}" ]] || [[ "${product_type}" == "unknown" ]]; then
+    if product_type=$(get_oracle_home_type "${actual_name}" 2>/dev/null) && [[ -n "${product_type}" ]] && [[ "${product_type}" != "unknown" ]]; then
+        # Successfully got type from config
+        :
+    else
         # Fallback to filesystem detection
         product_type=$(detect_product_type "${oracle_home}")
     fi
