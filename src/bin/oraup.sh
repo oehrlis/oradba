@@ -166,47 +166,35 @@ get_listener_status() {
 # Function: should_show_listener_status
 # Purpose.: Determine if listener status section should be displayed
 # Returns.: 0 if should show, 1 if should not show
-# Note....: Listener status is only shown when ALL conditions are met:
-#           1. tnslsnr process is running
-#           2. listener.ora exists in TNS_ADMIN (or default location)
-#           3. Oracle database binary is installed (oratab entries exist)
+# Note....: Listener status is shown when ANY of these conditions are met:
+#           1. tnslsnr process is running, OR
+#           2. listener.ora exists in TNS_ADMIN (or default location), OR
+#           3. Oracle database binary is installed (oratab/oradba_homes entries)
 # ------------------------------------------------------------------------------
 should_show_listener_status() {
     # Condition 1: Check if any tnslsnr process is running
-    if ! ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
-        return 1  # No listener process running
+    if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
+        return 0  # Listener process running - show status
     fi
 
     # Condition 2: Check if listener.ora exists
-    local listener_ora_found=false
-    
     # Check TNS_ADMIN if set
     if [[ -n "${TNS_ADMIN}" && -f "${TNS_ADMIN}/listener.ora" ]]; then
-        listener_ora_found=true
-    else
-        # Check common locations across Oracle homes from oratab
-        while IFS=: read -r sid oracle_home startup_flag _rest; do
-            [[ "$sid" =~ ^[[:space:]]*# ]] && continue
-            [[ -z "$sid" ]] && continue
-            [[ ! -d "$oracle_home" ]] && continue
-            
-            if [[ -f "${oracle_home}/network/admin/listener.ora" ]]; then
-                listener_ora_found=true
-                break
-            fi
-        done < "$ORATAB_FILE" 2>/dev/null
+        return 0  # listener.ora found - show status
     fi
     
-    if [[ "$listener_ora_found" == "false" ]]; then
-        return 1  # No listener.ora found
-    fi
+    # Check common locations across Oracle homes from oratab
+    while IFS=: read -r sid oracle_home startup_flag _rest; do
+        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$sid" ]] && continue
+        [[ ! -d "$oracle_home" ]] && continue
+        
+        if [[ -f "${oracle_home}/network/admin/listener.ora" ]]; then
+            return 0  # listener.ora found - show status
+        fi
+    done < "$ORATAB_FILE" 2>/dev/null
 
     # Condition 3: Check if Oracle database binary is installed
-    # This means checking for:
-    # - Non-empty oratab with database entries, OR
-    # - Oracle home with database binary (oracle executable)
-    local has_database=false
-    
     # Check oratab for database entries (not dummy, not client-only)
     while IFS=: read -r sid oracle_home startup_flag _rest; do
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
@@ -218,17 +206,28 @@ should_show_listener_status() {
         
         # Check if oracle binary exists (indicates database home, not client)
         if [[ -f "${oracle_home}/bin/oracle" ]]; then
-            has_database=true
-            break
+            return 0  # Database home found - show status
         fi
     done < "$ORATAB_FILE" 2>/dev/null
     
-    if [[ "$has_database" == "false" ]]; then
-        return 1  # No database binary found
+    # Also check oradba_homes.conf for database homes
+    if command -v list_oracle_homes &> /dev/null; then
+        local -a homes
+        mapfile -t homes < <(list_oracle_homes)
+        
+        for home_line in "${homes[@]}"; do
+            # Parse: NAME ORACLE_HOME PRODUCT_TYPE ...
+            read -r _name path ptype _rest <<< "$home_line"
+            
+            # Check if it's a database home and oracle binary exists
+            if [[ "$ptype" == "database" && -f "${path}/bin/oracle" ]]; then
+                return 0  # Database home found in oradba_homes.conf - show status
+            fi
+        done
     fi
 
-    # All conditions met
-    return 0
+    # No conditions met - don't show listener status
+    return 1
 }
 
 # ------------------------------------------------------------------------------
