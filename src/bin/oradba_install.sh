@@ -5,8 +5,8 @@
 # Name.......: oradba_install.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.01.15
+# Revision...: 1.0.0
 # Purpose....: Universal installer for oradba toolset
 # Notes......: Can install from embedded payload, local tarball, or GitHub releases.
 #              When distributed with embedded payload, provides self-extracting installer.
@@ -129,6 +129,42 @@ log_warn() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $*" >&2
+}
+
+# Check if version is archived (pre-1.0 release)
+check_archived_version() {
+    local version="$1"
+    
+    # List of archived pre-1.0 releases
+    local archived_versions=(
+        "0.9.4" "0.9.5"
+        "0.10.0" "0.10.1" "0.10.2" "0.10.3" "0.10.4" "0.10.5"
+        "0.11.0" "0.11.1"
+        "0.12.0" "0.12.1"
+        "0.13.0" "0.13.1" "0.13.2" "0.13.3" "0.13.4" "0.13.5"
+        "0.14.0" "0.14.1" "0.14.2"
+        "0.15.0"
+        "0.16.0"
+        "0.17.0"
+        "0.18.0" "0.18.1" "0.18.2" "0.18.3" "0.18.4" "0.18.5"
+    )
+    
+    # Check if version is in archived list
+    for archived in "${archived_versions[@]}"; do
+        if [[ "$version" == "$archived" ]]; then
+            echo ""
+            log_info "========================================================"
+            log_info "NOTE: Version ${version} is an archived pre-1.0 release"
+            log_info "========================================================"
+            log_info "This version is maintained for historical reference only."
+            log_info "For production use, consider upgrading to v1.0.0 or later."
+            log_info "Release notes: https://github.com/oehrlis/oradba/releases/tag/v${version}"
+            echo ""
+            return 0
+        fi
+    done
+    
+    return 1
 }
 
 # Cleanup function
@@ -1377,6 +1413,10 @@ extract_github_release() {
         fi
     else
         log_info "Fetching version ${version} from GitHub..."
+        
+        # Check if this is an archived version
+        check_archived_version "$version"
+        
         download_url="https://github.com/oehrlis/oradba/releases/download/v${version}/oradba-${version}.tar.gz"
         tarball_name="oradba-${version}.tar.gz"
     fi

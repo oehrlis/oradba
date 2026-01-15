@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Archived Version Warning** (2026-01-15)
+  - Added notification in `oradba_install.sh` for archived pre-1.0 releases
+  - Displays informative message when installing versions 0.9.4 through 0.18.5
+  - Warns users that archived versions are for historical reference only
+  - Recommends upgrading to v1.0.0 or later for production use
+  - Includes link to specific release notes on GitHub
+
 ### Fixed
 
 ### Changed
