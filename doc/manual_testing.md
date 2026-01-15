@@ -450,7 +450,128 @@ oradba_env.sh status <sid_lowercase>
 - ✅ Status command shows database state
 - ✅ Commands work with case-insensitive SID
 
-### 3.3 Environment Validation
+### 3.3 Listener Status Display Conditions
+
+**Objective**: Verify listener status is shown only when appropriate conditions are met
+
+**Listener Display Requirements**:
+
+Listener status should ONLY be displayed when ALL of the following conditions are met:
+
+1. `tnslsnr` process is running
+2. `listener.ora` exists in `$TNS_ADMIN`
+3. Oracle database binary is installed (oratab entry and/or Oracle database home exists)
+
+```bash
+# Test Case 1: Normal case - all conditions met
+# Expected: Listener status section shown
+
+# 1. Verify tnslsnr process running
+ps -ef | grep tnslsnr | grep -v grep
+# Expected: Process found
+
+# 2. Verify listener.ora exists
+ls -la "$TNS_ADMIN/listener.ora"
+# Expected: File exists
+
+# 3. Verify Oracle home registered
+grep "$ORACLE_HOME" /etc/oratab || oradba_homes.sh list | grep "$ORACLE_HOME"
+# Expected: Home found
+
+# 4. Check status output
+oradba_env.sh list
+# Expected: Shows "Listener Status" section with LISTENER status
+
+# Test Case 2: No listener process running
+# Expected: Listener status section NOT shown
+
+# 1. Stop listener (if safe)
+lsnrctl stop
+# or: kill -9 <tnslsnr_pid>
+
+# 2. Verify process stopped
+ps -ef | grep tnslsnr | grep -v grep
+# Expected: No process
+
+# 3. Check status output
+oradba_env.sh list
+# Expected: NO "Listener Status" section
+
+# 4. Restart listener
+lsnrctl start
+
+# Test Case 3: No listener.ora file
+# Expected: Listener status section NOT shown
+
+# 1. Backup and remove listener.ora
+cp "$TNS_ADMIN/listener.ora" /tmp/listener.ora.backup
+mv "$TNS_ADMIN/listener.ora" "$TNS_ADMIN/listener.ora.disabled"
+
+# 2. Verify file missing
+ls "$TNS_ADMIN/listener.ora" 2>&1
+# Expected: File not found
+
+# 3. Check status output (even with running listener process)
+oradba_env.sh list
+# Expected: NO "Listener Status" section
+
+# 4. Restore listener.ora
+mv "$TNS_ADMIN/listener.ora.disabled" "$TNS_ADMIN/listener.ora"
+
+# Test Case 4: No Oracle home/oratab entry
+# Expected: Listener status section NOT shown
+
+# Note: This test is destructive - only run in test environments
+# 1. Temporarily rename oratab
+sudo mv /etc/oratab /etc/oratab.disabled
+
+# 2. Unset Oracle environment
+unset ORACLE_HOME ORACLE_BASE
+
+# 3. Check status output
+oradba_env.sh list
+# Expected: NO "Listener Status" section (no Oracle homes detected)
+
+# 4. Restore oratab
+sudo mv /etc/oratab.disabled /etc/oratab
+
+# Test Case 5: Client-only installation (no database binary)
+# Expected: Listener status section NOT shown
+
+# 1. Source client-only environment (if available)
+source "$ORADBA_BASE/bin/oraenv.sh" CLIENT19
+
+# 2. Verify no database binaries
+ls "$ORACLE_HOME/bin/oracle" 2>&1
+# Expected: File not found (client has no oracle binary)
+
+# 3. Check status output
+oradba_env.sh list
+# Expected: NO "Listener Status" section for client home
+
+# Test Case 6: Multiple conditions - listener process but no config
+# Expected: Listener status section NOT shown
+
+# Scenario: tnslsnr running but listener.ora missing
+# Result: Should NOT show listener status (missing condition 2)
+
+# Test Case 7: Multiple conditions - config exists but no process
+# Expected: Listener status section NOT shown
+
+# Scenario: listener.ora exists but tnslsnr not running
+# Result: Should NOT show listener status (missing condition 1)
+```
+
+**Pass Criteria**:
+
+- ✅ Listener status shown when all 3 conditions met
+- ✅ Listener status NOT shown when tnslsnr process missing
+- ✅ Listener status NOT shown when listener.ora missing
+- ✅ Listener status NOT shown when no Oracle database home
+- ✅ Listener status NOT shown for client-only installations
+- ✅ Edge cases handled correctly (partial conditions)
+
+### 3.4 Environment Validation
 
 **Objective**: Verify environment validation checks
 
@@ -487,7 +608,7 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 - ✅ Reports failures for invalid environment
 - ✅ Provides actionable error messages
 
-### 3.4 Database Status Checking
+### 3.5 Database Status Checking
 
 **Objective**: Verify database status detection
 
@@ -526,7 +647,7 @@ oradba_env.sh status +ASM
 - ✅ Shows listener status
 - ✅ Handles different database states
 
-### 3.5 Common DBA Aliases
+### 3.6 Common DBA Aliases
 
 **Objective**: Verify standard aliases work correctly
 
@@ -574,7 +695,7 @@ lsnrctl status
 - ✅ rmanc starts RMAN
 - ✅ Listener commands work if available
 
-### 3.6 Multi-User Environment
+### 3.7 Multi-User Environment
 
 **Objective**: Verify OraDBA works with multiple users
 
@@ -734,6 +855,7 @@ After completing manual tests, document results:
 ## Daily Use Testing
 - [ ] Environment Switching: PASS/FAIL
 - [ ] Information Commands: PASS/FAIL
+- [ ] Listener Status Display Conditions: PASS/FAIL
 - [ ] Environment Validation: PASS/FAIL
 - [ ] Database Status Checking: PASS/FAIL
 - [ ] Common Aliases: PASS/FAIL
