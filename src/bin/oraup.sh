@@ -276,6 +276,42 @@ show_oracle_status() {
     entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$ORATAB_FILE")
 
     if [[ "$entry_count" -eq 0 ]]; then
+        # Try to auto-discover running instances if enabled
+        if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]]; then
+            local discovered_oratab
+            discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
+            
+            if [[ -n "$discovered_oratab" ]]; then
+                echo ""
+                echo "  ℹ Auto-discovered running Oracle instances (temporary entries)"
+                echo ""
+                echo "  These instances are not in oratab. Add them to: $ORATAB_FILE"
+                echo ""
+                
+                # Process discovered entries
+                local -a db_entries
+                while IFS=: read -r sid oracle_home startup_flag; do
+                    [[ -z "$sid" ]] && continue
+                    db_entries+=("$sid:$oracle_home:$startup_flag")
+                done <<< "$discovered_oratab"
+                
+                # Display discovered entries
+                if [[ ${#db_entries[@]} -gt 0 ]]; then
+                    mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
+                    
+                    for entry in "${db_entries[@]}"; do
+                        IFS=: read -r sid oracle_home startup_flag <<< "$entry"
+                        display_database_entry "$sid" "$oracle_home" "$startup_flag"
+                    done
+                fi
+                
+                echo "---------------------------------------------------------------------------------"
+                echo ""
+                return 0
+            fi
+        fi
+        
+        # No entries and no discovered instances
         echo ""
         echo "  ℹ No database entries found in oratab"
         echo ""

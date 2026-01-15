@@ -381,8 +381,36 @@ _oraenv_set_environment() {
     oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
 
     if [[ -z "$oratab_entry" ]]; then
-        log_error "ORACLE_SID '$requested_sid' not found in $oratab_file"
-        return 1
+        # Try auto-discovery if oratab is empty and feature is enabled
+        if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]]; then
+            local entry_count
+            entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2>/dev/null || echo "0")
+            
+            if [[ "$entry_count" -eq 0 ]]; then
+                local discovered_oratab
+                discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
+                
+                if [[ -n "$discovered_oratab" ]]; then
+                    log_info "Auto-discovered running Oracle instances (not in oratab)"
+                    log_info "These are temporary entries - add them to $oratab_file if needed"
+                    
+                    # If no SID was requested, use first discovered instance
+                    if [[ -z "$requested_sid" ]]; then
+                        oratab_entry=$(echo "$discovered_oratab" | head -n1)
+                        log_info "Auto-selecting first discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+                    else
+                        # Try to find requested SID in discovered instances
+                        oratab_entry=$(echo "$discovered_oratab" | grep -i "^${requested_sid}:" | head -n1)
+                    fi
+                fi
+            fi
+        fi
+        
+        # Still no entry found after discovery attempt
+        if [[ -z "$oratab_entry" ]]; then
+            log_error "ORACLE_SID '$requested_sid' not found in $oratab_file"
+            return 1
+        fi
     fi
 
     # Extract actual SID from oratab (preserves uppercase from oratab)

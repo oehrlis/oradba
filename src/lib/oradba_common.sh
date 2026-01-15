@@ -882,6 +882,103 @@ load_rman_catalog_connection() {
     return 0
 }
 
+# ------------------------------------------------------------------------------
+# Function: discover_running_oracle_instances
+# Purpose.: Auto-discover running Oracle instances when oratab is empty
+# Args....: None
+# Returns.: 0 if instances discovered, 1 if none found
+# Output..: Prints discovered instances in oratab format (SID:ORACLE_HOME:N)
+#           to stdout, one per line
+# Notes...: - Only checks processes owned by current user
+#           - Detects db_smon_*, ora_pmon_*, asm_smon_* processes
+#           - Extracts ORACLE_HOME from /proc/<pid>/exe
+#           - Adds temporary entries with startup flag 'N'
+#           - Shows warning if Oracle processes run as different user
+# ------------------------------------------------------------------------------
+discover_running_oracle_instances() {
+    local current_user
+    current_user=$(id -un)
+    
+    oradba_log DEBUG "Discovering running Oracle instances for user: $current_user"
+    
+    # Check for Oracle processes running as different user
+    local other_user_processes
+    other_user_processes=$(ps -eo user,comm | grep -E "(db_smon_|ora_pmon_|asm_smon_)" | grep -v "^${current_user}" | wc -l)
+    
+    if [[ "$other_user_processes" -gt 0 ]]; then
+        oradba_log WARN "Oracle processes detected running as different user(s)"
+        oradba_log WARN "Auto-discovery only works for processes owned by: $current_user"
+    fi
+    
+    # Find Oracle smon/pmon processes for current user
+    # Pattern matches: db_smon_FREE, ora_pmon_orcl, asm_smon_+ASM
+    local discovered_count=0
+    local -A seen_sids  # Track SIDs to avoid duplicates
+    
+    # Get processes for current user only
+    while read -r pid comm; do
+        local sid=""
+        local oracle_home=""
+        
+        # Extract SID from process name
+        if [[ "$comm" =~ ^db_smon_(.+)$ ]]; then
+            sid="${BASH_REMATCH[1]}"
+        elif [[ "$comm" =~ ^ora_pmon_(.+)$ ]]; then
+            # Convert lowercase pmon SID to uppercase
+            sid="${BASH_REMATCH[1]^^}"
+        elif [[ "$comm" =~ ^asm_smon_(.+)$ ]]; then
+            sid="${BASH_REMATCH[1]}"
+        else
+            continue
+        fi
+        
+        # Skip if we've already seen this SID
+        [[ -n "${seen_sids[$sid]:-}" ]] && continue
+        
+        # Determine ORACLE_HOME from /proc/<pid>/exe
+        if [[ -d "/proc" && -L "/proc/$pid/exe" ]]; then
+            local exe_path
+            exe_path=$(readlink "/proc/$pid/exe" 2>/dev/null)
+            
+            # Extract ORACLE_HOME (everything before /bin/oracle)
+            if [[ "$exe_path" =~ ^(.+)/bin/oracle$ ]]; then
+                oracle_home="${BASH_REMATCH[1]}"
+            elif [[ "$exe_path" =~ ^(.+)/bin/asm$ ]]; then
+                # Handle ASM processes
+                oracle_home="${BASH_REMATCH[1]}"
+            fi
+        fi
+        
+        # If we couldn't determine ORACLE_HOME, try ps environment
+        if [[ -z "$oracle_home" ]] && [[ -r "/proc/$pid/environ" ]]; then
+            oracle_home=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | grep "^ORACLE_HOME=" | cut -d= -f2)
+        fi
+        
+        # If still no ORACLE_HOME, skip this instance
+        if [[ -z "$oracle_home" || ! -d "$oracle_home" ]]; then
+            oradba_log WARN "Could not determine ORACLE_HOME for SID: $sid (PID: $pid)"
+            continue
+        fi
+        
+        # Output discovered instance in oratab format
+        echo "${sid}:${oracle_home}:N"
+        seen_sids[$sid]=1
+        ((discovered_count++))
+        
+        oradba_log INFO "Auto-discovered Oracle instance: $sid ($oracle_home)"
+        
+    done < <(ps -U "$current_user" -o pid,comm --no-headers 2>/dev/null | grep -E "(db_smon_|ora_pmon_|asm_smon_)")
+    
+    if [[ $discovered_count -gt 0 ]]; then
+        oradba_log INFO "Discovered $discovered_count running Oracle instance(s)"
+        oradba_log INFO "These are temporary entries - review and add to oratab if needed"
+        return 0
+    else
+        oradba_log DEBUG "No running Oracle instances found for user: $current_user"
+        return 1
+    fi
+}
+
 # Export common Oracle environment variables
 # ------------------------------------------------------------------------------
 # Function: export_oracle_base_env

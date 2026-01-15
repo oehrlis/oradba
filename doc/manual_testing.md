@@ -586,6 +586,168 @@ oradba_env.sh list
 - ✅ Listener status NOT shown for client-only + listener.ora (no tnslsnr)
 - ✅ Listener status shown for client-only + listener.ora + tnslsnr running
 
+---
+
+### Auto-Discovery of Running Instances
+
+**Objective**: Verify automatic detection and temporary registration of running Oracle instances when oratab is empty
+
+**Auto-Discovery Requirements**:
+
+When oratab has no entries AND `ORADBA_AUTO_DISCOVER_INSTANCES=true`:
+
+1. Detect running Oracle processes owned by current user (`db_smon_*`, `ora_pmon_*`, `asm_smon_*`)
+2. Extract SID from process name
+3. Determine `ORACLE_HOME` from `/proc/<pid>/exe` symlink
+4. Create temporary oratab entries (not persisted to file)
+5. Display entries in `oraup.sh` with info message
+6. Auto-source first discovered instance in `oraenv.sh` if no SID specified
+
+```bash
+# Test Case 1: Empty oratab with running database instance
+# Expected: Auto-discovery finds instance, displays in oraup, auto-sources in oraenv
+
+# 1. Backup oratab
+sudo cp /etc/oratab /etc/oratab.backup
+
+# 2. Clear oratab (keep only comments)
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Verify Oracle instance is running
+ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep
+# Expected: Shows running instance (e.g., db_smon_FREE or ora_pmon_orcl)
+
+# 4. Check oraup.sh output
+oraup.sh
+# Expected: Shows "Auto-discovered running Oracle instances (temporary entries)"
+#           Lists discovered SID with ORACLE_HOME
+#           Shows message about adding to oratab
+
+# 5. Test auto-sourcing in oraenv.sh
+unset ORACLE_SID ORACLE_HOME
+source "$ORADBA_BASE/bin/oraenv.sh"
+# Expected: Auto-selects first discovered instance
+#           Shows info message about discovery
+#           Sets ORACLE_SID and ORACLE_HOME
+#           Environment fully functional
+
+# 6. Verify environment was set
+echo "ORACLE_SID: $ORACLE_SID"
+echo "ORACLE_HOME: $ORACLE_HOME"
+# Expected: Variables set correctly
+
+# 7. Restore oratab
+sudo mv /etc/oratab.backup /etc/oratab
+
+# Test Case 2: Multiple running instances
+# Expected: All instances discovered, first one auto-selected
+
+# 1. Ensure multiple instances running (if available)
+ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep
+# Expected: Multiple processes (e.g., FREE, ORCL, +ASM)
+
+# 2. Clear oratab
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Check oraup.sh
+oraup.sh
+# Expected: Lists ALL discovered instances alphabetically
+
+# 4. Source specific instance
+source "$ORADBA_BASE/bin/oraenv.sh" ORCL
+# Expected: Finds ORCL in discovered instances
+#           Sets environment correctly
+
+# 5. Restore oratab
+sudo mv /etc/oratab.backup /etc/oratab
+
+# Test Case 3: ASM instance discovery
+# Expected: Grid/ASM instances detected and available
+
+# 1. Verify ASM running (Grid environment)
+ps -ef | grep asm_smon_ | grep -v grep
+# Expected: Shows asm_smon_+ASM or similar
+
+# 2. Clear oratab
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Check discovery
+oraup.sh
+# Expected: Shows +ASM instance with Grid ORACLE_HOME
+
+# 4. Restore oratab
+sudo mv /etc/oratab.backup /etc/oratab
+
+# Test Case 4: Oracle processes running as different user
+# Expected: Warning displayed, only current user's processes discovered
+
+# 1. Verify processes owned by oracle user (if different from current)
+ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v "^$(whoami)"
+# Expected: Shows processes owned by other user
+
+# 2. Clear oratab
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Check discovery output
+oraup.sh 2>&1 | grep -i "different user"
+# Expected: Shows warning about processes running as different user
+#           Only discovers processes owned by current user
+
+# 4. Restore oratab
+sudo mv /etc/oratab.backup /etc/oratab
+
+# Test Case 5: Disable auto-discovery
+# Expected: Feature disabled, shows "no entries" message
+
+# 1. Disable feature
+export ORADBA_AUTO_DISCOVER_INSTANCES=false
+
+# 2. Clear oratab
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Check oraup.sh
+oraup.sh
+# Expected: Shows "No database entries found in oratab" message
+#           Does NOT show discovered instances
+
+# 4. Test oraenv.sh
+source "$ORADBA_BASE/bin/oraenv.sh" 2>&1
+# Expected: Error - SID not found
+#           Does NOT auto-discover
+
+# 5. Restore
+sudo mv /etc/oratab.backup /etc/oratab
+unset ORADBA_AUTO_DISCOVER_INSTANCES
+
+# Test Case 6: No running instances
+# Expected: Normal "no entries" message
+
+# 1. Stop all Oracle instances
+# (Only in test environment!)
+
+# 2. Clear oratab
+sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab'
+
+# 3. Check oraup.sh
+oraup.sh
+# Expected: Shows standard "No database entries found" message
+#           No auto-discovery message (nothing to discover)
+
+# 4. Restore oratab and start instances
+sudo mv /etc/oratab.backup /etc/oratab
+```
+
+**Pass Criteria**:
+
+- ✅ Empty oratab + running instance auto-discovered
+- ✅ Multiple instances all discovered, first selected
+- ✅ ASM/Grid instances detected
+- ✅ Warning for other-user processes, current user discovered
+- ✅ Feature disabled = no discovery
+- ✅ No instances = standard message
+
+---
+
 ### Environment Validation
 
 **Objective**: Verify environment validation checks
@@ -871,6 +1033,7 @@ After completing manual tests, document results:
 - [ ] Environment Switching: PASS/FAIL
 - [ ] Information Commands: PASS/FAIL
 - [ ] Listener Status Display Conditions: PASS/FAIL
+- [ ] Auto-Discovery of Running Instances: PASS/FAIL
 - [ ] Environment Validation: PASS/FAIL
 - [ ] Database Status Checking: PASS/FAIL
 - [ ] Common Aliases: PASS/FAIL
