@@ -519,20 +519,6 @@ EOF
             return 1
         fi
     fi
-            -e "s@<RESYNC_CATALOG>@${resync_catalog_clause}@g" \
-            -e "s@<BACKUP_KEEP_TIME>@${backup_keep_time}@g" \
-            -e "s@<RESTORE_POINT>@${restore_point}@g" \
-            -e "s@<CUSTOM_PARAM_1>@${custom_param_1}@g" \
-            -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
-            -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
-            "${input_file}" > "${output_file}"
-        
-        # Check if sed succeeded
-        if [[ $? -ne 0 ]]; then
-            oradba_log ERROR "Template processing failed for: ${input_file}"
-            return 1
-        fi
-    fi
 
     # Verify output file was created and is not empty
     if [[ ! -s "${output_file}" ]]; then
