@@ -26,7 +26,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TEST_RESULTS_FILE="${TEST_RESULTS_FILE:-/tmp/oradba_test_results_$(date +%Y%m%d_%H%M%S).log}"
-INSTALL_PREFIX="${ORADBA_TEST_PREFIX:-/opt/oradba}"
+# Use default installation location: /opt/oracle/local/oradba
+INSTALL_PREFIX="${ORADBA_TEST_PREFIX:-/opt/oracle/local/oradba}"
 
 # Color output
 RED='\033[0;31m'
@@ -138,7 +139,8 @@ test_installation() {
     
     # Test 2: Installation
     test_start "Fresh installation to $INSTALL_PREFIX"
-    if "$PROJECT_ROOT/dist/oradba_install.sh" --prefix "$INSTALL_PREFIX" --silent >> "$TEST_RESULTS_FILE" 2>&1; then
+    # Use --base to install to /opt/oracle/local/oradba (or omit to use default)
+    if "$PROJECT_ROOT/dist/oradba_install.sh" --base /opt/oracle --silent >> "$TEST_RESULTS_FILE" 2>&1; then
         test_pass "Installation completed"
     else
         test_fail "Installation failed"
