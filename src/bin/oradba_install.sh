@@ -1173,6 +1173,31 @@ extract_embedded_payload() {
         return 1
     fi
 
+    # Ensure all file operations are synced to disk
+    sync
+    # Longer delay for Docker/containerized environments where filesystem sync can be slower
+    sleep 1
+    
+    # Verify critical files exist and are readable (especially installer script)
+    local max_retries=5
+    local retry_count=0
+    while [[ $retry_count -lt $max_retries ]]; do
+        if [[ -f "$TEMP_DIR/bin/oradba_install.sh" ]] && [[ -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+            break
+        fi
+        retry_count=$((retry_count + 1))
+        if [[ $retry_count -lt $max_retries ]]; then
+            sleep 0.5
+        fi
+    done
+    
+    # Final verification
+    if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+        log_error "Extraction completed but critical files not accessible"
+        log_error "This may indicate filesystem sync issues in containerized environments"
+        return 1
+    fi
+
     log_info "Embedded payload extracted successfully"
     return 0
 }
@@ -1367,7 +1392,29 @@ extract_local_tarball() {
     if tar -xzf "$tarball" -C "$TEMP_DIR" 2> /dev/null; then
         # Ensure all file operations are synced to disk
         sync
-        sleep 0.5
+        # Longer delay for Docker/containerized environments where filesystem sync can be slower
+        sleep 1
+        
+        # Verify critical files exist and are readable (especially installer script)
+        local max_retries=5
+        local retry_count=0
+        while [[ $retry_count -lt $max_retries ]]; do
+            if [[ -f "$TEMP_DIR/bin/oradba_install.sh" ]] && [[ -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+                break
+            fi
+            retry_count=$((retry_count + 1))
+            if [[ $retry_count -lt $max_retries ]]; then
+                sleep 0.5
+            fi
+        done
+        
+        # Final verification
+        if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+            log_error "Extraction completed but critical files not accessible"
+            log_error "This may indicate filesystem sync issues in containerized environments"
+            return 1
+        fi
+        
         log_info "Local tarball extracted successfully"
         return 0
     else
@@ -1445,8 +1492,29 @@ extract_github_release() {
     if tar -xzf "$tarball_path" -C "$TEMP_DIR" 2> /dev/null; then
         # Ensure all file operations are synced to disk
         sync
-        # Brief delay to ensure filesystem operations complete
-        sleep 0.5
+        # Longer delay for Docker/containerized environments where filesystem sync can be slower
+        sleep 1
+        
+        # Verify critical files exist and are readable (especially installer script)
+        local max_retries=5
+        local retry_count=0
+        while [[ $retry_count -lt $max_retries ]]; do
+            if [[ -f "$TEMP_DIR/bin/oradba_install.sh" ]] && [[ -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+                break
+            fi
+            retry_count=$((retry_count + 1))
+            if [[ $retry_count -lt $max_retries ]]; then
+                sleep 0.5
+            fi
+        done
+        
+        # Final verification
+        if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
+            log_error "Extraction completed but critical files not accessible"
+            log_error "This may indicate filesystem sync issues in containerized environments"
+            return 1
+        fi
+        
         rm -f "$tarball_path" # Clean up downloaded file
         log_info "GitHub release extracted successfully"
         return 0
