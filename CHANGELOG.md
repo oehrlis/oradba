@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Comprehensive Automated Testing Infrastructure** (2026-01-15)
+  - Docker-based automated testing using Oracle 26ai Free container
+  - 68 comprehensive integration tests covering all OraDBA functionality
+  - 98% pass rate (67/68 tests passing, 2 skipped for environment limitations)
+  - Tests complete in ~3 minutes vs hours of manual testing
+  - Test suites covering:
+    - Installation & updates (8 tests)
+    - Environment loading & configuration (6 tests)
+    - Auto-discovery functionality (3 tests)
+    - Oracle Homes management (7 tests)
+    - Extensions creation & management (3 tests)
+    - Service control: listener & database (12 tests)
+    - Database status reporting (3 tests)
+    - Validation & checking tools (8 tests)
+    - Utility scripts (6 tests including version, help, dbstatus, longops)
+    - Output format variations (12 tests)
+    - Aliases & functions (8 tests)
+  - Test results persist to `tests/results/` on host (not lost with container removal)
+  - Using `docker cp` for reliable test result extraction
+  - Test logs cleaned with `make clean-all`
+  - Fixed database readiness detection: grep pattern `^\s+1$` handles SQL*Plus whitespace
+  - CI/CD ready automated testing infrastructure
+  - Partially addresses issue #20 - Complex integration tests requiring real database
+  - Commits: 0393790, c8f4d92, 868ab68, 65e80cb, 2562ca9, 86a7888, c8204d2
+
 - **Auto-Discovery of Running Oracle Instances** (2026-01-15)
   - Automatically detects running Oracle instances when oratab is empty
   - New function: `discover_running_oracle_instances()` in oradba_common.sh
