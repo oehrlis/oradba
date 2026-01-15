@@ -500,10 +500,16 @@ execute_rman_for_sid() {
         return 1
     fi
 
-    # Validate ORACLE_HOME
+    # Validate ORACLE_HOME (skip in dry-run mode for test environments)
     if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
-        oradba_log ERROR "ORACLE_HOME not set or invalid for SID: ${sid}"
-        return 1
+        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+            oradba_log WARN "ORACLE_HOME not set or invalid for SID: ${sid} (dry-run mode)"
+            # In dry-run mode, use a dummy ORACLE_HOME for validation
+            export ORACLE_HOME="/opt/oracle/product/dummy"
+        else
+            oradba_log ERROR "ORACLE_HOME not set or invalid for SID: ${sid}"
+            return 1
+        fi
     fi
 
     # Validate admin directory exists
