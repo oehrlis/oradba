@@ -372,16 +372,31 @@ show_oracle_status() {
         mapfile -t db_entries < <(printf '%s\n' "${db_entries[@]}" | sort)
     fi
 
-    # Display Oracle Homes first (if available)
+    # -------------------------------------------------------------------------
+    # Oracle Homes Section - always display if homes exist
+    # -------------------------------------------------------------------------
+    local has_oracle_homes=false
+    
+    # Check if we have Oracle Homes from oradba_homes.conf or dummy entries
     if command -v list_oracle_homes &> /dev/null; then
         local -a homes
         mapfile -t homes < <(list_oracle_homes)
-
         if [[ ${#homes[@]} -gt 0 ]]; then
-            echo ""
-            echo "Oracle Homes"
-            echo "---------------------------------------------------------------------------------"
+            has_oracle_homes=true
+        fi
+    fi
+    
+    # Show Oracle Homes section if we have homes OR dummy entries
+    if [[ "$has_oracle_homes" == "true" || ${#dummy_entries[@]} -gt 0 ]]; then
+        echo ""
+        echo "Oracle Homes"
+        echo "---------------------------------------------------------------------------------"
 
+        # Display homes from oradba_homes.conf first
+        if [[ "$has_oracle_homes" == "true" ]]; then
+            local -a homes
+            mapfile -t homes < <(list_oracle_homes)
+            
             for home_line in "${homes[@]}"; do
                 # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
                 read -r name path ptype _order alias_name _desc _version <<< "$home_line"
@@ -417,39 +432,46 @@ show_oracle_status() {
 
                 printf "%-17s : %-12s %-11s %s\n" "$ptype_display" "$display_name" "$status" "$path"
             done
-
-            echo ""
         fi
+
+        # Display dummy entries (these are also Oracle Homes)
+        if [[ ${#dummy_entries[@]} -gt 0 ]]; then
+            for entry in "${dummy_entries[@]}"; do
+                IFS=: read -r sid oracle_home startup_flag <<< "$entry"
+                printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+            done
+        fi
+
+        echo ""
     fi
 
-    # Process dummy entries first (only if they exist)
-    if [[ ${#dummy_entries[@]} -gt 0 ]]; then
-        for entry in "${dummy_entries[@]}"; do
+    # -------------------------------------------------------------------------
+    # Database Instances Section - only display if actual DB entries exist
+    # -------------------------------------------------------------------------
+    if [[ ${#db_entries[@]} -gt 0 ]]; then
+        echo "Database Instances"
+        echo "---------------------------------------------------------------------------------"
+        
+        for entry in "${db_entries[@]}"; do
             IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-            printf "%-17s : %-12s %-11s %s\n" "Dummy rdbms" "$sid" "n/a" "$oracle_home"
+
+            # Get status
+            local status
+            status=$(get_db_status "$sid")
+
+            # Get open mode if instance is up
+            if [[ "$status" == "up" ]]; then
+                local mode
+                mode=$(get_db_mode "$sid" "$oracle_home")
+                status="$mode"
+            fi
+
+            # Display with startup flag
+            printf "%-17s : %-12s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
         done
+
+        echo ""
     fi
-
-    # Process DB instances
-    for entry in "${db_entries[@]}"; do
-        IFS=: read -r sid oracle_home startup_flag <<< "$entry"
-
-        # Get status
-        local status
-        status=$(get_db_status "$sid")
-
-        # Get open mode if instance is up
-        if [[ "$status" == "up" ]]; then
-            local mode
-            mode=$(get_db_mode "$sid" "$oracle_home")
-            status="$mode"
-        fi
-
-        # Display with startup flag
-        printf "%-17s : %-12s %-11s %s\n" "DB-instance (${startup_flag})" "$sid" "$status" "$oracle_home"
-    done
-
-    echo ""
 
     # Check if listener status should be displayed
     # Only show if all conditions are met:
