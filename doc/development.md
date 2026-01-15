@@ -145,7 +145,9 @@ OraDBA uses Make for development automation. Run `make help` to see all availabl
 ```bash
 # Testing
 make test              # Smart test selection (fast, ~1-3 min)
-make test-full         # All tests (comprehensive, ~8-10 min)
+make test-full         # All BATS tests (comprehensive, ~8-10 min)
+make test-docker       # Docker-based integration tests (68 tests, ~3 min)
+make test-docker-keep  # Docker tests + keep container for inspection
 make test DRY_RUN=1    # Preview which tests would run
 
 # Quality Checks
@@ -164,6 +166,7 @@ make docs-html         # HTML documentation
 make pre-commit        # Quick checks before commit (smart tests + lint)
 make ci                # Full CI pipeline (all tests + docs + build)
 make clean             # Remove build artifacts
+make clean-all         # Deep clean including test results
 
 # Validation
 make validate          # Validate configuration files
@@ -171,12 +174,14 @@ make validate          # Validate configuration files
 
 **Test-Related Targets:**
 
-| Target            | Tests Run               | Duration  | Use Case                |
-|-------------------|-------------------------|-----------|-------------------------|
-| `make test`       | Smart selection (~5-50) | 1-3 min   | During development      |
-| `make test-full`  | All 492 tests           | 8-10 min  | Before commits/releases |
-| `make pre-commit` | Smart + lint            | 2-4 min   | Pre-commit hook         |
-| `make ci`         | Full suite + build      | 10-15 min | Complete validation     |
+| Target                  | Tests Run                 | Duration  | Use Case                          |
+|-------------------------|---------------------------|-----------|-----------------------------------|
+| `make test`             | Smart selection (~5-50)   | 1-3 min   | During development                |
+| `make test-full`        | All 892 BATS tests        | 8-10 min  | Before commits/releases           |
+| `make test-docker`      | 68 integration tests      | ~3 min    | Real database environment testing |
+| `make test-docker-keep` | 68 tests + keep container | ~3 min    | Test debugging and inspection     |
+| `make pre-commit`       | Smart + lint              | 2-4 min   | Pre-commit hook                   |
+| `make ci`               | Full suite + build        | 10-15 min | Complete validation               |
 
 **Environment Variables:**
 
@@ -625,8 +630,77 @@ Backup location: `$PREFIX.backup.YYYYMMDD_HHMMSS`
 
 ![Test Strategy](images/test-strategy.png)
 
-The project uses BATS (Bash Automated Testing System) for comprehensive testing,
-with unit tests for individual functions and integration tests for end-to-end workflows.
+OraDBA uses a comprehensive testing strategy with multiple testing frameworks:
+
+- **BATS Tests**: 892+ unit and integration tests for shell scripts
+- **Docker-based Tests**: 68 automated integration tests against real Oracle databases
+- **Smart Test Selection**: Runs only tests affected by changes
+
+### Test Types
+
+#### 1. BATS Unit & Integration Tests (892 tests)
+
+BATS (Bash Automated Testing System) provides comprehensive coverage of:
+
+- Individual function testing (unit tests)
+- Script integration testing
+- Configuration validation
+- Installation and upgrade scenarios
+
+**Run BATS tests:**
+
+```bash
+make test              # Smart selection (runs only affected tests)
+make test-full         # All 892 BATS tests (~8-10 min)
+make test DRY_RUN=1    # Preview what would run
+```
+
+#### 2. Docker-based Integration Tests (68 tests)
+
+Automated testing against a real Oracle 26ai Free database in Docker containers:
+
+- **68 comprehensive tests** with 98% pass rate (67 passing, 2 skipped)
+- **Test execution**: ~3 minutes
+- **Real database environment**: Tests actual Oracle integration
+- **CI/CD ready**: Automatic cleanup and result persistence
+
+**Coverage includes:**
+
+- Installation & updates (8 tests)
+- Environment loading (6 tests)
+- Auto-discovery (3 tests)
+- Oracle Homes management (7 tests)
+- Extensions (3 tests)
+- Service control - listener & database (12 tests)
+- Database status (3 tests)
+- Validation & checking tools (8 tests)
+- Utility scripts (6 tests)
+- Output formats (12 tests)
+- Aliases & functions (8 tests)
+
+**Run Docker tests:**
+
+```bash
+make test-docker       # Build + run all Docker integration tests
+make test-docker-keep  # Run tests + keep container for inspection
+
+# Or run directly
+./tests/run_docker_tests.sh
+./tests/run_docker_tests.sh --keep-container  # Keep container after tests
+./tests/run_docker_tests.sh --no-build        # Skip build step
+```
+
+**Test results:**
+
+- Saved to `tests/results/` on host (persist after container removal)
+- Cleaned with `make clean-all`
+- View results: `cat tests/results/oradba_test_results_*.log`
+
+**Requirements:**
+
+- Docker installed and running
+- Oracle container image: `container-registry.oracle.com/database/free:latest`
+- ~7GB disk space for image and container
 
 ### Smart Test Selection
 
