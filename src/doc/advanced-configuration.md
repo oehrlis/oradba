@@ -944,8 +944,10 @@ cd $OUD_INSTANCE_HOME/OUD/bin
 # View OUD configuration
 ./dsconfig --help
 
-# Search LDAP directory
-ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" "(objectclass=*)"
+# Search LDAP directory (prompts for password with -W)
+ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -W -b "dc=example,dc=com" "(objectclass=*)"
+# Alternative: Use password file
+# ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -y ~/.oud_password -b "dc=example,dc=com" "(objectclass=*)"
 ```
 
 **OUD-specific aliases:**
@@ -982,9 +984,12 @@ netstat -an | grep "1389\|1636"
 tail -f $OUD_INSTANCE_HOME/logs/server.out
 tail -f $OUD_INSTANCE_HOME/OUD/logs/errors
 
-# Check: Configuration backend
-./ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password \
+# Check: Configuration backend (prompts for password with -W)
+./ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -W \
     -b "cn=config" "(objectclass=*)" dn
+# Alternative: Use password file
+# ./ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -y ~/.oud_password \
+#     -b "cn=config" "(objectclass=*)" dn
 ```
 
 ### WebLogic Server (WLS)
