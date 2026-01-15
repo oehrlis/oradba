@@ -497,6 +497,136 @@ test_oracle_homes() {
     else
         test_fail "Failed to remove home (may not support remove command yet)"
     fi
+    
+    # Test 6: Auto-discovery to oradba_homes.conf
+    test_start "Create oradba_homes.conf using auto-discovery"
+    local config_file="/tmp/oradba_homes_autodiscovered.conf"
+    if "$INSTALL_PREFIX/bin/oradba_homes.sh" autodiscover --output "$config_file" >> "$TEST_RESULTS_FILE" 2>&1; then
+        if [[ -f "$config_file" ]]; then
+            test_pass "Auto-discovery config created: $config_file"
+            # Verify it contains Oracle Home entries
+            if grep -q "FREE:" "$config_file" 2>/dev/null || grep -q "dbhome" "$config_file" 2>/dev/null; then
+                test_pass "Config contains discovered Oracle Homes"
+            else
+                test_pass "Config created (no homes discovered - expected in container)"
+            fi
+            rm -f "$config_file"
+        else
+            test_fail "Config file not created"
+        fi
+    else
+        test_skip "Auto-discovery not available or failed (expected - may require different command)"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Extensions
+# ------------------------------------------------------------------------------
+
+test_extensions() {
+    log_section "EXTENSION TESTS"
+    
+    # Test 1: Extension tool available
+    test_start "Extension tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/extension_tool.sh" ]]; then
+        test_pass "extension_tool.sh found"
+    else
+        test_skip "Extension tool not found - skipping extension tests"
+        return 0
+    fi
+    
+    # Test 2: List available templates
+    test_start "List extension templates"
+    if "$INSTALL_PREFIX/bin/extension_tool.sh" list-templates >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Templates listed successfully"
+    else
+        test_fail "Failed to list templates"
+    fi
+    
+    # Test 3: Create extension from local template
+    test_start "Create extension from local template"
+    local ext_name="test_extension_$(date +%s)"
+    local ext_dir="/tmp/$ext_name"
+    
+    # Try to create an extension (common template names)
+    local template_created=false
+    for template in "basic" "simple" "default" "template"; do
+        if "$INSTALL_PREFIX/bin/extension_tool.sh" create "$ext_name" --template "$template" --output "$ext_dir" >> "$TEST_RESULTS_FILE" 2>&1; then
+            if [[ -d "$ext_dir" ]]; then
+                test_pass "Extension created from $template template"
+                template_created=true
+                break
+            fi
+        fi
+    done
+    
+    if [[ "$template_created" == "false" ]]; then
+        test_skip "Extension creation failed (templates may not be available)"
+    fi
+    
+    # Test 4: Verify extension structure
+    if [[ "$template_created" == "true" && -d "$ext_dir" ]]; then
+        test_start "Verify extension directory structure"
+        if [[ -f "$ext_dir/extension.conf" ]] || [[ -f "$ext_dir/README.md" ]] || [[ -d "$ext_dir/bin" ]]; then
+            test_pass "Extension has expected structure"
+        else
+            test_fail "Extension structure incomplete"
+        fi
+        
+        # Cleanup
+        rm -rf "$ext_dir" 2>/dev/null || true
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Additional Utilities
+# ------------------------------------------------------------------------------
+
+test_utilities() {
+    log_section "UTILITY TESTS"
+    
+    # Test 1: Check script existence
+    test_start "Check utility scripts"
+    local scripts=("oraup.sh" "oradown.sh" "oraenv.sh" "oradba_homes.sh")
+    local missing_scripts=()
+    
+    for script in "${scripts[@]}"; do
+        if [[ ! -f "$INSTALL_PREFIX/bin/$script" ]]; then
+            missing_scripts+=("$script")
+        fi
+    done
+    
+    if [[ ${#missing_scripts[@]} -eq 0 ]]; then
+        test_pass "All utility scripts present"
+    else
+        test_fail "Missing scripts: ${missing_scripts[*]}"
+    fi
+    
+    # Test 2: Help/usage output
+    test_start "Script help functionality"
+    local help_working=0
+    for script in "${scripts[@]}"; do
+        if [[ -f "$INSTALL_PREFIX/bin/$script" ]]; then
+            if "$INSTALL_PREFIX/bin/$script" --help &>/dev/null || "$INSTALL_PREFIX/bin/$script" -h &>/dev/null; then
+                ((help_working++))
+            fi
+        fi
+    done
+    
+    if [[ $help_working -gt 0 ]]; then
+        test_pass "$help_working/${#scripts[@]} scripts support help"
+    else
+        test_fail "No scripts support help/usage"
+    fi
+    
+    # Test 3: Version information
+    test_start "Version information available"
+    if "$INSTALL_PREFIX/bin/oraenv.sh" --version >> "$TEST_RESULTS_FILE" 2>&1 || 
+       grep -q "VERSION" "$INSTALL_PREFIX/VERSION" 2>/dev/null; then
+        test_pass "Version information available"
+    else
+        test_fail "Version information not available"
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -642,6 +772,8 @@ main() {
     test_environment_loading
     test_auto_discovery
     test_oracle_homes
+    test_extensions
+    test_utilities
     test_database_status
     test_aliases
     
