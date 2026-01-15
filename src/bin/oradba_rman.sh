@@ -479,6 +479,12 @@ EOF
             -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
             -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
             "${input_file}" > "${output_file}"
+        
+        # Check if sed succeeded
+        if [[ $? -ne 0 ]]; then
+            oradba_log ERROR "Template processing failed for: ${input_file}"
+            return 1
+        fi
     else
         # SPFILE backup disabled - remove lines containing the tag
         sed -e "/<SPFILE_BACKUP>/d" \
@@ -506,6 +512,32 @@ EOF
             -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
             -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
             "${input_file}" > "${output_file}"
+        
+        # Check if sed succeeded
+        if [[ $? -ne 0 ]]; then
+            oradba_log ERROR "Template processing failed for: ${input_file}"
+            return 1
+        fi
+    fi
+            -e "s@<RESYNC_CATALOG>@${resync_catalog_clause}@g" \
+            -e "s@<BACKUP_KEEP_TIME>@${backup_keep_time}@g" \
+            -e "s@<RESTORE_POINT>@${restore_point}@g" \
+            -e "s@<CUSTOM_PARAM_1>@${custom_param_1}@g" \
+            -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
+            -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
+            "${input_file}" > "${output_file}"
+        
+        # Check if sed succeeded
+        if [[ $? -ne 0 ]]; then
+            oradba_log ERROR "Template processing failed for: ${input_file}"
+            return 1
+        fi
+    fi
+
+    # Verify output file was created and is not empty
+    if [[ ! -s "${output_file}" ]]; then
+        oradba_log ERROR "Template processing produced empty or missing file: ${output_file}"
+        return 1
     fi
 
     oradba_log DEBUG "Template processed successfully: ${output_file}"
@@ -611,8 +643,11 @@ execute_rman_for_sid() {
 
     # Process template to temporary file
     local processed_script="${TEMP_DIR}/${sid}_${script_basename}.rcv"
-    process_template "${rman_script}" "${processed_script}" \
-        "${OPT_CHANNELS}" "${OPT_FORMAT}" "${OPT_TAG}" "${OPT_COMPRESSION}"
+    if ! process_template "${rman_script}" "${processed_script}" \
+        "${OPT_CHANNELS}" "${OPT_FORMAT}" "${OPT_TAG}" "${OPT_COMPRESSION}"; then
+        oradba_log ERROR "Failed to process template for ${sid}"
+        return 1
+    fi
 
     # Build RMAN command
     local rman_cmd="${ORACLE_HOME}/bin/rman"
