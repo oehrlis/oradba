@@ -254,6 +254,27 @@ mv "$CHECK_SCRIPT_OUTPUT.tmp" "$CHECK_SCRIPT_OUTPUT"
 # Make check script executable
 chmod +x "$CHECK_SCRIPT_OUTPUT"
 
+# Generate SHA256 checksums for distribution artifacts
+echo "Generating SHA256 checksums..."
+
+if command -v sha256sum &> /dev/null; then
+    sha256sum "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
+    sha256sum "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
+    sha256sum "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
+elif command -v shasum &> /dev/null; then
+    shasum -a 256 "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
+    shasum -a 256 "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
+    shasum -a 256 "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
+else
+    echo "Warning: Neither sha256sum nor shasum found - skipping checksum generation"
+fi
+
+if [[ -f "${DIST_TARBALL}.sha256" ]]; then
+    echo "  ✓ Created ${DIST_TARBALL}.sha256"
+    echo "  ✓ Created ${INSTALLER_OUTPUT}.sha256"
+    echo "  ✓ Created ${CHECK_SCRIPT_OUTPUT}.sha256"
+fi
+
 echo ""
 echo "========================================="
 echo "Build completed successfully!"
@@ -261,6 +282,13 @@ echo "========================================="
 echo "Distribution: $DIST_TARBALL ($(du -h "$DIST_TARBALL" | cut -f1))"
 echo "Installer:    $INSTALLER_OUTPUT ($(du -h "$INSTALLER_OUTPUT" | cut -f1))"
 echo "Check Script: $CHECK_SCRIPT_OUTPUT ($(du -h "$CHECK_SCRIPT_OUTPUT" | cut -f1))"
+if [[ -f "${DIST_TARBALL}.sha256" ]]; then
+    echo ""
+    echo "SHA256 Checksums:"
+    echo "  - ${DIST_TARBALL}.sha256"
+    echo "  - ${INSTALLER_OUTPUT}.sha256"
+    echo "  - ${CHECK_SCRIPT_OUTPUT}.sha256"
+fi
 echo ""
 echo "To check system prerequisites:"
 echo "  $CHECK_SCRIPT_OUTPUT"
@@ -270,6 +298,9 @@ echo "  $INSTALLER_OUTPUT"
 echo ""
 echo "For GitHub release, upload:"
 echo "  - $DIST_TARBALL"
+echo "  - $DIST_TARBALL.sha256"
 echo "  - $INSTALLER_OUTPUT"
+echo "  - $INSTALLER_OUTPUT.sha256"
 echo "  - $CHECK_SCRIPT_OUTPUT"
+echo "  - $CHECK_SCRIPT_OUTPUT.sha256"
 echo ""
