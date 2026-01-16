@@ -24,13 +24,15 @@ Questions regarding the refactoring plan and architecture review.
    - Should NOT appear in listener section
 
 3. **Clean Architecture**:
-   ```
+
+   ```text
    database_plugin.sh  → Handles RDBMS homes (has rdbms/, pmon)
    client_plugin.sh    → Handles full client (has bin/sqlplus)
    iclient_plugin.sh   → Handles instant client (libclntsh.so)
    ```
 
 4. **Implementation Example**:
+
    ```bash
    # client_plugin.sh
    plugin_validate_home() {
@@ -55,7 +57,9 @@ Questions regarding the refactoring plan and architecture review.
 
 ## Plugin Detection Architecture
 
-**Question:** Some plugins use hardcoded paths in `plugin_detect_installation()` to auto-detect installations (e.g., `/u01/app/oracle`, `/opt/oracle`). Should we:
+**Question:** Some plugins use hardcoded paths in `plugin_detect_installation()`
+to auto-detect installations (e.g., `/u01/app/oracle`, `/opt/oracle`). Should we:
+
 1. Keep hardcoded paths (simple, works for most cases)?
 2. Extend the interface to pass additional information like:
    - oratab entries (for context-aware discovery)
@@ -90,6 +94,5 @@ Questions regarding the refactoring plan and architecture review.
    - Plugins can access `${ORACLE_BASE}` if set
    - Can source oradba_common.sh for utility functions
 
-**Decision:** Keep current hardcoded paths for Phase 2. Consider optional context parameter in Phase 3 if real-world usage shows need for it.
-
-##
+**Decision:** Keep current hardcoded paths for Phase 2. Consider optional context
+parameter in Phase 3 if real-world usage shows need for it.

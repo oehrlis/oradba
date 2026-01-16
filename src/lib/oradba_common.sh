@@ -1642,16 +1642,31 @@ set_oracle_home_environment() {
         product_type=$(detect_product_type "${oracle_home}")
     fi
 
-    # Special handling for DataSafe: adjust ORACLE_HOME to point to oracle_cman_home
+    # Apply product-specific adjustments via plugin system
+    local adjusted_home="${oracle_home}"
     local datasafe_install_dir=""
-    if [[ "${product_type}" == "datasafe" ]] && [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-        datasafe_install_dir="${oracle_home}"
-        oracle_home="${oracle_home}/oracle_cman_home"
-        log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home"
+    
+    if [[ "${product_type}" == "datasafe" ]]; then
+        # Load datasafe plugin for oracle_cman_home adjustment
+        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+        if [[ -f "${plugin_file}" ]]; then
+            # shellcheck source=/dev/null
+            source "${plugin_file}"
+            datasafe_install_dir="${oracle_home}"
+            adjusted_home=$(plugin_adjust_environment "${oracle_home}")
+            log_debug "DataSafe detected: ORACLE_HOME adjusted via plugin (${adjusted_home})"
+        else
+            # Fallback to old logic if plugin not available
+            if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+                datasafe_install_dir="${oracle_home}"
+                adjusted_home="${oracle_home}/oracle_cman_home"
+                log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home (fallback)"
+            fi
+        fi
     fi
 
     # Set base environment
-    export ORACLE_HOME="${oracle_home}"
+    export ORACLE_HOME="${adjusted_home}"
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
     
     # Set DataSafe-specific variables if applicable

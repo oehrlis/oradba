@@ -290,9 +290,17 @@ cmd_validate() {
             product_type="$ptype"
             validate_sid=""  # Oracle Homes don't have SID
             
-            # Apply DataSafe ORACLE_HOME adjustment if needed
-            if [[ "$product_type" == "datasafe" ]] && [[ -d "${validate_home}/oracle_cman_home" ]]; then
-                validate_home="${validate_home}/oracle_cman_home"
+            # Apply DataSafe adjustment via plugin if needed
+            if [[ "$product_type" == "datasafe" ]]; then
+                local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+                if [[ -f "${plugin_file}" ]]; then
+                    # shellcheck source=/dev/null
+                    source "${plugin_file}"
+                    validate_home=$(plugin_adjust_environment "${validate_home}")
+                elif [[ -d "${validate_home}/oracle_cman_home" ]]; then
+                    # Fallback
+                    validate_home="${validate_home}/oracle_cman_home"
+                fi
             fi
         else
             # Try oratab

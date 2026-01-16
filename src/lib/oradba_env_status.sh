@@ -173,12 +173,23 @@ oradba_check_process_running() {
 # ------------------------------------------------------------------------------
 oradba_check_datasafe_status() {
     local oracle_home="$1"
-    local cmctl="${oracle_home}/oracle_cman_home/bin/cmctl"
     
     [[ -z "$oracle_home" ]] && {
         echo "UNKNOWN"
         return 1
     }
+    
+    # Use datasafe plugin for status check
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}"
+        plugin_check_status "${oracle_home}" ""
+        return $?
+    fi
+    
+    # Fallback to direct cmctl check
+    local cmctl="${oracle_home}/oracle_cman_home/bin/cmctl"
     
     # Check if cmctl exists
     if [[ ! -x "$cmctl" ]]; then
@@ -213,9 +224,21 @@ oradba_check_datasafe_status() {
 # ------------------------------------------------------------------------------
 oradba_get_datasafe_port() {
     local oracle_home="$1"
-    local cmctl="${oracle_home}/oracle_cman_home/bin/cmctl"
     
     [[ -z "$oracle_home" ]] && return 1
+    
+    # Adjust to oracle_cman_home via plugin
+    local adjusted_home="${oracle_home}"
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}"
+        adjusted_home=$(plugin_adjust_environment "${oracle_home}")
+    elif [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+        adjusted_home="${oracle_home}/oracle_cman_home"
+    fi
+    
+    local cmctl="${adjusted_home}/bin/cmctl"
     
     # Check if cmctl exists
     [[ ! -x "$cmctl" ]] && return 1

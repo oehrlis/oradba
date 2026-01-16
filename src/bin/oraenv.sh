@@ -468,13 +468,28 @@ _oraenv_set_environment() {
         # Don't return error - allow setting env even if HOME doesn't exist
     fi
     
-    # Special handling for DataSafe: adjust ORACLE_HOME to point to oracle_cman_home
+    # Apply product-specific adjustments via plugin system
     local datasafe_install_dir=""
+    local adjusted_home="${oracle_home}"
+    
+    # Check if this is a DataSafe installation
     if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-        datasafe_install_dir="$oracle_home"
-        oracle_home="${oracle_home}/oracle_cman_home"
-        log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home"
+        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+        if [[ -f "${plugin_file}" ]]; then
+            # shellcheck source=/dev/null
+            source "${plugin_file}"
+            datasafe_install_dir="${oracle_home}"
+            adjusted_home=$(plugin_adjust_environment "${oracle_home}")
+            log_debug "DataSafe detected: ORACLE_HOME adjusted via plugin"
+        else
+            # Fallback to old logic
+            datasafe_install_dir="${oracle_home}"
+            adjusted_home="${oracle_home}/oracle_cman_home"
+            log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home (fallback)"
+        fi
     fi
+    
+    oracle_home="${adjusted_home}"
 
     # Unset previous Oracle environment
     _oraenv_unset_old_env

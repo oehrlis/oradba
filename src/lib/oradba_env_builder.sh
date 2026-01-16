@@ -354,12 +354,25 @@ oradba_set_oracle_vars() {
     [[ -z "$oracle_home" ]] && return 1
     [[ ! -d "$oracle_home" ]] && return 1
     
-    # Special handling for DataSafe: save parent directory and adjust ORACLE_HOME
+    # Apply product-specific adjustments via plugin system
     local datasafe_parent=""
-    if [[ "$product_type" == "DATASAFE" ]] && [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-        datasafe_parent="$oracle_home"
-        oracle_home="${oracle_home}/oracle_cman_home"
+    local adjusted_home="${oracle_home}"
+    
+    if [[ "$product_type" == "DATASAFE" ]]; then
+        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+        if [[ -f "${plugin_file}" ]]; then
+            # shellcheck source=/dev/null
+            source "${plugin_file}"
+            datasafe_parent="${oracle_home}"
+            adjusted_home=$(plugin_adjust_environment "${oracle_home}")
+        elif [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+            # Fallback
+            datasafe_parent="${oracle_home}"
+            adjusted_home="${oracle_home}/oracle_cman_home"
+        fi
     fi
+    
+    oracle_home="${adjusted_home}"
     
     # Core Oracle variables
     export ORACLE_SID="$oracle_sid"
