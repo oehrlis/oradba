@@ -9,6 +9,12 @@ OraDBA is a comprehensive Oracle Database administration toolkit for Unix/Linux 
 ### Shell Scripting
 
 - **Always use**: `#!/usr/bin/env bash` (never `#!/bin/sh`)
+- **Strict mode**: Consider using for critical scripts:
+  ```bash
+  set -e  # Exit on error
+  set -u  # Exit on undefined variable
+  set -o pipefail  # Exit on pipe failure
+  ```
 - **ShellCheck compliance**: All code must pass `make lint` with no warnings
 - **SC2155 warnings**: Declare and assign separately to avoid masking return values
   ```bash
@@ -96,8 +102,8 @@ oradba/
 
 ### Making Changes
 
-1. **Test locally**: Run relevant tests with `bats tests/test_*.bats`
-2. **Lint code**: Run `make lint` before committing
+1. **Test locally**: Run relevant tests with `bats tests/test_*.bats` or `make test`
+2. **Lint code**: Run `make lint` (all linters) or `make lint-shell`/`make lint-markdown` before committing
 3. **Update tests**: Add/update tests for new functionality
 4. **Update docs**: Keep CHANGELOG.md and release notes in sync
 5. **Commit messages**: Use conventional commits format:
@@ -109,10 +115,15 @@ oradba/
 
 ### Testing
 
-- **Unit tests**: Located in `tests/test_*.bats`
-- **Run specific test**: `bats tests/test_file.bats -f "test name"`
-- **Run optimzed tests**: `make test` Run smart test selection (only tests affected by changes). Dependency is configured in `.testmap.yml`
-- **Run all tests**: `make test-full` or `bats tests/`
+OraDBA has comprehensive test coverage with BATS unit/integration tests and Docker-based tests against real Oracle databases.
+
+- **Smart test selection**: `make test` - Runs only affected tests (~1-3 min)
+- **Full test suite**: `make test-full` - All BATS tests (~10 min, use before releases)
+- **Pre-commit checks**: `make pre-commit` - Smart tests + linting (~2-4 min)
+- **Full CI pipeline**: `make ci` - Full tests + docs + build (~10-15 min, use sparingly)
+- **Docker integration**: `make test-docker` - Real Oracle DB tests (~3 min)
+- **Specific test**: `bats tests/test_file.bats -f "test name"`
+- **Test mapping**: Edit `.testmap.yml` to map source files to test files
 - **Test coverage**: Aim for high coverage of critical functions
 
 ### Documentation
@@ -121,8 +132,74 @@ oradba/
 - **Release notes**: Update `doc/releases/v*.md` for releases
 - **CHANGELOG**: Keep `CHANGELOG.md` current with all changes
 - **Function headers**: Document all functions with purpose, args, returns, output
+- **Alias help**: Update `src/doc/alias_help.txt` when aliases change
+
+### Validation Scripts
+
+Update validation/check scripts when project structure or requirements change:
+
+- **Installation checks**: `src/bin/oradba_check.sh` - Update when installation requirements change
+- **Installation validation**: `src/bin/oradba_validate.sh` - Update when scripts/libs change
+- **Project structure**: `scripts/validate_project.sh` - Update when project structure changes
+- **Test environment**: `scripts/validate_test_environment.sh` - Update when test structure changes
 
 ## Common Patterns
+
+### Database Queries (v0.13.2+)
+
+Always use `execute_db_query()` instead of inline sqlplus calls:
+
+```bash
+# Good - escape $ in SQL, use execute_db_query()
+local query="SELECT name FROM v\$database;"
+local db_name
+db_name=$(execute_db_query "$query" "raw")
+
+# For pipe-delimited output (extracts first line)
+local query="SELECT name || '|' || db_unique_name FROM v\$database;"
+local db_info
+db_info=$(execute_db_query "$query" "delimited")
+
+# With error handling
+if ! result=$(execute_db_query "$query" "raw"); then
+    oradba_log ERROR "Failed to query database"
+    return 1
+fi
+
+# Bad - inline sqlplus (old pattern, avoid)
+result=$(sqlplus -s / as sysdba <<EOF
+    SELECT name FROM v$database;
+EOF
+)
+```
+
+**Key points:**
+- Always escape dollar signs in SQL: `v\$database` not `v$database`
+- Use `raw` format for single values or multi-line output
+- Use `delimited` format for pipe-separated values (first line only)
+- Check return status for error handling
+
+### Logging (v0.13.1+)
+
+Use `oradba_log` function for all logging:
+
+```bash
+# Recommended (new syntax)
+oradba_log INFO "Database started successfully"
+oradba_log WARN "Archive log directory is 90% full"
+oradba_log ERROR "Connection to database failed"
+oradba_log DEBUG "SQL query: ${sql_query}"
+
+# Configure log level
+export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
+export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
+
+# Legacy functions (deprecated but still work)
+log_info "message"   # Use oradba_log INFO instead
+log_warn "message"   # Use oradba_log WARN instead
+log_error "message"  # Use oradba_log ERROR instead
+log_debug "message"  # Use oradba_log DEBUG instead
+```
 
 ### Function Documentation
 
@@ -232,12 +309,14 @@ When adding entries to configuration files:
 1. Update VERSION file
 2. Update CHANGELOG.md with all changes
 3. Update release notes in `doc/releases/v*.md`
-4. Run smart test suite: `make test`
-5. Optional run full test suite: `make test-full`
+4. Run smart test suite: `make test` for quick validation
+5. **Before release**: Run full test suite: `make test-full` or `make ci` (~10 min)
 6. Run linting: `make lint`
 7. Commit changes with descriptive message
 8. Create annotated git tag: `git tag -a vX.Y.Z -m "Release message"`
 9. Push commits and tags: `git push origin main && git push origin vX.Y.Z`
+
+**Note**: Full test suite (`make test-full`/`make ci`) takes ~10 minutes. Use sparingly during development, but always before releases.
 
 ## When Generating Code
 
@@ -248,6 +327,9 @@ When adding entries to configuration files:
 - Consider backward compatibility
 - Add test cases for new functionality
 - Update relevant documentation
+- **Always ask clarifying questions** when requirements are unclear
+- **Ask before breaking compatibility** - Confirm with user when changes might break existing functionality
+- **Avoid hardcoded figures** - Use dynamic detection instead of fixed counts/numbers unless necessary
 
 ## Integration Points
 
