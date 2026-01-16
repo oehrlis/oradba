@@ -348,7 +348,8 @@ EOF
     load_config_file "${test_config}" "false"
     
     # Count occurrences of /usr/local/bin
-    local count=$(echo "${PATH}" | tr ':' '\n' | grep -c '^/usr/local/bin$' || true)
+    local count
+    count=$(echo "${PATH}" | tr ':' '\n' | grep -c '^/usr/local/bin$' || true)
     
     # Should only appear once (deduplicated)
     [ "${count}" -eq 1 ]
