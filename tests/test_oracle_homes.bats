@@ -328,20 +328,23 @@ teardown() {
     mkdir -p "${cman_home}/bin"
     mkdir -p "${cman_home}/config"
     touch "${cman_home}/bin/cmctl"
+    chmod +x "${cman_home}/bin/cmctl"
     touch "${parent_dir}/setup.py"
     
-    # Add DataSafe entry to mock config
-    local homes_config="${TEST_TEMP_DIR}/oradba_homes.conf"
-    echo "dstest:${parent_dir}:datasafe:50:DataSafe Test" > "${homes_config}"
-    export ORADBA_HOMES_CONF="${homes_config}"
+    # Add DataSafe entry to oradba_homes.conf (in ORADBA_BASE/etc)
+    echo "dstest:${parent_dir}:datasafe:50:DataSafe Test" >> "${ORADBA_BASE}/etc/oradba_homes.conf"
     
-    # Call function with parent directory
+    # Source necessary functions for product detection
+    source "${PROJECT_ROOT}/src/lib/oradba_env_parser.sh"
+    
+    # Call function - it should read type from config
     set_oracle_home_environment "dstest" "${parent_dir}"
+    local status=$?
     
     # Should succeed
-    [ "$?" -eq 0 ]
+    [ "${status}" -eq 0 ]
     
-    # ORACLE_HOME should point to oracle_cman_home subdirectory
+    # ORACLE_HOME should point to oracle_cman_home subdirectory (not parent)
     [ "${ORACLE_HOME}" = "${cman_home}" ]
     
     # DataSafe variables should be set
@@ -349,6 +352,6 @@ teardown() {
     [ "${DATASAFE_INSTALL_DIR}" = "${parent_dir}" ]
     [ "${DATASAFE_CONFIG}" = "${cman_home}/config" ]
     
-    # PATH should include oracle_cman_home/bin
+    # PATH should include oracle_cman_home/bin (not parent/bin)
     [[ "${PATH}" == *"${cman_home}/bin"* ]]
 }

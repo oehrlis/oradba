@@ -1842,8 +1842,8 @@ load_config_file() {
             if command -v oradba_dedupe_path &>/dev/null; then
                 PATH="$(oradba_dedupe_path "${PATH}")"
             else
-                # Fallback deduplication using awk
-                PATH="$(echo "${PATH}" | awk -v RS=: '!seen[$0]++' | paste -sd:)"
+                # Fallback deduplication using awk (portable)
+                PATH="$(echo "${PATH}" | awk -v RS=: -v ORS=: '!seen[$0]++' | sed 's/:$//')"
             fi
             export PATH
         fi
