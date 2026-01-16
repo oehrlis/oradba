@@ -32,6 +32,8 @@ oradba_apply_config_section() {
     
     [[ ! -f "$config_file" ]] && return 1
     
+    [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Loading config file: $config_file, section: $section" >&2
+    
     local in_section=0
     local line
     
@@ -49,6 +51,7 @@ oradba_apply_config_section() {
             local current_section="${BASH_REMATCH[1]}"
             if [[ "$current_section" == "$section" ]]; then
                 in_section=1
+                [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Entered section [$section]" >&2
             else
                 in_section=0
             fi
@@ -57,8 +60,55 @@ oradba_apply_config_section() {
         
         # Process lines in active section
         if [[ $in_section -eq 1 ]]; then
-            # Handle export statements
-            if [[ "$line" =~ ^export[[:space:]] ]]; then
+            [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Processing line in section: $line" >&2
+            
+            # Handle export PATH statements specially to prevent duplicates
+            if [[ "$line" =~ ^export[[:space:]]+PATH= ]]; then
+                # Extract the PATH value (everything after PATH=)
+                local path_value="${line#*PATH=}"
+                
+                # Remove any surrounding quotes
+                path_value="${path_value#\"}"
+                path_value="${path_value%\"}"
+                path_value="${path_value#\'}"
+                path_value="${path_value%\'}"
+                
+                # Debug output
+                [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Processing PATH line: $line" >&2
+                [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: path_value after quote removal: $path_value" >&2
+                
+                # Check if it's prepending to ${PATH} or $PATH (match everything before it)
+                # Pattern: anything:${PATH} or anything:$PATH
+                if [[ "$path_value" =~ ^(.+):\$\{?PATH\}?$ ]]; then
+                    # Extract just the new paths being prepended (everything before :${PATH})
+                    local new_dirs="${BASH_REMATCH[1]}"
+                    
+                    [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: new_dirs before expansion: $new_dirs" >&2
+                    
+                    # Expand any variables in new_dirs
+                    new_dirs=$(eval "echo \"$new_dirs\"" 2>/dev/null)
+                    
+                    [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: new_dirs after expansion: $new_dirs" >&2
+                    [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Current PATH: $PATH" >&2
+                    
+                    # Split on colon and add each directory if not already in PATH
+                    IFS=':' read -ra dir_array <<< "$new_dirs"
+                    for dir in "${dir_array[@]}"; do
+                        # Only add if directory is not empty and not already in PATH
+                        if [[ -n "$dir" ]] && [[ ":${PATH}:" != *":${dir}:"* ]]; then
+                            [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Adding to PATH: $dir" >&2
+                            export PATH="${dir}:${PATH}"
+                        else
+                            [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Skipping (already in PATH): $dir" >&2
+                        fi
+                    done
+                else
+                    [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: Pattern did not match, using fallback eval" >&2
+                    # Fallback: evaluate the full expression (less common patterns)
+                    eval "export PATH=$path_value" 2>/dev/null
+                fi
+            # Handle other export statements normally
+            elif [[ "$line" =~ ^export[[:space:]] ]]; then
                 eval "$line" 2>/dev/null
             # Handle aliases
             elif [[ "$line" =~ ^alias[[:space:]] ]]; then

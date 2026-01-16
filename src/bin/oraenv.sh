@@ -467,6 +467,14 @@ _oraenv_set_environment() {
         log_info "Continuing with environment setup..."
         # Don't return error - allow setting env even if HOME doesn't exist
     fi
+    
+    # Special handling for DataSafe: adjust ORACLE_HOME to point to oracle_cman_home
+    local datasafe_install_dir=""
+    if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+        datasafe_install_dir="$oracle_home"
+        oracle_home="${oracle_home}/oracle_cman_home"
+        log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home"
+    fi
 
     # Unset previous Oracle environment
     _oraenv_unset_old_env
@@ -474,6 +482,15 @@ _oraenv_set_environment() {
     # Set new environment (use actual SID from oratab to preserve case)
     export ORACLE_SID="$actual_sid"
     export ORACLE_HOME="$oracle_home"
+    
+    # Set DataSafe-specific variables if applicable
+    if [[ -n "$datasafe_install_dir" ]]; then
+        export DATASAFE_HOME="$oracle_home"
+        export DATASAFE_INSTALL_DIR="$datasafe_install_dir"
+        if [[ -d "${oracle_home}/config" ]]; then
+            export DATASAFE_CONFIG="${oracle_home}/config"
+        fi
+    fi
 
     # Set ORACLE_BASE if not already set
     if [[ -z "${ORACLE_BASE}" ]]; then

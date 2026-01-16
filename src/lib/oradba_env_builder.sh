@@ -146,10 +146,9 @@ oradba_add_oracle_path() {
             ;;
             
         DATASAFE)
-            # DataSafe: oracle_cman_home/bin directory
-            if [[ -d "${oracle_home}/oracle_cman_home/bin" ]]; then
-                new_path="${oracle_home}/oracle_cman_home/bin"
-            elif [[ -d "${oracle_home}/bin" ]]; then
+            # DataSafe: ORACLE_HOME now points to oracle_cman_home
+            # so we just need bin directory
+            if [[ -d "${oracle_home}/bin" ]]; then
                 new_path="${oracle_home}/bin"
             fi
             ;;
@@ -171,20 +170,24 @@ oradba_add_oracle_path() {
             ;;
     esac
     
-    # Add paths to PATH only if directories exist
+    # Add paths to PATH only if directories exist AND not already in PATH
     # Handle both single paths and colon-separated path lists
     if [[ -n "$new_path" ]]; then
+        [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: oradba_add_oracle_path - new_path: $new_path" >&2
+        [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: oradba_add_oracle_path - Current PATH before: $PATH" >&2
+        
         IFS=':' read -ra path_array <<< "$new_path"
         for dir in "${path_array[@]}"; do
-            if [[ -d "$dir" ]]; then
+            # Only add if directory exists and not already in PATH
+            if [[ -d "$dir" ]] && [[ ":${PATH}:" != *":${dir}:"* ]]; then
+                [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: oradba_add_oracle_path - Adding: $dir" >&2
                 export PATH="${dir}:${PATH}"
+            else
+                [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: oradba_add_oracle_path - Skipping: $dir" >&2
             fi
         done
         
-        # Deduplicate PATH after adding all directories
-        local deduped_path
-        deduped_path="$(oradba_dedupe_path "$PATH")"
-        export PATH="$deduped_path"
+        [[ "${ORADBA_DEBUG:-false}" == "true" ]] && echo "DEBUG: oradba_add_oracle_path - Current PATH after: $PATH" >&2
     fi
 }
 
@@ -243,10 +246,9 @@ oradba_set_lib_path() {
             ;;
             
         DATASAFE)
-            # DataSafe: oracle_cman_home/lib directory
-            if [[ -d "${oracle_home}/oracle_cman_home/lib" ]]; then
-                lib_path="${oracle_home}/oracle_cman_home/lib"
-            elif [[ -d "${oracle_home}/lib" ]]; then
+            # DataSafe: ORACLE_HOME now points to oracle_cman_home
+            # so we just need lib directory
+            if [[ -d "${oracle_home}/lib" ]]; then
                 lib_path="${oracle_home}/lib"
             fi
             ;;
@@ -264,9 +266,11 @@ oradba_set_lib_path() {
     if [[ -n "$existing" ]]; then
         lib_path="${lib_path:+${lib_path}:}${existing}"
     fi
-        # Deduplicate library path
-    lib_path=\"$(oradba_dedupe_path \"$lib_path\")\"
-        # Export library path variable
+    
+    # Deduplicate library path
+    lib_path="$(oradba_dedupe_path "$lib_path")"
+    
+    # Export library path variable
     if [[ -n "$lib_path" ]]; then
         export ${lib_var}="$lib_path"
     fi
@@ -350,9 +354,21 @@ oradba_set_oracle_vars() {
     [[ -z "$oracle_home" ]] && return 1
     [[ ! -d "$oracle_home" ]] && return 1
     
+    # Special handling for DataSafe: save parent directory and adjust ORACLE_HOME
+    local datasafe_parent=""
+    if [[ "$product_type" == "DATASAFE" ]] && [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+        datasafe_parent="$oracle_home"
+        oracle_home="${oracle_home}/oracle_cman_home"
+    fi
+    
     # Core Oracle variables
     export ORACLE_SID="$oracle_sid"
     export ORACLE_HOME="$oracle_home"
+    
+    # Export DataSafe parent directory if applicable
+    if [[ -n "$datasafe_parent" ]]; then
+        export DATASAFE_INSTALL_DIR="$datasafe_parent"
+    fi
     
     # Detect and set ORACLE_BASE
     oradba_detect_rooh "$oracle_home"
@@ -419,7 +435,11 @@ oradba_set_product_environment() {
             ;;
             
         DATASAFE)
+            # DATASAFE_HOME points to connector home (same as ORACLE_HOME)
             export DATASAFE_HOME="${ORACLE_HOME}"
+            
+            # DATASAFE_INSTALL_DIR already set in oradba_set_oracle_vars if applicable
+            
             if [[ -d "${ORACLE_HOME}/config" ]]; then
                 export DATASAFE_CONFIG="${ORACLE_HOME}/config"
             fi

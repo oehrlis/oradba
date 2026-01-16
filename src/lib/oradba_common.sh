@@ -1642,9 +1642,26 @@ set_oracle_home_environment() {
         product_type=$(detect_product_type "${oracle_home}")
     fi
 
+    # Special handling for DataSafe: adjust ORACLE_HOME to point to oracle_cman_home
+    local datasafe_install_dir=""
+    if [[ "${product_type}" == "datasafe" ]] && [[ -d "${oracle_home}/oracle_cman_home" ]]; then
+        datasafe_install_dir="${oracle_home}"
+        oracle_home="${oracle_home}/oracle_cman_home"
+        log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home"
+    fi
+
     # Set base environment
     export ORACLE_HOME="${oracle_home}"
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
+    
+    # Set DataSafe-specific variables if applicable
+    if [[ -n "${datasafe_install_dir}" ]]; then
+        export DATASAFE_HOME="${oracle_home}"
+        export DATASAFE_INSTALL_DIR="${datasafe_install_dir}"
+        if [[ -d "${oracle_home}/config" ]]; then
+            export DATASAFE_CONFIG="${oracle_home}/config"
+        fi
+    fi
     
     # Set home tracking variables for PS1
     export ORADBA_CURRENT_HOME="${actual_name}"
@@ -1686,6 +1703,7 @@ set_oracle_home_environment() {
             export PATH="${AGENT_HOME}/bin:${PATH}"
             ;;
         datasafe)
+            # ORACLE_HOME now points to oracle_cman_home, so just add bin
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
         *)
@@ -1811,8 +1829,25 @@ load_config_file() {
 
     if [[ -f "${file_path}" ]]; then
         oradba_log DEBUG "Loading config: ${file_path}"
+        
+        # Save PATH before sourcing to detect and remove duplicates
+        local path_before="${PATH}"
+        
         # shellcheck source=/dev/null
         source "${file_path}"
+        
+        # Deduplicate PATH if it changed
+        if [[ "${PATH}" != "${path_before}" ]]; then
+            # Use oradba_dedupe_path if available (Phase 2), otherwise use awk
+            if command -v oradba_dedupe_path &>/dev/null; then
+                PATH="$(oradba_dedupe_path "${PATH}")"
+            else
+                # Fallback deduplication using awk
+                PATH="$(echo "${PATH}" | awk -v RS=: '!seen[$0]++' | paste -sd:)"
+            fi
+            export PATH
+        fi
+        
         return 0
     else
         if [[ "${required}" == "true" ]]; then
