@@ -1644,6 +1644,23 @@ fi
 
 # Create or update oradba_local.conf with coexistence mode
 log_info "Configuring coexistence mode..."
+
+# Derive ORACLE_BASE from installation prefix
+# Priority:
+#   1. Explicit ORACLE_BASE_PARAM (from --base parameter)
+#   2. Derive from INSTALL_PREFIX if it follows standard pattern (/path/to/base/local/oradba)
+#   3. Don't set (let oradba_standard.conf default take effect)
+DERIVED_ORACLE_BASE=""
+if [[ -n "$ORACLE_BASE_PARAM" ]]; then
+    # Explicit --base parameter was used
+    DERIVED_ORACLE_BASE="$ORACLE_BASE_PARAM"
+    log_info "Using ORACLE_BASE from --base parameter: ${DERIVED_ORACLE_BASE}"
+elif [[ "$INSTALL_PREFIX" == */local/oradba ]]; then
+    # Standard installation pattern: /path/to/base/local/oradba
+    DERIVED_ORACLE_BASE="${INSTALL_PREFIX%/local/oradba}"
+    log_info "Derived ORACLE_BASE from installation path: ${DERIVED_ORACLE_BASE}"
+fi
+
 cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
 # ------------------------------------------------------------------------------
 # OraDBA Local Configuration
@@ -1654,6 +1671,14 @@ cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
 # Coexistence mode (auto-detected during installation)
 # Values: basenv, standalone
 export ORADBA_COEXIST_MODE="${COEXIST_MODE}"
+
+# Oracle Base directory (derived from installation location)
+# Overrides the default in oradba_standard.conf
+$(if [[ -n "$DERIVED_ORACLE_BASE" ]]; then
+    echo "export ORACLE_BASE=\"${DERIVED_ORACLE_BASE}\""
+else
+    echo "# ORACLE_BASE not set - will use default from oradba_standard.conf"
+fi)
 
 # Installation metadata
 ORADBA_INSTALL_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

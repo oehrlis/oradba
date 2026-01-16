@@ -548,4 +548,89 @@ teardown() {
     # Check that oraup is called for interactive shells
     grep -q "if.*\$-.*\*i\*.*oraup" "$STANDALONE_INSTALLER"
 }
+
+# ============================================================================
+# ORACLE_BASE Configuration Tests
+# ============================================================================
+
+@test "installation with --base sets ORACLE_BASE in oradba_local.conf" {
+    cd "$PROJECT_ROOT"
+    version=$(cat VERSION)
+    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    
+    if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
+        local test_base="/tmp/test_oracle_base_$$"
+        local test_prefix="${test_base}/local/oradba"
+        
+        # Create base directory
+        mkdir -p "$test_base"
+        
+        # Install with --base parameter
+        "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --base "$test_base" >/dev/null 2>&1
+        
+        # Verify oradba_local.conf exists
+        [ -f "$test_prefix/etc/oradba_local.conf" ]
+        
+        # Verify ORACLE_BASE is set correctly
+        grep -q "export ORACLE_BASE=\"${test_base}\"" "$test_prefix/etc/oradba_local.conf"
+        
+        # Cleanup
+        rm -rf "$test_base"
+    else
+        skip "Tarball or standalone installer not found"
+    fi
+}
+
+@test "installation derives ORACLE_BASE from standard prefix pattern" {
+    cd "$PROJECT_ROOT"
+    version=$(cat VERSION)
+    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    
+    if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
+        local test_base="/tmp/test_derived_base_$$"
+        local test_prefix="${test_base}/local/oradba"
+        
+        # Create base directory
+        mkdir -p "$(dirname "$test_prefix")"
+        
+        # Install with --prefix following standard pattern
+        "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
+        
+        # Verify oradba_local.conf exists
+        [ -f "$test_prefix/etc/oradba_local.conf" ]
+        
+        # Verify ORACLE_BASE is derived from prefix
+        grep -q "export ORACLE_BASE=\"${test_base}\"" "$test_prefix/etc/oradba_local.conf"
+        
+        # Cleanup
+        rm -rf "$test_base"
+    else
+        skip "Tarball or standalone installer not found"
+    fi
+}
+
+@test "installation with non-standard prefix does not set ORACLE_BASE" {
+    cd "$PROJECT_ROOT"
+    version=$(cat VERSION)
+    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    
+    if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
+        local test_prefix="/tmp/custom_oradba_$$"
+        
+        # Install with non-standard prefix (not ending in /local/oradba)
+        "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
+        
+        # Verify oradba_local.conf exists
+        [ -f "$test_prefix/etc/oradba_local.conf" ]
+        
+        # Verify ORACLE_BASE comment is present (not set)
+        grep -q "# ORACLE_BASE not set - will use default from oradba_standard.conf" "$test_prefix/etc/oradba_local.conf"
+        
+        # Cleanup
+        rm -rf "$test_prefix"
+    else
+        skip "Tarball or standalone installer not found"
+    fi
+}
+
 # Test CI trigger - Fri Jan  9 14:30:29 CET 2026
