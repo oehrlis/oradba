@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-01-16
+
+### Fixed
+
+- **PATH Deduplication** (2026-01-16)
+  - Fixed PATH accumulation when sourcing environment repeatedly
+  - Added deduplication in `load_config_file()` after sourcing configuration files
+  - Uses `oradba_dedupe_path` if available, falls back to awk implementation
+  - Resolves issue where JDK and other paths accumulated on each environment switch
+  - User-reported: Paths went from 1→2→3→4 copies on repeated sourcing
+
+- **DataSafe ORACLE_HOME Adjustment** (2026-01-16)
+  - Fixed ORACLE_HOME to point to `oracle_cman_home` subdirectory for DataSafe installations
+  - Implemented in three code paths:
+    - `oraenv.sh` for oratab entries (lines 470-479)
+    - `set_oracle_home_environment()` for Oracle Homes (lines 1640-1668)
+    - `oradba_env_builder.sh` for Phase 2 architecture (lines 343-365)
+  - Sets additional DataSafe variables: `DATASAFE_HOME`, `DATASAFE_INSTALL_DIR`, `DATASAFE_CONFIG`
+  - Adjusts PATH to use `oracle_cman_home/bin` instead of parent directory
+  - User-reported: DataSafe commands now work correctly with proper paths
+
 ## [1.2.0] - 2026-01-16
 
 ### Added

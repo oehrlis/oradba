@@ -321,3 +321,34 @@ teardown() {
     run set_oracle_home_environment "DB19"
     [ "$status" -eq 0 ]  # Function succeeds even if path doesn't exist
 }
+@test "set_oracle_home_environment adjusts ORACLE_HOME for DataSafe" {
+    # Create mock DataSafe structure with oracle_cman_home subdirectory
+    local parent_dir="${TEST_TEMP_DIR}/datasafe_parent"
+    local cman_home="${parent_dir}/oracle_cman_home"
+    mkdir -p "${cman_home}/bin"
+    mkdir -p "${cman_home}/config"
+    touch "${cman_home}/bin/cmctl"
+    touch "${parent_dir}/setup.py"
+    
+    # Add DataSafe entry to mock config
+    local homes_config="${TEST_TEMP_DIR}/oradba_homes.conf"
+    echo "dstest:${parent_dir}:datasafe:50:DataSafe Test" > "${homes_config}"
+    export ORADBA_HOMES_CONF="${homes_config}"
+    
+    # Call function with parent directory
+    set_oracle_home_environment "dstest" "${parent_dir}"
+    
+    # Should succeed
+    [ "$?" -eq 0 ]
+    
+    # ORACLE_HOME should point to oracle_cman_home subdirectory
+    [ "${ORACLE_HOME}" = "${cman_home}" ]
+    
+    # DataSafe variables should be set
+    [ "${DATASAFE_HOME}" = "${cman_home}" ]
+    [ "${DATASAFE_INSTALL_DIR}" = "${parent_dir}" ]
+    [ "${DATASAFE_CONFIG}" = "${cman_home}/config" ]
+    
+    # PATH should include oracle_cman_home/bin
+    [[ "${PATH}" == *"${cman_home}/bin"* ]]
+}

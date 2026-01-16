@@ -332,6 +332,34 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+@test "load_config_file deduplicates PATH after sourcing config" {
+    local test_config="${TEST_TEMP_DIR}/path_test.conf"
+    
+    # Create config that adds duplicate paths
+    cat > "${test_config}" <<'EOF'
+export PATH="/opt/test/bin:/usr/local/bin:${PATH}"
+EOF
+    
+    # Set initial PATH with some existing dirs
+    export PATH="/usr/local/bin:/usr/bin:/bin"
+    local path_before="${PATH}"
+    
+    # Load config (will add /usr/local/bin again)
+    load_config_file "${test_config}" "false"
+    
+    # Count occurrences of /usr/local/bin
+    local count=$(echo "${PATH}" | tr ':' '\n' | grep -c '^/usr/local/bin$' || true)
+    
+    # Should only appear once (deduplicated)
+    [ "${count}" -eq 1 ]
+    
+    # PATH should be different from before (new paths added)
+    [ "${PATH}" != "${path_before}" ]
+    
+    # Should contain the new path
+    [[ "${PATH}" == *"/opt/test/bin"* ]]
+}
+
 # ------------------------------------------------------------------------------
 # Auto-Discovery Tests (v1.0.0 feature)
 # ------------------------------------------------------------------------------
