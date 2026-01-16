@@ -171,10 +171,17 @@ oradba_add_oracle_path() {
             ;;
     esac
     
-    # Prepend to PATH only if directory exists
-    if [[ -n "$new_path" ]] && [[ -d "$new_path" ]]; then
-        export PATH="${new_path}:${PATH}"
-        # Deduplicate PATH to avoid repeated entries
+    # Add paths to PATH only if directories exist
+    # Handle both single paths and colon-separated path lists
+    if [[ -n "$new_path" ]]; then
+        IFS=':' read -ra path_array <<< "$new_path"
+        for dir in "${path_array[@]}"; do
+            if [[ -d "$dir" ]]; then
+                export PATH="${dir}:${PATH}"
+            fi
+        done
+        
+        # Deduplicate PATH after adding all directories
         local deduped_path
         deduped_path="$(oradba_dedupe_path "$PATH")"
         export PATH="$deduped_path"
@@ -520,9 +527,28 @@ oradba_build_environment() {
     
     # Final PATH deduplication after all configs loaded
     # This ensures custom PATH additions from config files are deduplicated
-    local final_path
+    # Must happen AFTER config files to catch any PATH modifications they make
+    local final_path final_lib_path
     final_path="$(oradba_dedupe_path "$PATH")"
     export PATH="$final_path"
+    
+    # Also deduplicate library paths if they exist
+    if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
+        final_lib_path="$(oradba_dedupe_path "$LD_LIBRARY_PATH")"
+        export LD_LIBRARY_PATH="$final_lib_path"
+    fi
+    if [[ -n "${LIBPATH:-}" ]]; then
+        final_lib_path="$(oradba_dedupe_path "$LIBPATH")"
+        export LIBPATH="$final_lib_path"
+    fi
+    if [[ -n "${SHLIB_PATH:-}" ]]; then
+        final_lib_path="$(oradba_dedupe_path "$SHLIB_PATH")"
+        export SHLIB_PATH="$final_lib_path"
+    fi
+    if [[ -n "${DYLD_LIBRARY_PATH:-}" ]]; then
+        final_lib_path="$(oradba_dedupe_path "$DYLD_LIBRARY_PATH")"
+        export DYLD_LIBRARY_PATH="$final_lib_path"
+    fi
     
     # Set tracking variables
     export ORADBA_ENV_LOADED=1
