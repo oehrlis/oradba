@@ -48,6 +48,10 @@ src/log/*
 
 # OS files
 .DS_Store
+
+# Scratch/temporary working files (AI/Copilot generated)
+.github/.scratch/*
+!.github/.scratch/README.md
 Thumbs.db
 
 # IDE

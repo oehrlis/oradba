@@ -353,3 +353,13 @@ When adding entries to configuration files:
 - Check `${ORADBA_LOG}` for log files
 - Run with `bash -x` for execution trace
 - Use `oradba_log DEBUG "message"` for debug output
+
+## Temporary Files and Working Documents
+
+Use `.github/.scratch/` for temporary files created during development:
+- Issue analysis documents
+- Draft implementations  
+- AI/Copilot-generated summaries
+- Working files that need to be shared between online and local Copilot
+
+This directory is gitignored except for its README.md.
