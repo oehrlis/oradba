@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-01-16
+
+### Fixed
+
+- **oradba_env.sh Delimiter Parsing** (2026-01-16)
+  - Fixed `cmd_show`, `cmd_validate`, and `cmd_status` to use correct colon `:` delimiter
+  - Updated grep patterns to match actual oradba_homes.conf format
+  - Resolves issue where entire config line was displayed as name field
+  - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
+
 ## [1.2.1] - 2026-01-16
 
 ### Fixed
