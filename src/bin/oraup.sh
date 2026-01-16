@@ -559,6 +559,60 @@ show_oracle_status() {
 
         echo ""
     fi
+
+    # -------------------------------------------------------------------------
+    # Data Safe Status Section - only display if DataSafe homes exist
+    # -------------------------------------------------------------------------
+    # Check if there are any DataSafe homes
+    local has_datasafe_homes=false
+    if command -v list_oracle_homes &>/dev/null; then
+        while IFS= read -r home_line; do
+            read -r _name _path ptype _rest <<< "$home_line"
+            if [[ "$ptype" == "datasafe" ]]; then
+                has_datasafe_homes=true
+                break
+            fi
+        done < <(list_oracle_homes)
+    fi
+
+    if [[ "$has_datasafe_homes" == "true" ]]; then
+        echo "Data Safe Status"
+        echo "---------------------------------------------------------------------------------"
+        
+        # Get all DataSafe homes
+        while IFS= read -r home_line; do
+            read -r name path ptype _rest <<< "$home_line"
+            
+            # Skip non-DataSafe homes
+            [[ "$ptype" != "datasafe" ]] && continue
+            
+            # Check status
+            local ds_status="unknown"
+            if command -v oradba_check_datasafe_status &>/dev/null; then
+                ds_status=$(oradba_check_datasafe_status "$path" 2>/dev/null || echo "stopped")
+                ds_status="${ds_status,,}"  # lowercase
+            fi
+            
+            # Get port number
+            local port=""
+            if command -v oradba_get_datasafe_port &>/dev/null; then
+                port=$(oradba_get_datasafe_port "$path" 2>/dev/null || echo "")
+            fi
+            
+            # Format status with port if available
+            local status_display="$ds_status"
+            if [[ -n "$port" && "$ds_status" == "running" ]]; then
+                status_display="${ds_status} (${port})"
+            fi
+            
+            # Display with full oracle_cman_home path
+            local cman_home="${path}/oracle_cman_home"
+            printf "%-17s : %-12s %-11s %s\n" "Connection Manager" "$name" "$status_display" "$cman_home"
+            
+        done < <(list_oracle_homes)
+        
+        echo ""
+    fi
 }
 
 # ------------------------------------------------------------------------------
