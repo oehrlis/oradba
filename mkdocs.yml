@@ -111,6 +111,7 @@ nav:
   
   - Configuration:
     - Configuration System: configuration.md
+    - Advanced Configuration: advanced-configuration.md
     - Aliases Reference: aliases.md
     - PDB Aliases: pdb-aliases.md
   
