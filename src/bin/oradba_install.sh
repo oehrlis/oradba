@@ -1650,18 +1650,16 @@ log_info "Configuring coexistence mode..."
 #   1. Explicit ORACLE_BASE_PARAM (from --base parameter)
 #   2. Derive from INSTALL_PREFIX if it follows standard pattern (/path/to/base/local/oradba)
 #   3. Don't set (let oradba_standard.conf default take effect)
-DERIVED_ORACLE_BASE=""
 ORACLE_BASE_LINE="# ORACLE_BASE not set - will use default from oradba_standard.conf"
 if [[ -n "$ORACLE_BASE_PARAM" ]]; then
     # Explicit --base parameter was used
-    DERIVED_ORACLE_BASE="$ORACLE_BASE_PARAM"
-    ORACLE_BASE_LINE="export ORACLE_BASE=\"${DERIVED_ORACLE_BASE}\""
-    log_info "Using ORACLE_BASE from --base parameter: ${DERIVED_ORACLE_BASE}"
+    ORACLE_BASE_LINE="export ORACLE_BASE=\"${ORACLE_BASE_PARAM}\""
+    log_info "Using ORACLE_BASE from --base parameter: ${ORACLE_BASE_PARAM}"
 elif [[ "$INSTALL_PREFIX" == */local/oradba ]]; then
     # Standard installation pattern: /path/to/base/local/oradba
-    DERIVED_ORACLE_BASE="${INSTALL_PREFIX%/local/oradba}"
-    ORACLE_BASE_LINE="export ORACLE_BASE=\"${DERIVED_ORACLE_BASE}\""
-    log_info "Derived ORACLE_BASE from installation path: ${DERIVED_ORACLE_BASE}"
+    local derived_base="${INSTALL_PREFIX%/local/oradba}"
+    ORACLE_BASE_LINE="export ORACLE_BASE=\"${derived_base}\""
+    log_info "Derived ORACLE_BASE from installation path: ${derived_base}"
 fi
 
 cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
