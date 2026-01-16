@@ -17,6 +17,7 @@
 # Module Constants
 # ------------------------------------------------------------------------------
 readonly REGISTRY_VERSION="0.1.0"
+# shellcheck disable=SC2034
 readonly REGISTRY_FORMAT_VERSION="1"
 
 # Installation object field separator
@@ -32,6 +33,7 @@ readonly REGISTRY_FIELD_SEP="|"
 # Notes...: Combines oratab and oradba_homes.conf entries
 # ------------------------------------------------------------------------------
 oradba_registry_get_all() {
+    # shellcheck disable=SC2034
     local -a installations=()
     local oratab_found=false
     local homes_found=false
@@ -200,6 +202,7 @@ oradba_registry_get_field() {
 # Notes...: Scans common locations and running processes
 # ------------------------------------------------------------------------------
 oradba_registry_discover_all() {
+    # shellcheck disable=SC2034
     local -a discovered=()
     
     oradba_log DEBUG "Auto-discovery not yet implemented"

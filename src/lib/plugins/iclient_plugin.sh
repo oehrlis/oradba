@@ -68,8 +68,15 @@ plugin_validate_home() {
     [[ ! -d "${home_path}" ]] && return 1
     
     # Check for libclntsh.so (instant client signature)
-    [[ -f "${home_path}/libclntsh.so" ]] || \
-    [[ -f "${home_path}"/libclntsh.so.* ]] || return 1
+    if [[ -f "${home_path}/libclntsh.so" ]]; then
+        return 0
+    fi
+    # Check for versioned library
+    local found=0
+    for lib in "${home_path}"/libclntsh.so.*; do
+        [[ -f "$lib" ]] && found=1 && break
+    done
+    [[ $found -eq 1 ]] || return 1
     
     # Instant client does NOT have bin/ subdirectory
     # (If it has bin/, it's a full client)
@@ -107,14 +114,19 @@ plugin_check_status() {
     local home_path="$1"
     
     # Check if libclntsh.so is readable
-    if [[ -r "${home_path}/libclntsh.so" ]] || \
-       [[ -r "${home_path}"/libclntsh.so.* ]]; then
+    if [[ -r "${home_path}/libclntsh.so" ]]; then
         echo "available"
         return 0
-    else
-        echo "unavailable"
-        return 1
     fi
+    # Check for readable versioned library
+    for lib in "${home_path}"/libclntsh.so.*; do
+        if [[ -r "$lib" ]]; then
+            echo "available"
+            return 0
+        fi
+    done
+    echo "unavailable"
+    return 1
 }
 
 # ------------------------------------------------------------------------------

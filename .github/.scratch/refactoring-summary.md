@@ -7,11 +7,11 @@
 
 Three critical bugs (#83-#85) expose fundamental architectural issues:
 
-| Bug | Problem | Root Cause |
-|-----|---------|------------|
-| **#85** | oraup.sh fails without oratab | Hard dependency on oratab, ignores oradba_homes.conf |
-| **#84** | Shows "Listener" for DataSafe | Generic `grep tnslsnr` matches DataSafe connectors |
-| **#83** | DataSafe status wrong environment | Status check uses current `$ORACLE_HOME` context |
+| Bug     | Problem                           | Root Cause                                           |
+|---------|-----------------------------------|------------------------------------------------------|
+| **#85** | oraup.sh fails without oratab     | Hard dependency on oratab, ignores oradba_homes.conf |
+| **#84** | Shows "Listener" for DataSafe     | Generic `grep tnslsnr` matches DataSafe connectors   |
+| **#83** | DataSafe status wrong environment | Status check uses current `$ORACLE_HOME` context     |
 
 **Common Theme:** Scattered logic, no abstraction, mixed concerns.
 
@@ -19,7 +19,7 @@ Three critical bugs (#83-#85) expose fundamental architectural issues:
 
 ## Current Architecture Issues
 
-```
+```text
 ❌ oratab and oradba_homes.conf are separate, uncoordinated systems
 ❌ DataSafe oracle_cman_home logic duplicated in 8+ places
 ❌ Product-specific code scattered across multiple files
@@ -33,6 +33,7 @@ Three critical bugs (#83-#85) expose fundamental architectural issues:
 ## Proposed Solution - The Big Picture
 
 ### 1. Unified Registry System
+
 ```bash
 # Single API for all Oracle installations
 oradba_registry_get_all()           # All databases + homes
@@ -47,6 +48,7 @@ oradba_registry_get_by_type()       # Filter by product type
 ```
 
 ### 2. Product Plugin Architecture
+
 ```bash
 # Each product type = one plugin file
 plugins/
@@ -62,6 +64,7 @@ plugin_should_show_listener()  # Control listener section display
 ```
 
 ### 3. Modular Display Functions
+
 ```bash
 # Old: One god function (200+ lines)
 show_oracle_status() { ... }
@@ -78,6 +81,7 @@ display_datasafe_connectors()
 ## Quick Wins (Immediate Fixes)
 
 ### Fix #85: oraup.sh without oratab
+
 ```bash
 # Current (BROKEN):
 if [[ ! -f "$ORATAB_FILE" ]]; then
@@ -92,6 +96,7 @@ mapfile -t installations < <(oradba_registry_get_all)
 ```
 
 ### Fix #84: Listener confusion
+
 ```bash
 # Current (WRONG):
 if ps -ef | grep "tnslsnr" > /dev/null; then
@@ -108,6 +113,7 @@ done
 ```
 
 ### Fix #83: DataSafe status independence
+
 ```bash
 # Current (WRONG):
 oradba_check_datasafe_status() {
@@ -130,18 +136,21 @@ plugin_check_status() {
 ## Implementation Phases
 
 ### Phase 1: Foundation (2 weeks) → v1.2.3-v1.2.4
+
 - Create registry API (`lib/oradba_registry.sh`)
 - Create plugin system (`lib/plugins/`)
 - Fix bugs #83-#85
 - **No breaking changes**
 
 ### Phase 2: Consolidation (3 weeks) → v1.3.0-v1.3.1
+
 - Refactor oraup.sh to use registry + plugins
 - Refactor oraenv.sh to use plugins
 - Remove DataSafe duplication (8+ places → 1 plugin)
 - **Backward compatible**
 
 ### Phase 3: Enhancement (4 weeks) → v1.4.0-v2.0.0
+
 - Improve configuration management
 - Enhanced auto-discovery
 - Documentation and polish
@@ -152,6 +161,7 @@ plugin_check_status() {
 ## Code Smell Examples
 
 ### Smell 1: Shotgun Surgery
+
 ```bash
 # oracle_cman_home adjustment appears in 8+ files:
 src/lib/oradba_common.sh:1647
@@ -168,6 +178,7 @@ plugins/datasafe_plugin.sh:plugin_adjust_environment()
 ```
 
 ### Smell 2: God Function
+
 ```bash
 # 200+ lines doing everything:
 show_oracle_status() {
@@ -188,6 +199,7 @@ display_listeners()         # Just display listeners
 ```
 
 ### Smell 3: Hidden Dependencies
+
 ```bash
 # Function assumes environment state:
 oradba_check_datasafe_status() {
@@ -211,6 +223,7 @@ plugin_check_status() {
 ## Testing Strategy
 
 ### Unit Tests (BATS)
+
 ```bash
 @test "Registry API: get_all with oratab only" { ... }
 @test "Registry API: get_all with oradba_homes only" { ... }
@@ -221,6 +234,7 @@ plugin_check_status() {
 ```
 
 ### Integration Tests (Docker)
+
 ```bash
 test_oraup_without_oratab()
 test_oraup_with_only_datasafe()
@@ -229,6 +243,7 @@ test_listener_status_with_datasafe()
 ```
 
 ### Regression Tests
+
 - Run existing test suite after each phase
 - Ensure no functionality broken
 - Performance benchmarking (oraup.sh < 1s)
@@ -238,18 +253,22 @@ test_listener_status_with_datasafe()
 ## Key Design Decisions
 
 ### 1. Keep oratab and oradba_homes.conf Separate
+
 **Rationale:** oratab is Oracle standard, breaking compatibility would be catastrophic.  
 **Solution:** Unified registry *API* abstracts both sources.
 
 ### 2. Plugin System Over Inheritance
+
 **Rationale:** Bash doesn't support OOP, plugins are simpler than complex case statements.  
 **Benefits:** Easy to extend, test, and maintain.
 
 ### 3. Explicit Over Implicit
+
 **Rationale:** Current bugs caused by hidden assumptions.  
 **Solution:** Pass all required parameters explicitly, no global state.
 
 ### 4. Fail-Safe Defaults
+
 **Rationale:** Should work with minimal configuration.  
 **Solution:** Auto-discovery, graceful fallbacks, helpful error messages.
 
@@ -258,11 +277,13 @@ test_listener_status_with_datasafe()
 ## Migration Path (User Impact)
 
 ### No Action Required
+
 - Existing installations continue to work
 - Configuration files remain compatible
 - Scripts maintain backward compatibility
 
 ### Optional Improvements
+
 ```bash
 # Users can gradually adopt new patterns:
 
@@ -274,6 +295,7 @@ oradba_registry_get_by_type "datasafe"
 ```
 
 ### Deprecated Functions
+
 ```bash
 # Functions deprecated in v2.0 (removed in v3.0):
 list_oracle_homes()              → oradba_registry_get_by_type()
@@ -291,6 +313,7 @@ v3.x: Functions removed (breaking change)
 ## Success Metrics
 
 ### Functional
+
 - ✅ oraup.sh works without oratab
 - ✅ Listener section only shows DB listeners
 - ✅ DataSafe status always correct
@@ -298,12 +321,14 @@ v3.x: Functions removed (breaking change)
 - ✅ All product types supported
 
 ### Quality
+
 - ✅ 90%+ test coverage
 - ✅ Zero shellcheck warnings
 - ✅ Performance < 1s for oraup.sh
 - ✅ Documentation complete
 
 ### User Experience
+
 - ✅ Clear error messages
 - ✅ Works "out of the box"
 - ✅ Predictable behavior
@@ -337,18 +362,21 @@ v3.x: Functions removed (breaking change)
 ## Next Steps
 
 ### This Week
+
 1. ✅ Review plan with stakeholders (this document)
 2. Create GitHub issues for Phase 1 tasks
 3. Set up feature branch `feature/unified-registry`
 4. Begin registry API implementation
 
 ### Next Week
+
 1. Complete registry API
 2. Create DataSafe plugin (proof-of-concept)
 3. Fix bug #85 (oraup.sh without oratab)
 4. Release v1.2.3
 
 ### This Month
+
 1. Fix bugs #84 and #83
 2. Complete Phase 1 (Foundation)
 3. Release v1.2.4
