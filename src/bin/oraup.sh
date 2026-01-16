@@ -29,6 +29,19 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_env_status.sh"
 fi
 
+# Source registry API if available (Phase 1 - Bug #85 fix)
+if [[ -f "${ORADBA_BASE}/lib/oradba_registry.sh" ]]; then
+    # shellcheck source=../lib/oradba_registry.sh
+    source "${ORADBA_BASE}/lib/oradba_registry.sh"
+fi
+
+# Load plugins if available
+if [[ -d "${ORADBA_BASE}/lib/plugins" ]]; then
+    for plugin in "${ORADBA_BASE}/lib/plugins/"*.sh; do
+        [[ -f "$plugin" ]] && [[ "$plugin" != */plugin_interface.sh ]] && source "$plugin"
+    done
+fi
+
 # Get oratab file path using centralized function
 if type get_oratab_path &> /dev/null; then
     ORATAB_FILE=$(get_oratab_path)
@@ -248,6 +261,155 @@ get_startup_flag() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: show_oracle_status_registry
+# Purpose.: Display Oracle status using registry API (Phase 1)
+# Args....: Array of installation objects from registry
+# Notes...: Uses plugin system for product-specific behavior
+# ------------------------------------------------------------------------------
+show_oracle_status_registry() {
+    local -a installations=("$@")
+    
+    # Separate databases from other homes
+    local -a databases=()
+    local -a other_homes=()
+    
+    for install in "${installations[@]}"; do
+        local ptype
+        ptype=$(oradba_registry_get_field "$install" "type")
+        
+        if [[ "$ptype" == "database" ]]; then
+            databases+=("$install")
+        else
+            other_homes+=("$install")
+        fi
+    done
+    
+    # Display Oracle Homes first (non-database products)
+    if [[ ${#other_homes[@]} -gt 0 ]]; then
+        for home_obj in "${other_homes[@]}"; do
+            local name home ptype desc
+            name=$(oradba_registry_get_field "$home_obj" "name")
+            home=$(oradba_registry_get_field "$home_obj" "home")
+            ptype=$(oradba_registry_get_field "$home_obj" "type")
+            desc=$(oradba_registry_get_field "$home_obj" "desc")
+            
+            # Get product-specific status if plugin available
+            local status="available"
+            if type -t "${ptype}_plugin.sh" &>/dev/null; then
+                # Load plugin if not already loaded
+                local plugin_file="${ORADBA_BASE}/lib/plugins/${ptype}_plugin.sh"
+                [[ -f "$plugin_file" ]] && source "$plugin_file" 2>/dev/null
+            fi
+            
+            # Check status using plugin if available
+            if type -t plugin_check_status &>/dev/null; then
+                status=$(plugin_check_status "$home")
+            fi
+            
+            # Display
+            local display_type="ORACLE_HOME"
+            case "$ptype" in
+                datasafe) display_type="DataSafe Conn" ;;
+                client|iclient) display_type="Client" ;;
+                oud) display_type="OUD" ;;
+                weblogic) display_type="WebLogic" ;;
+                grid) display_type="Grid Infra" ;;
+                oms) display_type="OMS" ;;
+                emagent) display_type="EM Agent" ;;
+            esac
+            
+            printf "%-17s : %-12s %-11s %s\n" "$display_type" "$name" "$status" "$home"
+        done
+    fi
+    
+    # Display Database instances
+    if [[ ${#databases[@]} -gt 0 ]]; then
+        for db_obj in "${databases[@]}"; do
+            local sid home flags
+            sid=$(oradba_registry_get_field "$db_obj" "name")
+            home=$(oradba_registry_get_field "$db_obj" "home")
+            flags=$(oradba_registry_get_field "$db_obj" "flags")
+            
+            # Get status
+            local status
+            status=$(get_db_status "$sid")
+            
+            # Get open mode if instance is up
+            if [[ "$status" == "up" ]]; then
+                local mode
+                mode=$(get_db_mode "$sid" "$home")
+                status="$mode"
+            fi
+            
+            # Display with startup flag
+            printf "%-17s : %-12s %-11s %s\n" "DB-instance ($flags)" "$sid" "$status" "$home"
+        done
+    fi
+    
+    # Show listener status if any database homes exist
+    if [[ ${#databases[@]} -gt 0 ]]; then
+        echo ""
+        echo "Listener Status"
+        echo "---------------------------------------------------------------------------------"
+        
+        # Check for running listeners
+        local listener_count=0
+        while read -r listener_line; do
+            local listener_name
+            listener_name=$(echo "$listener_line" | awk '{print $NF}')
+            
+            # Get listener status
+            local lsnr_status="unknown"
+            if command -v lsnrctl &>/dev/null; then
+                if lsnrctl status "$listener_name" 2>/dev/null | grep -q "ready"; then
+                    lsnr_status="READY"
+                fi
+            fi
+            
+            printf "%-17s : %-12s %-11s\n" "Listener" "$listener_name" "$lsnr_status"
+            ((listener_count++))
+        done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
+        
+        if [[ $listener_count -eq 0 ]]; then
+            echo "  No database listeners running"
+        fi
+    fi
+    
+    # Show DataSafe connector status separately
+    local -a datasafe_homes=()
+    for home_obj in "${other_homes[@]}"; do
+        local ptype
+        ptype=$(oradba_registry_get_field "$home_obj" "type")
+        [[ "$ptype" == "datasafe" ]] && datasafe_homes+=("$home_obj")
+    done
+    
+    if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
+        echo ""
+        echo "Data Safe Status"
+        echo "---------------------------------------------------------------------------------"
+        
+        for ds_obj in "${datasafe_homes[@]}"; do
+            local name home status
+            name=$(oradba_registry_get_field "$ds_obj" "name")
+            home=$(oradba_registry_get_field "$ds_obj" "home")
+            
+            # Use DataSafe plugin to check status
+            if type -t plugin_check_status &>/dev/null; then
+                status=$(plugin_check_status "$home")
+            else
+                status="unknown"
+            fi
+            
+            printf "%-17s : %-12s %-11s %s\n" "Connector" "$name" "$status" "$home"
+        done
+    fi
+    
+    echo ""
+    echo "---------------------------------------------------------------------------------"
+    echo ""
+}
+
+# ------------------------------------------------------------------------------
 # Function: show_oracle_status
 # Purpose.: Display comprehensive Oracle status overview
 # ------------------------------------------------------------------------------
@@ -260,7 +422,35 @@ show_oracle_status() {
     printf "%-17s : %-12s %-11s %s\n" "TYPE (Cluster|DG)" "SID/PROCESS" "STATUS" "HOME"
     echo "---------------------------------------------------------------------------------"
 
-    # Check if oratab exists
+    # Use registry API if available (Phase 1 - Bug #85 fix)
+    if type -t oradba_registry_get_all &>/dev/null; then
+        # Get all installations from unified registry
+        local -a all_installations
+        mapfile -t all_installations < <(oradba_registry_get_all)
+        
+        if [[ ${#all_installations[@]} -eq 0 ]]; then
+            echo ""
+            echo "  ℹ No Oracle installations found"
+            echo ""
+            echo "  No entries found in oratab or oradba_homes.conf."
+            echo "  OraDBA is installed but Oracle products are not registered."
+            echo ""
+            echo "  After installing Oracle:"
+            echo "    1. Database: Add to oratab (/etc/oratab or ${ORADBA_BASE}/etc/oratab)"
+            echo "    2. Other products: Add to ${ORADBA_BASE}/etc/oradba_homes.conf"
+            echo "    3. Or enable auto-discovery: ORADBA_AUTO_DISCOVER=true"
+            echo ""
+            echo "---------------------------------------------------------------------------------"
+            echo ""
+            return 0
+        fi
+        
+        # Process installations using registry
+        show_oracle_status_registry "${all_installations[@]}"
+        return 0
+    fi
+
+    # Fallback to legacy oratab-only approach if registry not available
     if [[ ! -f "$ORATAB_FILE" ]]; then
         echo ""
         echo "  ⚠ No oratab file found at $ORATAB_FILE"
