@@ -780,8 +780,13 @@ generate_oracle_home_aliases() {
     return 0
 }
 
-# Usage: generate_pdb_aliases
-# Generate aliases for PDBs in the current CDB
+# ------------------------------------------------------------------------------
+# Function: generate_pdb_aliases
+# Purpose.: Generate aliases for PDBs in the current CDB
+# Args....: None
+# Returns.: 0 on success
+# Output..: Creates shell aliases for each PDB and exports ORADBA_PDBLIST
+# ------------------------------------------------------------------------------
 generate_pdb_aliases() {
     # Skip if disabled
     if [[ "${ORADBA_NO_PDB_ALIASES}" == "true" ]]; then
@@ -1224,9 +1229,6 @@ resolve_oracle_home_name() {
     return 0
 }
 
-# Arguments:
-#   $1 - Home name or alias to parse
-# Returns: Space-separated: name path type order alias_name description version
 # ------------------------------------------------------------------------------
 # Function: parse_oracle_home
 # Purpose.: Parse Oracle Home configuration entry from oradba_homes.conf
@@ -1426,11 +1428,14 @@ detect_product_type() {
     return 1
 }
 
-# Detect Oracle version from ORACLE_HOME
-# Arguments:
-#   $1 - ORACLE_HOME path
-#   $2 - Product type (optional, will detect if not provided)
-# Returns: Oracle version in format XXYZ (e.g., 1920 for 19.2.0) or "Unknown" or "ERR"
+# ------------------------------------------------------------------------------
+# Function: detect_oracle_version
+# Purpose.: Detect Oracle version from ORACLE_HOME path
+# Args....: $1 - ORACLE_HOME path
+#           $2 - Product type (optional, will detect if not provided)
+# Returns.: 0 on success, 1 on error
+# Output..: Oracle version in format XXYZ (e.g., 1920 for 19.2.0) or "Unknown" or "ERR"
+# ------------------------------------------------------------------------------
 detect_oracle_version() {
     local oracle_home="$1"
     local product_type="${2:-}"
