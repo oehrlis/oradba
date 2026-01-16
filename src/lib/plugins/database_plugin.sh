@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security
+# Name.....: database_plugin.sh
+# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor...: Stefan Oehrli
+# Date.....: 2026.01.16
+# Version..: 1.0.0
+# Purpose..: Plugin for Oracle Database homes (RDBMS)
+# Notes....: Handles database detection, status checking, and environment
+# Reference: Architecture Review & Refactoring Plan (Phase 1.2)
+# License..: Apache License Version 2.0, January 2004 as shown
+#            at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Plugin Metadata
+# ------------------------------------------------------------------------------
+readonly plugin_name="database"
+readonly plugin_version="1.0.0"
+readonly plugin_description="Oracle Database (RDBMS) plugin"
+
+# ------------------------------------------------------------------------------
+# Function: plugin_detect_installation
+# Purpose.: Auto-detect database installations
+# Returns.: 0 on success
+# Output..: List of ORACLE_HOME paths
+# ------------------------------------------------------------------------------
+plugin_detect_installation() {
+    local -a homes=()
+    
+    # Check running pmon processes
+    while read -r pmon_line; do
+        local sid
+        sid=$(echo "${pmon_line}" | grep -oP 'pmon_\K\w+')
+        [[ -z "${sid}" ]] && continue
+        
+        # Try to get ORACLE_HOME from process environment
+        local pid
+        pid=$(echo "${pmon_line}" | awk '{print $2}')
+        if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
+            local home
+            home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+            if [[ -n "${home}" ]] && [[ -d "${home}" ]]; then
+                homes+=("${home}")
+            fi
+        fi
+    done < <(ps -ef | grep "[p]mon_")
+    
+    # Deduplicate and print
+    printf '%s\n' "${homes[@]}" | sort -u
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_validate_home
+# Purpose.: Validate that path is a database home
+# Args....: $1 - Path to validate
+# Returns.: 0 if valid, 1 if invalid
+# ------------------------------------------------------------------------------
+plugin_validate_home() {
+    local home_path="$1"
+    
+    [[ ! -d "${home_path}" ]] && return 1
+    
+    # Check for database-specific directories
+    [[ -d "${home_path}/rdbms" ]] || return 1
+    [[ -d "${home_path}/bin" ]] || return 1
+    
+    # Check for sqlplus or oracle executables
+    [[ -f "${home_path}/bin/sqlplus" ]] || [[ -f "${home_path}/bin/oracle" ]] || return 1
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_adjust_environment
+# Purpose.: Adjust environment for database home
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Adjusted ORACLE_HOME (unchanged for database)
+# ------------------------------------------------------------------------------
+plugin_adjust_environment() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_check_status
+# Purpose.: Check if database instance is running
+# Args....: $1 - ORACLE_HOME path
+#           $2 - SID (optional)
+# Returns.: 0 if running, 1 if stopped
+# Output..: Status string
+# ------------------------------------------------------------------------------
+plugin_check_status() {
+    local home_path="$1"
+    local sid="${2:-}"
+    
+    if [[ -z "${sid}" ]]; then
+        # No SID specified, check if any pmon from this home
+        while read -r pmon_line; do
+            local pid
+            pid=$(echo "${pmon_line}" | awk '{print $2}')
+            if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
+                local proc_home
+                proc_home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+                if [[ "${proc_home}" == "${home_path}" ]]; then
+                    echo "running"
+                    return 0
+                fi
+            fi
+        done < <(ps -ef | grep "[p]mon_")
+        echo "stopped"
+        return 1
+    else
+        # Specific SID requested
+        if ps -ef | grep -q "[p]mon_${sid}$"; then
+            echo "running"
+            return 0
+        else
+            echo "stopped"
+            return 1
+        fi
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_metadata
+# Purpose.: Get database metadata
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Key=value pairs
+# ------------------------------------------------------------------------------
+plugin_get_metadata() {
+    local home_path="$1"
+    
+    # Get version
+    local version
+    version=$(plugin_get_version "${home_path}")
+    echo "version=${version}"
+    
+    # Detect edition
+    if [[ -f "${home_path}/bin/oracle" ]]; then
+        if strings "${home_path}/bin/oracle" 2>/dev/null | grep -q "Enterprise Edition"; then
+            echo "edition=Enterprise"
+        elif strings "${home_path}/bin/oracle" 2>/dev/null | grep -q "Standard Edition"; then
+            echo "edition=Standard"
+        elif strings "${home_path}/bin/oracle" 2>/dev/null | grep -q "Express Edition"; then
+            echo "edition=Express"
+        else
+            echo "edition=Unknown"
+        fi
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_should_show_listener
+# Purpose.: Database homes should show listener status
+# Returns.: 0 (always show)
+# ------------------------------------------------------------------------------
+plugin_should_show_listener() {
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_discover_instances
+# Purpose.: Discover database instances for this home
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: List of instances with status
+# ------------------------------------------------------------------------------
+plugin_discover_instances() {
+    local home_path="$1"
+    
+    # Find all running instances from this home
+    while read -r pmon_line; do
+        local sid
+        sid=$(echo "${pmon_line}" | grep -oP 'pmon_\K\w+')
+        [[ -z "${sid}" ]] && continue
+        
+        local pid
+        pid=$(echo "${pmon_line}" | awk '{print $2}')
+        if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
+            local proc_home
+            proc_home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+            if [[ "${proc_home}" == "${home_path}" ]]; then
+                echo "${sid}|running|"
+            fi
+        fi
+    done < <(ps -ef | grep "[p]mon_")
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_supports_aliases
+# Purpose.: Databases support SID aliases
+# Returns.: 0 (supports aliases)
+# ------------------------------------------------------------------------------
+plugin_supports_aliases() {
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Plugin loaded
+# ------------------------------------------------------------------------------
+oradba_log DEBUG "Database plugin loaded (v${plugin_version})"
