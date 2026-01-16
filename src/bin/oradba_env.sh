@@ -276,19 +276,33 @@ cmd_validate() {
     
     # If target specified, try to resolve it
     local validate_home="$ORACLE_HOME"
+    local validate_sid="${ORACLE_SID:-}"
+    local target_name=""
+    local product_type=""
+    
     if [[ -n "$target" ]]; then
-        # Try oradba_homes.conf
+        # Try oradba_homes.conf first
         local home_entry
         if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
-            IFS=':' read -r _name path _rest <<< "$home_entry"
+            IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
             validate_home="$path"
+            target_name="$name"
+            product_type="$ptype"
+            validate_sid=""  # Oracle Homes don't have SID
+            
+            # Apply DataSafe ORACLE_HOME adjustment if needed
+            if [[ "$product_type" == "datasafe" ]] && [[ -d "${validate_home}/oracle_cman_home" ]]; then
+                validate_home="${validate_home}/oracle_cman_home"
+            fi
         else
             # Try oratab
             local sid_info
             sid_info=$(oradba_find_sid "$target")
             if [[ $? -eq 0 ]]; then
-                IFS='|' read -r _sid home _flag <<< "$sid_info"
+                IFS='|' read -r sid home _flag <<< "$sid_info"
                 validate_home="$home"
+                validate_sid="$sid"
+                target_name="$sid"
             else
                 echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf" >&2
                 return 1
@@ -303,21 +317,30 @@ cmd_validate() {
     fi
     
     echo "=== Validating Oracle Environment ==="
-    echo "ORACLE_SID: ${ORACLE_SID:-not set}"
+    if [[ -n "$target_name" ]]; then
+        echo "Target: $target_name"
+    fi
+    echo "ORACLE_SID: ${validate_sid:-not set}"
     echo "ORACLE_HOME: $validate_home"
+    [[ -n "$product_type" ]] && echo "Product Type: $product_type"
     echo ""
     
-    # Temporarily set ORACLE_HOME if validating a different home
+    # Temporarily set ORACLE_HOME and ORACLE_SID if validating a different target
     local saved_oracle_home="$ORACLE_HOME"
+    local saved_oracle_sid="$ORACLE_SID"
     export ORACLE_HOME="$validate_home"
+    [[ -n "$validate_sid" ]] && export ORACLE_SID="$validate_sid" || unset ORACLE_SID
     
     if command -v oradba_validate_environment &>/dev/null; then
         oradba_validate_environment "$level"
         local result=$?
         export ORACLE_HOME="$saved_oracle_home"
+        [[ -n "$saved_oracle_sid" ]] && export ORACLE_SID="$saved_oracle_sid" || unset ORACLE_SID
         return $result
     else
         echo "ERROR: Validation library not available" >&2
+        export ORACLE_HOME="$saved_oracle_home"
+        [[ -n "$saved_oracle_sid" ]] && export ORACLE_SID="$saved_oracle_sid" || unset ORACLE_SID
         return 1
     fi
 }
