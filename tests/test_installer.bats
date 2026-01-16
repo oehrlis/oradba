@@ -559,7 +559,8 @@ teardown() {
     tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
-        local test_base="$(mktemp -d)"
+        local test_base
+        test_base="$(mktemp -d)"
         local test_prefix="${test_base}/local/oradba"
         
         # Create base directory
@@ -587,7 +588,8 @@ teardown() {
     tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
-        local test_base="$(mktemp -d)"
+        local test_base
+        test_base="$(mktemp -d)"
         local test_prefix="${test_base}/local/oradba"
         
         # Create base directory
@@ -615,7 +617,8 @@ teardown() {
     tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
-        local test_prefix="$(mktemp -d)"
+        local test_prefix
+        test_prefix="$(mktemp -d)"
         
         # Install with non-standard prefix (not ending in /local/oradba)
         "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1

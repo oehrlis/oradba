@@ -1657,7 +1657,7 @@ if [[ -n "$ORACLE_BASE_PARAM" ]]; then
     log_info "Using ORACLE_BASE from --base parameter: ${ORACLE_BASE_PARAM}"
 elif [[ "$INSTALL_PREFIX" == */local/oradba ]]; then
     # Standard installation pattern: /path/to/base/local/oradba
-    local derived_base="${INSTALL_PREFIX%/local/oradba}"
+    derived_base="${INSTALL_PREFIX%/local/oradba}"
     ORACLE_BASE_LINE="export ORACLE_BASE=\"${derived_base}\""
     log_info "Derived ORACLE_BASE from installation path: ${derived_base}"
 fi
