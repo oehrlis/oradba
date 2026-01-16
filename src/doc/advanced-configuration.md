@@ -309,7 +309,7 @@ EOF
 
 Common Grid Infrastructure problems:
 
-**Issue: Cannot start listener - permission denied**
+#### Issue: Cannot start listener - permission denied
 
 ```bash
 # Check: Grid services should run as grid owner
@@ -321,7 +321,7 @@ source oraenv.sh +ASM
 lsnrctl start
 ```
 
-**Issue: ASM instance not showing in oraup.sh**
+#### Issue: ASM instance not showing in oraup.sh
 
 ```bash
 # Check: Verify ASM entry in oratab
@@ -331,7 +331,7 @@ grep +ASM /etc/oratab
 echo "+ASM:/u01/app/grid/product/19.0.0/grid_home:N" >> /etc/oratab
 ```
 
-**Issue: Wrong listener being used**
+#### Issue: Wrong listener being used
 
 ```bash
 # Check: Verify GRID_HOME is set
@@ -486,7 +486,7 @@ cat $ORACLE_BASE_HOME/network/admin/tnsnames.ora
 
 ### Troubleshooting ROOH
 
-**Issue: Cannot write to $ORACLE_HOME/dbs**
+#### Issue: Cannot write to $ORACLE_HOME/dbs
 
 ```bash
 # Symptom: Permission denied when creating spfile or password file
@@ -502,7 +502,7 @@ orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB
 # orapwd file=$ORACLE_BASE_HOME/dbs/orapwROOHDB password=${ORACLE_PWD}
 ```
 
-**Issue: tnsnames.ora not found**
+#### Issue: tnsnames.ora not found
 
 ```bash
 # Check: TNS_ADMIN should point to ORACLE_BASE_HOME
@@ -512,7 +512,7 @@ echo $TNS_ADMIN
 ls -l $ORACLE_BASE_HOME/network/admin/tnsnames.ora
 ```
 
-**Issue: ROOH not detected automatically**
+#### Issue: ROOH not detected automatically
 
 ```bash
 # Check: Verify orabasehome utility exists
@@ -626,7 +626,7 @@ PATH_PREPEND=${ORACLE_HOME}/bin:${ORACLE_HOME}/oud/bin
 
 ### Advanced Path Manipulation Techniques
 
-**Technique 1: Conditional paths based on hostname**
+#### Technique 1: Conditional paths based on hostname
 
 ```bash
 # In /opt/oradba/etc/oradba_customer.conf
@@ -640,7 +640,7 @@ fi
 # Alternative: Create separate oradba_customer.conf.dev and link it
 ```
 
-**Technique 2: Version-specific paths**
+#### Technique 2: Version-specific paths
 
 ```bash
 # Database-specific config
@@ -655,7 +655,7 @@ elif [[ "${ORACLE_HOME}" =~ 21 ]]; then
 fi
 ```
 
-**Technique 3: Insert paths at specific positions**
+#### Technique 3: Insert paths at specific positions
 
 ```bash
 # Use functions to manipulate PATH programmatically
@@ -1179,7 +1179,7 @@ echo "ORADBA_DEBUG=true" >> /opt/oradba/etc/oradba_customer.conf
 
 ### Common Configuration Problems
 
-**Problem: Environment not loading**
+#### Problem: Environment not loading
 
 ```bash
 # Symptom: source oraenv.sh PRODDB has no effect
@@ -1202,7 +1202,7 @@ export ORADBA_DEBUG=true
 source oraenv.sh PRODDB
 ```
 
-**Problem: Wrong ORACLE_HOME set**
+#### Problem: Wrong ORACLE_HOME set
 
 ```bash
 # Symptom: ORACLE_HOME points to unexpected location
@@ -1223,7 +1223,7 @@ oradba_env.sh show PRODDB
 # Fix: Update oratab or config file with correct path
 ```
 
-**Problem: PATH not including expected directories**
+#### Problem: PATH not including expected directories
 
 ```bash
 # Symptom: Commands not found or wrong version
@@ -1244,7 +1244,7 @@ source oraenv.sh PRODDB | grep "PATH"
 # Fix: Add directories using PATH_PREPEND in config
 ```
 
-**Problem: Libraries not found (LD_LIBRARY_PATH)**
+#### Problem: Libraries not found (LD_LIBRARY_PATH)
 
 ```bash
 # Symptom: error while loading shared libraries: libclntsh.so.19.1
@@ -1263,7 +1263,7 @@ ldd $(which sqlplus) | grep "not found"
 echo "LD_LIBRARY_PATH_PREPEND=\${ORACLE_HOME}/lib" >> /opt/oradba/etc/oradba_customer.conf
 ```
 
-**Problem: Configuration changes not taking effect**
+#### Problem: Configuration changes not taking effect
 
 ```bash
 # Symptom: Modified configuration not applied
