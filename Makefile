@@ -167,8 +167,23 @@ test-plugin-oud: ## Run OUD plugin tests only
 	@echo -e "$(COLOR_BLUE)Running OUD plugin tests...$(COLOR_RESET)"
 	@$(BATS) $(TEST_DIR)/test_oud_plugin.bats
 
+.PHONY: test-plugin-database
+test-plugin-database: ## Run database plugin tests only
+	@echo -e "$(COLOR_BLUE)Running database plugin tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_database_plugin.bats
+
+.PHONY: test-plugin-datasafe
+test-plugin-datasafe: ## Run datasafe plugin tests only
+	@echo -e "$(COLOR_BLUE)Running datasafe plugin tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_datasafe_plugin.bats
+
+.PHONY: test-plugin-interface
+test-plugin-interface: ## Run plugin interface compliance tests
+	@echo -e "$(COLOR_BLUE)Running plugin interface tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_plugin_interface.bats
+
 .PHONY: test-plugins
-test-plugins: test-plugin-client test-plugin-iclient test-plugin-oud ## Run all plugin tests
+test-plugins: test-plugin-database test-plugin-datasafe test-plugin-client test-plugin-iclient test-plugin-oud test-plugin-interface ## Run all plugin tests
 
 .PHONY: test-docker
 test-docker: build ## Run Docker-based automated integration tests (requires Docker)

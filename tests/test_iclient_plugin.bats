@@ -55,7 +55,9 @@ teardown() {
 
 @test "iclient plugin has correct metadata" {
     source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    # shellcheck disable=SC2154
     [[ "${plugin_name}" == "iclient" ]]
+    # shellcheck disable=SC2154
     [[ "${plugin_version}" == "1.0.0" ]]
     [[ -n "${plugin_description}" ]]
 }

@@ -55,7 +55,9 @@ teardown() {
 
 @test "client plugin has correct metadata" {
     source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    # shellcheck disable=SC2154
     [[ "${plugin_name}" == "client" ]]
+    # shellcheck disable=SC2154
     [[ "${plugin_version}" == "1.0.0" ]]
     [[ -n "${plugin_description}" ]]
 }
