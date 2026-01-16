@@ -6,7 +6,12 @@
 
 ## Executive Summary
 
-Analysis of recent bugs (#83-#85) reveals fundamental architectural issues in OraDBA's configuration and environment management. The current implementation has overlapping responsibilities, unclear fallback logic, and inconsistent product-specific handling (especially DataSafe). This document proposes a comprehensive refactoring to create a robust, modular, and maintainable configuration system.
+Analysis of recent bugs (#83-#85) reveals fundamental architectural issues in
+OraDBA's configuration and environment management. The current implementation
+has overlapping responsibilities, unclear fallback logic, and inconsistent
+product-specific handling (especially DataSafe). This document proposes a
+comprehensive refactoring to create a robust, modular, and maintainable
+configuration system.
 
 ---
 
@@ -62,6 +67,7 @@ graph TD
 ### 1.3 Critical Issues Identified
 
 #### Issue 1: oraup.sh Hard Dependency on oratab (#85)
+
 ```bash
 # Current code (lines 268-282):
 if [[ ! -f "$ORATAB_FILE" ]]; then
@@ -69,11 +75,13 @@ if [[ ! -f "$ORATAB_FILE" ]]; then
     return 0  # Exits early - never checks oradba_homes.conf alone
 fi
 ```
+
 **Problem:** oraup.sh exits if oratab missing, even when oradba_homes.conf has entries.
 
 **Impact:** Breaks environments with only clients, DataSafe, OUD (no databases).
 
 #### Issue 2: Listener Status Logic Confusion (#84)
+
 ```bash
 # Current code (lines 181-232):
 should_show_listener_status() {
@@ -84,11 +92,13 @@ should_show_listener_status() {
     # ... checks database homes ...
 }
 ```
+
 **Problem:** Generic `grep "tnslsnr"` matches DataSafe listeners, triggers database listener section.
 
 **Impact:** Shows "Listener" section when only DataSafe connector running (misleading).
 
 #### Issue 3: DataSafe Status Depends on Current Environment (#83)
+
 ```bash
 # Current code (lines 600-624):
 if command -v oradba_check_datasafe_status &>/dev/null; then
@@ -103,11 +113,13 @@ oradba_check_datasafe_status() {
     # Problem: Uses $ORACLE_HOME from current environment context
 }
 ```
+
 **Problem:** Status check may use wrong ORACLE_HOME if currently in different environment.
 
 **Impact:** Incorrect status reporting when checking DataSafe from database environment.
 
 #### Issue 4: Configuration Load Order Confusion
+
 ```bash
 # oraenv.sh loads:
 1. oradba_common.sh (provides load_config_file)
@@ -120,19 +132,20 @@ oradba_check_datasafe_status() {
 2. oradba_env_status.sh
 3. Uses get_oratab_path() but configs may not be loaded
 ```
+
 **Problem:** Inconsistent config loading across scripts.
 
 **Impact:** Different behavior depending on which script runs first.
 
 ### 1.4 Architectural Debt
 
-| Component | Issue | Impact |
-|-----------|-------|--------|
-| **oratab Priority** | Hardcoded 5-level fallback in multiple places | Maintenance nightmare |
-| **Product Type Detection** | Mixed filesystem + config detection | Unreliable results |
-| **DataSafe Handling** | oracle_cman_home adjustment scattered across 6 files | High coupling |
-| **Status Checking** | Mixes process detection with configuration | Fragile logic |
-| **Registry Files** | Two separate systems (oratab + oradba_homes.conf) | No single source of truth |
+| Component                  | Issue                                                | Impact                    |
+|----------------------------|------------------------------------------------------|---------------------------|
+| **oratab Priority**        | Hardcoded 5-level fallback in multiple places        | Maintenance nightmare     |
+| **Product Type Detection** | Mixed filesystem + config detection                  | Unreliable results        |
+| **DataSafe Handling**      | oracle_cman_home adjustment scattered across 6 files | High coupling             |
+| **Status Checking**        | Mixes process detection with configuration           | Fragile logic             |
+| **Registry Files**         | Two separate systems (oratab + oradba_homes.conf)    | No single source of truth |
 
 ---
 
@@ -181,7 +194,7 @@ should_show_listener_status() {
 
 ### 3.2 New Configuration Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │ Registry System (Unified)                                    │
 ├──────────────────────────────────────────────────────────────┤
@@ -233,7 +246,8 @@ plugin_get_metadata() { :; }             # Get product info
 plugin_should_show_listener() { :; }     # Product-specific listener logic
 ```
 
-**Example: DataSafe Plugin**
+**Example:** DataSafe Plugin
+
 ```bash
 # plugins/datasafe_plugin.sh
 plugin_name="datasafe"
@@ -267,7 +281,136 @@ plugin_should_show_listener() {
 }
 ```
 
-### 3.4 Unified Registry API
+### 3.4 Instance-to-Home Relationships
+
+#### Design Decision: Instance Discovery vs. Metadata Registry
+
+**Challenge:** Not all products have a 1:1 relationship between Oracle Home and instances:
+
+- **RAC Database**: Multiple instances → One database home
+- **WebLogic**: Multiple managed servers → One WebLogic home
+- **OUD**: Multiple instances → One OUD home
+- **Grid Infrastructure**: Multiple nodes → One Grid home
+
+**BasEnv Approach:** Additional registry files with detailed metadata:
+
+```text
+sidtab:
+- Maps SID to HOME with rich metadata (position, type, standby, cluster, instances)
+- Example: FREE;/opt/oracle/product/26ai;10;I;N;N;
+
+orahometab:
+- Detailed home registry (position, product, version, aliases)
+- Example: /opt/oracle/product/26ai;20;rdbms;AUTO;rdbms23;...
+```
+
+**OraDBA Design Choice: Plugin-Based Discovery**
+
+We propose **NOT** adding separate `sidtab`/`orahometab` files initially. Instead:
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│ Registry System (Phase 1-2)                                │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│ Data Sources (unchanged):                                 │
+│   • oratab           → SID:HOME:FLAGS                      │
+│   • oradba_homes.conf → NAME:PATH:TYPE:ORDER...            │
+│                                                            │
+│ Registry API:                                              │
+│   • Provides unified installation objects                 │
+│   • No complex metadata (keep it simple)                  │
+│                                                            │
+│ Plugins (instance discovery):                             │
+│   • database_plugin.sh → Discovers RAC instances          │
+│   • weblogic_plugin.sh → Finds managed servers            │
+│   • oud_plugin.sh → Lists OUD instances                   │
+│   • grid_plugin.sh → Detects cluster nodes                │
+│                                                            │
+│ Benefits:                                                  │
+│   ✅ Keep core registry clean and light                    │
+│   ✅ Product-specific logic in plugins                     │
+│   ✅ No new config files to maintain                       │
+│   ✅ Dynamic discovery (no manual updates)                 │
+│   ✅ Backward compatible with existing files               │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Plugin Interface for Instance Discovery:**
+
+```bash
+# Template: product_plugin.sh
+
+# ------------------------------------------------------------------------------
+# Function: plugin_discover_instances
+# Purpose.: Discover all instances for this Oracle Home
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: List of instances (one per line)
+# ------------------------------------------------------------------------------
+plugin_discover_instances() {
+    local oracle_home="$1"
+    
+    # Product-specific discovery logic
+    # Examples:
+    # - Database: List all pmon processes, check ORACLE_HOME
+    # - RAC: Query cluster registry (crsctl stat res ora.*.db)
+    # - WebLogic: Parse domain configs
+    # - OUD: Check running OUD instances
+}
+
+# Example: database_plugin.sh
+plugin_discover_instances() {
+    local oracle_home="$1"
+    
+    # Find all running database instances for this home
+    ps -ef | grep "[p]mon_" | while read -r line; do
+        local sid=$(echo "$line" | grep -oP 'pmon_\K\w+')
+        local proc_home=$(get_oracle_home_from_process "$sid")
+        
+        if [[ "$proc_home" == "$oracle_home" ]]; then
+            echo "$sid"
+        fi
+    done
+    
+    # For RAC, also check cluster registry
+    if [[ -x "$oracle_home/bin/crsctl" ]]; then
+        "$oracle_home/bin/crsctl" stat res -t | grep "ora\..*\.db" | \
+            grep -oP 'ora\.\K[^.]+(?=\.db)'
+    fi
+}
+```
+
+**Why This Approach?**
+
+1. **YAGNI Principle**: We don't need all BasEnv's metadata yet
+2. **Dynamic Discovery**: Plugins can discover instances on-the-fly
+3. **Keep Core Light**: Registry stays simple, plugins handle complexity
+4. **Extensible**: Easy to add `sidtab`/`orahometab` later if needed
+5. **No Duplication**: Avoid maintaining metadata in multiple places
+
+**Future Consideration (Phase 3+):**
+
+If richer metadata is needed, we can introduce:
+
+```text
+oradba_sidtab (optional):
+- Position, type, standby, cluster configuration
+- Only needed if discovery proves insufficient
+- Plugins check sidtab first, fall back to discovery
+
+oradba_hometab (optional):
+- Detailed version, aliases, long names
+- Only if version detection is unreliable
+- Registry checks hometab first, falls back to detection
+```
+
+**Decision:**
+- ✅ Phase 1-2: Plugin-based instance discovery
+- ⏸️ Phase 3: Evaluate need for sidtab/hometab based on real usage
+- 📝 Keep core libs clean and light as requested
+
+### 3.6 Unified Registry API
 
 ```bash
 # lib/oradba_registry.sh
@@ -324,7 +467,7 @@ oradba_registry_get_by_type() {
 }
 ```
 
-### 3.5 Refactored oraup.sh Architecture
+### 3.7 Refactored oraup.sh Architecture
 
 ```bash
 # New oraup.sh structure:
@@ -392,6 +535,7 @@ display_datasafe_connectors() {
 **Goal:** Establish unified registry without breaking existing functionality.
 
 #### 1.1 Create Registry Abstraction (Week 1)
+
 - [ ] Create `lib/oradba_registry.sh`
 - [ ] Implement `oradba_registry_get_all()`
 - [ ] Implement `oradba_registry_get_by_name()`
@@ -399,6 +543,7 @@ display_datasafe_connectors() {
 - [ ] Add unit tests for registry functions
 
 #### 1.2 Create Plugin System (Week 1-2)
+
 - [ ] Create `lib/plugins/plugin_interface.sh` (template)
 - [ ] Implement `plugins/database_plugin.sh`
 - [ ] Implement `plugins/datasafe_plugin.sh`
@@ -407,6 +552,7 @@ display_datasafe_connectors() {
 - [ ] Add plugin discovery and loading
 
 #### 1.3 Fix Critical Bugs (Week 2)
+
 - [ ] **Fix #85**: Make oraup.sh work without oratab
   - Modify `show_oracle_status()` to use unified registry
   - Remove hard dependency on `ORATAB_FILE`
@@ -427,17 +573,20 @@ display_datasafe_connectors() {
 **Goal:** Refactor existing code to use new architecture.
 
 #### 2.1 Refactor oraup.sh (Week 3)
+
 - [ ] Split `show_oracle_status()` into modular display functions
 - [ ] Use registry API instead of direct file parsing
 - [ ] Delegate product-specific logic to plugins
 - [ ] Add proper error handling and fallbacks
 
 #### 2.2 Refactor oraenv.sh (Week 3-4)
+
 - [ ] Update environment switching to use registry API
 - [ ] Remove hardcoded oracle_cman_home logic (use plugin)
 - [ ] Improve configuration load order clarity
 
 #### 2.3 Consolidate DataSafe Handling (Week 4)
+
 - [ ] Identify all locations with oracle_cman_home logic
   - `oradba_common.sh` (line 1647)
   - `oraenv.sh` (line 473)
@@ -453,8 +602,10 @@ display_datasafe_connectors() {
 **Goal:** Add advanced features and improve user experience.
 
 #### 3.1 Configuration Management (Week 5-6)
+
 - [ ] Create `lib/oradba_config_loader.sh`
 - [ ] Implement explicit config load order:
+
   ```bash
   1. oradba_core.conf (always)
   2. oradba_local.conf (installation)
@@ -462,19 +613,24 @@ display_datasafe_connectors() {
   4. oradba_customer.conf (site customizations)
   5. sid.<SID>.conf (instance-specific)
   ```
+
 - [ ] Add config validation and error reporting
 - [ ] Document configuration precedence
 
 #### 3.2 Instance Registry (Optional)
+
 - [ ] Consider `oradba_instances.conf` for SID metadata:
+
   ```ini
   # SID:HOME:TYPE:ROLE:DESCRIPTION
   FREE:/u01/app/oracle/product/23ai:database:PRIMARY:Development DB
   PROD:/u01/app/oracle/product/19c:database:PRIMARY:Production
   ```
+
 - [ ] Evaluate benefits vs oratab compatibility
 
 #### 3.3 Auto-Discovery Enhancement (Week 7)
+
 - [ ] Improve `discover_running_oracle_instances()`
 - [ ] Add process-based detection for all product types
 - [ ] Implement filesystem scanning as fallback
@@ -509,6 +665,7 @@ oradba_log ERROR "message"
 ### 5.2 Testing Requirements
 
 Each phase requires:
+
 1. **Unit tests** (BATS) for new functions
 2. **Integration tests** (Docker) for real environments
 3. **Backward compatibility tests** (existing functionality)
@@ -524,12 +681,14 @@ Each phase requires:
 ### 5.4 Backward Compatibility
 
 **Requirements:**
+
 - All existing scripts must continue to work
 - Configuration files remain compatible
 - Deprecate old functions gradually (3 release cycle)
 - Provide migration helpers
 
 **Deprecation Strategy:**
+
 ```bash
 # Old function
 list_oracle_homes() {
@@ -542,19 +701,20 @@ list_oracle_homes() {
 
 ## 6. Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Breaking existing installations | Medium | High | Phased rollout, extensive testing |
-| Performance regression | Low | Medium | Benchmark critical paths |
-| Plugin complexity | Medium | Medium | Simple template, clear documentation |
-| Scope creep | High | Medium | Strict phase boundaries, MVP focus |
-| User confusion | Low | High | Clear migration guide, release notes |
+| Risk                            | Likelihood | Impact | Mitigation                           |
+|---------------------------------|------------|--------|--------------------------------------|
+| Breaking existing installations | Medium     | High   | Phased rollout, extensive testing    |
+| Performance regression          | Low        | Medium | Benchmark critical paths             |
+| Plugin complexity               | Medium     | Medium | Simple template, clear documentation |
+| Scope creep                     | High       | Medium | Strict phase boundaries, MVP focus   |
+| User confusion                  | Low        | High   | Clear migration guide, release notes |
 
 ---
 
 ## 7. Success Criteria
 
 ### 7.1 Functional Requirements
+
 - [ ] oraup.sh works without oratab file
 - [ ] Listener status only shows DB listeners (not DataSafe)
 - [ ] DataSafe status independent of current environment
@@ -563,6 +723,7 @@ list_oracle_homes() {
 - [ ] Auto-discovery works reliably
 
 ### 7.2 Quality Requirements
+
 - [ ] 90%+ test coverage for new code
 - [ ] No shellcheck warnings
 - [ ] All critical bugs (#83-#85) resolved
@@ -570,6 +731,7 @@ list_oracle_homes() {
 - [ ] Documentation complete and accurate
 
 ### 7.3 User Experience
+
 - [ ] Works "out of the box" for all scenarios
 - [ ] Clear error messages with actionable guidance
 - [ ] Predictable behavior across all scripts
@@ -579,14 +741,14 @@ list_oracle_homes() {
 
 ## 8. Timeline
 
-| Phase | Duration | Target Release | Deliverables |
-|-------|----------|----------------|--------------|
-| Phase 1.1 | 1 week | v1.2.3 | Registry API, Plugin system |
-| Phase 1.2 | 1 week | v1.2.4 | Bug fixes #83-#85 |
-| Phase 2.1 | 2 weeks | v1.3.0 | Refactored oraup.sh, oraenv.sh |
-| Phase 2.2 | 1 week | v1.3.1 | Consolidated DataSafe handling |
-| Phase 3.1 | 2 weeks | v1.4.0 | Config management, discovery |
-| Phase 3.2 | 2 weeks | v2.0.0 | Final polish, documentation |
+| Phase     | Duration | Target Release | Deliverables                   |
+|-----------|----------|----------------|--------------------------------|
+| Phase 1.1 | 1 week   | v1.2.3         | Registry API, Plugin system    |
+| Phase 1.2 | 1 week   | v1.2.4         | Bug fixes #83-#85              |
+| Phase 2.1 | 2 weeks  | v1.3.0         | Refactored oraup.sh, oraenv.sh |
+| Phase 2.2 | 1 week   | v1.3.1         | Consolidated DataSafe handling |
+| Phase 3.1 | 2 weeks  | v1.4.0         | Config management, discovery   |
+| Phase 3.2 | 2 weeks  | v2.0.0         | Final polish, documentation    |
 
 **Total:** ~9 weeks (2.5 months)
 
@@ -595,17 +757,20 @@ list_oracle_homes() {
 ## 9. Next Steps
 
 ### Immediate Actions (Next 2 Days)
+
 1. Review this plan with stakeholders
 2. Create GitHub issues for each Phase 1 task
 3. Set up feature branch `feature/unified-registry`
 4. Begin implementing registry API (Phase 1.1)
 
 ### Short Term (This Week)
+
 1. Implement basic registry API
 2. Create DataSafe plugin proof-of-concept
 3. Fix bug #85 (oraup.sh without oratab)
 
 ### Medium Term (This Month)
+
 1. Complete Phase 1 (Foundation)
 2. Fix all critical bugs (#83-#85)
 3. Release v1.2.3 and v1.2.4 with bug fixes
@@ -615,13 +780,16 @@ list_oracle_homes() {
 ## 10. Questions for Discussion
 
 1. **Registry Format**: Should we introduce a new unified registry file, or keep oratab + oradba_homes.conf separate?
+   - **Decision**: Keep separate for backward compatibility. Registry API abstracts both.
 
-2. **Instance Registry**: Do we need `oradba_instances.conf` for database-specific metadata beyond oratab?
+2. **Instance-to-Home Relationships**: Do we need BasEnv-style `sidtab`/`orahometab` for complex relationships (RAC, WebLogic, OUD)?
+   - **Decision**: Use plugin-based instance discovery (Phase 1-2). Evaluate need for additional registry files in Phase 3+ based on real usage.
+   - **Rationale**: Keep core libs clean and light. Plugins handle product-specific complexity. Dynamic discovery avoids manual maintenance.
 
 3. **Plugin Distribution**: Should plugins be:
-   - Part of core OraDBA?
-   - External/downloadable?
-   - Both (core plugins + extensible)?
+   - Part of core OraDBA? ✅ **Yes for core products** (database, client, datasafe, oud, weblogic, grid)
+   - External/downloadable? ✅ **Yes for custom products**
+   - Both (core plugins + extensible)? ✅ **This approach**
 
 4. **Breaking Changes**: Are we willing to introduce breaking changes in v2.0, or must we maintain 100% backward compatibility?
 
@@ -634,7 +802,8 @@ list_oracle_homes() {
 ## Appendix A: Current File Locations
 
 ### Files with DataSafe oracle_cman_home Logic
-```
+
+```text
 src/lib/oradba_common.sh:1647           (get_oracle_home_for_sid)
 src/bin/oraenv.sh:473                   (main environment setup)
 src/lib/oradba_env_builder.sh:149       (build_path)
@@ -646,7 +815,8 @@ src/bin/oradba_env.sh:292               (cmd_validate)
 ```
 
 ### Files with oratab Access
-```
+
+```text
 src/bin/oraup.sh:34                     (get_oratab_path)
 src/bin/oraenv.sh:54                    (get_oratab_path)
 src/lib/oradba_common.sh:426            (get_oratab_path)
@@ -655,7 +825,8 @@ src/lib/oradba_common.sh:635            (various functions)
 ```
 
 ### Files with oradba_homes.conf Access
-```
+
+```text
 src/lib/oradba_common.sh:1289           (list_oracle_homes)
 src/lib/oradba_common.sh:1335           (get_oracle_home_path)
 src/lib/oradba_common.sh:1352           (get_oracle_home_alias)
@@ -719,6 +890,16 @@ plugin_should_show_listener() {
     :
 }
 
+plugin_discover_instances() {
+    # Discover all instances for this Oracle Home
+    # Handles 1:many relationships (RAC, WebLogic, OUD)
+    # Args: $1 - ORACLE_HOME path
+    # Returns: List of instances (one per line)
+    # Format: instance_name|status|additional_metadata
+    # Example: PROD1|running|node1
+    :
+}
+
 # Optional functions
 plugin_get_display_name() {
     # Custom display name for instances
@@ -738,4 +919,4 @@ plugin_supports_aliases() {
 
 **Document Status:** Draft for Review  
 **Next Review:** After stakeholder feedback  
-**Contact:** Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+**Contact:** Stefan Oehrli (oes) <stefan.oehrli@oradba.ch>
