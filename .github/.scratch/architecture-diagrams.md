@@ -1,6 +1,25 @@
 # OraDBA Architecture Diagrams
 
+Visual representations of the current architecture, proposed improvements, and migration strategy for fixing bugs #83-#85.
+
+## Table of Contents
+
+1. [Current Architecture](#current-architecture-v12x---the-problem)
+2. [Current DataSafe Handling](#current-datasafe-handling---duplicated-logic)
+3. [Proposed Architecture](#proposed-architecture-v20---the-solution)
+4. [Registry System](#registry-system-architecture)
+5. [Plugin System](#plugin-system-architecture)
+6. [Bug #85 Workflow](#bug-85-oratab-dependency)
+7. [Bug #84 Workflow](#bug-84-listener-confusion)
+8. [Bug #83 Workflow](#bug-83-datasafe-status-environment)
+9. [Configuration Loading](#configuration-loading-flow)
+10. [Migration Strategy](#migration-strategy)
+
+---
+
 ## Current Architecture (v1.2.x) - The Problem
+
+Shows the current state with scattered logic and hard dependencies.
 
 ```mermaid
 graph TB
@@ -11,7 +30,7 @@ graph TB
     ParseHomes --> CheckListener[should_show_listener<br/>grep 'tnslsnr']
     CheckListener --> Bug84[❌ Matches DataSafe!<br/>Bug #84]
     Bug84 --> CheckDS[Check DataSafe status]
-    CheckDS --> Bug83[❌ Uses wrong $ORACLE_HOME<br/>Bug #83]
+    CheckDS --> Bug83[❌ Uses wrong ORACLE_HOME<br/>Bug #83]
     
     style Error1 fill:#ffcccc
     style Bug84 fill:#ffcccc
@@ -20,17 +39,21 @@ graph TB
 ```
 
 **Problems:**
-- ❌ Hard dependency on oratab (fails without it)
+- ❌ Hard dependency on oratab (fails without it - Bug #85)
 - ❌ Two separate config systems (oratab + oradba_homes.conf)
 - ❌ No abstraction layer
 - ❌ Product-specific code scattered everywhere
 - ❌ Process detection mixed with configuration
 
+---
+
 ## Current DataSafe Handling - Duplicated Logic
+
+Shows the shotgun surgery anti-pattern - one concept (DataSafe `oracle_cman_home`) scattered across 8+ files.
 
 ```mermaid
 graph TB
-    subgraph "oracle_cman_home Adjustment Logic - Duplicated 8+ places"
+    subgraph "oracle_cman_home Adjustment - Duplicated 8+ places"
         F1[oradba_common.sh:1647<br/>get_oracle_home_for_sid]
         F2[oraenv.sh:473<br/>main environment setup]
         F3[oradba_env_builder.sh:149<br/>build_path]
@@ -52,62 +75,82 @@ graph TB
     F7 -.-> Code
     F8 -.-> Code
     
-    Code --> Problem[❌ Shotgun Surgery<br/>Change logic = update 8+ files<br/>Risk of inconsistency<br/>Hard to maintain]
-    
-    style Problem fill:#ffcccc
-    style Code fill:#ffffcc
+    style Code fill:#ffcccc
 ```
-mermaid
+
+**Problems:**
+- ❌ Same logic in 8+ files (shotgun surgery)
+- ❌ One change requires updates in many places
+- ❌ Risk of inconsistency
+- ❌ Difficult to test
+- ❌ Difficult to maintain
+
+---
+
+## Proposed Architecture (v2.0) - The Solution
+
+Shows the target state with unified registry, plugins, and modular functions.
+
+```mermaid
 graph TB
-    Start[oraup.sh Refactored<br/>Modular ~100 lines each] --> Registry[oradba_registry_get_all]
-    
-    subgraph "Unified Registry API"
-        Registry --> Check1[Check oratab<br/>if exists]
-        Registry --> Check2[Check oradba_homes.conf<br/>if exists]
-        Registry --> Check3[Auto-discover<br/>if enabled]
-        Check1 --> Unified[Return unified<br/>installation list]
-        Check2 --> Unified
-        Check3 --> Unified
+    subgraph "bin/ - Thin Orchestrators"
+        oraup_new[oraup.sh<br/>~150 lines orchestrator]
+        oraenv_new[oraenv.sh]
+        oradba_env_new[oradba_env.sh]
     end
     
-    Unified --> Group[Group by Product Type]
-    Group --> DB[databases array]
-    Group --> Homes[oracle_homes array]
-    
-    DB --> Display[Modular Display Functions]
-    Homes --> Display
-    
-    subgraph "Modular Display"
-        Display --> D1[display_oracle_homes]
-        Display --> D2[display_databases]
-        Display --> D3[display_listeners]
-        D3 --> P1[plugin_should_show_listener<br/>✅ DataSafe returns false]
-        Display --> D4[display_datasafe_connectors]
-        D4 --> P2[plugin_check_status<br/>✅ Explicit ORACLE_HOME]
+    subgraph "lib/ - Modular Functions"
+        registry[oradba_registry.sh<br/>Unified API]
+        display[oradba_display.sh<br/>Formatting functions]
     end
     
-    style Start fill:#ccffcc
-    style Registry fill:#ccffcc
-    style Unified fill:#ccffcc
-    style P1 fill:#ccffcc
-    style P2 fill:#ccffcc
+    subgraph "lib/plugins/ - Product Logic"
+        db_plugin[database_plugin.sh]
+        ds_plugin[datasafe_plugin.sh]
+        cl_plugin[client_plugin.sh]
+        oud_plugin[oud_plugin.sh]
+    end
+    
+    subgraph "Data Files - Unchanged"
+        oratab[(oratab<br/>SID:HOME:FLAGS)]
+        homes[(oradba_homes.conf<br/>NAME:PATH:TYPE...)]
+    end
+    
+    oraup_new --> registry
+    oraup_new --> display
+    oraenv_new --> registry
+    oradba_env_new --> registry
+    
+    registry --> oratab
+    registry --> homes
+    registry --> db_plugin
+    registry --> ds_plugin
+    registry --> cl_plugin
+    registry --> oud_plugin
+    
+    display --> db_plugin
+    display --> ds_plugin
+    
+    style registry fill:#ccffcc
+    style ds_plugin fill:#ccffcc
+    style oratab fill:#e6f3ff
+    style homes fill:#e6f3ff
 ```
 
 **Benefits:**
-- ✅ Works with oratab, oradba_homes.conf, or neither
-- ✅ Single source of truth (registry API)
+- ✅ Single registry API (no direct file access)
 - ✅ Product-specific logic in plugins
 - ✅ Testable, modular functions
-- ✅ Clear separation of concernsroduct-specific logic in plugins
-✅ Testable, modular functions
-✅ Clear separation of concerns
-```
+- ✅ Clear separation of concerns
+- ✅ Bugs #83-#85 fixed
+
+---
 
 ## Registry System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  mermaid
+Shows the new unified registry API that abstracts data sources.
+
+```mermaid
 graph TB
     subgraph "Data Sources - Unchanged"
         Oratab[(oratab<br/>SID:HOME:FLAGS)]
@@ -142,26 +185,16 @@ graph TB
 - ✅ Single API regardless of data source
 - ✅ Easy to add new data sources
 - ✅ Consistent data format
-- ✅ Testable in isolationPlugin System Architecture
+- ✅ Testable in isolation
+- ✅ Fixes Bug #85 (no hard oratab dependency)
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                      Product Plugin System                           │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  Plugin Interface (lib/plugins/plugin_interface.sh):                │
-│  ┌────────────────────────────────────────────────────────┐        │
-│  │ Standard Functions (All plugins must implement):       │        │
-│  │ - plugin_detect_installation()                         │        │
-│  │ - plugin_validate_home()                               │        │
-│  │ - plugin_adjust_environment()     ◄── Key for DataSafe│        │
-│  │ - plugin_check_status()            ◄── Key for #83    │        │
-│  │ - plugin_get_metadata()                                │        │
-│  │ - plugin_should_show_listener()    ◄── Key for #84    │        │
-│  └────────────────────────────────────────────────────────┘        │
-│                      │                                              │
-│                      ▼                                              │
-│  mermaid
+---
+
+## Plugin System Architecture
+
+Shows the new plugin interface for product-specific behavior.
+
+```mermaid
 graph TB
     Interface[lib/plugins/plugin_interface.sh<br/>Standard Interface Template]
     
@@ -195,46 +228,36 @@ graph TB
 - ✅ Easy to add new product types
 - ✅ Single place to change behavior
 - ✅ Testable in isolation
-- ✅ Clear interface contract           ▼
-        [No oratab]
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ Display error message                   │
-│ "No oratab file found"                  │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ return 0 (exit early)                   │
-│ ❌ Never checks oradba_homes.conf        │
-└─────────────────────────────────────────┘
-```
+- ✅ Clear interface contract
+- ✅ Fixes Bug #83 (explicit environment per product)
+- ✅ Fixes Bug #84 (product decides listener visibility)
 
-**After (Fixed):**
-```
-┌─────────────────────────────────────────┐
-│ oraup.sh starts                         │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ omermaid
+---
+
+## Bug #85: oratab Dependency
+
+**Before (Current - Broken):**
+
+```mermaid
 graph TB
     Start1[oraup.sh starts] --> Check1{oratab<br/>exists?}
     Check1 -->|No| Error1[Display error:<br/>No oratab file found]
     Error1 --> Exit1[❌ return 0 exit early<br/>Never checks oradba_homes.conf]
+    Check1 -->|Yes| Parse1[Parse oratab only]
     
     style Exit1 fill:#ffcccc
     style Error1 fill:#ffeeee
 ```
 
+**Impact:** Environments with only clients, DataSafe, or OUD installations cannot use oraup.sh.
+
 **After (Fixed):**
+
 ```mermaid
 graph TB
     Start2[oraup.sh starts] --> Registry[oradba_registry_get_all]
     
-    subgraph "Unified Registry"
+    subgraph "Unified Registry - Checks All Sources"
         Registry --> C1[Check oratab<br/>if exists]
         Registry --> C2[Check oradba_homes.conf<br/>if exists]
         Registry --> C3[Auto-discover<br/>if enabled]
@@ -245,33 +268,23 @@ graph TB
     C3 --> Got
     
     Got -->|Yes| Display[✅ Display them]
-    Got -->|No| Help[Display helpful message]
+    Got -->|No| Help[Display helpful message:<br/>No installations found]
     
     style Display fill:#ccffcc
     style Registry fill:#ccffcc
-              ▼
-┌─────────────────────────────────────────┐
-│ For each installation:                  │
-│   if plugin_should_show_listener():     │
-│       display listener info             │
-└─────────────────────────────────────────┘
-              │
-              ├─ database: show listener ✅
-              ├─ datasafe: DON'T show ✅
-              ├─ client: DON'T show ✅
-              └─ oud: DON'T show ✅
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ Only show "Listener" section if         │
-│ database installations exist            │
-│ ✅ Clear and correct                     │
-└─────────────────────────────────────────┘
 ```
 
-### Bug #83: DataSafe status wrong environment
+**Fix:**
+- ✅ No hard dependency on oratab
+- ✅ Works with any combination of sources
+- ✅ Graceful fallback
 
-**Before (Current - Wrong):**
+---
+
+## Bug #84: Listener Confusion
+
+**Before (Current - Misleading):**
+
 ```mermaid
 graph TB
     Start[should_show_listener_status] --> Check[ps -ef grep tnslsnr]
@@ -286,7 +299,10 @@ graph TB
     style Problem fill:#ffcccc
 ```
 
+**Impact:** Shows "Listener" section even when only DataSafe connectors are running (no actual database listeners).
+
 **After (Fixed):**
+
 ```mermaid
 graph TB
     Start2[display_listeners<br/>installations] --> Loop[For each installation]
@@ -307,22 +323,23 @@ graph TB
     
     style Show1 fill:#ccffcc
     style Success fill:#ccffcc
-
-## Configuration Loading Flow
-
-**Current (Inconsistent):**
 ```
-┌──────────────────┐        ┌──────────────────┐
-│   oraenv.sh      │        │    oraup.sh      │
-├──────────────────┤        ├──────────────────┤
-│ 1. common lib    │        │ 1. common lib    │
-│ 2. core.conf     │        │ 2. status lib    │
-│ 3. local.conf    │        │ 3. ???           │
-│ 4. standard.conf │        │                  │
-│ 5mermaid
+
+**Fix:**
+- ✅ Product-specific logic (plugins decide)
+- ✅ Only show listener for databases
+- ✅ Clear and accurate display
+
+---
+
+## Bug #83: DataSafe Status Environment
+
+**Before (Current - Wrong Environment):**
+
+```mermaid
 graph TB
     Start[oraup.sh:<br/>Display DataSafe status] --> Call[oradba_check_datasafe_status path]
-    Call --> Problem[❌ Uses current $ORACLE_HOME<br/>❌ Uses current $LD_LIBRARY_PATH<br/>May be from different env!]
+    Call --> Problem[❌ Uses current ORACLE_HOME<br/>❌ Uses current LD_LIBRARY_PATH<br/>May be from different env!]
     Problem --> Cmctl[cmctl status]
     Cmctl --> Wrong[❌ Wrong HOME<br/>❌ Wrong libraries<br/>❌ Incorrect status]
     
@@ -330,13 +347,16 @@ graph TB
     style Wrong fill:#ffcccc
 ```
 
+**Impact:** DataSafe status check runs with wrong environment variables, showing incorrect status.
+
 **After (Fixed):**
+
 ```mermaid
 graph TB
     Start2[display_datasafe_connectors] --> Loop[For each DataSafe installation]
     Loop --> Plugin[plugin_check_status path]
     
-    subgraph "datasafe_plugin.sh"
+    subgraph "datasafe_plugin.sh - Explicit Environment"
         Plugin --> Explicit[Set Explicit Environment:<br/>ORACLE_HOME=path/oracle_cman_home<br/>LD_LIBRARY_PATH=path/lib]
         Explicit --> Cmctl2[cmctl status<br/>with correct environment]
     end
@@ -344,33 +364,21 @@ graph TB
     Cmctl2 --> Success[✅ Correct HOME<br/>✅ Correct libraries<br/>✅ Accurate status]
     
     style Success fill:#ccffcc
-    style Explicit fill:#ccffcc                 │
-│  ✅ Bugs #83-#85 fixed                                     │
-└────────────────────────────────────────────────────────────┘
-                         │
-                         │ Phase 2: Gradual migration (3 weeks)
-                         ▼
-┌────────────────────────────────────────────────────────────┐
-│                    v1.3.0-v1.3.1                           │
-│  ┌──────────────────────────────────────────────────┐     │
-│  │ New code uses Registry + Plugins                 │     │
-│  │ - oraup.sh refactored                            │     │
-│  │ - oraenv.sh refactored                           │     │
-│  └──────────────────────────────────────────────────┘     │
-│  ┌──────────────────────────────────────────────────┐     │
-│  │ Old functions deprecated (still work)            │     │
-│  │ - list_oracle_homes() → calls registry          │     │
-│  │ - Deprecation warnings logged                    │     │
-│  └──────────────────────────────────────────────────┘     │
-│  ✅ Backward compatible                                    │
-│  ✅ All new features use new architecture                  │
-└────────────────────────────────────────────────────────────┘
-                         │
-                         │ Phase 3: Cleanup (4 weeks)
-                         ▼
-┌────────────────────────────────────────────────────────────┐
-│                    v2.0.0                                  │
-│  mermaid
+    style Explicit fill:#ccffcc
+```
+
+**Fix:**
+- ✅ Explicit environment per installation
+- ✅ Product-specific environment setup
+- ✅ Accurate status checking
+
+---
+
+## Configuration Loading Flow
+
+**Current (Inconsistent):**
+
+```mermaid
 graph TB
     subgraph "oraenv.sh - Consistent"
         E1[1. common lib] --> E2[2. core.conf]
@@ -382,13 +390,14 @@ graph TB
     
     subgraph "oraup.sh - Inconsistent ❌"
         U1[1. common lib] --> U2[2. status lib]
-        U2 --> U3[3. ???]
+        U2 --> U3[3. ??? No clear order]
     end
     
     style U3 fill:#ffcccc
 ```
 
 **Proposed (Unified):**
+
 ```mermaid
 graph TB
     AllScripts[All Scripts] --> Init[oradba_init_environment]
@@ -404,19 +413,33 @@ graph TB
     C5 --> Result[✅ Clear, predictable,<br/>documented load order]
     
     style Init fill:#ccffcc
-   mermaid
+    style Result fill:#ccffcc
+```
+
+**Fix:**
+- ✅ Consistent load order across all scripts
+- ✅ Documented and predictable
+- ✅ Easy to debug
+
+---
+
+## Migration Strategy
+
+Three-phase migration preserving backward compatibility.
+
+```mermaid
 graph TB
     V1[v1.2.x Current<br/>Existing code with bugs] -->|Phase 1: Add new layer<br/>2 weeks| V2[v1.2.3-v1.2.4]
     
-    subgraph "v1.2.3-v1.2.4"
+    subgraph "Phase 1: v1.2.3-v1.2.4"
         New1[New: Registry API + Plugins<br/>Unused by existing code yet]
         Old1[Old: Existing code<br/>patched for critical bugs]
-        Status1[✅ No breaking changes<br/>✅ Bugs #83-#85 fixed]
+        Status1[✅ No breaking changes<br/>✅ Bugs 83-85 fixed with minimal patches]
     end
     
     V2 -->|Phase 2: Gradual migration<br/>3 weeks| V3[v1.3.0-v1.3.1]
     
-    subgraph "v1.3.0-v1.3.1"
+    subgraph "Phase 2: v1.3.0-v1.3.1"
         New2[New code uses Registry + Plugins<br/>- oraup.sh refactored<br/>- oraenv.sh refactored]
         Old2[Old functions deprecated<br/>still work with warnings<br/>- list_oracle_homes → registry]
         Status2[✅ Backward compatible<br/>✅ New architecture used]
@@ -424,7 +447,7 @@ graph TB
     
     V3 -->|Phase 3: Cleanup<br/>4 weeks| V4[v2.0.0]
     
-    subgraph "v2.0.0"
+    subgraph "Phase 3: v2.0.0"
         New3[Only new architecture<br/>- Registry API<br/>- Plugin system<br/>- Modular functions]
         Status3[⚠️ Deprecated functions removed<br/>⚠️ Minor breaking changes<br/>✅ Clean codebase]
     end
@@ -433,3 +456,29 @@ graph TB
     style V2 fill:#ffffcc
     style V3 fill:#e6f3ff
     style V4 fill:#ccffcc
+```
+
+**Timeline:**
+- **Phase 1 (2 weeks)**: Add registry + plugins, patch bugs minimally
+- **Phase 2 (3 weeks)**: Refactor scripts to use new architecture
+- **Phase 3 (4 weeks)**: Remove deprecated code, clean up
+- **Total: 9 weeks**
+
+**Safety:**
+- ✅ Incremental changes
+- ✅ Extensive testing at each phase
+- ✅ Rollback possible at any point
+- ✅ No breaking changes until v2.0.0
+
+---
+
+## Summary
+
+These diagrams show:
+
+1. **Current Problems** (#1-2): Scattered logic, hard dependencies, duplicated code
+2. **Proposed Solution** (#3-5): Unified registry, plugin system, modular functions
+3. **Bug Fixes** (#6-8): How new architecture fixes bugs #83-#85
+4. **Implementation** (#9-10): Configuration unification and 3-phase migration
+
+All diagrams are in Mermaid format for easy editing and GitHub rendering.
