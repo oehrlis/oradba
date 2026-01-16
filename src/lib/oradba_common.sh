@@ -1406,6 +1406,34 @@ detect_product_type() {
         return 0
     fi
 
+    # Check for Instant Client (libraries without bin directory)
+    # Instant Client has libclntsh in root or lib directories
+    if [[ -f "${oracle_home}/libclntsh.so" ]] || [[ -f "${oracle_home}/libclntsh.dylib" ]]; then
+        echo "iclient"
+        return 0
+    fi
+    # Check for versioned libclntsh (e.g., libclntsh.so.19.1)
+    shopt -s nullglob
+    local -a versioned_libs=("${oracle_home}"/libclntsh.so.*)
+    shopt -u nullglob
+    if [[ ${#versioned_libs[@]} -gt 0 ]]; then
+        echo "iclient"
+        return 0
+    fi
+    # Check for lib/lib64 without bin (older Instant Client style)
+    if [[ -d "${oracle_home}/lib" ]] || [[ -d "${oracle_home}/lib64" ]]; then
+        if [[ ! -d "${oracle_home}/bin" ]]; then
+            # Check for actual Oracle client libraries
+            shopt -s nullglob
+            local -a lib_files=("${oracle_home}"/lib*/libclntsh*)
+            shopt -u nullglob
+            if [[ ${#lib_files[@]} -gt 0 ]]; then
+                echo "iclient"
+                return 0
+            fi
+        fi
+    fi
+
     # Check for Oracle Client
     if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -f "${oracle_home}/bin/oracle" ]]; then
         echo "client"
@@ -1639,6 +1667,10 @@ set_oracle_home_environment() {
             ;;
         client)
             export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
+        iclient)
+            # Instant Client: Add ORACLE_HOME to PATH (no bin subdirectory)
+            export PATH="${ORACLE_HOME}:${PATH}"
             ;;
         weblogic)
             export WL_HOME="${ORACLE_HOME}/wlserver"

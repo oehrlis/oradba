@@ -407,13 +407,14 @@ show_oracle_status() {
                 # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
                 read -r name path ptype _order alias_name _desc _version <<< "$home_line"
 
-                # Skip client/iclient homes - they don't need to be displayed
-                [[ "$ptype" == "client" || "$ptype" == "iclient" ]] && continue
+                # Skip client homes - they don't need to be displayed
+                [[ "$ptype" == "client" ]] && continue
 
                 # Format product type for display
                 local ptype_display
                 case "$ptype" in
                     database) ptype_display="Database" ;;
+                    iclient) ptype_display="Instant Client" ;;
                     oud) ptype_display="OUD" ;;
                     weblogic) ptype_display="WebLogic" ;;
                     oms) ptype_display="OMS" ;;
