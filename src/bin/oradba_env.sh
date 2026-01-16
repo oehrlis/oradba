@@ -189,9 +189,9 @@ cmd_show() {
     
     # Try to find target in oradba_homes.conf first (by name or alias)
     local home_entry
-    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
+    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
         # Found in oradba_homes.conf - extract details
-        IFS='|' read -r name path ptype _order alias_name desc version <<< "$home_entry"
+        IFS=':' read -r name path ptype _order alias_name desc version <<< "$home_entry"
         echo "=== Oracle Home Information ==="
         echo "Name: ${alias_name:-$name}"
         echo "Path: $path"
@@ -279,8 +279,8 @@ cmd_validate() {
     if [[ -n "$target" ]]; then
         # Try oradba_homes.conf
         local home_entry
-        if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
-            IFS='|' read -r _name path _rest <<< "$home_entry"
+        if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
+            IFS=':' read -r _name path _rest <<< "$home_entry"
             validate_home="$path"
         else
             # Try oratab
@@ -348,9 +348,9 @@ cmd_status() {
     # Try to find target in oradba_homes.conf first
     local oracle_sid oracle_home product_type
     local home_entry
-    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
+    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
         # Found in oradba_homes.conf
-        IFS='|' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
+        IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
         oracle_sid="$name"
         oracle_home="$path"
         product_type="${ptype^^}"
