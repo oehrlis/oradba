@@ -17,13 +17,15 @@
 
 # Create dynamic alias with automatic expansion handling
 # Usage: create_dynamic_alias <name> <command> [expand]
-# Parameters:
-#   name    - Alias name
-#   command - Alias command/value
-#   expand  - "true" to expand variables at definition time (default: "false")
-# Returns: Exit code from safe_alias (0=created, 1=skipped, 2=error)
-# Notes: When expand=true, variables in command are expanded immediately.
-#        Automatically handles shellcheck SC2139 suppression for expanded aliases.
+# ------------------------------------------------------------------------------
+# Function: create_dynamic_alias
+# Purpose.: Create a shell alias with optional variable expansion
+# Args....: $1 - Alias name (required)
+#           $2 - Alias command/value (required)
+#           $3 - "true" to expand variables at definition time (default: "false")
+# Returns.: Exit code from safe_alias (0=created, 1=skipped, 2=error)
+# Output..: Creates shell alias, handles shellcheck SC2139 suppression for expanded aliases
+# ------------------------------------------------------------------------------
 create_dynamic_alias() {
     local name="${1:?Alias name required}"
     local command="${2:?Alias command required}"
@@ -37,9 +39,13 @@ create_dynamic_alias() {
     fi
 }
 
-# Get diagnostic_dest from database or fallback to convention
-# Usage: get_diagnostic_dest
-# Returns: path to diagnostic_dest directory
+# ------------------------------------------------------------------------------
+# Function: get_diagnostic_dest
+# Purpose.: Get diagnostic_dest from database or fallback to convention
+# Args....: None
+# Returns.: 0 on success
+# Output..: Path to diagnostic_dest directory
+# ------------------------------------------------------------------------------
 get_diagnostic_dest() {
     local diag_dest=""
     local sid="${ORACLE_SID:-}"
@@ -72,9 +78,13 @@ EOF
     echo "${diag_dest}"
 }
 
-# Check if rlwrap is available
-# Usage: has_rlwrap
-# Returns: 0 if rlwrap is available, 1 otherwise
+# ------------------------------------------------------------------------------
+# Function: has_rlwrap
+# Purpose.: Check if rlwrap command is available
+# Args....: None
+# Returns.: 0 if rlwrap is available, 1 otherwise
+# Output..: None
+# ------------------------------------------------------------------------------
 has_rlwrap() {
     command -v "${RLWRAP_COMMAND:-rlwrap}" &> /dev/null
 }
@@ -141,9 +151,13 @@ oradba_tnsping() {
 # Dynamic Alias Generation
 # ------------------------------------------------------------------------------
 
-# Generate SID-specific aliases based on current ORACLE_SID
-# Usage: generate_sid_aliases
-# Creates: taa, vaa, via, cdd, cddt, cdda aliases
+# ------------------------------------------------------------------------------
+# Function: generate_sid_aliases
+# Purpose.: Generate SID-specific aliases based on current ORACLE_SID
+# Args....: None
+# Returns.: 0 on success
+# Output..: Creates taa, vaa, via, cdd, cddt, cdda aliases
+# ------------------------------------------------------------------------------
 generate_sid_aliases() {
     local sid="${ORACLE_SID:-}"
 
@@ -225,9 +239,13 @@ generate_sid_aliases() {
 # Base Directory Aliases
 # ------------------------------------------------------------------------------
 
-# Generate OraDBA base directory alias
-# Usage: generate_base_aliases
-# Creates: cdbase alias
+# ------------------------------------------------------------------------------
+# Function: generate_base_aliases
+# Purpose.: Generate OraDBA base directory alias
+# Args....: None
+# Returns.: 0 on success
+# Output..: Creates cdbase alias
+# ------------------------------------------------------------------------------
 generate_base_aliases() {
     # OraDBA base directory alias
     if [[ -n "${ORADBA_BASE}" ]] && [[ -d "${ORADBA_BASE}" ]]; then
