@@ -152,6 +152,24 @@ test-integration: ## Run integration tests only
 	@echo -e "$(COLOR_BLUE)Running integration tests...$(COLOR_RESET)"
 	@$(BATS) $(TEST_DIR)/integration/*.bats 2>/dev/null || echo "No integration tests found"
 
+.PHONY: test-plugin-client
+test-plugin-client: ## Run client plugin tests only
+	@echo -e "$(COLOR_BLUE)Running client plugin tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_client_plugin.bats
+
+.PHONY: test-plugin-iclient
+test-plugin-iclient: ## Run instant client plugin tests only
+	@echo -e "$(COLOR_BLUE)Running instant client plugin tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_iclient_plugin.bats
+
+.PHONY: test-plugin-oud
+test-plugin-oud: ## Run OUD plugin tests only
+	@echo -e "$(COLOR_BLUE)Running OUD plugin tests...$(COLOR_RESET)"
+	@$(BATS) $(TEST_DIR)/test_oud_plugin.bats
+
+.PHONY: test-plugins
+test-plugins: test-plugin-client test-plugin-iclient test-plugin-oud ## Run all plugin tests
+
 .PHONY: test-docker
 test-docker: build ## Run Docker-based automated integration tests (requires Docker)
 	@echo -e "$(COLOR_BLUE)Running Docker-based integration tests...$(COLOR_RESET)"
