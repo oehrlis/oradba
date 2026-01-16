@@ -67,6 +67,13 @@ plugin_validate_home() {
     
     [[ ! -d "${home_path}" ]] && return 1
     
+    # Instant client does NOT have bin/ subdirectory
+    # (If it has bin/, it's a full client)
+    [[ -d "${home_path}/bin" ]] && return 1
+    
+    # Should NOT have rdbms directory (that's a database home)
+    [[ -d "${home_path}/rdbms" ]] && return 1
+    
     # Check for libclntsh.so (instant client signature)
     if [[ -f "${home_path}/libclntsh.so" ]]; then
         return 0
@@ -77,13 +84,6 @@ plugin_validate_home() {
         [[ -f "$lib" ]] && found=1 && break
     done
     [[ $found -eq 1 ]] || return 1
-    
-    # Instant client does NOT have bin/ subdirectory
-    # (If it has bin/, it's a full client)
-    [[ -d "${home_path}/bin" ]] && return 1
-    
-    # Should NOT have rdbms directory (that's a database home)
-    [[ -d "${home_path}/rdbms" ]] && return 1
     
     return 0
 }
