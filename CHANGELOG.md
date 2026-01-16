@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolves issue where entire config line was displayed as name field
   - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
 
+- **oradba_env.sh Validate Command for Oracle Homes** (2026-01-16)
+  - Apply DataSafe ORACLE_HOME adjustment (oracle_cman_home subdirectory)
+  - Display product type from config file instead of auto-detecting
+  - Show target name when validating specific target
+  - Clear ORACLE_SID when validating Oracle Home (not a database SID)
+  - Restore environment variables after validation completes
+  - Resolves confusion where current environment's values were mixed with target validation
+
 ## [1.2.1] - 2026-01-16
 
 ### Fixed
