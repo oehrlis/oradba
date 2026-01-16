@@ -1413,7 +1413,9 @@ detect_product_type() {
         return 0
     fi
     # Check for versioned libclntsh (e.g., libclntsh.so.19.1)
-    if ls "${oracle_home}"/libclntsh.so.* &>/dev/null; then
+    local -a versioned_libs
+    versioned_libs=("${oracle_home}"/libclntsh.so.*)
+    if [[ -f "${versioned_libs[0]}" ]]; then
         echo "iclient"
         return 0
     fi
@@ -1421,7 +1423,9 @@ detect_product_type() {
     if [[ -d "${oracle_home}/lib" ]] || [[ -d "${oracle_home}/lib64" ]]; then
         if [[ ! -d "${oracle_home}/bin" ]]; then
             # Check for actual Oracle client libraries
-            if ls "${oracle_home}"/lib*/libclntsh* &>/dev/null; then
+            local -a lib_files
+            lib_files=("${oracle_home}"/lib*/libclntsh*)
+            if [[ -f "${lib_files[0]}" ]]; then
                 echo "iclient"
                 return 0
             fi
