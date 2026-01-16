@@ -445,7 +445,7 @@ show_oracle_status() {
                 elif [[ "$ptype" == "datasafe" ]]; then
                     # For DataSafe, check if connector is running
                     if command -v oradba_check_datasafe_status &>/dev/null; then
-                        status=$(oradba_check_datasafe_status "$path" 2>/dev/null || echo "available")
+                        status=$(oradba_check_datasafe_status "$path" 2>/dev/null)
                         status="${status,,}"  # lowercase
                         status="${status// /}"  # remove spaces
                         status="${status//$'\n'/}"  # remove newlines
@@ -586,11 +586,15 @@ show_oracle_status() {
             # Skip non-DataSafe homes
             [[ "$ptype" != "datasafe" ]] && continue
             
-            # Check status
-            local ds_status="unknown"
-            if command -v oradba_check_datasafe_status &>/dev/null; then
-                ds_status=$(oradba_check_datasafe_status "$path" 2>/dev/null || echo "stopped")
+            # Check status - only show running/stopped for actual installations
+            local ds_status
+            if [[ ! -d "$path" ]]; then
+                ds_status="unavailable"
+            elif command -v oradba_check_datasafe_status &>/dev/null; then
+                ds_status=$(oradba_check_datasafe_status "$path" 2>/dev/null)
                 ds_status="${ds_status,,}"  # lowercase
+            else
+                ds_status="unknown"
             fi
             
             # Get port number
@@ -607,7 +611,7 @@ show_oracle_status() {
             
             # Display with full oracle_cman_home path
             local cman_home="${path}/oracle_cman_home"
-            printf "%-17s : %-12s %-11s %s\n" "Connection Manager" "$name" "$status_display" "$cman_home"
+            printf "%-17s : %-12s %-11s %s\n" "Connector" "$name" "$status_display" "$cman_home"
             
         done < <(list_oracle_homes)
         

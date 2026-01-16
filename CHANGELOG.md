@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-01-16
+
+### Added
+
+- **Oracle Home Management Support** (2026-01-16)
+  - `oradba_env.sh` now fully supports Oracle Homes from oradba_homes.conf
+  - All commands (list, show, status, validate) work with Oracle Home names/aliases
+  - Added lookup by name or alias for DataSafe, Instant Client, OUD, WebLogic, etc.
+  - Automatic fallback to oratab for database SIDs
+
+- **GitHub Copilot Instructions** (2026-01-16)
+  - Added comprehensive AI coding guidelines for OraDBA project
+  - Added extension-specific instructions for all extension templates
+  - Documented database query patterns, logging conventions, test workflows
+  - Created `.github/.scratch/` for temporary AI-generated working files
+
+### Fixed
+
+- **Status Display Concatenation Bug** (2026-01-16)
+  - Fixed "unknownavailable" concatenation in oraup.sh Oracle Homes section
+  - Fixed same issue in Data Safe Status section
+  - Removed problematic `|| echo` fallbacks that caused status string concatenation
+  - Status now correctly shows: unavailable, unknown, running, or stopped
+
+- **Status Logic for Missing Installations** (2026-01-16)
+  - Added directory existence checks before checking connector status
+  - "unavailable": directory doesn't exist
+  - "unknown": directory exists but cmctl not found/executable  
+  - "stopped": installation exists but connector not running
+  - "running": connector is actively running (with port number)
+
+- **Display Alignment Issues** (2026-01-16)
+  - Changed "Connection Manager" to "Connector" in Data Safe Status section
+  - Fixed column alignment across all status sections
+  - Consistent 17-character width for type column
+
+- **Oracle Homes List Format** (2026-01-16)
+  - Fixed parsing of oradba_list_all_homes output (NAME|PATH|TYPE|ORDER|ALIAS)
+  - Display format now: NAME TYPE PATH (consistent with SID listing)
+  - Shows alias if different from name, otherwise shows name
+
+### Changed
+
+- **oradba_env.sh Enhanced** (2026-01-16)
+  - `show` command: Tries oradba_homes.conf first, then oratab, then path
+  - `status` command: Supports Oracle Homes, not just database SIDs
+  - `validate` command: Accepts optional target parameter for any Oracle Home
+  - Temporary ORACLE_HOME override during validation to test specific homes
+
 ## [1.1.0] - 2026-01-15
 
 ### Added

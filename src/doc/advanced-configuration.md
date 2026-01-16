@@ -1150,11 +1150,23 @@ This section provides systematic approaches to diagnosing and resolving configur
 **Built-in diagnostic commands:**
 
 ```bash
-# Environment validation
-oradba_env.sh validate
+# Environment validation (supports Oracle Home names from oradba_homes.conf)
+oradba_env.sh validate                  # Validate current environment
+oradba_env.sh validate PRODDB          # Validate specific database SID
+oradba_env.sh validate dscontest       # Validate DataSafe connector (v1.2.0+)
+oradba_env.sh validate /path/to/home   # Validate by path
 
-# Configuration status
-oradba_env.sh status
+# Configuration status (works with Oracle Homes and database SIDs)
+oradba_env.sh status                   # Status of current environment
+oradba_env.sh status PRODDB           # Status of specific database
+oradba_env.sh status dscontest        # Status of DataSafe connector (v1.2.0+)
+
+# Oracle environment information
+oradba_env.sh list                     # List all SIDs and Oracle Homes
+oradba_env.sh list sids               # List only database SIDs
+oradba_env.sh list homes              # List only Oracle Homes
+oradba_env.sh show PRODDB             # Show database details
+oradba_env.sh show dscontest          # Show Oracle Home details (v1.2.0+)
 
 # Change detection
 oradba_env.sh changes

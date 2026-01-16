@@ -130,8 +130,9 @@ cmd_list() {
             echo "=== Oracle Homes (from oradba_homes.conf) ==="
             echo ""
             if [[ -f "$homes_file" ]]; then
-                oradba_list_all_homes | while IFS='|' read -r home product short_name; do
-                    printf "  %-12s %-10s %s\n" "$short_name" "$product" "$home"
+                oradba_list_all_homes | while IFS='|' read -r name path ptype _order alias_name; do
+                    local display_name="${alias_name:-$name}"
+                    printf "  %-15s %-10s %s\n" "$display_name" "$ptype" "$path"
                 done
             else
                 echo "  No oradba_homes.conf file found"
@@ -159,8 +160,9 @@ cmd_list() {
             echo "=== Oracle Homes (from oradba_homes.conf) ==="
             echo ""
             if [[ -f "$homes_file" ]]; then
-                oradba_list_all_homes | while IFS='|' read -r home product short_name; do
-                    printf "  %-12s %-10s %s\n" "$short_name" "$product" "$home"
+                oradba_list_all_homes | while IFS='|' read -r name path ptype _order alias_name; do
+                    local display_name="${alias_name:-$name}"
+                    printf "  %-15s %-10s %s\n" "$display_name" "$ptype" "$path"
                 done
             else
                 echo "  No oradba_homes.conf file found"
@@ -185,8 +187,26 @@ cmd_show() {
         return 1
     fi
     
-    # Check if it's a path (Oracle Home) or SID
-    if [[ -d "$target" ]]; then
+    # Try to find target in oradba_homes.conf first (by name or alias)
+    local home_entry
+    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
+        # Found in oradba_homes.conf - extract details
+        IFS='|' read -r name path ptype _order alias_name desc version <<< "$home_entry"
+        echo "=== Oracle Home Information ==="
+        echo "Name: ${alias_name:-$name}"
+        echo "Path: $path"
+        echo "Product: $ptype"
+        [[ -n "$version" ]] && echo "Version: $version"
+        [[ -n "$desc" ]] && echo "Description: $desc"
+        
+        # Check if home exists
+        if [[ ! -d "$path" ]]; then
+            echo "Warning: Oracle Home does not exist"
+        fi
+        echo ""
+        return 0
+    # Check if it's a path (Oracle Home)
+    elif [[ -d "$target" ]]; then
         # It's an Oracle Home path
         echo "=== Oracle Home Information ==="
         echo "Path: $target"
@@ -247,24 +267,55 @@ cmd_show() {
 
 # ------------------------------------------------------------------------------
 # Function: cmd_validate
-# Purpose.: Validate current Oracle environment
+# Purpose.: Validate current Oracle environment or specified target
 # ------------------------------------------------------------------------------
 cmd_validate() {
-    local level="${1:-standard}"
+    local target="${1:-}"
+    local level="${2:-standard}"
+    local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
     
-    if [[ -z "$ORACLE_HOME" ]]; then
+    # If target specified, try to resolve it
+    local validate_home="$ORACLE_HOME"
+    if [[ -n "$target" ]]; then
+        # Try oradba_homes.conf
+        local home_entry
+        if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
+            IFS='|' read -r _name path _rest <<< "$home_entry"
+            validate_home="$path"
+        else
+            # Try oratab
+            local sid_info
+            sid_info=$(oradba_find_sid "$target")
+            if [[ $? -eq 0 ]]; then
+                IFS='|' read -r _sid home _flag <<< "$sid_info"
+                validate_home="$home"
+            else
+                echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf" >&2
+                return 1
+            fi
+        fi
+    fi
+    
+    if [[ -z "$validate_home" ]]; then
         echo "ERROR: No Oracle environment set (ORACLE_HOME not defined)" >&2
-        echo "Run: source oraenv.sh <SID>" >&2
+        echo "Run: source oraenv.sh <SID> or specify a target" >&2
         return 1
     fi
     
     echo "=== Validating Oracle Environment ==="
     echo "ORACLE_SID: ${ORACLE_SID:-not set}"
-    echo "ORACLE_HOME: $ORACLE_HOME"
+    echo "ORACLE_HOME: $validate_home"
     echo ""
+    
+    # Temporarily set ORACLE_HOME if validating a different home
+    local saved_oracle_home="$ORACLE_HOME"
+    export ORACLE_HOME="$validate_home"
     
     if command -v oradba_validate_environment &>/dev/null; then
         oradba_validate_environment "$level"
+        local result=$?
+        export ORACLE_HOME="$saved_oracle_home"
+        return $result
     else
         echo "ERROR: Validation library not available" >&2
         return 1
@@ -277,6 +328,7 @@ cmd_validate() {
 # ------------------------------------------------------------------------------
 cmd_status() {
     local target="${1:-}"
+    local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
     
     # If status library not loaded, inform user
     if ! command -v oradba_get_product_status &>/dev/null; then
@@ -293,22 +345,32 @@ cmd_status() {
         fi
     fi
     
-    # Get SID info from oratab
-    local sid_info
-    sid_info=$(oradba_find_sid "$target")
-    
-    if [[ $? -ne 0 ]] || [[ -z "$sid_info" ]]; then
-        echo "ERROR: SID '$target' not found in oratab"
-        return 1
+    # Try to find target in oradba_homes.conf first
+    local oracle_sid oracle_home product_type
+    local home_entry
+    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}|\|${target}\|" | head -1); then
+        # Found in oradba_homes.conf
+        IFS='|' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
+        oracle_sid="$name"
+        oracle_home="$path"
+        product_type="${ptype^^}"
+    else
+        # Get SID info from oratab
+        local sid_info
+        sid_info=$(oradba_find_sid "$target")
+        
+        if [[ $? -ne 0 ]] || [[ -z "$sid_info" ]]; then
+            echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf"
+            return 1
+        fi
+        
+        # Parse SID info (format: SID|ORACLE_HOME|FLAG)
+        local _oracle_flag
+        IFS='|' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
+        
+        # Detect product type
+        product_type=$(oradba_get_product_type "$oracle_home")
     fi
-    
-    # Parse SID info (format: SID|ORACLE_HOME|FLAG)
-    local oracle_sid oracle_home _oracle_flag
-    IFS='|' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
-    
-    # Detect product type
-    local product_type
-    product_type=$(oradba_get_product_type "$oracle_home")
     
     echo "=== Oracle Instance/Service Status ==="
     echo "SID:          $oracle_sid"
