@@ -39,6 +39,12 @@ else
     return 1
 fi
 
+# Source registry API (Phase 1 - provides unified installation access)
+if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_registry.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "${_ORAENV_BASE_DIR}/lib/oradba_registry.sh"
+fi
+
 # Load core configuration (provides base settings for oratab, paths, etc.)
 # Note: Full hierarchical config (including SID-specific) is loaded after setting ORACLE_SID
 # Use load_config_file from oradba_common.sh for unified config loading
@@ -241,14 +247,33 @@ _oraenv_find_oratab() {
 _oraenv_prompt_sid() {
     local oratab_file="$1"
 
-    # Get list of available SIDs from oratab
+    # Get list of available SIDs and Homes from registry
     local -a sids
-    mapfile -t sids < <(grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print $1}')
-
-    # Get list of Oracle Homes if available
     local -a homes
-    if command -v list_oracle_homes &> /dev/null; then
-        mapfile -t homes < <(list_oracle_homes | awk '{print $1}')
+    
+    # Try registry API first (Phase 1)
+    if type -t oradba_registry_get_databases &>/dev/null; then
+        # Get database SIDs from registry
+        mapfile -t sids < <(oradba_registry_get_databases 2>/dev/null | cut -d'|' -f2)
+        
+        # Get non-database homes from registry
+        local all_entries
+        all_entries=$(oradba_registry_get_all 2>/dev/null)
+        if [[ -n "${all_entries}" ]]; then
+            while IFS='|' read -r ptype name home version flags order alias desc; do
+                # Skip database types (already in sids)
+                [[ "${ptype}" == "database" ]] && continue
+                homes+=("${name}")
+            done <<< "${all_entries}"
+        fi
+    else
+        # Fallback to direct oratab parsing if registry not available
+        mapfile -t sids < <(grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print $1}')
+        
+        # Get list of Oracle Homes if available
+        if command -v list_oracle_homes &> /dev/null; then
+            mapfile -t homes < <(list_oracle_homes | awk '{print $1}')
+        fi
     fi
 
     local total_entries=$((${#sids[@]} + ${#homes[@]}))
@@ -402,12 +427,33 @@ _oraenv_set_environment() {
     fi
 
     # Not an Oracle Home - proceed with normal database SID lookup
-    # Parse oratab entry (case-insensitive)
+    # Try registry API first (Phase 1)
     local oratab_entry
-    oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
+    local oracle_home
+    
+    if type -t oradba_registry_get_by_name &>/dev/null; then
+        local registry_entry
+        registry_entry=$(oradba_registry_get_by_name "$requested_sid" 2>/dev/null)
+        
+        if [[ -n "${registry_entry}" ]]; then
+            # Parse registry format: type|name|home|version|flags|order|alias|desc
+            # shellcheck disable=SC2034
+            IFS='|' read -r ptype name home version flags order alias desc <<< "${registry_entry}"
+            oracle_home="${home}"
+            # Convert to oratab format for compatibility: sid:home:flags
+            oratab_entry="${name}:${home}:${flags}"
+            log_debug "Found entry in registry: ${requested_sid} -> ${oracle_home}"
+        fi
+    fi
+    
+    # Fallback to direct oratab parsing if registry didn't find it
+    if [[ -z "${oratab_entry}" ]]; then
+        oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
+    fi
 
     if [[ -z "$oratab_entry" ]]; then
         # Try auto-discovery if oratab is empty and feature is enabled
+        # NOTE: Future enhancement - use registry API discovery
         if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]]; then
             local entry_count
             entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2>/dev/null) || entry_count=0
