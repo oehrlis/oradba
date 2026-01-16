@@ -219,6 +219,39 @@ teardown() {
     [ "$output" = "weblogic" ]
 }
 
+@test "detect_product_type detects iclient from libclntsh.so in root" {
+    # Create mock Instant Client structure with libclntsh.so in root
+    local oracle_home="${TEST_TEMP_DIR}/iclient_home"
+    mkdir -p "${oracle_home}"
+    touch "${oracle_home}/libclntsh.so"
+    
+    run detect_product_type "${oracle_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient" ]
+}
+
+@test "detect_product_type detects iclient from versioned libclntsh" {
+    # Create mock Instant Client structure with versioned library
+    local oracle_home="${TEST_TEMP_DIR}/iclient_versioned"
+    mkdir -p "${oracle_home}"
+    touch "${oracle_home}/libclntsh.so.19.1"
+    
+    run detect_product_type "${oracle_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient" ]
+}
+
+@test "detect_product_type detects iclient from lib directory without bin" {
+    # Create mock Instant Client structure with lib directory
+    local oracle_home="${TEST_TEMP_DIR}/iclient_lib"
+    mkdir -p "${oracle_home}/lib"
+    touch "${oracle_home}/lib/libclntsh.so"
+    
+    run detect_product_type "${oracle_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient" ]
+}
+
 @test "detect_product_type detects client from sqlplus without oracle binary" {
     # Create mock Oracle Client structure
     local oracle_home="${TEST_TEMP_DIR}/client_home"
