@@ -38,6 +38,7 @@ fi
 # Load plugins if available
 if [[ -d "${ORADBA_BASE}/lib/plugins" ]]; then
     for plugin in "${ORADBA_BASE}/lib/plugins/"*.sh; do
+        # shellcheck source=/dev/null
         [[ -f "$plugin" ]] && [[ "$plugin" != */plugin_interface.sh ]] && source "$plugin"
     done
 fi
@@ -287,17 +288,17 @@ show_oracle_status_registry() {
     # Display Oracle Homes first (non-database products)
     if [[ ${#other_homes[@]} -gt 0 ]]; then
         for home_obj in "${other_homes[@]}"; do
-            local name home ptype desc
+            local name home ptype
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
             ptype=$(oradba_registry_get_field "$home_obj" "type")
-            desc=$(oradba_registry_get_field "$home_obj" "desc")
             
             # Get product-specific status if plugin available
             local status="available"
             if type -t "${ptype}_plugin.sh" &>/dev/null; then
                 # Load plugin if not already loaded
                 local plugin_file="${ORADBA_BASE}/lib/plugins/${ptype}_plugin.sh"
+                # shellcheck source=/dev/null
                 [[ -f "$plugin_file" ]] && source "$plugin_file" 2>/dev/null
             fi
             

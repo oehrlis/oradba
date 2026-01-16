@@ -16,9 +16,9 @@
 # ------------------------------------------------------------------------------
 # Plugin Metadata
 # ------------------------------------------------------------------------------
-readonly plugin_name="database"
-readonly plugin_version="1.0.0"
-readonly plugin_description="Oracle Database (RDBMS) plugin"
+export plugin_name="database"
+export plugin_version="1.0.0"
+export plugin_description="Oracle Database (RDBMS) plugin"
 
 # ------------------------------------------------------------------------------
 # Function: plugin_detect_installation

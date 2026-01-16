@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 # Plugin Metadata
 # ------------------------------------------------------------------------------
-readonly plugin_name="datasafe"
-readonly plugin_version="1.0.0"
-readonly plugin_description="Oracle Data Safe On-Premises Connector plugin"
+export plugin_name="datasafe"
+export plugin_version="1.0.0"
+export plugin_description="Oracle Data Safe On-Premises Connector plugin"
 
 # ------------------------------------------------------------------------------
 # Function: plugin_detect_installation

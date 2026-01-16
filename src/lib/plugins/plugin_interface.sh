@@ -16,8 +16,11 @@
 # ------------------------------------------------------------------------------
 # Plugin Metadata (REQUIRED)
 # ------------------------------------------------------------------------------
+# shellcheck disable=SC2034
 plugin_name=""              # Product type identifier (database, datasafe, etc.)
+# shellcheck disable=SC2034
 plugin_version=""           # Plugin version (semantic versioning)
+# shellcheck disable=SC2034
 plugin_description=""       # Human-readable description
 
 # ------------------------------------------------------------------------------
