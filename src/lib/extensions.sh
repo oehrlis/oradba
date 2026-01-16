@@ -23,9 +23,13 @@
 # Extension Discovery Functions
 # ------------------------------------------------------------------------------
 
-# Discover extensions in ORADBA_LOCAL_BASE
-# Scans for directories containing .extension marker file
-# Returns: List of extension paths (one per line)
+# ------------------------------------------------------------------------------
+# Function: discover_extensions
+# Purpose.: Discover extensions in ORADBA_LOCAL_BASE
+# Args....: None
+# Returns.: 0 on success
+# Output..: List of extension paths (one per line) containing .extension marker file
+# ------------------------------------------------------------------------------
 discover_extensions() {
     local base_dir="${ORADBA_LOCAL_BASE}"
     local extensions=()
@@ -64,8 +68,13 @@ discover_extensions() {
     fi
 }
 
-# Get all extensions (auto-discovered + manually configured)
-# Returns: List of extension paths (one per line)
+# ------------------------------------------------------------------------------
+# Function: get_all_extensions
+# Purpose.: Get all extensions (auto-discovered + manually configured)
+# Args....: None
+# Returns.: 0 on success
+# Output..: List of extension paths (one per line)
+# ------------------------------------------------------------------------------
 get_all_extensions() {
     local extensions=()
 
@@ -136,9 +145,14 @@ get_extension_property() {
     echo "${value}"
 }
 
-# Parse extension metadata file
-# Usage: parse_extension_metadata <metadata_file> <key>
-# Returns: Value for the given key, or empty string if not found
+# ------------------------------------------------------------------------------
+# Function: parse_extension_metadata
+# Purpose.: Parse extension metadata file for key-value pairs
+# Args....: $1 - Metadata file path
+#           $2 - Key to retrieve
+# Returns.: 0 on success, 1 if file not found
+# Output..: Value for the given key, or empty string if not found
+# ------------------------------------------------------------------------------
 parse_extension_metadata() {
     local metadata_file="$1"
     local key="$2"
@@ -155,9 +169,13 @@ parse_extension_metadata() {
     echo "${value}"
 }
 
-# Get extension name
-# Usage: get_extension_name <ext_path>
-# Returns: Extension name (from metadata or directory name)
+# ------------------------------------------------------------------------------
+# Function: get_extension_name
+# Purpose.: Get extension name from metadata or directory name
+# Args....: $1 - Extension path
+# Returns.: 0 on success
+# Output..: Extension name
+# ------------------------------------------------------------------------------
 get_extension_name() {
     local ext_path="$1"
     local fallback
@@ -165,33 +183,50 @@ get_extension_name() {
     get_extension_property "${ext_path}" "name" "${fallback}"
 }
 
-# Get extension version
-# Usage: get_extension_version <ext_path>
-# Returns: Version string or "unknown"
+# ------------------------------------------------------------------------------
+# Function: get_extension_version
+# Purpose.: Get extension version from metadata
+# Args....: $1 - Extension path
+# Returns.: 0 on success
+# Output..: Version string or "unknown"
+# ------------------------------------------------------------------------------
 get_extension_version() {
     local ext_path="$1"
     get_extension_property "${ext_path}" "version" "unknown"
 }
 
-# Get extension description
-# Usage: get_extension_description <ext_path>
-# Returns: Description string or empty
+# ------------------------------------------------------------------------------
+# Function: get_extension_description
+# Purpose.: Get extension description from metadata
+# Args....: $1 - Extension path
+# Returns.: 0 on success
+# Output..: Description string or empty
+# ------------------------------------------------------------------------------
 get_extension_description() {
     local ext_path="$1"
     get_extension_property "${ext_path}" "description"
 }
 
-# Get extension priority (for sorting)
-# Usage: get_extension_priority <ext_path>
-# Returns: Priority number (lower = loaded first, default 50)
+# ------------------------------------------------------------------------------
+# Function: get_extension_priority
+# Purpose.: Get extension priority for sorting
+# Args....: $1 - Extension path
+# Returns.: 0 on success
+# Output..: Priority number (lower = loaded first, default 50)
+# ------------------------------------------------------------------------------
 get_extension_priority() {
     local ext_path="$1"
     get_extension_property "${ext_path}" "priority" "50" "true"
 }
 
-# Check if extension is enabled
-# Usage: is_extension_enabled <ext_name> <ext_path>
-# Returns: 0 if enabled, 1 if disabled
+# ------------------------------------------------------------------------------
+# Function: is_extension_enabled
+# Purpose.: Check if extension is enabled
+# Args....: $1 - Extension name
+#           $2 - Extension path
+# Returns.: 0 if enabled, 1 if disabled
+# Output..: None
+# ------------------------------------------------------------------------------
 is_extension_enabled() {
     local ext_name="$1"
     local ext_path="$2"
@@ -200,10 +235,14 @@ is_extension_enabled() {
     [[ "${enabled}" == "true" ]]
 }
 
-# Check what directories an extension provides
-# Usage: extension_provides <ext_path> <type>
-# Types: bin, sql, rcv, etc, lib
-# Returns: 0 if provides, 1 if not
+# ------------------------------------------------------------------------------
+# Function: extension_provides
+# Purpose.: Check what directories an extension provides
+# Args....: $1 - Extension path
+#           $2 - Type (bin, sql, rcv, etc, lib)
+# Returns.: 0 if provides, 1 if not
+# Output..: None
+# ------------------------------------------------------------------------------
 extension_provides() {
     local ext_path="$1"
     local type="$2"
@@ -226,9 +265,13 @@ extension_provides() {
 # Extension Sorting Functions
 # ------------------------------------------------------------------------------
 
-# Sort extensions by priority
-# Usage: sort_extensions_by_priority <ext_path1> <ext_path2> ...
-# Returns: Sorted list of extension paths (one per line)
+# ------------------------------------------------------------------------------
+# Function: sort_extensions_by_priority
+# Purpose.: Sort extensions by priority for loading order
+# Args....: $@ - Extension paths (space-separated)
+# Returns.: 0 on success
+# Output..: Sorted list of extension paths (one per line)
+# ------------------------------------------------------------------------------
 sort_extensions_by_priority() {
     local extensions=("$@")
     local priorities=()
@@ -251,8 +294,13 @@ sort_extensions_by_priority() {
 # Extension Loading Functions
 # ------------------------------------------------------------------------------
 
-# Remove extension paths from PATH/SQLPATH
-# Usage: remove_extension_paths
+# ------------------------------------------------------------------------------
+# Function: remove_extension_paths
+# Purpose.: Remove extension paths from PATH and SQLPATH
+# Args....: None
+# Returns.: 0 on success
+# Output..: Updates PATH and SQLPATH environment variables
+# ------------------------------------------------------------------------------
 remove_extension_paths() {
     if [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
         # Remove all paths matching ORADBA_LOCAL_BASE/*/bin from PATH (except oradba itself)
@@ -285,9 +333,14 @@ remove_extension_paths() {
     fi
 }
 
-# Deduplicate PATH (keep first occurrence)
-# Usage: deduplicate_path
-# Note: Uses oradba_dedupe_path() from oradba_env_builder.sh
+# ------------------------------------------------------------------------------
+# Function: deduplicate_path
+# Purpose.: Deduplicate PATH (keep first occurrence)
+# Args....: None
+# Returns.: 0 on success
+# Output..: Updates PATH environment variable
+# Notes...: Uses oradba_dedupe_path() from oradba_env_builder.sh if available
+# ------------------------------------------------------------------------------
 deduplicate_path() {
     if command -v oradba_dedupe_path >/dev/null 2>&1; then
         local deduped_path
@@ -316,9 +369,14 @@ deduplicate_path() {
     fi
 }
 
-# Deduplicate SQLPATH (keep first occurrence)
-# Usage: deduplicate_sqlpath
-# Note: Uses oradba_dedupe_path() from oradba_env_builder.sh
+# ------------------------------------------------------------------------------
+# Function: deduplicate_sqlpath
+# Purpose.: Deduplicate SQLPATH (keep first occurrence)
+# Args....: None
+# Returns.: 0 on success
+# Output..: Updates SQLPATH environment variable
+# Notes...: Uses oradba_dedupe_path() from oradba_env_builder.sh if available
+# ------------------------------------------------------------------------------
 deduplicate_sqlpath() {
     [[ -z "${SQLPATH}" ]] && return 0
 
@@ -349,8 +407,14 @@ deduplicate_sqlpath() {
     fi
 }
 
-# Load all enabled extensions
-# Called from oraenv.sh after configuration loading
+# ------------------------------------------------------------------------------
+# Function: load_extensions
+# Purpose.: Load all enabled extensions
+# Args....: None
+# Returns.: 0 on success
+# Output..: Updates PATH and SQLPATH with extension directories
+# Notes...: Called from oraenv.sh after configuration loading
+# ------------------------------------------------------------------------------
 load_extensions() {
     local extensions=()
     local ext_path
@@ -397,9 +461,13 @@ load_extensions() {
     oradba_log DEBUG "Extension loading complete"
 }
 
-# Load single extension
-# Usage: load_extension <ext_path>
-# Returns: 0 on success, 1 on error (with warning)
+# ------------------------------------------------------------------------------
+# Function: load_extension
+# Purpose.: Load single extension
+# Args....: $1 - Extension path
+# Returns.: 0 on success, 1 on error (with warning)
+# Output..: Updates PATH/SQLPATH, sources library files, creates aliases
+# ------------------------------------------------------------------------------
 load_extension() {
     local ext_path="$1"
     local ext_name metadata
@@ -471,8 +539,14 @@ load_extension() {
     return 0
 }
 
-# Create navigation alias for extension
-# Usage: create_extension_alias <ext_name> <ext_path>
+# ------------------------------------------------------------------------------
+# Function: create_extension_alias
+# Purpose.: Create navigation alias for extension
+# Args....: $1 - Extension name
+#           $2 - Extension path
+# Returns.: 0 on success
+# Output..: Creates alias like cde<name> (cd extension)
+# ------------------------------------------------------------------------------
 create_extension_alias() {
     local ext_name="$1"
     local ext_path="$2"
@@ -497,8 +571,13 @@ create_extension_alias() {
 # Extension Information Functions
 # ------------------------------------------------------------------------------
 
-# List all extensions with status
-# Usage: list_extensions [--verbose]
+# ------------------------------------------------------------------------------
+# Function: list_extensions
+# Purpose.: List all extensions with status
+# Args....: $1 - Optional --verbose flag for detailed output
+# Returns.: 0 on success
+# Output..: List of extensions with name, version, enabled status, priority
+# ------------------------------------------------------------------------------
 list_extensions() {
     local verbose=false
     [[ "$1" == "--verbose" ]] && verbose=true
@@ -559,8 +638,13 @@ list_extensions() {
     done < <(sort_extensions_by_priority "${extensions[@]}")
 }
 
-# Show detailed information about a specific extension
-# Usage: show_extension_info <ext_name_or_path>
+# ------------------------------------------------------------------------------
+# Function: show_extension_info
+# Purpose.: Show detailed information about a specific extension
+# Args....: $1 - Extension name or path
+# Returns.: 0 on success, 1 on error
+# Output..: Detailed extension information including structure and navigation alias
+# ------------------------------------------------------------------------------
 show_extension_info() {
     local ext_identifier="$1"
     local ext_path ext_name version desc author priority enabled
@@ -637,9 +721,13 @@ show_extension_info() {
 # Extension Validation Functions
 # ------------------------------------------------------------------------------
 
-# Validate extension structure (basic check)
-# Usage: validate_extension <ext_path>
-# Returns: 0 if valid, 1 if warnings found
+# ------------------------------------------------------------------------------
+# Function: validate_extension
+# Purpose.: Validate extension structure (basic check)
+# Args....: $1 - Extension path
+# Returns.: 0 if valid, 1 if warnings found
+# Output..: Validation messages and warnings
+# ------------------------------------------------------------------------------
 validate_extension() {
     local ext_path="$1"
     local warnings=0
