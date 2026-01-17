@@ -1107,7 +1107,14 @@ dedupe_homes() {
 }
 
 # ------------------------------------------------------------------------------
-# Main
+# Function: main
+# Purpose.: Main entry point for Oracle Homes management
+# Args....: $1 - Command (list|show|add|remove|discover|validate|dedupe|export|import)
+#           $@ - Command-specific options and arguments
+# Returns.: 0 on success, 1 on error
+# Output..: Command output to stdout, errors to stderr
+# Notes...: Dispatches to appropriate command handler function
+#           Shows usage if no command or -h/--help provided
 # ------------------------------------------------------------------------------
 main() {
     local command="${1:-}"
