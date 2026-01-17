@@ -266,14 +266,6 @@ _oraenv_prompt_sid() {
                 homes+=("${name}")
             done <<< "${all_entries}"
         fi
-    else
-        # Fallback to direct oratab parsing if registry not available
-        mapfile -t sids < <(grep -v "^#" "$oratab_file" | grep -v "^$" | awk -F: '{print $1}')
-        
-        # Get list of Oracle Homes if available
-        if command -v list_oracle_homes &> /dev/null; then
-            mapfile -t homes < <(list_oracle_homes | awk '{print $1}')
-        fi
     fi
 
     local total_entries=$((${#sids[@]} + ${#homes[@]}))
@@ -518,7 +510,7 @@ _oraenv_set_environment() {
     local datasafe_install_dir=""
     local adjusted_home="${oracle_home}"
     
-    # Check if this is a DataSafe installation
+    # Check if this is a DataSafe installation using plugin
     if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
         local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
@@ -527,11 +519,6 @@ _oraenv_set_environment() {
             datasafe_install_dir="${oracle_home}"
             adjusted_home=$(plugin_adjust_environment "${oracle_home}")
             log_debug "DataSafe detected: ORACLE_HOME adjusted via plugin"
-        else
-            # Fallback to old logic
-            datasafe_install_dir="${oracle_home}"
-            adjusted_home="${oracle_home}/oracle_cman_home"
-            log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home (fallback)"
         fi
     fi
     

@@ -188,28 +188,8 @@ oradba_check_datasafe_status() {
         return $?
     fi
     
-    # Fallback to direct cmctl check
-    local cmctl="${oracle_home}/oracle_cman_home/bin/cmctl"
-    
-    # Check if cmctl exists
-    if [[ ! -x "$cmctl" ]]; then
-        echo "UNKNOWN"
-        return 1
-    fi
-    
-    # Direct cmctl command - faster and more reliable than Python
-    local status_output
-    status_output=$("$cmctl" show services -c cust_cman 2>&1)
-    
-    # Check if connector is running
-    if echo "$status_output" | grep -qi "status READY"; then
-        echo "RUNNING"
-        return 0
-    elif echo "$status_output" | grep -qi "not started\\|stopped\\|no instance"; then
-        echo "STOPPED"
-        return 1
-    fi
-    
+    # Plugin not found - should not happen in normal operation
+    oradba_log ERROR "DataSafe plugin not found: ${plugin_file}"
     echo "UNKNOWN"
     return 1
 }

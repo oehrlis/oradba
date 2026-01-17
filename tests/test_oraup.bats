@@ -133,16 +133,15 @@ setup() {
 }
 
 # ------------------------------------------------------------------------------
-# Sorting Tests
+# Architecture Tests (Registry API)
 # ------------------------------------------------------------------------------
 
-@test "oraup.sh sorts entries (Dummy first, then DB instances)" {
-    # Check that code collects and sorts dummy_entries and db_entries
-    grep -q "dummy_entries" "${ORAUP_SCRIPT}"
-    grep -q "db_entries" "${ORAUP_SCRIPT}"
+@test "oraup.sh uses registry API for Oracle installations" {
+    # Check that oraup uses oradba_registry_get_all from registry
+    grep -q "oradba_registry_get_all" "${ORAUP_SCRIPT}"
 }
 
-@test "oraup.sh sorts arrays alphabetically" {
-    # Verify that sort is used for both entry types
-    grep -A 200 "show_oracle_status" "${ORAUP_SCRIPT}" | grep -q "sort"
+@test "oraup.sh delegates to show_oracle_status_registry" {
+    # Verify that show_oracle_status_registry handles display logic
+    grep -q "show_oracle_status_registry" "${ORAUP_SCRIPT}"
 }

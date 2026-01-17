@@ -206,10 +206,10 @@ oradba_registry_discover_all() {
     local -a discovered=()
     
     oradba_log DEBUG "Auto-discovery not yet implemented"
-    # TODO: Implement auto-discovery in Phase 1.2
-    # - Check running pmon/tnslsnr processes
-    # - Scan /u01/app/oracle/product, /opt/oracle/product
-    # - Use oraInventory if available
+    # Future enhancement: Implement comprehensive auto-discovery
+    # - Scan additional common locations beyond current discovery
+    # - Use oraInventory if available for version information
+    # - Support custom discovery paths via configuration
     
     return 0
 }

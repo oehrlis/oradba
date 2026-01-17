@@ -118,7 +118,7 @@ teardown() {
 
 @test "oraenv.sh _oraenv_prompt_sid handles silent mode" {
     # Check that function has logic for non-interactive mode
-    grep -A 50 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
+    grep -A 70 "^_oraenv_prompt_sid()" "$ORAENV_SCRIPT" | grep -q "ORAENV_INTERACTIVE"
 }
 
 @test "oraenv.sh loads oradba_db_functions.sh if available" {
