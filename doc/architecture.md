@@ -23,6 +23,17 @@ The OraDBA system consists of multiple layers working together:
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
 - **Oracle Integration**: oratab, oradba_homes.conf, Oracle instances, listeners, PDBs
 
+### Interactive Architecture Diagrams
+
+For detailed visual documentation of workflows and component interactions, see the **[Architecture Diagrams Index](images/README.md)**:
+
+- **[Configuration System](images/config-workflow-highlevel.md)** - 5-layer hierarchy and loading flow
+- **[oraenv Workflow](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
+- **[oraup Workflow](images/oraup-workflow-highlevel.md)** - Status display with Registry API integration
+- **[Plugin System](images/plugin-system.md)** - 8-function interface and lifecycle
+
+These Mermaid diagrams are interactive and render automatically in VS Code, GitHub, and modern documentation sites.
+
 ## Core Components
 
 ### 0. Registry API and Plugin System (v1.2.2+)
