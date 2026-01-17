@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Logging System Migration** (2025-01-21)
+  - Migrated 95 legacy logging calls to modern `oradba_log` function
+  - Affected files: `oradba_homes.sh` (50 calls), `oraenv.sh` (40 calls), `dbstatus.sh` (5 calls)
+  - Benefits:
+    - Unified logging format across all OraDBA scripts
+    - Better log level control via `ORADBA_LOG_LEVEL`
+    - Consistent output formatting
+    - Preparation for future syslog integration
+  - Legacy functions (`log_error`, `log_warn`, `log_info`, `log_debug`) remain as deprecated wrappers
+  - Modern usage: 512 calls to `oradba_log` (84% adoption in core scripts)
+  - All 180 tests passing with no regressions
+
 ## [1.2.2] - 2026-01-16
 
 ### Fixed
