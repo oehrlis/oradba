@@ -147,7 +147,7 @@ _oraenv_parse_args() {
                 return 1
                 ;;
             -*)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 _oraenv_usage
                 return 1
                 ;;
@@ -155,7 +155,7 @@ _oraenv_parse_args() {
                 if [[ -z "$REQUESTED_SID" ]]; then
                     REQUESTED_SID="$1"
                 else
-                    log_error "Multiple SIDs provided"
+                    oradba_log ERROR "Multiple SIDs provided"
                     return 1
                 fi
                 shift
@@ -239,7 +239,7 @@ _oraenv_find_oratab() {
         fi
     done
 
-    log_error "No oratab file found"
+    oradba_log ERROR "No oratab file found"
     return 1
 }
 
@@ -278,7 +278,7 @@ _oraenv_prompt_sid() {
             discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
             
             if [[ -n "$discovered_oratab" ]]; then
-                log_info "Auto-discovered running Oracle instances (not in oratab)"
+                oradba_log INFO "Auto-discovered running Oracle instances (not in oratab)"
                 
                 # Extract SIDs from discovered entries (filter empty lines)
                 mapfile -t sids < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
@@ -287,17 +287,17 @@ _oraenv_prompt_sid() {
                 local discovered_count=${#sids[@]}
                 
                 if [[ $discovered_count -eq 0 ]]; then
-                    log_error "No Oracle instances or homes found"
+                    oradba_log ERROR "No Oracle instances or homes found"
                     return 1
                 fi
                 
                 total_entries=$discovered_count
             else
-                log_error "No Oracle instances or homes found"
+                oradba_log ERROR "No Oracle instances or homes found"
                 return 1
             fi
         else
-            log_error "No Oracle instances or homes found"
+            oradba_log ERROR "No Oracle instances or homes found"
             return 1
         fi
     fi
@@ -366,7 +366,7 @@ _oraenv_prompt_sid() {
         # User entered a name directly
         echo "$selection"
     else
-        log_error "No selection made"
+        oradba_log ERROR "No selection made"
         return 1
     fi
 }
@@ -378,7 +378,7 @@ _oraenv_set_environment() {
 
     # Check if this is an Oracle Home (not a database SID)
     if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then
-        log_debug "Setting environment for Oracle Home: $requested_sid"
+        oradba_log DEBUG "Setting environment for Oracle Home: $requested_sid"
 
         # Unset previous Oracle environment
         _oraenv_unset_old_env
@@ -387,7 +387,7 @@ _oraenv_set_environment() {
         if command -v set_oracle_home_environment &> /dev/null; then
             set_oracle_home_environment "$requested_sid"
             if [[ $? -ne 0 ]]; then
-                log_error "Failed to set Oracle Home environment for: $requested_sid"
+                oradba_log ERROR "Failed to set Oracle Home environment for: $requested_sid"
                 return 1
             fi
 
@@ -407,13 +407,13 @@ _oraenv_set_environment() {
             # Load hierarchical configuration for this Oracle Home
             load_config "$requested_sid"
 
-            log_debug "Oracle Home environment set: $requested_sid"
-            log_debug "ORACLE_HOME: $ORACLE_HOME"
-            log_debug "Product Type: $(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")"
+            oradba_log DEBUG "Oracle Home environment set: $requested_sid"
+            oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
+            oradba_log DEBUG "Product Type: $(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")"
 
             return 0
         else
-            log_error "Oracle Homes functions not available"
+            oradba_log ERROR "Oracle Homes functions not available"
             return 1
         fi
     fi
@@ -434,7 +434,7 @@ _oraenv_set_environment() {
             oracle_home="${home}"
             # Convert to oratab format for compatibility: sid:home:flags
             oratab_entry="${name}:${home}:${flags}"
-            log_debug "Found entry in registry: ${requested_sid} -> ${oracle_home}"
+            oradba_log DEBUG "Found entry in registry: ${requested_sid} -> ${oracle_home}"
         fi
     fi
     
@@ -455,29 +455,29 @@ _oraenv_set_environment() {
                 discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
                 
                 if [[ -n "$discovered_oratab" ]]; then
-                    log_info "Auto-discovered running Oracle instances (not in oratab)"
+                    oradba_log INFO "Auto-discovered running Oracle instances (not in oratab)"
                     
                     # Persist discovered instances to oratab
                     if command -v persist_discovered_instances &> /dev/null; then
                         persist_discovered_instances "$discovered_oratab" "$oratab_file"
                     else
-                        log_info "These are temporary entries - add them to $oratab_file if needed"
+                        oradba_log INFO "These are temporary entries - add them to $oratab_file if needed"
                     fi
                     
                     # If no SID was requested, use first discovered instance
                     if [[ -z "$requested_sid" ]]; then
                         oratab_entry=$(echo "$discovered_oratab" | head -n1)
-                        log_info "Auto-selecting first discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+                        oradba_log INFO "Auto-selecting first discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
                     else
                         # Try to find requested SID in discovered instances (case-insensitive)
                         # Use awk for more robust matching
                         oratab_entry=$(echo "$discovered_oratab" | awk -F: -v sid="$requested_sid" 'tolower($1) == tolower(sid) {print; exit}')
                         
                         if [[ -z "$oratab_entry" ]]; then
-                            log_debug "SID '$requested_sid' not found in discovered instances"
-                            log_debug "Discovered entries: $discovered_oratab"
+                            oradba_log DEBUG "SID '$requested_sid' not found in discovered instances"
+                            oradba_log DEBUG "Discovered entries: $discovered_oratab"
                         else
-                            log_info "Found discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+                            oradba_log INFO "Found discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
                         fi
                     fi
                 fi
@@ -486,7 +486,7 @@ _oraenv_set_environment() {
         
         # Still no entry found after discovery attempt
         if [[ -z "$oratab_entry" ]]; then
-            log_error "ORACLE_SID '$requested_sid' not found in $oratab_file"
+            oradba_log ERROR "ORACLE_SID '$requested_sid' not found in $oratab_file"
             return 1
         fi
     fi
@@ -500,9 +500,9 @@ _oraenv_set_environment() {
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
 
     if [[ ! -d "$oracle_home" ]]; then
-        log_warn "ORACLE_HOME directory does not exist: $oracle_home"
-        log_warn "This may be a dummy entry or Oracle is not yet installed"
-        log_info "Continuing with environment setup..."
+        oradba_log WARN "ORACLE_HOME directory does not exist: $oracle_home"
+        oradba_log WARN "This may be a dummy entry or Oracle is not yet installed"
+        oradba_log INFO "Continuing with environment setup..."
         # Don't return error - allow setting env even if HOME doesn't exist
     fi
     
@@ -518,7 +518,7 @@ _oraenv_set_environment() {
             source "${plugin_file}"
             datasafe_install_dir="${oracle_home}"
             adjusted_home=$(plugin_adjust_environment "${oracle_home}")
-            log_debug "DataSafe detected: ORACLE_HOME adjusted via plugin"
+            oradba_log DEBUG "DataSafe detected: ORACLE_HOME adjusted via plugin"
         fi
     fi
     
@@ -573,11 +573,11 @@ _oraenv_set_environment() {
         fi
     fi
 
-    log_debug "Oracle environment set for SID: $ORACLE_SID"
-    log_debug "ORACLE_HOME: $ORACLE_HOME"
-    log_debug "ORACLE_BASE: $ORACLE_BASE"
-    log_debug "TNS_ADMIN: ${TNS_ADMIN:-not set}"
-    log_debug "SQLPATH: ${SQLPATH:-not set}"
+    oradba_log DEBUG "Oracle environment set for SID: $ORACLE_SID"
+    oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
+    oradba_log DEBUG "ORACLE_BASE: $ORACLE_BASE"
+    oradba_log DEBUG "TNS_ADMIN: ${TNS_ADMIN:-not set}"
+    oradba_log DEBUG "SQLPATH: ${SQLPATH:-not set}"
 
     return 0
 }
@@ -623,9 +623,9 @@ _oraenv_main() {
     oratab_file=$(_oraenv_find_oratab)
 
     if [[ $? -ne 0 ]]; then
-        log_warn "No oratab file found - running in no-Oracle mode"
-        log_info "OraDBA is installed but Oracle Database is not detected"
-        log_info "After installing Oracle, use: oradba_setup.sh link-oratab"
+        oradba_log WARN "No oratab file found - running in no-Oracle mode"
+        oradba_log INFO "OraDBA is installed but Oracle Database is not detected"
+        oradba_log INFO "After installing Oracle, use: oradba_setup.sh link-oratab"
 
         # Set minimal environment for no-Oracle mode
         export ORACLE_SID="${REQUESTED_SID:-dummy}"
@@ -633,21 +633,21 @@ _oraenv_main() {
         export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_PREFIX%/local/oradba}}"
         export ORADBA_NO_ORACLE_MODE=true
 
-        log_info "Minimal Oracle environment set (no-Oracle mode):"
-        log_info "  ORACLE_SID:  ${ORACLE_SID}"
-        log_info "  ORACLE_HOME: ${ORACLE_HOME}"
-        log_info "  ORACLE_BASE: ${ORACLE_BASE}"
+        oradba_log INFO "Minimal Oracle environment set (no-Oracle mode):"
+        oradba_log INFO "  ORACLE_SID:  ${ORACLE_SID}"
+        oradba_log INFO "  ORACLE_HOME: ${ORACLE_HOME}"
+        oradba_log INFO "  ORACLE_BASE: ${ORACLE_BASE}"
 
         return 0
     fi
 
-    log_debug "Using oratab file: $oratab_file"
+    oradba_log DEBUG "Using oratab file: $oratab_file"
 
     # Get ORACLE_SID if not provided
     if [[ -z "$REQUESTED_SID" ]]; then
         REQUESTED_SID=$(_oraenv_prompt_sid "$oratab_file")
         if [[ -z "$REQUESTED_SID" ]]; then
-            log_error "No ORACLE_SID provided"
+            oradba_log ERROR "No ORACLE_SID provided"
             return 1
         fi
     fi

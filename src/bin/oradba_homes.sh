@@ -159,7 +159,7 @@ list_homes() {
                 shift
                 ;;
             *)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 return 1
                 ;;
         esac
@@ -167,7 +167,7 @@ list_homes() {
 
     # Check if config file exists
     if ! get_oracle_homes_path > /dev/null 2>&1; then
-        log_warn "No Oracle Homes configuration found"
+        oradba_log WARN "No Oracle Homes configuration found"
         echo "To add Oracle Homes, use: $SCRIPT_NAME add"
         return 0
     fi
@@ -244,7 +244,7 @@ show_home() {
     local name="$1"
 
     if [[ -z "$name" ]]; then
-        log_error "Oracle Home name or path required"
+        oradba_log ERROR "Oracle Home name or path required"
         echo "Usage: $SCRIPT_NAME show <name|path>"
         return 1
     fi
@@ -254,7 +254,7 @@ show_home() {
         # Search for home by path
         local homes_file
         homes_file=$(get_oracle_homes_path) || {
-            log_error "No Oracle Homes configuration found"
+            oradba_log ERROR "No Oracle Homes configuration found"
             return 1
         }
 
@@ -273,7 +273,7 @@ show_home() {
         if [[ -n "$found_name" ]]; then
             name="$found_name"
         else
-            log_error "Oracle Home with path '$name' not found"
+            oradba_log ERROR "Oracle Home with path '$name' not found"
             return 1
         fi
     fi
@@ -281,7 +281,7 @@ show_home() {
     # Parse home entry
     local home_info
     if ! home_info=$(parse_oracle_home "$name"); then
-        log_error "Oracle Home '$name' not found"
+        oradba_log ERROR "Oracle Home '$name' not found"
         return 1
     fi
 
@@ -377,7 +377,7 @@ add_home() {
                 shift 2
                 ;;
             *)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 return 1
                 ;;
         esac
@@ -388,25 +388,25 @@ add_home() {
         if [[ -t 0 ]]; then
             read -p "Oracle Home name: " name
         else
-            log_error "Oracle Home name is required (--name)"
+            oradba_log ERROR "Oracle Home name is required (--name)"
             return 1
         fi
     fi
 
     if [[ -z "$name" ]]; then
-        log_error "Oracle Home name is required"
+        oradba_log ERROR "Oracle Home name is required"
         return 1
     fi
 
     # Validate name format
     if [[ ! "$name" =~ ^[A-Za-z0-9_]+$ ]]; then
-        log_error "Invalid name. Use only letters, numbers, and underscores."
+        oradba_log ERROR "Invalid name. Use only letters, numbers, and underscores."
         return 1
     fi
 
     # Check if already exists
     if is_oracle_home "$name" 2> /dev/null; then
-        log_error "Oracle Home '$name' already exists"
+        oradba_log ERROR "Oracle Home '$name' already exists"
         return 1
     fi
 
@@ -422,8 +422,8 @@ add_home() {
                 # SID creates lowercase alias
                 local sid_alias="${sid,,}"
                 if [[ "$sid_alias" == "$alias_name" ]]; then
-                    log_warn "Alias '$alias_name' conflicts with SID '$sid' (which creates alias '$sid_alias')"
-                    log_warn "This may cause confusion when sourcing environments"
+                    oradba_log WARN "Alias '$alias_name' conflicts with SID '$sid' (which creates alias '$sid_alias')"
+                    oradba_log WARN "This may cause confusion when sourcing environments"
                     if [[ -t 0 ]]; then
                         read -p "Continue anyway? [y/N]: " confirm
                         if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
@@ -441,27 +441,27 @@ add_home() {
         if [[ -t 0 ]]; then
             read -p "ORACLE_HOME path: " path
         else
-            log_error "ORACLE_HOME path is required (--path)"
+            oradba_log ERROR "ORACLE_HOME path is required (--path)"
             return 1
         fi
     fi
 
     if [[ -z "$path" ]]; then
-        log_error "ORACLE_HOME path is required"
+        oradba_log ERROR "ORACLE_HOME path is required"
         return 1
     fi
 
     # Validate path exists
     if [[ ! -d "$path" ]]; then
         if [[ -t 0 ]]; then
-            log_warn "Directory does not exist: $path"
+            oradba_log WARN "Directory does not exist: $path"
             read -p "Continue anyway? [y/N]: " confirm
             if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
                 echo "Cancelled."
                 return 0
             fi
         else
-            log_warn "Directory does not exist: $path (continuing in non-interactive mode)"
+            oradba_log WARN "Directory does not exist: $path (continuing in non-interactive mode)"
         fi
     fi
 
@@ -469,11 +469,11 @@ add_home() {
     if [[ -z "$ptype" ]]; then
         if [[ -d "$path" ]]; then
             ptype=$(detect_product_type "$path")
-            log_info "Auto-detected product type: $ptype"
+            oradba_log INFO "Auto-detected product type: $ptype"
         elif [[ -t 0 ]]; then
             read -p "Product type (database/oud/client/iclient/weblogic/oms/emagent/datasafe): " ptype
         else
-            log_error "Product type is required when path doesn't exist (--type)"
+            oradba_log ERROR "Product type is required when path doesn't exist (--type)"
             return 1
         fi
     fi
@@ -482,7 +482,7 @@ add_home() {
     case "$ptype" in
         database | oud | client | iclient | weblogic | oms | emagent | datasafe) ;;
         *)
-            log_error "Invalid product type: $ptype"
+            oradba_log ERROR "Invalid product type: $ptype"
             return 1
             ;;
     esac
@@ -520,16 +520,16 @@ add_home() {
     if [[ -f "$config_file" ]]; then
         # Check if NAME already exists
         if grep -q "^${name}:" "$config_file"; then
-            log_error "Oracle Home '$name' already exists"
-            log_info "Use '$SCRIPT_NAME remove $name' to remove it first"
+            oradba_log ERROR "Oracle Home '$name' already exists"
+            oradba_log INFO "Use '$SCRIPT_NAME remove $name' to remove it first"
             return 1
         fi
         # Check if PATH already exists
         if grep -q ":${path}:" "$config_file"; then
             local existing_name
             existing_name=$(grep ":${path}:" "$config_file" | head -1 | cut -d':' -f1)
-            log_error "Path '$path' is already registered as '$existing_name'"
-            log_info "Use '$SCRIPT_NAME remove $existing_name' to remove it first"
+            oradba_log ERROR "Path '$path' is already registered as '$existing_name'"
+            oradba_log INFO "Use '$SCRIPT_NAME remove $existing_name' to remove it first"
             return 1
         fi
     fi
@@ -563,7 +563,7 @@ EOF
     # Add entry with alias_name and version
     echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$config_file"
 
-    log_info "Oracle Home '$name' added successfully"
+    oradba_log INFO "Oracle Home '$name' added successfully"
     echo ""
     echo "Configuration:"
     echo "  Name        : $name"
@@ -581,7 +581,7 @@ EOF
     if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
         generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
         generate_oracle_home_aliases 2>/dev/null
-        log_debug "Regenerated SID lists and aliases"
+        oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 
     return 0
@@ -595,21 +595,21 @@ remove_home() {
     local name="$1"
 
     if [[ -z "$name" ]]; then
-        log_error "Oracle Home name required"
+        oradba_log ERROR "Oracle Home name required"
         echo "Usage: $SCRIPT_NAME remove <name>"
         return 1
     fi
 
     # Check if exists
     if ! is_oracle_home "$name" 2> /dev/null; then
-        log_error "Oracle Home '$name' not found"
+        oradba_log ERROR "Oracle Home '$name' not found"
         return 1
     fi
 
     # Get config file
     local config_file
     if ! config_file=$(get_oracle_homes_path); then
-        log_error "Oracle Homes configuration not found"
+        oradba_log ERROR "Oracle Homes configuration not found"
         return 1
     fi
 
@@ -624,7 +624,7 @@ remove_home() {
             return 0
         fi
     else
-        log_info "Non-interactive mode: skipping confirmation"
+        oradba_log INFO "Non-interactive mode: skipping confirmation"
     fi
 
     # Create backup
@@ -634,14 +634,14 @@ remove_home() {
     sed -i.tmp "/^${name}:/d" "$config_file"
     rm -f "${config_file}.tmp"
 
-    log_info "Oracle Home '$name' removed successfully"
+    oradba_log INFO "Oracle Home '$name' removed successfully"
     echo ""
 
     # Regenerate SID lists and aliases in current shell
     if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
         generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
         generate_oracle_home_aliases 2>/dev/null
-        log_debug "Regenerated SID lists and aliases"
+        oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 
     return 0
@@ -672,19 +672,19 @@ discover_homes() {
                 shift
                 ;;
             *)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 return 1
                 ;;
         esac
     done
 
     if [[ -z "$base_dir" ]]; then
-        log_error "ORACLE_BASE not set. Use --base to specify search directory."
+        oradba_log ERROR "ORACLE_BASE not set. Use --base to specify search directory."
         return 1
     fi
 
     if [[ ! -d "$base_dir" ]]; then
-        log_error "Directory does not exist: $base_dir"
+        oradba_log ERROR "Directory does not exist: $base_dir"
         return 1
     fi
 
@@ -697,7 +697,7 @@ discover_homes() {
     local product_dir="${base_dir}/product"
 
     if [[ ! -d "$product_dir" ]]; then
-        log_warn "No product directory found: $product_dir"
+        oradba_log WARN "No product directory found: $product_dir"
         return 0
     fi
 
@@ -785,7 +785,7 @@ validate_homes() {
     # Check if config file exists
     local config_file
     if ! config_file=$(get_oracle_homes_path); then
-        log_warn "No Oracle Homes configuration found"
+        oradba_log WARN "No Oracle Homes configuration found"
         return 0
     fi
 
@@ -793,7 +793,7 @@ validate_homes() {
     local homes_to_check
     if [[ -n "$name" ]]; then
         if ! is_oracle_home "$name" 2> /dev/null; then
-            log_error "Oracle Home '$name' not found"
+            oradba_log ERROR "Oracle Home '$name' not found"
             return 1
         fi
         homes_to_check=$(parse_oracle_home "$name")
@@ -852,12 +852,12 @@ export_config() {
     # Check if config file exists
     local homes_file
     homes_file=$(get_oracle_homes_path 2>/dev/null) || {
-        log_warn "No Oracle Homes configuration found"
+        oradba_log WARN "No Oracle Homes configuration found"
         return 1
     }
 
     if [[ ! -f "$homes_file" ]]; then
-        log_warn "Configuration file does not exist: $homes_file"
+        oradba_log WARN "Configuration file does not exist: $homes_file"
         return 1
     fi
 
@@ -900,7 +900,7 @@ import_config() {
                 shift
                 ;;
             -*)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 return 1
                 ;;
             *)
@@ -927,7 +927,7 @@ import_config() {
 
     if [[ -n "$input_file" ]] && [[ "$input_file" != "-" ]]; then
         if [[ ! -f "$input_file" ]]; then
-            log_error "Input file does not exist: $input_file"
+            oradba_log ERROR "Input file does not exist: $input_file"
             rm -f "$temp_file"
             return 1
         fi
@@ -956,7 +956,7 @@ import_config() {
         field_count=$(echo "$line" | awk -F':' '{print NF}')
 
         if [[ $field_count -lt 3 ]]; then
-            log_error "Line $line_num: Invalid format (expected NAME:HOME:TYPE:ORDER[:ALIAS][:DESC][:VERSION])"
+            oradba_log ERROR "Line $line_num: Invalid format (expected NAME:HOME:TYPE:ORDER[:ALIAS][:DESC][:VERSION])"
             ((errors++))
             continue
         fi
@@ -967,13 +967,13 @@ import_config() {
 
         # Check name is not empty and alphanumeric
         if [[ -z "$h_name" ]] || [[ ! "$h_name" =~ ^[A-Za-z0-9_]+$ ]]; then
-            log_error "Line $line_num: Invalid NAME '$h_name' (use only letters, numbers, underscores)"
+            oradba_log ERROR "Line $line_num: Invalid NAME '$h_name' (use only letters, numbers, underscores)"
             ((errors++))
         fi
 
         # Check path is absolute
         if [[ ! "$h_path" == /* ]]; then
-            log_error "Line $line_num: Invalid path '$h_path' (must be absolute path)"
+            oradba_log ERROR "Line $line_num: Invalid path '$h_path' (must be absolute path)"
             ((errors++))
         fi
 
@@ -981,7 +981,7 @@ import_config() {
         case "$h_type" in
             database|oud|client|iclient|weblogic|oms|emagent|datasafe) ;;
             *)
-                log_error "Line $line_num: Invalid product type '$h_type'"
+                oradba_log ERROR "Line $line_num: Invalid product type '$h_type'"
                 ((errors++))
                 ;;
         esac
@@ -989,13 +989,13 @@ import_config() {
 
     # Check if we have any valid entries
     if [[ $valid_lines -eq 0 ]]; then
-        log_error "No valid Oracle Home entries found in import file"
+        oradba_log ERROR "No valid Oracle Home entries found in import file"
         rm -f "$temp_file"
         return 1
     fi
 
     if [[ $errors -gt 0 ]]; then
-        log_error "Validation failed: $errors error(s) found in $line_num lines"
+        oradba_log ERROR "Validation failed: $errors error(s) found in $line_num lines"
         rm -f "$temp_file"
         return 1
     fi
@@ -1027,7 +1027,7 @@ dedupe_homes() {
     
     # Check if config file exists
     if [[ ! -f "$homes_file" ]]; then
-        log_warn "No Oracle Homes configuration found"
+        oradba_log WARN "No Oracle Homes configuration found"
         return 0
     fi
     
@@ -1148,7 +1148,7 @@ main() {
             import_config "$@"
             ;;
         *)
-            log_error "Unknown command: $command"
+            oradba_log ERROR "Unknown command: $command"
             echo ""
             show_usage
             exit 1

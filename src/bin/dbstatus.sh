@@ -29,7 +29,7 @@ source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 # Source database functions library
 if [[ ! -f "${ORADBA_BASE}/lib/oradba_db_functions.sh" ]]; then
-    log_error "Cannot find oradba_db_functions.sh library"
+    oradba_log ERROR "Cannot find oradba_db_functions.sh library"
     exit 1
 fi
 source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
@@ -92,7 +92,7 @@ main() {
                 shift 2
                 ;;
             *)
-                log_error "Unknown option: $1"
+                oradba_log ERROR "Unknown option: $1"
                 usage
                 ;;
         esac
@@ -101,17 +101,17 @@ main() {
     # If SID parameter provided, set ORACLE_SID
     if [[ -n "$ORACLE_SID_PARAM" ]]; then
         export ORACLE_SID="$ORACLE_SID_PARAM"
-        log_info "Using ORACLE_SID: $ORACLE_SID"
+        oradba_log INFO "Using ORACLE_SID: $ORACLE_SID"
     fi
 
     # Check required environment
     if [[ -z "$ORACLE_HOME" ]]; then
-        log_error "ORACLE_HOME is not set"
+        oradba_log ERROR "ORACLE_HOME is not set"
         exit 1
     fi
 
     if [[ -z "$ORACLE_SID" ]]; then
-        log_error "ORACLE_SID is not set. Use --sid option or set environment variable."
+        oradba_log ERROR "ORACLE_SID is not set. Use --sid option or set environment variable."
         exit 1
     fi
 
