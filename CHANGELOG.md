@@ -21,6 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modern usage: 512 calls to `oradba_log` (84% adoption in core scripts)
   - All 180 tests passing with no regressions
 
+### Refactored
+
+- **Critical Function Refactoring in oraenv.sh** (2025-01-21)
+  - Refactored `_oraenv_set_environment`: 210 → 65 lines (69% reduction)
+    - Extracted 6 helper functions for Oracle Home setup, registry lookup, auto-discovery, product adjustments, environment variables, and configuration loading
+    - Each helper function has single responsibility and clear boundaries
+  - Refactored `_oraenv_prompt_sid`: 128 → 37 lines (71% reduction)
+    - Extracted 3 helper functions for data gathering, UI display, and input parsing
+    - Improved testability and user interaction handling
+  - Total: 9 new helper functions with maximum size of 65 lines
+  - Benefits:
+    - Reduced complexity from 210-line monolithic functions to focused helpers
+    - Improved maintainability with clear separation of concerns
+    - Better testability: each function independently testable
+    - Easier debugging with focused function boundaries
+  - All 180 tests passing with no functional changes
+
 ## [1.2.2] - 2026-01-16
 
 ### Fixed
