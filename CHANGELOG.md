@@ -49,6 +49,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Utilities: `_oraenv_prompt_sid`, `_oraenv_set_environment`, `_oraenv_unset_old_env`, `_oraenv_show_environment`
   - Each header includes: Purpose, Args (with types), Returns, Output, Notes (dependencies/special cases)
   - Benefits:
+    - Improved code understanding for maintainers
+    - Better onboarding for new contributors
+    - Clear function interfaces and contracts
+    - Documentation for all helper functions created during refactoring
+  - Codebase progress: 188/374 functions documented (50%)
+
+- **Function Documentation in oradba_homes.sh** (2025-01-21)
+  - Completed documentation for all 11 functions in oradba_homes.sh (100% coverage)
+  - Added comprehensive header to `main()` function
+  - Documented functions include:
+    - `show_usage`: Display usage information
+    - `list_homes`: List all registered Oracle Homes
+    - `show_home`: Show details of specific Oracle Home
+    - `add_home`: Add new Oracle Home to configuration
+    - `remove_home`: Remove Oracle Home from configuration
+    - `discover_homes`: Auto-discover Oracle installations
+    - `validate_homes`: Validate registered Oracle Homes
+    - `export_config`: Export configuration to file
+    - `import_config`: Import configuration from file
+    - `dedupe_homes`: Remove duplicate entries
+    - `main`: Main entry point dispatcher
+  - Benefits:
+    - Complete API documentation for Oracle Homes management
+    - Clear command-line interface documentation
+    - Better understanding of configuration file operations
+  - Combined progress: 28 functions across 2 critical files (oraenv.sh + oradba_homes.sh)
+  - Updated codebase progress: 241/437 functions documented (55%)
+  - Benefits:
     - Improved code understanding for developers and contributors
     - Clear API contracts for each function
     - Better onboarding documentation
