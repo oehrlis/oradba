@@ -96,7 +96,16 @@ ORAENV_STATUS_ONLY=false
 ORAENV_INTERACTIVE=true
 REQUESTED_SID=""
 
-# Parse command line arguments
+# ------------------------------------------------------------------------------
+# Function: _oraenv_parse_args
+# Purpose.: Parse command line arguments for oraenv.sh
+# Args....: $@ - All command line arguments
+# Returns.: 0 on success, 1 on error
+# Output..: Sets global variables: REQUESTED_SID, SHOW_ENV, SHOW_STATUS, 
+#           ORAENV_INTERACTIVE, ORAENV_STATUS_ONLY
+# Notes...: Detects TTY for interactive mode, processes --silent, --status,
+#           --force, and --help flags
+# ------------------------------------------------------------------------------
 _oraenv_parse_args() {
     # shellcheck disable=SC2034  # Reserved for future use
     local force_mode=false
@@ -164,7 +173,15 @@ _oraenv_parse_args() {
     done
 }
 
-# Display usage
+# ------------------------------------------------------------------------------
+# Function: _oraenv_usage
+# Purpose.: Display usage information for oraenv.sh
+# Args....: None
+# Returns.: None (outputs to stderr)
+# Output..: Usage message with arguments, options, examples, and environment
+#           variable documentation
+# Notes...: Output goes to stderr so it's visible when script is sourced
+# ------------------------------------------------------------------------------
 _oraenv_usage() {
     # Output to stderr so it's visible when sourced
     cat >&2 << EOF
@@ -213,7 +230,16 @@ Environment Variables:
 EOF
 }
 
-# Find oratab file
+# ------------------------------------------------------------------------------
+# Function: _oraenv_find_oratab
+# Purpose.: Locate the oratab file using standard search paths
+# Args....: None
+# Returns.: 0 on success (oratab found), 1 on error (not found)
+# Output..: Echoes path to oratab file if found
+# Notes...: Checks ORATAB_FILE variable first, then uses get_oratab_path(),
+#           finally falls back to ORATAB_ALTERNATIVES array. Sets ORATAB_FILE
+#           environment variable when found.
+# ------------------------------------------------------------------------------
 _oraenv_find_oratab() {
     # Check if ORATAB_FILE is set and exists
     if [[ -n "${ORATAB_FILE}" ]] && [[ -f "${ORATAB_FILE}" ]]; then
@@ -244,7 +270,15 @@ _oraenv_find_oratab() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Gather available SIDs and Oracle Homes from registry
+# Function: _oraenv_gather_available_entries
+# Purpose.: Gather available database SIDs and Oracle Homes from registry
+# Args....: $1 - Path to oratab file
+#           $2 - Name reference to SIDs array
+#           $3 - Name reference to Homes array
+# Returns.: 0 on success, 1 if no entries found
+# Output..: Populates referenced arrays with available entries
+# Notes...: Uses registry API (Phase 1) first, falls back to auto-discovery
+#           if enabled. Separates database SIDs from non-database Oracle Homes.
 # ------------------------------------------------------------------------------
 _oraenv_gather_available_entries() {
     local oratab_file="$1"
@@ -300,7 +334,15 @@ _oraenv_gather_available_entries() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Display selection menu for SIDs and Oracle Homes
+# Function: _oraenv_display_selection_menu
+# Purpose.: Display interactive selection menu for SIDs and Oracle Homes
+# Args....: $1 - Name reference to SIDs array
+#           $2 - Name reference to Homes array
+# Returns.: None (outputs to stderr)
+# Output..: Formatted menu with numbered entries showing Oracle Homes (with type)
+#           and Database SIDs. Menu is output to stderr for interactive prompting.
+# Notes...: Oracle Homes are listed first, then database SIDs. Each entry is
+#           numbered sequentially for user selection.
 # ------------------------------------------------------------------------------
 _oraenv_display_selection_menu() {
     local -n sids_ref="$1"
@@ -342,7 +384,16 @@ _oraenv_display_selection_menu() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Parse user selection (number or name)
+# Function: _oraenv_parse_user_selection
+# Purpose.: Parse and validate user selection from interactive prompt
+# Args....: $1 - User selection (number or name)
+#           $2 - Total number of available entries
+#           $3 - Name reference to SIDs array
+#           $4 - Name reference to Homes array
+# Returns.: 0 on success, 1 if no selection made
+# Output..: Echoes selected SID or Oracle Home name
+# Notes...: Accepts either numeric selection (1-N) or direct name entry.
+#           Numeric selection maps to arrays (Homes first, then SIDs).
 # ------------------------------------------------------------------------------
 _oraenv_parse_user_selection() {
     local selection="$1"
@@ -413,7 +464,15 @@ _oraenv_prompt_sid() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Handle Oracle Home environment setup
+# Function: _oraenv_handle_oracle_home
+# Purpose.: Setup environment for an Oracle Home (non-database installation)
+# Args....: $1 - Oracle Home name from oradba_homes.conf
+# Returns.: 0 on success, 1 on error
+# Output..: Exports ORACLE_HOME, ORACLE_BASE, ORACLE_SID (empty for non-DB),
+#           and other Oracle environment variables
+# Notes...: Uses set_oracle_home_environment() from Oracle Homes management.
+#           Unsets previous environment, derives ORACLE_BASE, loads hierarchical
+#           configuration, and logs environment details.
 # ------------------------------------------------------------------------------
 _oraenv_handle_oracle_home() {
     local requested_sid="$1"
@@ -459,7 +518,15 @@ _oraenv_handle_oracle_home() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Lookup oratab entry from registry or file
+# Function: _oraenv_lookup_oratab_entry
+# Purpose.: Lookup database entry from registry or oratab file
+# Args....: $1 - Requested SID name
+#           $2 - Path to oratab file
+# Returns.: None (outputs via echo)
+# Output..: Echoes oratab entry in format "SID:HOME:FLAGS" if found, empty if not
+# Notes...: Uses registry API (Phase 1) first via oradba_registry_get_by_name(),
+#           falls back to direct oratab parsing with parse_oratab(). Converts
+#           registry format to oratab format for compatibility.
 # ------------------------------------------------------------------------------
 _oraenv_lookup_oratab_entry() {
     local requested_sid="$1"
@@ -491,7 +558,16 @@ _oraenv_lookup_oratab_entry() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Auto-discover running Oracle instances
+# Function: _oraenv_auto_discover_instances
+# Purpose.: Auto-discover running Oracle instances when oratab is empty
+# Args....: $1 - Requested SID name (optional, for targeted discovery)
+#           $2 - Path to oratab file
+# Returns.: None (outputs via echo)
+# Output..: Echoes discovered oratab entry in format "SID:HOME:FLAGS"
+# Notes...: Only runs if ORADBA_AUTO_DISCOVER_INSTANCES=true and oratab is empty.
+#           Uses discover_running_oracle_instances() to find running processes.
+#           Case-insensitive SID matching with awk. Optionally persists discoveries
+#           to oratab via persist_discovered_instances().
 # ------------------------------------------------------------------------------
 _oraenv_auto_discover_instances() {
     local requested_sid="$1"
@@ -548,7 +624,15 @@ _oraenv_auto_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Apply product-specific adjustments (e.g., DataSafe)
+# Function: _oraenv_apply_product_adjustments
+# Purpose.: Apply product-specific path adjustments (e.g., DataSafe plugin)
+# Args....: $1 - Oracle Home path from oratab
+# Returns.: None (outputs via echo)
+# Output..: Echoes "adjusted_home|datasafe_install_dir" pipe-delimited values
+# Notes...: Detects DataSafe installations by oracle_cman_home subdirectory,
+#           sources datasafe_plugin.sh, and calls plugin_adjust_environment().
+#           Returns original path if no adjustments needed. Plugin system allows
+#           extensible product-specific environment handling.
 # ------------------------------------------------------------------------------
 _oraenv_apply_product_adjustments() {
     local oracle_home="$1"
@@ -572,7 +656,18 @@ _oraenv_apply_product_adjustments() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Setup environment variables for database
+# Function: _oraenv_setup_environment_variables
+# Purpose.: Setup Oracle environment variables for database instance
+# Args....: $1 - Actual SID from oratab (preserves case)
+#           $2 - Oracle Home path (after product adjustments)
+#           $3 - Complete oratab entry (SID:HOME:FLAGS)
+#           $4 - DataSafe install directory (optional, empty if not DataSafe)
+# Returns.: None (exports environment variables)
+# Output..: Exports ORACLE_SID, ORACLE_HOME, ORACLE_BASE, ORACLE_STARTUP,
+#           and optional DataSafe variables (DATASAFE_HOME, DATASAFE_INSTALL_DIR,
+#           DATASAFE_CONFIG). Derives ORACLE_BASE if not set.
+# Notes...: Calls export_oracle_base_env() for common Oracle environment setup.
+#           Startup flag (Y/N) extracted from oratab entry field 3.
 # ------------------------------------------------------------------------------
 _oraenv_setup_environment_variables() {
     local actual_sid="$1"
@@ -610,7 +705,16 @@ _oraenv_setup_environment_variables() {
 }
 
 # ------------------------------------------------------------------------------
-# Helper: Load configurations and extensions
+# Function: _oraenv_load_configurations
+# Purpose.: Load hierarchical configurations and extensions for environment
+# Args....: $1 - SID or Oracle Home name identifier
+# Returns.: None (modifies environment)
+# Output..: Loads configuration hierarchy: core → standard → customer → default
+#           → sid-specific. Configures SQLPATH and loads extensions.
+# Notes...: Calls load_config() for hierarchical config merging. Later configs
+#           override earlier ones including aliases. Configures SQLPATH unless
+#           ORADBA_CONFIGURE_SQLPATH=false. Loads extensions via load_extensions()
+#           unless in basenv coexistence mode (unless ORADBA_EXTENSIONS_IN_COEXIST=true).
 # ------------------------------------------------------------------------------
 _oraenv_load_configurations() {
     local identifier="$1"
@@ -704,7 +808,16 @@ _oraenv_set_environment() {
     return 0
 }
 
-# Unset old Oracle environment variables
+# ------------------------------------------------------------------------------
+# Function: _oraenv_unset_old_env
+# Purpose.: Unset previous Oracle environment variables before setting new ones
+# Args....: None
+# Returns.: None (modifies environment)
+# Output..: Removes old ORACLE_HOME paths from PATH and LD_LIBRARY_PATH
+# Notes...: Uses sed to remove both "$ORACLE_HOME/bin:" and ":$ORACLE_HOME/bin"
+#           patterns to handle paths at beginning, middle, or end of PATH/LD_LIBRARY_PATH.
+#           Prevents PATH pollution when switching between Oracle environments.
+# ------------------------------------------------------------------------------
 _oraenv_unset_old_env() {
     # Remove old ORACLE_HOME from PATH
     if [[ -n "${ORACLE_HOME}" ]]; then
@@ -716,7 +829,16 @@ _oraenv_unset_old_env() {
     export LD_LIBRARY_PATH
 }
 
-# Display current Oracle environment
+# ------------------------------------------------------------------------------
+# Function: _oraenv_show_environment
+# Purpose.: Display current Oracle environment variables
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Formatted display of key Oracle environment variables:
+#           ORACLE_SID, ORACLE_HOME, ORACLE_BASE, TNS_ADMIN, NLS_LANG, PATH
+# Notes...: Shows "not set" for unset variables. Used in interactive mode to
+#           confirm environment setup. PATH is displayed in full.
+# ------------------------------------------------------------------------------
 _oraenv_show_environment() {
     cat << EOF
 
@@ -732,7 +854,17 @@ PATH             : ${PATH}
 EOF
 }
 
-# Main execution
+# ------------------------------------------------------------------------------
+# Function: _oraenv_main
+# Purpose.: Main orchestration function for oraenv.sh
+# Args....: $@ - All command line arguments
+# Returns.: 0 on success, 1 on error
+# Output..: Sets Oracle environment, optionally displays status and environment
+# Notes...: Workflow: 1) Parse arguments, 2) Find oratab, 3) Get/prompt for SID,
+#           4) Set environment, 5) Show environment (if SHOW_ENV=true),
+#           6) Show database status (if SHOW_STATUS=true and available).
+#           Handles no-Oracle mode when oratab not found. Must be sourced, not executed.
+# ------------------------------------------------------------------------------
 _oraenv_main() {
     _oraenv_parse_args "$@"
 
