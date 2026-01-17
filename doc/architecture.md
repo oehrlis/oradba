@@ -3,7 +3,11 @@
 
 ## Overview
 
-oradba is a professional Oracle Database administration toolset built on a modular, library-based architecture. The Phase 1-4 implementation (v0.19.0-v0.22.0) introduced a sophisticated configuration system with parsing, validation, and management capabilities.
+oradba is a professional Oracle Database administration toolset built on a modular, library-based architecture. The system evolved through multiple phases:
+
+- **Phase 1-4** (v0.19.0-v0.22.0): Configuration system with parsing, validation, and management
+- **v1.0.0**: Modular library system with 6 specialized libraries
+- **v1.2.2+**: Registry API and Plugin System for unified Oracle product management
 
 ## System Architecture
 
@@ -12,12 +16,141 @@ oradba is a professional Oracle Database administration toolset built on a modul
 The OraDBA system consists of multiple layers working together:
 
 - **Entry Points**: oraenv.sh wrapper, oradba_env.sh builder, oradba_homes.sh manager
+- **Registry API** (v1.2.2+): Unified access to oratab and oradba_homes.conf with consistent interface
+- **Plugin System** (v1.2.2+): Product-specific plugins for database, datasafe, client, iclient, oud
 - **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
 - **Core Libraries**: oradba_common.sh (logging/utilities), oradba_db_functions.sh, oradba_aliases.sh
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
 - **Oracle Integration**: oratab, oradba_homes.conf, Oracle instances, listeners, PDBs
 
 ## Core Components
+
+### 0. Registry API and Plugin System (v1.2.2+)
+
+#### Registry API (oradba_registry.sh)
+
+**Purpose**: Unified interface for accessing Oracle installation metadata from both oratab and oradba_homes.conf.
+
+**Key Features**:
+
+- Single API for all Oracle installations regardless of source
+- Consistent pipe-delimited format: `type|name|home|version|flags|order|alias|desc`
+- Efficient querying by name, type, or all entries
+- Product type detection with plugin integration
+- Supports databases (from oratab) and other Oracle products (from oradba_homes.conf)
+
+**Core Functions**:
+
+```bash
+# Get all Oracle installations (databases + other products)
+oradba_registry_get_all
+
+# Get specific installation by name (SID or Home name)
+oradba_registry_get_by_name "ORCLCDB"
+
+# Get all installations of a specific type
+oradba_registry_get_by_type "database"
+
+# Get only database entries (from oratab)
+oradba_registry_get_databases
+
+# Extract specific field from entry
+oradba_registry_get_field "ORCLCDB" "home"
+```
+
+**Output Format**:
+
+```text
+database|ORCLCDB|/u01/app/oracle/product/23/dbhomeFree|23.6.0|N|1||Oracle 23ai Database
+client|client19|/u01/app/oracle/product/19/client|19.0.0||2|client19|Oracle 19c Client
+datasafe|dsconn1|/u01/app/oracle/dsconn1|N/A||3||Data Safe Connector
+```
+
+**Benefits**:
+
+- Eliminates duplicate parsing logic across 20+ files
+- Single source of truth for Oracle installation data
+- Easy to query and filter installations
+- Consistent format regardless of source (oratab vs oradba_homes.conf)
+
+#### Plugin System
+
+**Purpose**: Product-specific behavior encapsulation with consistent interface.
+
+**Supported Products** (5 plugins):
+
+1. **database_plugin.sh** - Oracle Database (RDBMS)
+2. **datasafe_plugin.sh** - Data Safe On-Premises Connectors
+3. **client_plugin.sh** - Oracle Full Client
+4. **iclient_plugin.sh** - Oracle Instant Client
+5. **oud_plugin.sh** - Oracle Unified Directory
+
+**Plugin Interface** (8 required functions):
+
+```bash
+# Auto-detect installations of this product type
+plugin_detect_installation()
+
+# Validate that a path is a valid installation
+plugin_validate_home "$oracle_home"
+
+# Adjust ORACLE_HOME if needed (e.g., DataSafe oracle_cman_home)
+plugin_adjust_environment "$oracle_home"
+
+# Check if instance/service is running
+plugin_check_status "$oracle_home" "$instance_name"
+
+# Get product metadata (version, edition, etc.)
+plugin_get_metadata "$oracle_home"
+
+# Should this product show listener status?
+plugin_should_show_listener  # Returns 0 (yes) or 1 (no)
+
+# Discover instances for this Oracle Home
+plugin_discover_instances "$oracle_home"
+
+# Does this product support SID aliases?
+plugin_supports_aliases  # Returns 0 (yes) or 1 (no)
+```
+
+**Plugin Architecture Benefits**:
+
+- **Encapsulation**: Product-specific logic in dedicated plugins
+- **Consistency**: All plugins implement same interface
+- **Extensibility**: Easy to add new product types
+- **Testability**: Each plugin independently tested (99 tests total)
+- **Maintainability**: Changes to one product don't affect others
+
+**Example - DataSafe Plugin**:
+
+The DataSafe plugin consolidates logic that was duplicated across 8+ files:
+
+```bash
+# Adjusts ORACLE_HOME from base path to oracle_cman_home
+plugin_adjust_environment() {
+    local base_path="$1"
+    if [[ -d "${base_path}/oracle_cman_home" ]]; then
+        echo "${base_path}/oracle_cman_home"
+    else
+        echo "${base_path}"
+    fi
+}
+
+# Uses explicit environment for cmctl (fixes Bug #83)
+plugin_check_status() {
+    local cman_home=$(plugin_adjust_environment "$1")
+    ORACLE_HOME="${cman_home}" \
+    LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+    "${cman_home}/bin/cmctl" status 2>/dev/null
+}
+```
+
+**Integration Points**:
+
+- Registry API uses plugins for product type detection
+- oraenv.sh uses registry API for unified installation lookup
+- Environment builder uses plugins for product-specific adjustments
+- Status checker uses plugins for service status verification
 
 ### 1. Environment Management
 
@@ -97,14 +230,16 @@ The execution flow shows:
 **oradba_env_validator.sh**:
 
 - `validate_oracle_home` - Check ORACLE_HOME exists and is valid
-- `detect_product_type` - Identify product types:
-  - ICLIENT: Instant Client (libclntsh.so, no bin directory)
-  - DATASAFE: Data Safe (oracle_cman_home, cmctl binary)
-  - GRID: Grid Infrastructure (crsctl, asmcmd)
-  - RDBMS: Database (oracle binary, rdbms directory)
-  - CLIENT: Full client (sqlplus, no rdbms)
-  - OUD, WLS: Other Oracle products
+- `detect_product_type` - Identify product types (delegates to plugin system):
+  - **database**: Oracle Database (rdbms/ directory, oracle binary)
+  - **datasafe**: Data Safe Connector (oracle_cman_home/, cmctl)
+  - **client**: Full Client (sqlplus, network/admin, no rdbms/)
+  - **iclient**: Instant Client (libclntsh.so, no bin/ directory)
+  - **oud**: Oracle Unified Directory (setup, oudBase, OpenDJ.jar)
+  - **grid**: Grid Infrastructure (crsctl, asmcmd)
+  - **wls**: WebLogic Server
 - `detect_version` - Determine Oracle version
+- Uses **plugin system** for product-specific validation and detection
 
 **oradba_env_config.sh**:
 
@@ -212,6 +347,19 @@ oradba/
 ├── src/                    # Distribution files
 │   ├── bin/               # Executable scripts
 │   ├── lib/               # Libraries
+│   │   ├── plugins/       # Product-specific plugins (v1.2.2+)
+│   │   │   ├── plugin_interface.sh    # Plugin interface definition
+│   │   │   ├── database_plugin.sh     # Oracle Database
+│   │   │   ├── datasafe_plugin.sh     # Data Safe Connectors
+│   │   │   ├── client_plugin.sh       # Full Client
+│   │   │   ├── iclient_plugin.sh      # Instant Client
+│   │   │   └── oud_plugin.sh          # Oracle Unified Directory
+│   │   ├── oradba_registry.sh         # Registry API (v1.2.2+)
+│   │   ├── oradba_common.sh           # Core utilities
+│   │   ├── oradba_env_parser.sh       # Configuration parser
+│   │   ├── oradba_env_builder.sh      # Environment builder
+│   │   ├── oradba_env_validator.sh    # Validation
+│   │   └── ... (other libraries)
 │   ├── etc/               # Configuration
 │   ├── sql/               # SQL scripts
 │   ├── rcv/               # RMAN scripts
@@ -219,11 +367,79 @@ oradba/
 │   └── doc/               # User documentation
 ├── scripts/               # Build and utility scripts
 ├── tests/                 # Test suite
+│   ├── test_database_plugin.bats      # Database plugin tests (16 tests)
+│   ├── test_datasafe_plugin.bats      # DataSafe plugin tests (17 tests)
+│   ├── test_client_plugin.bats        # Client plugin tests (12 tests)
+│   ├── test_iclient_plugin.bats       # Instant Client plugin tests (15 tests)
+│   ├── test_oud_plugin.bats           # OUD plugin tests (15 tests)
+│   ├── test_plugin_interface.bats     # Interface compliance (24 tests)
+│   └── ... (892+ core tests)
 ├── doc/                   # Developer documentation
 └── .github/               # CI/CD workflows
 ```
 
 ## Data Flow
+
+### Registry API and Plugin Integration
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                        User Request                              │
+│              (SID name or Oracle Home name)                      │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Registry API Layer                            │
+│                 (oradba_registry.sh)                            │
+│                                                                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │  get_all()   │  │get_by_name() │  │get_by_type() │         │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘         │
+└─────────┼──────────────────┼──────────────────┼─────────────────┘
+          │                  │                  │
+          └──────────────────┴──────────────────┘
+                             │
+          ┌──────────────────┴──────────────────┐
+          │                                     │
+          ▼                                     ▼
+┌──────────────────┐                 ┌──────────────────┐
+│     oratab       │                 │ oradba_homes.conf│
+│   (Databases)    │                 │  (Other Products)│
+└────────┬─────────┘                 └────────┬─────────┘
+         │                                     │
+         └──────────────────┬──────────────────┘
+                            │
+                            ▼
+         ┌─────────────────────────────────────┐
+         │    Product Type Detection            │
+         │    (via Plugin System)               │
+         └─────────┬───────────────────────────┘
+                   │
+     ┌─────────────┴─────────────┬─────────────┬─────────────┐
+     │                           │             │             │
+     ▼                           ▼             ▼             ▼
+┌─────────┐   ┌──────────┐  ┌────────┐  ┌─────────┐  ┌─────────┐
+│database_│   │datasafe_ │  │client_ │  │iclient_ │  │  oud_   │
+│plugin.sh│   │plugin.sh │  │plugin.sh│ │plugin.sh│  │plugin.sh│
+└────┬────┘   └────┬─────┘  └────┬───┘  └────┬────┘  └────┬────┘
+     │             │             │           │            │
+     │  ┌──────────┴─────────────┴───────────┴────────────┘
+     │  │          Plugin Interface (8 functions)
+     │  │  • validate_home()    • check_status()
+     │  │  • adjust_environment() • discover_instances()
+     │  │  • get_metadata()      • should_show_listener()
+     │  └──• supports_aliases()  • detect_installation()
+     │
+     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Unified Oracle Environment                          │
+│  • ORACLE_HOME (adjusted if needed)                            │
+│  • ORACLE_SID                                                   │
+│  • Product-specific environment variables                       │
+│  • Status information                                           │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### Environment Setup Sequence
 
@@ -232,12 +448,14 @@ oradba/
 The environment setup follows a structured, library-based sequence:
 
 1. **Wrapper** (oraenv.sh) receives SID or Oracle Home name
-2. **Main Builder** (oradba_env.sh) coordinates the process
-3. **Parser** (oradba_env_parser.sh) loads and merges 6 configuration levels
-4. **Builder** (oradba_env_builder.sh) queries oratab or oradba_homes.conf, derives paths, constructs environment
-5. **Validator** (oradba_env_validator.sh) checks ORACLE_HOME, detects type/version
-6. **Status** (oradba_env_status.sh) displays environment summary
-7. **Aliases** (oradba_aliases.sh) generates database and PDB shortcuts
+2. **Registry API** (oradba_registry.sh) queries oratab and oradba_homes.conf for unified installation data
+3. **Plugin System** detects product type and validates Oracle Home
+4. **Main Builder** (oradba_env.sh) coordinates the process
+5. **Parser** (oradba_env_parser.sh) loads and merges 6 configuration levels
+6. **Builder** (oradba_env_builder.sh) constructs environment with plugin adjustments
+7. **Validator** (oradba_env_validator.sh) checks ORACLE_HOME using plugins
+8. **Status** (oradba_env_status.sh) displays environment summary with plugin status checks
+9. **Aliases** (oradba_aliases.sh) generates database and PDB shortcuts
 
 ### Configuration Processing Pipeline
 
@@ -250,22 +468,28 @@ The parser reads from multiple sources (6 config files), resolves variable refer
 ## Design Principles
 
 1. **Library-Based Architecture**: Environment Management libraries provide modular, testable components
-2. **Separation of Concerns**: Parser, Builder, Validator have distinct responsibilities
-3. **Hierarchical Configuration**: 6-level override system provides flexibility without complexity
-4. **Auto-Detection**: Intelligently derives ORACLE_BASE, product type, version
-5. **Validation First**: Extensive checking before environment activation
-6. **Coexistence**: Safe operation alongside TVD BasEnv via safe_alias()
-7. **Comprehensive Testing**: 892 BATS tests ensure reliability
-8. **Professional Logging**: Structured logging with oradba_log() throughout
+2. **Registry API** (v1.2.2+): Single source of truth for Oracle installation metadata
+3. **Plugin System** (v1.2.2+): Product-specific logic encapsulated in dedicated plugins
+4. **Separation of Concerns**: Parser, Builder, Validator, Registry, Plugins have distinct responsibilities
+5. **Hierarchical Configuration**: 6-level override system provides flexibility without complexity
+6. **Auto-Detection**: Intelligently derives ORACLE_BASE, product type, version via plugins
+7. **Validation First**: Extensive checking before environment activation using plugin validators
+8. **Coexistence**: Safe operation alongside TVD BasEnv via safe_alias()
+9. **Comprehensive Testing**: 99 plugin tests + 892 core tests ensure reliability
+10. **Professional Logging**: Structured logging with oradba_log() throughout
 
 ## Key Features
 
+- **Registry API** (v1.2.2+): Unified interface for oratab and oradba_homes.conf access
+- **Plugin System** (v1.2.2+): 5 product plugins with consistent 8-function interface
 - **Oracle Homes Management**: Track multiple Oracle installations with metadata
+- **Product Type Detection**: Automatic identification via plugin validation
 - **Export/Import**: Backup and migrate Oracle Homes configuration  
-- **Status Checking**: Query database, listener, ASM, OUD, WebLogic status
+- **Status Checking**: Query database, listener, ASM, OUD, WebLogic, DataSafe status via plugins
 - **Change Detection**: Auto-reload on configuration file changes
 - **PDB Support**: Auto-generate aliases for multitenant databases
 - **Smart Test Selection**: Fast CI with 60-second test runs
+- **Comprehensive Plugin Tests**: 99 plugin tests validate all product types
 - **Self-Extracting Installer**: Single-file distribution with embedded payload
 
 ## References

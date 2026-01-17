@@ -11,6 +11,20 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
+### v1.2.2+ Registry API and Plugin System
+
+- **Registry API** (v1.2.2): Unified interface for Oracle installation metadata
+  - Single API for oratab and oradba_homes.conf access
+  - Consistent pipe-delimited format: `type|name|home|version|flags|order|alias|desc`
+  - Efficient querying by name, type, or all entries
+  - Eliminates duplicate parsing logic across 20+ files
+- **Plugin System** (v1.2.2): Product-specific behavior encapsulation
+  - 5 plugins: database, datasafe, client, iclient, oud
+  - 8-function interface: validate, adjust, status, metadata, discover, etc.
+  - 99 comprehensive plugin tests (100% pass rate)
+  - Consolidates DataSafe logic (was duplicated across 8+ files)
+  - Extensible architecture for new product types
+
 ### v1.0.0 Architecture
 
 - **Modular Library System** (v1.0.0): Clean separation of concerns with 6 specialized libraries
@@ -152,6 +166,12 @@ oradba_homes.sh import homes_backup.conf
 
 # Show environment status (includes Oracle Homes)
 oraup.sh
+
+# Query installations via Registry API (v1.2.2+)
+oradba_registry_get_all                    # All installations
+oradba_registry_get_by_name "ORCLCDB"     # Specific database/home
+oradba_registry_get_by_type "database"    # All databases
+oradba_registry_get_field "FREE" "home"   # Get ORACLE_HOME for SID
 ```
 
 After sourcing, you have 50+ aliases available:
