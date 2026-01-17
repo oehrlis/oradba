@@ -137,8 +137,8 @@ teardown() {
 }
 
 @test "oraenv.sh supports numbered SID selection" {
-    # Check that numbered selection is implemented
-    grep -A 100 "_oraenv_prompt_sid" "$ORAENV_SCRIPT" | grep -q "printf.*\[%d\]"
+    # Check that numbered selection is implemented (may be in helper function)
+    grep -q "printf.*\[%d\]" "$ORAENV_SCRIPT"
 }
 
 @test "oraenv.sh handles empty oratab gracefully" {
