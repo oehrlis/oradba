@@ -29,7 +29,16 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Determine default installation prefix
+# ------------------------------------------------------------------------------
+# Function: determine_default_prefix
+# Purpose.: Auto-detect default OraDBA installation prefix from Oracle environment
+# Args....: None
+# Returns.: 0 on success, 1 if detection failed
+# Output..: Installation prefix path to stdout (e.g., /opt/oracle/local/oradba)
+# Notes...: Priority: ORACLE_BASE > ORACLE_HOME > oratab > /opt/oracle > fail
+#           Checks orabasetab, envVars.properties for ORACLE_BASE
+#           Falls back to path derivation and common locations
+# ------------------------------------------------------------------------------
 determine_default_prefix() {
     # Priority 1: ORACLE_BASE is set
     if [[ -n "${ORACLE_BASE}" ]]; then
@@ -118,20 +127,51 @@ determine_default_prefix() {
 
 DEFAULT_PREFIX=$(determine_default_prefix) || true
 
-# Logging functions
+# ------------------------------------------------------------------------------
+# Function: log_info
+# Purpose.: Display informational message with green [INFO] prefix
+# Args....: $* - Message text
+# Returns.: 0
+# Output..: Colored message to stdout
+# Notes...: Simple installer logging, not the full oradba_log system
+# ------------------------------------------------------------------------------
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $*"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_warn
+# Purpose.: Display warning message with yellow [WARN] prefix
+# Args....: $* - Message text
+# Returns.: 0
+# Output..: Colored message to stdout
+# Notes...: Simple installer logging
+# ------------------------------------------------------------------------------
 log_warn() {
     echo -e "${YELLOW}[WARN]${NC} $*"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_error
+# Purpose.: Display error message with red [ERROR] prefix
+# Args....: $* - Message text
+# Returns.: 0
+# Output..: Colored message to stderr
+# Notes...: Simple installer logging
+# ------------------------------------------------------------------------------
 log_error() {
     echo -e "${RED}[ERROR]${NC} $*" >&2
 }
 
-# Check if version is archived (pre-1.0 release)
+# ------------------------------------------------------------------------------
+# Function: check_archived_version
+# Purpose.: Check if version is pre-1.0 archived release and display notice
+# Args....: $1 - Version string (e.g., "0.16.0")
+# Returns.: 0 if archived (pre-1.0), 1 otherwise
+# Output..: Archived version notice to stdout
+# Notes...: All 0.x.x versions are considered archived
+#           Displays upgrade recommendation for production use
+# ------------------------------------------------------------------------------
 check_archived_version() {
     local version="$1"
     
@@ -151,7 +191,15 @@ check_archived_version() {
     return 1
 }
 
-# Cleanup function
+# ------------------------------------------------------------------------------
+# Function: cleanup
+# Purpose.: Remove temporary directory on script exit
+# Args....: None
+# Returns.: 0
+# Output..: None
+# Notes...: Called automatically via trap EXIT
+#           Removes TEMP_DIR if set and exists
+# ------------------------------------------------------------------------------
 cleanup() {
     if [[ -n "$TEMP_DIR" ]] && [[ -d "$TEMP_DIR" ]]; then
         rm -rf "$TEMP_DIR"
@@ -160,8 +208,17 @@ cleanup() {
 
 trap cleanup EXIT
 
-# Backup modified configuration files before installation
-# Similar to RPM behavior: save modified files with .save extension
+# ------------------------------------------------------------------------------
+# Function: backup_modified_files
+# Purpose.: Backup modified configuration files before update
+# Args....: $1 - Installation prefix directory
+# Returns.: 0
+# Output..: Backup status messages to stdout
+# Notes...: Similar to RPM behavior - saves modified files with .save extension
+#           Compares checksums from .oradba.checksum file
+#           Only backs up etc/ files and .conf files
+#           Skips backup if .oradba.checksum doesn't exist (fresh install)
+# ------------------------------------------------------------------------------
 backup_modified_files() {
     local install_prefix="$1"
     local backed_up_count=0
@@ -230,7 +287,15 @@ backup_modified_files() {
     return 0
 }
 
-# Display usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display installer usage information and examples
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Usage help to stdout
+# Notes...: Shows installation modes, location options, examples
+#           Includes pre-Oracle installation instructions
+# ------------------------------------------------------------------------------
 usage() {
     # Determine default prefix for display
     local display_prefix="${DEFAULT_PREFIX:-<requires --prefix, --base, or --user-level>}"
@@ -314,7 +379,16 @@ EOF
     exit 0
 }
 
-# Check mandatory system tools
+# ------------------------------------------------------------------------------
+# Function: check_required_tools
+# Purpose.: Verify required system tools are available
+# Args....: None
+# Returns.: 0 if all required tools present, 1 otherwise
+# Output..: Tool check results to stdout
+# Notes...: Checks: bash, tar, awk, sed, grep, sha256sum/shasum
+#           Mode-specific: base64 (embedded), curl/wget (github)
+#           Installation cannot proceed if required tools missing
+# ------------------------------------------------------------------------------
 check_required_tools() {
     local requirements_met=true
 
@@ -385,7 +459,16 @@ check_required_tools() {
     return 0
 }
 
-# Check optional tools
+# ------------------------------------------------------------------------------
+# Function: check_optional_tools
+# Purpose.: Check for optional tools and warn if missing
+# Args....: None
+# Returns.: 0 (always successful, warnings only)
+# Output..: Optional tool status and installation hints to stdout
+# Notes...: Checks: rlwrap, less, crontab
+#           Installation continues even if optional tools missing
+#           Provides installation commands for missing tools
+# ------------------------------------------------------------------------------
 check_optional_tools() {
     echo "Checking Optional Tools"
     echo "-----------------------"
@@ -437,7 +520,16 @@ check_optional_tools() {
     return 0 # Explicitly return success
 }
 
-# Check disk space
+# ------------------------------------------------------------------------------
+# Function: check_disk_space
+# Purpose.: Verify sufficient disk space for installation
+# Args....: $1 - Installation directory path
+# Returns.: 0 if sufficient space, 1 otherwise
+# Output..: Disk space check results to stdout
+# Notes...: Requires 100MB free space
+#           Checks parent directories if target doesn't exist
+#           Warns if unable to determine space (continues anyway)
+# ------------------------------------------------------------------------------
 check_disk_space() {
     local install_dir="$1"
     local required_mb=100
@@ -486,7 +578,15 @@ check_disk_space() {
     return 0
 }
 
-# Check write permissions
+# ------------------------------------------------------------------------------
+# Function: check_permissions
+# Purpose.: Verify write permissions for installation directory
+# Args....: $1 - Installation directory path
+# Returns.: 0 if writable, 1 otherwise
+# Output..: Permission check results to stdout
+# Notes...: Checks target directory or creates test file in parent
+#           Suggests sudo if permissions insufficient
+# ------------------------------------------------------------------------------
 check_permissions() {
     local install_dir="$1"
 
@@ -542,6 +642,16 @@ check_permissions() {
 }
 
 # Detect user's shell profile file
+# ------------------------------------------------------------------------------
+# Function: detect_profile_file
+# Purpose.: Detect appropriate shell profile file for current user
+# Args....: None
+# Returns.: 0
+# Output..: Profile file path to stdout
+# Notes...: Priority: ~/.bash_profile > ~/.profile > ~/.zshrc > create ~/.bash_profile
+#           .bashrc intentionally skipped (non-login shells)
+#           Creates .bash_profile if no profile exists
+# ------------------------------------------------------------------------------
 detect_profile_file() {
     local profile=""
 
@@ -564,7 +674,15 @@ detect_profile_file() {
     echo "$profile"
 }
 
-# Check if profile already has OraDBA integration
+# ------------------------------------------------------------------------------
+# Function: profile_has_oradba
+# Purpose.: Check if profile already has OraDBA integration
+# Args....: $1 - Profile file path
+# Returns.: 0 if integrated, 1 otherwise
+# Output..: None
+# Notes...: Checks for OraDBA marker comment or oraenv.sh source
+#           Prevents duplicate profile entries
+# ------------------------------------------------------------------------------
 profile_has_oradba() {
     local profile_file="$1"
 
@@ -581,7 +699,17 @@ profile_has_oradba() {
     return 1
 }
 
-# Update shell profile with OraDBA integration
+# ------------------------------------------------------------------------------
+# Function: update_profile
+# Purpose.: Add OraDBA auto-loading to shell profile
+# Args....: $1 - Installation prefix directory
+# Returns.: 0 on success, 1 on error
+# Output..: Profile update status and manual instructions to stdout
+# Notes...: Interactive prompt if TTY available (unless --silent or --update-profile)
+#           Creates backup of profile before modification
+#           Adds oraenv.sh sourcing and oraup.sh status display
+#           Respects UPDATE_PROFILE variable (yes/no/auto)
+# ------------------------------------------------------------------------------
 update_profile() {
     local install_prefix="$1"
     local profile_file
@@ -683,7 +811,16 @@ EOF
     return 0
 }
 
-# Run all pre-flight checks
+# ------------------------------------------------------------------------------
+# Function: run_preflight_checks
+# Purpose.: Execute all pre-installation validation checks
+# Args....: $1 - Installation directory path
+# Returns.: 0 if all checks pass, 1 on failure
+# Output..: Check results and status to stdout
+# Notes...: Runs: required tools, optional tools, disk space, permissions
+#           Stops installation if critical checks fail
+#           Optional tool checks only warn, don't block
+# ------------------------------------------------------------------------------
 run_preflight_checks() {
     local install_dir="$1"
 
@@ -910,6 +1047,17 @@ fi
 
 # Compare two semantic versions
 # Returns: 0 if equal, 1 if v1 > v2, 2 if v1 < v2
+# ------------------------------------------------------------------------------
+# Function: version_compare
+# Purpose.: Compare two semantic version strings
+# Args....: $1 - First version (e.g., "1.2.3")
+#           $2 - Second version (e.g., "1.2.4")
+# Returns.: 0 if v1 == v2, 1 if v1 > v2, 2 if v1 < v2
+# Output..: None
+# Notes...: Handles versions with or without 'v' prefix
+#           Compares major.minor.patch numerically
+#           Ignores pre-release suffixes (e.g., -beta)
+# ------------------------------------------------------------------------------
 version_compare() {
     local v1="$1"
     local v2="$2"
@@ -941,7 +1089,15 @@ version_compare() {
     return 0
 }
 
-# Get current installed version
+# ------------------------------------------------------------------------------
+# Function: get_installed_version
+# Purpose.: Get currently installed OraDBA version
+# Args....: $1 - Installation directory path
+# Returns.: 0
+# Output..: Version string to stdout (or "unknown" if not found)
+# Notes...: Reads version from VERSION file in install directory
+#           Returns "unknown" if VERSION file missing
+# ------------------------------------------------------------------------------
 get_installed_version() {
     local install_dir="$1"
     local version_file="${install_dir}/VERSION"
@@ -953,7 +1109,15 @@ get_installed_version() {
     fi
 }
 
-# Check if installation exists
+# ------------------------------------------------------------------------------
+# Function: check_existing_installation
+# Purpose.: Check if OraDBA is already installed at target location
+# Args....: $1 - Installation directory path
+# Returns.: 0 if installed, 1 otherwise
+# Output..: None
+# Notes...: Verifies directory exists and contains VERSION file and bin/ directory
+#           Used to determine if doing fresh install or update
+# ------------------------------------------------------------------------------
 check_existing_installation() {
     local install_dir="$1"
 
@@ -969,7 +1133,16 @@ check_existing_installation() {
     return 0
 }
 
-# Backup existing installation
+# ------------------------------------------------------------------------------
+# Function: backup_installation
+# Purpose.: Create timestamped backup of existing installation
+# Args....: $1 - Installation directory path
+# Returns.: 0 on success, 1 on failure
+# Output..: Backup directory path to stdout, status to stderr
+# Notes...: Creates .backup.YYYYMMDD_HHMMSS directory
+#           Full recursive copy of entire installation
+#           Used before updates to enable rollback
+# ------------------------------------------------------------------------------
 backup_installation() {
     local install_dir="$1"
     local backup_dir
@@ -987,7 +1160,17 @@ backup_installation() {
     return 0
 }
 
-# Restore from backup
+# ------------------------------------------------------------------------------
+# Function: restore_from_backup
+# Purpose.: Restore installation from backup directory
+# Args....: $1 - Installation directory path
+#           $2 - Backup directory path
+# Returns.: 0 on success, 1 on failure
+# Output..: Restore status to stdout
+# Notes...: Removes failed installation first
+#           Renames backup directory back to original location
+#           Used for rollback if update fails
+# ------------------------------------------------------------------------------
 restore_from_backup() {
     local install_dir="$1"
     local backup_dir="$2"
@@ -1009,7 +1192,17 @@ restore_from_backup() {
     return 0
 }
 
-# Preserve user configuration files
+# ------------------------------------------------------------------------------
+# Function: preserve_configs
+# Purpose.: Save user configuration files before update
+# Args....: $1 - Installation directory path
+#           $2 - Temporary config directory path
+# Returns.: 0
+# Output..: Preserved file list to stdout
+# Notes...: Preserves: .install_info, etc/oradba.conf, oratab.example
+#           Copies to temporary directory for restoration after update
+#           Used to maintain user customizations across updates
+# ------------------------------------------------------------------------------
 preserve_configs() {
     local install_dir="$1"
     local temp_config_dir="$2"
@@ -1038,7 +1231,17 @@ preserve_configs() {
     return 0
 }
 
-# Restore preserved configurations
+# ------------------------------------------------------------------------------
+# Function: restore_configs
+# Purpose.: Restore preserved configuration files after update
+# Args....: $1 - Installation directory path
+#           $2 - Temporary config directory path
+# Returns.: 0
+# Output..: Restored file list to stdout
+# Notes...: Restores files preserved by preserve_configs function
+#           Creates parent directories as needed
+#           Removes temporary directory after restoration
+# ------------------------------------------------------------------------------
 restore_configs() {
     local install_dir="$1"
     local temp_config_dir="$2"
@@ -1066,7 +1269,17 @@ restore_configs() {
     return 0
 }
 
-# Perform update
+# ------------------------------------------------------------------------------
+# Function: perform_update
+# Purpose.: Execute update of existing OraDBA installation
+# Args....: None (uses global variables)
+# Returns.: 0 on success, 1 on failure
+# Output..: Update progress and status to stdout
+# Notes...: Orchestrates: backup, preserve configs, extract new version, restore configs
+#           Version comparison with --force override
+#           Automatic rollback on failure
+#           Preserves user customizations
+# ------------------------------------------------------------------------------
 perform_update() {
     local install_dir="$INSTALL_PREFIX"
     local current_version
@@ -1151,6 +1364,17 @@ perform_update() {
 }
 
 # Extract from embedded payload
+# ------------------------------------------------------------------------------
+# Function: extract_embedded_payload
+# Purpose.: Extract OraDBA from embedded base64 payload
+# Args....: None (reads from $0 - the installer script itself)
+# Returns.: 0 on success, 1 on failure
+# Output..: Extraction status to stdout
+# Notes...: Looks for __PAYLOAD_BEGINS__ marker in script
+#           Decodes base64 and extracts tar.gz to TEMP_DIR
+#           Includes filesystem sync and retry logic for containers
+#           Suggests alternative methods if payload missing/corrupted
+# ------------------------------------------------------------------------------
 extract_embedded_payload() {
     log_info "Extracting embedded payload..."
     local payload_line
@@ -1202,7 +1426,16 @@ extract_embedded_payload() {
     return 0
 }
 
-# Prompt for Oracle Base if not specified and not in silent mode
+# ------------------------------------------------------------------------------
+# Function: prompt_oracle_base
+# Purpose.: Interactively prompt for Oracle Base directory if not specified
+# Args....: None (sets global ORACLE_BASE_PARAM)
+# Returns.: 0 on success, 1 on error
+# Output..: Prompt and validation messages to stdout
+# Notes...: Skipped if ORACLE_BASE_PARAM set, silent mode, or ORACLE_BASE detected
+#           Validates absolute path and parent directory permissions
+#           Default: /opt/oracle
+# ------------------------------------------------------------------------------
 prompt_oracle_base() {
     # Skip if already set or in silent mode
     if [[ -n "$ORACLE_BASE_PARAM" ]] || [[ "$SILENT_MODE" == "true" ]]; then
@@ -1252,7 +1485,16 @@ prompt_oracle_base() {
     return 0
 }
 
-# Validate write permissions for installation prefix
+# ------------------------------------------------------------------------------
+# Function: validate_write_permissions
+# Purpose.: Validate write permissions for installation target
+# Args....: $1 - Target installation path
+# Returns.: 0 if writable, 1 otherwise
+# Output..: Permission errors and suggestions to stderr
+# Notes...: Checks target if exists, otherwise checks parent directory
+#           Suggests sudo or alternative location if no permissions
+#           Handles root directory edge case
+# ------------------------------------------------------------------------------
 validate_write_permissions() {
     local target_path="$1"
 
@@ -1291,7 +1533,17 @@ validate_write_permissions() {
     return 0
 }
 
-# Create temporary oratab for pre-Oracle installations
+# ------------------------------------------------------------------------------
+# Function: create_temp_oratab
+# Purpose.: Create temporary oratab for pre-Oracle installations
+# Args....: $1 - Installation prefix directory
+# Returns.: 0
+# Output..: Oratab creation status and symlink instructions to stdout
+# Notes...: Creates etc/oratab in OraDBA directory if /etc/oratab missing
+#           Adds dummy entry if --dummy-home specified
+#           Provides instructions for symlinking after Oracle install
+#           Supports air-gapped and pre-Oracle environments
+# ------------------------------------------------------------------------------
 create_temp_oratab() {
     local install_prefix="$1"
     local oratab_path="${install_prefix}/etc/oratab"
@@ -1374,6 +1626,17 @@ ORATAB_HEADER
 }
 
 # Extract from local tarball
+# ------------------------------------------------------------------------------
+# Function: extract_local_tarball
+# Purpose.: Extract OraDBA from local tarball file
+# Args....: $1 - Path to local tarball file
+# Returns.: 0 on success, 1 on failure
+# Output..: Extraction status to stdout
+# Notes...: Validates file exists and is readable
+#           Extracts to TEMP_DIR with filesystem sync for containers
+#           Includes retry logic for slow filesystem sync
+#           Used for air-gapped installations
+# ------------------------------------------------------------------------------
 extract_local_tarball() {
     local tarball="$1"
 
@@ -1426,7 +1689,17 @@ extract_local_tarball() {
     fi
 }
 
-# Download and extract from GitHub
+# ------------------------------------------------------------------------------
+# Function: extract_github_release
+# Purpose.: Download and extract OraDBA from GitHub releases
+# Args....: $1 - Version string (optional, uses latest if empty)
+# Returns.: 0 on success, 1 on failure
+# Output..: Download and extraction status to stdout
+# Notes...: Queries GitHub API for latest version if not specified
+#           Supports curl or wget for downloads
+#           Includes archived version notice for 0.x releases
+#           Verifies download and extracts to TEMP_DIR
+# ------------------------------------------------------------------------------
 extract_github_release() {
     local version="$1"
     local download_url
