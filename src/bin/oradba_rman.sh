@@ -69,7 +69,13 @@ OPT_DATAFILES=""
 OPT_PLUGGABLE_DATABASE=""
 
 # ------------------------------------------------------------------------------
-# Usage information
+# Function: usage
+# Purpose.: Display comprehensive usage information for RMAN wrapper script
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Usage help, options, examples to stdout
+# Notes...: Shows required/optional arguments, configuration, template tags
+#           Comprehensive RMAN backup automation documentation
 # ------------------------------------------------------------------------------
 usage() {
     cat << EOF
@@ -189,7 +195,13 @@ EOF
 export ORADBA_LOG_FILE="${SCRIPT_LOG}"
 
 # ------------------------------------------------------------------------------
-# Check for GNU parallel availability
+# Function: check_parallel_method
+# Purpose.: Determine and validate parallel execution method
+# Args....: None (uses global OPT_PARALLEL)
+# Returns.: 0
+# Output..: Method selection to log
+# Notes...: Sets PARALLEL_METHOD to "gnu_parallel" or "background"
+#           Falls back to background if GNU parallel not available
 # ------------------------------------------------------------------------------
 check_parallel_method() {
     if [[ "${OPT_PARALLEL}" == "gnu" ]]; then
@@ -207,7 +219,14 @@ check_parallel_method() {
 }
 
 # ------------------------------------------------------------------------------
-# Load SID-specific RMAN configuration
+# Function: load_rman_config
+# Purpose.: Load SID-specific RMAN configuration file
+# Args....: $1 - Oracle SID
+# Returns.: 0 if loaded, 1 if not found
+# Output..: Config loading status to log
+# Notes...: Location: \${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf
+#           Sets variables: RMAN_CHANNELS, RMAN_FORMAT, RMAN_TAG, etc.
+#           CLI options override config file settings
 # ------------------------------------------------------------------------------
 load_rman_config() {
     local sid="$1"
@@ -242,7 +261,20 @@ load_rman_config() {
 }
 
 # ------------------------------------------------------------------------------
-# Process template tags in RMAN script
+# Function: process_template
+# Purpose.: Process RMAN script template with tag substitution
+# Args....: $1 - Input template file path
+#           $2 - Output file path
+#           $3 - Number of channels (optional)
+#           $4 - Format pattern (optional)
+#           $5 - Backup tag (optional)
+#           $6 - Compression level (optional)
+#           $7 - Backup path (optional)
+# Returns.: 0 on success, 1 on error
+# Output..: Processed script to output file, status to log
+# Notes...: Replaces template tags: <ALLOCATE_CHANNELS>, <FORMAT>, <TAG>, etc.
+#           Supports tablespaces, datafiles, PDB selections
+#           Handles FRA vs explicit backup paths
 # ------------------------------------------------------------------------------
 process_template() {
     local input_file="$1"
@@ -536,6 +568,16 @@ EOF
 # ------------------------------------------------------------------------------
 # Execute RMAN script for a single SID
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: execute_rman_for_sid
+# Purpose.: Execute RMAN script for a specific Oracle SID
+# Args....: $1 - Oracle SID
+# Returns.: 0 on success, 1 on failure
+# Output..: RMAN execution results to log and stdout
+# Notes...: Orchestrates: set environment, load config, process template, run RMAN
+#           Captures success/failure for notification
+#           Creates timestamped logs per SID
+# ------------------------------------------------------------------------------
 execute_rman_for_sid() {
     local sid="$1"
     local rcv_script="$2"
@@ -697,6 +739,16 @@ execute_rman_for_sid() {
 # ------------------------------------------------------------------------------
 # Execute RMAN for multiple SIDs in parallel
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: execute_parallel_background
+# Purpose.: Execute RMAN for multiple SIDs using background jobs
+# Args....: $@ - List of Oracle SIDs
+# Returns.: 0 if all successful, 1 if any failed
+# Output..: Parallel execution status to log
+# Notes...: Standard bash background jobs with wait
+#           Default parallel method if GNU parallel unavailable
+#           Updates FAILED_SIDS and SUCCESSFUL_SIDS arrays
+# ------------------------------------------------------------------------------
 execute_parallel_background() {
     local -a sids=("$@")
     local -a pids=()
@@ -727,6 +779,16 @@ execute_parallel_background() {
 # ------------------------------------------------------------------------------
 # Execute RMAN for multiple SIDs using GNU parallel
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: execute_parallel_gnu
+# Purpose.: Execute RMAN for multiple SIDs using GNU parallel
+# Args....: $@ - List of Oracle SIDs
+# Returns.: 0 if all successful, 1 if any failed
+# Output..: Parallel execution status to log
+# Notes...: Requires GNU parallel command installed
+#           Better load balancing and progress tracking than background
+#           Exports execute_rman_for_sid function for parallel
+# ------------------------------------------------------------------------------
 execute_parallel_gnu() {
     local -a sids=("$@")
 
@@ -751,6 +813,16 @@ execute_parallel_gnu() {
 
 # ------------------------------------------------------------------------------
 # Send email notification
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: send_notification
+# Purpose.: Send email notification on success or failure
+# Args....: $1 - Status ("SUCCESS" or "FAILURE")
+# Returns.: 0 on success, 1 if mail command unavailable
+# Output..: Email sent to configured address
+# Notes...: Respects RMAN_NOTIFY_ON_SUCCESS and RMAN_NOTIFY_ON_ERROR flags
+#           Includes script log path, SID lists, and execution summary
+#           Requires mail command (sendmail/mailx)
 # ------------------------------------------------------------------------------
 send_notification() {
     local status="$1"
@@ -815,6 +887,17 @@ send_notification() {
 
 # ------------------------------------------------------------------------------
 # Main function
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Main entry point for RMAN wrapper script
+# Args....: $@ - Command-line arguments
+# Returns.: 0 if all operations successful, 1-3 for errors
+# Output..: Execution status and results to stdout/log
+# Notes...: Parses arguments, validates requirements, orchestrates execution
+#           Supports single/parallel execution, dry-run mode
+#           Sends notifications on completion
+#           Exit codes: 0=success, 1=failed, 2=invalid args, 3=critical error
 # ------------------------------------------------------------------------------
 main() {
     # Parse command-line arguments
