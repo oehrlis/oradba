@@ -67,7 +67,13 @@ if [[ ! -t 1 ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-# Display usage information
+# Function: usage
+# Purpose.: Display usage information and command reference
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Usage help to stdout
+# Notes...: Shows all extension management commands
+#           Includes add, create, list, info, validate, discover, paths, enabled/disabled
 # ------------------------------------------------------------------------------
 usage() {
     cat << EOF
@@ -180,7 +186,13 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Validate extension name
+# Function: validate_extension_name
+# Purpose.: Validate extension name meets naming requirements
+# Args....: $1 - Extension name
+# Returns.: 0 if valid, 1 if invalid
+# Output..: Error messages to stderr
+# Notes...: Requirements: alphanumeric/dash/underscore, starts with letter
+#           Example valid names: myext, my_ext, my-ext-123
 # ------------------------------------------------------------------------------
 validate_extension_name() {
     local name="$1"
@@ -207,7 +219,15 @@ validate_extension_name() {
 }
 
 # ------------------------------------------------------------------------------
-# Download GitHub release tarball
+# Function: download_github_release
+# Purpose.: Download latest extension template from GitHub
+# Args....: $1 - Output file path for downloaded tarball
+# Returns.: 0 on success, 1 on failure
+# Output..: Download status and tag name to stdout
+# Notes...: Downloads from oehrlis/oradba_extension repository
+#           Uses GitHub API to find latest release
+#           Validates downloaded file is valid gzip archive
+#           Falls back through tarball URLs if needed
 # ------------------------------------------------------------------------------
 download_github_release() {
     local output_file="$1"
@@ -282,8 +302,17 @@ download_github_release() {
 }
 
 # ------------------------------------------------------------------------------
-# Download extension from GitHub release
-# Usage: download_extension_from_github <repo> [version] <output_file>
+# Function: download_extension_from_github
+# Purpose.: Download extension from GitHub repository
+# Args....: $1 - Repository (owner/repo format)
+#           $2 - Version/tag (optional, uses latest if empty)
+#           $3 - Output file path
+# Returns.: 0 on success, 1 on failure
+# Output..: Download status to stdout, errors to stderr
+# Notes...: Tries: specific release → latest release → tags → main/master branch
+#           Normalizes GitHub URLs, validates repo format
+#           Supports both curl and wget
+#           Adds 'v' prefix to versions if missing
 # ------------------------------------------------------------------------------
 download_extension_from_github() {
     local repo="$1"
@@ -431,8 +460,13 @@ download_extension_from_github() {
 }
 
 # ------------------------------------------------------------------------------
-# Validate extension structure
-# Usage: validate_extension_structure <ext_dir>
+# Function: validate_extension_structure
+# Purpose.: Validate extension has proper directory structure
+# Args....: $1 - Extension directory path
+# Returns.: 0 if valid structure, 1 otherwise
+# Output..: None
+# Notes...: Valid if has .extension file OR standard directories (bin/sql/rcv/etc/lib)
+#           Used to verify downloaded/extracted extensions
 # ------------------------------------------------------------------------------
 validate_extension_structure() {
     local ext_dir="$1"
@@ -459,6 +493,18 @@ validate_extension_structure() {
 # ------------------------------------------------------------------------------
 # Update existing extension
 # Usage: update_extension <ext_path> <new_content_dir>
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: update_extension
+# Purpose.: Update existing extension with backup of modified files
+# Args....: $1 - Source directory path
+#           $2 - Extension name
+#           $3 - Target directory path
+# Returns.: 0 on success, 1 on failure
+# Output..: Update status to stdout
+# Notes...: Creates .save backups of modified configuration files
+#           Compares checksums if .extension.checksum exists
+#           Similar to RPM update behavior for configs
 # ------------------------------------------------------------------------------
 update_extension() {
     local ext_path="$1"
@@ -555,6 +601,17 @@ update_extension() {
 
 # ------------------------------------------------------------------------------
 # Command: create - Create new extension from template
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_create
+# Purpose.: Create new extension from template
+# Args....: $@ - Command-line options (--path, --template, --from-github)
+# Returns.: 0 on success, 1 on failure
+# Output..: Creation status and instructions to stdout
+# Notes...: Supports custom templates, GitHub templates, or embedded templates
+#           Interactive name prompting if not provided
+#           Validates name and target path
+#           Extracts and renames template files
 # ------------------------------------------------------------------------------
 cmd_create() {
     local ext_name=""
@@ -805,6 +862,17 @@ cmd_create() {
 
 # ------------------------------------------------------------------------------
 # Command: add - Add/install extension from GitHub or local tarball
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_add
+# Purpose.: Add/install extension from source
+# Args....: $@ - Source and command-line options
+# Returns.: 0 on success, 1 on failure
+# Output..: Installation status to stdout
+# Notes...: Supports: GitHub repos (owner/repo[@version]), URLs, local tarballs
+#           Validates structure, handles updates with --update flag
+#           Creates ORADBA_LOCAL_BASE if needed
+#           Extracts to target directory
 # ------------------------------------------------------------------------------
 cmd_add() {
     local source=""
@@ -1087,7 +1155,13 @@ cmd_add() {
 }
 
 # ------------------------------------------------------------------------------
-# Format status with color
+# Function: format_status
+# Purpose.: Format extension status with color
+# Args....: $1 - Status string ("Enabled" or "Disabled")
+# Returns.: 0
+# Output..: Colored status string to stdout
+# Notes...: Green for Enabled, Red for Disabled, Yellow for unknown
+#           Uses terminal color codes if TTY detected
 # ------------------------------------------------------------------------------
 format_status() {
     local status="$1"
@@ -1106,6 +1180,16 @@ format_status() {
 
 # ------------------------------------------------------------------------------
 # Command: list - List all extensions
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_list
+# Purpose.: List all installed extensions with details
+# Args....: $@ - Command-line options (--verbose, -v)
+# Returns.: 0
+# Output..: Formatted table of extensions to stdout
+# Notes...: Shows: name, version, priority, status (enabled/disabled)
+#           Verbose mode adds: provides (bin/sql/rcv/etc/doc), path
+#           Uses get_all_extensions() from extensions.sh library
 # ------------------------------------------------------------------------------
 cmd_list() {
     local verbose=false
@@ -1202,6 +1286,16 @@ cmd_list() {
 # ------------------------------------------------------------------------------
 # Command: info - Show detailed extension info
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_info
+# Purpose.: Display detailed information about specific extension
+# Args....: $1 - Extension name
+# Returns.: 0 on success, 1 if not found
+# Output..: Extension metadata to stdout
+# Notes...: Shows: name, version, description, author, status, provides, path
+#           Reads from .extension file if available
+#           Falls back to directory structure analysis
+# ------------------------------------------------------------------------------
 cmd_info() {
     local ext_name="$1"
 
@@ -1236,6 +1330,16 @@ cmd_info() {
 
 # ------------------------------------------------------------------------------
 # Command: validate - Validate extension structure
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_validate
+# Purpose.: Validate specific extension structure and metadata
+# Args....: $1 - Extension name
+# Returns.: 0 if valid, 1 if invalid
+# Output..: Validation results to stdout
+# Notes...: Checks: directory exists, .extension file, required fields, structure
+#           Uses get_extension_path() and validate_extension_structure()
+#           Provides detailed validation report
 # ------------------------------------------------------------------------------
 cmd_validate() {
     local target="$1"
@@ -1292,6 +1396,16 @@ cmd_validate() {
 # ------------------------------------------------------------------------------
 # Command: validate-all - Validate all extensions
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_validate_all
+# Purpose.: Validate all installed extensions
+# Args....: None
+# Returns.: 0 if all valid, 1 if any invalid
+# Output..: Validation summary for all extensions to stdout
+# Notes...: Iterates through all extensions found by get_all_extensions()
+#           Reports count of valid/invalid extensions
+#           Shows validation status per extension
+# ------------------------------------------------------------------------------
 cmd_validate_all() {
     echo -e "${BOLD}Validating all extensions${NC}"
     echo ""
@@ -1331,6 +1445,16 @@ cmd_validate_all() {
 
 # ------------------------------------------------------------------------------
 # Command: discover - Show auto-discovered extensions
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_discover
+# Purpose.: Discover and list all extensions in search paths
+# Args....: None
+# Returns.: 0
+# Output..: Discovered extensions with paths to stdout
+# Notes...: Searches in ORADBA_LOCAL_BASE and configured paths
+#           Shows discovery process and results
+#           Uses extension auto-discovery mechanism
 # ------------------------------------------------------------------------------
 cmd_discover() {
     echo -e "${BOLD}Auto-Discovery Configuration${NC}"
@@ -1373,6 +1497,16 @@ cmd_discover() {
 # ------------------------------------------------------------------------------
 # Command: paths - Show extension search paths
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_paths
+# Purpose.: Display extension search paths
+# Args....: None
+# Returns.: 0
+# Output..: List of extension search paths to stdout
+# Notes...: Shows configured ORADBA_LOCAL_BASE and extension directories
+#           Indicates which paths are active/available
+#           Useful for troubleshooting extension loading
+# ------------------------------------------------------------------------------
 cmd_paths() {
     echo -e "${BOLD}Extension Search Paths${NC}"
     echo ""
@@ -1406,6 +1540,16 @@ cmd_paths() {
 
 # ------------------------------------------------------------------------------
 # Command: enabled - List enabled extensions
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_enabled
+# Purpose.: List only enabled extensions
+# Args....: None
+# Returns.: 0
+# Output..: Formatted table of enabled extensions to stdout
+# Notes...: Filters extensions by enabled status
+#           Shows: name, version, priority
+#           Uses is_extension_enabled() check
 # ------------------------------------------------------------------------------
 cmd_enabled() {
     echo -e "${BOLD}Enabled Extensions${NC}"
@@ -1445,6 +1589,16 @@ cmd_enabled() {
 # ------------------------------------------------------------------------------
 # Command: disabled - List disabled extensions
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_disabled
+# Purpose.: List only disabled extensions
+# Args....: None
+# Returns.: 0
+# Output..: Formatted table of disabled extensions to stdout
+# Notes...: Filters extensions by disabled status
+#           Shows: name, version
+#           Useful for identifying inactive extensions
+# ------------------------------------------------------------------------------
 cmd_disabled() {
     echo -e "${BOLD}Disabled Extensions${NC}"
     echo ""
@@ -1477,7 +1631,14 @@ cmd_disabled() {
 }
 
 # ------------------------------------------------------------------------------
-# Main entry point
+# Function: main
+# Purpose.: Main entry point for extension management tool
+# Args....: $1 - Command (add|create|list|info|validate|validate-all|discover|paths|enabled|disabled|help)
+#           $@ - Command-specific arguments
+# Returns.: 0 on success, 1 on error
+# Output..: Command output to stdout, errors to stderr
+# Notes...: Dispatcher to cmd_* handler functions
+#           Shows usage for unknown commands or help flags
 # ------------------------------------------------------------------------------
 main() {
     # Parse command
