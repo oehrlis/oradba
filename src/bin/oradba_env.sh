@@ -466,7 +466,15 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Main
+# Function: main
+# Purpose.: Main entry point for Oracle Environment management utility
+# Args....: $1 - Command (list|show|status|validate|changes|version|help)
+#           $@ - Command-specific options and arguments
+# Returns.: 0 on success, 1 on error
+# Output..: Command output to stdout, errors to stderr
+# Notes...: Dispatches to cmd_* handler functions for each command
+#           Shows usage for unknown commands or help flags
+#           Can be sourced or executed directly
 # ------------------------------------------------------------------------------
 main() {
     local command="${1:-help}"

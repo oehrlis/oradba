@@ -462,7 +462,14 @@ show_oracle_status() {
 }
 
 # ------------------------------------------------------------------------------
-# Main
+# Function: main
+# Purpose.: Main entry point for Oracle status display utility
+# Args....: [OPTIONS] - Command-line flags (-h|--help, -v|--verbose, -q|--quiet)
+# Returns.: 0 on success, 1 on error
+# Output..: Oracle status information to stdout (unless --quiet)
+# Notes...: Quick status display for current Oracle environment
+#           Shows databases, listeners, and Oracle Homes status
+#           Part of oraenv/oraup quick environment switching workflow
 # ------------------------------------------------------------------------------
 main() {
     local verbose=false

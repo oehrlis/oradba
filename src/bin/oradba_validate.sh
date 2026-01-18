@@ -52,7 +52,14 @@ PASSED=0
 FAILED=0
 WARNINGS=0
 
-# Usage function
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information for validation script
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Usage help to stdout
+# Notes...: Shows options and examples for running validation
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${0##*/} [OPTIONS]
@@ -88,7 +95,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Test function
+# ------------------------------------------------------------------------------
+# Function: test_item
+# Purpose.: Execute a single validation test and track results
+# Args....: $1 - Test name (description)
+#           $2 - Test command to execute
+#           $3 - Test type (required|optional, default: required)
+# Returns.: 0 if test passes, 1 if test fails
+# Output..: Test result with checkmark/X/warning (if verbose or failed)
+# Notes...: Updates global counters TOTAL, PASSED, FAILED, WARNINGS
+#           Optional tests show warning symbol instead of failure
+# ------------------------------------------------------------------------------
 test_item() {
     local test_name="$1"
     local test_command="$2"

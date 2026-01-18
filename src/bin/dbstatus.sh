@@ -38,7 +38,14 @@ source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
 SCRIPT_NAME="$(basename "$0")"
 VERSION="0.1.0"
 
-# Display usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information and command-line options
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Usage information to stdout
+# Notes...: Shows options, examples, and requirements
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: $SCRIPT_NAME [OPTIONS]
@@ -64,13 +71,28 @@ EOF
     exit 0
 }
 
-# Display version
+# ------------------------------------------------------------------------------
+# Function: version
+# Purpose.: Display script version information
+# Args....: None
+# Returns.: 0 (exits after display)
+# Output..: Version string to stdout
+# Notes...: Simple version display and exit
+# ------------------------------------------------------------------------------
 version() {
     echo "$SCRIPT_NAME version $VERSION"
     exit 0
 }
 
-# Main script
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Main entry point for database status display
+# Args....: [OPTIONS] - Command-line options
+# Returns.: 0 on success, 1 on error
+# Output..: Database status information to stdout
+# Notes...: Parses arguments, validates environment, calls show_database_status
+#           Requires ORACLE_HOME and ORACLE_SID (or --sid option)
+# ------------------------------------------------------------------------------
 main() {
     local ORACLE_SID_PARAM=""
 

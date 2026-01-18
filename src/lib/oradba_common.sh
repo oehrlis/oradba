@@ -162,13 +162,19 @@ fi # End of readonly variables guard
 
 # Unified logging function with level-based filtering
 # Usage: oradba_log <LEVEL> <message>
-# Levels: DEBUG, INFO, WARN, ERROR, SUCCESS, FAILURE, SECTION
-# Environment variables:
-#   ORADBA_LOG_LEVEL - Minimum log level (DEBUG|INFO|WARN|ERROR, default: INFO)
-#   ORADBA_LOG_FILE - Optional log file path for persistent logging
-#   ORADBA_NO_COLOR - Set to 1 to disable color output
-#   DEBUG=1 - Legacy support, enables DEBUG level
-# All output goes to stderr for clean separation from script output
+# ------------------------------------------------------------------------------
+# Function: oradba_log
+# Purpose.: Modern unified logging function with level filtering and color support
+# Args....: $1 - Log level (DEBUG|INFO|WARN|ERROR|SUCCESS|FAILURE|SECTION)
+#           $@ - Log message (remaining arguments)
+# Returns.: 0 - Always successful
+# Output..: Formatted log message to stderr (and optional log files)
+# Notes...: Respects ORADBA_LOG_LEVEL for filtering (default: INFO)
+#           Supports color output (disable with ORADBA_NO_COLOR=1)
+#           Dual logging to ORADBA_LOG_FILE and ORADBA_SESSION_LOG
+#           Legacy DEBUG=1 support for backward compatibility
+#           Replaces deprecated log_info/log_warn/log_error/log_debug functions
+# ------------------------------------------------------------------------------
 oradba_log() {
     local level="$1"
     shift
