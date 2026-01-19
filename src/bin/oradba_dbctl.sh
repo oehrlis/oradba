@@ -53,7 +53,14 @@ LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
 # Functions
 # ------------------------------------------------------------------------------
 
-# Show usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information and examples
+# Args....: None
+# Returns.: Exits with code 1
+# Output..: Usage text, options, examples, environment variables to stdout
+# Notes...: Shows action modes (start/stop/restart/status), timeout config, SID selection
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS] [SID1 SID2 ...]
@@ -93,7 +100,14 @@ EOF
 # Enable file logging
 export ORADBA_LOG_FILE="${LOGFILE}"
 
-# Get list of databases from oratab
+# ------------------------------------------------------------------------------
+# Function: get_databases
+# Purpose.: Parse oratab to extract database entries
+# Args....: None
+# Returns.: 0 on success, 1 if oratab not found
+# Output..: One line per database: SID:HOME:FLAG (excludes comments, empty lines, dummy entries)
+# Notes...: Filters out entries with flag=D; reads from ${ORATAB:-/etc/oratab}
+# ------------------------------------------------------------------------------
 get_databases() {
     local oratab_file="${ORATAB:-/etc/oratab}"
 
@@ -111,7 +125,14 @@ get_databases() {
     done
 }
 
-# Check if database should be auto-started
+# ------------------------------------------------------------------------------
+# Function: should_autostart
+# Purpose.: Check if database has auto-start flag in oratab
+# Args....: $1 - Database SID
+# Returns.: 0 if flag is 'Y', 1 otherwise
+# Output..: None
+# Notes...: Reads oratab third field; used to filter databases for batch operations
+# ------------------------------------------------------------------------------
 # shellcheck disable=SC2329
 should_autostart() {
     local sid="$1"
@@ -122,7 +143,14 @@ should_autostart() {
     [[ "${flag}" == "Y" ]]
 }
 
-# Ask for justification when operating on all databases
+# ------------------------------------------------------------------------------
+# Function: ask_justification
+# Purpose.: Prompt for justification when operating on multiple databases
+# Args....: $1 - Action name (start/stop/restart), $2 - Database count
+# Returns.: 0 if confirmed, 1 if cancelled or no justification
+# Output..: Warning banner, prompts for justification and confirmation to stdout
+# Notes...: Skipped if FORCE_MODE=true; logs justification; requires 'yes' to proceed
+# ------------------------------------------------------------------------------
 ask_justification() {
     local action="$1"
     local count="$2"
@@ -155,7 +183,14 @@ ask_justification() {
     return 0
 }
 
-# Start a database instance
+# ------------------------------------------------------------------------------
+# Function: start_database
+# Purpose.: Start an Oracle database instance
+# Args....: $1 - Database SID
+# Returns.: 0 on success, 1 on failure
+# Output..: Status messages via oradba_log, SQL output to ${LOGFILE}
+# Notes...: Sources environment for SID; checks if already running; executes STARTUP; optionally opens PDBs
+# ------------------------------------------------------------------------------
 start_database() {
     local sid="$1"
 
@@ -207,7 +242,14 @@ EOF
     fi
 }
 
-# Open all PDBs
+# ------------------------------------------------------------------------------
+# Function: open_all_pdbs
+# Purpose.: Open all pluggable databases in a CDB
+# Args....: $1 - Database SID (must be CDB)
+# Returns.: None (always succeeds)
+# Output..: Status messages via oradba_log, SQL output to ${LOGFILE}
+# Notes...: Executes ALTER PLUGGABLE DATABASE ALL OPEN; checks for failures; warns if some PDBs fail
+# ------------------------------------------------------------------------------
 open_all_pdbs() {
     local sid="$1"
 
@@ -226,7 +268,14 @@ EOF
     fi
 }
 
-# Stop a database instance
+# ------------------------------------------------------------------------------
+# Function: stop_database
+# Purpose.: Stop an Oracle database instance with timeout and fallback
+# Args....: $1 - Database SID
+# Returns.: 0 on success, 1 on failure
+# Output..: Status messages via oradba_log, SQL output to ${LOGFILE}
+# Notes...: Tries SHUTDOWN IMMEDIATE with ${SHUTDOWN_TIMEOUT}; falls back to SHUTDOWN ABORT on timeout
+# ------------------------------------------------------------------------------
 stop_database() {
     local sid="$1"
 
@@ -292,7 +341,14 @@ EOF
     fi
 }
 
-# Show database status
+# ------------------------------------------------------------------------------
+# Function: show_status
+# Purpose.: Display current status of a database instance
+# Args....: $1 - Database SID
+# Returns.: 0 on success, 1 if environment sourcing fails
+# Output..: One line: "SID: STATUS" or "SID: NOT RUNNING"
+# Notes...: Queries v$instance for status (OPEN/MOUNTED/etc.); sources environment per SID
+# ------------------------------------------------------------------------------
 show_status() {
     local sid="$1"
 
