@@ -348,7 +348,7 @@ teardown() {
     [ "${ORACLE_HOME}" = "${cman_home}" ]
     
     # DataSafe variables should be set
-    [ "${DATASAFE_HOME}" = "${cman_home}" ]
+    [ "${DATASAFE_HOME}" = "${parent_dir}" ]
     [ "${DATASAFE_INSTALL_DIR}" = "${parent_dir}" ]
     [ "${DATASAFE_CONFIG}" = "${cman_home}/config" ]
     

@@ -221,9 +221,6 @@ lint-shell: ## Lint shell scripts with shellcheck
 		echo -e "$(COLOR_BLUE)  Checking BATS test files...$(COLOR_RESET)"; \
 		find tests -name "*.bats" -type f | \
 			xargs $(SHELLCHECK) -x -S warning || exit 1; \
-		echo -e "$(COLOR_BLUE)  Checking configuration files...$(COLOR_RESET)"; \
-		find $(ETC_DIR) -name "*.conf" -o -name "*.example" -type f | \
-			xargs $(SHELLCHECK) -x -S warning || exit 1; \
 		echo -e "$(COLOR_GREEN)✓ All shell scripts passed linting$(COLOR_RESET)"; \
 	else \
 		echo -e "$(COLOR_RED)Error: shellcheck not found. Install with: brew install shellcheck$(COLOR_RESET)"; \

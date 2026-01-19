@@ -152,6 +152,7 @@ EOF
     export ORADBA_PREFIX="${TEST_TEMP_DIR}/u01/app/oracle/local/oradba"
     unset ORADBA_LOCAL_BASE
     
+    # shellcheck disable=SC1094
     source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
     
     [[ "$ORADBA_LOCAL_BASE" == "${TEST_TEMP_DIR}/u01/app/oracle/local" ]]
@@ -163,6 +164,7 @@ EOF
     export ORADBA_PREFIX="${TEST_TEMP_DIR}/opt/oradba"
     unset ORADBA_LOCAL_BASE
     
+    # shellcheck disable=SC1094
     source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
     
     [[ "$ORADBA_LOCAL_BASE" == "${TEST_TEMP_DIR}/opt" ]]
@@ -174,6 +176,7 @@ EOF
     export ORACLE_BASE="/u01/app/oracle"
     export ORADBA_PREFIX="/opt/oradba"
     
+    # shellcheck disable=SC1094
     source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
     
     [[ "$ORADBA_LOCAL_BASE" == "/custom/location" ]]
@@ -183,6 +186,7 @@ EOF
     export ORADBA_PREFIX="/opt/oradba"
     unset ORADBA_BASE
     
+    # shellcheck disable=SC1094
     source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
     
     [[ "$ORADBA_BASE" == "$ORADBA_PREFIX" ]]
@@ -193,6 +197,7 @@ EOF
     unset ORADBA_BIN_DIR
     unset ORADBA_BIN
     
+    # shellcheck disable=SC1094
     source "${PROJECT_ROOT}/src/etc/oradba_core.conf"
     
     [[ "$ORADBA_BIN_DIR" == "/opt/oradba/bin" ]]
