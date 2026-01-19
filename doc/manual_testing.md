@@ -258,7 +258,8 @@ type oradba_validate_oracle_home oradba_build_environment
 
 ### Configuration Hierarchy
 
-**Automation Status**: ⚠️ **Partially Automated** - Basic validation in `test_configuration_files()`, detailed hierarchy testing still manual
+**Automation Status**: ⚠️ **Partially Automated** - Basic validation in `test_configuration_files()`,
+detailed hierarchy testing still manual
 
 **Objective**: Verify configuration loading precedence
 
@@ -393,7 +394,8 @@ rm -f /tmp/homes_export.conf
 
 ### Environment Switching
 
-**Automation Status**: ⚠️ **Partially Automated** - Single switch tested in automated tests, detailed multi-switch scenarios still manual
+**Automation Status**: ⚠️ **Partially Automated** - Single switch tested in automated tests,
+detailed multi-switch scenarios still manual
 
 **Objective**: Verify switching between different environments
 

@@ -41,6 +41,7 @@ The automated testing system consists of two main components:
    - Integration tests (12+ tests)
 
 **Test Pattern**: Each test suite follows a consistent pattern:
+
 - Check prerequisites/availability
 - Execute operation/command
 - Validate results
