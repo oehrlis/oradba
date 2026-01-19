@@ -345,7 +345,9 @@ _oraenv_gather_available_entries() {
 #           numbered sequentially for user selection.
 # ------------------------------------------------------------------------------
 _oraenv_display_selection_menu() {
+    # shellcheck disable=SC2178
     local -n sids_ref="$1"
+    # shellcheck disable=SC2178
     local -n homes_ref="$2"
     
     # Display list to stderr so it appears before the prompt
@@ -398,7 +400,9 @@ _oraenv_display_selection_menu() {
 _oraenv_parse_user_selection() {
     local selection="$1"
     local total_entries="$2"
+    # shellcheck disable=SC2178
     local -n sids_ref="$3"
+    # shellcheck disable=SC2178
     local -n homes_ref="$4"
     
     # Check if user entered a number
@@ -540,8 +544,9 @@ _oraenv_lookup_oratab_entry() {
         
         if [[ -n "${registry_entry}" ]]; then
             # Parse registry format: type|name|home|version|flags|order|alias|desc
-            # shellcheck disable=SC2034
-            local ptype name home version flags order alias desc
+            local ptype name home flags
+            local version order alias desc
+            # shellcheck disable=SC2034  # version, order, alias, desc intentionally unused
             IFS='|' read -r ptype name home version flags order alias desc <<< "${registry_entry}"
             # Convert to oratab format for compatibility: sid:home:flags
             oratab_entry="${name}:${home}:${flags}"

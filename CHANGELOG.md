@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.19.0] - 2026-01-19
 
-**Note**: This release consolidates all changes since the last official release (0.18.x). 
-Previous version numbers 1.x.x and 2.x.x were development-only and are being reset to 
+**Note**: This release consolidates all changes since the last official release (0.18.x).
+Previous version numbers 1.x.x and 2.x.x were development-only and are being reset to
 maintain semantic versioning continuity.
 
 ### Added
@@ -66,7 +66,8 @@ maintain semantic versioning continuity.
 
 - **Critical Function Refactoring in oraenv.sh** (2025-01-21)
   - Refactored `_oraenv_set_environment`: 210 → 65 lines (69% reduction)
-    - Extracted 6 helper functions for Oracle Home setup, registry lookup, auto-discovery, product adjustments, environment variables, and configuration loading
+    - Extracted 6 helper functions for Oracle Home setup, registry lookup, auto-discovery,
+      product adjustments, environment variables, and configuration loading
     - Each helper function has single responsibility and clear boundaries
   - Refactored `_oraenv_prompt_sid`: 128 → 37 lines (71% reduction)
     - Extracted 3 helper functions for data gathering, UI display, and input parsing
@@ -79,14 +80,16 @@ maintain semantic versioning continuity.
     - Easier debugging with focused function boundaries
   - All 180 tests passing with no functional changes
 
-### Added
+### Documentation
 
 - **Function Documentation in oraenv.sh** (2025-01-21)
   - Added comprehensive function headers to all 17 functions in oraenv.sh (100% coverage)
   - Documented functions include:
     - Core: `_oraenv_parse_args`, `_oraenv_usage`, `_oraenv_find_oratab`, `_oraenv_main`
     - User interaction: `_oraenv_gather_available_entries`, `_oraenv_display_selection_menu`, `_oraenv_parse_user_selection`
-    - Environment setup: `_oraenv_handle_oracle_home`, `_oraenv_lookup_oratab_entry`, `_oraenv_auto_discover_instances`, `_oraenv_apply_product_adjustments`, `_oraenv_setup_environment_variables`, `_oraenv_load_configurations`
+    - Environment setup: `_oraenv_handle_oracle_home`, `_oraenv_lookup_oratab_entry`,
+      `_oraenv_auto_discover_instances`, `_oraenv_apply_product_adjustments`,
+      `_oraenv_setup_environment_variables`, `_oraenv_load_configurations`
     - Utilities: `_oraenv_prompt_sid`, `_oraenv_set_environment`, `_oraenv_unset_old_env`, `_oraenv_show_environment`
   - Each header includes: Purpose, Args (with types), Returns, Output, Notes (dependencies/special cases)
   - Benefits:
@@ -175,8 +178,6 @@ maintain semantic versioning continuity.
   - `oraup.sh` now hides dummy entries for client-only installations
   - Cleaner output when no databases are installed
 
-### Changed
-
 ### Fixed
 
 - **oradba_env.sh Delimiter Parsing** (2026-01-16)
@@ -192,15 +193,13 @@ maintain semantic versioning continuity.
   - Clear ORACLE_SID when validating Oracle Home (not a database SID)
   - Temporary ORACLE_HOME override during validation to test specific homes
 
-### Fixed
-
-- **oradba_env.sh Delimiter Parsing** (2026-01-16)
+- **oradba_env.sh Delimiter Parsing (Enhanced)** (2026-01-16)
   - Fixed `cmd_show`, `cmd_validate`, and `cmd_status` to use correct colon `:` delimiter
   - Updated grep patterns to match actual oradba_homes.conf format
   - Resolves issue where entire config line was displayed as name field
   - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
 
-- **oradba_env.sh Validate Command for Oracle Homes** (2026-01-16)
+- **oradba_env.sh Validate Command for Oracle Homes (Enhanced)** (2026-01-16)
   - Apply DataSafe ORACLE_HOME adjustment (oracle_cman_home subdirectory)
   - Display product type from config file instead of auto-detecting
   - Show target name when validating specific target
@@ -249,7 +248,8 @@ maintain semantic versioning continuity.
   - Shows alias if different from name, otherwise shows name
 
 ## [0.18.x] - Previous Official Release
-  - Added "Instant Client" product type display name
+
+- Added "Instant Client" product type display name
 
 - **Archived Version Warning** (2026-01-15)
   - Added notification in `oradba_install.sh` for archived pre-1.0 releases
