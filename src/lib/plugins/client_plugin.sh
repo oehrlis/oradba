@@ -5,7 +5,7 @@
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
 # Date.....: 2026.01.19
-# Version..: 2.0.0
+# Version..: 1.0.0
 # Purpose..: Plugin for Oracle Full Client
 # Notes....: Handles Oracle Full Client (not Instant Client)
 #            Version 2.0.0: Added 4 new required functions for environment building
@@ -19,7 +19,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="client"
-export plugin_version="2.0.0"
+export plugin_version="1.0.0"
 export plugin_description="Oracle Full Client plugin"
 
 # ------------------------------------------------------------------------------

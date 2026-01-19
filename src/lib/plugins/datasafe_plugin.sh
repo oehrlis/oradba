@@ -5,7 +5,7 @@
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
 # Date.....: 2026.01.19
-# Version..: 2.0.0
+# Version..: 1.0.0
 # Purpose..: Plugin for Oracle Data Safe On-Premises Connector
 # Notes....: Consolidates oracle_cman_home logic (was in 8+ files)
 #            Version 2.0.0: Added 4 new required functions for environment building
@@ -20,7 +20,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="datasafe"
-export plugin_version="2.0.0"
+export plugin_version="1.0.0"
 export plugin_description="Oracle Data Safe On-Premises Connector plugin"
 
 # ------------------------------------------------------------------------------

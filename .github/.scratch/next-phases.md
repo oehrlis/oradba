@@ -111,6 +111,7 @@ All pushed to GitHub successfully ✅
 ### Current State Analysis
 
 **Hybrid Architecture (Inconsistent):**
+
 - ✅ Plugins exist for 5 product types (database, datasafe, client, iclient, oud)
 - ✅ Status checking uses plugins for non-database products (oraup.sh)
 - ✅ 7 required plugin functions implemented in all plugins
@@ -147,18 +148,18 @@ See detailed analysis: `.github/.scratch/plugin-adoption-analysis.md`
 
 3. **Phase 4.3: Refactor Core Files** ✅ COMPLETE
    - [x] oradba_env_builder.sh: Replace 2 case statements with plugins [7c99f81]
-     * oradba_add_oracle_path() now uses plugin_build_path()
-     * oradba_set_lib_path() now uses plugin_build_lib_path()
-     * Removed ~100 lines, added ~70 lines (net -30 lines)
+     - oradba_add_oracle_path() now uses plugin_build_path()
+     - oradba_set_lib_path() now uses plugin_build_lib_path()
+     - Removed ~100 lines, added ~70 lines (net -30 lines)
    - [x] oradba_env_config.sh: Replace case statement with plugins [4162e16]
-     * oradba_apply_product_config() now uses plugin_get_config_section()
-     * Removed ~60 lines, added ~50 lines (net -10 lines)
+     - oradba_apply_product_config() now uses plugin_get_config_section()
+     - Removed ~60 lines, added ~50 lines (net -10 lines)
    - [x] oradba_env_validator.sh: Replace case statement with plugins [4162e16]
-     * oradba_check_oracle_binaries() now uses plugin_get_required_binaries()
-     * Removed ~60 lines, added ~70 lines (net +10 lines)
+     - oradba_check_oracle_binaries() now uses plugin_get_required_binaries()
+     - Removed ~60 lines, added ~70 lines (net +10 lines)
    - [x] oradba_env_status.sh: Replace case statement with plugins [e5d8fb2]
-     * oradba_get_product_status() now uses plugin_check_status()
-     * Removed ~40 lines, added ~60 lines (net +20 lines)
+     - oradba_get_product_status() now uses plugin_check_status()
+     - Removed ~40 lines, added ~60 lines (net +20 lines)
    - **Result:** All case statements removed, net ~10 lines reduction, full plugin adoption
 
 4. **Phase 4.4: Testing**
@@ -176,9 +177,9 @@ See detailed analysis: `.github/.scratch/plugin-adoption-analysis.md`
 
    OR manually install bats-support and bats-assert in tests/test_helper/
 
-2. **Run full test suite** once dependencies resolved
-3. **Address any test failures** before proceeding
-4. **Manual testing** of key workflows
+1. **Run full test suite** once dependencies resolved
+2. **Address any test failures** before proceeding
+3. **Manual testing** of key workflows
 
 ---
 

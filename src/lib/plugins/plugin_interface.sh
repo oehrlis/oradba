@@ -5,7 +5,7 @@
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
 # Date.....: 2026.01.19
-# Version..: 2.0.0
+# Version..: 1.0.0
 # Purpose..: Plugin interface template for product-specific behavior
 # Notes....: All product plugins must implement these functions
 #            Version 2.0.0: Added 4 new required functions for environment building
