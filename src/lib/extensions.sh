@@ -547,48 +547,6 @@ create_extension_alias() {
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# Extensions list function removed - unused
-
-    # Sort by priority
-    while IFS= read -r ext_path; do
-        ext_name="$(get_extension_name "${ext_path}")"
-        version=$(get_extension_version "${ext_path}")
-        priority=$(get_extension_priority "${ext_path}")
-
-        # Check enabled status
-        if is_extension_enabled "${ext_name}" "${ext_path}"; then
-            enabled="✓ enabled"
-        else
-            enabled="✗ disabled"
-        fi
-
-        # Basic info
-        printf "%-20s v%-10s [%s] (priority: %s)\n" "${ext_name}" "${version}" "${enabled}" "${priority}"
-
-        # Verbose info
-        if [[ "${verbose}" == "true" ]]; then
-            echo "  Path: ${ext_path}"
-            local desc
-            desc=$(get_extension_description "${ext_path}")
-            [[ -n "${desc}" ]] && echo "  Description: ${desc}"
-
-            # Show what it provides
-            local provides=()
-            [[ -d "${ext_path}/bin" ]] && provides+=("bin")
-            [[ -d "${ext_path}/sql" ]] && provides+=("sql")
-            [[ -d "${ext_path}/rcv" ]] && provides+=("rcv")
-            [[ -d "${ext_path}/etc" ]] && provides+=("etc")
-            [[ -d "${ext_path}/lib" ]] && provides+=("lib")
-
-            if [[ ${#provides[@]} -gt 0 ]]; then
-                echo "  Provides: ${provides[*]}"
-            fi
-            echo ""
-        fi
-    done < <(sort_extensions_by_priority "${extensions[@]}")
-}
-
-# ------------------------------------------------------------------------------
 # Function: show_extension_info
 # Purpose.: Show detailed information about a specific extension
 # Args....: $1 - Extension name or path

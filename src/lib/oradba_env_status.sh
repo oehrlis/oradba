@@ -195,32 +195,6 @@ oradba_check_datasafe_status() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: oradba_get_datasafe_port
-# Purpose.: Extract connection manager port number from DataSafe connector
-
-    local cmctl="${adjusted_home}/bin/cmctl"
-    
-    # Check if cmctl exists
-    [[ ! -x "$cmctl" ]] && return 1
-    
-    # Get cmctl output
-    local status_output
-    status_output=$("$cmctl" show services -c cust_cman 2>&1)
-    
-    # Extract port number from output
-    # Example output line: "Listening Endpoint: (ADDRESS=(PROTOCOL=TCP)(HOST=0.0.0.0)(PORT=1561))"
-    local port
-    port=$(echo "$status_output" | grep -i "Listening Endpoint" | grep -oP 'PORT=\K\d+' | head -1)
-    
-    if [[ -n "$port" ]]; then
-        echo "$port"
-        return 0
-    fi
-    
-    return 1
-}
-
-# ------------------------------------------------------------------------------
 # Function: oradba_check_oud_status
 # Purpose.: Check if Oracle Unified Directory instance is running
 # Args....: $1 - OUD instance name/path

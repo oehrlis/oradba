@@ -183,53 +183,6 @@ get_listener_status() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: should_show_listener_status
-# Purpose.: Determine if listener status section should be displayed
-# Returns.: 0 if should show, 1 if should not show
-# Note....: Listener status is shown when ANY of these conditions are met:
-# Skip dummy entries
-        [[ "$startup_flag" == "D" ]] && continue
-        
-        # Check if oracle binary exists (indicates database home, not client)
-        if [[ -f "${oracle_home}/bin/oracle" ]]; then
-            has_database=true
-            break
-        fi
-    done < "$ORATAB_FILE" 2>/dev/null
-    
-    # Also check oradba_homes.conf for database homes
-    if [[ "$has_database" == "false" ]] && command -v list_oracle_homes &> /dev/null; then
-        local -a homes
-        mapfile -t homes < <(list_oracle_homes)
-        
-        for home_line in "${homes[@]}"; do
-            # Parse: NAME ORACLE_HOME PRODUCT_TYPE ...
-            read -r _name path ptype _rest <<< "$home_line"
-            
-            # Check if it's a database home and oracle binary exists
-            if [[ "$ptype" == "database" && -f "${path}/bin/oracle" ]]; then
-                has_database=true
-                break
-            fi
-        done
-    fi
-    
-    # If we have a database home, show listener status
-    if [[ "$has_database" == "true" ]]; then
-        return 0  # Database home found - show status
-    fi
-
-    # Condition 3: Check if listener.ora exists
-    # BUT only show if we also have a database home (not client-only)
-    # Since we already checked and has_database=false at this point,
-    # we don't show status even if listener.ora exists
-    # (this handles the client-only + listener.ora case)
-
-    # No valid conditions met - don't show listener status
-    return 1
-}
-
-# ------------------------------------------------------------------------------
 # Function: show_oracle_status_registry
 # Purpose.: Display Oracle status using registry API (Phase 1)
 # Args....: Array of installation objects from registry
