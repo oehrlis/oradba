@@ -47,25 +47,38 @@
 
 ---
 
-## 🧪 Phase 3: Testing & Quality Assurance - IN PROGRESS
+## 🧪 Phase 3: Testing & Code Cleanup - IN PROGRESS
 
-### Test Coverage
+### Test Infrastructure ✅
 
-- [x] Smart tests passing (369/369) ✅
-- [x] Lint validation passing ✅
-- [ ] Run full test suite: `make test-full` (~925 tests, ~10 min)
-  - **Blocker**: Test helpers missing (bats-support, bats-assert)
-  - **Action**: Initialize git submodules or install test dependencies
-- [ ] Run CI pipeline: `make ci` (~15 min)
-- [ ] Docker integration tests: `make test-docker`
+- [x] Installed bats-support and bats-assert manually in tests/test_helper/
+- [x] Full test suite verified (1042 tests passing)
+- [x] Test helpers gitignored
+
+### Code Cleanup ✅
+
+- [x] **Removed Deprecated Logging Functions** (2026-01-19)
+  - Removed 4 deprecated wrapper functions: log_info, log_warn, log_error, log_debug
+  - Removed _show_deprecation_warning helper function
+  - Removed 7 obsolete tests for deprecated functions
+  - Updated CHANGELOG with BREAKING CHANGE notice
+  - Code reduction: ~70 lines eliminated
+  - All logging tests passing (21/21)
+
+### Findings
+
+- ✅ No TODO/FIXME/HACK comments found in codebase
+- ✅ No commented-out code blocks found
+- ✅ "Legacy logging calls" (287) are LOCAL implementations in standalone scripts, not deprecated function usage
+- ✅ Deprecated functions confirmed unused in OraDBA codebase
 
 ### Quality Checks
 
 - [x] ShellCheck compliance on all scripts ✅
 - [x] Markdown lint on all documentation ✅
+- [ ] Run full test suite after cleanup: `make test-full`
 - [ ] Verify all function headers match implementation
-- [ ] Check for deprecated function usage
-- [ ] Validate logging migration (512 oradba_log calls)
+- [ ] Check for truly unused functions (analysis needed)
 
 ### Manual Testing Checklist
 
