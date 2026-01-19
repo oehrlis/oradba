@@ -252,15 +252,20 @@ show_oracle_status_registry() {
             home=$(oradba_registry_get_field "$db_obj" "home")
             flags=$(oradba_registry_get_field "$db_obj" "flags")
             
-            # Get status
+            # Get status - skip for dummy entries
             local status
-            status=$(get_db_status "$sid")
-            
-            # Get open mode if instance is up
-            if [[ "$status" == "up" ]]; then
-                local mode
-                mode=$(get_db_mode "$sid" "$home")
-                status="$mode"
+            if [[ "$flags" == "D" ]]; then
+                # Dummy entry - just shows ORACLE_HOME, not an actual SID
+                status="dummy"
+            else
+                status=$(get_db_status "$sid")
+                
+                # Get open mode if instance is up
+                if [[ "$status" == "up" ]]; then
+                    local mode
+                    mode=$(get_db_mode "$sid" "$home")
+                    status="$mode"
+                fi
             fi
             
             # Display with startup flag
