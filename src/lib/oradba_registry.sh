@@ -16,12 +16,20 @@
 # ------------------------------------------------------------------------------
 # Module Constants
 # ------------------------------------------------------------------------------
-readonly REGISTRY_VERSION="0.1.0"
+# Only declare as readonly if not already set (avoid errors on re-sourcing)
+if [[ -z "${REGISTRY_VERSION:-}" ]]; then
+    readonly REGISTRY_VERSION="0.1.0"
+fi
+
 # shellcheck disable=SC2034
-readonly REGISTRY_FORMAT_VERSION="1"
+if [[ -z "${REGISTRY_FORMAT_VERSION:-}" ]]; then
+    readonly REGISTRY_FORMAT_VERSION="1"
+fi
 
 # Installation object field separator
-readonly REGISTRY_FIELD_SEP="|"
+if [[ -z "${REGISTRY_FIELD_SEP:-}" ]]; then
+    readonly REGISTRY_FIELD_SEP="|"
+fi
 
 # ------------------------------------------------------------------------------
 # Function: oradba_registry_get_all
