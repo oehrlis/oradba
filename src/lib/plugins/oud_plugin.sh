@@ -4,10 +4,11 @@
 # Name.....: oud_plugin.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin for Oracle Unified Directory (OUD)
 # Notes....: Handles OUD installations with instance management
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 2.1)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -17,7 +18,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="oud"
-export plugin_version="1.0.0"
+export plugin_version="2.0.0"
 export plugin_description="Oracle Unified Directory plugin"
 
 # ------------------------------------------------------------------------------
@@ -222,6 +223,66 @@ plugin_supports_aliases() {
 plugin_get_display_name() {
     local instance_name="$1"
     echo "OUD:${instance_name}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for Oracle Unified Directory
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: OUD has bin directory with management tools
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local oracle_home="$1"
+    
+    if [[ -d "${oracle_home}/bin" ]]; then
+        echo "${oracle_home}/bin"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for Oracle Unified Directory
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: OUD has lib directory
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local oracle_home="$1"
+    
+    if [[ -d "${oracle_home}/lib" ]]; then
+        echo "${oracle_home}/lib"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for OUD
+# Returns.: 0 on success
+# Output..: "OUD"
+# Notes...: Used by oradba_apply_product_config() to load OUD settings
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "OUD"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for OUD
+# Returns.: 0 on success
+# Output..: Space-separated list of required binaries
+# Notes...: OUD has oud-setup and other management tools
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "oud-setup"
     return 0
 }
 
