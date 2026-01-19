@@ -38,7 +38,14 @@ readonly YELLOW='\033[1;33m'
 readonly BOLD='\033[1m'
 readonly NC='\033[0m' # No Color
 
-# Usage information
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display comprehensive help for logrotate configuration management
+# Args....: None
+# Returns.: None (prints to stdout)
+# Output..: Multi-section help (scenarios, options, examples, notes for root/user modes)
+# Notes...: Explains both system-wide (root) and user-mode (non-root) operation scenarios
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} [OPTIONS]
@@ -119,14 +126,28 @@ NOTES:
 EOF
 }
 
-# Print colored message
+# ------------------------------------------------------------------------------
+# Function: print_message
+# Purpose.: Print colored message to stdout
+# Args....: $1 - Color code (RED/GREEN/YELLOW), $2 - Message text
+# Returns.: None
+# Output..: Colored message followed by NC (no color) reset
+# Notes...: Uses echo -e for ANSI color codes
+# ------------------------------------------------------------------------------
 print_message() {
     local color="${1}"
     local message="${2}"
     echo -e "${color}${message}${NC}"
 }
 
-# Check if running as root
+# ------------------------------------------------------------------------------
+# Function: check_root
+# Purpose.: Verify script is running as root (EUID 0)
+# Args....: $1 - Operation name for error message (e.g., "--install")
+# Returns.: 0 if root, 1 if not root
+# Output..: Error message with sudo suggestion if not root
+# Notes...: Checks EUID; required for system-wide operations (/etc/logrotate.d)
+# ------------------------------------------------------------------------------
 check_root() {
     if [[ ${EUID} -ne 0 ]]; then
         print_message "${RED}" "ERROR: Must run as root for this operation"
@@ -136,7 +157,14 @@ check_root() {
     return 0
 }
 
-# Install logrotate configurations
+# ------------------------------------------------------------------------------
+# Function: install_logrotate
+# Purpose.: Install logrotate configurations to system directory (requires root)
+# Args....: None
+# Returns.: 0 on success, 1 if not root or directories missing
+# Output..: Installation progress, backup notices, summary, next steps
+# Notes...: Installs from ${TEMPLATE_DIR} to /etc/logrotate.d; backs up existing configs; sets 644 permissions
+# ------------------------------------------------------------------------------
 install_logrotate() {
     check_root "--install" || return 1
 
@@ -200,7 +228,14 @@ install_logrotate() {
     return 0
 }
 
-# Uninstall logrotate configurations
+# ------------------------------------------------------------------------------
+# Function: uninstall_logrotate
+# Purpose.: Remove OraDBA logrotate configurations from system directory (requires root)
+# Args....: None
+# Returns.: 0 on success, 1 if not root
+# Output..: Removal progress for each config, final count
+# Notes...: Removes oradba* and oracle-* files from /etc/logrotate.d
+# ------------------------------------------------------------------------------
 uninstall_logrotate() {
     check_root "--uninstall" || return 1
 
@@ -232,7 +267,14 @@ uninstall_logrotate() {
     return 0
 }
 
-# List installed configurations
+# ------------------------------------------------------------------------------
+# Function: list_logrotate
+# Purpose.: List all installed OraDBA logrotate configurations
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: File details (ls -lh) for each config, count, installation suggestion if none found
+# Notes...: Searches for oradba* and oracle-* in /etc/logrotate.d
+# ------------------------------------------------------------------------------
 list_logrotate() {
     echo "Installed logrotate configurations:"
     echo ""
@@ -258,7 +300,14 @@ list_logrotate() {
     return 0
 }
 
-# Test logrotate configurations
+# ------------------------------------------------------------------------------
+# Function: test_logrotate
+# Purpose.: Test logrotate configurations in dry-run mode (no actual rotation)
+# Args....: None
+# Returns.: 0 if configs found, 1 if none found
+# Output..: Dry-run results for each config (logrotate -d, last 30 lines)
+# Notes...: Uses logrotate -d for debug/dry-run; safe to run without root
+# ------------------------------------------------------------------------------
 test_logrotate() {
     print_message "${GREEN}" "Testing logrotate configurations (dry-run)..."
     echo ""
@@ -285,7 +334,14 @@ test_logrotate() {
     return 0
 }
 
-# Force rotation for testing
+# ------------------------------------------------------------------------------
+# Function: force_logrotate
+# Purpose.: Force immediate log rotation for testing (requires root)
+# Args....: None
+# Returns.: 0 on success, 1 if not root or user aborts
+# Output..: Warning, confirmation prompt, rotation progress for each config
+# Notes...: Uses logrotate -f -v; actually rotates logs; requires yes confirmation
+# ------------------------------------------------------------------------------
 force_logrotate() {
     check_root "--force" || return 1
 
@@ -316,7 +372,14 @@ force_logrotate() {
     return 0
 }
 
-# Generate customized configurations
+# ------------------------------------------------------------------------------
+# Function: customize_logrotate
+# Purpose.: Generate customized logrotate configurations in ~/.oradba/logrotate/
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: Environment detection, database list from oratab, generated configs, next steps
+# Notes...: Creates oracle-alert-custom.logrotate and oracle-trace-custom.logrotate with paths customized to ORACLE_BASE
+# ------------------------------------------------------------------------------
 customize_logrotate() {
     mkdir -p "${CUSTOM_DIR}"
 
@@ -420,7 +483,14 @@ EOF
     return 0
 }
 
-# Install user-mode configurations
+# ------------------------------------------------------------------------------
+# Function: install_user
+# Purpose.: Set up user-mode logrotate configurations (non-root operation)
+# Args....: None
+# Returns.: 0 on success, 1 if logrotate command not found
+# Output..: Setup progress, generated configs (alert, trace, listener), next steps for testing and automation
+# Notes...: Creates ~/.oradba/logrotate/ with user-specific configs and state directory; requires manual execution or crontab
+# ------------------------------------------------------------------------------
 install_user() {
     local user_state_dir="${CUSTOM_DIR}/state"
 
@@ -551,7 +621,14 @@ EOF
     return 0
 }
 
-# Run user-mode logrotate
+# ------------------------------------------------------------------------------
+# Function: run_user
+# Purpose.: Run logrotate manually with user-specific configurations (non-root)
+# Args....: None
+# Returns.: 0 on success, 1 if not initialized or logrotate missing
+# Output..: Processing status for each config, state file location
+# Notes...: Uses ~/.oradba/logrotate/state/logrotate.status for tracking; requires --install-user first
+# ------------------------------------------------------------------------------
 run_user() {
     local user_state_dir="${CUSTOM_DIR}/state"
     local state_file="${user_state_dir}/logrotate.status"
@@ -610,7 +687,14 @@ run_user() {
     return 0
 }
 
-# Generate crontab entry
+# ------------------------------------------------------------------------------
+# Function: generate_cron
+# Purpose.: Generate crontab entry for automated user-mode log rotation
+# Args....: None
+# Returns.: None (always succeeds)
+# Output..: Crontab entry with full script path, daily 2 AM schedule, instructions
+# Notes...: Shows entry for manual addition to crontab; auto-detects script path; output redirected to null
+# ------------------------------------------------------------------------------
 generate_cron() {
     local script_path
     script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -631,14 +715,28 @@ generate_cron() {
     return 0
 }
 
-# Show version
+# ------------------------------------------------------------------------------
+# Function: show_version
+# Purpose.: Display script version information
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: Script name, version string, and OraDBA project description
+# Notes...: Uses SCRIPT_NAME and SCRIPT_VERSION constants
+# ------------------------------------------------------------------------------
 show_version() {
     echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
     echo "Part of OraDBA - Oracle Database Infrastructure and Security"
     return 0
 }
 
-# Main function
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Entry point and command-line argument dispatcher
+# Args....: $@ - Command-line arguments (see usage for options)
+# Returns.: Exit code from selected operation (0 success, 1 error)
+# Output..: Depends on selected operation (install/test/run/list/customize/help)
+# Notes...: Dispatches to system-wide (root) or user-mode functions; shows usage if invalid option or no args
+# ------------------------------------------------------------------------------
 main() {
     if [[ $# -eq 0 ]]; then
         usage
