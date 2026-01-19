@@ -4,10 +4,11 @@
 # Name.....: plugin_interface.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin interface template for product-specific behavior
 # Notes....: All product plugins must implement these functions
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -132,6 +133,74 @@ plugin_discover_instances() {
     # Default: single instance with same name as home
     # Override in products with multiple instances (RAC, WebLogic, OUD)
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for this product
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: Returns the directories to add to PATH for this product
+#           Example (RDBMS): /u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch
+#           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
+#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/bin
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local home_path="$1"
+    oradba_log ERROR "plugin_build_path not implemented in ${plugin_name}"
+    echo "${home_path}/bin"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for this product
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: Returns the directories to add to LD_LIBRARY_PATH (or equivalent)
+#           Example (RDBMS): /u01/app/oracle/product/19/lib
+#           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
+#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/lib
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local home_path="$1"
+    oradba_log ERROR "plugin_build_lib_path not implemented in ${plugin_name}"
+    echo "${home_path}/lib"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for this product
+# Args....: None
+# Returns.: 0 on success
+# Output..: Configuration section name (uppercase)
+# Notes...: Used by oradba_apply_product_config() to load product-specific settings
+#           Example: "RDBMS", "DATASAFE", "CLIENT", "ICLIENT", "OUD", "WLS"
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    oradba_log ERROR "plugin_get_config_section not implemented in ${plugin_name}"
+    echo "UNKNOWN"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for this product
+# Args....: None
+# Returns.: 0 on success
+# Output..: Space-separated list of required binary names
+# Notes...: Used by oradba_check_oracle_binaries() to validate installation
+#           Example (RDBMS): "sqlplus tnsping lsnrctl"
+#           Example (DATASAFE): "cmctl"
+#           Example (CLIENT): "sqlplus tnsping"2
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    oradba_log ERROR "plugin_get_required_binaries not implemented in ${plugin_name}"
+    echo ""
+    return 1
 }
 
 # ------------------------------------------------------------------------------
