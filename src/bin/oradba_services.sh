@@ -306,7 +306,14 @@ show_status() {
     echo ""
 }
 
-# Start all services
+# ------------------------------------------------------------------------------
+# Function: start_all
+# Purpose.: Start all Oracle services in configured order
+# Args....: None (uses STARTUP_ORDER from config)
+# Returns.: 0 if all succeeded, 1 if any failures
+# Output..: Log messages for each service startup, final summary
+# Notes...: Processes STARTUP_ORDER (default: listener,database); tracks success/failure counts
+# ------------------------------------------------------------------------------
 start_all() {
     oradba_log INFO "========== Starting Oracle services =========="
 
