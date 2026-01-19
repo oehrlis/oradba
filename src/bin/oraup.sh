@@ -284,7 +284,8 @@ show_oracle_status_registry() {
             # Get listener status
             local lsnr_status="unknown"
             if command -v lsnrctl &>/dev/null; then
-                if lsnrctl status "$listener_name" 2>/dev/null | grep -q "ready"; then
+                # Check for READY status (case-insensitive) or successful connection
+                if lsnrctl status "$listener_name" 2>/dev/null | grep -qi "STATUS of the LISTENER"; then
                     lsnr_status="READY"
                 fi
             fi
