@@ -305,14 +305,16 @@ teardown() {
 @test "init_logging preserves backward compatibility with existing scripts" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    # Test that old log_info still works after init_logging
+    # NOTE: Deprecated log_info/log_warn/log_error/log_debug functions were removed in v0.13.1
+    # Modern scripts must use oradba_log INFO/WARN/ERROR/DEBUG instead
+    # Test that oradba_log works after init_logging
     run bash -c "
         source ${PROJECT_ROOT}/src/lib/oradba_common.sh
         init_logging
-        log_info 'Legacy function test' 2>&1
+        oradba_log INFO 'Modern logging test' 2>&1
     "
     
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[INFO\] ]]
-    [[ "$output" =~ "Legacy function test" ]]
+    [[ "$output" =~ "Modern logging test" ]]
 }
