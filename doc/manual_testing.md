@@ -10,11 +10,27 @@ This document provides comprehensive manual testing procedures for OraDBA across
 
 Use this guide for release testing, regression testing, or verification after modifications.
 
+**Note**: Many of these tests are now **automated** in Docker containers. See:
+
+- `tests/docker_automated_tests.sh` - Automated test script
+- `doc/automated_testing.md` - Automated testing documentation
+- Run with: `./tests/run_docker_tests.sh`
+
+**Automation Coverage**: ~75-85% of tests are now automated. This manual guide is still required for:
+
+- Upgrade scenarios (require prior version)
+- Multi-user testing
+- Permission and edge case testing
+- Coexistence with TVD BasEnv
+- Special environment configurations
+
 ---
 
 ## Installation Testing
 
 ### Fresh Installation (Standalone)
+
+**Automation Status**: ✅ **Fully Automated** - See `test_installation()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify clean installation without existing Oracle environment
 
@@ -84,6 +100,8 @@ rm -rf "$TEST_PREFIX"
 
 ### Fresh Installation (With Oracle Environment)
 
+**Automation Status**: ✅ **Fully Automated** - See `test_installation()` and `test_environment_loading()` in `tests/docker_automated_tests.sh`
+
 **Objective**: Verify installation in active Oracle environment
 
 **Prerequisites**: Oracle Database or Grid Infrastructure installed
@@ -135,6 +153,8 @@ type oradba_env.sh oradba_homes.sh oradba_validate.sh
 - ✅ Commands accessible in PATH
 
 ### Upgrade Installation
+
+**Automation Status**: ❌ **Not Automated** - Requires prior version installation
 
 **Objective**: Verify upgrade preserves user customizations
 
@@ -188,6 +208,8 @@ head -n 10 "$INSTALL_PREFIX/lib/oradba_env_parser.sh"
 
 ### Environment Loading
 
+**Automation Status**: ✅ **Fully Automated** - See `test_environment_loading()` in `tests/docker_automated_tests.sh`
+
 **Objective**: Verify environment setup works correctly
 
 ```bash
@@ -236,6 +258,8 @@ type oradba_validate_oracle_home oradba_build_environment
 
 ### Configuration Hierarchy
 
+**Automation Status**: ⚠️ **Partially Automated** - Basic validation in `test_configuration_files()`, detailed hierarchy testing still manual
+
 **Objective**: Verify configuration loading precedence
 
 ```bash
@@ -281,6 +305,8 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 - ✅ Configuration hierarchy respected (system → user)
 
 ### Oracle Homes Management
+
+**Automation Status**: ✅ **Fully Automated** - See `test_oracle_homes()` and `test_enhanced_oracle_homes()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify Oracle Homes registry functionality
 
@@ -367,6 +393,8 @@ rm -f /tmp/homes_export.conf
 
 ### Environment Switching
 
+**Automation Status**: ⚠️ **Partially Automated** - Single switch tested in automated tests, detailed multi-switch scenarios still manual
+
 **Objective**: Verify switching between different environments
 
 ```bash
@@ -404,6 +432,8 @@ echo "Current SID: $ORACLE_SID"
 - ✅ Can switch back without issues
 
 ### Environment Information Commands
+
+**Automation Status**: ✅ **Fully Automated** - See `test_environment_management()` and `test_output_formats()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify information display commands
 
@@ -589,6 +619,8 @@ oradba_env.sh list
 ---
 
 ### Auto-Discovery of Running Instances
+
+**Automation Status**: ✅ **Fully Automated** - See `test_auto_discovery()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify automatic detection and persistence of running Oracle instances when oratab is empty
 
@@ -783,6 +815,8 @@ sudo mv /etc/oratab.backup /etc/oratab
 
 ### Environment Validation
 
+**Automation Status**: ✅ **Fully Automated** - See `test_validation_tools()` in `tests/docker_automated_tests.sh`
+
 **Objective**: Verify environment validation checks
 
 ```bash
@@ -819,6 +853,8 @@ source "$ORADBA_BASE/bin/oraenv.sh" "$ORACLE_SID"
 - ✅ Provides actionable error messages
 
 ### Database Status Checking
+
+**Automation Status**: ✅ **Fully Automated** - See `test_database_status()` and `test_database_operations()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify database status detection
 
@@ -858,6 +894,8 @@ oradba_env.sh status +ASM
 - ✅ Handles different database states
 
 ### Common DBA Aliases
+
+**Automation Status**: ✅ **Fully Automated** - See `test_aliases()` in `tests/docker_automated_tests.sh`
 
 **Objective**: Verify standard aliases work correctly
 
@@ -906,6 +944,8 @@ lsnrctl status
 - ✅ Listener commands work if available
 
 ### Multi-User Environment
+
+**Automation Status**: ❌ **Not Automated** - Requires multiple OS users and specific permissions
 
 **Objective**: Verify OraDBA works with multiple users
 
@@ -956,6 +996,8 @@ EOF
 
 ### Missing Oracle Environment
 
+**Automation Status**: ⚠️ **Partially Automated** - Basic error handling tested, detailed edge cases still manual
+
 **Objective**: Verify graceful handling when Oracle not available
 
 ```bash
@@ -987,6 +1029,8 @@ oradba_env.sh list sids
 
 ### Permission Issues
 
+**Automation Status**: ❌ **Not Automated** - Requires specific permission configurations and sudo access
+
 **Objective**: Verify behavior with insufficient permissions
 
 ```bash
@@ -1012,6 +1056,8 @@ chmod 755 "$ORACLE_HOME"  # Restore
 - ✅ Fails safely without corruption
 
 ### Special Characters in Paths
+
+**Automation Status**: ❌ **Not Automated** - Requires specific path configurations
 
 **Objective**: Verify handling of paths with special characters
 

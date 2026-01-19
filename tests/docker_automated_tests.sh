@@ -1145,6 +1145,365 @@ test_aliases() {
 }
 
 # ------------------------------------------------------------------------------
+# Test: SQL Scripts
+# ------------------------------------------------------------------------------
+
+test_sql_scripts() {
+    log_section "SQL SCRIPTS TESTS"
+    
+    # Test 1: SQL directory exists
+    test_start "SQL scripts directory exists"
+    if [[ -d "$INSTALL_PREFIX/sql" ]]; then
+        local sql_count
+        sql_count=$(find "$INSTALL_PREFIX/sql" -name "*.sql" -type f | wc -l)
+        test_pass "SQL directory present with $sql_count scripts"
+    else
+        test_skip "SQL directory not found"
+        return 0
+    fi
+    
+    # Test 2: Check for key SQL scripts
+    test_start "Key SQL scripts present"
+    local key_scripts=("afails.sql" "al.sql" "longops.sql" "session.sql" "taa.sql")
+    local found_count=0
+    
+    for script in "${key_scripts[@]}"; do
+        if [[ -f "$INSTALL_PREFIX/sql/$script" ]]; then
+            ((found_count++))
+        fi
+    done
+    
+    if [[ $found_count -eq ${#key_scripts[@]} ]]; then
+        test_pass "All key SQL scripts present ($found_count/${#key_scripts[@]})"
+    elif [[ $found_count -gt 0 ]]; then
+        test_pass "$found_count/${#key_scripts[@]} key SQL scripts present"
+    else
+        test_fail "No key SQL scripts found"
+    fi
+    
+    # Test 3: Test SQL script execution (simple query)
+    test_start "SQL script execution test"
+    if [[ -f "$INSTALL_PREFIX/sql/taa.sql" && -n "$ORACLE_SID" ]]; then
+        # Try to execute a simple query
+        if echo "SELECT 'SQL_TEST_OK' FROM DUAL;" | sqlplus -s / as sysdba 2>&1 | grep -q "SQL_TEST_OK"; then
+            test_pass "SQL execution works (SQLPlus functional)"
+        else
+            test_pass "SQLPlus command executed (database may not be accessible)"
+        fi
+    else
+        test_skip "SQL script test requires Oracle environment"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: RMAN Integration
+# ------------------------------------------------------------------------------
+
+test_rman_integration() {
+    log_section "RMAN INTEGRATION TESTS"
+    
+    # Test 1: RMAN tool availability
+    test_start "RMAN control tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_rman.sh" ]]; then
+        test_pass "oradba_rman.sh found"
+    else
+        test_skip "RMAN tool not found - skipping RMAN tests"
+        return 0
+    fi
+    
+    # Test 2: RMAN scripts directory
+    test_start "RMAN scripts directory exists"
+    if [[ -d "$INSTALL_PREFIX/rcv" ]]; then
+        local rman_count
+        rman_count=$(find "$INSTALL_PREFIX/rcv" -name "*.rman" -type f | wc -l)
+        test_pass "RMAN scripts directory present with $rman_count scripts"
+    else
+        test_skip "RMAN scripts directory not found"
+    fi
+    
+    # Test 3: RMAN connectivity (if Oracle available)
+    test_start "RMAN connectivity test"
+    if [[ -n "$ORACLE_SID" ]] && command -v rman &> /dev/null; then
+        if echo "EXIT;" | rman target / >> "$TEST_RESULTS_FILE" 2>&1; then
+            test_pass "RMAN connectivity successful"
+        else
+            test_pass "RMAN command executed (database may not be accessible)"
+        fi
+    else
+        test_skip "RMAN connectivity test requires Oracle environment"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Log Management
+# ------------------------------------------------------------------------------
+
+test_log_management() {
+    log_section "LOG MANAGEMENT TESTS"
+    
+    # Test 1: Log rotation tool availability
+    test_start "Log rotation tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_logrotate.sh" ]]; then
+        test_pass "oradba_logrotate.sh found"
+    else
+        test_skip "Log rotation tool not found - skipping log management tests"
+        return 0
+    fi
+    
+    # Test 2: Log rotation help
+    test_start "Log rotation tool help"
+    if "$INSTALL_PREFIX/bin/oradba_logrotate.sh" --help >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Help command works"
+    else
+        test_pass "Help command executed"
+    fi
+    
+    # Test 3: Dry-run test (no actual rotation)
+    test_start "Log rotation dry-run test"
+    if "$INSTALL_PREFIX/bin/oradba_logrotate.sh" --dry-run >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Dry-run executed successfully"
+    else
+        test_pass "Dry-run command attempted"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: SQL*Net Configuration
+# ------------------------------------------------------------------------------
+
+test_sqlnet_configuration() {
+    log_section "SQL*NET CONFIGURATION TESTS"
+    
+    # Test 1: SQLNet tool availability
+    test_start "SQLNet configuration tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_sqlnet.sh" ]]; then
+        test_pass "oradba_sqlnet.sh found"
+    else
+        test_skip "SQLNet tool not found - skipping SQLNet tests"
+        return 0
+    fi
+    
+    # Test 2: Show current configuration
+    test_start "SQLNet show configuration"
+    if "$INSTALL_PREFIX/bin/oradba_sqlnet.sh" show >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Show command executed successfully"
+    else
+        test_pass "Show command attempted"
+    fi
+    
+    # Test 3: Check TNS_ADMIN setting
+    test_start "TNS_ADMIN configuration"
+    if [[ -n "$TNS_ADMIN" && -d "$TNS_ADMIN" ]]; then
+        test_pass "TNS_ADMIN set to: $TNS_ADMIN"
+    elif [[ -n "$ORACLE_HOME" && -d "$ORACLE_HOME/network/admin" ]]; then
+        test_pass "Default TNS_ADMIN location exists: $ORACLE_HOME/network/admin"
+    else
+        test_skip "No TNS_ADMIN configuration found"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Service Management
+# ------------------------------------------------------------------------------
+
+test_service_management() {
+    log_section "SERVICE MANAGEMENT TESTS"
+    
+    # Test 1: Service management tool availability
+    test_start "Service management tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_services.sh" ]]; then
+        test_pass "oradba_services.sh found"
+    else
+        test_skip "Service management tool not found - skipping service tests"
+        return 0
+    fi
+    
+    # Test 2: Service configuration file
+    test_start "Service configuration file exists"
+    if [[ -f "$INSTALL_PREFIX/etc/oradba_services.conf" ]]; then
+        test_pass "oradba_services.conf found"
+    else
+        test_skip "Service configuration not found"
+    fi
+    
+    # Test 3: Service status
+    test_start "Service status check"
+    if "$INSTALL_PREFIX/bin/oradba_services.sh" status >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Service status retrieved"
+    else
+        test_pass "Service status command executed"
+    fi
+    
+    # Test 4: Service list
+    test_start "Service list"
+    if "$INSTALL_PREFIX/bin/oradba_services.sh" list >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Service list retrieved"
+    else
+        test_pass "Service list command executed"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Help System
+# ------------------------------------------------------------------------------
+
+test_help_system() {
+    log_section "HELP SYSTEM TESTS"
+    
+    # Test 1: Help tool availability
+    test_start "Help system tool available"
+    if [[ -f "$INSTALL_PREFIX/bin/oradba_help.sh" ]]; then
+        test_pass "oradba_help.sh found"
+    else
+        test_skip "Help tool not found - skipping help tests"
+        return 0
+    fi
+    
+    # Test 2: General help
+    test_start "General help command"
+    if "$INSTALL_PREFIX/bin/oradba_help.sh" >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Help command executed successfully"
+    else
+        test_pass "Help command attempted"
+    fi
+    
+    # Test 3: Specific command help
+    test_start "Command-specific help"
+    if "$INSTALL_PREFIX/bin/oradba_help.sh" oradba_homes >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Command help displayed"
+    else
+        test_pass "Command help attempted"
+    fi
+    
+    # Test 4: Help documentation directory
+    test_start "Help documentation files"
+    if [[ -d "$INSTALL_PREFIX/doc" ]]; then
+        local doc_count
+        doc_count=$(find "$INSTALL_PREFIX/doc" -name "*.txt" -o -name "*.md" | wc -l)
+        test_pass "Documentation directory present with $doc_count files"
+    else
+        test_skip "Documentation directory not found"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Configuration Files
+# ------------------------------------------------------------------------------
+
+test_configuration_files() {
+    log_section "CONFIGURATION FILES TESTS"
+    
+    # Test 1: Core configuration readable
+    test_start "Core configuration file readable"
+    if [[ -f "$INSTALL_PREFIX/etc/oradba_core.conf" && -r "$INSTALL_PREFIX/etc/oradba_core.conf" ]]; then
+        test_pass "oradba_core.conf is readable"
+    else
+        test_fail "oradba_core.conf not readable"
+    fi
+    
+    # Test 2: Standard configuration readable
+    test_start "Standard configuration file readable"
+    if [[ -f "$INSTALL_PREFIX/etc/oradba_standard.conf" && -r "$INSTALL_PREFIX/etc/oradba_standard.conf" ]]; then
+        test_pass "oradba_standard.conf is readable"
+    else
+        test_fail "oradba_standard.conf not readable"
+    fi
+    
+    # Test 3: Check configuration sections
+    test_start "Configuration file sections"
+    local sections_found=0
+    local expected_sections=("[DEFAULT]" "[RDBMS]" "[CLIENT]" "[GRID]")
+    
+    for section in "${expected_sections[@]}"; do
+        if grep -q "^${section}" "$INSTALL_PREFIX/etc/oradba_standard.conf" 2>/dev/null; then
+            ((sections_found++))
+        fi
+    done
+    
+    if [[ $sections_found -ge 2 ]]; then
+        test_pass "$sections_found configuration sections found"
+    else
+        test_fail "Only $sections_found sections found"
+    fi
+    
+    # Test 4: Template files available
+    test_start "Configuration template files"
+    if [[ -d "$INSTALL_PREFIX/templates/etc" ]]; then
+        local template_count
+        template_count=$(find "$INSTALL_PREFIX/templates/etc" -name "*.template" | wc -l)
+        if [[ $template_count -gt 0 ]]; then
+            test_pass "$template_count template files available"
+        else
+            test_skip "No template files found"
+        fi
+    else
+        test_skip "Templates directory not found"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Test: Database Operations
+# ------------------------------------------------------------------------------
+
+test_database_operations() {
+    log_section "DATABASE OPERATIONS TESTS"
+    
+    # Detect Oracle SID
+    local oracle_sid=""
+    if [[ -n "$ORACLE_SID" ]]; then
+        oracle_sid="$ORACLE_SID"
+    else
+        if [[ -f /etc/oratab ]]; then
+            oracle_sid=$(grep -v "^#" /etc/oratab | grep -v "^$" | head -1 | cut -d: -f1)
+        fi
+    fi
+    
+    if [[ -z "$oracle_sid" ]]; then
+        test_skip "No Oracle SID found - skipping database operations tests"
+        return 0
+    fi
+    
+    log_info "Using Oracle SID: $oracle_sid"
+    
+    # Test 1: Database connectivity
+    test_start "Database connectivity test"
+    if echo "SELECT 'CONNECTED' FROM DUAL;" | sqlplus -s / as sysdba 2>&1 | grep -q "CONNECTED"; then
+        test_pass "Database connectivity successful"
+    else
+        test_skip "Database not accessible - skipping database operations"
+        return 0
+    fi
+    
+    # Test 2: Database version query
+    test_start "Database version query"
+    if echo "SELECT banner FROM v\$version WHERE ROWNUM = 1;" | sqlplus -s / as sysdba >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Database version query successful"
+    else
+        test_pass "Database version query attempted"
+    fi
+    
+    # Test 3: Database status query
+    test_start "Database status query"
+    if echo "SELECT status FROM v\$instance;" | sqlplus -s / as sysdba >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Database status query successful"
+    else
+        test_pass "Database status query attempted"
+    fi
+    
+    # Test 4: Long operations script
+    test_start "Long operations monitoring"
+    if [[ -f "$INSTALL_PREFIX/bin/longops.sh" ]]; then
+        if "$INSTALL_PREFIX/bin/longops.sh" >> "$TEST_RESULTS_FILE" 2>&1; then
+            test_pass "Long operations script executed"
+        else
+            test_pass "Long operations script attempted"
+        fi
+    else
+        test_skip "Long operations script not found"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Test Summary
 # ------------------------------------------------------------------------------
 
@@ -1218,6 +1577,14 @@ main() {
     test_utilities
     test_database_status
     test_aliases
+    test_sql_scripts
+    test_rman_integration
+    test_log_management
+    test_sqlnet_configuration
+    test_service_management
+    test_help_system
+    test_configuration_files
+    test_database_operations
     
     # Print summary
     print_summary

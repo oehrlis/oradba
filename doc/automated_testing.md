@@ -57,13 +57,15 @@ Core test script that runs inside the container. Tests:
 - VERSION file
 - Core libraries (6 environment libs)
 - Configuration files
+- Update/reinstall capability
+- Force reinstall with --force flag
 
 **Environment Loading Tests:**
 
 - Source oraenv.sh
 - ORACLE_SID, ORACLE_HOME, ORACLE_BASE set correctly
 - PATH updated
-- Libraries loaded
+- Libraries loaded (6 environment libraries)
 
 **Auto-Discovery Tests:**
 
@@ -76,19 +78,124 @@ Core test script that runs inside the container. Tests:
 **Oracle Homes Management Tests:**
 
 - List homes
-- Add home
+- Add home with metadata (name, type, alias, description)
 - Show home details
-- Export/import
+- Export/import functionality
+- Discover homes with auto-add
+- Remove home (cleanup)
+
+**Listener Control Tests:**
+
+- Listener control tool availability
+- Listener status check
+- Stop/start listener operations
+- Verify listener state changes
+
+**Database Control Tests:**
+
+- Database control tool availability
+- Database status check
+- Stop/start database operations
+- Database status after restart
+
+**Validation and Checking Tests:**
+
+- Validation tool (oradba_validate.sh)
+- Check tool (oradba_check.sh)
+- Verbose checking options
+
+**Enhanced Extensions Tests:**
+
+- Extension tool availability
+- List extension templates
+- Create extension from template
+- Verify extension structure
+
+**Enhanced Oracle Homes Tests:**
+
+- Discover with auto-add
+- List homes after discovery
+- Show discovered home details
+- Export/import configurations
+
+**Environment Management Tests:**
+
+- Environment management tool (oradba_env.sh)
+- Environment info/list/status commands
+- Different output formats (json, xml, csv, table)
+- Environment validation
+
+**Output Format Tests:**
+
+- Status output formats
+- List command variations
+- Format options testing
+
+**Utilities Tests:**
+
+- Core utility scripts availability
+- Additional utility scripts
+- Help functionality
+- Version information
 
 **Database Status Tests:**
 
 - oraup.sh execution
-- Required sections present
+- Required sections present (plugin architecture)
 - Listener status (if running)
 
 **Aliases Tests:**
 
 - Common aliases available (sq, cdh, cda, cdb, taa)
+
+**SQL Scripts Tests:**
+
+- SQL directory and scripts availability
+- Key SQL scripts present (afails, al, longops, session, taa)
+- SQL script execution test
+
+**RMAN Integration Tests:**
+
+- RMAN control tool (oradba_rman.sh)
+- RMAN scripts directory
+- RMAN connectivity test
+
+**Log Management Tests:**
+
+- Log rotation tool (oradba_logrotate.sh)
+- Help command
+- Dry-run test
+
+**SQL*Net Configuration Tests:**
+
+- SQLNet configuration tool (oradba_sqlnet.sh)
+- Show configuration
+- TNS_ADMIN setting verification
+
+**Service Management Tests:**
+
+- Service management tool (oradba_services.sh)
+- Service configuration file
+- Service status and list commands
+
+**Help System Tests:**
+
+- Help tool availability (oradba_help.sh)
+- General help command
+- Command-specific help
+- Documentation files
+
+**Configuration Files Tests:**
+
+- Core and standard configuration readability
+- Configuration sections validation
+- Template files availability
+
+**Database Operations Tests:**
+
+- Database connectivity
+- Version and status queries
+- Long operations monitoring
 
 **Can be run standalone inside container:**
 
@@ -114,37 +221,50 @@ Test results are saved to `/tmp/oradba_test_results_YYYYMMDD_HHMMSS.log` with:
 TEST SUMMARY
 ================================================================================
 
-Total Tests:   42
-Passed:        39
+Total Tests:   85
+Passed:        78
 Failed:        0
-Skipped:       3
+Skipped:       7
 
-Pass Rate:     93%
+Pass Rate:     92%
 
 ✓ ALL TESTS PASSED
 
-Results saved to: /tmp/oradba_test_results_20260115_143022.log
+Results saved to: /tmp/oradba_test_results_20260119_143022.log
 ```
 
 ## Manual Tests Coverage
 
-These automated tests cover approximately **60-70%** of the manual tests in
+These automated tests cover approximately **75-85%** of the manual tests in
 `../doc/manual_testing.md`:
 
 **Fully Automated:**
 
 - ✅ Installation: Fresh installation (standalone)
 - ✅ Installation: Fresh installation (with Oracle)
+- ✅ Installation: Update/reinstall
 - ✅ Configuration: Environment loading
 - ✅ Configuration: Oracle Homes management
+- ✅ Configuration: Configuration files validation
 - ✅ Daily Use: Database status checking
 - ✅ Daily Use: Auto-discovery of running instances
 - ✅ Daily Use: Common aliases
+- ✅ Daily Use: Database operations (connectivity, queries)
+- ✅ Daily Use: SQL scripts availability and execution
+- ✅ Daily Use: RMAN integration
+- ✅ Daily Use: Listener control operations
+- ✅ Daily Use: Database control operations
+- ✅ Daily Use: Service management
+- ✅ Daily Use: SQL*Net configuration
+- ✅ Daily Use: Log management (logrotate)
+- ✅ Daily Use: Help system
+- ✅ Daily Use: Environment validation tools
 
 **Partially Automated:**
 
 - ⚠️ Configuration: Configuration hierarchy (basic validation only)
 - ⚠️ Daily Use: Environment switching (single switch tested)
+- ⚠️ Daily Use: Extension system (basic creation tested)
 
 **Not Automated (Still Manual):**
 
@@ -247,14 +367,20 @@ docker exec -it oradba-test-XXXXX bash
 
 ## Future Enhancements
 
-- [ ] Add tests for PDB aliases
-- [ ] Add tests for SQL scripts
-- [ ] Add tests for RMAN integration
-- [ ] Add tests for extension system
+- [ ] Add tests for PDB (Pluggable Database) operations
+- [ ] Add tests for Data Guard configurations
+- [ ] Add tests for Oracle Unified Directory (OUD)
+- [ ] Add tests for WebLogic integration
+- [ ] Add tests for DataSafe connector operations
 - [ ] Add performance benchmarks
-- [ ] Support for Oracle 21c/23ai containers
-- [ ] Parallel test execution
+- [ ] Support for Oracle 21c/23ai containers (in addition to 26ai)
+- [ ] Parallel test execution for faster runs
 - [ ] HTML test report generation
+- [ ] Integration with CI/CD for automated regression testing
+- [ ] Multi-version testing (test against multiple Oracle versions)
+- [ ] Network configuration tests (TNS, Easy Connect)
+- [ ] Wallet and encryption tests
+- [ ] Backup and recovery scenarios
 
 ## See Also
 
