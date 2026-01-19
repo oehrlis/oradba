@@ -1,0 +1,3 @@
+# Test helper libraries (installed via scripts/setup-tests.sh)
+bats-support/
+bats-assert/
