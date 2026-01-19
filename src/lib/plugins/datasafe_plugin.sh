@@ -4,10 +4,11 @@
 # Name.....: datasafe_plugin.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin for Oracle Data Safe On-Premises Connector
 # Notes....: Consolidates oracle_cman_home logic (was in 8+ files)
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
 #            Fixes Bug #83 (explicit environment)
 #            Fixes Bug #84 (listener visibility)
@@ -19,7 +20,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="datasafe"
-export plugin_version="1.0.0"
+export plugin_version="2.0.0"
 export plugin_description="Oracle Data Safe On-Premises Connector plugin"
 
 # ------------------------------------------------------------------------------
@@ -208,12 +209,76 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for Data Safe connector
+# Args....: $1 - Base path (will be adjusted to oracle_cman_home)
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: DataSafe requires oracle_cman_home/bin
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local base_path="$1"
+    local cman_home
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    if [[ -d "${cman_home}/bin" ]]; then
+        echo "${cman_home}/bin"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for Data Safe connector
+# Args....: $1 - Base path (will be adjusted to oracle_cman_home)
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: DataSafe requires oracle_cman_home/lib
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local base_path="$1"
+    local cman_home
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    if [[ -d "${cman_home}/lib" ]]; then
+        echo "${cman_home}/lib"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for Data Safe
+# Returns.: 0 on success
+# Output..: "DATASAFE"
+# Notes...: Used by oradba_apply_product_config() to load Data Safe settings
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "DATASAFE"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for Data Safe connector
+# Returns.: 0 on success
+# Output..: Space-separated list of required binaries
+# Notes...: Data Safe uses Connection Manager (cmctl)
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "cmctl"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_get_adjusted_paths
 # Purpose.: Get adjusted PATH and LD_LIBRARY_PATH for Data Safe
 # Args....: $1 - Base path
 # Returns.: 0 on success
 # Output..: PATH and LD_LIBRARY_PATH (one per line)
-# Notes...: Helper function for environment setup
+# Notes...: Helper function for environment setup (legacy, use plugin_build_path/lib_path)
 # ------------------------------------------------------------------------------
 plugin_get_adjusted_paths() {
     local base_path="$1"
