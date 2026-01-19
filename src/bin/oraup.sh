@@ -256,7 +256,7 @@ show_oracle_status_registry() {
             local status
             if [[ "$flags" == "D" ]]; then
                 # Dummy entry - just shows ORACLE_HOME, not an actual SID
-                status="dummy"
+                status="n/a"
             else
                 status=$(get_db_status "$sid")
                 
