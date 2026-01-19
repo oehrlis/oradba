@@ -51,7 +51,14 @@ LSNR_OPTIONS=""
 # Functions
 # ------------------------------------------------------------------------------
 
-# Show usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display help for Oracle services orchestration
+# Args....: None
+# Returns.: Exits with code 1
+# Output..: Multi-section help (actions, options, config, examples, env vars)
+# Notes...: Shows start/stop/restart/status actions; explains config file usage
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS]
@@ -97,7 +104,14 @@ EOF
 # Enable file logging to service log
 export ORADBA_LOG_FILE="${LOGFILE}"
 
-# Load configuration file
+# ------------------------------------------------------------------------------
+# Function: load_config
+# Purpose.: Load oradba_services.conf or create from template
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: Log messages for config loading/creation
+# Notes...: Sources config file; creates from template if missing; uses defaults if unavailable
+# ------------------------------------------------------------------------------
 load_config() {
     # Copy example config if it doesn't exist
     if [[ ! -f "${CONFIG_FILE}" ]]; then
@@ -121,7 +135,14 @@ load_config() {
     fi
 }
 
-# Start listeners
+# ------------------------------------------------------------------------------
+# Function: start_listeners
+# Purpose.: Start Oracle listeners using oradba_lsnrctl.sh
+# Args....: None (uses FORCE_MODE, LSNR_OPTIONS, SPECIFIC_LISTENERS from config)
+# Returns.: 0 on success, 1 on failure
+# Output..: Log messages with command execution and results
+# Notes...: Constructs oradba_lsnrctl.sh command with options; respects force mode
+# ------------------------------------------------------------------------------
 start_listeners() {
     oradba_log INFO "Starting Oracle listeners..."
 
@@ -149,7 +170,14 @@ start_listeners() {
     fi
 }
 
-# Stop listeners
+# ------------------------------------------------------------------------------
+# Function: stop_listeners
+# Purpose.: Stop Oracle listeners using oradba_lsnrctl.sh
+# Args....: None (uses FORCE_MODE, LSNR_OPTIONS, SPECIFIC_LISTENERS from config)
+# Returns.: 0 on success, 1 on failure
+# Output..: Log messages with command execution and results
+# Notes...: Constructs oradba_lsnrctl.sh stop command with options
+# ------------------------------------------------------------------------------
 stop_listeners() {
     oradba_log INFO "Stopping Oracle listeners..."
 
@@ -177,7 +205,14 @@ stop_listeners() {
     fi
 }
 
-# Start databases
+# ------------------------------------------------------------------------------
+# Function: start_databases
+# Purpose.: Start Oracle databases using oradba_dbctl.sh
+# Args....: None (uses FORCE_MODE, DB_OPTIONS, SPECIFIC_DBS from config)
+# Returns.: 0 on success, 1 on failure
+# Output..: Log messages with command execution and results
+# Notes...: Constructs oradba_dbctl.sh start command with options
+# ------------------------------------------------------------------------------
 start_databases() {
     oradba_log INFO "Starting Oracle databases..."
 
@@ -205,7 +240,14 @@ start_databases() {
     fi
 }
 
-# Stop databases
+# ------------------------------------------------------------------------------
+# Function: stop_databases
+# Purpose.: Stop Oracle databases using oradba_dbctl.sh
+# Args....: None (uses FORCE_MODE, DB_OPTIONS, SPECIFIC_DBS from config)
+# Returns.: 0 on success, 1 on failure
+# Output..: Log messages with command execution and results
+# Notes...: Constructs oradba_dbctl.sh stop command with options
+# ------------------------------------------------------------------------------
 stop_databases() {
     oradba_log INFO "Stopping Oracle databases..."
 
@@ -233,7 +275,14 @@ stop_databases() {
     fi
 }
 
-# Show status
+# ------------------------------------------------------------------------------
+# Function: show_status
+# Purpose.: Show status of all Oracle services (databases and listeners)
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: Combined status output from oradba_dbctl.sh and oradba_lsnrctl.sh
+# Notes...: Calls oradba_dbctl.sh status and oradba_lsnrctl.sh status
+# ------------------------------------------------------------------------------
 show_status() {
     echo ""
     echo "=========================================="
@@ -295,7 +344,14 @@ start_all() {
     fi
 }
 
-# Stop all services
+# ------------------------------------------------------------------------------
+# Function: stop_all
+# Purpose.: Stop all Oracle services in configured order
+# Args....: None (uses SHUTDOWN_ORDER from config)
+# Returns.: 0 if all succeeded, 1 if any failures
+# Output..: Log messages for each service shutdown, final summary
+# Notes...: Processes SHUTDOWN_ORDER (default: database,listener); tracks success/failure counts
+# ------------------------------------------------------------------------------
 stop_all() {
     oradba_log INFO "========== Stopping Oracle services =========="
 
