@@ -4,10 +4,11 @@
 # Name.....: iclient_plugin.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin for Oracle Instant Client
 # Notes....: Handles Oracle Instant Client (libclntsh.so based, no bin/)
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 2.1)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -17,7 +18,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="iclient"
-export plugin_version="1.0.0"
+export plugin_version="2.0.0"
 export plugin_description="Oracle Instant Client plugin"
 
 # ------------------------------------------------------------------------------
@@ -202,6 +203,73 @@ plugin_discover_instances() {
 # ------------------------------------------------------------------------------
 plugin_supports_aliases() {
     return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for Oracle Instant Client
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: Instant Client has no bin/ subdirectory - binaries in root
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local oracle_home="$1"
+    
+    # Instant Client: executables are in the root directory
+    if [[ -d "${oracle_home}" ]]; then
+        echo "${oracle_home}"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for Oracle Instant Client
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: Instant Client libraries are in root, lib64, or lib subdirectory
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local oracle_home="$1"
+    
+    # Check for lib64 first, then lib, then root
+    if [[ -d "${oracle_home}/lib64" ]]; then
+        echo "${oracle_home}/lib64"
+    elif [[ -d "${oracle_home}/lib" ]]; then
+        echo "${oracle_home}/lib"
+    else
+        # Libraries in root directory for Instant Client
+        echo "${oracle_home}"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for Instant Client
+# Returns.: 0 on success
+# Output..: "ICLIENT"
+# Notes...: Used by oradba_apply_product_config() to load instant client settings
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "ICLIENT"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for Instant Client
+# Returns.: 0 on success
+# Output..: Space-separated list of required binaries
+# Notes...: Instant Client has sqlplus if SQL*Plus package installed
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "sqlplus"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
