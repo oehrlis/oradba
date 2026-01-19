@@ -179,56 +179,55 @@ oradba_load_sid_config() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_apply_product_config
-# Purpose.: Apply configuration for specific product type
-# Args....: $1 - Product type (RDBMS|CLIENT|ICLIENT|GRID|DATASAFE|OUD|WLS)
+# Purpose.: Apply configuration for specific product type using plugin system
+# Args....: $1 - Product type (RDBMS|CLIENT|ICLIENT|GRID|DATASAFE|OUD|WLS or lowercase)
 #          $2 - SID (optional, for ASM detection)
 # Returns.: 0 on success
+# Notes...: Uses plugin_get_config_section() from product-specific plugins
+#           Falls back to uppercase product type for unknown products
 # ------------------------------------------------------------------------------
 oradba_apply_product_config() {
     local product_type="$1"
     local sid="${2:-${ORACLE_SID}}"
+    local config_section=""
     
     # First apply DEFAULT section
     oradba_load_generic_configs "DEFAULT"
     
-    # Apply product-specific section
-    case "$product_type" in
-        RDBMS)
-            oradba_load_generic_configs "RDBMS"
-            
-            # Check if it's an ASM instance
-            if [[ "$sid" =~ ^\+ASM ]]; then
-                oradba_load_generic_configs "ASM"
-            fi
-            ;;
-        CLIENT)
-            oradba_load_generic_configs "CLIENT"
-            ;;
-        ICLIENT)
-            oradba_load_generic_configs "ICLIENT"
-            ;;
-        GRID)
-            oradba_load_generic_configs "GRID"
-            
-            # Grid homes also support ASM
-            if [[ "$sid" =~ ^\+ASM ]]; then
-                oradba_load_generic_configs "ASM"
-            fi
-            ;;
-        ASM)
-            # ASM can be standalone or part of RDBMS/GRID
-            oradba_load_generic_configs "ASM"
-            ;;
-        DATASAFE)
-            oradba_load_generic_configs "DATASAFE"
-            ;;
-        OUD)
-            oradba_load_generic_configs "OUD"
-            ;;
-        WLS)
-            oradba_load_generic_configs "WLS"
-            ;;
+    # Convert to lowercase for plugin matching
+    local plugin_type="${product_type,,}"
+    
+    # Map old types to plugin names
+    case "$plugin_type" in
+        rdbms|grid) plugin_type="database" ;;
+        wls) plugin_type="weblogic" ;;
     esac
+    
+    # Try to get config section from plugin
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${plugin_type}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}" 2>/dev/null
+        
+        if declare -f plugin_get_config_section >/dev/null 2>&1; then
+            config_section=$(plugin_get_config_section)
+            oradba_log DEBUG "Plugin ${plugin_type}: config section = ${config_section}"
+        fi
+    fi
+    
+    # Fallback to uppercase product type if plugin not available
+    if [[ -z "$config_section" ]]; then
+        config_section="${product_type^^}"
+        oradba_log DEBUG "Using fallback config section: ${config_section}"
+    fi
+    
+    # Apply product-specific configuration
+    oradba_load_generic_configs "$config_section"
+    
+    # Special handling for ASM instances
+    if [[ "$sid" =~ ^\+ASM ]]; then
+        oradba_load_generic_configs "ASM"
+    fi
     
     # Finally, apply SID-specific config if exists
     if [[ -n "$sid" ]]; then

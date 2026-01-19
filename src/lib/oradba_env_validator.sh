@@ -60,74 +60,71 @@ oradba_validate_sid() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_check_oracle_binaries
-# Purpose.: Verify critical Oracle binaries exist
-# Args....: $1 - Product type
+# Purpose.: Verify critical Oracle binaries exist using plugin system
+# Args....: $1 - Product type (RDBMS|CLIENT|ICLIENT|GRID|DATASAFE|OUD or lowercase)
 # Returns.: 0 if all found, 1 if any missing
 # Output..: Error messages for missing binaries
+# Notes...: Uses plugin_get_required_binaries() from product-specific plugins
+#           Falls back to basic sqlplus check for unknown products
 # ------------------------------------------------------------------------------
 oradba_check_oracle_binaries() {
     local product_type="${1:-RDBMS}"
     local missing=0
+    local binaries=()
     
-    case "$product_type" in
-        RDBMS)
-            # Database binaries
-            local binaries=("sqlplus" "tnsping" "lsnrctl")
-            for bin in "${binaries[@]}"; do
-                if ! command -v "$bin" &> /dev/null; then
-                    echo "WARNING: $bin not found in PATH" >&2
-                    ((missing++))
-                fi
-            done
-            ;;
-            
-        CLIENT)
-            # Full client binaries
-            local binaries=("sqlplus" "tnsping")
-            for bin in "${binaries[@]}"; do
-                if ! command -v "$bin" &> /dev/null; then
-                    echo "WARNING: $bin not found in PATH" >&2
-                    ((missing++))
-                fi
-            done
-            ;;
-            
-        ICLIENT)
-            # Instant Client: Check for sqlplus and libraries
-            if ! command -v sqlplus &> /dev/null; then
-                echo "WARNING: sqlplus not found" >&2
-                ((missing++))
-            fi
-            
-            # Check for libraries
-            if [[ -z "${LD_LIBRARY_PATH}" ]]; then
-                echo "WARNING: LD_LIBRARY_PATH not set" >&2
-                ((missing++))
-            fi
-            ;;
-            
-        GRID)
-            # Grid Infrastructure binaries
-            local binaries=("crsctl" "asmcmd" "srvctl")
-            for bin in "${binaries[@]}"; do
-                if ! command -v "$bin" &> /dev/null; then
-                    echo "WARNING: $bin not found in PATH" >&2
-                    ((missing++))
-                fi
-            done
-            ;;
-            
-        DATASAFE)
-            # DataSafe: Check for setup.py and python
-            if [[ -n "$ORACLE_HOME" ]] && [[ -f "${ORACLE_HOME}/setup.py" ]]; then
-                if ! command -v python &> /dev/null && ! command -v python3 &> /dev/null; then
-                    echo "WARNING: python not found (needed for DataSafe connector management)" >&2
-                    ((missing++))
-                fi
-            fi
-            # DataSafe doesn't have sqlplus - skip that check
-            ;;
+    # Convert to lowercase for plugin matching
+    local plugin_type="${product_type,,}"
+    
+    # Map old types to plugin names
+    case "$plugin_type" in
+        rdbms|grid) plugin_type="database" ;;
+        wls) plugin_type="weblogic" ;;
     esac
+    
+    # Try to get required binaries from plugin
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${plugin_type}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}" 2>/dev/null
+        
+        if declare -f plugin_get_required_binaries >/dev/null 2>&1; then
+            local binary_list
+            binary_list=$(plugin_get_required_binaries)
+            # Convert space-separated string to array
+            read -ra binaries <<< "$binary_list"
+            oradba_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
+        fi
+    fi
+    
+    # Fallback to basic checks if plugin not available
+    if [[ ${#binaries[@]} -eq 0 ]]; then
+        oradba_log DEBUG "Using fallback binary checks for ${product_type}"
+        case "${product_type^^}" in
+            RDBMS|DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
+            CLIENT) binaries=("sqlplus" "tnsping") ;;
+            ICLIENT) binaries=("sqlplus") ;;
+            GRID) binaries=("crsctl" "asmcmd" "srvctl") ;;
+            DATASAFE) binaries=("cmctl") ;;
+            OUD) binaries=("oud-setup") ;;
+            *) binaries=("sqlplus") ;;
+        esac
+    fi
+    
+    # Check each binary
+    for bin in "${binaries[@]}"; do
+        if ! command -v "$bin" &> /dev/null; then
+            echo "WARNING: $bin not found in PATH" >&2
+            ((missing++))
+        fi
+    done
+    
+    # Special check for Instant Client library path
+    if [[ "${product_type^^}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
+        if [[ -z "${LD_LIBRARY_PATH}" ]]; then
+            echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
+            ((missing++))
+        fi
+    fi
     
     [[ $missing -eq 0 ]] && return 0
     return 1
