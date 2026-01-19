@@ -263,20 +263,46 @@ oradba_check_wls_status() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_get_product_status
-# Purpose.: Get status for any product type
-# Args....: $1 - Product type (RDBMS|CLIENT|ICLIENT|GRID|ASM|DATASAFE|OUD|WLS)
+# Purpose.: Get status for any product type using plugin system
+# Args....: $1 - Product type (RDBMS|CLIENT|ICLIENT|GRID|ASM|DATASAFE|OUD|WLS or lowercase)
 #          $2 - Instance/SID/Domain name
 #          $3 - ORACLE_HOME or product home (optional)
 # Returns.: 0 if can determine status, 1 otherwise
 # Output..: Status information
+# Notes...: Uses plugin_check_status() from product-specific plugins
+#           Falls back to product-specific functions for unknown products
 # ------------------------------------------------------------------------------
 oradba_get_product_status() {
     local product_type="$1"
     local instance_name="$2"
     local home_path="${3:-}"
+    local status=""
     
-    case "$product_type" in
-        RDBMS)
+    # Convert to lowercase for plugin matching
+    local plugin_type="${product_type,,}"
+    
+    # Map old types to plugin names
+    case "$plugin_type" in
+        rdbms|grid) plugin_type="database" ;;
+        wls) plugin_type="weblogic" ;;
+    esac
+    
+    # Try to use plugin for status check
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${plugin_type}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}" 2>/dev/null
+        
+        if declare -f plugin_check_status >/dev/null 2>&1; then
+            plugin_check_status "${home_path}" "${instance_name}"
+            return $?
+        fi
+    fi
+    
+    # Fallback to legacy product-specific functions
+    oradba_log DEBUG "Using fallback status check for ${product_type}"
+    case "${product_type^^}" in
+        RDBMS|DATABASE)
             oradba_check_db_status "$instance_name" "$home_path"
             ;;
         ASM)
@@ -301,7 +327,7 @@ oradba_get_product_status() {
         OUD)
             oradba_check_oud_status "$instance_name"
             ;;
-        WLS)
+        WLS|WEBLOGIC)
             oradba_check_wls_status "$instance_name"
             ;;
         *)
