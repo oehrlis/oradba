@@ -191,8 +191,9 @@ get_listener_status() {
 show_oracle_status_registry() {
     local -a installations=("$@")
     
-    # Separate databases from other homes
+    # Separate by type
     local -a databases=()
+    local -a datasafe_homes=()
     local -a other_homes=()
     
     for install in "${installations[@]}"; do
@@ -201,37 +202,43 @@ show_oracle_status_registry() {
         
         if [[ "$ptype" == "database" ]]; then
             databases+=("$install")
+        elif [[ "$ptype" == "datasafe" ]]; then
+            datasafe_homes+=("$install")
         else
             other_homes+=("$install")
         fi
     done
     
-    # Display Oracle Homes first (non-database products)
+    # =========================================================================
+    # SECTION 1: Oracle Homes (non-database, non-datasafe products)
+    # =========================================================================
     if [[ ${#other_homes[@]} -gt 0 ]]; then
+        echo ""
+        echo "Oracle Homes"
+        echo "---------------------------------------------------------------------------------"
+        
         for home_obj in "${other_homes[@]}"; do
-            local name home ptype
+            local name home ptype status
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
             ptype=$(oradba_registry_get_field "$home_obj" "type")
             
-            # Get product-specific status if plugin available
-            local status="available"
-            if type -t "${ptype}_plugin.sh" &>/dev/null; then
-                # Load plugin if not already loaded
-                local plugin_file="${ORADBA_BASE}/lib/plugins/${ptype}_plugin.sh"
-                # shellcheck source=/dev/null
-                [[ -f "$plugin_file" ]] && source "$plugin_file" 2>/dev/null
+            # Check if directory exists
+            if [[ ! -d "$home" ]]; then
+                status="missing"
+            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
+                status="empty"
+            else
+                # Get product-specific status if plugin available
+                status="available"
+                if type -t plugin_check_status &>/dev/null; then
+                    status=$(plugin_check_status "$home")
+                fi
             fi
             
-            # Check status using plugin if available
-            if type -t plugin_check_status &>/dev/null; then
-                status=$(plugin_check_status "$home")
-            fi
-            
-            # Display
+            # Display type label
             local display_type="ORACLE_HOME"
             case "$ptype" in
-                datasafe) display_type="DataSafe Conn" ;;
                 client|iclient) display_type="Client" ;;
                 oud) display_type="OUD" ;;
                 weblogic) display_type="WebLogic" ;;
@@ -244,8 +251,14 @@ show_oracle_status_registry() {
         done
     fi
     
-    # Display Database instances
+    # =========================================================================
+    # SECTION 2: Database Instances
+    # =========================================================================
     if [[ ${#databases[@]} -gt 0 ]]; then
+        echo ""
+        echo "Database Instances"
+        echo "---------------------------------------------------------------------------------"
+        
         for db_obj in "${databases[@]}"; do
             local sid home flags
             sid=$(oradba_registry_get_field "$db_obj" "name")
@@ -273,7 +286,9 @@ show_oracle_status_registry() {
         done
     fi
     
-    # Show listener status if any database homes exist
+    # =========================================================================
+    # SECTION 3: Listener Status
+    # =========================================================================
     if [[ ${#databases[@]} -gt 0 ]]; then
         echo ""
         echo "Listener Status"
@@ -304,17 +319,12 @@ show_oracle_status_registry() {
         fi
     fi
     
-    # Show DataSafe connector status separately
-    local -a datasafe_homes=()
-    for home_obj in "${other_homes[@]}"; do
-        local ptype
-        ptype=$(oradba_registry_get_field "$home_obj" "type")
-        [[ "$ptype" == "datasafe" ]] && datasafe_homes+=("$home_obj")
-    done
-    
+    # =========================================================================
+    # SECTION 4: Data Safe Connectors
+    # =========================================================================
     if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
         echo ""
-        echo "Data Safe Status"
+        echo "Data Safe Connectors"
         echo "---------------------------------------------------------------------------------"
         
         for ds_obj in "${datasafe_homes[@]}"; do
@@ -322,11 +332,18 @@ show_oracle_status_registry() {
             name=$(oradba_registry_get_field "$ds_obj" "name")
             home=$(oradba_registry_get_field "$ds_obj" "home")
             
-            # Use DataSafe plugin to check status
-            if type -t plugin_check_status &>/dev/null; then
-                status=$(plugin_check_status "$home")
+            # Check if directory exists first
+            if [[ ! -d "$home" ]]; then
+                status="missing"
+            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
+                status="empty"
             else
-                status="unknown"
+                # Use DataSafe plugin to check status
+                if type -t plugin_check_status &>/dev/null; then
+                    status=$(plugin_check_status "$home")
+                else
+                    status="unknown"
+                fi
             fi
             
             printf "%-17s : %-12s %-11s %s\n" "Connector" "$name" "$status" "$home"
