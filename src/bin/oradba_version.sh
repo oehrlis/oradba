@@ -49,7 +49,12 @@ if [[ ! -t 1 ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-# Check local version
+# Function: check_version
+# Purpose.: Read and return OraDBA version from VERSION file
+# Args....: None
+# Returns.: 0 if version found, 1 if VERSION file missing
+# Output..: Version string (e.g., "1.2.3") or "Unknown"
+# Notes...: Reads ${BASE_DIR}/VERSION; fallback for missing file
 # ------------------------------------------------------------------------------
 check_version() {
     local version_file="${BASE_DIR}/VERSION"
@@ -63,11 +68,12 @@ check_version() {
 }
 
 # ------------------------------------------------------------------------------
-# Parse checksumignore file and return exclusion patterns
-# Arguments:
-#   $1 - extension_path: path to extension directory
-# Returns:
-#   Space-separated awk exclusion patterns (field 2 matching)
+# Function: get_checksum_exclusions
+# Purpose.: Parse .checksumignore file and generate awk exclusion patterns
+# Args....: $1 - extension_path (extension directory containing .checksumignore)
+# Returns.: 0 (always succeeds)
+# Output..: Space-separated awk patterns for field 2 matching (e.g., "$2 ~ /^log\// || $2 ~ /^\.extension$/")
+# Notes...: Always excludes .extension, .checksumignore, log/; converts glob patterns (* to .*, ? to .)
 # ------------------------------------------------------------------------------
 get_checksum_exclusions() {
     local extension_path="$1"
@@ -129,9 +135,12 @@ get_checksum_exclusions() {
 }
 
 # ------------------------------------------------------------------------------
-# Verify installation integrity
-# Arguments:
-#   $1 - skip_extensions (optional): if "true", skip extension checksum verification
+# Function: check_integrity
+# Purpose.: Verify OraDBA installation integrity using SHA256 checksums
+# Args....: $1 - skip_extensions (optional, defaults to "false"; if "true", skip extension verification)
+# Returns.: 0 if all files verified, 1 if any mismatches or missing files
+# Output..: Success/failure status, file counts, detailed error list for failures
+# Notes...: Reads .oradba.checksum; excludes .install_info; calls check_additional_files and check_extension_checksums
 # ------------------------------------------------------------------------------
 check_integrity() {
     local skip_extensions="${1:-false}"
@@ -251,7 +260,12 @@ check_integrity() {
 }
 
 # ------------------------------------------------------------------------------
-# Check for additional files not in checksum (user modifications)
+# Function: check_additional_files
+# Purpose.: Detect user-added files not in official checksum (customizations)
+# Args....: None (uses ${BASE_DIR})
+# Returns.: None (always succeeds, informational)
+# Output..: Warning list of additional files in managed directories (bin, doc, etc, lib, rcv, sql, templates)
+# Notes...: Helps identify user customizations before updates; shows backup commands if SHOW_BACKUP=true
 # ------------------------------------------------------------------------------
 check_additional_files() {
     local checksum_file="${BASE_DIR}/.oradba.checksum"
@@ -305,7 +319,12 @@ check_additional_files() {
 }
 
 # ------------------------------------------------------------------------------
-# Check extension checksums if available
+# Function: check_extension_checksums
+# Purpose.: Verify integrity of all enabled extensions using their .extension.checksum files
+# Args....: None (scans ${BASE_DIR}/extensions and ${ORADBA_LOCAL_BASE})
+# Returns.: 0 if all extensions verified, 1 if any failures
+# Output..: Success/failure status for each enabled extension, verbose details in VERBOSE mode
+# Notes...: Checks only enabled extensions; respects .checksumignore; verifies managed dirs (bin,sql,rcv,etc,lib)
 # ------------------------------------------------------------------------------
 check_extension_checksums() {
     local checked_count=0
@@ -455,7 +474,12 @@ check_extension_checksums() {
 }
 
 # ------------------------------------------------------------------------------
-# Show installed extensions
+# Function: show_installed_extensions
+# Purpose.: Display list of all installed extensions with status indicators
+# Args....: None (sources lib/extensions.sh)
+# Returns.: 0 (always succeeds)
+# Output..: Formatted extension list: name, version, enabled/disabled status, checksum status (✓/✗)
+# Notes...: Sorted by priority; shows checksum status for enabled extensions; uses extensions.sh library
 # ------------------------------------------------------------------------------
 show_installed_extensions() {
     # Source extensions library if available
@@ -517,7 +541,12 @@ show_installed_extensions() {
 }
 
 # ------------------------------------------------------------------------------
-# Check for updates online
+# Function: check_updates
+# Purpose.: Query GitHub API for latest OraDBA release and compare with installed version
+# Args....: None
+# Returns.: 0 if up-to-date, 1 if check failed, 2 if update available
+# Output..: Current vs latest version, download instructions if update available
+# Notes...: Uses curl with 10s timeout; queries api.github.com/repos/oehrlis/oradba/releases/latest
 # ------------------------------------------------------------------------------
 check_updates() {
     local current_version
@@ -566,7 +595,12 @@ check_updates() {
 }
 
 # ------------------------------------------------------------------------------
-# Show detailed version information
+# Function: version_info
+# Purpose.: Display comprehensive version information, installation details, and integrity check
+# Args....: None
+# Returns.: Return code from check_integrity (0 if verified, 1 if failed)
+# Output..: Version, install path, installation metadata, installed extensions, integrity status
+# Notes...: Reads .install_info for details; calls show_installed_extensions and check_integrity
 # ------------------------------------------------------------------------------
 version_info() {
     local version
@@ -616,7 +650,12 @@ version_info() {
 }
 
 # ------------------------------------------------------------------------------
-# Display usage
+# Function: usage
+# Purpose.: Display comprehensive help information for version utility
+# Args....: None
+# Returns.: None (prints to stdout)
+# Output..: Multi-section help (options, examples, exit codes)
+# Notes...: Shows all command-line options for version checking, verification, updates
 # ------------------------------------------------------------------------------
 usage() {
     cat << EOF
@@ -650,7 +689,12 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Main
+# Function: main
+# Purpose.: Entry point and command-line argument dispatcher
+# Args....: $@ - Command-line arguments (see usage for options)
+# Returns.: Depends on selected operation (0 success, 1 error, 2 update available)
+# Output..: Depends on selected operation (check/verify/update-check/info/help)
+# Notes...: Defaults to version_info if no action specified; parses --verbose and --show-backup flags
 # ------------------------------------------------------------------------------
 main() {
     # Parse options

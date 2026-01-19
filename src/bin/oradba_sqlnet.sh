@@ -39,6 +39,14 @@ TEMPLATE_DIR="${ORADBA_BASE}/templates/sqlnet"
 # Functions
 # ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display comprehensive help for SQL*Net configuration management
+# Args....: None
+# Returns.: None (prints to stdout)
+# Output..: Multi-section usage text (commands, options, templates, examples)
+# Notes...: Shows installation, setup, generation, testing, validation operations
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} [OPTIONS]
@@ -84,7 +92,14 @@ Examples:
 EOF
 }
 
-# Get TNS_ADMIN directory
+# ------------------------------------------------------------------------------
+# Function: get_tns_admin
+# Purpose.: Determine TNS_ADMIN directory path
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: TNS_ADMIN directory path (TNS_ADMIN var, ORACLE_HOME/network/admin, or ~/.oracle/network/admin)
+# Notes...: Precedence: TNS_ADMIN env var, then ORACLE_HOME, finally HOME fallback
+# ------------------------------------------------------------------------------
 get_tns_admin() {
     if [[ -n "${TNS_ADMIN}" ]]; then
         echo "${TNS_ADMIN}"
@@ -95,7 +110,14 @@ get_tns_admin() {
     fi
 }
 
-# Backup file with timestamp
+# ------------------------------------------------------------------------------
+# Function: backup_file
+# Purpose.: Create timestamped backup copy of file
+# Args....: $1 - File path to backup
+# Returns.: 0 if file backed up, 1 if file doesn't exist
+# Output..: Success message with backup filename
+# Notes...: Backup format: <filename>.YYYYMMDD_HHMMSS.bak, preserves original file
+# ------------------------------------------------------------------------------
 backup_file() {
     local file="${1}"
     local backup
@@ -109,10 +131,15 @@ backup_file() {
     return 1
 }
 
-# Check if Oracle Home is read-only (logical read-only, not physical)
-# Oracle's read-only home feature uses ORACLE_BASE_HOME and ORACLE_BASE_CONFIG
-# for writable files while ORACLE_HOME remains logically read-only.
-# Returns: 0 if read-only, 1 if read-write or unsupported
+# ------------------------------------------------------------------------------
+# Function: is_readonly_home
+# Purpose.: Detect Oracle read-only home configuration (18c+ feature)
+# Args....: $1 - Oracle Home path (defaults to ORACLE_HOME env var)
+# Returns.: 0 if read-only home detected, 1 if read-write or unsupported version
+# Output..: None
+# Notes...: Uses orabasehome utility; output != ORACLE_HOME indicates read-only mode
+#           Read-only homes use ORACLE_BASE_HOME and ORACLE_BASE_CONFIG for writable files
+# ------------------------------------------------------------------------------
 is_readonly_home() {
     local oracle_home="${1:-${ORACLE_HOME}}"
 
@@ -142,7 +169,14 @@ is_readonly_home() {
     fi
 }
 
-# Get centralized TNS_ADMIN path
+# ------------------------------------------------------------------------------
+# Function: get_central_tns_admin
+# Purpose.: Calculate centralized TNS_ADMIN directory path
+# Args....: $1 - ORACLE_SID (defaults to ORACLE_SID env var)
+# Returns.: 0 (always succeeds)
+# Output..: Centralized TNS_ADMIN path: ${ORACLE_BASE}/network/${SID}/admin or ${ORACLE_BASE}/network/admin
+# Notes...: Returns SID-specific path if SID provided, otherwise generic network/admin
+# ------------------------------------------------------------------------------
 get_central_tns_admin() {
     local sid="${1:-${ORACLE_SID}}"
     local base="${ORACLE_BASE:-/u01/app/oracle}"
@@ -154,7 +188,14 @@ get_central_tns_admin() {
     fi
 }
 
-# Create centralized TNS_ADMIN structure
+# ------------------------------------------------------------------------------
+# Function: create_tns_structure
+# Purpose.: Create directory structure for centralized TNS_ADMIN (admin/log/trace)
+# Args....: $1 - ORACLE_SID (defaults to ORACLE_SID env var)
+# Returns.: 0 on success, 1 if admin directory creation fails
+# Output..: Success messages for created directories, final admin path to stdout
+# Notes...: Creates ${ORACLE_BASE}/network/${SID}/{admin,log,trace} with 755 permissions
+# ------------------------------------------------------------------------------
 create_tns_structure() {
     local sid="${1:-${ORACLE_SID}}"
     local base="${ORACLE_BASE:-/u01/app/oracle}"
@@ -186,7 +227,14 @@ create_tns_structure() {
     echo "${tns_admin}/admin"
 }
 
-# Move existing config files to centralized location
+# ------------------------------------------------------------------------------
+# Function: migrate_config_files
+# Purpose.: Move SQL*Net config files from source to centralized target directory
+# Args....: $1 - Source directory path, $2 - Target directory path
+# Returns.: 0 (always succeeds)
+# Output..: Success/warning messages for each file operation, final count
+# Notes...: Handles sqlnet.ora, tnsnames.ora, ldap.ora, listener.ora; backs up before moving
+# ------------------------------------------------------------------------------
 migrate_config_files() {
     local source_dir="${1}"
     local target_dir="${2}"
@@ -222,7 +270,14 @@ migrate_config_files() {
     fi
 }
 
-# Create symlinks from ORACLE_HOME to centralized location
+# ------------------------------------------------------------------------------
+# Function: create_symlinks
+# Purpose.: Create symlinks in ORACLE_HOME/network/admin pointing to centralized config files
+# Args....: $1 - Oracle Home path, $2 - Centralized admin directory path
+# Returns.: 0 on success, 1 if ORACLE_HOME invalid
+# Output..: Success messages for each symlink created, final count
+# Notes...: Handles read-only homes gracefully; skips if admin dir creation fails
+# ------------------------------------------------------------------------------
 create_symlinks() {
     local oracle_home="${1}"
     local central_admin="${2}"
@@ -267,7 +322,14 @@ create_symlinks() {
     fi
 }
 
-# Update sqlnet.ora with correct log/trace directories
+# ------------------------------------------------------------------------------
+# Function: update_sqlnet_paths
+# Purpose.: Update sqlnet.ora with centralized log and trace directory paths
+# Args....: $1 - sqlnet.ora file path, $2 - Base directory for logs/traces
+# Returns.: 0 (always succeeds if file exists)
+# Output..: Update confirmation message
+# Notes...: Removes existing LOG/TRACE_DIRECTORY lines, appends new paths for client/server
+# ------------------------------------------------------------------------------
 update_sqlnet_paths() {
     local sqlnet_file="${1}"
     local base_dir="${2}"
@@ -306,7 +368,14 @@ EOF
     echo "✓ Updated log/trace directories"
 }
 
-# Setup centralized TNS_ADMIN for a database
+# ------------------------------------------------------------------------------
+# Function: setup_tns_admin
+# Purpose.: Complete setup of centralized TNS_ADMIN structure for one database
+# Args....: $1 - ORACLE_SID (defaults to env var), $2 - ORACLE_HOME (defaults to env var)
+# Returns.: 0 on success, 1 if SID/ORACLE_BASE missing or creation fails
+# Output..: Progress messages, TNS_ADMIN path, profile export suggestion
+# Notes...: Orchestrates: structure creation, file migration, path updates, symlinks; exports TNS_ADMIN
+# ------------------------------------------------------------------------------
 setup_tns_admin() {
     local sid="${1:-${ORACLE_SID}}"
     local oracle_home="${2:-${ORACLE_HOME}}"
@@ -374,7 +443,14 @@ setup_tns_admin() {
     echo "========================================"
 }
 
-# Setup for all databases in oratab
+# ------------------------------------------------------------------------------
+# Function: setup_all_tns_admin
+# Purpose.: Setup centralized TNS_ADMIN for all databases listed in oratab
+# Args....: None (reads from ${ORATAB} or /etc/oratab)
+# Returns.: 0 if all succeeded, 1 if any errors or oratab missing
+# Output..: Progress for each database, final summary with success/error counts
+# Notes...: Skips ASM (+*) and agent entries; processes regular database SIDs only
+# ------------------------------------------------------------------------------
 setup_all_tns_admin() {
     local oratab="${ORATAB:-/etc/oratab}"
     local count=0
@@ -421,7 +497,14 @@ setup_all_tns_admin() {
     fi
 }
 
-# Install sqlnet.ora template
+# ------------------------------------------------------------------------------
+# Function: install_sqlnet
+# Purpose.: Install sqlnet.ora from template with variable substitution
+# Args....: $1 - Template type (basic|secure, defaults to basic)
+# Returns.: 0 on success, 1 if template not found
+# Output..: Installation success message with target path, or error with available templates
+# Notes...: Uses envsubst if available, otherwise sed; backs up existing file; sets 644 permissions
+# ------------------------------------------------------------------------------
 install_sqlnet() {
     local type="${1:-basic}"
     local template="${TEMPLATE_DIR}/sqlnet.ora.${type}"
@@ -459,7 +542,14 @@ install_sqlnet() {
     echo "✓ Installed sqlnet.ora (${type}) to ${target}"
 }
 
-# Generate tnsnames entry
+# ------------------------------------------------------------------------------
+# Function: generate_tnsnames
+# Purpose.: Generate and append TNS alias entry to tnsnames.ora
+# Args....: $1 - ORACLE_SID for alias
+# Returns.: 0 on success, 1 if SID missing or entry already exists
+# Output..: Success message or duplicate warning
+# Notes...: Auto-detects hostname (FQDN preferred) and uses port 1521; warns if alias exists
+# ------------------------------------------------------------------------------
 generate_tnsnames() {
     local sid="${1}"
     local tns_admin
@@ -504,7 +594,14 @@ EOF
     echo "✓ Added ${sid} to ${tnsnames}"
 }
 
-# Test TNS alias
+# ------------------------------------------------------------------------------
+# Function: test_tnsalias
+# Purpose.: Test TNS alias connectivity using tnsping and display entry details
+# Args....: $1 - TNS alias name
+# Returns.: 0 on success (always returns 0, shows results only)
+# Output..: Tnsping results (if available) and TNS entry from tnsnames.ora
+# Notes...: Uses tnsping for connectivity test (3 attempts), then displays full alias definition
+# ------------------------------------------------------------------------------
 test_tnsalias() {
     local alias="${1}"
 
@@ -538,7 +635,14 @@ test_tnsalias() {
     fi
 }
 
-# List TNS aliases
+# ------------------------------------------------------------------------------
+# Function: list_aliases
+# Purpose.: List all TNS aliases defined in tnsnames.ora
+# Args....: None
+# Returns.: 0 on success, 1 if tnsnames.ora not found
+# Output..: Numbered list of all TNS aliases (sorted)
+# Notes...: Extracts alias names from lines matching pattern: ALIAS = ...
+# ------------------------------------------------------------------------------
 list_aliases() {
     local tns_admin
     tns_admin="$(get_tns_admin)"
@@ -554,7 +658,14 @@ list_aliases() {
     grep -E "^[A-Z0-9_]+ *=" "${tnsnames}" | sed 's/ *=.*//' | sort | nl
 }
 
-# Validate configuration
+# ------------------------------------------------------------------------------
+# Function: validate_config
+# Purpose.: Validate SQL*Net configuration files and environment
+# Args....: None
+# Returns.: 0 if all checks pass, 1 if any errors found
+# Output..: Validation results for each component (sqlnet.ora, tnsnames.ora, ORACLE_HOME)
+# Notes...: Checks file existence, readability, basic syntax; reports errors with count
+# ------------------------------------------------------------------------------
 validate_config() {
     local tns_admin
     tns_admin="$(get_tns_admin)"
@@ -607,7 +718,14 @@ validate_config() {
     fi
 }
 
-# Backup all configuration files
+# ------------------------------------------------------------------------------
+# Function: backup_config
+# Purpose.: Backup all SQL*Net configuration files with timestamps
+# Args....: None
+# Returns.: 0 on success, 1 if no files found
+# Output..: Backup confirmations for each file, final count
+# Notes...: Backs up sqlnet.ora, tnsnames.ora, ldap.ora using backup_file function
+# ------------------------------------------------------------------------------
 backup_config() {
     local tns_admin
     tns_admin="$(get_tns_admin)"
@@ -633,6 +751,14 @@ backup_config() {
 # Main
 # ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Entry point and command-line argument dispatcher
+# Args....: $@ - Command-line arguments (see usage for options)
+# Returns.: 0 on success, 1 on error
+# Output..: Depends on selected operation (install/generate/test/list/validate/backup/setup)
+# Notes...: Dispatches to appropriate function based on first argument; shows usage if no args
+# ------------------------------------------------------------------------------
 main() {
     if [[ $# -eq 0 ]]; then
         usage

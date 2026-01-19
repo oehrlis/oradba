@@ -62,30 +62,69 @@ CHECKS_FAILED=0
 CHECKS_WARNING=0
 CHECKS_INFO=0
 
-# Logging functions
+# ------------------------------------------------------------------------------
+# Function: log_pass
+# Purpose.: Log successful check with green checkmark
+# Args....: $1 - Success message
+# Returns.: None
+# Output..: Green ✓ followed by message (suppressed in quiet mode)
+# Notes...: Increments CHECKS_PASSED counter; respects --quiet flag
+# ------------------------------------------------------------------------------
 log_pass() {
     ((CHECKS_PASSED++))
     [[ "$QUIET" == "true" ]] && return # Don't show passes in quiet mode
     echo -e "  ${GREEN}✓${NC} $1"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_fail
+# Purpose.: Log failed check with red X
+# Args....: $1 - Failure message
+# Returns.: None
+# Output..: Red ✗ followed by message (always displayed)
+# Notes...: Increments CHECKS_FAILED counter; never suppressed (critical errors)
+# ------------------------------------------------------------------------------
 log_fail() {
     ((CHECKS_FAILED++))
     echo -e "  ${RED}✗${NC} $1"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_warn
+# Purpose.: Log warning with yellow warning sign
+# Args....: $1 - Warning message
+# Returns.: None
+# Output..: Yellow ⚠ followed by message (suppressed in quiet mode)
+# Notes...: Increments CHECKS_WARNING counter; respects --quiet flag
+# ------------------------------------------------------------------------------
 log_warn() {
     ((CHECKS_WARNING++))
     [[ "$QUIET" == "true" ]] && return # Don't show warnings in quiet mode
     echo -e "  ${YELLOW}⚠${NC} $1"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_info
+# Purpose.: Log informational message with blue info icon
+# Args....: $1 - Informational message
+# Returns.: None
+# Output..: Blue ℹ followed by message (suppressed in quiet mode)
+# Notes...: Increments CHECKS_INFO counter; respects --quiet flag
+# ------------------------------------------------------------------------------
 log_info() {
     ((CHECKS_INFO++))
     [[ "$QUIET" == "true" ]] && return # Don't show info in quiet mode
     echo -e "  ${BLUE}ℹ${NC} $1"
 }
 
+# ------------------------------------------------------------------------------
+# Function: log_header
+# Purpose.: Display bold section header with underline
+# Args....: $1 - Header text
+# Returns.: None
+# Output..: Blank line, bold header text, dynamic underline (suppressed in quiet mode)
+# Notes...: Underline matches header length; respects --quiet flag
+# ------------------------------------------------------------------------------
 log_header() {
     [[ "$QUIET" == "true" ]] && return # Don't show headers in quiet mode
     echo ""
@@ -93,7 +132,14 @@ log_header() {
     echo "$(printf '%.0s-' $(seq 1 ${#1}))"
 }
 
-# Usage information
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display comprehensive help information and exit
+# Args....: None
+# Returns.: Exits with code 0
+# Output..: Multi-section help (usage, options, exit codes, examples, checks, download)
+# Notes...: Shows script version, all command-line options, performed checks, standalone usage
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 OraDBA System Check - Version ${SCRIPT_VERSION}
@@ -203,6 +249,14 @@ fi
 # =============================================================================
 # System Information
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_system_info
+# Purpose.: Display system information (OS, version, hostname, user, shell)
+# Args....: None
+# Returns.: None (always succeeds)
+# Output..: Formatted system information messages
+# Notes...: Informational only; uses uname, /etc/os-release, sw_vers (macOS)
+# ------------------------------------------------------------------------------
 check_system_info() {
     log_header "System Information"
 
@@ -241,6 +295,14 @@ check_system_info() {
 # =============================================================================
 # System Tools Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_system_tools
+# Purpose.: Verify availability of critical system tools required for OraDBA
+# Args....: None
+# Returns.: 0 if all tools found, 1 if any missing
+# Output..: Pass/fail for each tool: bash, tar, awk, sed, grep, find, sort, sha256sum/shasum, base64
+# Notes...: Critical check; missing tools prevent installation; shows versions in verbose mode
+# ------------------------------------------------------------------------------
 check_system_tools() {
     log_header "System Tools"
 
@@ -302,6 +364,14 @@ check_system_tools() {
 # =============================================================================
 # Optional Tools Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_optional_tools
+# Purpose.: Check availability of optional but recommended tools
+# Args....: None
+# Returns.: None (always succeeds, warnings only)
+# Output..: Pass/warn for rlwrap, less, curl, wget with installation suggestions
+# Notes...: Informational; missing tools reduce user experience but don't block installation
+# ------------------------------------------------------------------------------
 check_optional_tools() {
     log_header "Optional Tools"
 
@@ -341,6 +411,14 @@ check_optional_tools() {
 # =============================================================================
 # GitHub Connectivity Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_github_connectivity
+# Purpose.: Test connectivity to GitHub API for update/installation features
+# Args....: None
+# Returns.: None (always succeeds, informational)
+# Output..: Pass/warn for GitHub API accessibility with workaround suggestions
+# Notes...: Tests api.github.com with 5s timeout; informational only, tarball fallback available
+# ------------------------------------------------------------------------------
 check_github_connectivity() {
     log_header "GitHub Connectivity"
 
@@ -390,6 +468,14 @@ check_github_connectivity() {
 # =============================================================================
 # Disk Space Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_disk_space
+# Purpose.: Verify sufficient disk space for OraDBA installation (100 MB required)
+# Args....: None (uses $CHECK_DIR from command-line or default)
+# Returns.: 0 if sufficient space, 1 if insufficient
+# Output..: Checking directory, available space, required space, pass/fail status
+# Notes...: Critical check; finds existing parent if target doesn't exist; uses df -Pm
+# ------------------------------------------------------------------------------
 check_disk_space() {
     log_header "Disk Space"
 
@@ -428,6 +514,14 @@ check_disk_space() {
 # =============================================================================
 # Oracle Environment Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_oracle_environment
+# Purpose.: Check Oracle environment variables (ORACLE_HOME, ORACLE_BASE, ORACLE_SID, TNS_ADMIN)
+# Args....: None
+# Returns.: 0 (always succeeds, informational)
+# Output..: Pass/warn/info for each env var with paths and existence checks
+# Notes...: Informational only; validates directory existence for set variables; not required for installation
+# ------------------------------------------------------------------------------
 check_oracle_environment() {
     log_header "Oracle Environment Variables"
 
@@ -477,6 +571,14 @@ check_oracle_environment() {
 # =============================================================================
 # Oracle Tools Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_oracle_tools
+# Purpose.: Check availability of Oracle tools (sqlplus, rman, lsnrctl, tnsping)
+# Args....: None
+# Returns.: 0 (always succeeds, informational)
+# Output..: Pass/warn for each tool with paths in verbose mode
+# Notes...: Skipped if ORACLE_HOME not set; informational only; warns if tools missing
+# ------------------------------------------------------------------------------
 check_oracle_tools() {
     log_header "Oracle Tools"
 
@@ -510,6 +612,14 @@ check_oracle_tools() {
 # =============================================================================
 # Database Connectivity Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_database_connectivity
+# Purpose.: Test database connectivity and process availability
+# Args....: None
+# Returns.: 0 (always succeeds, informational)
+# Output..: Process status, connection test results, DB version in verbose mode
+# Notes...: Skipped if ORACLE_HOME/ORACLE_SID not set; checks pmon process, tests sqlplus connection with 5s timeout
+# ------------------------------------------------------------------------------
 check_database_connectivity() {
     log_header "Database Connectivity"
 
@@ -549,6 +659,14 @@ check_database_connectivity() {
 # =============================================================================
 # Oracle Versions Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_oracle_versions
+# Purpose.: Scan Oracle Inventory and common locations for installed Oracle Homes
+# Args....: None
+# Returns.: 0 (always succeeds, informational)
+# Output..: Inventory path, Oracle Homes found with versions in verbose mode
+# Notes...: Reads /etc/oraInst.loc or /var/opt/oracle/oraInst.loc; parses inventory.xml; falls back to common locations
+# ------------------------------------------------------------------------------
 check_oracle_versions() {
     log_header "Oracle Versions"
 
@@ -611,6 +729,14 @@ check_oracle_versions() {
 # =============================================================================
 # OraDBA Installation Check
 # =============================================================================
+# ------------------------------------------------------------------------------
+# Function: check_oradba_installation
+# Purpose.: Verify OraDBA installation completeness and display installation info
+# Args....: None (uses $CHECK_DIR)
+# Returns.: 0 (always succeeds, informational)
+# Output..: Directory existence, .install_info details, key directories (bin, lib, sql, etc)
+# Notes...: Informational; shows install metadata in verbose mode; warns if directories missing
+# ------------------------------------------------------------------------------
 check_oradba_installation() {
     log_header "OraDBA Installation"
 
