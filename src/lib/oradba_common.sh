@@ -1160,7 +1160,7 @@ parse_oracle_home() {
     local actual_name
 
     if [[ -z "${name}" ]]; then
-        log_error "Home name required"
+        oradba_log ERROR "Home name required"
         return 1
     fi
 
@@ -1575,7 +1575,7 @@ set_oracle_home_environment() {
             if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
                 datasafe_install_dir="${oracle_home}"
                 adjusted_home="${oracle_home}/oracle_cman_home"
-                log_debug "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home (fallback)"
+                oradba_log DEBUG "DataSafe detected: ORACLE_HOME adjusted to oracle_cman_home (fallback)"
             fi
         fi
     fi
@@ -1637,12 +1637,12 @@ set_oracle_home_environment() {
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
         *)
-            log_warn "Unknown product type: ${product_type}"
+            oradba_log WARN "Unknown product type: ${product_type}"
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
     esac
 
-    log_debug "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"
+    oradba_log DEBUG "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"
     return 0
 }
 
@@ -2134,7 +2134,7 @@ configure_sqlpath() {
 
     # 6. User custom SQL directory (create if needed)
     if [[ "${ORADBA_CREATE_USER_SQL_DIR}" == "true" ]] && [[ ! -d "${HOME}/.oradba/sql" ]]; then
-        mkdir -p "${HOME}/.oradba/sql" 2> /dev/null && log_debug "Created user SQL directory: ${HOME}/.oradba/sql"
+        mkdir -p "${HOME}/.oradba/sql" 2> /dev/null && oradba_log DEBUG "Created user SQL directory: ${HOME}/.oradba/sql"
     fi
     if [[ -d "${HOME}/.oradba/sql" ]]; then
         sqlpath_parts+=("${HOME}/.oradba/sql")
