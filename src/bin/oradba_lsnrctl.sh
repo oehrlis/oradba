@@ -43,7 +43,14 @@ LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
 # Functions
 # ------------------------------------------------------------------------------
 
-# Show usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display help for Oracle listener control
+# Args....: None
+# Returns.: Exits with code 1
+# Output..: Multi-section help (actions, options, arguments, examples, env vars)
+# Notes...: Shows start/stop/restart/status actions; supports multiple listeners
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS] [LISTENER1 LISTENER2 ...]
@@ -80,7 +87,14 @@ EOF
 # Enable file logging
 export ORADBA_LOG_FILE="${LOGFILE}"
 
-# Get first Oracle home from oratab
+# ------------------------------------------------------------------------------
+# Function: get_first_oracle_home
+# Purpose.: Get first valid Oracle Home from oratab
+# Args....: None (reads from ${ORATAB} or /etc/oratab)
+# Returns.: 0 on success, 1 if oratab not found or no valid home
+# Output..: Oracle Home path to stdout
+# Notes...: Skips entries marked :D (dummy); returns first active database home
+# ------------------------------------------------------------------------------
 get_first_oracle_home() {
     local oratab_file="${ORATAB:-/etc/oratab}"
 
@@ -101,7 +115,14 @@ get_first_oracle_home() {
     echo "${oracle_home}"
 }
 
-# Set Oracle environment for listener operations
+# ------------------------------------------------------------------------------
+# Function: set_listener_env
+# Purpose.: Set Oracle environment for listener operations (ORACLE_HOME, PATH, TNS_ADMIN)
+# Args....: $1 - Listener name (currently unused, reserved for future)
+# Returns.: 0 on success, 1 if cannot determine Oracle Home
+# Output..: None (sets environment variables)
+# Notes...: Gets Oracle Home from get_first_oracle_home; exports ORACLE_HOME, PATH, TNS_ADMIN
+# ------------------------------------------------------------------------------
 set_listener_env() {
     local listener_name="$1"
     local oracle_home
@@ -127,7 +148,14 @@ set_listener_env() {
     return 0
 }
 
-# Get list of running listeners
+# ------------------------------------------------------------------------------
+# Function: get_running_listeners
+# Purpose.: Get list of all currently running listeners
+# Args....: None
+# Returns.: 0 (always succeeds)
+# Output..: List of listener names (one per line, sorted, unique)
+# Notes...: Uses lsnrctl services to detect running listeners; parses output for names
+# ------------------------------------------------------------------------------
 get_running_listeners() {
     set_listener_env "LISTENER"
 
@@ -135,7 +163,14 @@ get_running_listeners() {
     lsnrctl services 2> /dev/null | grep "^Listener" | awk '{print $2}' | sort -u
 }
 
-# Ask for justification when operating on all listeners
+# ------------------------------------------------------------------------------
+# Function: ask_justification
+# Purpose.: Prompt for justification when operating on all listeners (safety check)
+# Args....: $1 - Action name (start/stop/restart), $2 - Count of affected listeners
+# Returns.: 0 if user confirms, 1 if cancelled or no justification
+# Output..: Warning banner, prompts for justification and confirmation
+# Notes...: Skipped if FORCE_MODE=true; requires "yes" confirmation to proceed
+# ------------------------------------------------------------------------------
 ask_justification() {
     local action="$1"
     local count="$2"
@@ -168,7 +203,14 @@ ask_justification() {
     return 0
 }
 
-# Start a listener
+# ------------------------------------------------------------------------------
+# Function: start_listener
+# Purpose.: Start specified Oracle listener
+# Args....: $1 - Listener name
+# Returns.: 0 on success, 1 if failed to set env or start
+# Output..: Log messages; lsnrctl output redirected to LOGFILE
+# Notes...: Checks if already running first; uses lsnrctl start
+# ------------------------------------------------------------------------------
 start_listener() {
     local listener_name="$1"
 
@@ -199,7 +241,14 @@ start_listener() {
     fi
 }
 
-# Stop a listener
+# ------------------------------------------------------------------------------
+# Function: stop_listener
+# Purpose.: Stop specified Oracle listener
+# Args....: $1 - Listener name
+# Returns.: 0 on success, 1 if failed to set env or stop
+# Output..: Log messages; lsnrctl output redirected to LOGFILE
+# Notes...: Checks if running first; uses lsnrctl stop
+# ------------------------------------------------------------------------------
 stop_listener() {
     local listener_name="$1"
 
@@ -230,7 +279,14 @@ stop_listener() {
     fi
 }
 
-# Show listener status
+# ------------------------------------------------------------------------------
+# Function: show_status
+# Purpose.: Display status of specified listener
+# Args....: $1 - Listener name
+# Returns.: 0 on success, 1 if failed to set environment
+# Output..: Status output from lsnrctl status
+# Notes...: Uses lsnrctl status to display listener information
+# ------------------------------------------------------------------------------
 show_status() {
     local listener_name="$1"
 

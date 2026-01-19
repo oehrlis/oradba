@@ -28,7 +28,14 @@ readonly COLOR_GREEN='\033[32m'
 readonly COLOR_YELLOW='\033[33m'
 readonly COLOR_BLUE='\033[34m'
 
-# Show main help menu
+# ------------------------------------------------------------------------------
+# Function: show_main_help
+# Purpose.: Display main OraDBA help menu with topic overview
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Formatted help menu (usage, topics, quick help, documentation, examples)
+# Notes...: Entry point for help system; shows available topics and resources
+# ------------------------------------------------------------------------------
 show_main_help() {
     cat << 'EOF'
 ===============================================================================
@@ -69,7 +76,14 @@ For detailed documentation on any topic, visit the online docs.
 EOF
 }
 
-# Show alias help
+# ------------------------------------------------------------------------------
+# Function: show_alias_help
+# Purpose.: Display comprehensive alias reference documentation
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Alias help from ${ORADBA_PREFIX}/doc/alias_help.txt with navigation info
+# Notes...: Shows full alias list with usage; provides links to online docs and alih/alig commands
+# ------------------------------------------------------------------------------
 show_alias_help() {
     echo -e "${COLOR_BOLD}OraDBA Aliases${COLOR_RESET}\n"
     echo "Quick alias reference (comprehensive list):"
@@ -87,7 +101,14 @@ show_alias_help() {
     echo "  Search: alig <pattern>"
 }
 
-# Show available scripts
+# ------------------------------------------------------------------------------
+# Function: show_scripts_help
+# Purpose.: List all available OraDBA scripts with descriptions
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Formatted list of scripts from ${ORADBA_BIN_DIR} with extracted purpose lines
+# Notes...: Extracts purpose from script headers; shows SQL script location; provides usage info
+# ------------------------------------------------------------------------------
 show_scripts_help() {
     echo -e "${COLOR_BOLD}OraDBA Scripts${COLOR_RESET}\n"
     echo "Available scripts in ${ORADBA_BIN_DIR:-${ORADBA_PREFIX}/bin}:"
@@ -120,7 +141,14 @@ show_scripts_help() {
     echo "  https://oehrlis.github.io/oradba/08-sql-scripts/"
 }
 
-# Show environment variables
+# ------------------------------------------------------------------------------
+# Function: show_variables_help
+# Purpose.: Display currently set environment variables (ORADBA_* and Oracle)
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Formatted lists of ORADBA_* and Oracle variables with descriptions of key vars
+# Notes...: Shows active environment; explains key configuration variables
+# ------------------------------------------------------------------------------
 show_variables_help() {
     echo -e "${COLOR_BOLD}OraDBA Environment Variables${COLOR_RESET}\n"
     echo "Currently set variables:"
@@ -151,7 +179,14 @@ show_variables_help() {
     echo "  https://oehrlis.github.io/oradba/05-configuration/"
 }
 
-# Show configuration help
+# ------------------------------------------------------------------------------
+# Function: show_config_help
+# Purpose.: Display configuration system documentation and current settings
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Config hierarchy, file locations, precedence order, current values, examples
+# Notes...: Shows config system structure; explains override mechanism; provides edit commands
+# ------------------------------------------------------------------------------
 show_config_help() {
     echo -e "${COLOR_BOLD}OraDBA Configuration System${COLOR_RESET}\n"
     echo "Configuration files (loaded in order, later overrides earlier):"
@@ -210,7 +245,14 @@ show_config_help() {
     echo "  https://oehrlis.github.io/oradba/05-configuration/"
 }
 
-# Show SQL help
+# ------------------------------------------------------------------------------
+# Function: show_sql_help
+# Purpose.: Display SQL*Plus scripts help and location info
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: SQL script location, usage within SQL*Plus, online documentation link
+# Notes...: Brief help; directs to oh.sql help within SQL*Plus for comprehensive info
+# ------------------------------------------------------------------------------
 show_sql_help() {
     echo -e "${COLOR_BOLD}OraDBA SQL Scripts${COLOR_RESET}\n"
     echo "SQL*Plus scripts location: ${ORADBA_PREFIX}/sql/"
@@ -229,7 +271,14 @@ show_sql_help() {
     echo "  https://oehrlis.github.io/oradba/08-sql-scripts/"
 }
 
-# Open online documentation
+# ------------------------------------------------------------------------------
+# Function: show_online_help
+# Purpose.: Open online OraDBA documentation in default browser
+# Args....: None
+# Returns.: None (always succeeds)
+# Output..: Status message and URL
+# Notes...: Tries open (macOS), xdg-open (Linux), then fallback to URL display
+# ------------------------------------------------------------------------------
 show_online_help() {
     local url="https://oehrlis.github.io/oradba/"
     echo -e "${COLOR_BOLD}Opening Online Documentation${COLOR_RESET}"
@@ -249,7 +298,14 @@ show_online_help() {
     fi
 }
 
-# Main
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Entry point and topic dispatcher
+# Args....: $1 - Topic name (aliases/scripts/variables/config/sql/online) or empty for main help
+# Returns.: 0 on success, 1 on unknown topic
+# Output..: Depends on selected topic
+# Notes...: Routes to appropriate show_*_help function; defaults to main help
+# ------------------------------------------------------------------------------
 main() {
     # Handle 'oradba help <topic>' and 'oradba <topic>' formats
     local topic="${1:-}"
