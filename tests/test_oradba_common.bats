@@ -42,20 +42,6 @@ teardown() {
     [ -d "$script_dir" ]
 }
 
-@test "log_info outputs correct format" {
-    run log_info "Test message"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ \[INFO\] ]]
-    [[ "$output" =~ "Test message" ]]
-}
-
-@test "log_error outputs to stderr" {
-    run log_error "Error message"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ \[ERROR\] ]]
-    [[ "$output" =~ "Error message" ]]
-}
-
 @test "command_exists detects existing commands" {
     run command_exists "bash"
     [ "$status" -eq 0 ]

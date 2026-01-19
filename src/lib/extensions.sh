@@ -237,31 +237,6 @@ is_extension_enabled() {
 
 # ------------------------------------------------------------------------------
 # Function: extension_provides
-# Purpose.: Check what directories an extension provides
-# Args....: $1 - Extension path
-#           $2 - Type (bin, sql, rcv, etc, lib)
-# Returns.: 0 if provides, 1 if not
-# Output..: None
-# ------------------------------------------------------------------------------
-extension_provides() {
-    local ext_path="$1"
-    local type="$2"
-    local metadata="${ext_path}/.extension"
-    local provides
-
-    # Check metadata first
-    if [[ -f "${metadata}" ]]; then
-        provides=$(parse_extension_metadata "${metadata}" "provides.${type}" 2> /dev/null)
-        if [[ -n "${provides}" ]]; then
-            [[ "${provides}" == "true" ]] && return 0 || return 1
-        fi
-    fi
-
-    # Fall back to checking directory existence
-    [[ -d "${ext_path}/${type}" ]]
-}
-
-# ------------------------------------------------------------------------------
 # Extension Sorting Functions
 # ------------------------------------------------------------------------------
 
@@ -572,32 +547,7 @@ create_extension_alias() {
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# Function: list_extensions
-# Purpose.: List all extensions with status
-# Args....: $1 - Optional --verbose flag for detailed output
-# Returns.: 0 on success
-# Output..: List of extensions with name, version, enabled status, priority
-# ------------------------------------------------------------------------------
-list_extensions() {
-    local verbose=false
-    [[ "$1" == "--verbose" ]] && verbose=true
-
-    local extensions=()
-    local ext_path ext_name version enabled priority
-
-    # Get all extensions
-    while IFS= read -r ext_path; do
-        [[ -n "${ext_path}" ]] && extensions+=("${ext_path}")
-    done < <(get_all_extensions)
-
-    if [[ ${#extensions[@]} -eq 0 ]]; then
-        echo "No extensions found"
-        return 0
-    fi
-
-    echo "OraDBA Extensions:"
-    echo "=================="
-    echo ""
+# Extensions list function removed - unused
 
     # Sort by priority
     while IFS= read -r ext_path; do

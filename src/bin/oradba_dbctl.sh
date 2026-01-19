@@ -127,23 +127,6 @@ get_databases() {
 
 # ------------------------------------------------------------------------------
 # Function: should_autostart
-# Purpose.: Check if database has auto-start flag in oratab
-# Args....: $1 - Database SID
-# Returns.: 0 if flag is 'Y', 1 otherwise
-# Output..: None
-# Notes...: Reads oratab third field; used to filter databases for batch operations
-# ------------------------------------------------------------------------------
-# shellcheck disable=SC2329
-should_autostart() {
-    local sid="$1"
-    local oratab_file="${ORATAB:-/etc/oratab}"
-    local flag
-
-    flag=$(grep "^${sid}:" "${oratab_file}" | cut -d: -f3)
-    [[ "${flag}" == "Y" ]]
-}
-
-# ------------------------------------------------------------------------------
 # Function: ask_justification
 # Purpose.: Prompt for justification when operating on multiple databases
 # Args....: $1 - Action name (start/stop/restart), $2 - Database count

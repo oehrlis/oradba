@@ -837,29 +837,6 @@ _oraenv_unset_old_env() {
 # ------------------------------------------------------------------------------
 # Function: _oraenv_show_environment
 # Purpose.: Display current Oracle environment variables
-# Args....: None
-# Returns.: None (outputs to stdout)
-# Output..: Formatted display of key Oracle environment variables:
-#           ORACLE_SID, ORACLE_HOME, ORACLE_BASE, TNS_ADMIN, NLS_LANG, PATH
-# Notes...: Shows "not set" for unset variables. Used in interactive mode to
-#           confirm environment setup. PATH is displayed in full.
-# ------------------------------------------------------------------------------
-_oraenv_show_environment() {
-    cat << EOF
-
-Oracle Environment:
-==================
-ORACLE_SID       : ${ORACLE_SID:-not set}
-ORACLE_HOME      : ${ORACLE_HOME:-not set}
-ORACLE_BASE      : ${ORACLE_BASE:-not set}
-TNS_ADMIN        : ${TNS_ADMIN:-not set}
-NLS_LANG         : ${NLS_LANG:-not set}
-PATH             : ${PATH}
-
-EOF
-}
-
-# ------------------------------------------------------------------------------
 # Function: _oraenv_main
 # Purpose.: Main orchestration function for oraenv.sh
 # Args....: $@ - All command line arguments

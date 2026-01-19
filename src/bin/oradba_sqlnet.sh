@@ -172,23 +172,6 @@ is_readonly_home() {
 # ------------------------------------------------------------------------------
 # Function: get_central_tns_admin
 # Purpose.: Calculate centralized TNS_ADMIN directory path
-# Args....: $1 - ORACLE_SID (defaults to ORACLE_SID env var)
-# Returns.: 0 (always succeeds)
-# Output..: Centralized TNS_ADMIN path: ${ORACLE_BASE}/network/${SID}/admin or ${ORACLE_BASE}/network/admin
-# Notes...: Returns SID-specific path if SID provided, otherwise generic network/admin
-# ------------------------------------------------------------------------------
-get_central_tns_admin() {
-    local sid="${1:-${ORACLE_SID}}"
-    local base="${ORACLE_BASE:-/u01/app/oracle}"
-
-    if [[ -n "${sid}" ]]; then
-        echo "${base}/network/${sid}/admin"
-    else
-        echo "${base}/network/admin"
-    fi
-}
-
-# ------------------------------------------------------------------------------
 # Function: create_tns_structure
 # Purpose.: Create directory structure for centralized TNS_ADMIN (admin/log/trace)
 # Args....: $1 - ORACLE_SID (defaults to ORACLE_SID env var)

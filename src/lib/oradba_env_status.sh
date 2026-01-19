@@ -197,27 +197,7 @@ oradba_check_datasafe_status() {
 # ------------------------------------------------------------------------------
 # Function: oradba_get_datasafe_port
 # Purpose.: Extract connection manager port number from DataSafe connector
-# Args....: $1 - ORACLE_HOME (DataSafe connector path)
-# Returns.: 0 if port found, 1 if not found
-# Output..: Port number or empty string
-# Notes...: Parses cmctl show services output for port information
-# ------------------------------------------------------------------------------
-oradba_get_datasafe_port() {
-    local oracle_home="$1"
-    
-    [[ -z "$oracle_home" ]] && return 1
-    
-    # Adjust to oracle_cman_home via plugin
-    local adjusted_home="${oracle_home}"
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}"
-        adjusted_home=$(plugin_adjust_environment "${oracle_home}")
-    elif [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-        adjusted_home="${oracle_home}/oracle_cman_home"
-    fi
-    
+
     local cmctl="${adjusted_home}/bin/cmctl"
     
     # Check if cmctl exists

@@ -187,27 +187,7 @@ get_listener_status() {
 # Purpose.: Determine if listener status section should be displayed
 # Returns.: 0 if should show, 1 if should not show
 # Note....: Listener status is shown when ANY of these conditions are met:
-#           1. tnslsnr process is running, OR
-#           2. Oracle database binary is installed (oratab/oradba_homes entries), OR
-#           3. listener.ora exists WITH database home (not client-only)
-#           Exception: Client-only + listener.ora = DON'T show
-# ------------------------------------------------------------------------------
-should_show_listener_status() {
-    # Condition 1: Check if any tnslsnr process is running
-    if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
-        return 0  # Listener process running - show status
-    fi
-
-    # Condition 2: Check if Oracle database binary is installed
-    local has_database=false
-    
-    # Check oratab for database entries (not dummy, not client-only)
-    while IFS=: read -r sid oracle_home startup_flag _rest; do
-        [[ "$sid" =~ ^[[:space:]]*# ]] && continue
-        [[ -z "$sid" ]] && continue
-        [[ ! -d "$oracle_home" ]] && continue
-        
-        # Skip dummy entries
+# Skip dummy entries
         [[ "$startup_flag" == "D" ]] && continue
         
         # Check if oracle binary exists (indicates database home, not client)
@@ -247,18 +227,6 @@ should_show_listener_status() {
 
     # No valid conditions met - don't show listener status
     return 1
-}
-
-# ------------------------------------------------------------------------------
-# Function: get_startup_flag
-# Purpose.: Get startup flag from oratab (Y/N/D)
-# Returns.: Startup flag
-# ------------------------------------------------------------------------------
-get_startup_flag() {
-    local sid="$1"
-    local flag
-    flag=$(grep "^${sid}:" "$ORATAB_FILE" 2> /dev/null | cut -d: -f3)
-    echo "${flag:-N}"
 }
 
 # ------------------------------------------------------------------------------
