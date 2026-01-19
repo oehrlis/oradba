@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-01-19
+
+**Note**: This release consolidates all changes since the last official release (0.18.x). 
+Previous version numbers 1.x.x and 2.x.x were development-only and are being reset to 
+maintain semantic versioning continuity.
+
 ### Added
 
 - **Complete Function Documentation** (2026-01-19)
@@ -118,49 +124,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Foundation for API documentation generation
   - Documentation coverage progress: 188/374 functions (50% codebase-wide)
 
-## [1.2.2] - 2026-01-16
-
-### Fixed
-
-- **oradba_env.sh Delimiter Parsing** (2026-01-16)
-  - Fixed `cmd_show`, `cmd_validate`, and `cmd_status` to use correct colon `:` delimiter
-  - Updated grep patterns to match actual oradba_homes.conf format
-  - Resolves issue where entire config line was displayed as name field
-  - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
-
-- **oradba_env.sh Validate Command for Oracle Homes** (2026-01-16)
-  - Apply DataSafe ORACLE_HOME adjustment (oracle_cman_home subdirectory)
-  - Display product type from config file instead of auto-detecting
-  - Show target name when validating specific target
-  - Clear ORACLE_SID when validating Oracle Home (not a database SID)
-  - Restore environment variables after validation completes
-  - Resolves confusion where current environment's values were mixed with target validation
-
-## [1.2.1] - 2026-01-16
-
-### Fixed
-
-- **PATH Deduplication** (2026-01-16)
-  - Fixed PATH accumulation when sourcing environment repeatedly
-  - Added deduplication in `load_config_file()` after sourcing configuration files
-  - Uses `oradba_dedupe_path` if available, falls back to awk implementation
-  - Resolves issue where JDK and other paths accumulated on each environment switch
-  - User-reported: Paths went from 1→2→3→4 copies on repeated sourcing
-
-- **DataSafe ORACLE_HOME Adjustment** (2026-01-16)
-  - Fixed ORACLE_HOME to point to `oracle_cman_home` subdirectory for DataSafe installations
-  - Implemented in three code paths:
-    - `oraenv.sh` for oratab entries (lines 470-479)
-    - `set_oracle_home_environment()` for Oracle Homes (lines 1640-1668)
-    - `oradba_env_builder.sh` for Phase 2 architecture (lines 343-365)
-  - Sets additional DataSafe variables: `DATASAFE_HOME`, `DATASAFE_INSTALL_DIR`, `DATASAFE_CONFIG`
-  - Adjusts PATH to use `oracle_cman_home/bin` instead of parent directory
-  - User-reported: DataSafe commands now work correctly with proper paths
-
-## [1.2.0] - 2026-01-16
-
-### Added
-
 - **Oracle Home Management Support** (2026-01-16)
   - `oradba_env.sh` now fully supports Oracle Homes from oradba_homes.conf
   - All commands (list, show, status, validate) work with Oracle Home names/aliases
@@ -172,43 +135,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added extension-specific instructions for all extension templates
   - Documented database query patterns, logging conventions, test workflows
   - Created `.github/.scratch/` for temporary AI-generated working files
-
-### Fixed
-
-- **Status Display Concatenation Bug** (2026-01-16)
-  - Fixed "unknownavailable" concatenation in oraup.sh Oracle Homes section
-  - Fixed same issue in Data Safe Status section
-  - Removed problematic `|| echo` fallbacks that caused status string concatenation
-  - Status now correctly shows: unavailable, unknown, running, or stopped
-
-- **Status Logic for Missing Installations** (2026-01-16)
-  - Added directory existence checks before checking connector status
-  - "unavailable": directory doesn't exist
-  - "unknown": directory exists but cmctl not found/executable  
-  - "stopped": installation exists but connector not running
-  - "running": connector is actively running (with port number)
-
-- **Display Alignment Issues** (2026-01-16)
-  - Changed "Connection Manager" to "Connector" in Data Safe Status section
-  - Fixed column alignment across all status sections
-  - Consistent 17-character width for type column
-
-- **Oracle Homes List Format** (2026-01-16)
-  - Fixed parsing of oradba_list_all_homes output (NAME|PATH|TYPE|ORDER|ALIAS)
-  - Display format now: NAME TYPE PATH (consistent with SID listing)
-  - Shows alias if different from name, otherwise shows name
-
-### Changed
-
-- **oradba_env.sh Enhanced** (2026-01-16)
-  - `show` command: Tries oradba_homes.conf first, then oratab, then path
-  - `status` command: Supports Oracle Homes, not just database SIDs
-  - `validate` command: Accepts optional target parameter for any Oracle Home
-  - Temporary ORACLE_HOME override during validation to test specific homes
-
-## [1.1.0] - 2026-01-15
-
-### Added
 
 - **DataSafe On-Premises Connector Support** (2026-01-15)
   - Added DataSafe product type detection for oracle_cman_home structure
@@ -248,6 +174,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Client Display Improvements** (2026-01-15)
   - `oraup.sh` now hides dummy entries for client-only installations
   - Cleaner output when no databases are installed
+
+### Changed
+
+### Fixed
+
+- **oradba_env.sh Delimiter Parsing** (2026-01-16)
+  - Fixed `cmd_show`, `cmd_validate`, and `cmd_status` to use correct colon `:` delimiter
+  - Updated grep patterns to match actual oradba_homes.conf format
+  - Resolves issue where entire config line was displayed as name field
+  - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
+
+- **oradba_env.sh Validate Command for Oracle Homes** (2026-01-16)
+  - Apply DataSafe ORACLE_HOME adjustment (oracle_cman_home subdirectory)
+  - Display product type from config file instead of auto-detecting
+  - Show target name when validating specific target
+  - Clear ORACLE_SID when validating Oracle Home (not a database SID)
+  - Temporary ORACLE_HOME override during validation to test specific homes
+
+### Fixed
+
+- **oradba_env.sh Delimiter Parsing** (2026-01-16)
+  - Fixed `cmd_show`, `cmd_validate`, and `cmd_status` to use correct colon `:` delimiter
+  - Updated grep patterns to match actual oradba_homes.conf format
+  - Resolves issue where entire config line was displayed as name field
+  - User-reported: `oradba_env.sh show dscontest` now correctly splits and displays fields
+
+- **oradba_env.sh Validate Command for Oracle Homes** (2026-01-16)
+  - Apply DataSafe ORACLE_HOME adjustment (oracle_cman_home subdirectory)
+  - Display product type from config file instead of auto-detecting
+  - Show target name when validating specific target
+  - Clear ORACLE_SID when validating Oracle Home (not a database SID)
+  - Restore environment variables after validation completes
+  - Resolves confusion where current environment's values were mixed with target validation
+
+- **PATH Deduplication** (2026-01-16)
+  - Fixed PATH accumulation when sourcing environment repeatedly
+  - Added deduplication in `load_config_file()` after sourcing configuration files
+  - Uses `oradba_dedupe_path` if available, falls back to awk implementation
+  - Resolves issue where JDK and other paths accumulated on each environment switch
+  - User-reported: Paths went from 1→2→3→4 copies on repeated sourcing
+
+- **DataSafe ORACLE_HOME Adjustment** (2026-01-16)
+  - Fixed ORACLE_HOME to point to `oracle_cman_home` subdirectory for DataSafe installations
+  - Implemented in three code paths:
+    - `oraenv.sh` for oratab entries (lines 470-479)
+    - `set_oracle_home_environment()` for Oracle Homes (lines 1640-1668)
+    - `oradba_env_builder.sh` for Phase 2 architecture (lines 343-365)
+  - Sets additional DataSafe variables: `DATASAFE_HOME`, `DATASAFE_INSTALL_DIR`, `DATASAFE_CONFIG`
+  - Adjusts PATH to use `oracle_cman_home/bin` instead of parent directory
+  - User-reported: DataSafe commands now work correctly with proper paths
+
+- **Status Display Concatenation Bug** (2026-01-16)
+  - Fixed "unknownavailable" concatenation in oraup.sh Oracle Homes section
+  - Fixed same issue in Data Safe Status section
+  - Removed problematic `|| echo` fallbacks that caused status string concatenation
+  - Status now correctly shows: unavailable, unknown, running, or stopped
+
+- **Status Logic for Missing Installations** (2026-01-16)
+  - Added directory existence checks before checking connector status
+  - "unavailable": directory doesn't exist
+  - "unknown": directory exists but cmctl not found/executable  
+  - "stopped": installation exists but connector not running
+  - "running": connector is actively running (with port number)
+
+- **Display Alignment Issues** (2026-01-16)
+  - Changed "Connection Manager" to "Connector" in Data Safe Status section
+  - Fixed column alignment across all status sections
+  - Consistent 17-character width for type column
+
+- **Oracle Homes List Format** (2026-01-16)
+  - Fixed parsing of oradba_list_all_homes output (NAME|PATH|TYPE|ORDER|ALIAS)
+  - Display format now: NAME TYPE PATH (consistent with SID listing)
+  - Shows alias if different from name, otherwise shows name
+
+## [0.18.x] - Previous Official Release
   - Added "Instant Client" product type display name
 
 - **Archived Version Warning** (2026-01-15)
