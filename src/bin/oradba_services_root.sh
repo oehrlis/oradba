@@ -44,7 +44,14 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 # Functions
 # ------------------------------------------------------------------------------
 
-# Check if running as root
+# ------------------------------------------------------------------------------
+# Function: check_root
+# Purpose.: Verify script is running with root privileges
+# Args....: None
+# Returns.: Exits with code 1 if not root
+# Output..: Error message via log_message if not root
+# Notes...: Required for systemd/init.d service management
+# ------------------------------------------------------------------------------
 check_root() {
     if [[ $(id -u) -ne 0 ]]; then
         log_message "ERROR" "This script must be run as root"
@@ -52,7 +59,14 @@ check_root() {
     fi
 }
 
-# Check if oracle user exists
+# ------------------------------------------------------------------------------
+# Function: check_oracle_user
+# Purpose.: Verify Oracle OS user exists on system
+# Args....: None (uses global ORACLE_USER)
+# Returns.: Exits with code 1 if user doesn't exist
+# Output..: Error message via log_message if user missing
+# Notes...: Checks user defined by ${ORACLE_USER} environment variable
+# ------------------------------------------------------------------------------
 check_oracle_user() {
     if ! id "${ORACLE_USER}" > /dev/null 2>&1; then
         log_message "ERROR" "User ${ORACLE_USER} does not exist"
@@ -60,7 +74,14 @@ check_oracle_user() {
     fi
 }
 
-# Check if services script exists
+# ------------------------------------------------------------------------------
+# Function: check_services_script
+# Purpose.: Validate oradba_services.sh exists and is executable
+# Args....: None (uses global SERVICES_SCRIPT)
+# Returns.: Exits with code 1 if script missing or not executable
+# Output..: Error messages via log_message
+# Notes...: Checks ${ORADBA_BASE}/bin/oradba_services.sh
+# ------------------------------------------------------------------------------
 check_services_script() {
     if [[ ! -f "${SERVICES_SCRIPT}" ]]; then
         log_message "ERROR" "Services script not found: ${SERVICES_SCRIPT}"
@@ -73,7 +94,14 @@ check_services_script() {
     fi
 }
 
-# Execute command as oracle user
+# ------------------------------------------------------------------------------
+# Function: run_as_oracle
+# Purpose.: Execute oradba_services.sh as Oracle user with sudo/su
+# Args....: $1 - Action (start|stop|restart|status)
+# Returns.: Exit code from services script
+# Output..: Status messages via log_message; service script output
+# Notes...: Uses 'su - ${ORACLE_USER}' to execute; passes --force flag
+# ------------------------------------------------------------------------------
 run_as_oracle() {
     local action="$1"
 
@@ -93,7 +121,14 @@ run_as_oracle() {
     fi
 }
 
-# Show usage
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information and examples
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Usage text, actions, environment variables, examples
+# Notes...: Shows wrapper purpose and available service actions
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} {start|stop|restart|status}

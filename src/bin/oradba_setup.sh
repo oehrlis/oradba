@@ -34,6 +34,14 @@ init_logging
 # ------------------------------------------------------------------------------
 # Display usage information
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information, commands, examples
+# Args....: None
+# Returns.: None (outputs to stdout)
+# Output..: Usage text, commands, options, examples, description
+# Notes...: Shows post-installation tasks: link-oratab, check, show-config
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: $(basename "$0") [COMMAND] [OPTIONS]
@@ -76,7 +84,12 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Link oratab: Replace temp oratab with symlink to system oratab
+# Function: cmd_link_oratab
+# Purpose.: Replace temp oratab with symlink to system /etc/oratab
+# Args....: $1 - Force mode (true|false, default: false)
+# Returns.: 0 on success, 1 on failure
+# Output..: Status messages via oradba_log
+# Notes...: Creates symlink ${ORADBA_BASE}/etc/oratab → /etc/oratab; requires system oratab exists
 # ------------------------------------------------------------------------------
 cmd_link_oratab() {
     local force_mode="${1:-false}"
@@ -181,7 +194,12 @@ cmd_link_oratab() {
 }
 
 # ------------------------------------------------------------------------------
-# Check OraDBA installation health
+# Function: cmd_check
+# Purpose.: Validate OraDBA installation health and requirements
+# Args....: None
+# Returns.: 0 if all checks pass, 1 if any check fails
+# Output..: Check results (✓/✗) with status messages via oradba_log
+# Notes...: Checks OraDBA installation, oratab, Oracle Homes, directories, configuration files
 # ------------------------------------------------------------------------------
 cmd_check() {
     local exit_code=0
@@ -307,7 +325,12 @@ cmd_check() {
 }
 
 # ------------------------------------------------------------------------------
-# Show OraDBA configuration
+# Function: cmd_show_config
+# Purpose.: Display current OraDBA configuration and environment
+# Args....: None
+# Returns.: None (always succeeds)
+# Output..: Formatted configuration details (paths, variables, hosts, databases) to stdout
+# Notes...: Shows OraDBA_BASE, PREFIX, config hierarchy, Oracle Homes, SIDs, key environment vars
 # ------------------------------------------------------------------------------
 cmd_show_config() {
     echo ""
@@ -371,7 +394,12 @@ cmd_show_config() {
 }
 
 # ------------------------------------------------------------------------------
-# Main
+# Function: main
+# Purpose.: Parse command and dispatch to appropriate subcommand
+# Args....: Command line arguments (command + options)
+# Returns.: Exit code from subcommand (0 success, 1 failure)
+# Output..: Depends on selected command
+# Notes...: Commands: link-oratab, check, show-config, help; parses --force, --verbose, --help options
 # ------------------------------------------------------------------------------
 main() {
     local command=""

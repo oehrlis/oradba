@@ -35,7 +35,14 @@ OPERATION_FILTER=""
 SHOW_ALL=false
 SID_LIST=""
 
-# Usage function
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information, options, examples, and common operation patterns
+# Args....: None
+# Returns.: Exits with code 0
+# Output..: Usage text, options, examples, pattern reference to stdout
+# Notes...: Shows watch mode, operation filters, interval config, common patterns for RMAN/DataPump
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} [OPTIONS] [SID...]
@@ -82,7 +89,14 @@ EOF
     exit 0
 }
 
-# Parse command line arguments
+# ------------------------------------------------------------------------------
+# Function: parse_args
+# Purpose.: Parse command line arguments and set mode flags
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exits on unknown option
+# Output..: Error messages to stderr for invalid options
+# Notes...: Sets OPERATION_FILTER, SHOW_ALL, WATCH_MODE, WATCH_INTERVAL, SID_LIST globals
+# ------------------------------------------------------------------------------
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -118,7 +132,14 @@ parse_args() {
     done
 }
 
-# Function to monitor longops for a single SID
+# ------------------------------------------------------------------------------
+# Function: monitor_longops
+# Purpose.: Query v$session_longops for a specific SID and display results
+# Args....: $1 - Oracle SID
+# Returns.: 0 on success
+# Output..: Formatted table with operation name, user, progress%, elapsed/remaining time, message to stdout
+# Notes...: Applies OPERATION_FILTER and SHOW_ALL filters; calculates elapsed/remaining minutes
+# ------------------------------------------------------------------------------
 monitor_longops() {
     local sid=$1
     local where_clause=""
@@ -182,7 +203,14 @@ EXIT;
 EOF
 }
 
-# Function to display header in watch mode
+# ------------------------------------------------------------------------------
+# Function: display_header
+# Purpose.: Display formatted header with timestamp and database info
+# Args....: $1 - Oracle SID
+# Returns.: None
+# Output..: Header line with SID, hostname, timestamp, operation filter to stdout
+# Notes...: Shows monitoring context for watch mode refreshes
+# ------------------------------------------------------------------------------
 display_header() {
     local sid=$1
     local timestamp
@@ -196,7 +224,14 @@ display_header() {
     echo "================================================================================"
 }
 
-# Main monitoring function
+# ------------------------------------------------------------------------------
+# Function: run_monitor
+# Purpose.: Execute monitoring for all specified SIDs (single shot or watch mode)
+# Args....: None (uses global SID_LIST, ORACLE_SID, WATCH_MODE, WATCH_INTERVAL)
+# Returns.: 0 on success, 1 if no SID specified
+# Output..: Monitoring results for each SID to stdout
+# Notes...: Watch mode clears screen and loops with WATCH_INTERVAL; sources oraenv per SID
+# ------------------------------------------------------------------------------
 run_monitor() {
     local sid_to_monitor="${SID_LIST:-${ORACLE_SID}}"
 
@@ -255,7 +290,14 @@ run_monitor() {
     fi
 }
 
-# Main execution
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Orchestrate long operations monitoring workflow
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exit code from run_monitor
+# Output..: Depends on watch/filter modes
+# Notes...: Workflow: parse args → run monitor; defaults to $ORACLE_SID if no SIDs specified
+# ------------------------------------------------------------------------------
 main() {
     parse_args "$@"
     run_monitor
