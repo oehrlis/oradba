@@ -1588,8 +1588,8 @@ set_oracle_home_environment() {
     if [[ -n "${datasafe_install_dir}" ]]; then
         export DATASAFE_HOME="${oracle_home}"
         export DATASAFE_INSTALL_DIR="${datasafe_install_dir}"
-        if [[ -d "${oracle_home}/config" ]]; then
-            export DATASAFE_CONFIG="${oracle_home}/config"
+        if [[ -d "${adjusted_home}/config" ]]; then
+            export DATASAFE_CONFIG="${adjusted_home}/config"
         fi
     fi
     

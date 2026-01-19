@@ -283,7 +283,7 @@ EOF
 @test "apply_product_config: should apply DEFAULT and product sections" {
     # Create test config in temp directory (NOT in source!)
     mkdir -p "${TEST_DIR}/etc"
-    cat > "${TEST_DIR}/etc/test_config.conf" <<'EOF'
+    cat > "${TEST_DIR}/etc/oradba_core.conf" <<'EOF'
 [DEFAULT]
 export DEFAULT_VAR=default_value
 
