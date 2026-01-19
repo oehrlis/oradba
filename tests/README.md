@@ -41,7 +41,7 @@ with unit tests for libraries and integration tests for scripts.
 | [test_sid_config.bats](test_sid_config.bats)                         | SID-specific configuration | 21    | SID-specific configuration loading    |
 | [test_sync_scripts.bats](test_sync_scripts.bats)                     | bin/sync_*.sh              | 51    | Peer synchronization scripts          |
 
-**Total: 925 tests** (comprehensive coverage across all components)
+**Total: 1033 tests** (comprehensive coverage across all components)
 
 ### Test Architecture
 

@@ -887,7 +887,7 @@ runs comprehensive validation before creating a release:
 **Steps:**
 
 1. **Full Test Suite** ⚠️
-   - Runs all 925 tests (no smart selection)
+   - Runs all 1033 tests (no smart selection)
    - Ensures complete validation
    - Comprehensive quality check
 

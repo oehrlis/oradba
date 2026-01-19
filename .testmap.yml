@@ -19,6 +19,8 @@ mappings:
     - test_oradba_common.bats
     - test_oradba_aliases.bats
     - test_oradba_db_functions.bats
+    - test_oradba_env_config.bats
+    - test_oradba_env_status.bats
     - test_oraenv.bats
     - test_oradba_check.bats
     - test_service_management.bats
@@ -74,11 +76,21 @@ mappings:
     - test_oradba_env_config.bats
     - test_oradba_env_parser.bats
   
-  src/lib/env_status.sh:
+  # Note: test_oradba_env_config.bats requires oradba_common.sh (for oradba_log)
+  
+  src/lib/oradba_env_status.sh:
     - test_oradba_env_status.bats
   
-  src/lib/env_changes.sh:
+  # Note: test_oradba_env_status.bats requires oradba_common.sh (for plugins)
+  
+  src/lib/oradba_env_changes.sh:
     - test_oradba_env_changes.bats
+  
+  # Plugin system - affects status checks and environment building
+  src/lib/plugins/*.sh:
+    - test_plugins.bats
+    - test_oradba_env_status.bats
+    - test_oradba_env_builder.bats
   
   # Service management scripts
   src/bin/oradba_dbctl.sh:

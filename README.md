@@ -65,7 +65,7 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 - **Database Status Display**: Comprehensive information for all states (OPEN/MOUNT/NOMOUNT)
 - **SQL & RMAN Scripts**: Ready-to-use administration scripts with central logging
 - **Self-Contained Installer**: Single executable, no external dependencies
-- **Comprehensive Testing**: BATS test suite with 925+ tests, 100% pass rate, CI/CD integration
+- **Comprehensive Testing**: BATS test suite with 1033+ tests, 100% pass rate, CI/CD integration
 
 ## Quick Start
 
