@@ -281,12 +281,9 @@ EOF
 
 # Test oradba_apply_product_config
 @test "apply_product_config: should apply DEFAULT and product sections" {
-    # Backup original files
-    [[ -f "${ORADBA_BASE}/etc/oradba_core.conf" ]] && cp "${ORADBA_BASE}/etc/oradba_core.conf" "${ORADBA_BASE}/etc/oradba_core.conf.test_backup"
-    
-    # Create config files
-    mkdir -p "${ORADBA_BASE}/etc"
-    cat > "${ORADBA_BASE}/etc/oradba_core.conf" <<'EOF'
+    # Create test config in temp directory (NOT in source!)
+    mkdir -p "${TEST_DIR}/etc"
+    cat > "${TEST_DIR}/etc/test_config.conf" <<'EOF'
 [DEFAULT]
 export DEFAULT_VAR=default_value
 
@@ -294,25 +291,29 @@ export DEFAULT_VAR=default_value
 export RDBMS_VAR=rdbms_value
 EOF
     
+    # Temporarily point ORADBA_BASE to test directory
+    local old_base="${ORADBA_BASE}"
+    export ORADBA_BASE="${TEST_DIR}"
+    
     oradba_apply_product_config "RDBMS" "TESTDB"
     [ "${DEFAULT_VAR}" = "default_value" ]
     [ "${RDBMS_VAR}" = "rdbms_value" ]
     
-    # Restore original file
-    [[ -f "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" ]] && mv "${ORADBA_BASE}/etc/oradba_core.conf.test_backup" "${ORADBA_BASE}/etc/oradba_core.conf" || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
+    # Restore original ORADBA_BASE
+    export ORADBA_BASE="${old_base}"
 }
 
 @test "apply_product_config: should handle missing config files gracefully" {
-    # Backup and remove config files for this test
-    mv "${ORADBA_BASE}/etc/oradba_core.conf" "${ORADBA_BASE}/etc/oradba_core.conf.bak" 2>/dev/null || true
-    mv "${ORADBA_BASE}/etc/oradba_standard.conf" "${ORADBA_BASE}/etc/oradba_standard.conf.bak" 2>/dev/null || true
+    # Temporarily point ORADBA_BASE to test directory with no config files
+    local old_base="${ORADBA_BASE}"
+    export ORADBA_BASE="${TEST_DIR}"
+    mkdir -p "${TEST_DIR}/etc"
     
     run oradba_apply_product_config "RDBMS" "TESTDB"
     [ "$status" -eq 0 ]  # Should not fail
     
-    # Restore original files
-    mv "${ORADBA_BASE}/etc/oradba_core.conf.bak" "${ORADBA_BASE}/etc/oradba_core.conf" 2>/dev/null || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_core.conf 2>/dev/null || true
-    mv "${ORADBA_BASE}/etc/oradba_standard.conf.bak" "${ORADBA_BASE}/etc/oradba_standard.conf" 2>/dev/null || git -C "${PROJECT_ROOT}" checkout HEAD -- src/etc/oradba_standard.conf 2>/dev/null || true
+    # Restore original ORADBA_BASE
+    export ORADBA_BASE="${old_base}"
 }
 
 @test "apply_product_config: should apply SID-specific config if exists" {
