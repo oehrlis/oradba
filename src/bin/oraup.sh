@@ -278,7 +278,8 @@ show_oracle_status_registry() {
         local listener_count=0
         while read -r listener_line; do
             local listener_name
-            listener_name=$(echo "$listener_line" | awk '{print $NF}')
+            # Extract listener name (second-to-last field before -inherit flag)
+            listener_name=$(echo "$listener_line" | awk '{print $(NF-1)}')
             
             # Get listener status
             local lsnr_status="unknown"
