@@ -1079,7 +1079,7 @@ test_database_status() {
         test_fail "oraup.sh failed"
     fi
     
-    # Test 2: Check for required sections
+    # Test 2: Check for required sections (plugin architecture v1.0.0)
     test_start "Status output has required sections"
     local status_output
     status_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
@@ -1090,14 +1090,15 @@ test_database_status() {
         log_error "Missing 'Oracle Environment Status' header"
     fi
     
-    # Should have either "Oracle Homes" or "Database Instances" section
-    if ! echo "$status_output" | grep -qE "(Oracle Homes|Database Instances)"; then
+    # Plugin architecture shows TYPE/SID/STATUS/HOME header and installations directly
+    # Check for the column header line that indicates proper formatting
+    if ! echo "$status_output" | grep -qE "(TYPE.*SID.*STATUS.*HOME|DB-instance|ORACLE_HOME|Listener)"; then
         has_sections=false
-        log_error "Missing Oracle Homes or Database Instances section"
+        log_error "Missing Oracle installation entries (plugin architecture format)"
     fi
     
     if [[ "$has_sections" == "true" ]]; then
-        test_pass "Status output properly formatted"
+        test_pass "Status output properly formatted (plugin architecture v1.0.0)"
     else
         test_fail "Status output missing required sections"
     fi
