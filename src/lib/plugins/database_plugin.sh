@@ -4,10 +4,11 @@
 # Name.....: database_plugin.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin for Oracle Database homes (RDBMS)
 # Notes....: Handles database detection, status checking, and environment
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -17,7 +18,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="database"
-export plugin_version="1.0.0"
+export plugin_version="2.0.0"
 export plugin_description="Oracle Database (RDBMS) plugin"
 
 # ------------------------------------------------------------------------------
@@ -202,6 +203,96 @@ plugin_discover_instances() {
 # Returns.: 0 (supports aliases)
 # ------------------------------------------------------------------------------
 plugin_supports_aliases() {
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for database installations
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: Returns bin and OPatch directories
+#           If GRID_HOME exists and differs from ORACLE_HOME, includes Grid bin
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local oracle_home="$1"
+    local new_path=""
+    
+    # Full database installation: bin + OPatch
+    if [[ -d "${oracle_home}/bin" ]]; then
+        new_path="${oracle_home}/bin"
+    fi
+    
+    if [[ -d "${oracle_home}/OPatch" ]]; then
+        new_path="${new_path:+${new_path}:}${oracle_home}/OPatch"
+    fi
+    
+    # If GRID_HOME exists and differs from ORACLE_HOME, add Grid bin
+    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME}" != "${oracle_home}" ]]; then
+        if [[ -d "${GRID_HOME}/bin" ]]; then
+            new_path="${new_path:+${new_path}:}${GRID_HOME}/bin"
+        fi
+    fi
+    
+    echo "${new_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for database installations
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: Prefers lib64 on 64-bit systems, falls back to lib
+#           If GRID_HOME exists and differs from ORACLE_HOME, includes Grid lib
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local oracle_home="$1"
+    local lib_path=""
+    
+    # Prefer lib64 on 64-bit systems
+    if [[ -d "${oracle_home}/lib64" ]]; then
+        lib_path="${oracle_home}/lib64"
+    fi
+    
+    if [[ -d "${oracle_home}/lib" ]]; then
+        lib_path="${lib_path:+${lib_path}:}${oracle_home}/lib"
+    fi
+    
+    # If GRID_HOME exists and differs, add Grid libraries
+    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME}" != "${oracle_home}" ]]; then
+        if [[ -d "${GRID_HOME}/lib" ]]; then
+            lib_path="${lib_path:+${lib_path}:}${GRID_HOME}/lib"
+        fi
+    fi
+    
+    echo "${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for database
+# Returns.: 0 on success
+# Output..: "RDBMS"
+# Notes...: Used by oradba_apply_product_config() to load database settings
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "RDBMS"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for database
+# Returns.: 0 on success
+# Output..: Space-separated list of required binaries
+# Notes...: Core database tools that should be available
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "sqlplus tnsping lsnrctl"
     return 0
 }
 
