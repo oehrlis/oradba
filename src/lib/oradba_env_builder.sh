@@ -106,69 +106,52 @@ oradba_clean_path() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_add_oracle_path
-# Purpose.: Add Oracle binaries to PATH
+# Purpose.: Add Oracle binaries to PATH using plugin system
 # Args....: $1 - ORACLE_HOME
-#          $2 - Product type (optional)
+#          $2 - Product type (optional, lowercase: database, client, iclient, etc.)
 # Returns.: 0 on success
+# Notes...: Uses plugin_build_path() from product-specific plugins
+#           Falls back to basic bin directory for unknown products
 # ------------------------------------------------------------------------------
 oradba_add_oracle_path() {
     local oracle_home="$1"
-    local product_type="${2:-RDBMS}"
+    local product_type="${2:-database}"
     local new_path=""
     
     [[ ! -d "$oracle_home" ]] && return 1
     
+    # Convert product type to lowercase for plugin matching
+    product_type="${product_type,,}"
+    
+    # Map old uppercase types to plugin names
     case "$product_type" in
-        RDBMS|CLIENT|GRID)
-            # Full installations: bin + OPatch
-            if [[ -d "${oracle_home}/bin" ]]; then
-                new_path="${oracle_home}/bin"
-            fi
-            
-            if [[ -d "${oracle_home}/OPatch" ]]; then
-                new_path="${new_path:+${new_path}:}${oracle_home}/OPatch"
-            fi
-            
-            # If RDBMS with separate Grid, add Grid bin
-            if [[ "$product_type" == "RDBMS" ]] && [[ -n "$GRID_HOME" ]] && [[ "$GRID_HOME" != "$oracle_home" ]]; then
-                if [[ -d "${GRID_HOME}/bin" ]]; then
-                    new_path="${new_path:+${new_path}:}${GRID_HOME}/bin"
-                fi
-            fi
-            ;;
-            
-        ICLIENT)
-            # Instant Client: No bin directory, libraries only
-            # sqlplus may be in the lib directory
-            if [[ -d "$oracle_home" ]]; then
-                new_path="$oracle_home"
-            fi
-            ;;
-            
-        DATASAFE)
-            # DataSafe: ORACLE_HOME now points to oracle_cman_home
-            # so we just need bin directory
-            if [[ -d "${oracle_home}/bin" ]]; then
-                new_path="${oracle_home}/bin"
-            fi
-            ;;
-            
-        OUD)
-            # OUD: bin directory
-            if [[ -d "${oracle_home}/bin" ]]; then
-                new_path="${oracle_home}/bin"
-            fi
-            ;;
-            
-        WLS)
-            # WebLogic: wlserver/server/bin
-            if [[ -d "${oracle_home}/wlserver/server/bin" ]]; then
-                new_path="${oracle_home}/wlserver/server/bin"
-            elif [[ -d "${oracle_home}/server/bin" ]]; then
-                new_path="${oracle_home}/server/bin"
-            fi
-            ;;
+        rdbms|grid) product_type="database" ;;
+        wls|weblogic) product_type="weblogic" ;;
     esac
+    
+    # Try to load and use plugin
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}" 2>/dev/null
+        
+        # Call plugin function if it exists
+        if declare -f plugin_build_path >/dev/null 2>&1; then
+            new_path=$(plugin_build_path "${oracle_home}")
+            oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
+        fi
+    fi
+    
+    # Fallback if plugin not found or failed
+    if [[ -z "$new_path" ]]; then
+        oradba_log DEBUG "Using fallback PATH for ${product_type}"
+        if [[ -d "${oracle_home}/bin" ]]; then
+            new_path="${oracle_home}/bin"
+        elif [[ -d "$oracle_home" ]]; then
+            # Instant Client: binaries in root
+            new_path="$oracle_home"
+        fi
+    fi
     
     # Add paths to PATH only if directories exist AND not already in PATH
     # Handle both single paths and colon-separated path lists
@@ -193,14 +176,16 @@ oradba_add_oracle_path() {
 
 # ------------------------------------------------------------------------------
 # Function: oradba_set_lib_path
-# Purpose.: Set library path (LD_LIBRARY_PATH, SHLIB_PATH, etc.)
+# Purpose.: Set library path using plugin system
 # Args....: $1 - ORACLE_HOME
-#          $2 - Product type (optional)
+#          $2 - Product type (optional, lowercase: database, client, iclient, etc.)
 # Returns.: 0 on success
+# Notes...: Uses plugin_build_lib_path() from product-specific plugins
+#           Falls back to basic lib/lib64 detection for unknown products
 # ------------------------------------------------------------------------------
 oradba_set_lib_path() {
     local oracle_home="$1"
-    local product_type="${2:-RDBMS}"
+    local product_type="${2:-database}"
     local lib_path=""
     local lib_var="LD_LIBRARY_PATH"
     
@@ -213,53 +198,38 @@ oradba_set_lib_path() {
         Darwin) lib_var="DYLD_LIBRARY_PATH" ;;
     esac
     
-    # Add Oracle libraries based on product type
+    # Convert product type to lowercase for plugin matching
+    product_type="${product_type,,}"
+    
+    # Map old uppercase types to plugin names
     case "$product_type" in
-        RDBMS|CLIENT|GRID)
-            # Prefer lib64 on 64-bit systems
-            if [[ -d "${oracle_home}/lib64" ]]; then
-                lib_path="${oracle_home}/lib64"
-            fi
-            
-            if [[ -d "${oracle_home}/lib" ]]; then
-                lib_path="${lib_path:+${lib_path}:}${oracle_home}/lib"
-            fi
-            
-            # Add Grid libraries if separate
-            if [[ -n "$GRID_HOME" ]] && [[ "$GRID_HOME" != "$oracle_home" ]]; then
-                if [[ -d "${GRID_HOME}/lib" ]]; then
-                    lib_path="${lib_path:+${lib_path}:}${GRID_HOME}/lib"
-                fi
-            fi
-            ;;
-            
-        ICLIENT)
-            # Instant Client: libraries in root directory
-            if [[ -d "${oracle_home}/lib64" ]]; then
-                lib_path="${oracle_home}/lib64"
-            elif [[ -d "${oracle_home}/lib" ]]; then
-                lib_path="${oracle_home}/lib"
-            else
-                # Root directory for Instant Client
-                lib_path="${oracle_home}"
-            fi
-            ;;
-            
-        DATASAFE)
-            # DataSafe: ORACLE_HOME now points to oracle_cman_home
-            # so we just need lib directory
-            if [[ -d "${oracle_home}/lib" ]]; then
-                lib_path="${oracle_home}/lib"
-            fi
-            ;;
-            
-        OUD|WLS)
-            # These products may have lib directories
-            if [[ -d "${oracle_home}/lib" ]]; then
-                lib_path="${oracle_home}/lib"
-            fi
-            ;;
+        rdbms|grid) product_type="database" ;;
+        wls|weblogic) product_type="weblogic" ;;
     esac
+    
+    # Try to load and use plugin
+    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        # shellcheck source=/dev/null
+        source "${plugin_file}" 2>/dev/null
+        
+        # Call plugin function if it exists
+        if declare -f plugin_build_lib_path >/dev/null 2>&1; then
+            lib_path=$(plugin_build_lib_path "${oracle_home}")
+            oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
+        fi
+    fi
+    
+    # Fallback if plugin not found or failed
+    if [[ -z "$lib_path" ]]; then
+        oradba_log DEBUG "Using fallback LIB_PATH for ${product_type}"
+        if [[ -d "${oracle_home}/lib64" ]]; then
+            lib_path="${oracle_home}/lib64"
+        fi
+        if [[ -d "${oracle_home}/lib" ]]; then
+            lib_path="${lib_path:+${lib_path}:}${oracle_home}/lib"
+        fi
+    fi
     
     # Preserve existing library path
     eval "local existing=\"\${${lib_var}}\""
