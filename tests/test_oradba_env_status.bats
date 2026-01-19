@@ -8,8 +8,9 @@
 
 # Setup and teardown
 setup() {
-    # Source the status library
+    # Source common library first for plugin support
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     source "${ORADBA_BASE}/lib/oradba_env_status.sh"
     
     # Set Oracle environment for testing

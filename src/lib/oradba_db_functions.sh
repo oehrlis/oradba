@@ -17,7 +17,7 @@
 # ------------------------------------------------------------------------------
 
 # Check if common library is loaded
-if ! command -v log_error &> /dev/null; then
+if ! command -v oradba_log &> /dev/null; then
     echo "ERROR: oradba_db_functions.sh requires oradba_common.sh to be sourced first"
     return 1
 fi

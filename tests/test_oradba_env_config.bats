@@ -8,8 +8,9 @@
 
 # Setup and teardown
 setup() {
-    # Source the configuration library
+    # Source common library first for oradba_log and other dependencies
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     source "${ORADBA_BASE}/lib/oradba_env_config.sh"
     
     # Create temporary test directory

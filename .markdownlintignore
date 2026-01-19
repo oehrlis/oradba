@@ -3,5 +3,6 @@ doc/releases/v0.13.4.md:47
 doc/releases/v0.13.4.md:121
 
 # External BATS test helpers (not our code)
+
 tests/test_helper/bats-assert/
 tests/test_helper/bats-support/

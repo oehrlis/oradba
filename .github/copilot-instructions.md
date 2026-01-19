@@ -193,12 +193,6 @@ oradba_log DEBUG "SQL query: ${sql_query}"
 # Configure log level
 export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
 export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
-
-# Legacy functions (deprecated but still work)
-log_info "message"   # Use oradba_log INFO instead
-log_warn "message"   # Use oradba_log WARN instead
-log_error "message"  # Use oradba_log ERROR instead
-log_debug "message"  # Use oradba_log DEBUG instead
 ```
 
 ### Function Documentation
@@ -239,13 +233,13 @@ export ORADBA_FEATURE_NAME="${ORADBA_FEATURE_NAME:-true}"
 
 # Validate input
 if ! validate_input "$arg"; then
-    log_error "Invalid input: $arg"
+    oradba_log ERROR "Invalid input: $arg"
     return 1
 fi
 
 # Handle command failures
 if ! critical_command; then
-    log_error "Command failed"
+    oradba_log ERROR "Command failed"
     return 1
 fi
 ```

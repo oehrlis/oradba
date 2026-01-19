@@ -180,16 +180,13 @@ oradba_check_datasafe_status() {
     }
     
     # Use datasafe plugin for status check
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}"
-        plugin_check_status "${oracle_home}" ""
-        return $?
+    local status_result=""
+    if oradba_apply_oracle_plugin "check_status" "datasafe" "${oracle_home}" "" "status_result" 2>/dev/null; then
+        echo "${status_result}"
+        return 0
     fi
     
-    # Plugin not found - should not happen in normal operation
-    oradba_log ERROR "DataSafe plugin not found: ${plugin_file}"
+    # Plugin not found or failed
     echo "UNKNOWN"
     return 1
 }
@@ -288,15 +285,10 @@ oradba_get_product_status() {
     esac
     
     # Try to use plugin for status check
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${plugin_type}_plugin.sh"
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}" 2>/dev/null
-        
-        if declare -f plugin_check_status >/dev/null 2>&1; then
-            plugin_check_status "${home_path}" "${instance_name}"
-            return $?
-        fi
+    local status_result=""
+    if oradba_apply_oracle_plugin "check_status" "${plugin_type}" "${home_path}" "${instance_name}" "status_result" 2>/dev/null; then
+        echo "${status_result}"
+        return 0
     fi
     
     # Fallback to legacy product-specific functions
