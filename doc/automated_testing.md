@@ -1,7 +1,16 @@
 # OraDBA Automated Testing
 
 This directory contains automated test scripts for OraDBA, designed to
-partially automate the manual tests documented in `manual_testing.md`.
+automate the majority of tests documented in `manual_testing.md`.
+
+## Test Coverage
+
+**Current Coverage**: ~75-85% of manual tests are now automated
+**Test Suites**: 26 test functions covering installation, configuration, and operations
+**Estimated Tests**: ~85 individual test cases
+**Platform**: Oracle 26ai Free Docker container
+
+See [Manual Tests Coverage](#manual-tests-coverage) section below for detailed breakdown.
 
 ## Quick Start
 
@@ -11,6 +20,31 @@ Run automated tests in an Oracle 26ai Free Docker container:
 # From project root
 ./tests/run_docker_tests.sh
 ```
+
+**Expected Duration**: 5-8 minutes (includes container startup and ~85 tests)
+
+## Test Architecture
+
+The automated testing system consists of two main components:
+
+1. **run_docker_tests.sh** - Orchestration wrapper that:
+   - Builds OraDBA distribution
+   - Manages Docker container lifecycle
+   - Copies results back to host
+   - Handles cleanup
+
+2. **docker_automated_tests.sh** - Core test suite with 26 test functions:
+   - Installation tests (8 tests)
+   - Environment tests (20+ tests)
+   - Operations tests (30+ tests)
+   - Configuration tests (15+ tests)
+   - Integration tests (12+ tests)
+
+**Test Pattern**: Each test suite follows a consistent pattern:
+- Check prerequisites/availability
+- Execute operation/command
+- Validate results
+- Handle errors gracefully (PASS/FAIL/SKIP)
 
 ## Test Scripts
 
