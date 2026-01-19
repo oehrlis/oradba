@@ -57,9 +57,6 @@ oradba_registry_get_all() {
             [[ "${sid}" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${sid}" ]] && continue
             
-            # Skip if home doesn't exist
-            [[ ! -d "${home}" ]] && continue
-            
             # Detect product type and version
             local ptype="database"
             local version="AUTO"
@@ -84,9 +81,6 @@ oradba_registry_get_all() {
             # Skip comments and empty lines
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${name}" ]] && continue
-            
-            # Skip if home doesn't exist
-            [[ ! -d "${path}" ]] && continue
             
             # Use detected type if not specified or unknown
             if [[ -z "${ptype}" ]] || [[ "${ptype}" == "unknown" ]]; then
