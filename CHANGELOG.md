@@ -22,6 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Migration: Replace `log_info "msg"` with `oradba_log INFO "msg"` (and similar for other levels)
   - Code reduction: ~70 lines of dead code eliminated
 
+- **Unused Functions Cleanup** (2026-01-19)
+  - Removed 7 unused functions found by systematic analysis (checked all 324 functions):
+    - `_oraenv_show_environment()` - Never-called display function in oraenv.sh
+    - `extension_provides()` - Superseded by direct directory checks
+    - `list_extensions()` - Extension lister never exposed to users
+    - `get_central_tns_admin()` - Unused centralized TNS path helper
+    - `get_startup_flag()` - Superseded by other oratab parsing code
+    - `should_show_listener_status()` - Unused listener display decision logic
+    - `oradba_get_datasafe_port()` - Unused DataSafe port extraction function
+    - `should_autostart()` - Unused oratab autostart flag reader
+  - Removed 2 additional obsolete tests that were testing already-removed deprecated functions
+  - All functions verified as having zero callers in OraDBA codebase (src/bin, src/lib, tests)
+  - Code reduction: ~120 lines of dead code eliminated
+  - All core tests passing after cleanup (41/41 in test_oradba_common.bats)
+
 ## [0.19.0] - 2026-01-19
 
 **Note**: This release consolidates all changes since the last official release (0.18.x).
