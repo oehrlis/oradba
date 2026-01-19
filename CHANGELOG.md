@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING CHANGE: Deprecated Logging Functions** (2026-01-19)
+  - Removed deprecated logging wrapper functions from `oradba_common.sh`:
+    - `log_info()` - Use `oradba_log INFO` instead
+    - `log_warn()` - Use `oradba_log WARN` instead
+    - `log_error()` - Use `oradba_log ERROR` instead
+    - `log_debug()` - Use `oradba_log DEBUG` instead
+    - `_show_deprecation_warning()` - Internal helper no longer needed
+  - Functions were deprecated in v0.13.1 and confirmed unused in OraDBA codebase
+  - Removed 7 obsolete tests for deprecated functions
+  - Impact: Only external scripts calling `oradba_common.sh`'s log_* functions affected
+  - Migration: Replace `log_info "msg"` with `oradba_log INFO "msg"` (and similar for other levels)
+  - Code reduction: ~70 lines of dead code eliminated
+
 ## [0.19.0] - 2026-01-19
 
 **Note**: This release consolidates all changes since the last official release (0.18.x).
