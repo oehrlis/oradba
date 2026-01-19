@@ -119,8 +119,8 @@ setup() {
 # Test: Library requires oradba_common.sh
 @test "oradba_db_functions.sh requires oradba_common.sh" {
     # This test verifies that db_functions checks for oradba_common.sh
-    # We've already loaded it in setup, so we check if log_error exists
-    type -t log_error | grep -q "function"
+    # We've already loaded it in setup, so we check if oradba_log exists
+    type -t oradba_log | grep -q "function"
 }
 
 # Integration test: show_database_status handles no connection gracefully
