@@ -145,11 +145,21 @@ See detailed analysis: `.github/.scratch/plugin-adoption-analysis.md`
    - [x] oud_plugin.sh: Add 4 new functions [7d1e39b]
    - **Result:** All 5 plugins now at v2.0.0 with full environment building support
 
-3. **Phase 4.3: Refactor Core Files**
-   - [ ] oradba_env_builder.sh: Replace 3 case statements with plugin calls
-   - [ ] oradba_env_status.sh: Replace case + remove 8 specific functions
-   - [ ] oradba_env_config.sh: Replace case statement
-   - [ ] oradba_env_validator.sh: Replace case statement
+3. **Phase 4.3: Refactor Core Files** ✅ COMPLETE
+   - [x] oradba_env_builder.sh: Replace 2 case statements with plugins [7c99f81]
+     * oradba_add_oracle_path() now uses plugin_build_path()
+     * oradba_set_lib_path() now uses plugin_build_lib_path()
+     * Removed ~100 lines, added ~70 lines (net -30 lines)
+   - [x] oradba_env_config.sh: Replace case statement with plugins [4162e16]
+     * oradba_apply_product_config() now uses plugin_get_config_section()
+     * Removed ~60 lines, added ~50 lines (net -10 lines)
+   - [x] oradba_env_validator.sh: Replace case statement with plugins [4162e16]
+     * oradba_check_oracle_binaries() now uses plugin_get_required_binaries()
+     * Removed ~60 lines, added ~70 lines (net +10 lines)
+   - [x] oradba_env_status.sh: Replace case statement with plugins [e5d8fb2]
+     * oradba_get_product_status() now uses plugin_check_status()
+     * Removed ~40 lines, added ~60 lines (net +20 lines)
+   - **Result:** All case statements removed, net ~10 lines reduction, full plugin adoption
 
 4. **Phase 4.4: Testing**
    - [ ] Run full test suite (925+ tests)
