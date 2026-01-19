@@ -41,7 +41,14 @@ QUIET=false
 DEBUG=false
 CHECK=false
 
-# Usage function
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information and examples
+# Args....: None
+# Returns.: Exits with code 0
+# Output..: Usage text, options, examples, notes to stdout
+# Notes...: Shows required connect string option, optional wallet dir, check/quiet modes
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} -s <connect_string> [OPTIONS]
@@ -81,7 +88,14 @@ EOF
     exit 0
 }
 
-# Helper function to check log level
+# ------------------------------------------------------------------------------
+# Function: should_log
+# Purpose.: Determine if a log message should be displayed based on level and mode
+# Args....: $1 - Log level (DEBUG/INFO/ERROR)
+# Returns.: 0 if should log, 1 if should suppress
+# Output..: None
+# Notes...: Suppresses DEBUG if DEBUG=false; suppresses all if QUIET=true
+# ------------------------------------------------------------------------------
 should_log() {
     local level="$1"
     [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
@@ -89,14 +103,28 @@ should_log() {
     return 0
 }
 
-# Get entry from wallet
+# ------------------------------------------------------------------------------
+# Function: get_entry
+# Purpose.: Retrieve a wallet entry value by key using mkstore
+# Args....: $1 - Wallet entry key
+# Returns.: 0 on success
+# Output..: Entry value to stdout
+# Notes...: Uses mkstore -viewEntry; filters output to extract value after '= '
+# ------------------------------------------------------------------------------
 get_entry() {
     local key="$1"
     echo "${WALLET_PASSWORD}" | mkstore -wrl "${WALLET_DIR}" -viewEntry "${key}" 2> /dev/null \
         | grep -i "${key}" | awk -F '= ' '{print $2}'
 }
 
-# Parse command line arguments
+# ------------------------------------------------------------------------------
+# Function: parse_args
+# Purpose.: Parse command line arguments and validate required parameters
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exits if validation fails, otherwise returns 0
+# Output..: Error message to stderr if connect string missing
+# Notes...: Sets global vars CONNECT_STRING, CHECK, QUIET, DEBUG, WALLET_DIR
+# ------------------------------------------------------------------------------
 parse_args() {
     while getopts "s:qcdw:h" opt; do
         case "${opt}" in
@@ -117,7 +145,14 @@ parse_args() {
     fi
 }
 
-# Validate environment
+# ------------------------------------------------------------------------------
+# Function: validate_environment
+# Purpose.: Validate wallet directory existence and mkstore availability
+# Args....: None
+# Returns.: Exits with code 1 on validation failure
+# Output..: Error messages via oradba_log
+# Notes...: Checks wallet dir exists and is readable; checks mkstore command available
+# ------------------------------------------------------------------------------
 validate_environment() {
     # Check wallet directory
     if [[ ! -d "${WALLET_DIR}" ]]; then
@@ -137,7 +172,14 @@ validate_environment() {
     fi
 }
 
-# Load wallet password
+# ------------------------------------------------------------------------------
+# Function: load_wallet_password
+# Purpose.: Load wallet password from file, environment, or interactive prompt
+# Args....: None
+# Returns.: None (sets global WALLET_PASSWORD)
+# Output..: Debug message if loaded from file; prompt if interactive
+# Notes...: Tries ${WALLET_DIR}/.wallet_pwd (base64), then env var, then prompts
+# ------------------------------------------------------------------------------
 load_wallet_password() {
     # Try to load from encoded file
     if [[ -f "${WALLET_DIR}/.wallet_pwd" ]]; then
@@ -152,7 +194,14 @@ load_wallet_password() {
     fi
 }
 
-# Search wallet for connect string
+# ------------------------------------------------------------------------------
+# Function: search_wallet
+# Purpose.: Search wallet for connect string and retrieve password
+# Args....: None (uses global CONNECT_STRING)
+# Returns.: 0 if found, 1 if not found
+# Output..: Password (quiet mode) or status messages (normal mode) to stdout
+# Notes...: Case-insensitive search; supports check mode (verify only) and quiet mode (password only)
+# ------------------------------------------------------------------------------
 search_wallet() {
     local connect_string_lower="${CONNECT_STRING,,}"
 
@@ -202,7 +251,14 @@ search_wallet() {
     return 1
 }
 
-# Main function
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Orchestrate wallet password retrieval workflow
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exit code from search_wallet (0 success, 1 failure)
+# Output..: Depends on mode (quiet/check/normal)
+# Notes...: Workflow: parse args → validate → load password → search wallet
+# ------------------------------------------------------------------------------
 main() {
     parse_args "$@"
     validate_environment

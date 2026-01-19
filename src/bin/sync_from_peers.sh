@@ -54,7 +54,14 @@ LOADED_CONFIG=""
 SYNC_SUCCESS=()
 SYNC_FAILURE=()
 
-# Load configuration files
+# ------------------------------------------------------------------------------
+# Function: load_config
+# Purpose.: Load configuration from multiple sources (script config, alt config, CLI config)
+# Args....: None
+# Returns.: None (sets global vars)
+# Output..: None
+# Notes...: Sources ${SCRIPT_CONF}, ${ETC_BASE}/*.conf, ${CONFIG_FILE}; sets SSH_USER, SSH_PORT, PEER_HOSTS
+# ------------------------------------------------------------------------------
 load_config() {
     local config_files=()
 
@@ -94,7 +101,14 @@ load_config() {
     PEER_HOSTS=("${PEER_HOSTS[@]:-${PEER_HOSTS_DEFAULT[@]}}")
 }
 
-# Usage function
+# ------------------------------------------------------------------------------
+# Function: usage
+# Purpose.: Display usage information, options, examples
+# Args....: None
+# Returns.: Exits with code 0
+# Output..: Usage text, configuration summary, examples to stdout
+# Notes...: Shows required -p option for source peer; demonstrates two-phase sync pattern
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: ${SCRIPT_NAME} -p <remote_peer> [OPTIONS] <file-or-folder>
@@ -140,7 +154,14 @@ EOF
     exit 0
 }
 
-# Helper function to check if we should log
+# ------------------------------------------------------------------------------
+# Function: should_log
+# Purpose.: Determine if a log message should be displayed based on level and mode
+# Args....: $1 - Log level (DEBUG/INFO/WARN/ERROR)
+# Returns.: 0 if should log, 1 if should suppress
+# Output..: None
+# Notes...: Suppresses non-ERROR if QUIET=true; suppresses DEBUG if DEBUG=false
+# ------------------------------------------------------------------------------
 should_log() {
     local level="$1"
     [[ "${QUIET}" == "true" && "${level}" != "ERROR" ]] && return 1
@@ -148,7 +169,14 @@ should_log() {
     return 0
 }
 
-# Parse command line arguments
+# ------------------------------------------------------------------------------
+# Function: parse_args
+# Purpose.: Parse command line arguments and validate required parameters
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exits on validation failure
+# Output..: Error messages to stderr
+# Notes...: Validates -p (source peer) and source path required; sets REMOTE_PEER, SOURCE, PEER_HOSTS
+# ------------------------------------------------------------------------------
 # shellcheck disable=SC2034  # DRYRUN and DELETE tracked but effect is in RSYNC_OPTS
 parse_args() {
     while getopts ":p:nvdDqH:r:c:h" opt; do
@@ -197,7 +225,14 @@ parse_args() {
     fi
 }
 
-# Perform synchronization
+# ------------------------------------------------------------------------------
+# Function: perform_sync
+# Purpose.: Two-phase sync: pull from source peer to local, then push to all other peers
+# Args....: None (uses global REMOTE_PEER, SOURCE, PEER_HOSTS, REMOTE_BASE, RSYNC_OPTS)
+# Returns.: 0 if all syncs succeed, 1 if phase 1 or any phase 2 sync fails
+# Output..: Status messages via oradba_log; rsync output if verbose
+# Notes...: Phase 1: pull from REMOTE_PEER; Phase 2: push to peers (excluding source and self)
+# ------------------------------------------------------------------------------
 perform_sync() {
     local abs_source
     local rsync_target
@@ -252,7 +287,14 @@ perform_sync() {
     should_log INFO && oradba_log INFO "Sync operation finished."
 }
 
-# Display summary
+# ------------------------------------------------------------------------------
+# Function: show_summary
+# Purpose.: Display two-phase synchronization results summary
+# Args....: None (uses global REMOTE_PEER, SYNC_SUCCESS, SYNC_FAILURE, VERBOSE, QUIET)
+# Returns.: None
+# Output..: Source peer, local host, successful/failed syncs to stdout (if verbose)
+# Notes...: Shows phase 1 source and phase 2 distribution results; only in verbose mode
+# ------------------------------------------------------------------------------
 show_summary() {
     if [[ "${VERBOSE}" == "true" && "${QUIET}" != "true" ]]; then
         local this_host
@@ -266,7 +308,14 @@ show_summary() {
     fi
 }
 
-# Main function
+# ------------------------------------------------------------------------------
+# Function: main
+# Purpose.: Orchestrate sync-from-peers workflow
+# Args....: Command line arguments (passed as "$@")
+# Returns.: Exit code 0 if all syncs succeed, 1 if any fail
+# Output..: Depends on verbose/quiet mode
+# Notes...: Workflow: load config → parse args → perform sync → show summary; exits 1 if failures exist
+# ------------------------------------------------------------------------------
 main() {
     load_config
     parse_args "$@"
