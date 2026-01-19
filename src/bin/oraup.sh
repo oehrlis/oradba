@@ -306,7 +306,7 @@ show_oracle_status_registry() {
             if command -v lsnrctl &>/dev/null; then
                 # Check for READY status (case-insensitive) or successful connection
                 if lsnrctl status "$listener_name" 2>/dev/null | grep -qi "STATUS of the LISTENER"; then
-                    lsnr_status="READY"
+                    lsnr_status="ready"
                 fi
             fi
             
