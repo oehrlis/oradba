@@ -4,10 +4,11 @@
 # Name.....: client_plugin.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 1.0.0
+# Date.....: 2026.01.19
+# Version..: 2.0.0
 # Purpose..: Plugin for Oracle Full Client
 # Notes....: Handles Oracle Full Client (not Instant Client)
+#            Version 2.0.0: Added 4 new required functions for environment building
 # Reference: Architecture Review & Refactoring Plan (Phase 2.1)
 #            Questions.md - Client Plugin Decision
 # License..: Apache License Version 2.0, January 2004 as shown
@@ -18,7 +19,7 @@
 # Plugin Metadata
 # ------------------------------------------------------------------------------
 export plugin_name="client"
-export plugin_version="1.0.0"
+export plugin_version="2.0.0"
 export plugin_description="Oracle Full Client plugin"
 
 # ------------------------------------------------------------------------------
@@ -170,6 +171,78 @@ plugin_discover_instances() {
 # ------------------------------------------------------------------------------
 plugin_supports_aliases() {
     return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for Oracle Full Client
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: Full client has bin + OPatch directories
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local oracle_home="$1"
+    local new_path=""
+    
+    if [[ -d "${oracle_home}/bin" ]]; then
+        new_path="${oracle_home}/bin"
+    fi
+    
+    if [[ -d "${oracle_home}/OPatch" ]]; then
+        new_path="${new_path:+${new_path}:}${oracle_home}/OPatch"
+    fi
+    
+    echo "${new_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for Oracle Full Client
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: Prefers lib64 on 64-bit systems, falls back to lib
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local oracle_home="$1"
+    local lib_path=""
+    
+    if [[ -d "${oracle_home}/lib64" ]]; then
+        lib_path="${oracle_home}/lib64"
+    fi
+    
+    if [[ -d "${oracle_home}/lib" ]]; then
+        lib_path="${lib_path:+${lib_path}:}${oracle_home}/lib"
+    fi
+    
+    echo "${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for Full Client
+# Returns.: 0 on success
+# Output..: "CLIENT"
+# Notes...: Used by oradba_apply_product_config() to load client settings
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "CLIENT"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for Full Client
+# Returns.: 0 on success
+# Output..: Space-separated list of required binaries
+# Notes...: Full client has sqlplus and tnsping
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "sqlplus tnsping"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
