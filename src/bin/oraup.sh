@@ -191,17 +191,26 @@ get_listener_status() {
 show_oracle_status_registry() {
     local -a installations=("$@")
     
-    # Separate by type
-    local -a databases=()
+    # Separate by type and source
+    local -a database_sids=()      # Real SIDs from oratab (with flags)
+    local -a database_homes=()     # Database homes from oracle_homes.conf or dummy entries
     local -a datasafe_homes=()
     local -a other_homes=()
     
     for install in "${installations[@]}"; do
-        local ptype
+        local ptype flags
         ptype=$(oradba_registry_get_field "$install" "type")
+        flags=$(oradba_registry_get_field "$install" "flags")
         
         if [[ "$ptype" == "database" ]]; then
-            databases+=("$install")
+            # Distinguish between real SIDs and homes
+            if [[ -n "$flags" && "$flags" != "D" ]]; then
+                # Real database SID from oratab (has flag Y or N)
+                database_sids+=("$install")
+            else
+                # Database home from oracle_homes.conf (no flags) or dummy entry (flag D)
+                database_homes+=("$install")
+            fi
         elif [[ "$ptype" == "datasafe" ]]; then
             datasafe_homes+=("$install")
         else
@@ -210,21 +219,30 @@ show_oracle_status_registry() {
     done
     
     # =========================================================================
-    # SECTION 1: Oracle Homes (from oracle_homes.conf only, not database SIDs)
+    # SECTION 1: Oracle Homes (database homes + other homes, not datasafe)
     # =========================================================================
-    # Show only registered homes from oracle_homes.conf (non-database, non-datasafe)
-    if [[ ${#other_homes[@]} -gt 0 ]]; then
+    # Show database homes from oracle_homes.conf, dummy entries, and other products
+    local -a all_homes=("${database_homes[@]}" "${other_homes[@]}")
+    
+    if [[ ${#all_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
         echo "---------------------------------------------------------------------------------"
         printf "%-20s %-20s %-13s %s\n" "NAME" "TYPE" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
-        for home_obj in "${other_homes[@]}"; do
-            local name home ptype status
+        for home_obj in "${all_homes[@]}"; do
+            local name home ptype status flags desc
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
             ptype=$(oradba_registry_get_field "$home_obj" "type")
+            flags=$(oradba_registry_get_field "$home_obj" "flags")
+            
+            # Add indicator for dummy entries
+            local display_name="$name"
+            if [[ "$flags" == "D" ]]; then
+                display_name="$name (dummy)"
+            fi
             
             # Check if directory exists
             if [[ ! -d "$home" ]]; then
@@ -235,28 +253,25 @@ show_oracle_status_registry() {
                 status="available"
             fi
             
-            printf "%-20s %-20s %-13s %s\n" "$name" "$ptype" "$status" "$home"
+            printf "%-20s %-20s %-13s %s\n" "$display_name" "$ptype" "$status" "$home"
         done
     fi
     
     # =========================================================================
-    # SECTION 2: Database Instances (only real SIDs, not dummies)
+    # SECTION 2: Database Instances (only real SIDs from oratab)
     # =========================================================================
-    if [[ ${#databases[@]} -gt 0 ]]; then
+    if [[ ${#database_sids[@]} -gt 0 ]]; then
         echo ""
         echo "Database Instances"
         echo "---------------------------------------------------------------------------------"
         printf "%-20s %-20s %-13s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
-        for db_obj in "${databases[@]}"; do
+        for db_obj in "${database_sids[@]}"; do
             local sid home flags
             sid=$(oradba_registry_get_field "$db_obj" "name")
             home=$(oradba_registry_get_field "$db_obj" "home")
             flags=$(oradba_registry_get_field "$db_obj" "flags")
-            
-            # Skip dummy entries - they're not real SIDs
-            [[ "$flags" == "D" ]] && continue
             
             # Get status
             local status
@@ -276,7 +291,9 @@ show_oracle_status_registry() {
     # =========================================================================
     # SECTION 3: Listener Status
     # =========================================================================
-    if [[ ${#databases[@]} -gt 0 ]]; then
+    # Show listeners if any database homes or SIDs exist
+    local total_databases=$((${#database_sids[@]} + ${#database_homes[@]}))
+    if [[ $total_databases -gt 0 ]]; then
         echo ""
         echo "Listener Status"
         echo "---------------------------------------------------------------------------------"
