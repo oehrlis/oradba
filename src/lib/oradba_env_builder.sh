@@ -260,10 +260,9 @@ oradba_set_lib_path() {
     
     oradba_log DEBUG "Final ${lib_var} to be exported: ${lib_path}"
     
-    # Export library path variable
-    if [[ -n "$lib_path" ]]; then
-        export ${lib_var}="$lib_path"
-    fi
+    # Export library path variable (always export, even if empty)
+    # This ensures we clear old values from previous environments
+    export ${lib_var}="$lib_path"
 }
 
 # ------------------------------------------------------------------------------
