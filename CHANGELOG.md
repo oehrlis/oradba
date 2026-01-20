@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Test Infrastructure Fixes** (2026-01-21)
+  - Fixed plugin count test: Updated from 5 to 9 plugins (added java, weblogic, oms, emagent)
+  - Fixed client_path_config tests: Corrected oradba_homes.conf format from semicolons to colons
+  - Fixed oradba_homes validation tests: Corrected field separator handling for pipe-delimited output
+  - All 1082 tests now pass (1041 passed, 41 skipped)
+  - Updated test counts in documentation (Makefile, README, release notes)
+  - Enhanced .testmap.yml with individual plugin mappings
+
 ### Added
 
 - **Java Plugin for Oracle Java Management** (2026-01-20)

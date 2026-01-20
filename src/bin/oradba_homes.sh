@@ -799,20 +799,23 @@ validate_homes() {
 
     # Validate specific home or all
     local homes_to_check
+    local field_sep=" "  # Default for parse_oracle_home
     if [[ -n "$name" ]]; then
         if ! is_oracle_home "$name" 2> /dev/null; then
             oradba_log ERROR "Oracle Home '$name' not found"
             return 1
         fi
         homes_to_check=$(parse_oracle_home "$name")
+        field_sep=" "  # parse_oracle_home uses space separator
     else
         homes_to_check=$(list_oracle_homes)
+        field_sep="|"  # list_oracle_homes uses pipe separator
     fi
 
     while read -r line; do
         [[ -z "$line" ]] && continue
 
-        read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$line"
+        IFS="${field_sep}" read -r h_name h_path h_type h_order h_alias h_desc h_version <<< "$line"
 
         echo "Checking: $h_name ($h_type)"
 

@@ -87,10 +87,52 @@ mappings:
     - test_oradba_env_changes.bats
   
   # Plugin system - affects status checks and environment building
-  src/lib/plugins/*.sh:
-    - test_plugins.bats
+  src/lib/plugins/plugin_interface.sh:
+    - test_plugin_interface.bats
     - test_oradba_env_status.bats
     - test_oradba_env_builder.bats
+  
+  src/lib/plugins/database_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/datasafe_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/client_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/iclient_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/oud_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/java_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/weblogic_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/oms_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  src/lib/plugins/emagent_plugin.sh:
+    - test_plugin_interface.bats
+    - test_oradba_env_status.bats
+  
+  # Environment builder - client path configuration
+  src/lib/oradba_env_builder.sh:
+    - test_client_path_config.bats
+    - test_oradba_env_builder.bats
+    - test_oradba_env_status.bats
   
   # Service management scripts
   src/bin/oradba_dbctl.sh:

@@ -73,12 +73,13 @@ create_mock_homes_config() {
     local ds_home="${TEST_DIR}/test_homes/datasafe"
     local oud_home="${TEST_DIR}/test_homes/oud12c"
     
+    # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESC:VERSION
     cat > "${TEST_DIR}/etc/oradba_homes.conf" <<EOF
 # Mock oracle homes configuration
-${client_home};CLIENT;19.0.0.0.0;N/A;N/A;30;dummy;CL19;Oracle Client 19c
-${iclient_home};ICLIENT;19.19.0.0.0;N/A;N/A;40;dummy;IC19;Oracle Instant Client 19.19
-${ds_home};DATASAFE;1.0.0.0.0;N/A;N/A;50;dummy;DS;Oracle Data Safe Connector
-${oud_home};OUD;12.2.1.4.0;N/A;N/A;60;oud1;OUD12;Oracle Unified Directory 12c
+CL19:${client_home}:CLIENT:30:CL19:Oracle Client 19c:19.0.0.0.0
+IC19:${iclient_home}:ICLIENT:40:IC19:Oracle Instant Client 19.19:19.19.0.0.0
+DS:${ds_home}:DATASAFE:50:DS:Oracle Data Safe Connector:1.0.0.0.0
+OUD12:${oud_home}:OUD:60:OUD12:Oracle Unified Directory 12c:12.2.1.4.0
 EOF
     
     # Override get_oracle_homes_path to return our mock config

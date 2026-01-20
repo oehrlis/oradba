@@ -287,11 +287,12 @@ get_plugin_files() {
 }
 
 @test "plugin count is correct" {
-    # We should have 5 product plugins (not counting plugin_interface.sh)
+    # We have 9 product plugins (not counting plugin_interface.sh)
+    # database, datasafe, client, iclient, oud, java, weblogic, oms, emagent
     local count
     count=$(get_plugin_files | wc -l)
-    [ "$count" -eq 5 ] || {
-        echo "Expected 5 plugins, found ${count}"
+    [ "$count" -eq 9 ] || {
+        echo "Expected 9 plugins, found ${count}"
         return 1
     }
 }
@@ -314,4 +315,20 @@ get_plugin_files() {
 
 @test "oud plugin is present" {
     [ -f "${TEST_DIR}/lib/plugins/oud_plugin.sh" ]
+}
+
+@test "java plugin is present" {
+    [ -f "${TEST_DIR}/lib/plugins/java_plugin.sh" ]
+}
+
+@test "weblogic plugin is present" {
+    [ -f "${TEST_DIR}/lib/plugins/weblogic_plugin.sh" ]
+}
+
+@test "oms plugin is present" {
+    [ -f "${TEST_DIR}/lib/plugins/oms_plugin.sh" ]
+}
+
+@test "emagent plugin is present" {
+    [ -f "${TEST_DIR}/lib/plugins/emagent_plugin.sh" ]
 }

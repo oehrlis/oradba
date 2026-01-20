@@ -239,7 +239,7 @@ These documents provide historical context and detailed implementation notes but
 - **Architecture:** Modular library system (6 environment libraries + 3 core utilities + 1 extension framework)
 - **Functions:** 133 total (47 environment + 66 core + 20 extension)
 - **Lines of Code:** ~10,500 (library code)
-- **Tests:** 533+ BATS tests, 100% pass rate (528 passed, 15 skipped integration tests)
+- **Tests:** 1082 BATS tests across 65 test files, 100% pass rate (1041 passed, 41 skipped integration tests)
 - **Test Framework:** BATS (Bash Automated Testing System)
 - **CI/CD:** GitHub Actions with smart test selection
 - **Code Quality:** Shellcheck clean (0 errors, 0 warnings), shfmt formatted
