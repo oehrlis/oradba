@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Instant Client LD_LIBRARY_PATH Export** (2026-01-20)
+  - Fixed critical bug where LD_LIBRARY_PATH wasn't cleared when switching to instant client
+  - Root cause: `oradba_set_lib_path()` only exported when lib_path was non-empty
+  - When instant client has no lib/ directory, lib_path is empty but wasn't exported
+  - Old LD_LIBRARY_PATH from `_oraenv_unset_old_env()` persisted in environment
+  - Now always exports LD_LIBRARY_PATH, even when empty, to clear old values
+  - Resolves instant client environment switching showing wrong library paths
+
 - **Instant Client LD_LIBRARY_PATH** (2026-01-20)
   - Fixed library path setup for instant client installations
   - Replaced deprecated `export_oracle_base_env()` with plugin-aware `oradba_set_lib_path()`
