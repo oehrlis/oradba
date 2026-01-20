@@ -481,7 +481,9 @@ Set library path using plugin system for product-specific requirements.
 
 **Returns**: 0 on success, 1 on error
 
-**Notes**: Uses `plugin_build_lib_path()` from product-specific plugins. Handles platform differences (LD_LIBRARY_PATH, SHLIB_PATH, LIBPATH, DYLD_LIBRARY_PATH). Deduplicates library paths automatically.
+**Notes**: Uses `plugin_build_lib_path()` from product-specific plugins. Handles
+platform differences (LD_LIBRARY_PATH, SHLIB_PATH, LIBPATH, DYLD_LIBRARY_PATH).
+Deduplicates library paths automatically.
 
 **Example**:
 

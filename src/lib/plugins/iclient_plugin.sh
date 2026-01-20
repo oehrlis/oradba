@@ -262,10 +262,23 @@ plugin_build_lib_path() {
 plugin_get_version() {
     local home_path="$1"
     
+    # Debug: Log entry point
+    if declare -f oradba_log >/dev/null 2>&1; then
+        oradba_log DEBUG "plugin_get_version called with home_path: ${home_path}"
+    fi
+    
     # Method 1: Try sqlplus -version (instant client: sqlplus in root directory)
     if [[ -x "${home_path}/sqlplus" ]]; then
+        if declare -f oradba_log >/dev/null 2>&1; then
+            oradba_log DEBUG "Found sqlplus at ${home_path}/sqlplus, trying -version"
+        fi
+        
         local sqlplus_version
         sqlplus_version=$("${home_path}/sqlplus" -version 2>/dev/null | grep -i "Release" | head -1)
+        
+        if declare -f oradba_log >/dev/null 2>&1; then
+            oradba_log DEBUG "sqlplus -version output: ${sqlplus_version}"
+        fi
         
         if [[ -n "${sqlplus_version}" ]]; then
             # Extract version like "23.26.0.0.0" or "19.21.0.0.0"
@@ -273,9 +286,16 @@ plugin_get_version() {
             ver_str=$(echo "${sqlplus_version}" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+){0,3}' | head -1)
             
             if [[ -n "${ver_str}" ]]; then
+                if declare -f oradba_log >/dev/null 2>&1; then
+                    oradba_log DEBUG "Extracted version from sqlplus: ${ver_str}"
+                fi
                 echo "${ver_str}"
                 return 0
             fi
+        fi
+    else
+        if declare -f oradba_log >/dev/null 2>&1; then
+            oradba_log DEBUG "sqlplus not found at ${home_path}/sqlplus"
         fi
     fi
     

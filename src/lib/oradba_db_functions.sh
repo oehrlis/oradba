@@ -266,7 +266,7 @@ show_oracle_home_status() {
     
     # Get Oracle version only for products that have sqlplus
     case "${product_type}" in
-        database|client|RDBMS|CLIENT)
+        database|client|iclient|RDBMS|CLIENT|ICLIENT)
             product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
             ;;
         datasafe|DATASAFE|oud|OUD|weblogic|WLS|oms|OMS|emagent)

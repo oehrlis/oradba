@@ -528,8 +528,16 @@ get_oracle_version() {
         return 1
     fi
 
+    # Check for sqlplus in bin/ (database/client) or root (instant client)
+    local sqlplus_bin=""
     if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
-        "${ORACLE_HOME}/bin/sqlplus" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
+        sqlplus_bin="${ORACLE_HOME}/bin/sqlplus"
+    elif [[ -x "${ORACLE_HOME}/sqlplus" ]]; then
+        sqlplus_bin="${ORACLE_HOME}/sqlplus"
+    fi
+    
+    if [[ -n "${sqlplus_bin}" ]]; then
+        "${sqlplus_bin}" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
     else
         oradba_log ERROR "sqlplus not found in ORACLE_HOME"
         return 1
@@ -1376,24 +1384,33 @@ detect_oracle_version() {
         plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
     fi
     
+    oradba_log DEBUG "Trying plugin version detection for ${product_type}: ${plugin_file}"
+    
     if [[ -f "${plugin_file}" ]]; then
         # Source plugin and try plugin_get_version
         # shellcheck source=/dev/null
         source "${plugin_file}" 2>/dev/null
         
         if declare -f plugin_get_version >/dev/null 2>&1; then
+            oradba_log DEBUG "Calling plugin_get_version for ${oracle_home}"
             local plugin_version
             plugin_version=$(plugin_get_version "${oracle_home}")
+            oradba_log DEBUG "Plugin returned version: ${plugin_version}"
             
-            if [[ -n "${plugin_version}" && "${plugin_version}" != "unknown" ]]; then
+            if [[ -n "${plugin_version}" && "${plugin_version}" != "unknown" && "${plugin_version}" != "ERR" ]]; then
                 # Convert X.Y.Z.W format to XXYZ format
                 local major minor
                 major=$(echo "${plugin_version}" | cut -d. -f1)
                 minor=$(echo "${plugin_version}" | cut -d. -f2)
+                oradba_log DEBUG "Converting ${plugin_version} to format: ${major}${minor}"
                 printf "%02d%02d" "${major}" "${minor}"
                 return 0
             fi
+        else
+            oradba_log DEBUG "plugin_get_version function not found in ${plugin_file}"
         fi
+    else
+        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
     fi
 
     # Fallback: Generic version detection methods
