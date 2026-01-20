@@ -2,7 +2,8 @@
 
 This directory is for temporary working files created during development, including AI/Copilot-generated files.
 
-**Purpose**: 
+**Purpose**:
+
 - Temporary files from online GitHub Copilot
 - Working files for local VS Code Copilot
 - Analysis documents and drafts
@@ -11,8 +12,8 @@ This directory is for temporary working files created during development, includ
 **Files here are ignored by git** (see .gitignore)
 
 Examples:
+
 - Issue analysis documents
 - Draft implementations
 - Copilot-generated summaries
 - Temporary queries or results
-
