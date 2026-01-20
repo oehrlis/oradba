@@ -519,8 +519,9 @@ verify_oracle_env() {
 # Purpose.: Retrieve Oracle database version from sqlplus
 # Args....: None
 # Returns.: 0 on success, 1 on error
-# Output..: Oracle version string (e.g., 19.0.0.0)
-# Notes...: Requires ORACLE_HOME to be set and sqlplus to be executable
+# Output..: Oracle version string (e.g., 19.0.0.0 or 23.26.0.0)
+# Notes...: Uses sqlplus if available, otherwise delegates to detect_oracle_version()
+#           for plugin-based detection (library filenames, JDBC JAR, etc.)
 # ------------------------------------------------------------------------------
 get_oracle_version() {
     if [[ -z "${ORACLE_HOME}" ]]; then
@@ -538,9 +539,27 @@ get_oracle_version() {
     
     if [[ -n "${sqlplus_bin}" ]]; then
         "${sqlplus_bin}" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
+        return $?
     else
-        oradba_log ERROR "sqlplus not found in ORACLE_HOME"
-        return 1
+        # No sqlplus - try plugin-based detection (instant client basic, etc.)
+        oradba_log DEBUG "sqlplus not found, trying plugin-based version detection"
+        local version_code
+        version_code=$(detect_oracle_version "${ORACLE_HOME}")
+        
+        if [[ -n "${version_code}" && "${version_code}" != "Unknown" && "${version_code}" != "ERR" ]]; then
+            # Convert XXYZ format back to X.Y.Z.W format for display
+            # Example: 2326 -> 23.26.0.0
+            local major="${version_code:0:2}"
+            local minor="${version_code:2:2}"
+            # Remove leading zeros
+            major=$((10#${major}))
+            minor=$((10#${minor}))
+            echo "${major}.${minor}.0.0"
+            return 0
+        else
+            oradba_log ERROR "Version detection failed"
+            return 1
+        fi
     fi
 }
 

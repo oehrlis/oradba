@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Instant Client Basic Version Detection** (2026-01-20)
+  - Fixed `get_oracle_version()` to fall back to plugin-based detection when sqlplus not available
+  - Instant client basic (without sqlplus) now uses library filename detection (Method 2)
+  - Converts XXYZ format from detect_oracle_version() back to X.Y.Z.W for display
+  - Banner now correctly shows version for instant client basic (e.g., "23.26.0.0")
+  - Resolves "Unknown" version for instant client installations without sqlplus
+
 - **Instant Client Version Display in Banner** (2026-01-20)
   - Fixed `get_oracle_version()` to check both `bin/sqlplus` and root `sqlplus`
   - Banner now correctly shows instant client version instead of "Unknown"
