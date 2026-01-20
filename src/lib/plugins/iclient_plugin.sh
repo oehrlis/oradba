@@ -249,6 +249,74 @@ plugin_build_lib_path() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_get_version
+# Purpose.: Get Instant Client version
+# Args....: $1 - Installation path (ORACLE_HOME)
+# Returns.: 0 on success, 1 if version cannot be determined
+# Output..: Version string in X.Y format (e.g., "23.26" or "19.21")
+# Notes...: Detection methods (in order):
+#           1. sqlplus -version (if sqlplus available)
+#           2. Library filenames (libclntsh.so.X.Y, libclntshcore.so.X.Y, libocci.so.X.Y)
+#           3. JDBC JAR manifest (ojdbc*.jar)
+# ------------------------------------------------------------------------------
+plugin_get_version() {
+    local home_path="$1"
+    
+    # Method 1: Try sqlplus -version (instant client: sqlplus in root directory)
+    if [[ -x "${home_path}/sqlplus" ]]; then
+        local sqlplus_version
+        sqlplus_version=$("${home_path}/sqlplus" -version 2>/dev/null | grep -i "Release" | head -1)
+        
+        if [[ -n "${sqlplus_version}" ]]; then
+            # Extract version like "23.26.0.0.0" or "19.21.0.0.0"
+            local ver_str
+            ver_str=$(echo "${sqlplus_version}" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+){0,3}' | head -1)
+            
+            if [[ -n "${ver_str}" ]]; then
+                echo "${ver_str}"
+                return 0
+            fi
+        fi
+    fi
+    
+    # Method 2: Extract version from library filenames
+    # Check for libclntsh.so.X.Y, libclntshcore.so.X.Y, libocci.so.X.Y
+    for lib_base in libclntsh libclntshcore libocci; do
+        for lib_file in "${home_path}/${lib_base}.so."*; do
+            if [[ -f "${lib_file}" ]]; then
+                # Extract version from filename: libclntsh.so.23.1 -> 23.1
+                local version_string
+                version_string=$(basename "${lib_file}" | grep -oE '[0-9]+\.[0-9]+$')
+                
+                if [[ -n "${version_string}" ]]; then
+                    # Convert to X.Y.0.0.0 format
+                    echo "${version_string}.0.0.0"
+                    return 0
+                fi
+            fi
+        done
+    done
+    
+    # Method 3: Try JDBC JAR manifest
+    for jar_file in "${home_path}"/ojdbc*.jar; do
+        if [[ -f "${jar_file}" ]]; then
+            local manifest_version
+            manifest_version=$(unzip -p "${jar_file}" META-INF/MANIFEST.MF 2>/dev/null | \
+                              grep -i "Implementation-Version:" | head -1 | \
+                              cut -d: -f2 | tr -d ' \r')
+            
+            if [[ -n "${manifest_version}" ]]; then
+                echo "${manifest_version}"
+                return 0
+            fi
+        fi
+    done
+    
+    echo "unknown"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_get_config_section
 # Purpose.: Get configuration section name for Instant Client
 # Returns.: 0 on success
