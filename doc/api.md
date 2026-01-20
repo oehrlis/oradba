@@ -468,24 +468,26 @@ echo "Entry: $entry"
 ORACLE_HOME=$(echo "$entry" | cut -d: -f2)
 ```
 
-### export_oracle_base_env
+### oradba_set_lib_path
 
-Export common Oracle environment variables.
+Set library path using plugin system for product-specific requirements.
 
-**Syntax**: `export_oracle_base_env`
+**Syntax**: `oradba_set_lib_path ORACLE_HOME PRODUCT_TYPE`
 
-**Sets**:
+**Arguments**:
 
-- `PATH` - Adds $ORACLE_HOME/bin
-- `LD_LIBRARY_PATH` - Adds $ORACLE_HOME/lib
-- `TNS_ADMIN` - Sets to network admin directory
-- `NLS_LANG` - Sets default language
+- `$1` - ORACLE_HOME path
+- `$2` - Product type (database, iclient, datasafe, etc.)
+
+**Returns**: 0 on success, 1 on error
+
+**Notes**: Uses `plugin_build_lib_path()` from product-specific plugins. Handles platform differences (LD_LIBRARY_PATH, SHLIB_PATH, LIBPATH, DYLD_LIBRARY_PATH). Deduplicates library paths automatically.
 
 **Example**:
 
 ```bash
-export ORACLE_HOME="/u01/app/oracle/product/19.0.0/dbhome_1"
-export_oracle_base_env
+export ORACLE_HOME="/opt/oracle/instantclient_19_21"
+oradba_set_lib_path "${ORACLE_HOME}" "iclient"
 ```
 
 ### execute_db_query

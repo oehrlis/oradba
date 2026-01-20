@@ -689,7 +689,7 @@ _oraenv_apply_product_adjustments() {
 # Output..: Exports ORACLE_SID, ORACLE_HOME, ORACLE_BASE, ORACLE_STARTUP,
 #           and optional DataSafe variables (DATASAFE_HOME, DATASAFE_INSTALL_DIR,
 #           DATASAFE_CONFIG). Derives ORACLE_BASE if not set.
-# Notes...: Calls export_oracle_base_env() for common Oracle environment setup.
+# Notes...: Uses oradba_set_lib_path() with plugin system for library paths.
 #           Startup flag (Y/N) extracted from oratab entry field 3.
 # ------------------------------------------------------------------------------
 _oraenv_setup_environment_variables() {

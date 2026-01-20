@@ -1013,36 +1013,6 @@ persist_discovered_instances() {
     fi
 }
 
-# Export common Oracle environment variables
-# ------------------------------------------------------------------------------
-# Function: export_oracle_base_env
-# Purpose.: Export common Oracle environment variables
-# Args....: None
-# Returns.: 0 - Always successful
-# Output..: None (exports variables)
-# Notes...: DEPRECATED: Use oradba_set_lib_path() from oradba_env_builder.sh
-#           This function hardcodes LD_LIBRARY_PATH to ${ORACLE_HOME}/lib
-#           which is incorrect for instant client (libraries in root directory).
-#           The new oradba_set_lib_path() uses the plugin system for
-#           product-specific library path construction.
-#           Example: export_oracle_base_env
-# ------------------------------------------------------------------------------
-export_oracle_base_env() {
-    # Set common paths if not already set
-    export PATH="${ORACLE_HOME}/bin:${PATH}"
-    export LD_LIBRARY_PATH="${ORACLE_HOME}/lib:${LD_LIBRARY_PATH:-}"
-
-    # Set TNS_ADMIN if not set
-    if [[ -z "${TNS_ADMIN}" ]]; then
-        if [[ -d "${ORACLE_HOME}/network/admin" ]]; then
-            export TNS_ADMIN="${ORACLE_HOME}/network/admin"
-        fi
-    fi
-
-    # Set NLS_LANG if not set
-    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
-}
-
 # ------------------------------------------------------------------------------
 # Function: validate_directory
 # Purpose.: Validate directory exists and optionally create it

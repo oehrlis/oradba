@@ -96,7 +96,7 @@ Library of common functions used across scripts.
   - `command_exists()` - Check command availability
   - `verify_oracle_env()` - Validate Oracle environment
   - `parse_oratab()` - Parse oratab entries
-  - `export_oracle_base_env()` - Set common Oracle variables
+  - `oradba_set_lib_path()` - Set library path using plugin system
 
 **Logging Best Practices (v0.13.1+):**
 

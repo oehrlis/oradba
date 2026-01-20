@@ -240,7 +240,7 @@ source "${ORADBA_BASE}/lib/oradba_aliases.sh"
 
 - `verify_oracle_env` - Verify Oracle environment variables are set
 - `get_oracle_version` - Get Oracle version string
-- `export_oracle_base_env` - Export common Oracle environment variables
+- `oradba_set_lib_path` - Set library path using plugin system (see oradba_env_builder.sh)
 - `validate_directory` - Validate and optionally create directory
 - `command_exists` - Check if command is in PATH
 - `alias_exists` - Check if alias is defined
