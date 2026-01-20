@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added 5 comprehensive tests with isolated function extraction for test safety
   - Instant client homes without sqlplus now show correct version instead of "Unknown"
 
+### Changed
+
+- **Version Detection Architecture** (2026-01-20)
+  - Refactored version detection to delegate to product plugins
+  - `detect_oracle_version()` now tries `plugin_get_version()` first before fallback methods
+  - Product-specific logic moved from oradba_common.sh to individual plugins
+  - Added `plugin_get_version()` to instant client plugin with 3 detection methods
+  - Removed redundant instant client-specific code from detect_oracle_version()
+  - Improves separation of concerns and maintainability
+  - Each plugin is now self-contained for version detection
+
 ### Fixed
 
 - **Instant Client Version Detection from sqlplus** (2026-01-20)
