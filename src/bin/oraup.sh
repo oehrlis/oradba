@@ -295,12 +295,15 @@ show_oracle_status_registry() {
             listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
             
             # Get detailed listener status and ports
+            # Use lsnrctl from the listener's ORACLE_HOME to ensure compatibility
             local lsnr_status="down"
             local port_display=""
             
-            if command -v lsnrctl &>/dev/null; then
+            if [[ -x "${listener_home}/bin/lsnrctl" ]]; then
                 local lsnr_output
-                lsnr_output=$(lsnrctl status "$listener_name" 2>/dev/null)
+                # Set environment for lsnrctl execution from listener's home
+                lsnr_output=$(LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                              "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
                 
                 if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
                     lsnr_status="up"
