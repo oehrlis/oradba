@@ -504,19 +504,6 @@ _oraenv_handle_oracle_home() {
             export ORACLE_BASE="${derived_base}"
         fi
 
-        # Set common environment variables
-        # Get product type for plugin-aware library path setup
-        local product_type="database"
-        if command -v get_oracle_home_type &>/dev/null; then
-            product_type=$(get_oracle_home_type "$requested_sid" 2>/dev/null || echo "database")
-        fi
-        
-        # Set library path using plugin system
-        oradba_set_lib_path "$ORACLE_HOME" "$product_type"
-        
-        # Set PATH
-        export PATH="${ORACLE_HOME}/bin:${PATH}"
-        
         # Set TNS_ADMIN if not set
         if [[ -z "${TNS_ADMIN}" ]] && [[ -d "${ORACLE_HOME}/network/admin" ]]; then
             export TNS_ADMIN="${ORACLE_HOME}/network/admin"
@@ -702,6 +689,13 @@ _oraenv_setup_environment_variables() {
     export ORACLE_SID="$actual_sid"
     export ORACLE_HOME="$oracle_home"
     
+    # Get product type
+    local product_type="database"
+    if command -v get_oracle_home_type &>/dev/null; then
+        product_type=$(get_oracle_home_type "$actual_sid" 2>/dev/null || echo "database")
+    fi
+    export ORADBA_CURRENT_HOME_TYPE="${product_type}"
+    
     # Set DataSafe-specific variables if applicable
     if [[ -n "$datasafe_install_dir" ]]; then
         export DATASAFE_HOME="$oracle_home"
@@ -718,15 +712,15 @@ _oraenv_setup_environment_variables() {
         export ORACLE_BASE="${derived_base}"
     fi
 
-    # Set common environment variables
-    # Get product type for plugin-aware library path setup
-    local product_type="database"
-    if command -v get_oracle_home_type &>/dev/null; then
-        product_type=$(get_oracle_home_type "$sid" 2>/dev/null || echo "database")
+    # Clean old Oracle paths before adding new ones
+    if command -v oradba_clean_path &>/dev/null; then
+        oradba_clean_path
     fi
     
     # Set library path using plugin system
-    oradba_set_lib_path "$ORACLE_HOME" "$product_type"
+    if command -v oradba_set_lib_path &>/dev/null; then
+        oradba_set_lib_path "$ORACLE_HOME" "$product_type"
+    fi
     
     # Set PATH
     export PATH="${ORACLE_HOME}/bin:${PATH}"

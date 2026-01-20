@@ -1609,6 +1609,11 @@ set_oracle_home_environment() {
     export ORACLE_HOME="${adjusted_home}"
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
     
+    # Set library path using plugin system (Phase 4+)
+    if command -v oradba_set_lib_path &>/dev/null; then
+        oradba_set_lib_path "${adjusted_home}" "${product_type}"
+    fi
+    
     # Set DataSafe-specific variables if applicable
     if [[ -n "${datasafe_install_dir}" ]]; then
         export DATASAFE_HOME="${oracle_home}"
@@ -1627,6 +1632,11 @@ set_oracle_home_environment() {
     # Always use actual name in alias target, not the alias itself
     # shellcheck disable=SC2139  # We want the alias to expand now
     alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
+
+    # Clean old Oracle paths from PATH before adding new ones (Phase 4+)
+    if command -v oradba_clean_path &>/dev/null; then
+        oradba_clean_path
+    fi
 
     # Set product-specific environment variables
     case "${product_type}" in
