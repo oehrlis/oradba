@@ -885,12 +885,14 @@ The Registry API provides a unified interface for accessing Oracle installation 
 7. **Consumers**: Used by oraenv.sh, oradba_env.sh, oradba_homes.sh, oraup.sh
 
 **Output Format**:
-```
+
+```text
 type:name:home:version:flags:order:alias:desc
 ```
 
 **Example Entries**:
-```
+
+```text
 database:FREE:/u01/app/oracle/product/23/dbhomeFree:23.0:N:1::Oracle 23ai
 client:client19:/u01/app/oracle/product/19/client:19.0::2:c19:Oracle Client 19c
 datasafe:dsconn:/u01/app/oracle/dsconn:N/A::3::Data Safe Connector

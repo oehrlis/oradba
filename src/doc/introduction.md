@@ -6,7 +6,10 @@
 
 ## What is OraDBA?
 
-OraDBA is a comprehensive toolset for Oracle Database administration and operations, designed for production, development, and test environments. It provides an intelligent environment management system based on a unified **Registry API** and extensible **Plugin System** that simplifies Oracle administration through automation and consistent workflows.
+OraDBA is a comprehensive toolset for Oracle Database administration and operations, designed for production,
+development, and test environments. It provides an intelligent environment management system based on a unified
+**Registry API** and extensible **Plugin System** that simplifies Oracle administration through automation and
+consistent workflows.
 
 ### System Architecture
 
@@ -54,6 +57,7 @@ OraDBA v0.19.x introduces a **Registry API** that provides a single, consistent 
 - **On-Demand Sync**: Transparent fallback if a home isn't found in the registry
 
 **Supported Products:**
+
 - Oracle Database (primary focus)
 - Oracle Data Safe On-Premises Connector
 - Oracle Client (full client installations)
@@ -115,32 +119,38 @@ See [Configuration System](configuration.md) for complete details.
 Over 50 pre-configured aliases for common tasks:
 
 **SQL*Plus Aliases:**
+
 - `sq` - sqlplus / as sysdba
 - `sqh` - sqlplus with rlwrap (command history)
 - `sessionsql` - SQL*Plus with auto-sizing
 
 **RMAN Aliases:**
+
 - `rman` - RMAN connection
 - `rmanc` - RMAN with catalog
 - `rmanh` - RMAN with rlwrap
 
 **Navigation Aliases:**
+
 - `cdh` - cd to ORACLE_HOME
 - `cda` - cd to admin directory
 - `cdd` - cd to diagnostic destination
 - `cdt` - cd to trace directory
 
 **Alert Log Aliases:**
+
 - `taa` - tail alert log
 - `vaa` - view alert log
 - `via` - edit alert log with vi
 
 **Database Control:**
+
 - `lstat` - listener status
 - `lstart` - start listener
 - `lstop` - stop listener
 
 **Information Aliases:**
+
 - `pmon` - show pmon processes
 - `oratab` - display oratab
 - `tns` - show TNS entries
@@ -189,6 +199,7 @@ Built-in version and integrity verification:
 Ready-to-use script libraries:
 
 **SQL Scripts:**
+
 - Database information and metadata queries
 - Session and lock management
 - Security and audit reports
@@ -196,12 +207,14 @@ Ready-to-use script libraries:
 - Performance and diagnostics
 
 **RMAN Scripts:**
+
 - Full and incremental backups
 - Archive log backups
 - Recovery and restore templates
 - Backup maintenance and validation
 
 **Service Management:**
+
 - Database start/stop/restart
 - Listener management
 - Service registration and configuration

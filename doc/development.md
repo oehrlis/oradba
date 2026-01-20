@@ -41,10 +41,6 @@ See [architecture.md](architecture.md) for detailed system design.
 
 The Registry API (oradba_registry.sh) provides unified access to Oracle installations:
 
-### Registry API (v0.19.0+)
-
-The Registry API (oradba_registry.sh) provides unified access to Oracle installations:
-
 ```bash
 # Get all installations
 oradba_registry_get_all
@@ -63,7 +59,8 @@ oradba_registry_get_field "FREE" "home"
 ```
 
 **Output Format** (colon-delimited):
-```
+
+```text
 type:name:home:version:flags:order:alias:desc
 ```
 
@@ -236,6 +233,7 @@ The project uses GitHub Actions for continuous integration and automated release
 ### Workflows
 
 **CI Workflow** (`.github/workflows/ci.yml`):
+
 - Triggers on push and pull requests
 - Runs linting (shellcheck, markdownlint)
 - Executes smart test selection
@@ -243,6 +241,7 @@ The project uses GitHub Actions for continuous integration and automated release
 - Fast feedback (~3-5 minutes)
 
 **Release Workflow** (`.github/workflows/release.yml`):
+
 - Triggers on version tags (vX.Y.Z)
 - Runs full test suite
 - Generates documentation (PDF, HTML)
@@ -392,11 +391,13 @@ oradba_homes.sh import oradba_homes_backup.csv
 ### Library Components
 
 **Registry API** (`oradba_registry.sh`):
+
 - Unified access to oratab and oradba_homes.conf
 - Auto-synchronization of database entries
 - Colon-delimited output format
 
 **Environment Management Libraries**:
+
 - `oradba_env_parser.sh` - Parse and merge 6 configuration levels
 - `oradba_env_builder.sh` - Build Oracle environment variables
 - `oradba_env_validator.sh` - Validate Oracle installations
@@ -405,12 +406,14 @@ oradba_homes.sh import oradba_homes_backup.csv
 - `oradba_env_changes.sh` - Change detection and tracking
 
 **Core Utilities** (`oradba_common.sh`):
+
 - Logging with `oradba_log()` (DEBUG, INFO, WARN, ERROR)
 - Oracle utilities (`parse_oratab()`, `detect_product_type()`)
 - Environment validation (`verify_oracle_env()`)
 - PATH management (`oradba_dedupe_path()`)
 
 **Database Operations** (`oradba_db_functions.sh`):
+
 - Database start/stop/status
 - Listener management
 - Session queries
@@ -463,7 +466,7 @@ OraDBA uses a hierarchical 6-level configuration system with priority-based over
 
 **Key Configuration Files:**
 
-```
+```text
 ${ORADBA_PREFIX}/etc/
 ├── oradba_core.conf           # Core defaults (do not modify)
 ├── oradba_standard.conf       # Standard settings
@@ -1117,11 +1120,11 @@ make pre-commit
 
 **Performance:**
 
-| Scenario             | Full Suite         | Smart Selection   | Time Saved  |
-|----------------------|--------------------|-------------------|-------------|
-| Single script change | 1000+ tests (10min)| ~10 tests (1 min) | 9 minutes   |
-| Library change       | 492 tests (8 min) | ~50 tests (2 min) | 6 minutes   |
-| Documentation only   | 492 tests (8 min) | 3 tests (30 sec)  | 7.5 minutes |
+| Scenario             | Full Suite          | Smart Selection   | Time Saved  |
+|----------------------|---------------------|-------------------|-------------|
+| Single script change | 1000+ tests (10min) | ~10 tests (1 min) | 9 minutes   |
+| Library change       | 492 tests (8 min)   | ~50 tests (2 min) | 6 minutes   |
+| Documentation only   | 492 tests (8 min)   | 3 tests (30 sec)  | 7.5 minutes |
 
 **Configuration:**
 

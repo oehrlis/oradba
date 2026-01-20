@@ -1,14 +1,17 @@
 # Troubleshooting Guide
 
-**Purpose:** Solutions to common OraDBA v0.19.x issues - the canonical location for troubleshooting patterns and solutions.
+**Purpose:** Solutions to common OraDBA v0.19.x issues - the canonical location for troubleshooting patterns and
+solutions.
 
 **Audience:** All users encountering problems with OraDBA.
 
 ## Introduction
 
-This guide provides structured solutions to common OraDBA v0.19.x issues. Each entry follows a consistent pattern: Symptom → Cause → Check → Fix → Related Chapters.
+This guide provides structured solutions to common OraDBA v0.19.x issues. Each entry follows a consistent pattern:
+Symptom → Cause → Check → Fix → Related Chapters.
 
-The Registry API and Plugin System introduced in v0.19.x simplify many operations but have their own troubleshooting patterns.
+The Registry API and Plugin System introduced in v0.19.x simplify many operations but have their own troubleshooting
+patterns.
 
 ## Common Issues and Solutions
 

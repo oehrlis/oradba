@@ -1,6 +1,7 @@
 # Environment Management
 
-**Purpose:** Comprehensive guide to OraDBA v0.19.x environment management - Registry API, Plugin System, and the `oraenv.sh` command.
+**Purpose:** Comprehensive guide to OraDBA v0.19.x environment management - Registry API, Plugin System, and the
+`oraenv.sh` command.
 
 **Audience:** All users - essential for daily OraDBA use.
 
@@ -12,7 +13,8 @@ OraDBA v0.19.x introduces a modern environment management system built on three 
 2. **Plugin System**: Product-specific intelligence for 8 Oracle product types
 3. **Environment Libraries**: Modular libraries for parsing, building, and validating environments
 
-This architecture replaces the old oratab-only approach with a comprehensive system that supports databases, clients, Data Safe connectors, OUD, Java, and more.
+This architecture replaces the old oratab-only approach with a comprehensive system that supports databases, clients,
+Data Safe connectors, OUD, Java, and more.
 
 ## Architecture Overview
 
@@ -46,6 +48,7 @@ graph TB
 ```
 
 **Flow:**
+
 1. User runs `source oraenv.sh <name>`
 2. Wrapper calls Registry API to resolve installation
 3. Parser loads and merges 6-level configuration
@@ -112,7 +115,8 @@ oradba_homes.sh add \
 
 The registry uses two data sources:
 
-**1. /etc/oratab (Databases)**
+#### 1. /etc/oratab (Databases)
+
 ```bash
 # Standard oratab format
 FREE:/u01/app/oracle/product/23ai/dbhomeFree:N
@@ -120,7 +124,8 @@ TESTDB:/u01/app/oracle/product/19c/dbhome_1:N
 PRODDB:/u01/app/oracle/product/19c/dbhome_1:Y
 ```
 
-**2. oradba_homes.conf (All Products)**
+#### 2. oradba_homes.conf (All Products)
+
 ```bash
 # Auto-generated and manually registered homes
 # Format: NAME|TYPE|PATH|VERSION|DESCRIPTION
@@ -137,7 +142,7 @@ Each Oracle product type has a dedicated plugin that handles product-specific op
 ### Supported Product Types
 
 | Type | Plugin | Description | Full Support |
-|------|--------|-------------|--------------|
+| ------- | ------------ | ---------------------------------- | ------------ |
 | database | database.sh | Oracle Database (RDBMS) | ✅ Yes |
 | datasafe | datasafe.sh | Data Safe On-Premises Connector | ✅ Yes |
 | client | client.sh | Oracle Full Client | ✅ Yes |
@@ -183,6 +188,7 @@ When you run `source oraenv.sh <name>`, the system:
 6. **Loads Config**: Applies configuration from 6-level hierarchy
 
 Example for database:
+
 ```bash
 source oraenv.sh FREE
 
@@ -195,6 +201,7 @@ source oraenv.sh FREE
 ```
 
 Example for Instant Client:
+
 ```bash
 source oraenv.sh ic23c
 

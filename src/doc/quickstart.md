@@ -390,6 +390,7 @@ oradba_homes.sh remove --name old-test-db
 OraDBA v0.19.x uses plugins for product-specific operations:
 
 **Supported Product Types:**
+
 - `database` - Oracle Database (primary focus)
 - `datasafe` - Oracle Data Safe On-Premises Connector
 - `client` - Oracle Full Client
@@ -401,6 +402,7 @@ OraDBA v0.19.x uses plugins for product-specific operations:
 - `emagent` - Enterprise Manager Agent (basic support)
 
 Each plugin handles:
+
 - Product detection and validation
 - Version detection
 - Environment variable setup (PATH, LD_LIBRARY_PATH, etc.)
@@ -501,21 +503,25 @@ chmod +x oradba_install.sh
 If you're upgrading from older versions:
 
 **Registry API:**
+
 - Databases auto-sync from oratab (no manual registration needed)
 - Single `oradba_homes.conf` replaces old configuration approach
 - Use `oradba_homes.sh` command for registry management
 
 **Plugin System:**
+
 - All product types use plugins (uniform interface)
 - 8 product types supported (was limited in previous versions)
 - Product detection is automatic and consistent
 
 **No Basenv Coexistence:**
+
 - Basenv coexistence mode removed in v0.19.x
 - Clean architecture without legacy compatibility layer
 - May be re-engineered with plugin approach in future releases
 
 **Simplified Configuration:**
+
 - Same 6-level hierarchy
 - Core files remain compatible
 - Customer customizations preserved during upgrade

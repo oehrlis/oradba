@@ -1,14 +1,18 @@
 # Configuration System
 
-**Purpose:** Comprehensive guide to OraDBA v0.19.x hierarchical configuration system - the canonical reference for all configuration files, variables, and customization options.
+**Purpose:** Comprehensive guide to OraDBA v0.19.x hierarchical configuration system - the canonical reference for all
+configuration files, variables, and customization options.
 
 **Audience:** Users who need to customize OraDBA behavior, paths, or installation-specific settings.
 
 ## Introduction
 
-OraDBA uses a sophisticated library-based configuration system powered by Environment Management libraries (oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates configuration from six sources, allowing you to customize globally or per-installation without modifying base files.
+OraDBA uses a sophisticated library-based configuration system powered by Environment Management libraries
+(oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates
+configuration from six sources, allowing you to customize globally or per-installation without modifying base files.
 
-This configuration system works with all 8 supported product types: databases, Data Safe connectors, Oracle clients, Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
+This configuration system works with all 8 supported product types: databases, Data Safe connectors, Oracle clients,
+Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
 
 ## Configuration Hierarchy
 
@@ -20,7 +24,7 @@ earlier settings:
 3. **oradba_local.conf** - Auto-detected local settings (auto-generated, don't modify)
 4. **oradba_customer.conf** - Your global custom settings (optional, **recommended for customization**)
 5. **sid._DEFAULT_.conf** - Default template for all installations (optional)
-6. **sid.<NAME>.conf** - Installation-specific settings (optional, auto-created from template)
+6. **sid.\<NAME>.conf** - Installation-specific settings (optional, auto-created from template)
 
 ```mermaid
 graph TB
@@ -57,7 +61,9 @@ graph TB
 ```
 
 **Configuration processing:**  
-The Parser reads all 6 levels and merges them with later levels overriding earlier ones. The Builder constructs the environment using the merged configuration and the appropriate product plugin. The Validator verifies installation integrity.
+The Parser reads all 6 levels and merges them with later levels overriding earlier ones. The Builder constructs the
+environment using the merged configuration and the appropriate product plugin. The Validator verifies installation
+integrity.
 
 **Key Benefits:**
 
@@ -295,11 +301,12 @@ ORADBA_DIAGNOSTIC_DEST="${ORACLE_BASE}/diag"
 ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/${ORACLE_SID}"
 ```
 
-**When to Edit:** Modify to set defaults that apply to all your installations. Individual installations can override in their own sid configs.
+**When to Edit:** Modify to set defaults that apply to all your installations. Individual installations can override
+in their own sid configs.
 
-### sid.<NAME>.conf - Installation-Specific Settings
+### sid.\\{NAME}.conf - Installation-Specific Settings
 
-**Location:** `${ORADBA_PREFIX}/etc/sid.<NAME>.conf`
+**Location:** `${ORADBA_PREFIX}/etc/sid.\\{NAME}.conf`
 
 **Purpose:** Settings specific to one installation (database, Data Safe connector, etc.)
 
@@ -790,7 +797,7 @@ export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 
 1. **Never modify core or standard configs** - Use customer config for overrides
 2. **Use oradba_customer.conf for global settings** - All your customizations in one place
-3. **Use sid.<NAME>.conf for installation-specific settings** - Per-installation customization
+3. **Use sid.\<NAME>.conf for installation-specific settings** - Per-installation customization
 4. **Comment your customizations** - Explain why you changed defaults
 5. **Backup your configs** - Keep copies of customer and installation-specific configs
 6. **Test configuration changes** - Use `ORADBA_DEBUG=true` to verify loading

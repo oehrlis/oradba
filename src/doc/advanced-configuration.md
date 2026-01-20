@@ -1,14 +1,20 @@
 # Advanced Configuration Guide
 
-**Purpose:** Comprehensive guide for advanced OraDBA v0.19.x configuration scenarios including multi-version Oracle Homes, Grid Infrastructure, Read-Only Oracle Homes, and product-specific configurations.
+**Purpose:** Comprehensive guide for advanced OraDBA v0.19.x configuration scenarios including multi-version Oracle
+Homes, Grid Infrastructure, Read-Only Oracle Homes, and product-specific configurations.
 
-**Audience:** System administrators and DBAs managing complex Oracle environments with multiple products, versions, or specialized configurations.
+**Audience:** System administrators and DBAs managing complex Oracle environments with multiple products, versions, or
+specialized configurations.
 
 ## Introduction
 
-This guide covers advanced configuration scenarios that go beyond basic OraDBA setup. You'll learn how to manage multiple Oracle Home versions, configure Grid Infrastructure environments, work with Read-Only Oracle Homes, customize PATH behavior, and configure product-specific settings for Data Safe, Oracle Unified Directory (OUD), Java, and WebLogic Server (WLS).
+This guide covers advanced configuration scenarios that go beyond basic OraDBA setup. You'll learn how to manage
+multiple Oracle Home versions, configure Grid Infrastructure environments, work with Read-Only Oracle Homes, customize
+PATH behavior, and configure product-specific settings for Data Safe, Oracle Unified Directory (OUD), Java, and
+WebLogic Server (WLS).
 
-OraDBA v0.19.x uses the Registry API and Plugin System to manage all 8 supported product types, making it easy to work with databases, clients, and other Oracle products in complex environments.
+OraDBA v0.19.x uses the Registry API and Plugin System to manage all 8 supported product types, making it easy to work
+with databases, clients, and other Oracle products in complex environments.
 
 **Prerequisites:**
 
@@ -19,7 +25,9 @@ OraDBA v0.19.x uses the Registry API and Plugin System to manage all 8 supported
 
 ## Multi-Version Oracle Home Management
 
-Managing multiple Oracle Database versions is a common requirement in enterprise environments. OraDBA's Registry API provides comprehensive support for registering, discovering, and switching between different Oracle product installations across all 8 product types.
+Managing multiple Oracle Database versions is a common requirement in enterprise environments. OraDBA's Registry API
+provides comprehensive support for registering, discovering, and switching between different Oracle product
+installations across all 8 product types.
 
 ### Understanding Oracle Homes Registry
 

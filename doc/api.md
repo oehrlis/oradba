@@ -25,6 +25,7 @@ OraDBA v0.19.0+ uses a modular architecture with clearly separated concerns:
 Unified interface for Oracle installation discovery and management. Single source of truth combining `oratab` and `oradba_homes.conf`.
 
 **Key Functions:**
+
 - `oradba_registry_get_all` - Get all installations
 - `oradba_registry_get_by_name` - Get by NAME (SID/home name)
 - `oradba_registry_get_by_type` - Get by product type
@@ -35,6 +36,7 @@ Unified interface for Oracle installation discovery and management. Single sourc
 ### 2. Plugin System (6 product-specific plugins)
 
 **Plugins:**
+
 - `database_plugin.sh` - Oracle Database (RDBMS)
 - `datasafe_plugin.sh` - Data Safe On-Premises Connector
 - `client_plugin.sh` - Oracle Full Client
@@ -43,6 +45,7 @@ Unified interface for Oracle installation discovery and management. Single sourc
 - `java_plugin.sh` - Java JDK/JRE
 
 **Standard Interface (8 functions per plugin):**
+
 - `plugin_detect_installation` - Auto-discover installations
 - `plugin_validate_home` - Validate ORACLE_HOME
 - `plugin_adjust_environment` - Adjust PATH/environment
@@ -71,17 +74,19 @@ Unified interface for Oracle installation discovery and management. Single sourc
 
 ## Registry API
 
-The Registry API (`oradba_registry.sh`) provides unified access to Oracle installations from both `oratab` and `oradba_homes.conf`.
+The Registry API (`oradba_registry.sh`) provides unified access to Oracle
+installations from both `oratab` and `oradba_homes.conf`.
 
 ### Output Format
 
 All Registry API functions return colon-delimited entries:
 
-```
+```text
 NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION
 ```
 
 **Fields:**
+
 - `NAME` - Entry name (SID for databases, home name for others)
 - `ORACLE_HOME` - Installation path
 - `PRODUCT_TYPE` - One of: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`
@@ -112,6 +117,7 @@ datasafe-conn:/u01/app/oracle/ds-conn:datasafe:N/A:N/A:Data Safe Connector
 Get all Oracle installations from both `oratab` and `oradba_homes.conf`.
 
 **Syntax:**
+
 ```bash
 oradba_registry_get_all
 ```
@@ -119,6 +125,7 @@ oradba_registry_get_all
 **Arguments:** None
 
 **Returns:**  
+
 - Colon-delimited entries (one per line) for all installations
 - Exit code 0 on success
 
@@ -147,14 +154,17 @@ done < <(oradba_registry_get_all)
 Get entry by NAME (SID or home name).
 
 **Syntax:**
+
 ```bash
 oradba_registry_get_by_name <name>
 ```
 
 **Arguments:**
+
 - `$1` - NAME to search for (case-sensitive)
 
 **Returns:**
+
 - Colon-delimited entry if found
 - Exit code 0 if found, 1 if not found
 
@@ -185,14 +195,17 @@ fi
 Get all entries of a specific product type.
 
 **Syntax:**
+
 ```bash
 oradba_registry_get_by_type <product_type>
 ```
 
 **Arguments:**
+
 - `$1` - Product type: `database`, `client`, `iclient`, `datasafe`, `oud`, or `java`
 
 **Returns:**
+
 - Colon-delimited entries (one per line) for matching type
 - Exit code 0 on success (even if no matches)
 
@@ -220,14 +233,17 @@ echo "Found $count database(s)"
 Get entry by ORACLE_HOME path.
 
 **Syntax:**
+
 ```bash
 oradba_registry_get_by_home <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path to search for (must match exactly)
 
 **Returns:**
+
 - Colon-delimited entry if found
 - Exit code 0 if found, 1 if not found
 
@@ -253,14 +269,17 @@ fi
 Get service status for an entry (delegates to appropriate plugin).
 
 **Syntax:**
+
 ```bash
 oradba_registry_get_status <name>
 ```
 
 **Arguments:**
+
 - `$1` - NAME to check status for
 
 **Returns:**
+
 - Status string from plugin's check_status function
 - Possible values: `RUNNING`, `STOPPED`, `UNKNOWN`, `N/A`
 - Exit code 0 on success
@@ -289,14 +308,17 @@ done
 Validate an entry using appropriate plugin.
 
 **Syntax:**
+
 ```bash
 oradba_registry_validate_entry <name>
 ```
 
 **Arguments:**
+
 - `$1` - NAME to validate
 
 **Returns:**
+
 - Exit code 0 if valid, 1 if invalid
 - Validation messages on stderr
 
@@ -324,7 +346,8 @@ done
 
 ## Plugin Interface
 
-Each of the 6 product plugins implements this standard 8-function interface. All plugin functions must be prefixed with `plugin_` when called.
+Each of the 6 product plugins implements this standard 8-function interface.
+All plugin functions must be prefixed with `plugin_` when called.
 
 ### Loading Plugins
 
@@ -347,6 +370,7 @@ ls "${ORADBA_BASE}/lib/plugins/"
 Auto-discover installations of this product type on the system.
 
 **Syntax:**
+
 ```bash
 plugin_detect_installation
 ```
@@ -354,6 +378,7 @@ plugin_detect_installation
 **Arguments:** None
 
 **Returns:**
+
 - Prints detected installations (one per line)  
   Format: `ORACLE_HOME|NAME|VERSION|DESCRIPTION`
 - Exit code 0 on success
@@ -380,14 +405,17 @@ done
 Validate that ORACLE_HOME is a valid installation of this product type.
 
 **Syntax:**
+
 ```bash
 plugin_validate_home <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path to validate
 
 **Returns:**
+
 - Exit code 0 if valid
 - Exit code 1 if invalid (with error message on stderr)
 
@@ -414,14 +442,17 @@ fi
 Adjust PATH and other environment variables for this product type (optional).
 
 **Syntax:**
+
 ```bash
 plugin_adjust_environment <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - Prints export statements to eval (or nothing if no adjustments needed)
 - Exit code 0
 
@@ -444,15 +475,18 @@ eval "$(plugin_adjust_environment "/opt/oracle/instantclient_21_15")"
 Check if service/instance is running.
 
 **Syntax:**
+
 ```bash
 plugin_check_status <oracle_home> <name>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 - `$2` - Instance/service name
 
 **Returns:**
+
 - Status string: `RUNNING`, `STOPPED`, `UNKNOWN`, or `N/A`
 - Exit code 0
 
@@ -475,14 +509,17 @@ echo "Connector: $status"
 Extract version, edition, and other metadata from the installation.
 
 **Syntax:**
+
 ```bash
 plugin_get_metadata <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - Pipe-delimited metadata: `VERSION|EDITION|PATCH_LEVEL`
 - Exit code 0
 
@@ -507,14 +544,17 @@ echo "Version: $version, Edition: $edition"
 Indicate if listener status should be shown for this product type.
 
 **Syntax:**
+
 ```bash
 plugin_should_show_listener <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - Exit code 0 if listener should be shown
 - Exit code 1 if listener should not be shown
 
@@ -539,14 +579,17 @@ plugin_should_show_listener "/opt/oracle/jdk-17"  # Returns 1
 Discover all instances/services for this ORACLE_HOME.
 
 **Syntax:**
+
 ```bash
 plugin_discover_instances <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - List of instance/service names (one per line)
 - Exit code 0
 
@@ -574,14 +617,17 @@ done
 Indicate if this product type supports SID-based aliases.
 
 **Syntax:**
+
 ```bash
 plugin_supports_aliases <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - Exit code 0 if aliases supported
 - Exit code 1 if aliases not supported
 
@@ -617,19 +663,23 @@ Parse and merge configuration from 6 hierarchical levels.
 Parse configuration hierarchy and merge settings.
 
 **Syntax:**
+
 ```bash
 parse_configuration <sid_or_name> <product_type>
 ```
 
 **Arguments:**
+
 - `$1` - SID or Oracle Home name
 - `$2` - Product type (database, client, etc.)
 
 **Returns:**
+
 - Sets environment variables from merged configuration
 - Exit code 0 on success
 
 **Configuration Hierarchy (lowest to highest priority):**
+
 1. Core (`oradba_core.conf`)
 2. Standard (`oradba_standard.conf`)
 3. Local (`oradba_local.conf`) - optional
@@ -658,16 +708,19 @@ Build Oracle environment variables.
 Build complete Oracle environment for a SID or home.
 
 **Syntax:**
+
 ```bash
 build_oracle_environment <sid_or_name> <oracle_home> <product_type>
 ```
 
 **Arguments:**
+
 - `$1` - SID or Oracle Home name
 - `$2` - ORACLE_HOME path
 - `$3` - Product type
 
 **Returns:**
+
 - Sets ORACLE_HOME, ORACLE_SID, PATH, LD_LIBRARY_PATH, etc.
 - Exit code 0 on success
 
@@ -690,15 +743,18 @@ echo "PATH: $PATH"
 Set PATH and LD_LIBRARY_PATH based on product type.
 
 **Syntax:**
+
 ```bash
 set_oracle_environment_paths <product_type> <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - Product type
 - `$2` - ORACLE_HOME path
 
 **Returns:**
+
 - Modifies PATH and LD_LIBRARY_PATH
 - Exit code 0
 
@@ -724,15 +780,18 @@ Validate Oracle installations and environments.
 Validate complete Oracle environment.
 
 **Syntax:**
+
 ```bash
 validate_oracle_environment <sid_or_name> <product_type>
 ```
 
 **Arguments:**
+
 - `$1` - SID or Oracle Home name
 - `$2` - Product type
 
 **Returns:**
+
 - Exit code 0 if valid
 - Exit code 1 if invalid (with errors on stderr)
 
@@ -757,15 +816,18 @@ validate_oracle_environment "jdk17" "java"
 Validate ORACLE_HOME path and structure.
 
 **Syntax:**
+
 ```bash
 validate_oracle_home <oracle_home> <product_type>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 - `$2` - Product type
 
 **Returns:**
+
 - Exit code 0 if valid
 - Exit code 1 if invalid
 
@@ -789,14 +851,17 @@ Configuration management functions.
 Load and parse a configuration file.
 
 **Syntax:**
+
 ```bash
 load_config_file <config_file>
 ```
 
 **Arguments:**
+
 - `$1` - Path to configuration file
 
 **Returns:**
+
 - Sources configuration file
 - Exit code 0 on success, 1 if file not found
 
@@ -823,14 +888,17 @@ Status display and formatting functions.
 Display current Oracle environment settings.
 
 **Syntax:**
+
 ```bash
 show_oracle_environment [--format <format>]
 ```
 
 **Arguments:**
+
 - `--format` - Output format: `simple`, `detailed`, `json` (default: `simple`)
 
 **Returns:**
+
 - Prints environment information
 - Exit code 0
 
@@ -858,6 +926,7 @@ Change detection and tracking.
 Detect what changed between old and new environment.
 
 **Syntax:**
+
 ```bash
 detect_environment_changes
 ```
@@ -865,6 +934,7 @@ detect_environment_changes
 **Arguments:** None (uses global variables)
 
 **Returns:**
+
 - Prints changed variables
 - Exit code 0
 
@@ -890,18 +960,22 @@ Core utility functions used throughout OraDBA.
 Unified logging function with configurable log levels.
 
 **Syntax:**
+
 ```bash
 oradba_log <level> <message>
 ```
 
 **Arguments:**
+
 - `$1` - Log level: `DEBUG`, `INFO`, `WARN`, `ERROR`
 - `$2` - Log message
 
 **Environment:**
+
 - `ORADBA_LOG_LEVEL` - Minimum level to display (default: `INFO`)
 
 **Returns:**
+
 - Prints log message to stderr
 - Exit code 0
 
@@ -926,6 +1000,7 @@ export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
 Deduplicate PATH variable by removing duplicate entries.
 
 **Syntax:**
+
 ```bash
 oradba_dedupe_path
 ```
@@ -933,6 +1008,7 @@ oradba_dedupe_path
 **Arguments:** None
 
 **Returns:**
+
 - Modifies global PATH variable
 - Exit code 0
 
@@ -955,14 +1031,17 @@ echo "$PATH"
 Detect Oracle product type from ORACLE_HOME filesystem.
 
 **Syntax:**
+
 ```bash
 detect_product_type <oracle_home>
 ```
 
 **Arguments:**
+
 - `$1` - ORACLE_HOME path
 
 **Returns:**
+
 - Prints product type: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`, or `unknown`
 - Exit code 0
 
@@ -982,14 +1061,17 @@ echo "$product_type"  # Output: java
 Parse oratab file and extract entries.
 
 **Syntax:**
+
 ```bash
 parse_oratab [<sid>]
 ```
 
 **Arguments:**
+
 - `$1` - Optional SID to search for (if omitted, returns all entries)
 
 **Returns:**
+
 - Prints oratab entries (one per line)
 - Format: `SID:ORACLE_HOME:AUTO_START`
 - Exit code 0
@@ -1014,6 +1096,7 @@ echo "ORACLE_HOME: $oracle_home"
 Verify Oracle environment variables are set correctly.
 
 **Syntax:**
+
 ```bash
 verify_oracle_env
 ```
@@ -1021,6 +1104,7 @@ verify_oracle_env
 **Arguments:** None
 
 **Returns:**
+
 - Exit code 0 if environment is valid
 - Exit code 1 if invalid (with error on stderr)
 
@@ -1049,15 +1133,18 @@ Database-specific operations and queries.
 Execute SQL query with simplified interface.
 
 **Syntax:**
+
 ```bash
 execute_db_query <query> [<format>]
 ```
 
 **Arguments:**
+
 - `$1` - SQL query (escape dollar signs: `v\$database`)
 - `$2` - Output format: `raw` (default) or `delimited` (pipe-separated, first line only)
 
 **Returns:**
+
 - Query results to stdout
 - Exit code 0 on success, 1 on error
 
@@ -1088,14 +1175,17 @@ fi
 Check if database instance is running.
 
 **Syntax:**
+
 ```bash
 check_database_status <sid>
 ```
 
 **Arguments:**
+
 - `$1` - Database SID
 
 **Returns:**
+
 - Prints status: `RUNNING`, `STOPPED`, or `UNKNOWN`
 - Exit code 0
 
@@ -1116,14 +1206,17 @@ fi
 Check if listener is running.
 
 **Syntax:**
+
 ```bash
 check_listener_status [<listener_name>]
 ```
 
 **Arguments:**
+
 - `$1` - Optional listener name (default: LISTENER)
 
 **Returns:**
+
 - Prints status: `RUNNING`, `STOPPED`, or `UNKNOWN`
 - Exit code 0
 
@@ -1143,6 +1236,7 @@ status=$(check_listener_status "LISTENER_FREE")
 Get Oracle database version.
 
 **Syntax:**
+
 ```bash
 get_database_version
 ```
@@ -1150,6 +1244,7 @@ get_database_version
 **Arguments:** None (uses current ORACLE_HOME)
 
 **Returns:**
+
 - Prints version string (e.g., "23.6.0.0.0")
 - Exit code 0 on success
 
@@ -1178,18 +1273,22 @@ Alias generation and management for database environments.
 Generate database-related aliases for a SID.
 
 **Syntax:**
+
 ```bash
 generate_aliases_for_sid <sid>
 ```
 
 **Arguments:**
+
 - `$1` - Database SID
 
 **Returns:**
+
 - Creates aliases in current shell
 - Exit code 0
 
 **Generated Aliases:**
+
 - `sql` - Connect as SYSDBA
 - `sqlu` - Connect as user
 - `rman` - Start RMAN
@@ -1215,6 +1314,7 @@ generate_aliases_for_sid "FREE"
 Clear all OraDBA-generated aliases.
 
 **Syntax:**
+
 ```bash
 clear_aliases
 ```
@@ -1222,6 +1322,7 @@ clear_aliases
 **Arguments:** None
 
 **Returns:**
+
 - Removes all OraDBA aliases
 - Exit code 0
 

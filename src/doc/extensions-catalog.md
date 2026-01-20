@@ -4,7 +4,8 @@
 
 **Audience:** Users looking to extend OraDBA functionality.
 
-OraDBA v0.19.x supports extensions to add custom functionality without modifying the core installation. Official extensions are listed below with links to their documentation in their respective GitHub repositories.
+OraDBA v0.19.x supports extensions to add custom functionality without modifying the core installation. Official
+extensions are listed below with links to their documentation in their respective GitHub repositories.
 
 All extensions work with OraDBA's Registry API and Plugin System, supporting databases and other Oracle product types.
 

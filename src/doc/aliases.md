@@ -6,9 +6,11 @@
 
 ## Introduction
 
-OraDBA v0.19.x provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.
+OraDBA v0.19.x provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically
+loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.
 
-The alias system uses the Plugin System to detect product types and generates appropriate aliases. For databases, it automatically detects if your database is a CDB and generates PDB-specific aliases accordingly.
+The alias system uses the Plugin System to detect product types and generates appropriate aliases. For databases, it
+automatically detects if your database is a CDB and generates PDB-specific aliases accordingly.
 
 ## Alias Categories
 

@@ -6,7 +6,9 @@
 
 ## Introduction
 
-OraDBA v0.19.x includes RMAN (Recovery Manager) script templates for common backup and recovery operations. These templates provide a starting point for database backup strategies and work with the Plugin System to support different Oracle product types.
+OraDBA v0.19.x includes RMAN (Recovery Manager) script templates for common backup and recovery operations. These
+templates provide a starting point for database backup strategies and work with the Plugin System to support different
+Oracle product types.
 
 ## RMAN Wrapper Script
 

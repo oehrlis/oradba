@@ -13,9 +13,12 @@
 
 ## Overview
 
-This chapter covers managing Oracle SQL*Net configuration using OraDBA templates and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
+This chapter covers managing Oracle SQL*Net configuration using OraDBA templates and tools for sqlnet.ora,
+tnsnames.ora, and ldap.ora files.
 
-OraDBA v0.19.x provides comprehensive SQL*Net configuration templates and management tools to simplify Oracle network setup, improve security, and ensure consistent configurations across environments. The system works with all Oracle product types supported by the Plugin System.
+OraDBA v0.19.x provides comprehensive SQL*Net configuration templates and management tools to simplify Oracle network
+setup, improve security, and ensure consistent configurations across environments. The system works with all Oracle
+product types supported by the Plugin System.
 
 ## Quick Start
 

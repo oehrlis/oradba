@@ -1,6 +1,7 @@
 # Installation
 
-**Purpose:** Complete installation guide for OraDBA v0.19.x, covering prerequisites, installation methods, and post-installation verification.
+**Purpose:** Complete installation guide for OraDBA v0.19.x, covering prerequisites,
+installation methods, and post-installation verification.
 
 **Audience:** System administrators and DBAs setting up OraDBA for the first time.
 
@@ -112,7 +113,8 @@ graph TB
 ```
 
 **Installation process:**  
-All methods follow the same core flow - download installer, transfer if needed, extract files, verify integrity with SHA256 checksums, update shell profile, and initialize Registry API for managing installations.
+All methods follow the same core flow - download installer, transfer if needed, extract files, verify integrity with
+SHA256 checksums, update shell profile, and initialize Registry API for managing installations.
 
 ### Method 1: Quick Install with Embedded Payload (Recommended)
 

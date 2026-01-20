@@ -7,15 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-
-- **Archived Documentation Cleanup** (2026-01-20)
-  - Removed `doc/archive/` directory (27 files) - Historical development documents superseded by v0.19.0+ documentation
-  - Removed `doc/releases/archive/phase-4-development/` (4 files) - Phase 4 development artifacts integrated into main release notes
-  - Removed `doc/releases/archive/v1-internal/` (6 files) - Internal v1.x releases superseded by v0.19.0 public release
-  - All relevant content migrated to current documentation structure
-  - Legacy basenv coexistence mode documentation archived (feature planned for re-engineering in Phase 8)
-
 ### Added
 
 - **Java Plugin for Oracle Java Management** (2026-01-20)
@@ -153,6 +144,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Both database and instant client environments now work correctly
 
 ### Removed
+
+- **Archived Documentation Cleanup** (2026-01-20)
+  - Removed `doc/archive/` directory (27 files) - Historical development documents superseded by v0.19.0+ documentation
+  - Removed `doc/releases/archive/phase-4-development/` (4 files) - Phase 4
+    development artifacts integrated into main release notes
+  - Removed `doc/releases/archive/v1-internal/` (6 files) - Internal v1.x releases superseded by v0.19.0 public release
+  - All relevant content migrated to current documentation structure
+  - Legacy basenv coexistence mode documentation archived (feature planned for re-engineering in Phase 8)
 
 - **Deprecated export_oracle_base_env() Function** (2026-01-20)
   - Removed deprecated `export_oracle_base_env()` from `oradba_common.sh` (32 lines)

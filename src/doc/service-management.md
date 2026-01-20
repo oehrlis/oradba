@@ -1,10 +1,13 @@
 # Oracle Service Management
 
-**Purpose:** Guide to managing Oracle database and listener services with OraDBA v0.19.x, including systemd integration.
+**Purpose:** Guide to managing Oracle database and listener services with OraDBA v0.19.x, including systemd
+integration.
 
 **Audience:** DBAs and system administrators managing Oracle services.
 
-OraDBA v0.19.x provides comprehensive service management tools for Oracle databases and listeners, suitable for interactive use, automation, and integration with systemd or init.d. The Plugin System enables product-specific service management for databases, Data Safe connectors, and other Oracle products.
+OraDBA v0.19.x provides comprehensive service management tools for Oracle databases and listeners, suitable for
+interactive use, automation, and integration with systemd or init.d. The Plugin System enables product-specific service
+management for databases, Data Safe connectors, and other Oracle products.
 
 ## Overview
 
