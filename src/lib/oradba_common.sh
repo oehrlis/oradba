@@ -1380,18 +1380,26 @@ detect_oracle_version() {
         return 0
     fi
 
-    # Method 1: Try sqlplus -version (for database and client homes)
+    # Method 1: Try sqlplus -version (for database, client, and instant client homes)
+    local sqlplus_bin=""
     if [[ -f "${oracle_home}/bin/sqlplus" ]]; then
+        sqlplus_bin="${oracle_home}/bin/sqlplus"
+    elif [[ -f "${oracle_home}/sqlplus" ]]; then
+        # Instant client: sqlplus in root directory
+        sqlplus_bin="${oracle_home}/sqlplus"
+    fi
+    
+    if [[ -n "${sqlplus_bin}" ]]; then
         local sqlplus_version
-        sqlplus_version=$("${oracle_home}/bin/sqlplus" -version 2>/dev/null | grep -i "Release" | head -1)
+        sqlplus_version=$("${sqlplus_bin}" -version 2>/dev/null | grep -i "Release" | head -1)
         
         if [[ -n "${sqlplus_version}" ]]; then
-            # Extract version like "19.21.0.0.0" or "23.0.0.0.0"
+            # Extract version like "19.21.0.0.0" or "23.0.0.0.0" or "23.26.0.0.0"
             local ver_str
             ver_str=$(echo "${sqlplus_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
             
             if [[ -n "${ver_str}" ]]; then
-                # Convert to XXYZ format: 19.21.0.0 -> 1921, 23.0.0.0 -> 2300
+                # Convert to XXYZ format: 19.21.0.0 -> 1921, 23.26.0.0 -> 2326
                 local major minor
                 major=$(echo "${ver_str}" | cut -d. -f1)
                 minor=$(echo "${ver_str}" | cut -d. -f2)
