@@ -129,17 +129,23 @@ oradba_add_oracle_path() {
         wls|weblogic) product_type="weblogic" ;;
     esac
     
-    # Try to load and use plugin
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    # Try to load and use plugin (check installed path first, then dev path)
+    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
+    if [[ ! -f "${plugin_file}" ]]; then
+        plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    fi
+    
     if [[ -f "${plugin_file}" ]]; then
         # shellcheck source=/dev/null
         source "${plugin_file}" 2>/dev/null
         
-        # Call plugin function if it exists
+        # Call plugin function if exists
         if declare -f plugin_build_path >/dev/null 2>&1; then
-            new_path=$(plugin_build_path "${oracle_home}")
-            oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
+            product_path=$(plugin_build_path "${oracle_home}")
+            oradba_log DEBUG "Plugin ${product_type}: PATH components = ${product_path}"
         fi
+    else
+        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
     fi
     
     # Fallback if plugin not found or failed
@@ -207,8 +213,12 @@ oradba_set_lib_path() {
         wls|weblogic) product_type="weblogic" ;;
     esac
     
-    # Try to load and use plugin
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    # Try to load and use plugin (check installed path first, then dev path)
+    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
+    if [[ ! -f "${plugin_file}" ]]; then
+        plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
+    fi
+    
     if [[ -f "${plugin_file}" ]]; then
         # shellcheck source=/dev/null
         source "${plugin_file}" 2>/dev/null
@@ -218,6 +228,8 @@ oradba_set_lib_path() {
             lib_path=$(plugin_build_lib_path "${oracle_home}")
             oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
         fi
+    else
+        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
     fi
     
     # Fallback if plugin not found or failed
@@ -228,6 +240,10 @@ oradba_set_lib_path() {
         fi
         if [[ -d "${oracle_home}/lib" ]]; then
             lib_path="${lib_path:+${lib_path}:}${oracle_home}/lib"
+        fi
+        # For instant client, libraries are in ORACLE_HOME root
+        if [[ "${product_type}" == "iclient" && -z "${lib_path}" ]]; then
+            lib_path="${oracle_home}"
         fi
     fi
     
