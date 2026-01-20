@@ -2,25 +2,55 @@
 
 Complete function reference for OraDBA v0.19.0+ libraries.
 
+**Last Updated:** 2026-01-20
+
+## Table of Contents
+
+- [Library Organization](#library-organization)
+- [Registry API](#registry-api)
+- [Plugin Interface](#plugin-interface)
+- [Environment Management Libraries](#environment-management-libraries)
+- [Core Utilities](#core-utilities)
+- [Database Operations](#database-operations)
+- [Alias Management](#alias-management)
+
+---
+
 ## Library Organization
 
-OraDBA v0.19.0+ uses a modular architecture with three main categories:
+OraDBA v0.19.0+ uses a modular architecture with clearly separated concerns:
 
-### 1. Registry API (oradba_registry.sh)
+### 1. Registry API (`oradba_registry.sh`)
 
-Unified interface for Oracle installation discovery and management. Single source of truth for all Oracle Homes (databases, clients, datasafe, oud, java).
+Unified interface for Oracle installation discovery and management. Single source of truth combining `oratab` and `oradba_homes.conf`.
 
-**6 core functions**: get_all, get_by_name, get_by_type, get_by_home, get_status, validate_entry
-
-See [Registry API](#registry-api) section below.
+**Key Functions:**
+- `oradba_registry_get_all` - Get all installations
+- `oradba_registry_get_by_name` - Get by NAME (SID/home name)
+- `oradba_registry_get_by_type` - Get by product type
+- `oradba_registry_get_by_home` - Get by ORACLE_HOME path
+- `oradba_registry_get_status` - Check service status
+- `oradba_registry_validate_entry` - Validate entry
 
 ### 2. Plugin System (6 product-specific plugins)
 
-Product-specific plugins for database, datasafe, client, iclient, oud, and java installations.
+**Plugins:**
+- `database_plugin.sh` - Oracle Database (RDBMS)
+- `datasafe_plugin.sh` - Data Safe On-Premises Connector
+- `client_plugin.sh` - Oracle Full Client
+- `iclient_plugin.sh` - Oracle Instant Client
+- `oud_plugin.sh` - Oracle Unified Directory
+- `java_plugin.sh` - Java JDK/JRE
 
-**8-function interface per plugin**: detect, validate, adjust_environment, check_status, get_metadata, show_listener, discover_instances, supports_aliases
-
-See [Plugin Interface](#plugin-interface) section below.
+**Standard Interface (8 functions per plugin):**
+- `plugin_detect_installation` - Auto-discover installations
+- `plugin_validate_home` - Validate ORACLE_HOME
+- `plugin_adjust_environment` - Adjust PATH/environment
+- `plugin_check_status` - Check service status
+- `plugin_get_metadata` - Extract version/edition
+- `plugin_should_show_listener` - Show listener?
+- `plugin_discover_instances` - Find instances
+- `plugin_supports_aliases` - Support aliases?
 
 ### 3. Environment Management Libraries (6 libraries)
 
@@ -54,8 +84,8 @@ NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION
 **Fields:**
 - `NAME` - Entry name (SID for databases, home name for others)
 - `ORACLE_HOME` - Installation path
-- `PRODUCT_TYPE` - One of: database, client, iclient, datasafe, oud, java
-- `VERSION` - Oracle version or "N/A"
+- `PRODUCT_TYPE` - One of: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`
+- `VERSION` - Oracle/product version or "N/A"
 - `AUTO_START` - Auto-start flag (Y/N) or "N/A"
 - `DESCRIPTION` - Optional description
 
@@ -70,49 +100,65 @@ iclient21:/opt/oracle/product/instantclient_21_15:iclient:21.15.0.0.0:N/A:Oracle
 
 # Java (from oradba_homes.conf)
 jdk17:/opt/oracle/product/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+
+# Data Safe Connector (from oradba_homes.conf)
+datasafe-conn:/u01/app/oracle/ds-conn:datasafe:N/A:N/A:Data Safe Connector
 ```
 
 ### Core Functions
 
 #### oradba_registry_get_all
 
-#### oradba_registry_get_all
+Get all Oracle installations from both `oratab` and `oradba_homes.conf`.
 
-Get all Oracle installations from both oratab and oradba_homes.conf.
+**Syntax:**
+```bash
+oradba_registry_get_all
+```
 
-**Syntax**: `oradba_registry_get_all`
+**Arguments:** None
 
-**Arguments**: None
-
-**Returns**:  
+**Returns:**  
 - Colon-delimited entries (one per line) for all installations
 - Exit code 0 on success
 
-**Example**:
+**Output:** Multiple lines in format `NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION`
+
+**Example:**
 
 ```bash
 # List all Oracle installations
 oradba_registry_get_all
+
 # Output:
 # FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
 # iclient21:/opt/oracle/instantclient_21_15:iclient:21.15.0.0.0:N/A:Instant Client
 # jdk17:/opt/oracle/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+# datasafe-conn:/u01/app/oracle/ds-conn:datasafe:N/A:N/A:Data Safe Connector
+
+# Parse and process all entries
+while IFS=: read -r name home type version auto_start desc; do
+    echo "Found $type: $name at $home"
+done < <(oradba_registry_get_all)
 ```
 
 #### oradba_registry_get_by_name
 
 Get entry by NAME (SID or home name).
 
-**Syntax**: `oradba_registry_get_by_name <name>`
+**Syntax:**
+```bash
+oradba_registry_get_by_name <name>
+```
 
-**Arguments**:
-- `$1` - NAME to search for
+**Arguments:**
+- `$1` - NAME to search for (case-sensitive)
 
-**Returns**:
+**Returns:**
 - Colon-delimited entry if found
 - Exit code 0 if found, 1 if not found
 
-**Example**:
+**Example:**
 
 ```bash
 # Get specific database
@@ -124,22 +170,33 @@ echo "$entry"
 IFS=: read -r name home type version auto_start desc <<< "$entry"
 echo "Oracle Home: $home"
 echo "Product Type: $type"
+echo "Version: $version"
+
+# Check if entry exists
+if oradba_registry_get_by_name "NONEXISTENT" >/dev/null 2>&1; then
+    echo "Entry found"
+else
+    echo "Entry not found"
+fi
 ```
 
 #### oradba_registry_get_by_type
 
 Get all entries of a specific product type.
 
-**Syntax**: `oradba_registry_get_by_type <product_type>`
+**Syntax:**
+```bash
+oradba_registry_get_by_type <product_type>
+```
 
-**Arguments**:
-- `$1` - Product type (database, client, iclient, datasafe, oud, java)
+**Arguments:**
+- `$1` - Product type: `database`, `client`, `iclient`, `datasafe`, `oud`, or `java`
 
-**Returns**:
+**Returns:**
 - Colon-delimited entries (one per line) for matching type
-- Exit code 0 on success
+- Exit code 0 on success (even if no matches)
 
-**Example**:
+**Example:**
 
 ```bash
 # Get all Java installations
@@ -149,23 +206,32 @@ oradba_registry_get_by_type "java"
 # jdk11:/opt/oracle/jdk-11:java:11.0.21:N/A:Oracle JDK 11
 
 # Get all databases
-oradba_registry_get_by_type "database"
+oradba_registry_get_by_type "database" | while IFS=: read -r name home type version auto_start desc; do
+    echo "Database: $name (version $version)"
+done
+
+# Count installations by type
+count=$(oradba_registry_get_by_type "database" | wc -l)
+echo "Found $count database(s)"
 ```
 
 #### oradba_registry_get_by_home
 
 Get entry by ORACLE_HOME path.
 
-**Syntax**: `oradba_registry_get_by_home <oracle_home>`
+**Syntax:**
+```bash
+oradba_registry_get_by_home <oracle_home>
+```
 
-**Arguments**:
-- `$1` - ORACLE_HOME path to search for
+**Arguments:**
+- `$1` - ORACLE_HOME path to search for (must match exactly)
 
-**Returns**:
+**Returns:**
 - Colon-delimited entry if found
 - Exit code 0 if found, 1 if not found
 
-**Example**:
+**Example:**
 
 ```bash
 # Find entry by path
@@ -173,47 +239,68 @@ entry=$(oradba_registry_get_by_home "/opt/oracle/product/23ai/dbhomeFree")
 IFS=: read -r name home type version auto_start desc <<< "$entry"
 echo "Entry name: $name"
 echo "Type: $type"
+
+# Reverse lookup - find name from current ORACLE_HOME
+if [[ -n "${ORACLE_HOME}" ]]; then
+    entry=$(oradba_registry_get_by_home "${ORACLE_HOME}")
+    IFS=: read -r name _ _ _ _ _ <<< "$entry"
+    echo "Current environment is for: $name"
+fi
 ```
 
 #### oradba_registry_get_status
 
 Get service status for an entry (delegates to appropriate plugin).
 
-**Syntax**: `oradba_registry_get_status <name>`
+**Syntax:**
+```bash
+oradba_registry_get_status <name>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - NAME to check status for
 
-**Returns**:
+**Returns:**
 - Status string from plugin's check_status function
+- Possible values: `RUNNING`, `STOPPED`, `UNKNOWN`, `N/A`
 - Exit code 0 on success
 
-**Example**:
+**Example:**
 
 ```bash
 # Check database status
 status=$(oradba_registry_get_status "FREE")
-echo "$status"
-# Output: RUNNING (or STOPPED, etc.)
+echo "Database FREE is: $status"
+# Output: Database FREE is: RUNNING
 
 # Check DataSafe connector status
 status=$(oradba_registry_get_status "datasafe-conn")
+echo "Connector status: $status"
+
+# Check all databases
+oradba_registry_get_by_type "database" | while IFS=: read -r name home _; do
+    status=$(oradba_registry_get_status "$name")
+    echo "$name: $status"
+done
 ```
 
 #### oradba_registry_validate_entry
 
 Validate an entry using appropriate plugin.
 
-**Syntax**: `oradba_registry_validate_entry <name>`
+**Syntax:**
+```bash
+oradba_registry_validate_entry <name>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - NAME to validate
 
-**Returns**:
+**Returns:**
 - Exit code 0 if valid, 1 if invalid
 - Validation messages on stderr
 
-**Example**:
+**Example:**
 
 ```bash
 # Validate database home
@@ -222,13 +309,36 @@ if oradba_registry_validate_entry "FREE"; then
 else
     echo "FREE validation failed"
 fi
+
+# Validate all entries
+oradba_registry_get_all | while IFS=: read -r name home type _; do
+    if oradba_registry_validate_entry "$name" 2>/dev/null; then
+        echo "✓ $name ($type)"
+    else
+        echo "✗ $name ($type) - INVALID"
+    fi
+done
 ```
 
 ---
 
 ## Plugin Interface
 
-Each of the 6 product plugins (database, datasafe, client, iclient, oud, java) implements this standard 8-function interface.
+Each of the 6 product plugins implements this standard 8-function interface. All plugin functions must be prefixed with `plugin_` when called.
+
+### Loading Plugins
+
+Plugins are automatically loaded by the Registry API, but can also be loaded manually:
+
+```bash
+# Load specific plugin
+source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
+
+# All plugins are in
+ls "${ORADBA_BASE}/lib/plugins/"
+# database_plugin.sh  datasafe_plugin.sh  client_plugin.sh
+# iclient_plugin.sh   oud_plugin.sh       java_plugin.sh
+```
 
 ### Required Functions
 
@@ -236,45 +346,66 @@ Each of the 6 product plugins (database, datasafe, client, iclient, oud, java) i
 
 Auto-discover installations of this product type on the system.
 
-**Syntax**: `plugin_detect_installation`
+**Syntax:**
+```bash
+plugin_detect_installation
+```
 
-**Arguments**: None
+**Arguments:** None
 
-**Returns**:
+**Returns:**
 - Prints detected installations (one per line)  
   Format: `ORACLE_HOME|NAME|VERSION|DESCRIPTION`
 - Exit code 0 on success
 
-**Example**:
+**Example:**
 
 ```bash
 # Detect all Java installations
-source src/lib/plugins/java_plugin.sh
+source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
 plugin_detect_installation
+
 # Output:
 # /opt/oracle/jdk-17|jdk17|17.0.12|Oracle JDK 17
 # /usr/lib/jvm/java-11|jdk11|11.0.21|OpenJDK 11
+
+# Process detected installations
+plugin_detect_installation | while IFS='|' read -r home name version desc; do
+    echo "Found: $name at $home (version $version)"
+done
 ```
 
 #### plugin_validate_home
 
 Validate that ORACLE_HOME is a valid installation of this product type.
 
-**Syntax**: `plugin_validate_home <oracle_home>`
+**Syntax:**
+```bash
+plugin_validate_home <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path to validate
 
-**Returns**:
+**Returns:**
 - Exit code 0 if valid
-- Exit code 1 if invalid (with error on stderr)
+- Exit code 1 if invalid (with error message on stderr)
 
-**Example**:
+**Example:**
 
 ```bash
 # Validate Java home
 if plugin_validate_home "/opt/oracle/jdk-17"; then
     echo "Valid Java installation"
+else
+    echo "Invalid Java installation"
+fi
+
+# Validate before setting environment
+oracle_home="/opt/oracle/product/23ai/dbhomeFree"
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+if plugin_validate_home "$oracle_home"; then
+    export ORACLE_HOME="$oracle_home"
 fi
 ```
 
@@ -282,2219 +413,911 @@ fi
 
 Adjust PATH and other environment variables for this product type (optional).
 
-**Syntax**: `plugin_adjust_environment <oracle_home>`
+**Syntax:**
+```bash
+plugin_adjust_environment <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 
-**Returns**:
-- Prints export statements to eval
+**Returns:**
+- Prints export statements to eval (or nothing if no adjustments needed)
 - Exit code 0
 
-**Example**:
+**Example:**
 
 ```bash
-# Get environment adjustments
+# Get environment adjustments for Java
 eval "$(plugin_adjust_environment "/opt/oracle/jdk-17")"
 # May output: export PATH="/opt/oracle/jdk-17/bin:$PATH"
+# May output: export JAVA_HOME="/opt/oracle/jdk-17"
+
+# Instant Client adjustments (no bin subdirectory)
+source "${ORADBA_BASE}/lib/plugins/iclient_plugin.sh"
+eval "$(plugin_adjust_environment "/opt/oracle/instantclient_21_15")"
+# Adds /opt/oracle/instantclient_21_15 directly to PATH
 ```
 
 #### plugin_check_status
 
 Check if service/instance is running.
 
-**Syntax**: `plugin_check_status <oracle_home> <name>`
+**Syntax:**
+```bash
+plugin_check_status <oracle_home> <name>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 - `$2` - Instance/service name
 
-**Returns**:
-- Status string (RUNNING, STOPPED, UNKNOWN, N/A)
+**Returns:**
+- Status string: `RUNNING`, `STOPPED`, `UNKNOWN`, or `N/A`
 - Exit code 0
 
-**Example**:
+**Example:**
 
 ```bash
 # Check database status
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
 status=$(plugin_check_status "/opt/oracle/product/23ai/dbhomeFree" "FREE")
-echo "$status"  # Output: RUNNING
+echo "$status"  # Output: RUNNING or STOPPED
+
+# Check Data Safe connector
+source "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+status=$(plugin_check_status "/u01/app/oracle/ds-conn" "datasafe-conn")
+echo "Connector: $status"
 ```
 
 #### plugin_get_metadata
 
 Extract version, edition, and other metadata from the installation.
 
-**Syntax**: `plugin_get_metadata <oracle_home>`
+**Syntax:**
+```bash
+plugin_get_metadata <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 
-**Returns**:
+**Returns:**
 - Pipe-delimited metadata: `VERSION|EDITION|PATCH_LEVEL`
 - Exit code 0
 
-**Example**:
+**Example:**
 
 ```bash
 # Get Java version
+source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
 metadata=$(plugin_get_metadata "/opt/oracle/jdk-17")
 IFS='|' read -r version edition patch <<< "$metadata"
 echo "Version: $version"  # Output: 17.0.12
+
+# Get database metadata
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+metadata=$(plugin_get_metadata "/opt/oracle/product/23ai/dbhomeFree")
+IFS='|' read -r version edition patch <<< "$metadata"
+echo "Version: $version, Edition: $edition"
 ```
 
 #### plugin_should_show_listener
 
 Indicate if listener status should be shown for this product type.
 
-**Syntax**: `plugin_should_show_listener <oracle_home>`
+**Syntax:**
+```bash
+plugin_should_show_listener <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 
-**Returns**:
+**Returns:**
 - Exit code 0 if listener should be shown
 - Exit code 1 if listener should not be shown
 
-**Example**:
+**Example:**
 
 ```bash
-# Check if listener applies
+# Check if listener applies to this product type
 if plugin_should_show_listener "$ORACLE_HOME"; then
-    show_listener_status
+    lsnrctl status
 fi
+
+# Database and client show listener, others don't
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+plugin_should_show_listener "/opt/oracle/product/23ai/dbhomeFree"  # Returns 0
+
+source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
+plugin_should_show_listener "/opt/oracle/jdk-17"  # Returns 1
 ```
 
 #### plugin_discover_instances
 
 Discover all instances/services for this ORACLE_HOME.
 
-**Syntax**: `plugin_discover_instances <oracle_home>`
+**Syntax:**
+```bash
+plugin_discover_instances <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 
-**Returns**:
+**Returns:**
 - List of instance/service names (one per line)
 - Exit code 0
 
-**Example**:
+**Example:**
 
 ```bash
 # Find all databases for a home
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
 instances=$(plugin_discover_instances "/opt/oracle/product/23ai/dbhomeFree")
 echo "$instances"
-# Output: FREE
-#         TEST
+# Output:
+# FREE
+# TEST
+
+# Process each instance
+plugin_discover_instances "$ORACLE_HOME" | while read -r sid; do
+    echo "Found instance: $sid"
+    status=$(plugin_check_status "$ORACLE_HOME" "$sid")
+    echo "  Status: $status"
+done
 ```
 
 #### plugin_supports_aliases
 
 Indicate if this product type supports SID-based aliases.
 
-**Syntax**: `plugin_supports_aliases <oracle_home>`
+**Syntax:**
+```bash
+plugin_supports_aliases <oracle_home>
+```
 
-**Arguments**:
+**Arguments:**
 - `$1` - ORACLE_HOME path
 
-**Returns**:
+**Returns:**
 - Exit code 0 if aliases supported
 - Exit code 1 if aliases not supported
 
-**Example**:
+**Example:**
 
 ```bash
 # Check if aliases should be generated
 if plugin_supports_aliases "$ORACLE_HOME"; then
+    # Generate aliases for this SID
     generate_aliases_for_sid "$SID"
+fi
+
+# Database supports aliases, Java doesn't
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+plugin_supports_aliases "/opt/oracle/product/23ai/dbhomeFree"  # Returns 0
+
+source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
+plugin_supports_aliases "/opt/oracle/jdk-17"  # Returns 1
+```
+
+---
+
+## Environment Management Libraries
+
+These libraries handle environment building, parsing, validation, and configuration management.
+
+### oradba_env_parser.sh
+
+Parse and merge configuration from 6 hierarchical levels.
+
+#### parse_configuration
+
+Parse configuration hierarchy and merge settings.
+
+**Syntax:**
+```bash
+parse_configuration <sid_or_name> <product_type>
+```
+
+**Arguments:**
+- `$1` - SID or Oracle Home name
+- `$2` - Product type (database, client, etc.)
+
+**Returns:**
+- Sets environment variables from merged configuration
+- Exit code 0 on success
+
+**Configuration Hierarchy (lowest to highest priority):**
+1. Core (`oradba_core.conf`)
+2. Standard (`oradba_standard.conf`)
+3. Local (`oradba_local.conf`) - optional
+4. Customer (`oradba_customer.conf`) - optional
+5. SID-specific (`sid.<SID>.conf`) - optional
+6. Environment variables
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
+
+# Parse configuration for database SID
+parse_configuration "FREE" "database"
+
+# Parse for Java home
+parse_configuration "jdk17" "java"
+```
+
+### oradba_env_builder.sh
+
+Build Oracle environment variables.
+
+#### build_oracle_environment
+
+Build complete Oracle environment for a SID or home.
+
+**Syntax:**
+```bash
+build_oracle_environment <sid_or_name> <oracle_home> <product_type>
+```
+
+**Arguments:**
+- `$1` - SID or Oracle Home name
+- `$2` - ORACLE_HOME path
+- `$3` - Product type
+
+**Returns:**
+- Sets ORACLE_HOME, ORACLE_SID, PATH, LD_LIBRARY_PATH, etc.
+- Exit code 0 on success
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_builder.sh"
+
+# Build environment for database
+build_oracle_environment "FREE" "/opt/oracle/product/23ai/dbhomeFree" "database"
+
+# Verify
+echo "ORACLE_HOME: $ORACLE_HOME"
+echo "ORACLE_SID: $ORACLE_SID"
+echo "PATH: $PATH"
+```
+
+#### set_oracle_environment_paths
+
+Set PATH and LD_LIBRARY_PATH based on product type.
+
+**Syntax:**
+```bash
+set_oracle_environment_paths <product_type> <oracle_home>
+```
+
+**Arguments:**
+- `$1` - Product type
+- `$2` - ORACLE_HOME path
+
+**Returns:**
+- Modifies PATH and LD_LIBRARY_PATH
+- Exit code 0
+
+**Example:**
+
+```bash
+# Set paths for database
+set_oracle_environment_paths "database" "/opt/oracle/product/23ai/dbhomeFree"
+# Adds $ORACLE_HOME/bin to PATH
+# Adds $ORACLE_HOME/lib to LD_LIBRARY_PATH
+
+# Set paths for Instant Client (no bin subdirectory)
+set_oracle_environment_paths "iclient" "/opt/oracle/instantclient_21_15"
+# Adds /opt/oracle/instantclient_21_15 directly to PATH
+```
+
+### oradba_env_validator.sh
+
+Validate Oracle installations and environments.
+
+#### validate_oracle_environment
+
+Validate complete Oracle environment.
+
+**Syntax:**
+```bash
+validate_oracle_environment <sid_or_name> <product_type>
+```
+
+**Arguments:**
+- `$1` - SID or Oracle Home name
+- `$2` - Product type
+
+**Returns:**
+- Exit code 0 if valid
+- Exit code 1 if invalid (with errors on stderr)
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_validator.sh"
+
+# Validate database environment
+if validate_oracle_environment "FREE" "database"; then
+    echo "Environment is valid"
+else
+    echo "Environment validation failed"
+fi
+
+# Validate Java environment (minimal checks)
+validate_oracle_environment "jdk17" "java"
+```
+
+#### validate_oracle_home
+
+Validate ORACLE_HOME path and structure.
+
+**Syntax:**
+```bash
+validate_oracle_home <oracle_home> <product_type>
+```
+
+**Arguments:**
+- `$1` - ORACLE_HOME path
+- `$2` - Product type
+
+**Returns:**
+- Exit code 0 if valid
+- Exit code 1 if invalid
+
+**Example:**
+
+```bash
+# Validate database home
+if validate_oracle_home "/opt/oracle/product/23ai/dbhomeFree" "database"; then
+    echo "Valid database home"
+fi
+
+# Uses plugin validation internally
+```
+
+### oradba_env_config.sh
+
+Configuration management functions.
+
+#### load_config_file
+
+Load and parse a configuration file.
+
+**Syntax:**
+```bash
+load_config_file <config_file>
+```
+
+**Arguments:**
+- `$1` - Path to configuration file
+
+**Returns:**
+- Sources configuration file
+- Exit code 0 on success, 1 if file not found
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_config.sh"
+
+# Load customer configuration
+if load_config_file "${ORADBA_PREFIX}/etc/oradba_customer.conf"; then
+    echo "Customer config loaded"
+fi
+
+# Load SID-specific config
+load_config_file "${ORADBA_PREFIX}/etc/sid.FREE.conf"
+```
+
+### oradba_env_status.sh
+
+Status display and formatting functions.
+
+#### show_oracle_environment
+
+Display current Oracle environment settings.
+
+**Syntax:**
+```bash
+show_oracle_environment [--format <format>]
+```
+
+**Arguments:**
+- `--format` - Output format: `simple`, `detailed`, `json` (default: `simple`)
+
+**Returns:**
+- Prints environment information
+- Exit code 0
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_status.sh"
+
+# Show simple format
+show_oracle_environment
+
+# Show detailed format
+show_oracle_environment --format detailed
+
+# Get JSON output
+show_oracle_environment --format json
+```
+
+### oradba_env_changes.sh
+
+Change detection and tracking.
+
+#### detect_environment_changes
+
+Detect what changed between old and new environment.
+
+**Syntax:**
+```bash
+detect_environment_changes
+```
+
+**Arguments:** None (uses global variables)
+
+**Returns:**
+- Prints changed variables
+- Exit code 0
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_env_changes.sh"
+
+# Detect changes after environment switch
+detect_environment_changes
+```
+
+---
+
+## Core Utilities
+
+### oradba_common.sh
+
+Core utility functions used throughout OraDBA.
+
+#### oradba_log
+
+Unified logging function with configurable log levels.
+
+**Syntax:**
+```bash
+oradba_log <level> <message>
+```
+
+**Arguments:**
+- `$1` - Log level: `DEBUG`, `INFO`, `WARN`, `ERROR`
+- `$2` - Log message
+
+**Environment:**
+- `ORADBA_LOG_LEVEL` - Minimum level to display (default: `INFO`)
+
+**Returns:**
+- Prints log message to stderr
+- Exit code 0
+
+**Example:**
+
+```bash
+source "${ORADBA_BASE}/lib/oradba_common.sh"
+
+# Log messages
+oradba_log INFO "Database started successfully"
+oradba_log WARN "Archive log directory is 90% full"
+oradba_log ERROR "Connection to database failed"
+oradba_log DEBUG "SQL query: ${sql_query}"
+
+# Configure log level
+export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
+export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
+```
+
+#### oradba_dedupe_path
+
+Deduplicate PATH variable by removing duplicate entries.
+
+**Syntax:**
+```bash
+oradba_dedupe_path
+```
+
+**Arguments:** None
+
+**Returns:**
+- Modifies global PATH variable
+- Exit code 0
+
+**Example:**
+
+```bash
+# Before
+echo "$PATH"
+# /bin:/usr/bin:/bin:/opt/oracle/bin:/usr/bin
+
+oradba_dedupe_path
+
+# After
+echo "$PATH"
+# /bin:/usr/bin:/opt/oracle/bin
+```
+
+#### detect_product_type
+
+Detect Oracle product type from ORACLE_HOME filesystem.
+
+**Syntax:**
+```bash
+detect_product_type <oracle_home>
+```
+
+**Arguments:**
+- `$1` - ORACLE_HOME path
+
+**Returns:**
+- Prints product type: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`, or `unknown`
+- Exit code 0
+
+**Example:**
+
+```bash
+# Detect product type
+product_type=$(detect_product_type "/opt/oracle/product/23ai/dbhomeFree")
+echo "$product_type"  # Output: database
+
+product_type=$(detect_product_type "/opt/oracle/jdk-17")
+echo "$product_type"  # Output: java
+```
+
+#### parse_oratab
+
+Parse oratab file and extract entries.
+
+**Syntax:**
+```bash
+parse_oratab [<sid>]
+```
+
+**Arguments:**
+- `$1` - Optional SID to search for (if omitted, returns all entries)
+
+**Returns:**
+- Prints oratab entries (one per line)
+- Format: `SID:ORACLE_HOME:AUTO_START`
+- Exit code 0
+
+**Example:**
+
+```bash
+# Get all oratab entries
+parse_oratab
+# Output:
+# FREE:/opt/oracle/product/23ai/dbhomeFree:Y
+# TEST:/opt/oracle/product/19c/dbhome_1:N
+
+# Get specific SID
+entry=$(parse_oratab "FREE")
+IFS=: read -r sid oracle_home auto_start <<< "$entry"
+echo "ORACLE_HOME: $oracle_home"
+```
+
+#### verify_oracle_env
+
+Verify Oracle environment variables are set correctly.
+
+**Syntax:**
+```bash
+verify_oracle_env
+```
+
+**Arguments:** None
+
+**Returns:**
+- Exit code 0 if environment is valid
+- Exit code 1 if invalid (with error on stderr)
+
+**Example:**
+
+```bash
+# Verify before running database commands
+if verify_oracle_env; then
+    sqlplus / as sysdba
+else
+    echo "Oracle environment not set correctly"
+    exit 1
 fi
 ```
 
 ---
 
-## Logging Functions
+## Database Operations
 
-### init_logging
+### oradba_db_functions.sh
 
-**New in v0.14.0**: Initialize logging infrastructure with directory creation.
+Database-specific operations and queries.
 
-Creates log directory structure and sets up log file paths. Automatically falls
-back to user home directory if system directory is not writable.
+#### execute_db_query
 
-**Syntax**: `init_logging`
+Execute SQL query with simplified interface.
 
-**Environment (Input)**:
+**Syntax:**
+```bash
+execute_db_query <query> [<format>]
+```
 
-- `ORADBA_LOG_DIR` - Custom log directory (optional)
-  - If not set, tries `/var/log/oradba` first, then `~/.oradba/logs`
+**Arguments:**
+- `$1` - SQL query (escape dollar signs: `v\$database`)
+- `$2` - Output format: `raw` (default) or `delimited` (pipe-separated, first line only)
 
-**Environment (Output)**:
+**Returns:**
+- Query results to stdout
+- Exit code 0 on success, 1 on error
 
-- `ORADBA_LOG_DIR` - Log directory path (created if needed)
-- `ORADBA_LOG_FILE` - Main log file path (set to `${ORADBA_LOG_DIR}/oradba.log`)
-
-**Returns**:
-
-- `0` - Success
-- `1` - Failed to create log directory
-
-**Examples**:
+**Example:**
 
 ```bash
-# Use default location (/var/log/oradba or ~/.oradba/logs)
-init_logging
-
-# Use custom directory
-export ORADBA_LOG_DIR="/opt/oracle/logs"
-init_logging
-
-# Check result
-echo "Logging to: ${ORADBA_LOG_FILE}"
-```
-
-**Behavior**:
-
-1. Determines log directory (custom, system, or user)
-2. Creates directory if it doesn't exist
-3. Falls back to `~/.oradba/logs` if system location fails
-4. Sets `ORADBA_LOG_FILE` to `oradba.log` in the directory
-5. Can be called multiple times safely (idempotent)
-
-### init_session_log
-
-**New in v0.14.0**: Initialize per-session logging with metadata header.
-
-Creates individual log file for current session with metadata header including
-timestamp, user, host, PID, and Oracle environment variables.
-
-**Syntax**: `init_session_log`
-
-**Environment (Input)**:
-
-- `ORADBA_SESSION_LOGGING` - Enable session logging (default: `false`)
-- `ORADBA_SESSION_LOG_ONLY` - Use session log as primary log (default: `false`)
-- `ORADBA_LOG_DIR` - Log directory (calls `init_logging` if not set)
-
-**Environment (Output)**:
-
-- `ORADBA_SESSION_LOG` - Session log file path
-- `ORADBA_LOG_FILE` - Updated to session log if `ORADBA_SESSION_LOG_ONLY=true`
-
-**Returns**:
-
-- `0` - Success or feature disabled
-
-**Examples**:
-
-```bash
-# Enable session logging
-export ORADBA_SESSION_LOGGING="true"
-init_logging
-init_session_log
-
-# View session log location
-echo "Session log: ${ORADBA_SESSION_LOG}"
-
-# Session log only (no dual logging)
-export ORADBA_SESSION_LOGGING="true"
-export ORADBA_SESSION_LOG_ONLY="true"
-init_session_log
-```
-
-**Session Log Header**:
-
-```text
-# ------------------------------------------------------------------------------
-# OraDBA Session Log
-# ------------------------------------------------------------------------------
-# Started....: 2026-01-05 16:25:30
-# User.......: oracle
-# Host.......: dbserver01
-# PID........: 12345
-# ORACLE_SID.: PRODDB
-# ORACLE_HOME: /u01/app/oracle/product/19.0.0/dbhome_1
-# ------------------------------------------------------------------------------
-```
-
-**Dual Logging**:
-
-- By default, logs are written to both main log and session log
-- Set `ORADBA_SESSION_LOG_ONLY=true` to write only to session log
-- Session logs named: `session_YYYYMMDD_HHMMSS_PID.log`
-
-### oradba_log
-
-**New in v0.13.1**: Unified logging function with configurable levels.  
-**Enhanced in v0.14.0**: Added caller information and dual logging support.  
-**Renamed in v0.14.0**: Changed from `log()` to `oradba_log()` to avoid conflicts with the `log` alias.
-
-Output log message with specified level and timestamp. All messages are written
-to stderr with automatic filtering based on configured minimum log level.
-
-**Syntax**: `oradba_log <LEVEL> <message...>`
-
-**Parameters**:
-
-- `LEVEL` - Log level: `DEBUG`, `INFO`, `WARN`, or `ERROR` (case-insensitive)
-- `message` - Message to log (supports multiple arguments)
-
-**Environment**:
-
-- `ORADBA_LOG_LEVEL` - Minimum log level (default: `INFO`)
-  - `DEBUG` - Show all messages including DEBUG
-  - `INFO` - Show INFO, WARN, ERROR (default)
-  - `WARN` - Show only WARN and ERROR
-  - `ERROR` - Show only ERROR messages
-- `ORADBA_LOG_FILE` - File logging path (optional)
-- `ORADBA_SESSION_LOG` - Session log path (optional, for dual logging)
-- `ORADBA_LOG_SHOW_CALLER` - Include caller info (default: `false`)
-- `ORADBA_NO_COLOR` - Disable color output (default: `0`)
-- `DEBUG` - Legacy support: Setting `DEBUG=1` enables DEBUG level
-
-**Examples**:
-
-```bash
-# Basic usage
-oradba_log INFO "Starting database backup"
-oradba_log WARN "Database not in archivelog mode"
-oradba_log ERROR "ORACLE_HOME not found"
-oradba_log DEBUG "Checking oratab entry"
-
-# Enable debug logging
-export ORADBA_LOG_LEVEL=DEBUG
-oradba_log DEBUG "This will now appear"
-
-# Enable caller information
-export ORADBA_LOG_SHOW_CALLER="true"
-oradba_log INFO "Message with caller info"
-
-# Complete logging setup
-init_logging
-init_session_log
-export ORADBA_SESSION_LOGGING="true"
-oradba_log INFO "Logged to both main and session logs"
-
-# Legacy DEBUG=1 support
-export DEBUG=1
-oradba_log DEBUG "This also appears"
-
-# Filter to only warnings and errors
-export ORADBA_LOG_LEVEL=WARN
-oradba_log INFO "This is filtered out"
-oradba_log WARN "This appears"
-```
-
-**Output Format**:
-
-```text
-# Standard format
-[LEVEL] YYYY-MM-DD HH:MM:SS - message
-
-# With caller information (ORADBA_LOG_SHOW_CALLER=true)
-[LEVEL] YYYY-MM-DD HH:MM:SS [file:line] - message
-```
-
-**Example Output**:
-
-```text
-[INFO] 2026-01-05 16:30:45 - Starting database backup
-[WARN] 2026-01-05 16:30:46 - Database not in archivelog mode
-[ERROR] 2026-01-05 16:30:47 - ORACLE_HOME not found
-[DEBUG] 2026-01-05 16:30:48 [script.sh:42] - Checking oratab entry
-```
-
-### log_info
-
-**Deprecated**: Use `oradba_log INFO <message>` instead.
-
-Output informational message with timestamp.
-
-**Syntax**: `log_info <message>`
-
-**Parameters**:
-
-- `message` - Message to log
-
-**Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `oradba_log INFO <message>` instead. Enable deprecation warnings
-by setting `ORADBA_SHOW_DEPRECATION_WARNINGS=true`.
-
-**Example**:
-
-```bash
-# Old syntax (deprecated but still works)
-log_info "Starting database backup"
-
-# New syntax (recommended)
-oradba_log INFO "Starting database backup"
-```
-
-**Output**:
-
-```text
-[INFO] 2025-12-15 10:30:45 - Starting database backup
-```
-
-### log_warn
-
-**Deprecated**: Use `oradba_log WARN <message>` instead.
-
-Output warning message to stderr with timestamp.
-
-**Syntax**: `log_warn <message>`
-
-**Parameters**:
-
-- `message` - Warning message
-
-**Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `oradba_log WARN <message>` instead.
-
-**Example**:
-
-```bash
-# Old syntax (deprecated but still works)
-log_warn "Database not in archivelog mode"
-
-# New syntax (recommended)
-oradba_log WARN "Database not in archivelog mode"
-```
-
-### log_error
-
-**Deprecated**: Use `oradba_log ERROR <message>` instead.
-
-Output error message to stderr with timestamp.
-
-**Syntax**: `log_error <message>`
-
-**Parameters**:
-
-- `message` - Error message
-
-**Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `oradba_log ERROR <message>` instead.
-
-**Example**:
-
-```bash
-# Old syntax (deprecated but still works)
-log_error "ORACLE_HOME not found"
-
-# New syntax (recommended)
-oradba_log ERROR "ORACLE_HOME not found"
-```
-
-### log_debug
-
-**Deprecated**: Use `oradba_log DEBUG <message>` instead.
-
-Output debug message when DEBUG=1 or ORADBA_LOG_LEVEL=DEBUG.
-
-**Syntax**: `log_debug <message>`
-
-**Parameters**:
-
-- `message` - Debug message
-
-**Environment**:
-
-- `DEBUG` - Must be set to 1 to output debug messages
-- `ORADBA_LOG_LEVEL` - Set to DEBUG to enable debug output
-
-**Deprecation Note**: This function is maintained for backward compatibility.
-New code should use `oradba_log DEBUG <message>` instead.
-
-**Example**:
-
-```bash
-# Old syntax (deprecated but still works)
-export DEBUG=1
-log_debug "Checking oratab entry"
-
-# New syntax (recommended)
-export ORADBA_LOG_LEVEL=DEBUG
-oradba_log DEBUG "Checking oratab entry"
-```
-
-## Utility Functions
-
-### command_exists
-
-Check if a command is available in PATH.
-
-**Syntax**: `command_exists <command>`
-
-**Parameters**:
-
-- `command` - Command name to check
-
-**Returns**:
-
-- `0` - Command exists
-- `1` - Command not found
-
-**Example**:
-
-```bash
-if command_exists "sqlplus"; then
-    echo "SQL*Plus is available"
-fi
-```
-
-### get_script_dir
-
-Get the absolute directory path of the calling script.
-
-**Syntax**: `get_script_dir`
-
-**Returns**: Absolute directory path
-
-**Example**:
-
-```bash
-SCRIPT_DIR=$(get_script_dir)
-echo "Script directory: $SCRIPT_DIR"
-```
-
-### validate_directory
-
-Validate directory exists, optionally create it.
-
-**Syntax**: `validate_directory <path> [create]`
-
-**Parameters**:
-
-- `path` - Directory path to validate
-- `create` - Optional, "true" to create if missing
-
-**Returns**:
-
-- `0` - Directory exists or was created
-- `1` - Directory does not exist or creation failed
-
-**Example**:
-
-```bash
-# Check only
-if validate_directory "/opt/oracle"; then
-    echo "Directory exists"
-fi
-
-# Create if missing
-validate_directory "/var/log/oradba" "true"
-```
-
-## Oracle Functions
-
-### verify_oracle_env
-
-Verify required Oracle environment variables are set.
-
-**Syntax**: `verify_oracle_env`
-
-**Checks**:
-
-- `ORACLE_SID` - Oracle System Identifier
-- `ORACLE_HOME` - Oracle installation directory
-
-**Returns**:
-
-- `0` - All required variables are set
-- `1` - One or more variables missing
-
-**Example**:
-
-```bash
-if verify_oracle_env; then
-    echo "Oracle environment is valid"
-else
-    echo "Missing Oracle environment variables"
-    exit 1
-fi
-```
-
-### get_oracle_version
-
-Get Oracle database version from sqlplus.
-
-**Syntax**: `get_oracle_version`
-
-**Returns**: Version string (e.g., "19.20.0.0")
-
-**Example**:
-
-```bash
-VERSION=$(get_oracle_version)
-echo "Oracle version: $VERSION"
-```
-
-### parse_oratab
-
-Parse oratab file for specific SID.
-
-**Syntax**: `parse_oratab <sid> [oratab_file]`
-
-**Parameters**:
-
-- `sid` - Oracle System Identifier to find
-- `oratab_file` - Optional oratab file path (default: /etc/oratab)
-
-**Returns**: Oratab entry line or empty string
-
-**Format**: `SID:ORACLE_HOME:STARTUP_FLAG`
-
-**Example**:
-
-```bash
-entry=$(parse_oratab "FREE" "/etc/oratab")
-echo "Entry: $entry"
-
-# Extract ORACLE_HOME
-ORACLE_HOME=$(echo "$entry" | cut -d: -f2)
-```
-
-### oradba_set_lib_path
-
-Set library path using plugin system for product-specific requirements.
-
-**Syntax**: `oradba_set_lib_path ORACLE_HOME PRODUCT_TYPE`
-
-**Arguments**:
-
-- `$1` - ORACLE_HOME path
-- `$2` - Product type (database, iclient, datasafe, etc.)
-
-**Returns**: 0 on success, 1 on error
-
-**Notes**: Uses `plugin_build_lib_path()` from product-specific plugins. Handles
-platform differences (LD_LIBRARY_PATH, SHLIB_PATH, LIBPATH, DYLD_LIBRARY_PATH).
-Deduplicates library paths automatically.
-
-**Example**:
-
-```bash
-export ORACLE_HOME="/opt/oracle/instantclient_19_21"
-oradba_set_lib_path "${ORACLE_HOME}" "iclient"
-```
-
-### execute_db_query
-
-**New in v0.13.2**: Unified SQL*Plus query executor with standardized
-configuration and formatting.
-
-Execute SQL queries against the local database with consistent SQL*Plus settings
-and automatic error filtering. Eliminates SQL*Plus boilerplate duplication across
-database query functions.
-
-**Syntax**: `execute_db_query <query> [format]`
-
-**Parameters**:
-
-- `query` - SQL query to execute (can be multiline)
-- `format` - Optional output format (default: `raw`)
-  - `raw` - Direct SQL*Plus output with whitespace trimmed
-  - `delimited` - Extract first pipe-delimited line
-
-**Returns**:
-
-- `0` - Query executed successfully (with output to stdout)
-- `1` - Query failed or no results
-
-**Standard SQL*Plus Configuration**:
-
-The function applies these SQL*Plus settings automatically:
-
-```sql
-SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-SET TIMING OFF TIME OFF SQLPROMPT "" SUFFIX SQL
-SET TAB OFF UNDERLINE OFF WRAP ON COLSEP ""
-SET SERVEROUTPUT OFF TERMOUT ON
-WHENEVER SQLERROR EXIT FAILURE
-WHENEVER OSERROR EXIT FAILURE
-```
-
-**Error Filtering**:
-
-Automatically filters out SQL*Plus noise:
-
-- `SP2-*` messages
-- `ORA-*` errors  
-- `ERROR` lines
-- `no rows selected`
-- `Connected to:` banners
-
-**Examples**:
-
-```bash
-# Simple query with raw format (default)
-result=$(execute_db_query "SELECT name FROM v\$database;" "raw")
-echo "Database name: $result"
+source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
+
+# Simple query (raw format)
+query="SELECT name FROM v\$database;"
+db_name=$(execute_db_query "$query" "raw")
+echo "Database: $db_name"
 
 # Pipe-delimited output
-result=$(execute_db_query "
-    SELECT 
-        name || '|' || 
-        db_unique_name || '|' || 
-        dbid 
-    FROM v\$database;" "delimited")
-echo "DB info: $result"
-
-# Multi-line query
-query="
-SELECT 
-    i.instance_name,
-    i.status,
-    i.version
-FROM v\$instance i;"
-
-if result=$(execute_db_query "$query" "raw"); then
-    echo "$result"
-else
-    oradba_log ERROR "Query failed"
-fi
-
-# Using in functions
-query_database_name() {
-    local query="SELECT name FROM v\$database;"
-    execute_db_query "$query" "raw"
-}
-```
-
-**Important Notes**:
-
-- Must escape dollar signs in SQL: Use `v\$database` not `v$database`
-- Use double-quoted strings for queries containing single quotes
-- Connects as `/ as sysdba` (requires proper OS authentication)
-- Query failures return exit code 1 with empty output
-
-**Migration Example**:
-
-```bash
-# Before (old pattern with 40+ lines of boilerplate)
-query_database_info() {
-    result=$(sqlplus -s / as sysdba 2>/dev/null << 'EOF'
-SET PAGESIZE 0 LINESIZE 500 TRIMSPOOL ON TRIMOUT ON
-SET HEADING OFF FEEDBACK OFF VERIFY OFF ECHO OFF
-...
-SELECT d.name FROM v$database d;
-EXIT;
-EOF
-)
-    echo "$result" | grep -v "^SP2-\|^ORA-"
-}
-
-# After (new pattern with ~10 lines)
-query_database_info() {
-    local query="SELECT name FROM v\$database;"
-    execute_db_query "$query" "raw"
-}
-```
-
-## Alias Generation Functions
-
-### create_dynamic_alias
-
-**New in v0.13.4**: Unified helper for creating dynamic aliases with automatic expansion handling.
-
-Create shell aliases with optional variable expansion at definition time. Internally
-calls `safe_alias()` which respects coexistence mode settings. Automatically handles
-shellcheck SC2139 suppression for expanded aliases.
-
-**Syntax**: `create_dynamic_alias <name> <command> [expand]`
-
-**Parameters**:
-
-- `name` - Alias name (required)
-- `command` - Alias command/value (required)
-- `expand` - "true" to expand variables at definition time, "false" for runtime expansion (default: "false")
-
-**Returns**:
-
-Exit code from `safe_alias`:
-
-- `0` - Alias created successfully
-- `1` - Alias skipped (coexistence mode and already exists)
-- `2` - Error during creation
-
-**Expansion Behavior**:
-
-- **Non-expanded** (`expand=false`, default): Variables expand when alias is executed
-
-  ```bash
-  # Variable ${ORADBA_BIN} expands at runtime
-  create_dynamic_alias dbctl '${ORADBA_BIN}/oradba_dbctl.sh'
-  ```
-
-- **Expanded** (`expand=true`): Variables expand immediately at definition
-
-  ```bash
-  # Variable ${diag_dest} expanded now, value frozen
-  create_dynamic_alias cdd "cd ${diag_dest}" "true"
-  ```
-
-**Examples**:
-
-```bash
-# Service management alias (runtime expansion)
-export ORADBA_BIN="/opt/oradba/bin"
-create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
-# When executed: ${ORADBA_BIN} expands to current value
-
-# Directory navigation (immediate expansion)
-local trace_dir="/u01/app/oracle/diag/rdbms/orcl/ORCL/trace"
-create_dynamic_alias cddt "cd ${trace_dir}" "true"
-# Alias contains: cd /u01/app/oracle/diag/rdbms/orcl/ORCL/trace
-
-# Complex conditional alias (runtime expansion)
-create_dynamic_alias taa 'if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f ${ORADBA_SID_ALERTLOG}; fi'
-
-# Database-specific navigation (immediate expansion)
-export ORACLE_SID="PRODDB"
-local diag_dest="${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}"
-create_dynamic_alias cdd "cd ${diag_dest}" "true"
-```
-
-**Use Cases**:
-
-**Directory Navigation** (use expanded):
-
-```bash
-# SID-specific paths that should be frozen at definition time
-create_dynamic_alias cdd "cd ${diag_dest}" "true"
-create_dynamic_alias cddt "cd ${trace_dir}" "true"
-create_dynamic_alias cdda "cd ${alert_dir}" "true"
-create_dynamic_alias cdbase "cd ${ORADBA_BASE}" "true"
-```
-
-**Service Management** (use non-expanded):
-
-```bash
-# Scripts that should resolve at runtime
-create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
-create_dynamic_alias lsnrstart '${ORADBA_BIN}/oradba_lsnrctl.sh start'
-create_dynamic_alias orastart '${ORADBA_BIN}/oradba_services.sh start'
-```
-
-**Tool Wrappers** (use expanded for config):
-
-```bash
-# rlwrap with current configuration
-create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
-```
-
-**Advantages**:
-
-- Eliminates repetitive `safe_alias` calls with shellcheck disables
-- Centralizes expansion logic in one place
-- Respects coexistence mode automatically
-- Clear intent via expand parameter
-- Reduces code duplication by ~30-40%
-
-**Migration Example**:
-
-```bash
-# Before (repetitive pattern):
-# shellcheck disable=SC2139  # Intentional: expand at definition
-safe_alias cdd "cd ${diag_dest}"
-# shellcheck disable=SC2139  # Intentional: expand at definition
-safe_alias cddt "cd ${trace_dir}"
-safe_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
-
-# After (unified helper):
-create_dynamic_alias cdd "cd ${diag_dest}" "true"
-create_dynamic_alias cddt "cd ${trace_dir}" "true"
-create_dynamic_alias dbstart '${ORADBA_BIN}/oradba_dbctl.sh start'
-```
-
-## Extension Functions
-
-### get_extension_property
-
-**New in v0.13.3**: Unified property accessor for extension metadata.
-
-Retrieve extension metadata properties with support for fallback values and
-configuration overrides. Eliminates metadata access duplication across extension
-management functions.
-
-**Syntax**: `get_extension_property <ext_path> <property> [fallback] [check_config]`
-
-**Parameters**:
-
-- `ext_path` - Path to extension directory
-- `property` - Property name to retrieve (e.g., "name", "version", "priority", "enabled")
-- `fallback` - Optional fallback value if property not found (default: empty)
-- `check_config` - Optional "true" to check `ORADBA_EXT_<NAME>_<PROPERTY>` environment variable override
-
-**Returns**:
-
-Property value from (in order of precedence):
-
-1. Environment variable override (if `check_config=true`)
-2. Extension `.extension` metadata file
-3. Fallback value
-4. Empty string
-
-**Metadata File Format**:
-
-Extension metadata is stored in `.extension` file (YAML-like key-value):
-
-```yaml
-name: my_extension
-version: 1.0.0
-description: Custom extension for special features
-priority: 30
-enabled: true
-```
-
-**Examples**:
-
-```bash
-# Get extension name with directory fallback
-ext_name=$(get_extension_property "/opt/extensions/myext" "name" "myext")
-
-# Get version with "unknown" fallback
-ext_version=$(get_extension_property "/opt/extensions/myext" "version" "unknown")
-
-# Get priority with config override support
-ext_priority=$(get_extension_property "/opt/extensions/myext" "priority" "50" "true")
-
-# Check if extension is enabled (with config override)
-enabled=$(get_extension_property "/opt/extensions/myext" "enabled" "true" "true")
-[[ "$enabled" == "true" ]] && echo "Extension enabled"
-
-# Get custom property
-custom_value=$(get_extension_property "/opt/extensions/myext" "custom_field")
-```
-
-**Configuration Overrides**:
-
-Extension properties can be overridden via environment variables:
-
-```bash
-# Override priority
-export ORADBA_EXT_MYEXTENSION_PRIORITY="10"
-
-# Override enabled status
-export ORADBA_EXT_MYEXTENSION_ENABLED="false"
-
-# Get with config check
-priority=$(get_extension_property "/path/to/myextension" "priority" "50" "true")
-# Returns: "10" (from environment variable)
-```
-
-**Convenience Wrappers**:
-
-These functions use `get_extension_property()` internally:
-
-- `get_extension_name <ext_path>` - Get extension name (fallback: directory name)
-- `get_extension_version <ext_path>` - Get version (fallback: "unknown")
-- `get_extension_description <ext_path>` - Get description
-- `get_extension_priority <ext_path>` - Get priority with config check (fallback: 50)
-- `is_extension_enabled <ext_name> <ext_path>` - Check if enabled with config check (fallback: true)
-
-**Example Using Wrappers**:
-
-```bash
-# Simpler API for common properties
-ext_name=$(get_extension_name "/opt/extensions/myext")
-ext_version=$(get_extension_version "/opt/extensions/myext")
-ext_priority=$(get_extension_priority "/opt/extensions/myext")
-
-if is_extension_enabled "myext" "/opt/extensions/myext"; then
-    echo "Extension $ext_name v$ext_version is enabled (priority: $ext_priority)"
-fi
-```
-
-## Configuration Functions
-
-### load_config_file
-
-Load a single configuration file with automatic logging and error handling.
-
-**Signature**: `load_config_file <file_path> [required]`
-
-**Parameters**:
-
-- `file_path` - Full path to configuration file (required)
-- `required` - "true" for required files (return error if missing), "false" for optional (default: "false")
-
-**Returns**:
-
-- `0` - File loaded successfully or skipped (optional file missing)
-- `1` - Required file not found
-
-**Example**:
-
-```bash
-# Load required config (fail if missing)
-load_config_file "${ORADBA_CONFIG_DIR}/oradba_core.conf" "true" || return 1
-
-# Load optional config (continue if missing)
-load_config_file "${ORADBA_CONFIG_DIR}/oradba_customer.conf"
-
-# Load optional with explicit false
-load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf" "false"
-```
-
-**Behavior**:
-
-- Automatically logs debug messages via `log_debug()`
-- Logs errors for missing required files via `log_error()`
-- Includes centralized `shellcheck source=/dev/null` directive
-- Used internally by `load_config()` function
-
-### cleanup_previous_sid_config
-
-Clean up variables from previous SID-specific configuration (v1.0.0+).
-
-**Signature**: `cleanup_previous_sid_config`
-
-**Purpose**: Unsets variables that were set by the previous SID's configuration file to ensure
-environment isolation when switching between SIDs.
-
-**Behavior**:
-
-- Reads variable list from `ORADBA_PREV_SID_VARS`
-- Unsets each tracked variable except critical ones
-- Protected variables: `ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`, `ORADBA_*`, `PATH`,
-  `LD_LIBRARY_PATH`, `TNS_ADMIN`, `NLS_LANG`
-- Clears `ORADBA_PREV_SID_VARS` after cleanup
-
-**Returns**: Always returns `0`
-
-**Example**:
-
-```bash
-# Called automatically by load_config()
-# Manual usage rarely needed, but possible:
-cleanup_previous_sid_config
-```
-
-**See Also**: `capture_sid_config_vars()`, `load_config()`
-
-### capture_sid_config_vars
-
-Capture and track variables set by SID-specific configuration (v1.0.0+).
-
-**Signature**: `capture_sid_config_vars <sid_config_file>`
-
-**Parameters**:
-
-- `sid_config_file` - Path to SID configuration file
-
-**Purpose**: Tracks which variables are added by a SID configuration file by comparing the
-environment before and after loading.
-
-**Behavior**:
-
-- Captures current exported variables (before loading)
-- Sources the SID config file with auto-export enabled
-- Captures exported variables after loading
-- Calculates difference and stores in `ORADBA_PREV_SID_VARS`
-- List used by `cleanup_previous_sid_config()` on next SID switch
-
-**Returns**:
-
-- `0` - Variables captured successfully
-- `1` - Configuration file not found
-
-**Example**:
-
-```bash
-# Called automatically by load_config()
-# Manual usage for testing:
-capture_sid_config_vars "$ORADBA_BASE/etc/sid.PRODDB.conf"
-echo "Tracked vars: $ORADBA_PREV_SID_VARS"
-```
-
-**See Also**: `cleanup_previous_sid_config()`, `load_config()`
-
-### load_config
-
-Load hierarchical configuration files for OraDBA environment.
-
-**Signature**: `load_config [ORACLE_SID]`
-
-**Parameters**:
-
-- `ORACLE_SID` - Optional Oracle SID for SID-specific configuration
-
-**Configuration Hierarchy** (later files override earlier settings):
-
-1. Core configuration: `oradba_core.conf` (required)
-2. Standard configuration: `oradba_standard.conf` (required)
-3. Customer configuration: `oradba_customer.conf` (optional)
-4. Default SID configuration: `sid._DEFAULT_.conf` (optional)
-5. SID-specific configuration: `sid.<ORACLE_SID>.conf` (optional, auto-created if enabled)
-
-**Environment Isolation** (v1.0.0+):
-
-SID-specific variables (from `sid.<SID>.conf`) are automatically tracked and cleaned up when
-switching to a different SID. This ensures proper environment isolation:
-
-- Variables from configs 1-4 persist across SID switches (shared configuration)
-- Variables from config 5 (`sid.<SID>.conf`) are SID-specific and cleaned up on switch
-- Uses `cleanup_previous_sid_config()` and `capture_sid_config_vars()` internally
-- Critical Oracle/OraDBA variables (ORACLE_*, ORADBA_*, PATH, etc.) are never cleaned up
-
-**Returns**:
-
-- `0` - Configuration loaded successfully
-- `1` - Core configuration not found
-
-**Example**:
-
-```bash
-# Load configuration for current SID
-load_config
-
-# Load configuration for specific SID
-load_config "TESTDB"
-
-# Load and handle errors
-if ! load_config "${ORACLE_SID}"; then
-    echo "ERROR: Failed to load configuration"
-    return 1
-fi
-
-# Environment isolation example
-# sid.PROD.conf: export CUSTOM_VAR="prod_value"
-# sid.TEST.conf: export CUSTOM_VAR="test_value"
-load_config "PROD"
-echo $CUSTOM_VAR  # Output: prod_value
-load_config "TEST"
-echo $CUSTOM_VAR  # Output: test_value (PROD's value cleaned up!)
-```
-
-**Auto-export Behavior**:
-
-- Temporarily enables `set -a` during loading
-- All variables in config files are automatically exported
-- Restores `set +a` after loading completes
-
-### Configuration Hierarchy
-
-1. System configuration: `$ORADBA_PREFIX/src/etc/oradba.conf`
-2. User configuration: `~/.oradba_config`
-3. Environment variables
-4. Command-line arguments (highest priority)
-
-### Reading Configuration
-
-Configuration files are automatically sourced by scripts.
-Variables can be overridden by environment variables.
-
-**Example**:
-
-```bash
-# In script
-source "${ORADBA_PREFIX}/src/etc/oradba.conf"
-
-# Override with environment variable
-export ORATAB_FILE="/custom/path/oratab"
-
-# Source user config if exists
-[ -f ~/.oradba_config ] && source ~/.oradba_config
-```
-
-## oraenv.sh API
-
-### Usage
-
-Must be sourced, not executed directly.
-
-**Syntax**: `source oraenv.sh [ORACLE_SID] [OPTIONS]`
-
-**Parameters**:
-
-- `ORACLE_SID` - Optional, prompts if not provided
-- `--force` - Force environment setup
-- `--help` - Display help
-
-**Example**:
-
-```bash
-# With SID
-source oraenv.sh FREE
-
-# Interactive
-source oraenv.sh
-
-# With options
-source oraenv.sh TESTDB --force
-```
-
-### Environment Variables Set
-
-After sourcing oraenv.sh, the following variables are set:
-
-- `ORACLE_SID` - Oracle System Identifier
-- `ORACLE_HOME` - Oracle installation directory  
-- `ORACLE_BASE` - Oracle base directory
-- `PATH` - Updated with Oracle binaries
-- `LD_LIBRARY_PATH` - Updated with Oracle libraries
-- `TNS_ADMIN` - TNS configuration directory
-- `NLS_LANG` - National Language Support settings
-
-## Information Display Functions
-
-**New in v0.14.0**: Functions for displaying configuration and path information.
-
-### show_config
-
-Display OraDBA configuration hierarchy with load status validation.
-
-**Syntax**: `show_config`
-
-**Output**: Shows 5-level configuration hierarchy with status indicators
-
-**Status Indicators**:
-
-- `[✓ loaded]` - File exists and was successfully sourced
-- `[✗ MISSING - REQUIRED]` - Required file not found (error condition)
-- `[- not configured]` - Optional file not present
-
-**Configuration Levels**:
-
-1. Core Configuration (`oradba_core.conf`) - Required
-2. Standard Configuration (`oradba_standard.conf`) - Required
-3. Customer Configuration (`oradba_customer.conf`) - Optional
-4. Default SID Configuration (`sid._DEFAULT_.conf`) - Optional
-5. SID-Specific Configuration (`sid.${ORACLE_SID}.conf`) - Optional
-
-**Example Output**:
-
-```text
-OraDBA Configuration Hierarchy:
-================================
-1. Core Configuration:
-   [✓ loaded] /opt/oracle/local/oradba/etc/oradba_core.conf
-
-2. Standard Configuration:
-   [✓ loaded] /opt/oracle/local/oradba/etc/oradba_standard.conf
-
-3. Customer Configuration:
-   [- not configured] /opt/oracle/local/oradba/etc/oradba_customer.conf
-
-4. Default SID Configuration:
-   [✓ loaded] /opt/oracle/local/oradba/etc/sid._DEFAULT_.conf
-
-5. SID-Specific Configuration (FREE):
-   [✓ loaded] /opt/oracle/local/oradba/etc/sid.FREE.conf
-```
-
-**Alias**: `cfg`
-
-**Example**:
-
-```bash
-# Show configuration hierarchy
-show_config
-
-# Using alias
-cfg
-```
-
-### show_path
-
-Display current PATH with numbered entries for easy reference.
-
-**Syntax**: `show_path`
-
-**Output**: Numbered list of directories in PATH
-
-**Example Output**:
-
-```text
-Current PATH:
-=============
-1. /opt/oracle/local/oradba/bin
-2. /u01/app/oracle/product/19c/dbhome_1/bin
-3. /usr/local/bin
-4. /usr/bin
-5. /bin
-```
-
-**Alias**: `pth`
-
-**Example**:
-
-```bash
-# Show PATH structure
-show_path
-
-# Using alias
-pth
-```
-
-### show_sqlpath
-
-Display current SQLPATH and ORACLE_PATH with numbered entries.
-
-**Syntax**: `show_sqlpath`
-
-**Output**: Numbered lists of directories in SQLPATH and ORACLE_PATH
-
-**Example Output**:
-
-```text
-Current SQLPATH:
-================
-1. /opt/oracle/local/oradba/sql
-2. /u01/app/oracle/admin/FREE/scripts
-3. /home/oracle/sql
-
-Current ORACLE_PATH:
-===================
-1. /opt/oracle/local/oradba/sql
-```
-
-**Alias**: `sqa`
-
-**Example**:
-
-```bash
-# Show SQL paths
-show_sqlpath
-
-# Using alias
-sqa
-```
-
-### configure_sqlpath
-
-Configure SQLPATH environment variable with OraDBA and admin directories.
-
-**Syntax**: `configure_sqlpath`
-
-**Sets**:
-
-- `SQLPATH` - SQL*Plus search path
-- `ORACLE_PATH` - Oracle search path
-
-**Behavior**:
-
-- Adds `${ORADBA_SQL}` directory
-- Adds `${ORADBA_ORA_ADMIN_SID}/scripts` if exists
-- Preserves existing SQLPATH entries
-- Removes duplicates
-- Sets ORACLE_PATH to ORADBA_SQL
-
-**Example**:
-
-```bash
-configure_sqlpath
-echo $SQLPATH
-# Output: /opt/oradba/sql:/u01/app/oracle/admin/FREE/scripts
-```
-
-### add_to_sqlpath
-
-Add directory to SQLPATH if not already present.
-
-**Syntax**: `add_to_sqlpath <directory>`
-
-**Parameters**:
-
-- `directory` - Directory path to add
-
-**Returns**:
-
-- `0` - Directory added or already present
-- `1` - Directory does not exist
-
-**Example**:
-
-```bash
-# Add custom SQL directory
-add_to_sqlpath "/home/oracle/custom_sql"
-
-# Verify
-echo $SQLPATH
-```
-
-## BasEnv Integration Functions
-
-### detect_basenv
-
-Detect if TVD BasEnv / DB*Star is installed and configure coexistence mode.
-
-**Syntax**: `detect_basenv`
-
-**Detection Methods**:
-
-1. `BE_HOME` environment variable
-2. `.BE_HOME` file in user's home directory
-3. `.TVDPERL_HOME` file in user's home directory
-
-**Sets**:
-
-- `ORADBA_COEXIST_MODE` - "basenv" if detected, "standalone" otherwise
-- `ORADBA_BASENV_DETECTED` - "yes" if detected
-
-**Returns**:
-
-- `0` - BasEnv detected
-- `1` - BasEnv not detected
-
-**Example**:
-
-```bash
-if detect_basenv; then
-    oradba_log INFO "Running in BasEnv coexistence mode"
-else
-    oradba_log INFO "Running in standalone mode"
-fi
-```
-
-### alias_exists
-
-Check if a shell alias already exists.
-
-**Syntax**: `alias_exists <name>`
-
-**Parameters**:
-
-- `name` - Alias name to check
-
-**Returns**:
-
-- `0` - Alias exists
-- `1` - Alias does not exist
-
-**Example**:
-
-```bash
-if alias_exists "sqlplus"; then
-    oradba_log WARN "sqlplus alias already defined"
-fi
-```
-
-### safe_alias
-
-Create alias that respects coexistence mode settings.
-
-**Syntax**: `safe_alias <name> <command>`
-
-**Parameters**:
-
-- `name` - Alias name
-- `command` - Alias command/value
-
-**Behavior**:
-
-- In **standalone mode**: Always creates alias
-- In **coexistence mode** (BasEnv detected):
-  - Skips if `ORADBA_FORCE != 1` and alias exists
-  - Creates if alias doesn't exist
-  - Creates if `ORADBA_FORCE=1` (override mode)
-
-**Returns**:
-
-- `0` - Alias created successfully
-- `1` - Alias skipped (coexistence mode, already exists, not forced)
-
-**Example**:
-
-```bash
-# Creates alias unless BasEnv already defined it
-safe_alias sql 'sqlplus / as sysdba'
-
-# Force mode (overrides existing)
-export ORADBA_FORCE=1
-safe_alias sql 'sqlplus / as sysdba'  # Always creates
-```
-
-## SID and PDB Management Functions
-
-### generate_sid_lists
-
-Generate arrays of Oracle SIDs from oratab with startup flag filtering.
-
-**Syntax**: `generate_sid_lists`
-
-**Globals Set**:
-
-- `ALL_SIDS` - Array of all SIDs from oratab
-- `AUTOSTART_SIDS` - Array of SIDs with 'Y' startup flag
-- `SID_COUNT` - Total count of non-dummy SIDs
-
-**Filters Out**:
-
-- Dummy entries (ORACLE_HOME = `/no_such_home` or startup flag 'D')
-- Comment lines
-- Empty lines
-
-**Example**:
-
-```bash
-generate_sid_lists
-
-echo "All SIDs: ${ALL_SIDS[@]}"
-echo "Autostart: ${AUTOSTART_SIDS[@]}"
-echo "Total: $SID_COUNT"
-```
-
-### generate_pdb_aliases
-
-Generate aliases for Pluggable Databases (PDBs).
-
-**Syntax**: `generate_pdb_aliases`
-
-**Generated Aliases**:
-
-- `setpdb<PDBNAME>` - Switch to PDB context
-- Example: `setpdbPDB1` switches to PDB1
-
-**Requirements**:
-
-- Database must be open
-- CDB architecture (12c+)
-
-**Example**:
-
-```bash
-# Generate PDB aliases
-generate_pdb_aliases
-
-# Use generated alias
-setpdbPDB1  # Switches ORACLE_PDB_SID to PDB1
-```
-
-### is_dummy_sid
-
-**Internal**: Check if oratab entry is a dummy entry.
-
-**Syntax**: `is_dummy_sid <oracle_home> <startup_flag>`
-
-**Returns**: 0 if dummy, 1 if real
-
-**Example**:
-
-```bash
-if is_dummy_sid "$ORACLE_HOME" "D"; then
-    oradba_log DEBUG "Skipping dummy entry"
-fi
-```
-
-## Version Management Functions
-
-### get_oradba_version
-
-Get OraDBA version from VERSION file.
-
-**Syntax**: `get_oradba_version`
-
-**Returns**: Version string or "unknown"
-
-**Example**:
-
-```bash
-version=$(get_oradba_version)
-echo "OraDBA version: $version"
-```
-
-### version_compare
-
-Compare two version strings using semantic versioning.
-
-**Syntax**: `version_compare <version1> <version2>`
-
-**Parameters**:
-
-- `version1` - First version (e.g., "0.14.0")
-- `version2` - Second version (e.g., "0.13.5")
-
-**Returns**:
-
-- `0` - version1 = version2
-- `1` - version1 > version2
-- `2` - version1 < version2
-
-**Example**:
-
-```bash
-version_compare "0.14.0" "0.13.5"
-result=$?
-case $result in
-    0) echo "Equal" ;;
-    1) echo "0.14.0 is greater" ;;
-    2) echo "0.14.0 is less" ;;
-esac
-```
-
-### version_meets_requirement
-
-Check if version meets minimum requirement.
-
-**Syntax**: `version_meets_requirement <current_version> <required_version>`
-
-**Returns**:
-
-- `0` - Requirement met (current >= required)
-- `1` - Requirement not met
-
-**Example**:
-
-```bash
-if version_meets_requirement "$(get_oradba_version)" "0.13.0"; then
-    oradba_log INFO "Version requirement met"
-else
-    oradba_log ERROR "OraDBA 0.13.0+ required"
+query="SELECT name || '|' || db_unique_name FROM v\$database;"
+result=$(execute_db_query "$query" "delimited")
+IFS='|' read -r db_name db_unique_name <<< "$result"
+
+# With error handling
+if ! result=$(execute_db_query "$query" "raw"); then
+    oradba_log ERROR "Failed to query database"
     exit 1
 fi
 ```
 
-### show_version_info
+#### check_database_status
 
-Display comprehensive version information with formatting.
+Check if database instance is running.
 
-**Syntax**: `show_version_info [format]`
-
-**Parameters**:
-
-- `format` - Output format: "full" (default), "short", "check"
-
-**Example**:
-
+**Syntax:**
 ```bash
-# Full version info
-show_version_info
-
-# Short version
-show_version_info short
+check_database_status <sid>
 ```
 
-## Installation Info Functions
+**Arguments:**
+- `$1` - Database SID
 
-### get_install_info
+**Returns:**
+- Prints status: `RUNNING`, `STOPPED`, or `UNKNOWN`
+- Exit code 0
 
-Get installation metadata property value.
-
-**Syntax**: `get_install_info <property>`
-
-**Parameters**:
-
-- `property` - Property name (e.g., "version", "date", "method")
-
-**Returns**: Property value or empty string
-
-**Example**:
+**Example:**
 
 ```bash
-install_date=$(get_install_info "install_date")
-install_method=$(get_install_info "install_method")
-echo "Installed on $install_date via $install_method"
-```
-
-### set_install_info
-
-Set installation metadata property value.
-
-**Syntax**: `set_install_info <property> <value>`
-
-**Example**:
-
-```bash
-set_install_info "install_date" "$(date '+%Y-%m-%d %H:%M:%S')"
-set_install_info "install_method" "github"
-```
-
-### init_install_info
-
-Initialize installation metadata file with default values.
-
-**Syntax**: `init_install_info`
-
-**Creates**: `.install_info` file in `${ORADBA_PREFIX}`
-
-**Example**:
-
-```bash
-init_install_info
-```
-
-## RMAN Catalog Functions
-
-### load_rman_catalog_connection
-
-Load RMAN catalog connection information from configuration.
-
-**Syntax**: `load_rman_catalog_connection`
-
-**Sets**:
-
-- `RMAN_CATALOG_USER` - Catalog username
-- `RMAN_CATALOG_PASSWORD` - Catalog password
-- `RMAN_CATALOG_TNS` - TNS connection string
-
-**Configuration File**: `${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf`
-
-**Example**:
-
-```bash
-load_rman_catalog_connection
-if [[ -n "$RMAN_CATALOG_TNS" ]]; then
-    oradba_log INFO "Using RMAN catalog: $RMAN_CATALOG_TNS"
-fi
-```
-
-## SID Configuration Functions
-
-### create_sid_config
-
-Create default SID-specific configuration file from template.
-
-**Syntax**: `create_sid_config <sid>`
-
-**Parameters**:
-
-- `sid` - Oracle SID for configuration
-
-**Creates**: `${ORADBA_CONFIG_DIR}/sid.${sid}.conf`
-
-**Example**:
-
-```bash
-create_sid_config "PRODDB"
-# Creates: /opt/oradba/etc/sid.PRODDB.conf
-```
-
-## Database Functions
-
-Complete documentation for `src/lib/oradba_db_functions.sh` module.
-
-### check_database_connection
-
-Check if database connection is available.
-
-**Syntax**: `check_database_connection`
-
-**Returns**:
-
-- `0` - Connection successful
-- `1` - Connection failed
-
-**Example**:
-
-```bash
-if check_database_connection; then
-    oradba_log INFO "Database is accessible"
+# Check database status
+status=$(check_database_status "FREE")
+if [[ "$status" == "RUNNING" ]]; then
+    echo "Database is up"
 else
-    oradba_log ERROR "Cannot connect to database"
-    exit 1
+    echo "Database is down"
 fi
 ```
 
-### get_database_open_mode
+#### check_listener_status
 
-Get database open mode (READ WRITE, READ ONLY, MOUNTED).
+Check if listener is running.
 
-**Syntax**: `get_database_open_mode`
-
-**Returns**: Open mode string or empty on error
-
-**Example**:
-
+**Syntax:**
 ```bash
-open_mode=$(get_database_open_mode)
-echo "Database open mode: $open_mode"
+check_listener_status [<listener_name>]
 ```
 
-### query_instance_info
+**Arguments:**
+- `$1` - Optional listener name (default: LISTENER)
 
-Query instance information (name, status, version, uptime).
+**Returns:**
+- Prints status: `RUNNING`, `STOPPED`, or `UNKNOWN`
+- Exit code 0
 
-**Syntax**: `query_instance_info`
-
-**Returns**: Pipe-delimited string: `instance_name|status|version|startup_time`
-
-**Example**:
-
-```bash
-info=$(query_instance_info)
-IFS='|' read -r instance status version startup <<< "$info"
-echo "Instance: $instance ($status) - Version: $version"
-```
-
-### query_database_info
-
-Query database information (name, unique name, DBID, log mode).
-
-**Syntax**: `query_database_info`
-
-**Returns**: Pipe-delimited string: `name|db_unique_name|dbid|log_mode`
-
-**Example**:
+**Example:**
 
 ```bash
-info=$(query_database_info)
-IFS='|' read -r name unique_name dbid log_mode <<< "$info"
-echo "Database: $name (DBID: $dbid) - Log Mode: $log_mode"
+# Check default listener
+status=$(check_listener_status)
+echo "Listener status: $status"
+
+# Check specific listener
+status=$(check_listener_status "LISTENER_FREE")
 ```
 
-### query_datafile_size
+#### get_database_version
 
-Query datafile size information (total size, used size, free size).
+Get Oracle database version.
 
-**Syntax**: `query_datafile_size`
+**Syntax:**
+```bash
+get_database_version
+```
 
-**Returns**: Pipe-delimited string: `total_gb|used_gb|free_gb`
+**Arguments:** None (uses current ORACLE_HOME)
 
-**Example**:
+**Returns:**
+- Prints version string (e.g., "23.6.0.0.0")
+- Exit code 0 on success
+
+**Example:**
 
 ```bash
-info=$(query_datafile_size)
-IFS='|' read -r total used free <<< "$info"
-echo "Datafiles: ${used}GB used of ${total}GB (${free}GB free)"
-```
+version=$(get_database_version)
+echo "Oracle Database version: $version"
 
-### query_memory_usage
-
-Query memory usage (SGA, PGA, total).
-
-**Syntax**: `query_memory_usage`
-
-**Returns**: Pipe-delimited string: `sga_mb|pga_mb|total_mb`
-
-**Example**:
-
-```bash
-info=$(query_memory_usage)
-IFS='|' read -r sga pga total <<< "$info"
-echo "Memory: SGA ${sga}MB + PGA ${pga}MB = ${total}MB"
-```
-
-### query_sessions_info
-
-Query session information (total sessions, active sessions, max sessions).
-
-**Syntax**: `query_sessions_info`
-
-**Returns**: Pipe-delimited string: `current|active|maximum`
-
-**Example**:
-
-```bash
-info=$(query_sessions_info)
-IFS='|' read -r current active maximum <<< "$info"
-echo "Sessions: $current total ($active active) - Max: $maximum"
-```
-
-### query_pdb_info
-
-Query pluggable database information for CDB.
-
-**Syntax**: `query_pdb_info`
-
-**Returns**: Newline-separated PDB entries: `pdb_name|open_mode|restricted`
-
-**Example**:
-
-```bash
-pdb_info=$(query_pdb_info)
-while IFS='|' read -r pdb_name open_mode restricted; do
-    echo "PDB: $pdb_name - $open_mode $([ "$restricted" = "YES" ] && echo "(RESTRICTED)")"
-done <<< "$pdb_info"
-```
-
-### format_uptime
-
-Format uptime duration into human-readable string.
-
-**Syntax**: `format_uptime <seconds>`
-
-**Parameters**:
-
-- `seconds` - Uptime in seconds
-
-**Returns**: Formatted string (e.g., "5d 3h 42m")
-
-**Example**:
-
-```bash
-uptime_str=$(format_uptime 450000)
-echo "Uptime: $uptime_str"  # Output: 5d 5h 0m
-```
-
-### show_database_status
-
-Display comprehensive database status with formatting.
-
-**Syntax**: `show_database_status`
-
-**Output**: Multi-line formatted status report including:
-
-- Instance information
-- Database information
-- Storage usage
-- Memory usage
-- Session count
-- PDB status (if CDB)
-
-**Example**:
-
-```bash
-show_database_status
-```
-
-**Example Output**:
-
-```text
-Database Status:
-================
-Instance: FREE (OPEN) - Version: 19.0.0.0.0
-Uptime: 5d 3h 42m
-
-Database: FREE (DBID: 123456789)
-Log Mode: ARCHIVELOG
-
-Storage: 15.2GB used of 50.0GB (34.8GB free)
-Memory: SGA 2048MB + PGA 512MB = 2560MB
-Sessions: 45 total (12 active) - Max: 300
-
-PDBs:
-  PDB$SEED - READ ONLY
-  PDB1 - READ WRITE
-```
-
-## Alias Helper Functions
-
-### get_diagnostic_dest
-
-Get Oracle diagnostic destination directory.
-
-**Syntax**: `get_diagnostic_dest`
-
-**Returns**: Diagnostic destination path or empty string
-
-**Example**:
-
-```bash
-diag_dest=$(get_diagnostic_dest)
-echo "Diagnostic destination: $diag_dest"
-```
-
-### has_rlwrap
-
-Check if rlwrap utility is available.
-
-**Syntax**: `has_rlwrap`
-
-**Returns**:
-
-- `0` - rlwrap available
-- `1` - rlwrap not found
-
-**Example**:
-
-```bash
-if has_rlwrap; then
-    alias sql='rlwrap sqlplus / as sysdba'
-else
-    alias sql='sqlplus / as sysdba'
+# Version comparison
+if [[ "${version%%.*}" -ge 23 ]]; then
+    echo "Oracle 23ai or later"
 fi
 ```
 
-### generate_sid_aliases
+---
 
-Generate SID-specific aliases for database management.
+## Alias Management
 
-**Syntax**: `generate_sid_aliases`
+### oradba_aliases.sh
 
-**Generated Aliases** (per SID):
+Alias generation and management for database environments.
 
-- `set<SID>` - Switch to SID environment
-- `sql<SID>` - SQL*Plus for SID
-- `rman<SID>` - RMAN for SID
-- `lsnr<SID>` - Listener control for SID
+#### generate_aliases_for_sid
 
-**Example**:
+Generate database-related aliases for a SID.
 
+**Syntax:**
 ```bash
-generate_sid_aliases
-# Creates: setFREE, sqlFREE, rmanFREE, lsnrFREE, etc.
+generate_aliases_for_sid <sid>
 ```
 
-### generate_base_aliases
+**Arguments:**
+- `$1` - Database SID
 
-Generate base OraDBA aliases available in all environments.
+**Returns:**
+- Creates aliases in current shell
+- Exit code 0
 
-**Syntax**: `generate_base_aliases`
+**Generated Aliases:**
+- `sql` - Connect as SYSDBA
+- `sqlu` - Connect as user
+- `rman` - Start RMAN
+- `dgmgrl` - Start Data Guard Manager
+- `adrci` - Start ADR Command Interpreter
 
-**Generated Aliases**:
-
-- `sql` - SQL*Plus as sysdba
-- `sqlp` - SQL*Plus (no sysdba)
-- `adrci` - ADR Command Interpreter
-- `cfg` - Show configuration
-- `pth` - Show PATH
-- `sqa` - Show SQLPATH
-- And many more...
-
-**Example**:
+**Example:**
 
 ```bash
-generate_base_aliases
+source "${ORADBA_BASE}/lib/oradba_aliases.sh"
+
+# Generate aliases for database
+generate_aliases_for_sid "FREE"
+
+# Now can use:
+# sql       -> sqlplus / as sysdba
+# sqlu      -> sqlplus user/pass
+# rman      -> rman target /
 ```
 
-## Extension Management Functions
+#### clear_aliases
 
-Complete documentation for `src/lib/extensions.sh` module.
+Clear all OraDBA-generated aliases.
 
-### discover_extensions
+**Syntax:**
+```bash
+clear_aliases
+```
 
-Discover all available extensions in extensions directory.
+**Arguments:** None
 
-**Syntax**: `discover_extensions`
+**Returns:**
+- Removes all OraDBA aliases
+- Exit code 0
 
-**Returns**: Space-separated list of extension directories
-
-**Example**:
+**Example:**
 
 ```bash
-extensions=$(discover_extensions)
-for ext in $extensions; do
-    echo "Found extension: $(basename "$ext")"
-done
+# Clear old aliases before switching SID
+clear_aliases
+generate_aliases_for_sid "NEWDB"
 ```
 
-### get_all_extensions
-
-Get array of all discovered extensions with metadata.
-
-**Syntax**: `get_all_extensions`
-
-**Returns**: Array of extension paths in global `ORADBA_EXTENSIONS`
-
-**Example**:
-
-```bash
-get_all_extensions
-echo "Found ${#ORADBA_EXTENSIONS[@]} extensions"
-```
-
-### parse_extension_metadata
-
-Parse extension metadata file (.oradba-extension).
-
-**Syntax**: `parse_extension_metadata <extension_dir>`
-
-**Returns**: Metadata in global associative array `ORADBA_EXT_META`
-
-**Example**:
-
-```bash
-parse_extension_metadata "/opt/oradba/extensions/myext"
-echo "Name: ${ORADBA_EXT_META[name]}"
-echo "Version: ${ORADBA_EXT_META[version]}"
-```
-
-### sort_extensions_by_priority
-
-Sort extensions by priority (lower number = higher priority).
-
-**Syntax**: `sort_extensions_by_priority <extension_paths...>`
-
-**Returns**: Sorted space-separated list of extension paths
-
-**Example**:
-
-```bash
-sorted=$(sort_extensions_by_priority $extensions)
-```
-
-### load_extensions
-
-Load all enabled extensions in priority order.
-
-**Syntax**: `load_extensions`
-
-**Behavior**:
-
-- Discovers all extensions
-- Sorts by priority
-- Loads enabled extensions
-- Executes init hooks
-
-**Example**:
-
-```bash
-load_extensions
-```
-
-### load_extension
-
-Load a single extension.
-
-**Syntax**: `load_extension <extension_dir>`
-
-**Returns**:
-
-- `0` - Extension loaded successfully
-- `1` - Extension load failed
-
-**Example**:
-
-```bash
-if load_extension "/opt/oradba/extensions/myext"; then
-    oradba_log INFO "Extension loaded"
-fi
-```
-
-### create_extension_alias
-
-Create alias for extension functionality.
-
-**Syntax**: `create_extension_alias <name> <command>`
-
-**Uses**: `safe_alias` internally for coexistence mode support
-
-**Example**:
-
-```bash
-create_extension_alias myalias 'echo "Extension command"'
-```
-
-### list_extensions
-
-List all discovered extensions with status.
-
-**Syntax**: `list_extensions [format]`
-
-**Parameters**:
-
-- `format` - "short" or "full" (default: "short")
-
-**Example**:
-
-```bash
-list_extensions
-list_extensions full
-```
-
-### show_extension_info
-
-Show detailed information about a specific extension.
-
-**Syntax**: `show_extension_info <extension_name>`
-
-**Example**:
-
-```bash
-show_extension_info customer
-```
-
-### validate_extension
-
-Validate extension structure and metadata.
-
-**Syntax**: `validate_extension <extension_dir>`
-
-**Returns**:
-
-- `0` - Extension valid
-- `1` - Extension invalid
-
-**Example**:
-
-```bash
-if validate_extension "/opt/oradba/extensions/myext"; then
-    oradba_log INFO "Extension structure valid"
-fi
-```
-
-### extension_provides
-
-Check if extension provides a specific feature.
-
-**Syntax**: `extension_provides <extension_dir> <feature>`
-
-**Returns**:
-
-- `0` - Extension provides feature
-- `1` - Extension does not provide feature
-
-**Example**:
-
-```bash
-if extension_provides "/opt/oradba/extensions/myext" "monitoring"; then
-    oradba_log INFO "Extension provides monitoring"
-fi
-```
-
-## Script Template API
-
-Use the script template from `src/templates/script_template.sh` for new scripts.
-
-### Template Structure
-
-```bash
-#!/usr/bin/env bash
-# Header (use doc/templates/header.sh)
-
-# Source common library
-source "${ORADBA_BASE}/src/lib/oradba_common.sh"
-
-# Define functions
-usage() { ... }
-main() { ... }
-
-# Execute
-main "$@"
-```
-
-## Return Codes
-
-Standard return codes across all scripts:
-
-- `0` - Success
-- `1` - General error
-- `2` - Invalid arguments
-- `3` - Configuration error
-- `4` - Environment error
-- `5` - Oracle-specific error
+---
 
 ## Best Practices
 
-1. **Always check return codes**:
+### Error Handling
 
-   ```bash
-   if ! command_exists "sqlplus"; then
-       log_error "SQL*Plus not found"
-       return 1
-   fi
-   ```
+Always check return codes for critical operations:
 
-2. **Use logging functions**:
+```bash
+# Check if entry exists before using
+if ! entry=$(oradba_registry_get_by_name "FREE" 2>/dev/null); then
+    oradba_log ERROR "Database FREE not found in registry"
+    exit 1
+fi
 
-   ```bash
-   log_info "Starting operation"
-   # ... operation ...
-   log_info "Operation completed"
-   ```
+# Validate before setting environment
+if ! validate_oracle_home "$oracle_home" "$product_type"; then
+    oradba_log ERROR "Invalid Oracle Home: $oracle_home"
+    exit 1
+fi
+```
 
-3. **Validate inputs**:
+### Using Plugins
 
-   ```bash
-   if [[ -z "$ORACLE_SID" ]]; then
-       log_error "ORACLE_SID not provided"
-       return 1
-   fi
-   ```
+Load plugins explicitly when needed:
 
-4. **Source common library**:
+```bash
+# Load plugin
+source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
 
-   ```bash
-   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-   ORADBA_BASE="$(dirname "$(dirname "$SCRIPT_DIR")")"
-   source "${ORADBA_BASE}/src/lib/oradba_common.sh"
-   ```
+# Use plugin functions
+if plugin_validate_home "$ORACLE_HOME"; then
+    metadata=$(plugin_get_metadata "$ORACLE_HOME")
+    oradba_log INFO "Metadata: $metadata"
+fi
+```
+
+### Configuration Management
+
+Use the hierarchical configuration system:
+
+```bash
+# Create customer configuration
+cat > "${ORADBA_PREFIX}/etc/oradba_customer.conf" <<EOF
+# Custom settings
+export ORADBA_LOG_LEVEL=DEBUG
+export PATH_DEDUPE_ENABLED=true
+EOF
+
+# Create SID-specific configuration
+cat > "${ORADBA_PREFIX}/etc/sid.FREE.conf" <<EOF
+# FREE database specific settings
+export TNS_ADMIN=/opt/oracle/network/admin/FREE
+EOF
+```
+
+### Logging
+
+Use consistent logging levels:
+
+```bash
+# Informational messages
+oradba_log INFO "Starting database environment setup"
+
+# Warnings for non-critical issues
+oradba_log WARN "Archive log directory approaching capacity"
+
+# Errors for failures
+oradba_log ERROR "Failed to connect to database"
+
+# Debug for troubleshooting
+oradba_log DEBUG "Configuration file: $config_file"
+```
+
+---
 
 ## See Also
 
-- [DEVELOPMENT.md](DEVELOPMENT.md) - Development guide
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
-- [README.md](../README.md) - Main documentation
+- [Architecture Documentation](architecture.md) - System design and components
+- [Development Guide](development.md) - Development workflow and standards
+- [Extension System](extension-system.md) - Creating OraDBA extensions
+- [User Documentation](../src/doc/index.md) - End-user guides and reference
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** 2026-01-20  
+**OraDBA Version:** v0.19.0+
