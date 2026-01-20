@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Java Plugin for Oracle Java Management** (2026-01-20)
+  - Added comprehensive Java plugin for Oracle Java installations
+  - Supports Java installations under `$ORACLE_BASE/product/java*` and `$ORACLE_BASE/product/jdk*`
+  - Auto-detects Java and JDK installations
+  - Version detection from `java -version` output
+  - Supports Java 8 (1.8.0_xxx) and Java 11+ (17.x.x, 21.x.x) version formats
+  - Normalizes Java 8 version format (1.8.0_291 → 8.0.291)
+  - Distinguishes between JDK (with javac) and JRE (without javac)
+  - Provides PATH and LD_LIBRARY_PATH configuration
+  - No listener support (returns 1 for plugin_should_show_listener)
+  - Full test coverage with 20+ BATS tests
+  - Enables management of Java installations alongside Oracle Database products
+
 - **Auto-Sync Database Homes from oratab** (2026-01-20)
   - Added `oradba_registry_sync_oratab()` function to sync database homes
   - Database homes from oratab automatically added to oradba_homes.conf
