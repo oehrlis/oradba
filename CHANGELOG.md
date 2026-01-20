@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Complete Plugin Architecture** (2026-01-20)
+  - Added stub plugins for WebLogic, OMS, and EM Agent to complete plugin coverage
+  - All 8 supported product types now have dedicated plugins (database, client, iclient, datasafe, oud, weblogic, oms, emagent)
+  - Stub plugins provide minimal validation and return "ERR" for version detection
+  - Eliminates special-case logic in common code for products without version info
+  - Creates uniform architecture - all products use plugin pattern
+  - Stub plugins ready for future enhancement with full support
+
 - **Instant Client Version Detection Enhancement** (2026-01-20)
   - Added version detection from library filenames when sqlplus is not available
   - Method 4: Extract version from `.so` library files (libclntsh.so.23.1 → 2301)
@@ -19,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Instant client homes without sqlplus now show correct version instead of "Unknown"
 
 ### Changed
+
+- **Simplified Version Detection Logic** (2026-01-20)
+  - Removed special-case handling for datasafe/weblogic/oms/emagent/oud from detect_oracle_version()
+  - All product types now use plugin delegation - no exceptions
+  - Stub plugins handle "ERR" return via plugin_get_version()
+  - Cleaner architecture with consistent plugin-first approach
 
 - **Version Detection Architecture** (2026-01-20)
   - Refactored version detection to delegate to product plugins

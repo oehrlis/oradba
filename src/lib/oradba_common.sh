@@ -1370,12 +1370,6 @@ detect_oracle_version() {
         product_type=$(detect_product_type "${oracle_home}")
     fi
 
-    # For non-database products without version info, return ERR
-    if [[ "${product_type}" =~ ^(datasafe|weblogic|oms|emagent|oud)$ ]]; then
-        echo "ERR"
-        return 0
-    fi
-
     # Try plugin-based version detection first
     local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
     if [[ ! -f "${plugin_file}" ]]; then
