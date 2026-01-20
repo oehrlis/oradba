@@ -58,6 +58,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Database SID Lookup in oradba_env.sh Commands** (2026-01-20)
+  - Fixed `oradba_env.sh show <SID>` failing for database SIDs
+  - Fixed `oradba_env.sh status <SID>` failing for database SIDs
+  - Fixed `oradba_env.sh validate <SID>` failing for database SIDs
+  - Added auto-sync trigger at start of all command functions
+  - Database homes now synced before lookup, making SIDs available
+  - Commands now work for both database SIDs and Oracle Homes
+  - Resolves empty output when querying database SIDs
+
 - **Database Version Display Shows Oracle Home Version** (2026-01-20)
   - Fixed banner to show Oracle Home version instead of database version
   - Previously queried v$instance.version (e.g., "23.0.0.0.0" - base version)

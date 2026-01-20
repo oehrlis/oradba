@@ -197,6 +197,11 @@ cmd_show() {
         return 1
     fi
     
+    # Auto-sync database homes from oratab
+    if type -t oradba_registry_sync_oratab &>/dev/null; then
+        oradba_registry_sync_oratab >/dev/null 2>&1
+    fi
+    
     # Try to find target in oradba_homes.conf first (by name or alias)
     local home_entry
     if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
@@ -284,6 +289,11 @@ cmd_validate() {
     local level="${2:-standard}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
     
+    # Auto-sync database homes from oratab
+    if type -t oradba_registry_sync_oratab &>/dev/null; then
+        oradba_registry_sync_oratab >/dev/null 2>&1
+    fi
+    
     # If target specified, try to resolve it
     local validate_home="$ORACLE_HOME"
     local validate_sid="${ORACLE_SID:-}"
@@ -370,6 +380,11 @@ cmd_validate() {
 cmd_status() {
     local target="${1:-}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+    
+    # Auto-sync database homes from oratab
+    if type -t oradba_registry_sync_oratab &>/dev/null; then
+        oradba_registry_sync_oratab >/dev/null 2>&1
+    fi
     
     # If status library not loaded, inform user
     if ! command -v oradba_get_product_status &>/dev/null; then
