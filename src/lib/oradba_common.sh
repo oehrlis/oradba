@@ -1324,8 +1324,8 @@ get_oracle_home_type() {
 # Purpose.: Detect Oracle product type from ORACLE_HOME path
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success, 1 if unable to detect
-# Output..: Product type: database, client, oud, weblogic, oms, emagent,
-#           datasafe, or unknown
+# Output..: Product type: database, client, iclient, java, oud, weblogic, oms,
+#           emagent, datasafe, or unknown
 # Notes...: Checks for specific files/directories to identify product type
 # ------------------------------------------------------------------------------
 detect_product_type() {
@@ -1333,6 +1333,15 @@ detect_product_type() {
 
     [[ -z "${oracle_home}" ]] && echo "unknown" && return 1
     [[ ! -d "${oracle_home}" ]] && echo "unknown" && return 1
+
+    # Check for Java/JDK installations
+    if [[ -x "${oracle_home}/bin/java" ]]; then
+        # Check if it's ONLY Java (not a database or client with Java embedded)
+        if [[ ! -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -f "${oracle_home}/bin/oracle" ]]; then
+            echo "java"
+            return 0
+        fi
+    fi
 
     # Check for Oracle Unified Directory
     if [[ -f "${oracle_home}/oud/lib/ldapjdk.jar" ]]; then
