@@ -226,8 +226,42 @@ cmd_show() {
         fi
         echo ""
         return 0
+    # Check if it's a SID in oratab
+    elif type -t parse_oratab &>/dev/null; then
+        local oratab_entry
+        oratab_entry=$(parse_oratab "$target" 2>/dev/null)
+        if [[ -n "$oratab_entry" ]]; then
+            # Found in oratab - parse SID:HOME:FLAG format
+            IFS=':' read -r sid path flag <<< "$oratab_entry"
+            echo "=== Oracle Database Instance ==="
+            echo "SID: $sid"
+            echo "Path: $path"
+            echo "Auto-Start: $flag"
+            
+            # Get product type if home exists
+            if [[ -d "$path" ]]; then
+                if type -t detect_product_type &>/dev/null; then
+                    local ptype
+                    ptype=$(detect_product_type "$path")
+                    echo "Product: $ptype"
+                fi
+                
+                # Get version if available
+                if type -t get_oracle_version &>/dev/null; then
+                    local version
+                    version=$(get_oracle_version "$path")
+                    [[ -n "$version" ]] && echo "Version: $version"
+                fi
+            else
+                echo "Warning: Oracle Home does not exist"
+            fi
+            echo ""
+            return 0
+        fi
+    fi
+    
     # Check if it's a path (Oracle Home)
-    elif [[ -d "$target" ]]; then
+    if [[ -d "$target" ]]; then
         # It's an Oracle Home path
         echo "=== Oracle Home Information ==="
         echo "Path: $target"
@@ -246,41 +280,14 @@ cmd_show() {
             product=$(oradba_get_product_type "$target")
             echo "Product: $product (auto-detected)"
         fi
-        
     else
-        # It's a SID
-        echo "=== Oracle SID Information ==="
-        echo "SID: $target"
-        
-        # Find in oratab
-        local entry
-        entry=$(oradba_find_sid "$target")
-        if [[ $? -eq 0 ]]; then
-            IFS='|' read -r sid home flag <<< "$entry"
-            echo "Oracle Home: $home"
-            echo "Auto-Start: $flag"
-            
-            # Check if home exists
-            if [[ -d "$home" ]]; then
-                local product
-                product=$(oradba_get_product_type "$home")
-                echo "Product Type: $product"
-                
-                # Check if database is running
-                if command -v oradba_check_db_running &>/dev/null; then
-                    if oradba_check_db_running "$sid"; then
-                        echo "Status: RUNNING"
-                    else
-                        echo "Status: DOWN"
-                    fi
-                fi
-            else
-                echo "Warning: Oracle Home does not exist"
-            fi
-        else
-            echo "ERROR: SID '$target' not found in oratab" >&2
-            return 1
-        fi
+        # Not found anywhere
+        echo "ERROR: Target '$target' not found in oradba_homes.conf or oratab" >&2
+        echo "" >&2
+        echo "Available targets:" >&2
+        echo "  - Database SIDs from /etc/oratab" >&2
+        echo "  - Oracle Homes from ${homes_file}" >&2
+        return 1
     fi
     
     echo ""
@@ -328,12 +335,12 @@ cmd_validate() {
                     validate_home="${validate_home}/oracle_cman_home"
                 fi
             fi
-        else
-            # Try oratab
-            local sid_info
-            sid_info=$(oradba_find_sid "$target")
-            if [[ $? -eq 0 ]]; then
-                IFS='|' read -r sid home _flag <<< "$sid_info"
+        # Try oratab for database SIDs
+        elif type -t parse_oratab &>/dev/null; then
+            local oratab_entry
+            oratab_entry=$(parse_oratab "$target" 2>/dev/null)
+            if [[ -n "$oratab_entry" ]]; then
+                IFS=':' read -r sid home _flag <<< "$oratab_entry"
                 validate_home="$home"
                 validate_sid="$sid"
                 target_name="$sid"
@@ -416,22 +423,29 @@ cmd_status() {
         oracle_sid="$name"
         oracle_home="$path"
         product_type="${ptype^^}"
-    else
-        # Get SID info from oratab
-        local sid_info
-        sid_info=$(oradba_find_sid "$target")
+    # Try oratab for database SIDs
+    elif type -t parse_oratab &>/dev/null; then
+        local oratab_entry
+        oratab_entry=$(parse_oratab "$target" 2>/dev/null)
         
-        if [[ $? -ne 0 ]] || [[ -z "$sid_info" ]]; then
+        if [[ -z "$oratab_entry" ]]; then
             echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf"
             return 1
         fi
         
-        # Parse SID info (format: SID|ORACLE_HOME|FLAG)
+        # Parse oratab entry (format: SID:ORACLE_HOME:FLAG)
         local _oracle_flag
-        IFS='|' read -r oracle_sid oracle_home _oracle_flag <<< "$sid_info"
+        IFS=':' read -r oracle_sid oracle_home _oracle_flag <<< "$oratab_entry"
         
         # Detect product type
-        product_type=$(oradba_get_product_type "$oracle_home")
+        if type -t detect_product_type &>/dev/null; then
+            product_type=$(detect_product_type "$oracle_home")
+        else
+            product_type="database"
+        fi
+    else
+        echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf"
+        return 1
     fi
     
     echo "=== Oracle Instance/Service Status ==="
