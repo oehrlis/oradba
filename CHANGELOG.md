@@ -12,12 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auto-Sync Database Homes from oratab** (2026-01-20)
   - Added `oradba_registry_sync_oratab()` function to sync database homes
   - Database homes from oratab automatically added to oradba_homes.conf
+  - **Syncs on first login** when generating SID lists and aliases
+  - **Syncs on-demand** when home lookup fails (transparent fallback)
+  - Syncs when listing homes via `oradba_env.sh list homes`
   - Deduplicates homes by ORACLE_HOME path (multiple SIDs, one home)
   - Names homes by directory basename (e.g., dbhomeFree, dbhome19c)
   - Appends counter to avoid name conflicts (dbhomeFree, dbhomeFree2)
-  - `oradba_env.sh list homes` now shows all Oracle Homes including databases
   - Maintains single source of truth for all Oracle installations
   - Skips homes already registered to avoid duplicates
+  - Completely transparent - works automatically without user intervention
 
 - **Complete Plugin Architecture** (2026-01-20)
   - Added stub plugins for WebLogic, OMS, and EM Agent to complete plugin coverage

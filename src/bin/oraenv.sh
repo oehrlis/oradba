@@ -799,8 +799,21 @@ _oraenv_set_environment() {
     if [[ -z "$oratab_entry" ]]; then
         oratab_entry=$(_oraenv_auto_discover_instances "$requested_sid" "$oratab_file")
         
-        # Still no entry found after discovery attempt
+        # Still no entry found after discovery attempt - try syncing database homes
         if [[ -z "$oratab_entry" ]]; then
+            # Auto-sync database homes from oratab and retry lookup
+            if type -t oradba_registry_sync_oratab &>/dev/null; then
+                oradba_log DEBUG "Home not found, syncing database homes from oratab"
+                oradba_registry_sync_oratab >/dev/null 2>&1
+                
+                # Retry Oracle Home lookup after sync
+                if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then
+                    _oraenv_handle_oracle_home "$requested_sid"
+                    return $?
+                fi
+            fi
+            
+            # Still not found - report error
             oradba_log ERROR "ORACLE_SID '$requested_sid' not found in $oratab_file"
             return 1
         fi

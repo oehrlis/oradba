@@ -631,6 +631,11 @@ generate_sid_lists() {
 
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
+    # Auto-sync database homes from oratab to oradba_homes.conf (first login)
+    if type -t oradba_registry_sync_oratab &>/dev/null; then
+        oradba_registry_sync_oratab >/dev/null 2>&1
+    fi
+
     # Add Oracle Home names and aliases to ORADBA_SIDLIST
     local homes_config
     homes_config=$(get_oracle_homes_path 2>/dev/null) || homes_config=""
@@ -677,6 +682,11 @@ generate_sid_lists() {
 # ------------------------------------------------------------------------------
 generate_oracle_home_aliases() {
     local homes_config
+    
+    # Auto-sync database homes from oratab (ensures homes available for aliases)
+    if type -t oradba_registry_sync_oratab &>/dev/null; then
+        oradba_registry_sync_oratab >/dev/null 2>&1
+    fi
     
     # Get Oracle Homes config path
     homes_config=$(get_oracle_homes_path 2>/dev/null) || {
