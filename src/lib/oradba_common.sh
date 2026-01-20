@@ -642,7 +642,11 @@ generate_sid_lists() {
         fi
     fi
     if type -t oradba_registry_sync_oratab &>/dev/null; then
-        oradba_registry_sync_oratab >/dev/null 2>&1
+        local homes_added
+        homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
+        if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
+            echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+        fi
     fi
 
     # Add Oracle Home names and aliases to ORADBA_SIDLIST
@@ -703,7 +707,11 @@ generate_oracle_home_aliases() {
         fi
     fi
     if type -t oradba_registry_sync_oratab &>/dev/null; then
-        oradba_registry_sync_oratab >/dev/null 2>&1
+        local homes_added
+        homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
+        if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
+            echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+        fi
     fi
     
     # Get Oracle Homes config path

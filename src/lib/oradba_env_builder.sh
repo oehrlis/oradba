@@ -529,40 +529,47 @@ oradba_resolve_client_home() {
     
     # Handle "auto" - find first CLIENT or ICLIENT
     if [[ "${setting}" == "auto" ]]; then
-        while IFS=';' read -r oracle_home product_type _version _edition _db_type _position _dummy_sid short_name _desc; do
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+        while IFS=':' read -r name path ptype _order alias _desc _version; do
             # Skip empty lines and comments
-            [[ -z "${oracle_home}" ]] && continue
-            [[ "${oracle_home}" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${name}" ]] && continue
+            [[ "${name}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Convert type to uppercase for comparison
+            local ptype_upper="${ptype^^}"
             
             # Check if it's a client type
-            if [[ "${product_type}" == "CLIENT" ]] || [[ "${product_type}" == "ICLIENT" ]]; then
+            if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]]; then
                 # Validate directory exists
-                if [[ -d "${oracle_home}" ]]; then
-                    client_home="${oracle_home}"
+                if [[ -d "${path}" ]]; then
+                    client_home="${path}"
                     break
                 fi
             fi
-        done < "${homes_file}"
+        done < <(grep -v "^#\|^$" "${homes_file}")
     else
-        # Handle specific client name (could be short name or full name)
-        # Search in homes file by short name
-        while IFS=';' read -r oracle_home product_type _version _edition _db_type _position _dummy_sid short_name _desc; do
+        # Handle specific client name (could be name or alias)
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+        while IFS=':' read -r name path ptype _order alias _desc _version; do
             # Skip empty lines and comments
-            [[ -z "${oracle_home}" ]] && continue
-            [[ "${oracle_home}" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${name}" ]] && continue
+            [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             
-            # Match by short name
-            if [[ "${short_name}" == "${setting}" ]]; then
+            # Convert type to uppercase for comparison
+            local ptype_upper="${ptype^^}"
+            
+            # Match by name or alias
+            if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
                 # Validate it's a client type
-                if [[ "${product_type}" == "CLIENT" ]] || [[ "${product_type}" == "ICLIENT" ]]; then
+                if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]]; then
                     # Validate directory exists
-                    if [[ -d "${oracle_home}" ]]; then
-                        client_home="${oracle_home}"
+                    if [[ -d "${path}" ]]; then
+                        client_home="${path}"
                         break
                     fi
                 fi
             fi
-        done < "${homes_file}"
+        done < <(grep -v "^#\|^$" "${homes_file}")
     fi
     
     # Return result
