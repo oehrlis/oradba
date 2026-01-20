@@ -258,6 +258,8 @@ oradba_set_lib_path() {
     # Deduplicate library path
     lib_path="$(oradba_dedupe_path "$lib_path")"
     
+    oradba_log DEBUG "Final ${lib_var} to be exported: ${lib_path}"
+    
     # Export library path variable
     if [[ -n "$lib_path" ]]; then
         export ${lib_var}="$lib_path"

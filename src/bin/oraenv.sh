@@ -513,7 +513,9 @@ _oraenv_handle_oracle_home() {
         export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
         # Load hierarchical configuration for this Oracle Home
+        oradba_log DEBUG "LD_LIBRARY_PATH before load_config: ${LD_LIBRARY_PATH:-<empty>}"
         load_config "$requested_sid"
+        oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
 
         oradba_log DEBUG "Oracle Home environment set: $requested_sid"
         oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
