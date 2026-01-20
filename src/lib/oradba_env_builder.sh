@@ -234,17 +234,20 @@ oradba_set_lib_path() {
     # Clean existing Oracle library paths from the environment
     eval "local existing=\"\${${lib_var}}\""
     if [[ -n "$existing" ]]; then
+        oradba_log DEBUG "Cleaning ${lib_var}: ${existing}"
         local cleaned_path=""
         local IFS=":"
         for dir in $existing; do
             # Skip Oracle-related directories
-            [[ "$dir" =~ /oracle/ ]] && continue
-            [[ "$dir" =~ /grid/ ]] && continue
-            [[ "$dir" =~ instantclient ]] && continue
+            if [[ "$dir" =~ /oracle/ ]] || [[ "$dir" =~ /grid/ ]] || [[ "$dir" =~ instantclient ]]; then
+                oradba_log DEBUG "Removing old Oracle path: ${dir}"
+                continue
+            fi
             
             # Add to cleaned path
             cleaned_path="${cleaned_path:+${cleaned_path}:}${dir}"
         done
+        oradba_log DEBUG "Cleaned ${lib_var}: ${cleaned_path}"
         
         # Append cleaned non-Oracle paths to new Oracle paths
         if [[ -n "$cleaned_path" ]]; then

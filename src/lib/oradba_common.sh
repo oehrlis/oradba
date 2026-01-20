@@ -1611,7 +1611,10 @@ set_oracle_home_environment() {
     
     # Set library path using plugin system (Phase 4+)
     if command -v oradba_set_lib_path &>/dev/null; then
+        oradba_log DEBUG "Calling oradba_set_lib_path for ${product_type}: ${adjusted_home}"
         oradba_set_lib_path "${adjusted_home}" "${product_type}"
+    else
+        oradba_log WARN "oradba_set_lib_path not available - library path not set via plugin system"
     fi
     
     # Set DataSafe-specific variables if applicable
