@@ -224,10 +224,6 @@ list_homes() {
                     display_desc="[alias: $alias_name]"
                 fi
             fi
-            # Truncate description to fit in 80 char terminal (15+12+12+2 = 41, leaves 39 for desc)
-            if [[ ${#display_desc} -gt 39 ]]; then
-                display_desc="${display_desc:0:36}..."
-            fi
             printf "%-15s %-12s %-12s %s\n" "$name" "$ptype" "$status" "$display_desc"
         fi
     done <<< "$homes_output"
