@@ -1642,6 +1642,34 @@ set_oracle_home_environment() {
             ;;
     esac
 
+    # Add client path for non-client products if configured
+    # Check if the product needs external client tools
+    case "${product_type}" in
+        datasafe|oud|weblogic|oms|emagent)
+            # Source env_builder if available to use helper functions
+            if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                # Only source if not already loaded
+                if ! command -v oradba_add_client_path &>/dev/null; then
+                    # shellcheck source=/dev/null
+                    source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                fi
+                
+                # Add client path if function is available
+                if command -v oradba_add_client_path &>/dev/null; then
+                    # Convert to uppercase for function call
+                    local product_upper="${product_type^^}"
+                    oradba_add_client_path "${product_upper}" 2>/dev/null || true
+                fi
+            fi
+            ;;
+    esac
+    
+    # Deduplicate PATH after all additions
+    if command -v oradba_dedupe_path &>/dev/null; then
+        PATH="$(oradba_dedupe_path "${PATH}")"
+        export PATH
+    fi
+
     oradba_log DEBUG "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"
     return 0
 }
