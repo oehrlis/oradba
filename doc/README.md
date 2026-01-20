@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD013 -->
 # Developer Documentation
 
-Welcome to the OraDBA developer documentation. This directory contains technical documentation for contributors, maintainers, and developers working on the OraDBA v1.0.0 project.
+Welcome to the OraDBA developer documentation. This directory contains technical documentation for contributors, maintainers, and developers working on the OraDBA v0.19.0+ project.
 
 **Audience:** Project contributors, developers extending OraDBA, maintainers
 
@@ -9,16 +9,26 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 
 ## Quick Navigation
 
-| Category               | Document                                         | Description                                          |
-|------------------------|--------------------------------------------------|------------------------------------------------------|
-| **Getting Started**    | [development.md](development.md)                 | Complete development guide - setup, workflow, CI/CD  |
-| **Architecture**       | [architecture.md](architecture.md)               | System design, components, architectural decisions   |
-| **API Reference**      | [api.md](api.md)                                 | Complete function reference for all libraries        |
-| **Environment Design** | [oradba-env-design.md](oradba-env-design.md)     | Original design document with rationale (reference)  |
-| **Extension System**   | [extension-system.md](extension-system.md)       | Extension development guide and API                  |
-| **Testing**            | [automated_testing.md](automated_testing.md)     | Automated testing guide and framework                |
-| **Testing**            | [manual_testing.md](manual_testing.md)           | Manual testing procedures                            |
-| **Archive**            | [archive/](archive/)                             | Historical docs, completed plans, legacy references  |
+| Category               | Document                                         | Status      | Description                                          |
+|------------------------|--------------------------------------------------|-------------|------------------------------------------------------|
+| **Getting Started**    | [development.md](development.md)                 | ✅ Current  | Complete development guide - setup, workflow, CI/CD  |
+| **Architecture**       | [architecture.md](architecture.md)               | ✅ Current  | Registry API, Plugin System, v0.19.0+ architecture   |
+| **API Reference**      | [api.md](api.md)                                 | ✅ Current  | Registry API, Plugin Interface, core libraries       |
+| **Extension System**   | [extension-system.md](extension-system.md)       | ⏳ Review   | Extension development guide and API                  |
+| **Testing**            | [automated_testing.md](automated_testing.md)     | ⏳ Review   | Automated testing guide and framework                |
+| **Testing**            | [manual_testing.md](manual_testing.md)           | ⏳ Review   | Manual testing procedures                            |
+| **Environment Design** | [oradba-env-design.md](oradba-env-design.md)     | 📚 Archive  | Original design document (historical reference)      |
+| **Archive**            | [archive/](archive/)                             | 📚          | Historical docs, completed plans, legacy references  |
+| **Diagrams**           | [images/](images/)                               | ✅          | Mermaid diagrams (Registry API, Plugin System)      |
+
+## Key Changes in v0.19.0+
+
+**Registry API** - Unified interface for all Oracle installations (oratab + oradba_homes.conf)  
+**Plugin System** - 6 product-specific plugins (database, datasafe, client, iclient, oud, java)  
+**Environment Libraries** - Parser, Builder, Validator, Config, Status, Changes  
+**No Backward Compatibility** - Clean architecture without legacy basenv coexistence
+
+See [architecture.md](architecture.md) for complete details.
 
 ## Getting Started
 
@@ -26,40 +36,42 @@ New to OraDBA development? Start here:
 
 1. **[development.md](development.md)** - Read the complete development guide
 
-   - Project structure and setup
-   - Development workflow and Git practices
-   - Testing with BATS framework
-   - CI/CD integration
+   - Quick start for developers
+   - v0.19.0+ architecture overview (Registry API, Plugin System, Environment Libraries)
+   - Plugin development guide with 8-function template
+   - Project structure with all 6 plugins
+   - Testing framework (108+ plugin tests, 900+ core tests)
+   - CI/CD pipeline and workflows
    - Code quality standards
-   - Building and releasing
 
 2. **[architecture.md](architecture.md)** - Understand the system design
-   - Library-based architecture
-   - Configuration system
-   - Environment loading
-   - Extension framework
+
+   - Registry API - Unified interface for all Oracle installations
+   - Plugin System - 6 product-specific plugins with standard interface
+   - Environment Management Libraries - Parser, Builder, Validator, Config, Status, Changes
+   - Data flow diagrams (Mermaid)
+   - Design principles and patterns
 
 3. **[api.md](api.md)** - Learn the API
-
+   - Registry API functions (get_all, get_by_name, get_by_type, get_by_home, get_status, validate_entry)
+   - Plugin Interface (8 required functions per plugin)
    - Core utility functions
-   - Environment management functions
-   - Extension framework functions
+   - Database operation helpers
 
 ## Core Documentation
 
 ### Development & Workflow
 
-**[development.md](development.md)** - Complete development guide (42K, comprehensive)
+**[development.md](development.md)** - Complete development guide
 
-- Project structure and components
-- Development environment setup
-- Testing with BATS framework
-- Smart test selection
-- CI/CD integration with GitHub Actions
-- Code quality (shellcheck, shfmt)
-- Documentation standards (markdown linting)
-- Build process and release workflow
-- Contribution guidelines
+- **Architecture**: Registry API, Plugin System (6 plugins), Environment Libraries
+- **Plugin Development**: 8-function interface, detection, validation, metadata extraction
+- **Project Structure**: All 6 plugins (database, datasafe, client, iclient, oud, java)
+- **Testing**: 108+ plugin tests, 900+ core tests, 68 Docker integration tests
+- **Smart Test Selection**: ~1-3 min during development, ~8-10 min full suite
+- **CI/CD Pipeline**: GitHub Actions with automated testing and release
+- **Configuration**: 6-level hierarchical system
+- **Make Targets**: test, test-full, test-docker, lint, build, ci, pre-commit
 
 **Quick development cycle:**
 
@@ -67,87 +79,118 @@ New to OraDBA development? Start here:
 # Clone and setup
 git clone https://github.com/oehrlis/oradba.git
 cd oradba
-make help
 
 # Development
-make test              # Run all tests
-make lint              # Lint shell scripts + markdown
-make check             # Run tests + lint
+make test              # Smart test selection (~1-3 min)
+make lint              # Lint shell + markdown
+make pre-commit        # Smart tests + lint (~2-4 min)
 
 # Building
 make build             # Build installer
-make dist              # Create distribution archive
+make test-full         # Full test suite (~8-10 min)
+make ci                # Complete CI pipeline (~10-15 min)
 ```
 
 ### Architecture & Design
 
-**[architecture.md](architecture.md)** - System architecture
+**[architecture.md](architecture.md)** - v0.19.0+ System Architecture
 
-- Overall design principles and philosophy
-- Library-based modular architecture
-- Component interactions
-- Configuration system hierarchy (6 levels)
-- Environment loading sequence
-- Alias generation mechanism
-- Extension framework integration
+- **Registry API**: Unified access to oratab + oradba_homes.conf
+  - Auto-synchronization of database entries
+  - Colon-delimited output format
+  - 6 core functions for all operations
+- **Plugin System**: 6 product-specific plugins
+  - database_plugin.sh (16 tests) - Oracle Database
+  - datasafe_plugin.sh (17 tests) - Data Safe On-Premises Connector
+  - client_plugin.sh (12 tests) - Oracle Full Client
+  - iclient_plugin.sh (15 tests) - Oracle Instant Client
+  - oud_plugin.sh (15 tests) - Oracle Unified Directory
+  - java_plugin.sh (22 tests) - Java JDK/JRE
+  - 8-function standard interface
+- **Environment Management Libraries**: 6 specialized libraries
+- **Data Flow**: Mermaid diagram showing Registry API integration
+- **Design Principles**: Modularity, testability, extensibility
 
-**[oradba-env-design.md](oradba-env-design.md)** - Environment library design (46K, detailed)
+**[oradba-env-design.md](oradba-env-design.md)** - Historical Design Document
 
-- Environment Management Libraries (oradba_env_*)
-- Parser, Builder, Validator, Config Manager
-- Status Display and Change Tracking
-- Design patterns and best practices
-- Implementation details
-- Testing strategies
+- Original environment library design rationale
+- Parser, Builder, Validator, Config Manager patterns
+- Implementation details and testing strategies
+- **Status**: Archived for reference, see architecture.md for current design
 
 ### Technical Reference
 
-**[api.md](api.md)** - Complete API documentation (43K)
+**[api.md](api.md)** - Complete API Documentation
 
-- **Core Utility Libraries**
-  - oradba_common.sh (50 functions) - Logging, validation, config management
-  - oradba_db_functions.sh (11 functions) - Database operations
-  - oradba_aliases.sh (5 functions) - Alias management
-- **Environment Management Libraries** (6 libraries, 47 functions)
-  - Environment parsing, building, validation
-  - Configuration management
-  - Status display and change tracking
-- **Extension Framework**
-  - extensions.sh (20 functions) - Extension lifecycle management
-- Function signatures, parameters, return codes
-- Usage examples and best practices
+- **Registry API** (oradba_registry.sh)
+  - `oradba_registry_get_all` - Get all Oracle installations
+  - `oradba_registry_get_by_name` - Get by NAME (SID or home name)
+  - `oradba_registry_get_by_type` - Get by product type
+  - `oradba_registry_get_by_home` - Get by ORACLE_HOME path
+  - `oradba_registry_get_status` - Check service status
+  - `oradba_registry_validate_entry` - Validate entry
+- **Plugin Interface** (8 required functions)
+  - `plugin_detect_installation` - Auto-discover installations
+  - `plugin_validate_home` - Validate ORACLE_HOME
+  - `plugin_adjust_environment` - Adjust PATH/environment
+  - `plugin_check_status` - Check service status
+  - `plugin_get_metadata` - Extract version/edition
+  - `plugin_should_show_listener` - Show listener status?
+  - `plugin_discover_instances` - Find instances
+  - `plugin_supports_aliases` - Generate aliases?
+- **Core Utilities**: Logging, PATH management, database operations
+- **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
 
-**[extension-system.md](extension-system.md)** - Extension development (21K)
+**[extension-system.md](extension-system.md)** - Extension Development
 
 - Extension framework overview
-- Extension structure and metadata
-- Lifecycle (discover → load → activate → manage)
-- Configuration management
-- Best practices and patterns
+- Extension structure and metadata (.extension file)
+- Lifecycle and configuration management
 - Creating custom extensions
 - Testing and debugging
 - Integration examples
 
+## Diagrams
+
+**[images/registry-api-flow.md](images/registry-api-flow.md)** - Registry API Data Flow (Mermaid)  
+Complete flowchart showing unified access to oratab and oradba_homes.conf, auto-sync, plugin integration, and Registry consumers.
+
+**[images/plugin-system.md](images/plugin-system.md)** - Plugin System Overview (Mermaid)  
+Shows all 6 plugins, discovery mechanism, and 8-function interface.
+
+Additional diagrams embedded in [development.md](development.md):
+- CI/CD Pipeline
+- Testing Strategy
+
 ## Testing & Release
 
-**[release-testing-checklist.md](release-testing-checklist.md)** - Pre-release testing checklist
+**Current Test Coverage:**
+
+- **Plugin Tests**: 108+ tests across 6 plugins
+  - database (16), datasafe (17), client (12), iclient (15), oud (15), java (22)
+  - Common interface validation (24 tests)
+- **Core Tests**: 900+ tests for core functionality
+- **Docker Integration**: 68 tests against real Oracle 26ai Free database
+- **Total**: 1000+ tests with ~98% pass rate
+
+**Testing Workflow:**
+
+```bash
+make test              # Smart selection (~1-3 min) - development
+make test-full         # All tests (~8-10 min) - before commits
+make test-docker       # Docker integration (~3 min)
+make pre-commit        # Smart + lint (~2-4 min) - pre-commit hook
+make ci                # Full pipeline (~10-15 min) - before releases
+```
+
+**[release-testing-checklist.md](release-testing-checklist.md)** - Pre-release Testing
 
 - Installation testing (multiple platforms)
 - Core functionality verification
-- Extension system testing
+- Plugin system testing (all 6 plugins)
 - Configuration system testing
-- Performance testing
 - Documentation validation
 - Upgrade testing
-
-**[v1.0.0-release-plan.md](v1.0.0-release-plan.md)** - v1.0.0 release preparation
-
-- 9 phases: Documentation → Testing → Quality → CHANGELOG → README → Testing → Release
-- Estimated 52-78 hours total
-- **Phase 1-5 COMPLETE** ✅
-  - Phase 1: Development Documentation ✅
-  - Phase 2: User Documentation ✅
-  - Phase 3: Testing Review & Optimization ✅
   - Phase 4: Code Quality & Standards ✅
   - Phase 5: CHANGELOG Consolidation ✅
 - Phase 6: README & Main Docs ⏳ **IN PROGRESS**
