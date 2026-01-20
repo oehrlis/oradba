@@ -45,6 +45,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Database Version Display Shows Oracle Home Version** (2026-01-20)
+  - Fixed banner to show Oracle Home version instead of database version
+  - Previously queried v$instance.version (e.g., "23.0.0.0.0" - base version)
+  - Now uses get_oracle_version() from ORACLE_HOME (e.g., "23.26.0.0.0" - with RU)
+  - Shows consistent version whether database is running or stopped
+  - Oracle Home version reflects actual installed binaries and patches
+  - Resolves confusing version mismatch when database is running
+
 - **Instant Client Basic Version Detection** (2026-01-20)
   - Fixed `get_oracle_version()` to fall back to plugin-based detection when sqlplus not available
   - Instant client basic (without sqlplus) now uses library filename detection (Method 2)

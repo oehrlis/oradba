@@ -360,8 +360,14 @@ show_database_status() {
         return 1
     fi
 
-    # Parse instance info
-    IFS='|' read -r instance_name db_status startup_time version _ sga_target pga_target fra_size <<< "$instance_info"
+    # Parse instance info (skip version field - we'll get it from Oracle Home instead)
+    IFS='|' read -r instance_name db_status startup_time _ _ sga_target pga_target fra_size <<< "$instance_info"
+    
+    # Get Oracle Home version instead of database version for consistency
+    # Oracle Home version includes RU/patch level (e.g., 23.26.0.0.0)
+    # Database version from v$instance shows base version (e.g., 23.0.0.0.0)
+    local version
+    version=$(get_oracle_version 2>/dev/null || echo "Unknown")
 
     # Start output
     echo ""
