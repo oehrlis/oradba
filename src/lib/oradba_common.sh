@@ -1258,9 +1258,9 @@ list_oracle_homes() {
         # Default version to AUTO if not specified
         [[ -z "${h_version}" ]] && h_version="AUTO"
 
-        # Output: name path type order alias_name description version
-        echo "${h_name} ${h_path} ${h_type} ${h_order} ${h_alias} ${h_desc} ${h_version}"
-    done < "${homes_file}" | sort -k4 -n
+        # Output: name|path|type|order|alias_name|description|version (pipe-delimited to preserve spaces in description)
+        echo "${h_name}|${h_path}|${h_type}|${h_order}|${h_alias}|${h_desc}|${h_version}"
+    done < "${homes_file}" | sort -t'|' -k4 -n
 }
 
 # ------------------------------------------------------------------------------

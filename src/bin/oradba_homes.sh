@@ -200,9 +200,8 @@ list_homes() {
     fi
 
     # Display homes
-    while read -r line; do
-        # Parse: NAME ORACLE_HOME PRODUCT_TYPE ORDER ALIAS_NAME DESCRIPTION VERSION
-        read -r name path ptype order alias_name desc version <<< "$line"
+    while IFS='|' read -r name path ptype order alias_name desc version; do
+        # Parse pipe-delimited: NAME|ORACLE_HOME|PRODUCT_TYPE|ORDER|ALIAS_NAME|DESCRIPTION|VERSION
 
         # Check status
         local status
