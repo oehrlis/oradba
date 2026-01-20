@@ -210,7 +210,18 @@ cmd_show() {
     
     # Try to find target in oradba_homes.conf first (by name or alias)
     local home_entry
-    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
+    if [[ -f "$homes_file" ]]; then
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESC:VERSION
+        # Match only if target is the NAME (field 1) or ALIAS (field 5)
+        while IFS=':' read -r name path ptype _order alias_name desc version; do
+            if [[ "$name" == "$target" ]] || [[ "$alias_name" == "$target" ]]; then
+                home_entry="$name:$path:$ptype:$_order:$alias_name:$desc:$version"
+                break
+            fi
+        done < <(grep -v "^#\|^$" "$homes_file")
+    fi
+    
+    if [[ -n "$home_entry" ]]; then
         # Found in oradba_homes.conf - extract details
         IFS=':' read -r name path ptype _order alias_name desc version <<< "$home_entry"
         echo "=== Oracle Home Information ==="
@@ -316,7 +327,18 @@ cmd_validate() {
     if [[ -n "$target" ]]; then
         # Try oradba_homes.conf first
         local home_entry
-        if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
+        if [[ -f "$homes_file" ]]; then
+            # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESC:VERSION
+            # Match only if target is the NAME (field 1) or ALIAS (field 5)
+            while IFS=':' read -r name path ptype _order _alias _desc _version; do
+                if [[ "$name" == "$target" ]] || [[ "$_alias" == "$target" ]]; then
+                    home_entry="$name:$path:$ptype:$_order:$_alias:$_desc:$_version"
+                    break
+                fi
+            done < <(grep -v "^#\|^$" "$homes_file")
+        fi
+        
+        if [[ -n "$home_entry" ]]; then
             IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
             validate_home="$path"
             target_name="$name"
@@ -417,7 +439,18 @@ cmd_status() {
     # Try to find target in oradba_homes.conf first
     local oracle_sid oracle_home product_type
     local home_entry
-    if [[ -f "$homes_file" ]] && home_entry=$(grep -v "^#\|^$" "$homes_file" | grep -E "^${target}:|:${target}:" | head -1); then
+    if [[ -f "$homes_file" ]]; then
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESC:VERSION
+        # Match only if target is the NAME (field 1) or ALIAS (field 5)
+        while IFS=':' read -r name path ptype _order _alias _desc _version; do
+            if [[ "$name" == "$target" ]] || [[ "$_alias" == "$target" ]]; then
+                home_entry="$name:$path:$ptype:$_order:$_alias:$_desc:$_version"
+                break
+            fi
+        done < <(grep -v "^#\|^$" "$homes_file")
+    fi
+    
+    if [[ -n "$home_entry" ]]; then
         # Found in oradba_homes.conf
         IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
         oracle_sid="$name"
