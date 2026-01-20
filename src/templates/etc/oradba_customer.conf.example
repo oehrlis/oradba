@@ -38,6 +38,25 @@
 # Note: PATH modifications are automatically exported (no 'export' keyword needed)
 
 # ------------------------------------------------------------------------------
+# Example: Client Path for Non-Client Products
+# ------------------------------------------------------------------------------
+
+# Add Oracle Client tools to PATH for products without their own client
+# (e.g., DataSafe, OUD, WebLogic)
+# Useful when you want to run SQL*Plus, RMAN, or other client tools
+# while using a non-database Oracle Home
+
+# Automatically find and use first available client
+# ORADBA_CLIENT_PATH_FOR_NON_CLIENT="auto"
+
+# Use a specific client from oradba_homes.conf
+# ORADBA_CLIENT_PATH_FOR_NON_CLIENT="CL19"
+# ORADBA_CLIENT_PATH_FOR_NON_CLIENT="IC19"
+
+# Disable client path addition (default)
+# ORADBA_CLIENT_PATH_FOR_NON_CLIENT="none"
+
+# ------------------------------------------------------------------------------
 # Example: Customize Behavior
 # ------------------------------------------------------------------------------
 

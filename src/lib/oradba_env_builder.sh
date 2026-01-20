@@ -449,6 +449,163 @@ oradba_set_product_environment() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_product_needs_client
+# Purpose.: Determine if a product type needs external client tools
+# Args....: $1 - Product type (uppercase: DATASAFE, OUD, WLS, etc.)
+# Returns.: 0 if product needs client, 1 if it has its own client
+# ------------------------------------------------------------------------------
+oradba_product_needs_client() {
+    local product_type="$1"
+    
+    # Products without their own Oracle client tools
+    case "${product_type}" in
+        DATASAFE|OUD|WLS|WEBLOGIC|OMS|EMAGENT)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
+# Function: oradba_resolve_client_home
+# Purpose.: Resolve client home path from ORADBA_CLIENT_PATH_FOR_NON_CLIENT setting
+# Args....: None (reads ORADBA_CLIENT_PATH_FOR_NON_CLIENT env var)
+# Returns.: 0 on success, 1 if no client found
+# Output..: Prints resolved client home path
+# ------------------------------------------------------------------------------
+oradba_resolve_client_home() {
+    local setting="${ORADBA_CLIENT_PATH_FOR_NON_CLIENT:-none}"
+    local homes_file
+    local client_home=""
+    
+    # Handle "none" - no client needed
+    [[ "${setting}" == "none" ]] && return 1
+    
+    # Get oracle homes config file
+    if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+        homes_file=$(get_oracle_homes_path 2>/dev/null) || homes_file=""
+    else
+        homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+    fi
+    
+    [[ ! -f "${homes_file}" ]] && return 1
+    
+    # Handle "auto" - find first CLIENT or ICLIENT
+    if [[ "${setting}" == "auto" ]]; then
+        while IFS=';' read -r oracle_home product_type _version _edition _db_type _position _dummy_sid short_name _desc; do
+            # Skip empty lines and comments
+            [[ -z "${oracle_home}" ]] && continue
+            [[ "${oracle_home}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Check if it's a client type
+            if [[ "${product_type}" == "CLIENT" ]] || [[ "${product_type}" == "ICLIENT" ]]; then
+                # Validate directory exists
+                if [[ -d "${oracle_home}" ]]; then
+                    client_home="${oracle_home}"
+                    break
+                fi
+            fi
+        done < "${homes_file}"
+    else
+        # Handle specific client name (could be short name or full name)
+        # Search in homes file by short name
+        while IFS=';' read -r oracle_home product_type _version _edition _db_type _position _dummy_sid short_name _desc; do
+            # Skip empty lines and comments
+            [[ -z "${oracle_home}" ]] && continue
+            [[ "${oracle_home}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Match by short name
+            if [[ "${short_name}" == "${setting}" ]]; then
+                # Validate it's a client type
+                if [[ "${product_type}" == "CLIENT" ]] || [[ "${product_type}" == "ICLIENT" ]]; then
+                    # Validate directory exists
+                    if [[ -d "${oracle_home}" ]]; then
+                        client_home="${oracle_home}"
+                        break
+                    fi
+                fi
+            fi
+        done < "${homes_file}"
+    fi
+    
+    # Return result
+    if [[ -n "${client_home}" ]] && [[ -d "${client_home}" ]]; then
+        echo "${client_home}"
+        return 0
+    fi
+    
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: oradba_add_client_path
+# Purpose.: Add client tools to PATH for non-client products
+# Args....: $1 - Current product type (uppercase)
+# Returns.: 0 on success or not needed, 1 on error
+# Notes...: Appends client bin directory to PATH after existing entries
+# ------------------------------------------------------------------------------
+oradba_add_client_path() {
+    local product_type="$1"
+    local client_home=""
+    local client_bin=""
+    
+    # Check if product needs client tools
+    if ! oradba_product_needs_client "${product_type}"; then
+        oradba_log DEBUG "Product ${product_type} has built-in client, skipping client path"
+        return 0
+    fi
+    
+    # Resolve client home
+    client_home=$(oradba_resolve_client_home) || {
+        oradba_log DEBUG "No client home configured or found for ${product_type}"
+        return 0
+    }
+    
+    oradba_log DEBUG "Resolved client home: ${client_home}"
+    
+    # Determine bin directory based on client type
+    # Check if it's instant client (no bin subdirectory)
+    # Use a loop to check for libclntsh.so* files (avoid SC2144)
+    local is_iclient=0
+    if [[ ! -d "${client_home}/bin" ]]; then
+        for lib_file in "${client_home}"/libclntsh.so*; do
+            if [[ -f "$lib_file" ]]; then
+                is_iclient=1
+                break
+            fi
+        done
+    fi
+    
+    if [[ $is_iclient -eq 1 ]]; then
+        # Instant client - add home directly
+        client_bin="${client_home}"
+    else
+        # Regular client - add bin subdirectory
+        client_bin="${client_home}/bin"
+    fi
+    
+    # Validate bin directory exists
+    if [[ ! -d "${client_bin}" ]]; then
+        oradba_log WARN "Client bin directory not found: ${client_bin}"
+        return 1
+    fi
+    
+    # Check if already in PATH
+    if [[ ":${PATH}:" == *":${client_bin}:"* ]]; then
+        oradba_log DEBUG "Client path already in PATH: ${client_bin}"
+        return 0
+    fi
+    
+    # Append to PATH (after current entries)
+    export PATH="${PATH}:${client_bin}"
+    oradba_log DEBUG "Added client path for ${product_type}: ${client_bin}"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_build_environment
 # Purpose.: Main function to build complete environment
 # Args....: $1 - SID or ORACLE_HOME
@@ -527,6 +684,10 @@ oradba_build_environment() {
     if command -v oradba_apply_product_config &>/dev/null; then
         oradba_apply_product_config "$product_type" "$oracle_sid"
     fi
+    
+    # Add client path for non-client products (e.g., DataSafe, OUD, WebLogic)
+    # This happens after product PATH setup and config files, but before deduplication
+    oradba_add_client_path "$product_type"
     
     # Final PATH deduplication after all configs loaded
     # This ensures custom PATH additions from config files are deduplicated
