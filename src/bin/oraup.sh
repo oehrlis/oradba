@@ -195,7 +195,6 @@ show_oracle_status_registry() {
     local -a databases=()
     local -a datasafe_homes=()
     local -a other_homes=()
-    local -a all_homes=()  # All Oracle Homes (database + datasafe + others)
     
     for install in "${installations[@]}"; do
         local ptype
@@ -203,27 +202,57 @@ show_oracle_status_registry() {
         
         if [[ "$ptype" == "database" ]]; then
             databases+=("$install")
-            all_homes+=("$install")
         elif [[ "$ptype" == "datasafe" ]]; then
             datasafe_homes+=("$install")
-            all_homes+=("$install")
         else
             other_homes+=("$install")
-            all_homes+=("$install")
         fi
     done
     
     # =========================================================================
-    # SECTION 1: Oracle Homes (all types)
+    # SECTION 1: Oracle Homes (unique database and other homes, not datasafe)
     # =========================================================================
-    if [[ ${#all_homes[@]} -gt 0 ]]; then
+    # Build unique homes list: prefer dummy entries, then first SID for each path
+    declare -A seen_homes
+    local -a unique_homes=()
+    
+    # First pass: Add dummy entries (flag 'D')
+    for db_obj in "${databases[@]}"; do
+        local home flags
+        home=$(oradba_registry_get_field "$db_obj" "home")
+        flags=$(oradba_registry_get_field "$db_obj" "flags")
+        
+        if [[ "$flags" == "D" ]] && [[ -z "${seen_homes[$home]}" ]]; then
+            unique_homes+=("$db_obj")
+            seen_homes[$home]="1"
+        fi
+    done
+    
+    # Second pass: Add first SID for paths without dummy
+    for db_obj in "${databases[@]}"; do
+        local home flags
+        home=$(oradba_registry_get_field "$db_obj" "home")
+        flags=$(oradba_registry_get_field "$db_obj" "flags")
+        
+        if [[ "$flags" != "D" ]] && [[ -z "${seen_homes[$home]}" ]]; then
+            unique_homes+=("$db_obj")
+            seen_homes[$home]="1"
+        fi
+    done
+    
+    # Add other (non-database, non-datasafe) homes
+    for home_obj in "${other_homes[@]}"; do
+        unique_homes+=("$home_obj")
+    done
+    
+    if [[ ${#unique_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
         echo "---------------------------------------------------------------------------------"
         printf "%-20s %-15s %-12s %s\n" "NAME" "TYPE" "STATUS" "PATH"
         echo "---------------------------------------------------------------------------------"
         
-        for home_obj in "${all_homes[@]}"; do
+        for home_obj in "${unique_homes[@]}"; do
             local name home ptype status
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
@@ -235,11 +264,7 @@ show_oracle_status_registry() {
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
                 status="empty"
             else
-                # Get product-specific status if plugin available
                 status="available"
-                if type -t plugin_check_status &>/dev/null; then
-                    status=$(plugin_check_status "$home")
-                fi
             fi
             
             printf "%-20s %-15s %-12s %s\n" "$name" "$ptype" "$status" "$home"
@@ -247,7 +272,7 @@ show_oracle_status_registry() {
     fi
     
     # =========================================================================
-    # SECTION 2: Database Instances
+    # SECTION 2: Database Instances (only real SIDs, not dummies)
     # =========================================================================
     if [[ ${#databases[@]} -gt 0 ]]; then
         echo ""
@@ -262,20 +287,18 @@ show_oracle_status_registry() {
             home=$(oradba_registry_get_field "$db_obj" "home")
             flags=$(oradba_registry_get_field "$db_obj" "flags")
             
-            # Get status - skip for dummy entries
+            # Skip dummy entries - they're not real SIDs
+            [[ "$flags" == "D" ]] && continue
+            
+            # Get status
             local status
-            if [[ "$flags" == "D" ]]; then
-                # Dummy entry - just shows ORACLE_HOME, not an actual SID
-                status="n/a"
-            else
-                status=$(get_db_status "$sid")
-                
-                # Get open mode if instance is up
-                if [[ "$status" == "up" ]]; then
-                    local mode
-                    mode=$(get_db_mode "$sid" "$home")
-                    status="$mode"
-                fi
+            status=$(get_db_status "$sid")
+            
+            # Get open mode if instance is up
+            if [[ "$status" == "up" ]]; then
+                local mode
+                mode=$(get_db_mode "$sid" "$home")
+                status="$mode"
             fi
             
             printf "%-20s %-8s %-12s %s\n" "$sid" "$flags" "$status" "$home"
@@ -316,17 +339,14 @@ show_oracle_status_registry() {
                     lsnr_status="up"
                     
                     # Extract port and protocol from Listening Endpoints
-                    # Format: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=...)(PORT=1521)))
-                    # or: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=...)(PORT=2484)))
+                    # Look for both TCP and TCPS protocols
                     local endpoints
-                    endpoints=$(echo "$lsnr_output" | grep -A 10 "Listening Endpoints Summary" | grep "PROTOCOL=" | head -1)
+                    endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
                     
                     if [[ -n "$endpoints" ]]; then
-                        # Extract TCP or TCPS port
-                        if echo "$endpoints" | grep -q "PROTOCOL=TCP)"; then
-                            lsnr_protocol=$(echo "$endpoints" | grep -o "PROTOCOL=[^)]*" | head -1 | cut -d= -f2)
-                            lsnr_port=$(echo "$endpoints" | grep -o "PORT=[0-9]*" | head -1 | cut -d= -f2)
-                        fi
+                        # Extract first TCP or TCPS port
+                        lsnr_protocol=$(echo "$endpoints" | grep -o "PROTOCOL=[^)]*" | head -1 | cut -d= -f2)
+                        lsnr_port=$(echo "$endpoints" | grep -o "PORT=[0-9]*" | head -1 | cut -d= -f2)
                     fi
                 fi
             fi
@@ -345,6 +365,39 @@ show_oracle_status_registry() {
         if [[ $listener_count -eq 0 ]]; then
             echo "  No database listeners running"
         fi
+    fi
+    
+    # =========================================================================
+    # SECTION 4: Data Safe Connectors
+    # =========================================================================
+    if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
+        echo ""
+        echo "Data Safe Connectors"
+        echo "---------------------------------------------------------------------------------"
+        printf "%-20s %-12s %s\n" "NAME" "STATUS" "PATH"
+        echo "---------------------------------------------------------------------------------"
+        
+        for ds_obj in "${datasafe_homes[@]}"; do
+            local name home status
+            name=$(oradba_registry_get_field "$ds_obj" "name")
+            home=$(oradba_registry_get_field "$ds_obj" "home")
+            
+            # Check if directory exists first
+            if [[ ! -d "$home" ]]; then
+                status="missing"
+            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
+                status="empty"
+            else
+                # Use DataSafe plugin to check status
+                if type -t plugin_check_status &>/dev/null; then
+                    status=$(plugin_check_status "$home")
+                else
+                    status="available"
+                fi
+            fi
+            
+            printf "%-20s %-12s %s\n" "$name" "$status" "$home"
+        done
     fi
     
     echo ""
