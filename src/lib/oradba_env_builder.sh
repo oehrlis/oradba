@@ -181,8 +181,8 @@ oradba_add_oracle_path() {
 #          $2 - Product type (optional, lowercase: database, client, iclient, etc.)
 # Returns.: 0 on success
 # Notes...: Uses plugin_build_lib_path() from product-specific plugins
-#           Falls back to basic lib/lib64 detection for unknown products
-# ------------------------------------------------------------------------------
+#           Falls back to basic lib/lib64 detection for unknown products#           Cleans old Oracle/Grid/InstantClient paths before setting new ones
+#           Preserves non-Oracle library paths from existing environment# ------------------------------------------------------------------------------
 oradba_set_lib_path() {
     local oracle_home="$1"
     local product_type="${2:-database}"
@@ -231,10 +231,25 @@ oradba_set_lib_path() {
         fi
     fi
     
-    # Preserve existing library path
+    # Clean existing Oracle library paths from the environment
     eval "local existing=\"\${${lib_var}}\""
     if [[ -n "$existing" ]]; then
-        lib_path="${lib_path:+${lib_path}:}${existing}"
+        local cleaned_path=""
+        local IFS=":"
+        for dir in $existing; do
+            # Skip Oracle-related directories
+            [[ "$dir" =~ /oracle/ ]] && continue
+            [[ "$dir" =~ /grid/ ]] && continue
+            [[ "$dir" =~ instantclient ]] && continue
+            
+            # Add to cleaned path
+            cleaned_path="${cleaned_path:+${cleaned_path}:}${dir}"
+        done
+        
+        # Append cleaned non-Oracle paths to new Oracle paths
+        if [[ -n "$cleaned_path" ]]; then
+            lib_path="${lib_path:+${lib_path}:}${cleaned_path}"
+        fi
     fi
     
     # Deduplicate library path
