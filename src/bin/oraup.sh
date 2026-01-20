@@ -306,7 +306,7 @@ show_oracle_status_registry() {
             listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
             
             # Get detailed listener status, port, and protocol
-            local lsnr_status="stopped"
+            local lsnr_status="down"
             local lsnr_port=""
             local lsnr_protocol=""
             
@@ -315,7 +315,7 @@ show_oracle_status_registry() {
                 lsnr_output=$(lsnrctl status "$listener_name" 2>/dev/null)
                 
                 if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
-                    lsnr_status="running"
+                    lsnr_status="up"
                     
                     # Extract port and protocol from Listening Endpoints
                     # Format: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=...)(PORT=1521)))
