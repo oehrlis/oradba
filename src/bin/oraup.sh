@@ -195,6 +195,7 @@ show_oracle_status_registry() {
     local -a databases=()
     local -a datasafe_homes=()
     local -a other_homes=()
+    local -a all_homes=()  # All Oracle Homes (database + datasafe + others)
     
     for install in "${installations[@]}"; do
         local ptype
@@ -202,22 +203,27 @@ show_oracle_status_registry() {
         
         if [[ "$ptype" == "database" ]]; then
             databases+=("$install")
+            all_homes+=("$install")
         elif [[ "$ptype" == "datasafe" ]]; then
             datasafe_homes+=("$install")
+            all_homes+=("$install")
         else
             other_homes+=("$install")
+            all_homes+=("$install")
         fi
     done
     
     # =========================================================================
-    # SECTION 1: Oracle Homes (non-database, non-datasafe products)
+    # SECTION 1: Oracle Homes (all types)
     # =========================================================================
-    if [[ ${#other_homes[@]} -gt 0 ]]; then
+    if [[ ${#all_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
         echo "---------------------------------------------------------------------------------"
+        printf "%-20s %-15s %-12s %s\n" "NAME" "TYPE" "STATUS" "PATH"
+        echo "---------------------------------------------------------------------------------"
         
-        for home_obj in "${other_homes[@]}"; do
+        for home_obj in "${all_homes[@]}"; do
             local name home ptype status
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
@@ -236,18 +242,7 @@ show_oracle_status_registry() {
                 fi
             fi
             
-            # Display type label
-            local display_type="ORACLE_HOME"
-            case "$ptype" in
-                client|iclient) display_type="Client" ;;
-                oud) display_type="OUD" ;;
-                weblogic) display_type="WebLogic" ;;
-                grid) display_type="Grid Infra" ;;
-                oms) display_type="OMS" ;;
-                emagent) display_type="EM Agent" ;;
-            esac
-            
-            printf "%-17s : %-12s %-11s %s\n" "$display_type" "$name" "$status" "$home"
+            printf "%-20s %-15s %-12s %s\n" "$name" "$ptype" "$status" "$home"
         done
     fi
     
@@ -257,6 +252,8 @@ show_oracle_status_registry() {
     if [[ ${#databases[@]} -gt 0 ]]; then
         echo ""
         echo "Database Instances"
+        echo "---------------------------------------------------------------------------------"
+        printf "%-20s %-8s %-12s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
         for db_obj in "${databases[@]}"; do
@@ -281,8 +278,7 @@ show_oracle_status_registry() {
                 fi
             fi
             
-            # Display with startup flag
-            printf "%-17s : %-12s %-11s %s\n" "DB-instance ($flags)" "$sid" "$status" "$home"
+            printf "%-20s %-8s %-12s %s\n" "$sid" "$flags" "$status" "$home"
         done
     fi
     
@@ -292,6 +288,8 @@ show_oracle_status_registry() {
     if [[ ${#databases[@]} -gt 0 ]]; then
         echo ""
         echo "Listener Status"
+        echo "---------------------------------------------------------------------------------"
+        printf "%-20s %-12s %-15s %s\n" "NAME" "STATUS" "PORT" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
         # Check for running listeners
@@ -339,24 +337,8 @@ show_oracle_status_registry() {
                 port_display="${lsnr_protocol}:${lsnr_port}"
             fi
             
-            # Try to match Oracle Home to a registered name
-            local home_display="$listener_home"
-            if [[ -n "$listener_home" ]]; then
-                # Try to find matching home name from registry
-                for db_obj in "${databases[@]}"; do
-                    local db_home
-                    db_home=$(oradba_registry_get_field "$db_obj" "home")
-                    if [[ "$db_home" == "$listener_home" ]]; then
-                        local db_name
-                        db_name=$(oradba_registry_get_field "$db_obj" "name")
-                        home_display="[$db_name]"
-                        break
-                    fi
-                done
-            fi
-            
-            # Display with adjusted column widths for long listener names
-            printf "%-17s : %-20s %-11s %-12s %s\n" "Listener" "$listener_name" "$lsnr_status" "$port_display" "$home_display"
+            # Use full path for listener home (not [SID] notation)
+            printf "%-20s %-12s %-15s %s\n" "$listener_name" "$lsnr_status" "$port_display" "$listener_home"
             ((listener_count++))
         done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
         
@@ -365,39 +347,8 @@ show_oracle_status_registry() {
         fi
     fi
     
-    # =========================================================================
-    # SECTION 4: Data Safe Connectors
-    # =========================================================================
-    if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
-        echo ""
-        echo "Data Safe Connectors"
-        echo "---------------------------------------------------------------------------------"
-        
-        for ds_obj in "${datasafe_homes[@]}"; do
-            local name home status
-            name=$(oradba_registry_get_field "$ds_obj" "name")
-            home=$(oradba_registry_get_field "$ds_obj" "home")
-            
-            # Check if directory exists first
-            if [[ ! -d "$home" ]]; then
-                status="missing"
-            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
-                status="empty"
-            else
-                # Use DataSafe plugin to check status
-                if type -t plugin_check_status &>/dev/null; then
-                    status=$(plugin_check_status "$home")
-                else
-                    status="unknown"
-                fi
-            fi
-            
-            printf "%-17s : %-12s %-11s %s\n" "Connector" "$name" "$status" "$home"
-        done
-    fi
-    
     echo ""
-    echo "---------------------------------------------------------------------------------"
+    echo "================================================================================="
     echo ""
 }
 
@@ -411,8 +362,7 @@ show_oracle_status() {
     # Header
     echo ""
     echo "Oracle Environment Status"
-    printf "%-17s : %-12s %-11s %s\n" "TYPE (Cluster|DG)" "SID/PROCESS" "STATUS" "HOME"
-    echo "---------------------------------------------------------------------------------"
+    echo "================================================================================="
 
     # Use registry API if available (Phase 1 - Bug #85 fix)
     if type -t oradba_registry_get_all &>/dev/null; then
