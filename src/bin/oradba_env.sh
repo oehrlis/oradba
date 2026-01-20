@@ -35,6 +35,12 @@ else
     exit 1
 fi
 
+# Source registry library (for auto-sync)
+if [[ -f "${ORADBA_BASE}/lib/oradba_registry.sh" ]]; then
+    # shellcheck source=../lib/oradba_registry.sh
+    source "${ORADBA_BASE}/lib/oradba_registry.sh"
+fi
+
 if [[ -f "${ORADBA_BASE}/lib/oradba_env_parser.sh" ]]; then
     # shellcheck source=../lib/oradba_env_parser.sh
     source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
