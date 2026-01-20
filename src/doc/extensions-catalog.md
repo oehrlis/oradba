@@ -1,18 +1,23 @@
-# Extensions
+# Extensions Catalog
 
-OraDBA supports extensions to add custom functionality without modifying the core
-installation. Official extensions are listed below with links to their documentation
-in their respective GitHub repositories.
+**Purpose:** Catalog of available OraDBA v0.19.x extensions with links to their repositories.
+
+**Audience:** Users looking to extend OraDBA functionality.
+
+OraDBA v0.19.x supports extensions to add custom functionality without modifying the core installation. Official extensions are listed below with links to their documentation in their respective GitHub repositories.
+
+All extensions work with OraDBA's Registry API and Plugin System, supporting databases and other Oracle product types.
 
 ## Official Extensions
 
 ??? info "Extension System Overview"
-    Extensions are separate packages that integrate with OraDBA to provide additional
+    Extensions are separate packages that integrate with OraDBA v0.19.x to provide additional
     functionality. Each extension:
 
     - Has its own repository and version numbers
     - Follows the standard OraDBA directory structure (bin/, sql/, rcv/, lib/, etc.)
     - Is automatically discovered when placed parallel to OraDBA installation
+    - Works with the Registry API and Plugin System
     - Maintains its own documentation in its GitHub repository
     - Can be installed using the OraDBA extension management tools
     

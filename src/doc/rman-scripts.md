@@ -1,14 +1,12 @@
 # RMAN Script Templates
 
-**Purpose:** RMAN (Recovery Manager) script templates for common backup and recovery operations.
+**Purpose:** RMAN (Recovery Manager) script templates for common backup and recovery operations in OraDBA v0.19.x.
 
 **Audience:** DBAs implementing backup strategies.
 
 ## Introduction
 
-OraDBA includes RMAN (Recovery Manager) script templates for common backup and
-recovery operations. These templates provide a starting point for database
-backup strategies.
+OraDBA v0.19.x includes RMAN (Recovery Manager) script templates for common backup and recovery operations. These templates provide a starting point for database backup strategies and work with the Plugin System to support different Oracle product types.
 
 ## RMAN Wrapper Script
 

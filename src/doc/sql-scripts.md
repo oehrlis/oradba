@@ -1,16 +1,12 @@
 # SQL Scripts Reference
 
-**Purpose:** Complete reference for OraDBA's SQL scripts collection for database administration, security, audit, and
-encryption tasks.
+**Purpose:** Complete reference for OraDBA v0.19.x SQL scripts collection for database administration, security, audit, and encryption tasks.
 
 **Audience:** DBAs needing ready-to-use SQL scripts for common database tasks.
 
 ## Introduction
 
-OraDBA includes a comprehensive collection of SQL scripts for database
-administration, focusing on security, audit, encryption, and general DBA tasks.
-Scripts are organized by topic and follow consistent naming conventions for
-easy discovery and use.
+OraDBA v0.19.x includes a comprehensive collection of SQL scripts for database administration, focusing on security, audit, encryption, and general DBA tasks. Scripts are organized by topic and follow consistent naming conventions for easy discovery and use.
 
 ## Location and Usage
 
