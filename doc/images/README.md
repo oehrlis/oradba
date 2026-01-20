@@ -8,7 +8,7 @@ modern documentation sites.
 
 OraDBA uses a **Mermaid-first approach** for all diagrams:
 
-- **Phase 1 (COMPLETE)**: Source Mermaid files in `source/` directory
+- **Phase 1 (COMPLETE)**: Created source Mermaid files (now in root)
 - **Phase 2 (CURRENT)**: Embedded Mermaid in architecture.md, development.md, and user docs
 - **Phase 3 (PLANNED)**: Automated Mermaid rendering for PDF generation (Pandoc integration)
 
@@ -31,27 +31,27 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 
 ### Architecture & Core Systems
 
-| Diagram                         | Description                                          | File                                                         |
-|---------------------------------|------------------------------------------------------|--------------------------------------------------------------|
-| **System Architecture**         | Complete layered architecture with Registry API & plugins | [source/architecture-system.md](source/architecture-system.md) |
-| **Environment Libraries**       | Modular library system (parser, builder, validator) | [source/phase1-3-libraries.md](source/phase1-3-libraries.md) |
+| Diagram                         | Description                                          | File                                                   |
+|---------------------------------|------------------------------------------------------|--------------------------------------------------------|
+| **System Architecture**         | Complete layered architecture with Registry API & plugins | [architecture-system.md](architecture-system.md) |
+| **Environment Libraries**       | Modular library system (parser, builder, validator) | [phase1-3-libraries.md](phase1-3-libraries.md)   |
 | **Configuration System**        | 5-layer hierarchy (core→standard→local→customer→sid) | [config-workflow-highlevel.md](config-workflow-highlevel.md) |
-| **Configuration Hierarchy**     | 6-level config with processing libraries             | [source/config-hierarchy.md](source/config-hierarchy.md)     |
-| **Configuration Details**       | Internal function calls, variable export, cleanup    | [config-workflow-detailed.md](config-workflow-detailed.md)   |
-| **Configuration Sequence**      | Library-based config loading sequence diagram        | [source/config-sequence.md](source/config-sequence.md)       |
-| **Plugin System**               | Plugin lifecycle, 8-function interface, integration  | [plugin-system.md](plugin-system.md)                         |
-| **Registry API Flow**           | Unified installation metadata access                 | [registry-api-flow.md](registry-api-flow.md)                 |
+| **Configuration Hierarchy**     | 6-level config with processing libraries             | [config-hierarchy.md](config-hierarchy.md)       |
+| **Configuration Details**       | Internal function calls, variable export, cleanup    | [config-workflow-detailed.md](config-workflow-detailed.md) |
+| **Configuration Sequence**      | Library-based config loading sequence diagram        | [config-sequence.md](config-sequence.md)         |
+| **Plugin System**               | Plugin lifecycle, 8-function interface, integration  | [plugin-system.md](plugin-system.md)             |
+| **Registry API Flow**           | Unified installation metadata access                 | [registry-api-flow.md](registry-api-flow.md)     |
 
 ### Workflows & Operations
 
-| Diagram                  | Description                                      | File                                                         |
-|--------------------------|--------------------------------------------------|--------------------------------------------------------------|
+| Diagram                  | Description                                      | File                                                   |
+|--------------------------|--------------------------------------------------|--------------------------------------------------------|
 | **oraenv Workflow**      | Environment setup (interactive/non-interactive)  | [oraenv-workflow-highlevel.md](oraenv-workflow-highlevel.md) |
-| **oraenv Execution Flow** | Complete environment setup process              | [source/oraenv-flow.md](source/oraenv-flow.md)               |
-| **oraenv Details**       | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md)   |
-| **oraup Workflow**       | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
-| **oraup Details**        | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
-| **Installation Flow**    | Self-extracting installer with integrity check   | [source/installation-flow.md](source/installation-flow.md)   |
+| **oraenv Execution Flow** | Complete environment setup process              | [oraenv-flow.md](oraenv-flow.md)                       |
+| **oraenv Details**       | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md) |
+| **oraup Workflow**       | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md) |
+| **oraup Details**        | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md) |
+| **Installation Flow**    | Self-extracting installer with integrity check   | [installation-flow.md](installation-flow.md)           |
 
 **Viewing Mermaid Diagrams:**
 
@@ -62,38 +62,27 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 ## Directory Structure
 
 ```text
-doc/images/                  # Mermaid diagrams only
-├── *.md                     # Workflow Mermaid diagrams (developer docs)
-├── source/                  # Source Mermaid files (architecture.md diagrams)
-│   ├── architecture-system.md    # System architecture
-│   ├── oraenv-flow.md            # Environment setup flow
-│   ├── phase1-3-libraries.md     # Library architecture
-│   ├── config-hierarchy.md       # 6-level configuration
-│   ├── installation-flow.md      # Installer process
-│   └── config-sequence.md        # Config loading sequence
-├── toberemoved/             # Legacy PNG and Excalidraw files (archived)
-│   ├── *.png                # Old PNG exports
-│   ├── *.excalidraw         # Old Excalidraw sources
-│   └── diagrams-mermaid.md  # Legacy: All diagrams in one file
-└── README.md                # This file
+doc/images/                  # All Mermaid diagrams
+├── architecture-system.md   # System architecture (embedded in architecture.md)
+├── oraenv-flow.md          # Environment setup flow (embedded in architecture.md)
+├── phase1-3-libraries.md   # Library architecture (embedded in architecture.md)
+├── config-hierarchy.md     # 6-level configuration (embedded in architecture.md)
+├── installation-flow.md    # Installer process (embedded in architecture.md)
+├── config-sequence.md      # Config loading sequence (embedded in architecture.md)
+├── config-workflow-*.md    # Configuration workflow diagrams (2 files)
+├── oraenv-workflow-*.md    # oraenv workflow diagrams (2 files)
+├── oraup-workflow-*.md     # oraup workflow diagrams (2 files)
+├── plugin-system.md        # Plugin system diagram
+├── registry-api-flow.md    # Registry API flow
+└── README.md               # This file
 ```
 
 **Phase 2 Status**:
-- ✅ Source files created in `source/` directory
-- ✅ Embedded Mermaid in architecture.md (6 diagrams)
-- ✅ Workflow Mermaid in root directory (8 diagrams)
-- ✅ Legacy files moved to `toberemoved/`
+- ✅ All source files in root directory (flat structure)
+- ✅ Embedded 6 diagrams in architecture.md
+- ✅ Legacy PNG/Excalidraw files removed
 - 🔄 TODO: Embed in development.md and user docs
 - 🔄 TODO: Update MkDocs/GitHub Pages configuration
-
-## Legacy Files
-
-All PNG and Excalidraw files have been moved to `toberemoved/` directory:
-- PNG exports (*.png) - No longer used, replaced by Mermaid
-- Excalidraw sources (*.excalidraw) - No longer maintained
-- diagrams-mermaid.md - Superseded by individual source files
-
-These files are kept temporarily for reference and will be removed in a future release.
 
 ## Usage in Documentation
 
@@ -124,7 +113,7 @@ Planned integration with Pandoc for automatic Mermaid rendering in PDF output.
 
 1. **Draft**: Use [Mermaid Live Editor](https://mermaid.live/) for initial creation
 2. **Consistency**: Follow existing diagram patterns and color schemes
-3. **Source File**: Create standalone .md file in `source/` for architecture diagrams
+3. **Create**: Create standalone .md file in this directory for reusable diagrams
 4. **Embed**: Add Mermaid code block directly in documentation files
 5. **Validate**: Test rendering in VS Code and GitHub
 6. **Document**: Update this README with new diagram entry
