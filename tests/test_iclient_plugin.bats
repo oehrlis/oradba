@@ -20,7 +20,14 @@ setup() {
     # Set ORADBA_BASE for plugins
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
     
-    # Create minimal oradba_common.sh stub for logging
+    # For version detection tests, we need the real detect_oracle_version function
+    # Extract just that function from the real common.sh to avoid side effects
+    # This is safer than sourcing the entire file which might override configs
+    if ! declare -f detect_oracle_version >/dev/null 2>&1; then
+        eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+    fi
+    
+    # Create minimal oradba_common.sh stub for logging (used by plugins)
     cat > "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
 oradba_log() {
     local level="$1"
@@ -31,7 +38,7 @@ oradba_log() {
 }
 EOF
     
-    # Source common functions
+    # Source common functions stub
     source "${TEST_DIR}/lib/oradba_common.sh"
     
     # Copy plugin to test directory
@@ -201,4 +208,72 @@ teardown() {
         run type "${func}"
         [ "$status" -eq 0 ]
     done
+}
+# ------------------------------------------------------------------------------
+# Version Detection Tests
+# ------------------------------------------------------------------------------
+
+@test "detect_oracle_version extracts version from library filename" {
+    # Source the common functions
+    source "${TEST_DIR}/lib/oradba_common.sh"
+    
+    # Create mock instant client home with versioned library
+    local ic_home="${TEST_DIR}/test_homes/instantclient_23_5"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libclntsh.so.23.5"
+    
+    # Test version detection
+    run detect_oracle_version "${ic_home}" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "2305" ]
+}
+
+@test "detect_oracle_version handles single-digit minor version" {
+    source "${TEST_DIR}/lib/oradba_common.sh"
+    
+    local ic_home="${TEST_DIR}/test_homes/instantclient_21_1"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libclntsh.so.21.1"
+    
+    run detect_oracle_version "${ic_home}" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "2101" ]
+}
+
+@test "detect_oracle_version handles libclntshcore" {
+    source "${TEST_DIR}/lib/oradba_common.sh"
+    
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_21"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libclntshcore.so.19.21"
+    
+    run detect_oracle_version "${ic_home}" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "1921" ]
+}
+
+@test "detect_oracle_version handles libocci" {
+    source "${TEST_DIR}/lib/oradba_common.sh"
+    
+    local ic_home="${TEST_DIR}/test_homes/instantclient_23_1"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libocci.so.23.1"
+    
+    run detect_oracle_version "${ic_home}" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "2301" ]
+}
+
+@test "detect_oracle_version prefers first library found" {
+    source "${TEST_DIR}/lib/oradba_common.sh"
+    
+    local ic_home="${TEST_DIR}/test_homes/instantclient_multi"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libclntsh.so.23.5"
+    touch "${ic_home}/libclntshcore.so.19.21"
+    
+    # Should find libclntsh.so first
+    run detect_oracle_version "${ic_home}" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "2305" ]
 }

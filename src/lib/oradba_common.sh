@@ -1351,7 +1351,15 @@ detect_product_type() {
 # Args....: $1 - ORACLE_HOME path
 #           $2 - Product type (optional, will detect if not provided)
 # Returns.: 0 on success, 1 on error
-# Output..: Oracle version in format XXYZ (e.g., 1920 for 19.2.0) or "Unknown" or "ERR"
+# Output..: Oracle version in format XXYZ (e.g., 1920 for 19.2.0, 2301 for 23.1)
+#           or "Unknown" or "ERR" (for products without version info)
+# Notes...: Detection methods (in order):
+#           1. sqlplus -version (database, client, iclient with sqlplus)
+#           2. OPatch inventory (database, client)
+#           3. inventory XML (database, client)
+#           4. Library filenames (instant client: libclntsh.so.23.1)
+#           5. JDBC JAR manifest (instant client: ojdbc*.jar)
+#           6. Path parsing (e.g., /product/19.0.0.0)
 # ------------------------------------------------------------------------------
 detect_oracle_version() {
     local oracle_home="$1"
@@ -1427,7 +1435,50 @@ detect_oracle_version() {
         fi
     fi
 
-    # Method 4: Extract from path (e.g., /product/19.0.0.0 or /product/23.26.0.0/client)
+    # Method 4: For instant client, extract from library files
+    if [[ "${product_type}" == "iclient" ]]; then
+        # Check for versioned libraries (libclntsh.so.23.1, etc.)
+        local lib_file
+        for lib_file in "${oracle_home}"/libclntsh.so.* "${oracle_home}"/libclntshcore.so.* "${oracle_home}"/libocci.so.*; do
+            if [[ -f "${lib_file}" ]]; then
+                # Extract version from filename (e.g., libclntsh.so.23.1 -> 23.1)
+                local lib_version
+                lib_version=$(basename "${lib_file}" | sed -E 's/^lib[^.]+\.so\.//; s/[^0-9.]//g')
+                
+                if [[ -n "${lib_version}" ]]; then
+                    local major minor
+                    major=$(echo "${lib_version}" | cut -d. -f1)
+                    minor=$(echo "${lib_version}" | cut -d. -f2)
+                    # Default minor to 0 if not present
+                    minor="${minor:-0}"
+                    printf "%02d%02d" "${major}" "${minor}"
+                    return 0
+                fi
+            fi
+        done
+        
+        # Check for JDBC JAR files (ojdbc8.jar, ojdbc11.jar, etc.)
+        for jar_file in "${oracle_home}"/ojdbc*.jar; do
+            if [[ -f "${jar_file}" ]]; then
+                # Extract version from JAR manifest
+                local jar_version
+                if command -v unzip &>/dev/null; then
+                    jar_version=$(unzip -p "${jar_file}" META-INF/MANIFEST.MF 2>/dev/null | grep -i "Implementation-Version:" | head -1 | awk '{print $2}' | tr -d '\r')
+                    
+                    if [[ -n "${jar_version}" && "${jar_version}" =~ ^[0-9] ]]; then
+                        local major minor
+                        major=$(echo "${jar_version}" | cut -d. -f1)
+                        minor=$(echo "${jar_version}" | cut -d. -f2)
+                        minor="${minor:-0}"
+                        printf "%02d%02d" "${major}" "${minor}"
+                        return 0
+                    fi
+                fi
+            fi
+        done
+    fi
+
+    # Method 5: Extract from path (e.g., /product/19.0.0.0 or /product/23.26.0.0/client)
     local path_version
     path_version=$(echo "${oracle_home}" | grep -oE '/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
     
