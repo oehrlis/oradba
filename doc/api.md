@@ -1,30 +1,416 @@
-# oradba API Documentation
+# OraDBA API Documentation
 
-Complete function reference for OraDBA v1.0.0 libraries.
-
-> **Note:** This document primarily covers Core Utility Libraries and the Extension Framework.  
-> For **Environment Management Libraries** (oradba_env_*), see [../src/lib/README.md](../src/lib/README.md).  
-> Complete environment library API documentation is planned for a future update.
+Complete function reference for OraDBA v0.19.0+ libraries.
 
 ## Library Organization
 
-OraDBA v1.0.0 uses a modular library architecture:
+OraDBA v0.19.0+ uses a modular architecture with three main categories:
 
-1. **Environment Management Libraries** (6 libraries, 47 functions)
-   - Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
-   - See [../src/lib/README.md](../src/lib/README.md) for function listings
+### 1. Registry API (oradba_registry.sh)
 
-2. **Core Utility Libraries** (3 libraries, 66 functions) - **Documented below**
-   - oradba_common.sh (50 functions) - Logging, utilities, configuration
-   - oradba_db_functions.sh (11 functions) - Database operations
-   - oradba_aliases.sh (5 functions) - Alias management
+Unified interface for Oracle installation discovery and management. Single source of truth for all Oracle Homes (databases, clients, datasafe, oud, java).
 
-3. **Extension Framework** (extensions.sh, 20 functions) - **Documented below**
-   - Extension lifecycle and management
+**6 core functions**: get_all, get_by_name, get_by_type, get_by_home, get_status, validate_entry
 
-## Common Library Functions
+See [Registry API](#registry-api) section below.
 
-This document describes the public API of the oradba common library (`src/lib/oradba_common.sh`).
+### 2. Plugin System (6 product-specific plugins)
+
+Product-specific plugins for database, datasafe, client, iclient, oud, and java installations.
+
+**8-function interface per plugin**: detect, validate, adjust_environment, check_status, get_metadata, show_listener, discover_instances, supports_aliases
+
+See [Plugin Interface](#plugin-interface) section below.
+
+### 3. Environment Management Libraries (6 libraries)
+
+**Parser** (`oradba_env_parser.sh`) - Parse and merge 6 configuration levels  
+**Builder** (`oradba_env_builder.sh`) - Build Oracle environment variables  
+**Validator** (`oradba_env_validator.sh`) - Validate Oracle installations  
+**Config** (`oradba_env_config.sh`) - Configuration management  
+**Status** (`oradba_env_status.sh`) - Status display and formatting  
+**Changes** (`oradba_env_changes.sh`) - Change detection and tracking
+
+### 4. Core Utilities
+
+**Common** (`oradba_common.sh`) - Logging, utilities, PATH management  
+**Database** (`oradba_db_functions.sh`) - Database operations and queries  
+**Aliases** (`oradba_aliases.sh`) - Alias generation and management
+
+---
+
+## Registry API
+
+The Registry API (`oradba_registry.sh`) provides unified access to Oracle installations from both `oratab` and `oradba_homes.conf`.
+
+### Output Format
+
+All Registry API functions return colon-delimited entries:
+
+```
+NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION
+```
+
+**Fields:**
+- `NAME` - Entry name (SID for databases, home name for others)
+- `ORACLE_HOME` - Installation path
+- `PRODUCT_TYPE` - One of: database, client, iclient, datasafe, oud, java
+- `VERSION` - Oracle version or "N/A"
+- `AUTO_START` - Auto-start flag (Y/N) or "N/A"
+- `DESCRIPTION` - Optional description
+
+**Example entries:**
+
+```bash
+# Database (from oratab)
+FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
+
+# Instant Client (from oradba_homes.conf)
+iclient21:/opt/oracle/product/instantclient_21_15:iclient:21.15.0.0.0:N/A:Oracle Instant Client 21.15
+
+# Java (from oradba_homes.conf)
+jdk17:/opt/oracle/product/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+```
+
+### Core Functions
+
+#### oradba_registry_get_all
+
+#### oradba_registry_get_all
+
+Get all Oracle installations from both oratab and oradba_homes.conf.
+
+**Syntax**: `oradba_registry_get_all`
+
+**Arguments**: None
+
+**Returns**:  
+- Colon-delimited entries (one per line) for all installations
+- Exit code 0 on success
+
+**Example**:
+
+```bash
+# List all Oracle installations
+oradba_registry_get_all
+# Output:
+# FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
+# iclient21:/opt/oracle/instantclient_21_15:iclient:21.15.0.0.0:N/A:Instant Client
+# jdk17:/opt/oracle/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+```
+
+#### oradba_registry_get_by_name
+
+Get entry by NAME (SID or home name).
+
+**Syntax**: `oradba_registry_get_by_name <name>`
+
+**Arguments**:
+- `$1` - NAME to search for
+
+**Returns**:
+- Colon-delimited entry if found
+- Exit code 0 if found, 1 if not found
+
+**Example**:
+
+```bash
+# Get specific database
+entry=$(oradba_registry_get_by_name "FREE")
+echo "$entry"
+# Output: FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
+
+# Parse fields
+IFS=: read -r name home type version auto_start desc <<< "$entry"
+echo "Oracle Home: $home"
+echo "Product Type: $type"
+```
+
+#### oradba_registry_get_by_type
+
+Get all entries of a specific product type.
+
+**Syntax**: `oradba_registry_get_by_type <product_type>`
+
+**Arguments**:
+- `$1` - Product type (database, client, iclient, datasafe, oud, java)
+
+**Returns**:
+- Colon-delimited entries (one per line) for matching type
+- Exit code 0 on success
+
+**Example**:
+
+```bash
+# Get all Java installations
+oradba_registry_get_by_type "java"
+# Output:
+# jdk17:/opt/oracle/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+# jdk11:/opt/oracle/jdk-11:java:11.0.21:N/A:Oracle JDK 11
+
+# Get all databases
+oradba_registry_get_by_type "database"
+```
+
+#### oradba_registry_get_by_home
+
+Get entry by ORACLE_HOME path.
+
+**Syntax**: `oradba_registry_get_by_home <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path to search for
+
+**Returns**:
+- Colon-delimited entry if found
+- Exit code 0 if found, 1 if not found
+
+**Example**:
+
+```bash
+# Find entry by path
+entry=$(oradba_registry_get_by_home "/opt/oracle/product/23ai/dbhomeFree")
+IFS=: read -r name home type version auto_start desc <<< "$entry"
+echo "Entry name: $name"
+echo "Type: $type"
+```
+
+#### oradba_registry_get_status
+
+Get service status for an entry (delegates to appropriate plugin).
+
+**Syntax**: `oradba_registry_get_status <name>`
+
+**Arguments**:
+- `$1` - NAME to check status for
+
+**Returns**:
+- Status string from plugin's check_status function
+- Exit code 0 on success
+
+**Example**:
+
+```bash
+# Check database status
+status=$(oradba_registry_get_status "FREE")
+echo "$status"
+# Output: RUNNING (or STOPPED, etc.)
+
+# Check DataSafe connector status
+status=$(oradba_registry_get_status "datasafe-conn")
+```
+
+#### oradba_registry_validate_entry
+
+Validate an entry using appropriate plugin.
+
+**Syntax**: `oradba_registry_validate_entry <name>`
+
+**Arguments**:
+- `$1` - NAME to validate
+
+**Returns**:
+- Exit code 0 if valid, 1 if invalid
+- Validation messages on stderr
+
+**Example**:
+
+```bash
+# Validate database home
+if oradba_registry_validate_entry "FREE"; then
+    echo "FREE is valid"
+else
+    echo "FREE validation failed"
+fi
+```
+
+---
+
+## Plugin Interface
+
+Each of the 6 product plugins (database, datasafe, client, iclient, oud, java) implements this standard 8-function interface.
+
+### Required Functions
+
+#### plugin_detect_installation
+
+Auto-discover installations of this product type on the system.
+
+**Syntax**: `plugin_detect_installation`
+
+**Arguments**: None
+
+**Returns**:
+- Prints detected installations (one per line)  
+  Format: `ORACLE_HOME|NAME|VERSION|DESCRIPTION`
+- Exit code 0 on success
+
+**Example**:
+
+```bash
+# Detect all Java installations
+source src/lib/plugins/java_plugin.sh
+plugin_detect_installation
+# Output:
+# /opt/oracle/jdk-17|jdk17|17.0.12|Oracle JDK 17
+# /usr/lib/jvm/java-11|jdk11|11.0.21|OpenJDK 11
+```
+
+#### plugin_validate_home
+
+Validate that ORACLE_HOME is a valid installation of this product type.
+
+**Syntax**: `plugin_validate_home <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path to validate
+
+**Returns**:
+- Exit code 0 if valid
+- Exit code 1 if invalid (with error on stderr)
+
+**Example**:
+
+```bash
+# Validate Java home
+if plugin_validate_home "/opt/oracle/jdk-17"; then
+    echo "Valid Java installation"
+fi
+```
+
+#### plugin_adjust_environment
+
+Adjust PATH and other environment variables for this product type (optional).
+
+**Syntax**: `plugin_adjust_environment <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+
+**Returns**:
+- Prints export statements to eval
+- Exit code 0
+
+**Example**:
+
+```bash
+# Get environment adjustments
+eval "$(plugin_adjust_environment "/opt/oracle/jdk-17")"
+# May output: export PATH="/opt/oracle/jdk-17/bin:$PATH"
+```
+
+#### plugin_check_status
+
+Check if service/instance is running.
+
+**Syntax**: `plugin_check_status <oracle_home> <name>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+- `$2` - Instance/service name
+
+**Returns**:
+- Status string (RUNNING, STOPPED, UNKNOWN, N/A)
+- Exit code 0
+
+**Example**:
+
+```bash
+# Check database status
+status=$(plugin_check_status "/opt/oracle/product/23ai/dbhomeFree" "FREE")
+echo "$status"  # Output: RUNNING
+```
+
+#### plugin_get_metadata
+
+Extract version, edition, and other metadata from the installation.
+
+**Syntax**: `plugin_get_metadata <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+
+**Returns**:
+- Pipe-delimited metadata: `VERSION|EDITION|PATCH_LEVEL`
+- Exit code 0
+
+**Example**:
+
+```bash
+# Get Java version
+metadata=$(plugin_get_metadata "/opt/oracle/jdk-17")
+IFS='|' read -r version edition patch <<< "$metadata"
+echo "Version: $version"  # Output: 17.0.12
+```
+
+#### plugin_should_show_listener
+
+Indicate if listener status should be shown for this product type.
+
+**Syntax**: `plugin_should_show_listener <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+
+**Returns**:
+- Exit code 0 if listener should be shown
+- Exit code 1 if listener should not be shown
+
+**Example**:
+
+```bash
+# Check if listener applies
+if plugin_should_show_listener "$ORACLE_HOME"; then
+    show_listener_status
+fi
+```
+
+#### plugin_discover_instances
+
+Discover all instances/services for this ORACLE_HOME.
+
+**Syntax**: `plugin_discover_instances <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+
+**Returns**:
+- List of instance/service names (one per line)
+- Exit code 0
+
+**Example**:
+
+```bash
+# Find all databases for a home
+instances=$(plugin_discover_instances "/opt/oracle/product/23ai/dbhomeFree")
+echo "$instances"
+# Output: FREE
+#         TEST
+```
+
+#### plugin_supports_aliases
+
+Indicate if this product type supports SID-based aliases.
+
+**Syntax**: `plugin_supports_aliases <oracle_home>`
+
+**Arguments**:
+- `$1` - ORACLE_HOME path
+
+**Returns**:
+- Exit code 0 if aliases supported
+- Exit code 1 if aliases not supported
+
+**Example**:
+
+```bash
+# Check if aliases should be generated
+if plugin_supports_aliases "$ORACLE_HOME"; then
+    generate_aliases_for_sid "$SID"
+fi
+```
+
+---
 
 ## Logging Functions
 
