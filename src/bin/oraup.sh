@@ -227,9 +227,9 @@ show_oracle_status_registry() {
     if [[ ${#all_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
-        echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-20s %-13s %s\n" "NAME" "TYPE" "STATUS" "ORACLE_HOME"
-        echo "---------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------------"
+        printf "%-20s %-16s %-13s %s\n" "NAME" "TYPE" "STATUS" "ORACLE_HOME"
+        echo "------------------------------------------------------------------------------------------"
         
         for home_obj in "${all_homes[@]}"; do
             local name home ptype status flags desc
@@ -253,7 +253,7 @@ show_oracle_status_registry() {
                 status="available"
             fi
             
-            printf "%-20s %-20s %-13s %s\n" "$display_name" "$ptype" "$status" "$home"
+            printf "%-20s %-16s %-13s %s\n" "$display_name" "$ptype" "$status" "$home"
         done
     fi
     
@@ -263,9 +263,9 @@ show_oracle_status_registry() {
     if [[ ${#database_sids[@]} -gt 0 ]]; then
         echo ""
         echo "Database Instances"
-        echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-20s %-13s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
-        echo "---------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------------"
+        printf "%-20s %-16s %-13s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
+        echo "------------------------------------------------------------------------------------------"
         
         for db_obj in "${database_sids[@]}"; do
             local sid home flags
@@ -284,7 +284,7 @@ show_oracle_status_registry() {
                 status="$mode"
             fi
             
-            printf "%-20s %-20s %-13s %s\n" "$sid" "$flags" "$status" "$home"
+            printf "%-20s %-16s %-13s %s\n" "$sid" "$flags" "$status" "$home"
         done
     fi
     
@@ -295,10 +295,9 @@ show_oracle_status_registry() {
     local total_databases=$((${#database_sids[@]} + ${#database_homes[@]}))
     if [[ $total_databases -gt 0 ]]; then
         echo ""
-        echo "Listener Status"
-        echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-20s %-13s %s\n" "NAME" "PORT" "STATUS" "ORACLE_HOME"
-        echo "---------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------------"
+        printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
+        echo "------------------------------------------------------------------------------------------"
         
         # Check for running listeners
         local listener_count=0
@@ -327,32 +326,48 @@ show_oracle_status_registry() {
                 if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
                     lsnr_status="up"
                     
-                    # Extract all ports from Listening Endpoints (tcp:1521, tcps:2343, etc.)
+                    # Extract all ports from Listening Endpoints
+                    # Build compact display: tcp_ports/tcps_ports (e.g., 1521/2345 or just 1521)
                     local endpoints
                     endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
                     
                     if [[ -n "$endpoints" ]]; then
-                        # Build port list with protocol:port format
-                        local -a port_list=()
+                        local -a tcp_ports=()
+                        local -a tcps_ports=()
+                        
                         while IFS= read -r endpoint; do
                             local protocol port
                             protocol=$(echo "$endpoint" | grep -o "PROTOCOL=[^)]*" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
                             port=$(echo "$endpoint" | grep -o "PORT=[0-9]*" | cut -d= -f2)
-                            if [[ -n "$protocol" && -n "$port" ]]; then
-                                port_list+=("${protocol}:${port}")
+                            
+                            if [[ -n "$port" ]]; then
+                                if [[ "$protocol" == "tcps" ]]; then
+                                    tcps_ports+=("$port")
+                                elif [[ "$protocol" == "tcp" ]]; then
+                                    tcp_ports+=("$port")
+                                fi
                             fi
                         done <<< "$endpoints"
                         
-                        # Join ports with comma separator
-                        if [[ ${#port_list[@]} -gt 0 ]]; then
-                            port_display=$(IFS=', '; echo "${port_list[*]}")
+                        # Format: tcp_port/tcps_port or just tcp_port
+                        local tcp_str=""
+                        local tcps_str=""
+                        [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(IFS=','; echo "${tcp_ports[*]}")
+                        [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(IFS=','; echo "${tcps_ports[*]}")
+                        
+                        if [[ -n "$tcp_str" && -n "$tcps_str" ]]; then
+                            port_display="${tcp_str}/${tcps_str}"
+                        elif [[ -n "$tcp_str" ]]; then
+                            port_display="$tcp_str"
+                        elif [[ -n "$tcps_str" ]]; then
+                            port_display="$tcps_str"
                         fi
                     fi
                 fi
             fi
             
             # Use full path for listener home (not [SID] notation)
-            printf "%-20s %-20s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
+            printf "%-20s %-16s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
             ((listener_count++))
         done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
         
@@ -367,9 +382,9 @@ show_oracle_status_registry() {
     if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Data Safe Connectors"
-        echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-20s %-13s %s\n" "NAME" "PORT" "STATUS" "DATASAFE_BASE_HOME"
-        echo "---------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------------"
+        printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "DATASAFE_BASE_HOME"
+        echo "------------------------------------------------------------------------------------------"
         
         for ds_obj in "${datasafe_homes[@]}"; do
             local name home status port_display
@@ -394,12 +409,12 @@ show_oracle_status_registry() {
                 # For now, show n/a
             fi
             
-            printf "%-20s %-20s %-13s %s\n" "$name" "$port_display" "$status" "$home"
+            printf "%-20s %-16s %-13s %s\n" "$name" "$port_display" "$status" "$home"
         done
     fi
     
     echo ""
-    echo "================================================================================="
+    echo "=========================================================================================="
     echo ""
 }
 
@@ -413,7 +428,7 @@ show_oracle_status() {
     # Header
     echo ""
     echo "Oracle Environment Status"
-    echo "================================================================================="
+    echo "=========================================================================================="
 
     # Use registry API if available (Phase 1 - Bug #85 fix)
     if type -t oradba_registry_get_all &>/dev/null; then
