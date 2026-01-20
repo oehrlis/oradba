@@ -297,20 +297,65 @@ show_oracle_status_registry() {
         # Check for running listeners
         local listener_count=0
         while read -r listener_line; do
-            local listener_name
+            local listener_name listener_home
             # Extract listener name (second-to-last field before -inherit flag)
             listener_name=$(echo "$listener_line" | awk '{print $(NF-1)}')
             
-            # Get listener status
-            local lsnr_status="unknown"
+            # Extract Oracle Home from ps output (path before /bin/tnslsnr)
+            listener_home=$(echo "$listener_line" | grep -o '[^ ]*bin/tnslsnr' | sed 's|/bin/tnslsnr||')
+            
+            # Get detailed listener status, port, and protocol
+            local lsnr_status="stopped"
+            local lsnr_port=""
+            local lsnr_protocol=""
+            
             if command -v lsnrctl &>/dev/null; then
-                # Check for READY status (case-insensitive) or successful connection
-                if lsnrctl status "$listener_name" 2>/dev/null | grep -qi "STATUS of the LISTENER"; then
-                    lsnr_status="ready"
+                local lsnr_output
+                lsnr_output=$(lsnrctl status "$listener_name" 2>/dev/null)
+                
+                if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
+                    lsnr_status="running"
+                    
+                    # Extract port and protocol from Listening Endpoints
+                    # Format: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=...)(PORT=1521)))
+                    # or: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=...)(PORT=2484)))
+                    local endpoints
+                    endpoints=$(echo "$lsnr_output" | grep -A 10 "Listening Endpoints Summary" | grep "PROTOCOL=" | head -1)
+                    
+                    if [[ -n "$endpoints" ]]; then
+                        # Extract TCP or TCPS port
+                        if echo "$endpoints" | grep -q "PROTOCOL=TCP)"; then
+                            lsnr_protocol=$(echo "$endpoints" | grep -o "PROTOCOL=[^)]*" | head -1 | cut -d= -f2)
+                            lsnr_port=$(echo "$endpoints" | grep -o "PORT=[0-9]*" | head -1 | cut -d= -f2)
+                        fi
+                    fi
                 fi
             fi
             
-            printf "%-17s : %-12s %-11s\n" "Listener" "$listener_name" "$lsnr_status"
+            # Format port display
+            local port_display=""
+            if [[ -n "$lsnr_port" ]]; then
+                port_display="${lsnr_protocol}:${lsnr_port}"
+            fi
+            
+            # Try to match Oracle Home to a registered name
+            local home_display="$listener_home"
+            if [[ -n "$listener_home" ]]; then
+                # Try to find matching home name from registry
+                for db_obj in "${databases[@]}"; do
+                    local db_home
+                    db_home=$(oradba_registry_get_field "$db_obj" "home")
+                    if [[ "$db_home" == "$listener_home" ]]; then
+                        local db_name
+                        db_name=$(oradba_registry_get_field "$db_obj" "name")
+                        home_display="[$db_name]"
+                        break
+                    fi
+                done
+            fi
+            
+            # Display with adjusted column widths for long listener names
+            printf "%-17s : %-20s %-11s %-12s %s\n" "Listener" "$listener_name" "$lsnr_status" "$port_display" "$home_display"
             ((listener_count++))
         done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
         
