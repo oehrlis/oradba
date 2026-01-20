@@ -1,109 +1,425 @@
 <!-- markdownlint-disable MD036 -->
 # Development Guide
 
-This guide provides comprehensive development information for OraDBA v1.0.0 contributors.
+This guide provides comprehensive development information for OraDBA v0.19.0+ contributors.
 
-> **Note:** This document consolidates all essential development practices.
-> For detailed CI optimization strategies and markdown linting configuration history,
-> see [archive/ci_optimization.md](archive/ci_optimization.md) and
-> [archive/markdown-linting.md](archive/markdown-linting.md).
+## Quick Start for Developers
+
+```bash
+# Clone repository
+git clone https://github.com/oehrlis/oradba.git
+cd oradba
+
+# View available commands
+make help
+
+# Run tests (smart selection, ~1-3 min)
+make test
+
+# Run all quality checks
+make pre-commit
+
+# Build installer
+make build
+```
+
+## Architecture Overview
+
+OraDBA v0.19.0+ uses a modular, library-based architecture:
+
+- **Registry API**: Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
+- **Plugin System**: 6 product-specific plugins with 8-function interface
+- **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
+- **Oracle Homes Management**: Central registry with comprehensive metadata
+- **Hierarchical Configuration**: 6-level configuration system with override capabilities
+
+See [architecture.md](architecture.md) for detailed system design.
+
+## Registry API and Plugin System
+
+### Registry API (v0.19.0+)
+
+The Registry API (oradba_registry.sh) provides unified access to Oracle installations:
+
+### Registry API (v0.19.0+)
+
+The Registry API (oradba_registry.sh) provides unified access to Oracle installations:
+
+```bash
+# Get all installations
+oradba_registry_get_all
+
+# Get specific installation
+oradba_registry_get_by_name "FREE"
+
+# Get installations by type
+oradba_registry_get_by_type "database"
+
+# Get only databases (from oratab)
+oradba_registry_get_databases
+
+# Extract specific field
+oradba_registry_get_field "FREE" "home"
+```
+
+**Output Format** (colon-delimited):
+```
+type:name:home:version:flags:order:alias:desc
+```
+
+### Plugin System (v0.19.0+)
+
+OraDBA supports 6 product types via plugins:
+
+1. **database_plugin.sh** - Oracle Database (RDBMS)
+2. **datasafe_plugin.sh** - Data Safe On-Premises Connectors
+3. **client_plugin.sh** - Oracle Full Client
+4. **iclient_plugin.sh** - Oracle Instant Client
+5. **oud_plugin.sh** - Oracle Unified Directory  
+6. **java_plugin.sh** - Oracle Java/JDK
+
+**Plugin Interface** (8 required functions):
+
+```bash
+plugin_detect_installation()      # Auto-discover installations
+plugin_validate_home()             # Validate ORACLE_HOME
+plugin_adjust_environment()        # Adjust paths if needed
+plugin_check_status()              # Check service status
+plugin_get_metadata()              # Get version/edition
+plugin_should_show_listener()      # Show listener status?
+plugin_discover_instances()        # Find instances for home
+plugin_supports_aliases()          # Generate SID aliases?
+```
+
+### Developing a New Plugin
+
+To add support for a new Oracle product type:
+
+1. **Create plugin file**: `src/lib/plugins/myproduct_plugin.sh`
+2. **Implement 8 required functions** (see template below)
+3. **Add tests**: `tests/test_myproduct_plugin.bats`
+4. **Update validation**: Add to valid types in `src/lib/oradba_registry.sh`
+5. **Update detection**: Add case to `detect_product_type()` in `src/lib/oradba_common.sh`
+
+**Plugin Template**:
+
+```bash
+#!/usr/bin/env bash
+# Plugin: myproduct_plugin.sh
+# Product: My Oracle Product
+
+# Plugin metadata
+export plugin_name="myproduct"
+export plugin_version="1.0.0"
+export plugin_description="My Oracle Product plugin"
+
+# 1. Auto-detect installations
+plugin_detect_installation() {
+    local base="${ORACLE_BASE:-/opt/oracle}"
+    find "${base}/product" -maxdepth 1 -type d -name "myproduct*" 2>/dev/null
+}
+
+# 2. Validate home
+plugin_validate_home() {
+    local oracle_home="$1"
+    [[ -x "${oracle_home}/bin/myproduct" ]]
+}
+
+# 3. Adjust environment (e.g., for subdirectories)
+plugin_adjust_environment() {
+    local oracle_home="$1"
+    echo "${oracle_home}"  # or adjust if needed
+}
+
+# 4. Check status
+plugin_check_status() {
+    local oracle_home="$1"
+    local instance_name="${2:-}"
+    
+    if "${oracle_home}/bin/myctl" status &>/dev/null; then
+        echo "running"
+    else
+        echo "stopped"
+    fi
+}
+
+# 5. Get metadata
+plugin_get_metadata() {
+    local oracle_home="$1"
+    local version edition
+    
+    version=$("${oracle_home}/bin/myproduct" -version 2>&1 | awk '{print $NF}')
+    edition="Standard"
+    
+    echo "${version}:${edition}:myproduct"
+}
+
+# 6. Show listener status?
+plugin_should_show_listener() {
+    return 1  # 0 = yes, 1 = no
+}
+
+# 7. Discover instances
+plugin_discover_instances() {
+    local oracle_home="$1"
+    # Return list of instances/services for this home
+    echo ""
+}
+
+# 8. Supports aliases?
+plugin_supports_aliases() {
+    return 1  # 0 = yes, 1 = no
+}
+```
+
+**Testing Your Plugin**:
+
+```bash
+# Create test file
+cat > tests/test_myproduct_plugin.bats <<'EOF'
+#!/usr/bin/env bats
+
+load test_helper
+
+setup() {
+    source src/lib/plugins/myproduct_plugin.sh
+}
+
+@test "plugin metadata is set" {
+    [ -n "${plugin_name}" ]
+    [ "${plugin_name}" = "myproduct" ]
+}
+
+@test "plugin_validate_home checks for myproduct binary" {
+    # Test with mock directory structure
+    # ...
+}
+
+# Add tests for all 8 functions
+EOF
+
+# Run tests
+bats tests/test_myproduct_plugin.bats
+```
 
 ## CI/CD Pipeline
 
-![CI/CD Pipeline](images/cicd-pipeline.png)
+```mermaid
+flowchart LR
+    Commit[Git Commit] --> CI[CI Workflow]
+    CI --> Lint[Linting]
+    CI --> Test[Smart Tests]
+    CI --> Build[Build]
+    
+    Lint --> Pass{All Pass?}
+    Test --> Pass
+    Build --> Pass
+    
+    Pass -->|Yes| Merge[Merge to main]
+    Pass -->|No| Fix[Fix Issues]
+    
+    Tag[Version Tag] --> Release[Release Workflow]
+    Release --> FullTest[Full Tests]
+    Release --> Docs[Generate Docs]
+    Release --> Package[Build Package]
+    
+    FullTest --> Publish{All Pass?}
+    Docs --> Publish
+    Package --> Publish
+    
+    Publish -->|Yes| GitHub[GitHub Release]
+    Publish -->|No| Notify[Notify Team]
+```
 
 The project uses GitHub Actions for continuous integration and automated releases.
-The CI workflow runs on every push and pull request, while the release workflow
-triggers on version tags.
 
-## Git Workflow
+### Workflows
 
-![Development Workflow](images/dev-workflow.png)
+**CI Workflow** (`.github/workflows/ci.yml`):
+- Triggers on push and pull requests
+- Runs linting (shellcheck, markdownlint)
+- Executes smart test selection
+- Builds installer
+- Fast feedback (~3-5 minutes)
 
-The project follows a feature branch workflow with pull requests for code review and automated testing before
-merging to main.
+**Release Workflow** (`.github/workflows/release.yml`):
+- Triggers on version tags (vX.Y.Z)
+- Runs full test suite
+- Generates documentation (PDF, HTML)
+- Builds distribution packages
+- Creates GitHub release
+- Comprehensive validation (~10-15 minutes)
 
 ## Project Structure
 
 ```text
 oradba/
 ├── .github/
-│   └── workflows/        # GitHub Actions CI/CD workflows
-│       ├── ci.yml        # Continuous integration
-│       ├── release.yml   # Release automation
-│       ├── docs.yml      # Documentation deployment
-│       └── dependency-review.yml
-├── src/                  # Server/service files
-│   ├── bin/             # Executable scripts
-│   │   └── oraenv.sh    # Core environment setup script
-│   ├── lib/             # Library functions
-│   │   └── oradba_common.sh    # Common utility functions
-│   ├── etc/             # Configuration files
-│   │   └── oradba.conf  # Main configuration
-│   ├── sql/             # SQL scripts
-│   │   ├── db_info.sql  # Database information
-│   │   └── login.sql    # SQL*Plus login script
-│   ├── rcv/             # RMAN recovery scripts
-│   │   └── backup_full.rman
-│   └── templates/       # Template files
-│       └── script_template.sh
-├── tests/               # BATS test files (658 tests across 20 files)
-│   ├── test_oradba_common.bats
-│   ├── test_oraenv.bats
-│   ├── test_installer.bats
-│   └── run_tests.sh     # Test runner
-├── build/               # Build artifacts (gitignored)
-├── dist/                # Distribution files (gitignored)
-├── build_installer.sh   # Installer builder
-├── VERSION              # Semantic version
-├── README.md
+│   └── workflows/              # GitHub Actions CI/CD
+│       ├── ci.yml             # Continuous integration
+│       ├── release.yml        # Release automation
+│       └── docs.yml           # Documentation deployment
+├── src/                        # Distribution files
+│   ├── bin/                   # Executable scripts
+│   │   ├── oraenv.sh          # Environment wrapper
+│   │   ├── oradba_env.sh      # Main environment builder
+│   │   ├── oradba_homes.sh    # Oracle Homes management
+│   │   └── oraup.sh           # Status display
+│   ├── lib/                   # Library functions
+│   │   ├── plugins/           # Product-specific plugins
+│   │   │   ├── plugin_interface.sh      # Interface definition
+│   │   │   ├── database_plugin.sh       # Database (RDBMS)
+│   │   │   ├── datasafe_plugin.sh       # Data Safe
+│   │   │   ├── client_plugin.sh         # Full Client
+│   │   │   ├── iclient_plugin.sh        # Instant Client
+│   │   │   ├── oud_plugin.sh            # OUD
+│   │   │   └── java_plugin.sh           # Java/JDK
+│   │   ├── oradba_registry.sh          # Registry API
+│   │   ├── oradba_common.sh            # Core utilities
+│   │   ├── oradba_env_parser.sh        # Config parser
+│   │   ├── oradba_env_builder.sh       # Environment builder
+│   │   ├── oradba_env_validator.sh     # Validation
+│   │   ├── oradba_env_config.sh        # Config management
+│   │   ├── oradba_env_status.sh        # Status display
+│   │   ├── oradba_env_changes.sh       # Change tracking
+│   │   ├── oradba_db_functions.sh      # Database operations
+│   │   └── oradba_aliases.sh           # Alias generation
+│   ├── etc/                   # Configuration files
+│   │   ├── oradba_core.conf           # Core settings
+│   │   ├── oradba_standard.conf       # Standard settings
+│   │   ├── oradba_homes.conf          # Oracle Homes registry
+│   │   └── sid/                       # SID-specific configs
+│   ├── sql/                   # SQL scripts
+│   ├── rcv/                   # RMAN scripts
+│   ├── templates/             # Template files
+│   └── doc/                   # User documentation
+├── tests/                      # Test suite (108+ plugin, 900+ core)
+│   ├── test_database_plugin.bats      # Database tests (16)
+│   ├── test_datasafe_plugin.bats      # DataSafe tests (17)
+│   ├── test_client_plugin.bats        # Client tests (12)
+│   ├── test_iclient_plugin.bats       # Instant Client tests (15)
+│   ├── test_oud_plugin.bats           # OUD tests (15)
+│   ├── test_java_plugin.bats          # Java tests (22)
+│   ├── test_plugin_interface.bats     # Interface tests (24)
+│   ├── test_oradba_registry.bats      # Registry API tests
+│   ├── test_oradba_env.bats           # Environment tests
+│   └── ...                            # Additional core tests
+├── doc/                        # Developer documentation
+│   ├── README.md              # Documentation index
+│   ├── architecture.md        # System architecture
+│   ├── development.md         # This file
+│   ├── api.md                 # API reference
+│   ├── automated_testing.md   # Testing guide
+│   ├── images/                # Mermaid diagrams
+│   │   ├── registry-api-flow.md
+│   │   ├── plugin-system.md
+│   │   └── ...
+│   └── archive/               # Historical documentation
+├── scripts/                    # Build and utility scripts
+├── build/                      # Build artifacts (gitignored)
+├── dist/                       # Distribution files (gitignored)
+├── VERSION                     # Semantic version
 ├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── LICENSE
-└── .gitignore
+├── README.md
+└── LICENSE
 ```
 
 ## Core Components
 
-### oraenv.sh
+### oraenv.sh - Environment Wrapper
 
-The core script that sets up Oracle environment variables based on oratab configuration.
-
-**Key Features:**
-
-- Reads oratab file
-- Sets ORACLE_SID, ORACLE_HOME, ORACLE_BASE
-- Updates PATH and LD_LIBRARY_PATH
-- Handles TNS_ADMIN and NLS settings
-- Must be sourced, not executed
+Lightweight wrapper script that delegates to oradba_env.sh for environment setup.
 
 **Usage:**
 
 ```bash
+# Set environment for database SID
 source oraenv.sh FREE
+
+# Set environment for Oracle Home
+source oraenv.sh dbhomeFree
+
+# Interactive selection
+source oraenv.sh
+
+# Silent mode (for scripts)
+source oraenv.sh FREE --silent
 ```
 
-### oradba_common.sh
+### oradba_env.sh - Main Environment Builder
 
-Library of common functions used across scripts.
+Coordinates Environment Management libraries to build Oracle environment.
 
-**Key Functions:**
-
-- **Logging (v0.13.1+):**
-  - `log <LEVEL> <message>` - Unified logging function (NEW)
-  - `log_info()`, `log_warn()`, `log_error()`, `log_debug()` - Deprecated wrappers (backward compatible)
-- **Utilities:**
-  - `command_exists()` - Check command availability
-  - `verify_oracle_env()` - Validate Oracle environment
-  - `parse_oratab()` - Parse oratab entries
-  - `oradba_set_lib_path()` - Set library path using plugin system
-
-**Logging Best Practices (v0.13.1+):**
-
-New code should use the unified `log` function:
+**Commands:**
 
 ```bash
-# Recommended (new syntax)
+# Show Oracle Home information
+oradba_env.sh show FREE
+
+# Check status of instance/service
+oradba_env.sh status FREE
+
+# Validate Oracle environment
+oradba_env.sh validate FREE
+```
+
+### oradba_homes.sh - Oracle Homes Management
+
+Manage Oracle installations with comprehensive metadata.
+
+**Commands:**
+
+```bash
+# List all Oracle Homes
+oradba_homes.sh list
+
+# Show specific home details
+oradba_homes.sh show dbhomeFree
+
+# Add Oracle Home
+oradba_homes.sh add --name jdk17 --path /opt/oracle/product/jdk-17 --type java
+
+# Delete Oracle Home
+oradba_homes.sh delete jdk17
+
+# Export configuration
+oradba_homes.sh export > oradba_homes_backup.csv
+
+# Import configuration
+oradba_homes.sh import oradba_homes_backup.csv
+```
+
+### Library Components
+
+**Registry API** (`oradba_registry.sh`):
+- Unified access to oratab and oradba_homes.conf
+- Auto-synchronization of database entries
+- Colon-delimited output format
+
+**Environment Management Libraries**:
+- `oradba_env_parser.sh` - Parse and merge 6 configuration levels
+- `oradba_env_builder.sh` - Build Oracle environment variables
+- `oradba_env_validator.sh` - Validate Oracle installations
+- `oradba_env_config.sh` - Configuration management
+- `oradba_env_status.sh` - Status display
+- `oradba_env_changes.sh` - Change detection and tracking
+
+**Core Utilities** (`oradba_common.sh`):
+- Logging with `oradba_log()` (DEBUG, INFO, WARN, ERROR)
+- Oracle utilities (`parse_oratab()`, `detect_product_type()`)
+- Environment validation (`verify_oracle_env()`)
+- PATH management (`oradba_dedupe_path()`)
+
+**Database Operations** (`oradba_db_functions.sh`):
+- Database start/stop/status
+- Listener management
+- Session queries
+- SQL execution helpers
+
+**Logging Best Practices**:
+
+```bash
+# Use oradba_log function
 oradba_log INFO "Database started successfully"
 oradba_log WARN "Archive log directory is 90% full"
 oradba_log ERROR "Connection to database failed"
@@ -114,27 +430,73 @@ export ORADBA_LOG_LEVEL=DEBUG  # Show all messages
 export ORADBA_LOG_LEVEL=WARN   # Show only WARN and ERROR
 ```
 
-Legacy functions still work for backward compatibility:
+**Database Queries**:
 
 ```bash
-# Legacy syntax (still supported, but deprecated)
-log_info "Database started"
-log_warn "Archive log warning"
-log_error "Connection failed"
-log_debug "Debug information"
+# Use execute_db_query() helper
+query="SELECT name FROM v\$database;"
+db_name=$(execute_db_query "$query" "raw")
+
+# For pipe-delimited output (extracts first line)
+query="SELECT name || '|' || db_unique_name FROM v\$database;"
+db_info=$(execute_db_query "$query" "delimited")
+
+# With error handling
+if ! result=$(execute_db_query "$query" "raw"); then
+    oradba_log ERROR "Failed to query database"
+    return 1
+fi
 ```
 
 ### Configuration
 
-Main configuration file: [src/etc/oradba.conf](src/etc/oradba.conf)
+OraDBA uses a hierarchical 6-level configuration system with priority-based overrides.
+
+**Configuration Hierarchy** (lowest to highest priority):
+
+1. **Core** (`oradba_core.conf`) - System defaults (read-only)
+2. **Standard** (`oradba_standard.conf`) - Standard settings
+3. **Local** (`oradba_local.conf`) - Site-specific (optional)
+4. **Customer** (`oradba_customer.conf`) - User customizations (recommended)
+5. **SID-specific** (`sid.<SID>.conf`) - Per-database overrides (optional)
+6. **Environment variables** - Runtime overrides
+
+**Key Configuration Files:**
+
+```
+${ORADBA_PREFIX}/etc/
+├── oradba_core.conf           # Core defaults (do not modify)
+├── oradba_standard.conf       # Standard settings
+├── oradba_local.conf          # Site-specific (optional)
+├── oradba_customer.conf       # User customizations (create from template)
+├── oradba_homes.conf          # Oracle Homes registry
+├── sid._DEFAULT_.conf         # Default SID template
+└── sid.<SID>.conf             # SID-specific overrides
+```
 
 **Key Settings:**
 
-- `ORADBA_PREFIX` - Installation directory
+- `ORADBA_BASE` - OraDBA installation directory
+- `ORADBA_PREFIX` - Configuration and data directory
 - `ORATAB_FILE` - Path to oratab
-- `DEBUG` - Debug mode toggle
-- `LOG_DIR` - Log directory
-- `BACKUP_DIR` - Backup location
+- `ORADBA_LOG_LEVEL` - Logging level (DEBUG, INFO, WARN, ERROR)
+- `ORADBA_SHOW_DUMMY_ENTRIES` - Show/hide dummy entries in oradba_homes.conf
+- `PATH_DEDUPE_ENABLED` - Enable PATH deduplication (default: true)
+
+**Creating Custom Configuration:**
+
+```bash
+# Copy template
+cp ${ORADBA_PREFIX}/templates/etc/oradba_customer.conf.example \
+   ${ORADBA_PREFIX}/etc/oradba_customer.conf
+
+# Edit settings
+vi ${ORADBA_PREFIX}/etc/oradba_customer.conf
+
+# Create SID-specific config
+cp ${ORADBA_PREFIX}/etc/sid._DEFAULT_.conf \
+   ${ORADBA_PREFIX}/etc/sid.FREE.conf
+```
 
 ## Available Make Targets
 
@@ -174,14 +536,14 @@ make validate          # Validate configuration files
 
 **Test-Related Targets:**
 
-| Target                  | Tests Run                 | Duration  | Use Case                          |
-|-------------------------|---------------------------|-----------|-----------------------------------|
-| `make test`             | Smart selection (~5-50)   | 1-3 min   | During development                |
-| `make test-full`        | All 892 BATS tests        | 8-10 min  | Before commits/releases           |
-| `make test-docker`      | 68 integration tests      | ~3 min    | Real database environment testing |
-| `make test-docker-keep` | 68 tests + keep container | ~3 min    | Test debugging and inspection     |
-| `make pre-commit`       | Smart + lint              | 2-4 min   | Pre-commit hook                   |
-| `make ci`               | Full suite + build        | 10-15 min | Complete validation               |
+| Target                  | Tests Run                        | Duration  | Use Case                          |
+|-------------------------|----------------------------------|-----------|-----------------------------------|
+| `make test`             | Smart selection (~5-50)          | 1-3 min   | During development                |
+| `make test-full`        | 108+ plugin + 900+ core tests    | 8-10 min  | Before commits/releases           |
+| `make test-docker`      | 68 integration tests             | ~3 min    | Real database environment testing |
+| `make test-docker-keep` | 68 tests + keep container        | ~3 min    | Test debugging and inspection     |
+| `make pre-commit`       | Smart + lint                     | 2-4 min   | Pre-commit hook                   |
+| `make ci`               | Full suite + build               | 10-15 min | Complete validation               |
 
 **Environment Variables:**
 
@@ -628,34 +990,56 @@ Backup location: `$PREFIX.backup.YYYYMMDD_HHMMSS`
 
 ## Testing Guide
 
-![Test Strategy](images/test-strategy.png)
-
 OraDBA uses a comprehensive testing strategy with multiple testing frameworks:
 
-- **BATS Tests**: 892+ unit and integration tests for shell scripts
+- **Plugin Tests**: 108+ tests for product-specific plugins (database, datasafe, client, iclient, oud, java)
+- **Core Tests**: 900+ unit and integration tests for shell scripts
 - **Docker-based Tests**: 68 automated integration tests against real Oracle databases
-- **Smart Test Selection**: Runs only tests affected by changes
+- **Smart Test Selection**: Runs only tests affected by changes (~1-3 min)
 
 ### Test Types
 
-#### 1. BATS Unit & Integration Tests (892 tests)
+#### 1. Plugin Tests (108+ tests)
 
-BATS (Bash Automated Testing System) provides comprehensive coverage of:
+BATS tests for the 6 product-specific plugins:
 
-- Individual function testing (unit tests)
-- Script integration testing
-- Configuration validation
+- **database_plugin.sh**: 16 tests (detection, validation, metadata, status)
+- **datasafe_plugin.sh**: 17 tests (connector detection, cmctl status)
+- **client_plugin.sh**: 12 tests (full client validation)
+- **iclient_plugin.sh**: 15 tests (instant client, no bin directory)
+- **oud_plugin.sh**: 15 tests (Unified Directory, dsctl)
+- **java_plugin.sh**: 22 tests (JDK/JRE detection, version normalization)
+- **interface**: 24 tests (common plugin interface validation)
+
+**Run plugin tests:**
+
+```bash
+# All plugin tests
+bats tests/plugins/
+
+# Specific plugin
+bats tests/plugins/test_java_plugin.bats
+```
+
+#### 2. Core BATS Tests (900+ tests)
+
+Comprehensive coverage of core OraDBA functionality:
+
+- Registry API and environment management
+- Configuration parsing and hierarchy
+- Oracle Homes management
 - Installation and upgrade scenarios
+- Utility scripts and helpers
 
-**Run BATS tests:**
+**Run core tests:**
 
 ```bash
 make test              # Smart selection (runs only affected tests)
-make test-full         # All 892 BATS tests (~8-10 min)
+make test-full         # All plugin + core tests (~8-10 min)
 make test DRY_RUN=1    # Preview what would run
 ```
 
-#### 2. Docker-based Integration Tests (68 tests)
+#### 3. Docker-based Integration Tests (68 tests)
 
 Automated testing against a real Oracle 26ai Free database in Docker containers:
 
@@ -733,9 +1117,9 @@ make pre-commit
 
 **Performance:**
 
-| Scenario             | Full Suite        | Smart Selection   | Time Saved  |
-|----------------------|-------------------|-------------------|-------------|
-| Single script change | 492 tests (8 min) | ~10 tests (1 min) | 7 minutes   |
+| Scenario             | Full Suite         | Smart Selection   | Time Saved  |
+|----------------------|--------------------|-------------------|-------------|
+| Single script change | 1000+ tests (10min)| ~10 tests (1 min) | 9 minutes   |
 | Library change       | 492 tests (8 min) | ~50 tests (2 min) | 6 minutes   |
 | Documentation only   | 492 tests (8 min) | 3 tests (30 sec)  | 7.5 minutes |
 
