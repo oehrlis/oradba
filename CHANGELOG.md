@@ -7,7 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Instant Client Version Detection Enhancement** (2026-01-20)
+  - Added version detection from library filenames when sqlplus is not available
+  - Method 4: Extract version from `.so` library files (libclntsh.so.23.1 → 2301)
+  - Method 5: Extract version from JDBC JAR manifest (ojdbc*.jar)
+  - Supports libclntsh.so, libclntshcore.so, and libocci.so version patterns
+  - Handles both single-digit (19.1) and double-digit (19.21) minor versions
+  - Added 5 comprehensive tests with isolated function extraction for test safety
+  - Instant client homes without sqlplus now show correct version instead of "Unknown"
+
+### Fixed
+
+- **Instant Client LD_LIBRARY_PATH** (2026-01-20)
+  - Fixed library path setup for instant client installations
+  - Replaced deprecated `export_oracle_base_env()` with plugin-aware `oradba_set_lib_path()`
+  - Instant client libraries are in `${ORACLE_HOME}` root, not `${ORACLE_HOME}/lib`
+  - Plugin system now correctly handles product-specific library paths
+  - Resolves "libsqlplus.so: cannot open shared object file" errors
+  - Both database and instant client environments now work correctly
+
 ### Removed
+
+- **Deprecated export_oracle_base_env() Function** (2026-01-20)
+  - Removed deprecated `export_oracle_base_env()` from `oradba_common.sh` (32 lines)
+  - Fully replaced by plugin-aware `oradba_set_lib_path()` in all code paths
+  - Updated API documentation to reference new function
+  - Updated development documentation and lib README
+  - Archive references preserved for historical context
+  - No breaking changes - function was already replaced in production code
 
 - **BREAKING CHANGE: Deprecated Logging Functions** (2026-01-19)
   - Removed deprecated logging wrapper functions from `oradba_common.sh`:
