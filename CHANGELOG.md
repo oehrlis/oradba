@@ -20,6 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Instant Client Version Detection from sqlplus** (2026-01-20)
+  - Fixed version detection for instant client when sqlplus is installed
+  - Check both `bin/sqlplus` (database/client) and `sqlplus` (instant client root)
+  - Instant client has sqlplus directly in ORACLE_HOME, not in bin/ subdirectory
+  - Now correctly detects version 2326 from "SQL*Plus: Release 23.26.0.0.0"
+  - Resolves "Unknown" version display for instant client with sqlplus
+
+- **Instant Client Plugin Loading** (2026-01-20)
+  - Fixed plugin path lookup to support both development and installed environments
+  - Check `lib/plugins/` first (installed), then `src/lib/plugins/` (development)
+  - Instant client plugin now loads correctly in production installations
+  - Added debug logging when plugin file not found
+  - Added fallback for instant client libraries in ORACLE_HOME root
+  - Resolves LD_LIBRARY_PATH being empty for instant client
+
 - **Instant Client LD_LIBRARY_PATH Export** (2026-01-20)
   - Fixed critical bug where LD_LIBRARY_PATH wasn't cleared when switching to instant client
   - Root cause: `oradba_set_lib_path()` only exported when lib_path was non-empty
