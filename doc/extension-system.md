@@ -3,7 +3,7 @@
 The OraDBA extension system allows you to add custom scripts, SQL files, and RMAN
 scripts in a modular way without modifying the core OraDBA installation.
 
-> **Note:** This document provides complete extension development guidance for v1.0.0.
+> **Note:** This document provides complete extension development guidance for v0.19.0+.
 > For detailed implementation patterns and integration examples from the development process,
 > see [archive/extension-docs-implementation.md](archive/extension-docs-implementation.md) and
 > [archive/extension-docs-integration.md](archive/extension-docs-integration.md).
@@ -301,17 +301,6 @@ acme     (priority 50) → loaded second
 tools    (priority 50) → loaded third (alphabetical after acme)
 ```
 
-### Coexistence Mode
-
-Extensions are **not loaded** when OraDBA runs in coexistence mode with
-TVD BasEnv, since `oraenv.sh` is not sourced in that scenario.
-
-To force loading (not recommended):
-
-```bash
-export ORADBA_EXTENSIONS_IN_COEXIST="true"
-```
-
 ## Creating an Extension
 
 ### Using the create Command (Recommended)
@@ -356,7 +345,7 @@ Use the `add` command to install extensions from GitHub or local tarballs:
 oradba_extension.sh add oehrlis/odb_autoupgrade
 
 # Install specific version
-oradba_extension.sh add oehrlis/odb_autoupgrade@v1.2.0
+oradba_extension.sh add oehrlis/odb_autoupgrade@v0.5.0
 
 # Install from full GitHub URL
 oradba_extension.sh add https://github.com/oehrlis/odb_autoupgrade

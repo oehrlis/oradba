@@ -304,7 +304,6 @@ These automated tests cover approximately **75-85%** of the manual tests in
 **Not Automated (Still Manual):**
 
 - ❌ Installation: Upgrade installation (requires prior version)
-- ❌ Configuration: Coexistence with TVD BasEnv
 - ❌ Daily Use: Multi-user environment testing
 - ❌ Daily Use: Information commands (detailed verification)
 - ❌ Edge Cases: Permission issues (requires specific setup)

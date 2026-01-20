@@ -1191,4 +1191,4 @@ rmanc   # RMAN connect
 ---
 
 **Last Updated**: 2026-01-14
-**Applies To**: OraDBA v1.0.0+
+**Applies To**: OraDBA v0.19.0+
