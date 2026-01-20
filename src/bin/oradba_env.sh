@@ -225,11 +225,11 @@ cmd_show() {
         # Found in oradba_homes.conf - extract details
         IFS=':' read -r name path ptype _order alias_name desc version <<< "$home_entry"
         echo "=== Oracle Home Information ==="
-        echo "Name: ${alias_name:-$name}"
-        echo "Path: $path"
-        echo "Product: $ptype"
-        [[ -n "$version" ]] && echo "Version: $version"
-        [[ -n "$desc" ]] && echo "Description: $desc"
+        printf "%-13s %s\n" "Name:" "${alias_name:-$name}"
+        printf "%-13s %s\n" "HOME:" "$path"
+        printf "%-13s %s\n" "Product Type:" "$ptype"
+        [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
+        [[ -n "$desc" ]] && printf "%-13s %s\n" "Description:" "$desc"
         
         # Check if home exists
         if [[ ! -d "$path" ]]; then
@@ -245,23 +245,23 @@ cmd_show() {
             # Found in oratab - parse SID:HOME:FLAG format
             IFS=':' read -r sid path flag <<< "$oratab_entry"
             echo "=== Oracle Database Instance ==="
-            echo "SID: $sid"
-            echo "Path: $path"
-            echo "Auto-Start: $flag"
+            printf "%-13s %s\n" "SID:" "$sid"
+            printf "%-13s %s\n" "HOME:" "$path"
+            printf "%-13s %s\n" "Auto-Start:" "$flag"
             
             # Get product type if home exists
             if [[ -d "$path" ]]; then
                 if type -t detect_product_type &>/dev/null; then
                     local ptype
                     ptype=$(detect_product_type "$path")
-                    echo "Product: $ptype"
+                    printf "%-13s %s\n" "Product Type:" "$ptype"
                 fi
                 
                 # Get version if available
                 if type -t get_oracle_version &>/dev/null; then
                     local version
                     version=$(get_oracle_version "$path")
-                    [[ -n "$version" ]] && echo "Version: $version"
+                    [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
                 fi
             else
                 echo "Warning: Oracle Home does not exist"
@@ -275,7 +275,7 @@ cmd_show() {
     if [[ -d "$target" ]]; then
         # It's an Oracle Home path
         echo "=== Oracle Home Information ==="
-        echo "Path: $target"
+        printf "%-13s %s\n" "HOME:" "$target"
         
         # Get metadata from oradba_homes.conf
         local product version edition
@@ -283,13 +283,13 @@ cmd_show() {
         if [[ -n "$product" ]] && [[ "$product" != "N/A" ]]; then
             version=$(oradba_get_home_metadata "$target" "Version")
             edition=$(oradba_get_home_metadata "$target" "Edition")
-            echo "Product: $product"
-            echo "Version: $version"
-            echo "Edition: $edition"
+            printf "%-13s %s\n" "Product Type:" "$product"
+            printf "%-13s %s\n" "Version:" "$version"
+            printf "%-13s %s\n" "Edition:" "$edition"
         else
             # Auto-detect
             product=$(oradba_get_product_type "$target")
-            echo "Product: $product (auto-detected)"
+            printf "%-13s %s\n" "Product Type:" "$product (auto-detected)"
         fi
     else
         # Not found anywhere
