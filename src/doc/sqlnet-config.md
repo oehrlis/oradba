@@ -1,23 +1,21 @@
 <!-- markdownlint-disable MD036 -->
 # SQL*Net Configuration
 
-**Purpose:** Guide to managing Oracle SQL*Net configuration using OraDBA templates and tools.
+**Purpose:** Guide to managing Oracle SQL*Net configuration using OraDBA v0.19.x templates and tools.
 
 **Audience:** DBAs configuring Oracle network connectivity.
 
 **Prerequisites:**
 
+- OraDBA v0.19.x installed
 - TNS_ADMIN directory configured
 - Appropriate permissions to modify network configuration files
 
 ## Overview
 
-This chapter covers managing Oracle SQL*Net configuration using OraDBA templates
-and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
+This chapter covers managing Oracle SQL*Net configuration using OraDBA templates and tools for sqlnet.ora, tnsnames.ora, and ldap.ora files.
 
-OraDBA provides comprehensive SQL*Net configuration templates and management tools
-to simplify Oracle network setup, improve security, and ensure consistent
-configurations across environments.
+OraDBA v0.19.x provides comprehensive SQL*Net configuration templates and management tools to simplify Oracle network setup, improve security, and ensure consistent configurations across environments. The system works with all Oracle product types supported by the Plugin System.
 
 ## Quick Start
 
