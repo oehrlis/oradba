@@ -632,6 +632,15 @@ generate_sid_lists() {
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
     # Auto-sync database homes from oratab to oradba_homes.conf (first login)
+    # Source registry module if not already loaded
+    if ! type -t oradba_registry_sync_oratab &>/dev/null; then
+        local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/src/lib/oradba_registry.sh"
+        if [[ -f "${registry_lib}" ]]; then
+            # shellcheck source=/dev/null
+            source "${registry_lib}" 2>/dev/null
+        fi
+    fi
     if type -t oradba_registry_sync_oratab &>/dev/null; then
         oradba_registry_sync_oratab >/dev/null 2>&1
     fi
@@ -684,6 +693,15 @@ generate_oracle_home_aliases() {
     local homes_config
     
     # Auto-sync database homes from oratab (ensures homes available for aliases)
+    # Source registry module if not already loaded
+    if ! type -t oradba_registry_sync_oratab &>/dev/null; then
+        local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/src/lib/oradba_registry.sh"
+        if [[ -f "${registry_lib}" ]]; then
+            # shellcheck source=/dev/null
+            source "${registry_lib}" 2>/dev/null
+        fi
+    fi
     if type -t oradba_registry_sync_oratab &>/dev/null; then
         oradba_registry_sync_oratab >/dev/null 2>&1
     fi
