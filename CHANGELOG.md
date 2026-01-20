@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Maintains single source of truth for all Oracle installations
   - Skips homes already registered to avoid duplicates
   - Completely transparent - works automatically without user intervention
+  - Registry module automatically sourced in all sync trigger locations
 
 - **Complete Plugin Architecture** (2026-01-20)
   - Added stub plugins for WebLogic, OMS, and EM Agent to complete plugin coverage
@@ -57,6 +58,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Each plugin is now self-contained for version detection
 
 ### Fixed
+
+- **Auto-Sync Module Sourcing** (2026-01-20)
+  - Fixed missing source of oradba_registry.sh in oradba_env.sh commands
+  - Fixed missing source in first-login functions (generate_sid_lists, generate_oracle_home_aliases)
+  - Auto-sync was failing because oradba_registry_sync_oratab() function wasn't available
+  - Added conditional sourcing of registry module before sync calls
+  - Checks if function already loaded to avoid redundant sourcing
+  - Tries both installed (lib/) and source tree (src/lib/) locations
+  - All sync triggers now work correctly (first login, commands, on-demand)
 
 - **Database SID Lookup in oradba_env.sh Commands** (2026-01-20)
   - Fixed `oradba_env.sh show <SID>` failing for database SIDs
