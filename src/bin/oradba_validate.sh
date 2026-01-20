@@ -5,10 +5,10 @@
 # Name.......: oradba_validate.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
-# Purpose....: Validation script for OraDBA installation
-# Notes......: Run this after installation to verify setup
+# Date.......: 2026.01.20
+# Revision...: v0.19.x
+# Purpose....: Validation script for OraDBA v0.19.x installation
+# Notes......: Verifies Registry API, Plugin System, and Environment Libraries setup
 # Usage......: oradba_validate.sh [-h|--help] [-v|--verbose]
 # ------------------------------------------------------------------------------
 

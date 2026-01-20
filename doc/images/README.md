@@ -9,7 +9,7 @@ modern documentation sites.
 OraDBA uses a **Mermaid-first approach** for all diagrams:
 
 - **Phase 1 (COMPLETE)**: Created source Mermaid files (now in root)
-- **Phase 2 (CURRENT)**: Embedded Mermaid in architecture.md, development.md, and user docs
+- **Phase 2 (COMPLETE)**: Embedded Mermaid in architecture.md, development.md, and all 20 user docs (v0.19.x)
 - **Phase 3 (PLANNED)**: Automated Mermaid rendering for PDF generation (Pandoc integration)
 
 **Benefits**:
@@ -26,7 +26,6 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 - **[Architecture & Core Systems](#architecture--core-systems)** - System architecture, libraries, config
 - **[Workflows & Operations](#workflows--operations)** - Environment setup, status display, installation
 - **[Directory Structure](#directory-structure)** - File organization
-- **[Legacy Files](#legacy-files)** - Archived PNG and Excalidraw files
 
 ## Mermaid Diagrams
 
@@ -82,8 +81,9 @@ doc/images/                  # All Mermaid diagrams
 
 - ✅ All source files in root directory (flat structure)
 - ✅ Embedded 6 diagrams in architecture.md
+- ✅ Embedded 6 diagrams in user docs (introduction.md, quickstart.md, environment.md, configuration.md, installation.md)
 - ✅ Legacy PNG/Excalidraw files removed
-- 🔄 TODO: Embed in development.md and user docs
+- ✅ All 20 user docs updated to v0.19.x (no PNG references)
 - 🔄 TODO: Update MkDocs/GitHub Pages configuration
 
 ## Usage in Documentation

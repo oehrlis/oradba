@@ -2,11 +2,11 @@
 # ============================================================================
 # Script:       validate_test_environment.sh
 # Author:       Stefan Oehrli (oes) stefan.oehrli@oradba.com
-# Date:         2026.01.15
-# Revision:     1.0.0
-# Purpose:      Validate testing environment for OraDBA v1.0.0
+# Date:         2026.01.20
+# Revision:     v0.19.x
+# Purpose:      Validate testing environment for OraDBA v0.19.x
 # Notes:        Run this script before executing the test suite
-# Reference:    doc/phase7_manual_testing_guide.md
+# Reference:    doc/automated_testing.md, doc/manual_testing.md
 # License:      Apache-2.0 (see LICENSE file)
 # ============================================================================
 
@@ -29,8 +29,8 @@ CHECKS_WARNED=0
 
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}  OraDBA v1.0.0 - Test Environment Validator${NC}"
-    echo -e "${BLUE}  Release Date: January 15, 2026${NC}"
+    echo -e "${BLUE}  OraDBA v0.19.x - Test Environment Validator${NC}"
+    echo -e "${BLUE}  Architecture: Registry API, Plugin System, Environment Libraries${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo
 }
@@ -68,10 +68,10 @@ validate_version_file() {
     
     if [ -f "VERSION" ]; then
         VERSION=$(cat VERSION)
-        if [ "$VERSION" = "1.0.0" ]; then
-            check_pass "VERSION file exists and contains '1.0.0'"
+        if [[ "$VERSION" =~ ^0\.19\. ]]; then
+            check_pass "VERSION file exists and contains '$VERSION' (v0.19.x)"
         else
-            check_warn "VERSION file contains '$VERSION' (expected '1.0.0' for release)"
+            check_warn "VERSION file contains '$VERSION' (expected v0.19.x)"
         fi
     else
         check_fail "VERSION file not found"
@@ -232,20 +232,20 @@ validate_documentation() {
     
     # Check main documentation files
     if [ -f "README.md" ]; then
-        if grep -q "v1.0.0" README.md; then
-            check_pass "README.md contains v1.0.0 references"
+        if grep -q "v0.19" README.md; then
+            check_pass "README.md contains v0.19.x references"
         else
-            check_warn "README.md missing v1.0.0 references"
+            check_warn "README.md missing v0.19.x references"
         fi
     else
         check_fail "README.md not found"
     fi
     
     if [ -f "CHANGELOG.md" ]; then
-        if grep -q "## \[1.0.0\]" CHANGELOG.md; then
-            check_pass "CHANGELOG.md has v1.0.0 entry"
+        if grep -q "v0.19" CHANGELOG.md; then
+            check_pass "CHANGELOG.md has v0.19.x entries"
         else
-            check_fail "CHANGELOG.md missing v1.0.0 entry"
+            check_fail "CHANGELOG.md missing v0.19.x entries"
         fi
     else
         check_fail "CHANGELOG.md not found"
