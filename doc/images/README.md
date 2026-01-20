@@ -17,20 +17,27 @@ automatically in VS Code, GitHub, and modern documentation sites.
 
 ### Architecture & Core Systems
 
-| Diagram                   | Description                                          | File                                                         |
-|---------------------------|------------------------------------------------------|--------------------------------------------------------------|
-| **Configuration System**  | 5-layer hierarchy (core→standard→local→customer→sid) | [config-workflow-highlevel.md](config-workflow-highlevel.md) |
-| **Configuration Details** | Internal function calls, variable export, cleanup    | [config-workflow-detailed.md](config-workflow-detailed.md)   |
-| **Plugin System**         | Plugin lifecycle, 8-function interface, integration  | [plugin-system.md](plugin-system.md)                         |
+| Diagram                         | Description                                          | File                                                         |
+|---------------------------------|------------------------------------------------------|--------------------------------------------------------------|
+| **System Architecture**         | Complete layered architecture with Registry API & plugins | [source/architecture-system.md](source/architecture-system.md) |
+| **Environment Libraries**       | Modular library system (parser, builder, validator) | [source/phase1-3-libraries.md](source/phase1-3-libraries.md) |
+| **Configuration System**        | 5-layer hierarchy (core→standard→local→customer→sid) | [config-workflow-highlevel.md](config-workflow-highlevel.md) |
+| **Configuration Hierarchy**     | 6-level config with processing libraries             | [source/config-hierarchy.md](source/config-hierarchy.md)     |
+| **Configuration Details**       | Internal function calls, variable export, cleanup    | [config-workflow-detailed.md](config-workflow-detailed.md)   |
+| **Configuration Sequence**      | Library-based config loading sequence diagram        | [source/config-sequence.md](source/config-sequence.md)       |
+| **Plugin System**               | Plugin lifecycle, 8-function interface, integration  | [plugin-system.md](plugin-system.md)                         |
+| **Registry API Flow**           | Unified installation metadata access                 | [registry-api-flow.md](registry-api-flow.md)                 |
 
 ### Workflows & Operations
 
-| Diagram             | Description                                      | File                                                         |
-|---------------------|--------------------------------------------------|--------------------------------------------------------------|
-| **oraenv Workflow** | Environment setup (interactive/non-interactive)  | [oraenv-workflow-highlevel.md](oraenv-workflow-highlevel.md) |
-| **oraenv Details**  | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md)   |
-| **oraup Workflow**  | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
-| **oraup Details**   | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
+| Diagram                  | Description                                      | File                                                         |
+|--------------------------|--------------------------------------------------|--------------------------------------------------------------|
+| **oraenv Workflow**      | Environment setup (interactive/non-interactive)  | [oraenv-workflow-highlevel.md](oraenv-workflow-highlevel.md) |
+| **oraenv Execution Flow** | Complete environment setup process              | [source/oraenv-flow.md](source/oraenv-flow.md)               |
+| **oraenv Details**       | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md)   |
+| **oraup Workflow**       | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
+| **oraup Details**        | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
+| **Installation Flow**    | Self-extracting installer with integrity check   | [source/installation-flow.md](source/installation-flow.md)   |
 
 **Viewing Mermaid Diagrams:**
 
@@ -63,15 +70,25 @@ Static diagrams for architecture documentation, exported from Excalidraw.
 ```text
 doc/images/                  # Images and diagrams (tracked in git)
 ├── *.png                    # Exported PNG diagrams (Excalidraw)
-├── *-workflow-*.md          # Mermaid workflow diagrams (NEW)
-├── plugin-system.md         # Mermaid plugin system diagram (NEW)
-├── config-workflow-*.md     # Mermaid config diagrams (NEW)
-├── source/                  # Excalidraw source files
-│   └── *.excalidraw         # Editable diagram sources
+├── *-workflow-*.md          # Mermaid workflow diagrams
+├── plugin-system.md         # Mermaid plugin system diagram
+├── config-workflow-*.md     # Mermaid config diagrams
+├── registry-api-flow.md     # Mermaid registry API flow
+├── source/                  # Source files for diagrams
+│   ├── *.excalidraw         # Editable Excalidraw sources (interactive)
+│   ├── diagrams-mermaid.md  # Legacy: All Mermaid diagrams in one file
+│   ├── architecture-system.md    # Mermaid: System architecture (NEW)
+│   ├── oraenv-flow.md            # Mermaid: oraenv execution flow (NEW)
+│   ├── phase1-3-libraries.md     # Mermaid: Library architecture (NEW)
+│   ├── config-hierarchy.md       # Mermaid: 6-level config (NEW)
+│   ├── installation-flow.md      # Mermaid: Installer process (NEW)
+│   └── config-sequence.md        # Mermaid: Config loading sequence (NEW)
 └── README.md                # This file
 
 src/doc/images/              # Build artifact (NOT tracked, copied during build)
 ```
+
+**New in v0.19.0+**: Individual Mermaid source files in `source/` directory for better organization and maintenance.
 
 ## Image Workflow
 
