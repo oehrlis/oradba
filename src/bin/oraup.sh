@@ -301,8 +301,9 @@ show_oracle_status_registry() {
             # Extract listener name (second-to-last field before -inherit flag)
             listener_name=$(echo "$listener_line" | awk '{print $(NF-1)}')
             
-            # Extract Oracle Home from ps output (path before /bin/tnslsnr)
-            listener_home=$(echo "$listener_line" | grep -o '[^ ]*bin/tnslsnr' | sed 's|/bin/tnslsnr||')
+            # Extract Oracle Home from ps output (full path to tnslsnr binary)
+            # ps output format: /path/to/oracle_home/bin/tnslsnr LISTENER -inherit
+            listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
             
             # Get detailed listener status, port, and protocol
             local lsnr_status="stopped"
