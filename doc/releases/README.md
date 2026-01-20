@@ -11,10 +11,13 @@ This directory contains release notes for OraDBA versions.
 
 ## Archived Releases
 
-- **Internal v1.x releases** (v1.0.0 through v1.2.2): Archived in [archive/v1-internal/](archive/v1-internal/)
-  - These were internal development versions that have been superseded by v0.19.0
 - **Older releases** (v0.9.4 through v0.18.5): Available in [archive/](archive/) directory
-- **Phase 4 development docs**: Architectural decision records in [archive/phase-4-development/](archive/phase-4-development/)
+- **Internal v1.x releases** (v1.0.0 through v1.2.2): Removed in v0.19.0+ cleanup
+  - These were internal development versions superseded by v0.19.0
+  - Available in git history if needed for reference
+- **Phase 4 development docs**: Removed in v0.19.0+ cleanup
+  - Architectural decisions integrated into main documentation
+  - Available in git history if needed for reference
 
 For a complete list of all releases, see [GitHub Releases](https://github.com/oehrlis/oradba/releases).
 
@@ -23,21 +26,19 @@ For a complete list of all releases, see [GitHub Releases](https://github.com/oe
 We maintain release notes for:
 
 - **Current version**: Latest stable release (v0.19.0)
-- **Internal v1.x**: Development versions archived in `archive/v1-internal/`
 - **Older versions**: Pre-v0.19.0 releases (v0.9.4 through v0.18.5) in `archive/` directory
-- **Development docs**: Phase 4 architectural records in `archive/phase-4-development/`
+- **Historical releases**: Internal v1.x and Phase 4 development docs removed (available in git history)
 
 ## Usage
 
 ### View Release Notes
 
-```bash9.0.md
+```bash
+# Current release
+cat doc/releases/v0.19.0.md
 
 # Archived release
 cat doc/releases/archive/v0.18.5.md
-
-# Internal v1.x release (archived)
-cat doc/releases/archive/v1-internal/v1.2.0.md
 ```
 
 ### Update GitHub Release
