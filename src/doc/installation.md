@@ -1,7 +1,6 @@
 # Installation
 
-**Purpose:** Complete installation guide for OraDBA, covering prerequisites, installation methods, and
-post-installation verification.
+**Purpose:** Complete installation guide for OraDBA v0.19.x, covering prerequisites, installation methods, and post-installation verification.
 
 **Audience:** System administrators and DBAs setting up OraDBA for the first time.
 
@@ -71,10 +70,49 @@ The check validates:
 
 OraDBA offers multiple installation methods to support different environments and use cases.
 
-![Installation Flow](images/installation-flow.png){ width=80% }
+```mermaid
+graph TB
+    Start[Choose Installation Method]
+    Quick[Quick Install<br/>Embedded Payload]
+    AirGap[Air-Gapped Install<br/>Embedded Payload]
+    Separate[Air-Gapped Install<br/>Separate Tarball]
+    GitHub[GitHub Repository<br/>Latest Development]
+    
+    Download[Download Installer]
+    Transfer[Transfer to Target]
+    Extract[Extract & Install]
+    Verify[Verify Installation]
+    Profile[Update Shell Profile]
+    Registry[Initialize Registry]
+    Done[Installation Complete]
+    
+    Start --> Quick
+    Start --> AirGap
+    Start --> Separate
+    Start --> GitHub
+    
+    Quick --> Download
+    AirGap --> Download
+    Separate --> Download
+    GitHub --> Download
+    
+    Download --> Transfer
+    Transfer --> Extract
+    Extract --> Verify
+    Verify --> Profile
+    Profile --> Registry
+    Registry --> Done
+    
+    style Start fill:#E6E6FA
+    style Quick fill:#87CEEB
+    style AirGap fill:#87CEEB
+    style Separate fill:#87CEEB
+    style GitHub fill:#87CEEB
+    style Done fill:#98FB98
+```
 
-The installation process automatically detects your environment, validates prerequisites, extracts
-files, and verifies integrity with SHA256 checksums.
+**Installation process:**  
+All methods follow the same core flow - download installer, transfer if needed, extract files, verify integrity with SHA256 checksums, update shell profile, and initialize Registry API for managing installations.
 
 ### Method 1: Quick Install with Embedded Payload (Recommended)
 
@@ -320,59 +358,6 @@ ansible-playbook -i inventory.ini deploy-oradba.yml -e "oradba_force_update=yes"
 #   └── files/
 #       └── oradba_install.sh  # Pre-downloaded from GitHub releases
 ```
-
-### Method 6: Parallel Installation with TVD BasEnv / DB*Star
-
-**Best for:** Environments using TVD BasEnv where OraDBA adds complementary features
-
-OraDBA can coexist with TVD BasEnv (DB*Star) without conflicts, operating as a non-invasive
-add-on.
-
-```bash
-# Standard installation - auto-detects BasEnv
-./oradba_install.sh --prefix /opt/oracle/local/oradba
-
-# Output shows detection:
-# [INFO] TVD BasEnv / DB*Star detected - enabling coexistence mode
-# [INFO] OraDBA will not override existing BasEnv aliases and settings
-# [INFO]   BE_HOME: /opt/oracle/local/dba
-```
-
-**Coexistence Behavior:**
-
-- **BasEnv has priority** - OraDBA acts as a non-invasive add-on
-- **No alias conflicts** - OraDBA skips aliases that exist in BasEnv
-- **Preserved settings** - PS1 prompt, BE_HOME, and BasEnv variables unchanged  
-- **Side-by-side operation** - Both toolsets work independently
-
-**Configuration File:** `etc/oradba_local.conf`
-
-```bash
-# Auto-configured during installation
-export ORADBA_COEXIST_MODE="basenv"   # or "standalone"
-ORADBA_BASENV_DETECTED="yes"
-
-# Optional: Force OraDBA aliases (overrides BasEnv)
-# Uncomment to create all aliases even if they exist in BasEnv
-# export ORADBA_FORCE=1
-```
-
-**Force Mode** (OraDBA aliases take priority):
-
-```bash
-# Edit configuration
-vi /opt/oracle/local/oradba/etc/oradba_local.conf
-
-# Uncomment:
-export ORADBA_FORCE=1
-
-# Re-source environment
-source /opt/oracle/local/oradba/bin/oraenv.sh
-```
-
-**Warning:** Force mode may override BasEnv functionality - use with caution.
-
-**See Also:** [Configuration - Coexistence Mode](configuration.md#coexistence-mode)
 
 ## Installation Scenarios
 

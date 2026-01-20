@@ -1,93 +1,263 @@
 # Environment Management
 
-**Purpose:** Comprehensive guide to `oraenv.sh` and `oradba_env.sh` - OraDBA's core components for managing Oracle
-database environments using the Environment Management library system.
+**Purpose:** Comprehensive guide to OraDBA v0.19.x environment management - Registry API, Plugin System, and the `oraenv.sh` command.
 
 **Audience:** All users - essential for daily OraDBA use.
 
 ## Introduction
 
-This chapter covers OraDBA's environment management system in detail. The system uses a wrapper pattern where
-`oraenv.sh` calls `oradba_env.sh`, which coordinates Environment Management libraries (oradba_env_*) to parse
-configuration, build the environment, and validate Oracle installations.
+OraDBA v0.19.x introduces a modern environment management system built on three key components:
+
+1. **Registry API**: Unified interface for all Oracle installations
+2. **Plugin System**: Product-specific intelligence for 8 Oracle product types
+3. **Environment Libraries**: Modular libraries for parsing, building, and validating environments
+
+This architecture replaces the old oratab-only approach with a comprehensive system that supports databases, clients, Data Safe connectors, OUD, Java, and more.
 
 ## Architecture Overview
 
-OraDBA's environment management consists of:
-
-- **oraenv.sh**: Lightweight wrapper script (user entry point)
-- **oradba_env.sh**: Main environment builder (coordinates libraries)
-- **Phase 1 (Parser)**: `oradba_env_parser.sh` - Parses and merges 6 config levels
-- **Phase 2 (Builder)**: `oradba_env_builder.sh` - Constructs Oracle environment
-- **Phase 3 (Validator/Status)**: Validates installation and displays status
-
-![oraenv.sh Flow](images/oraenv-flow.png){ width=80% }
-
-The flow diagram shows the complete process: wrapper → builder → parser → builder → validator → status
-display.
-
-## oraenv.sh - Wrapper Script
-
-The `oraenv.sh` script is the user-facing entry point. It provides a simple interface while delegating the heavy
-lifting to `oradba_env.sh` and Environment Management libraries.
-
-**Key features:**
-
-- Lightweight wrapper with minimal logic
-- Calls oradba_env.sh with SID or Oracle Home name
-- Supports interactive SID selection
-- Silent mode for scripting  
-- Compatible with existing workflows
-
-## Basic Usage
-
-### Setting Environment for Specific SID
-
-```bash
-# Set environment for FREE database (always use oraenv.sh to avoid conflict with Oracle's oraenv)
-source oraenv.sh FREE
-
-# Using full path
-source /opt/oradba/bin/oraenv.sh FREE
-
-# For convenience, add an alias to your profile
-alias oraenv='source /opt/oradba/bin/oraenv.sh'
+```mermaid
+graph TB
+    User[User Command<br/>source oraenv.sh]
+    Wrapper[oraenv.sh<br/>Wrapper Script]
+    Registry[Registry API<br/>oratab + oradba_homes.conf]
+    Parser[Environment Parser<br/>oradba_env_parser.sh]
+    Builder[Environment Builder<br/>oradba_env_builder.sh]
+    Plugins[Plugin System<br/>8 Product Types]
+    Validator[Environment Validator<br/>oradba_env_validator.sh]
+    Oracle[Oracle Products<br/>DB, Client, Data Safe, etc.]
+    
+    User --> Wrapper
+    Wrapper --> Registry
+    Registry --> Parser
+    Parser --> Builder
+    Builder --> Plugins
+    Plugins --> Validator
+    Validator --> Oracle
+    
+    style User fill:#E6E6FA
+    style Wrapper fill:#87CEEB
+    style Registry fill:#98FB98
+    style Parser fill:#DDA0DD
+    style Builder fill:#DDA0DD
+    style Plugins fill:#FFD700
+    style Validator fill:#DDA0DD
+    style Oracle fill:#FFB6C6
 ```
 
-### Interactive SID Selection
+**Flow:**
+1. User runs `source oraenv.sh <name>`
+2. Wrapper calls Registry API to resolve installation
+3. Parser loads and merges 6-level configuration
+4. Builder constructs environment with appropriate plugin
+5. Plugin sets product-specific variables (PATH, LD_LIBRARY_PATH, etc.)
+6. Validator verifies installation integrity
+7. Environment ready for Oracle operations
 
-When called without a SID, `oraenv.sh` displays available databases:
+## Registry API
+
+The Registry API provides a unified interface for managing all Oracle installations.
+
+### Automatic Database Discovery
+
+Databases are automatically synchronized from `/etc/oratab`:
+
+```bash
+# First login triggers auto-sync
+source oraenv.sh
+
+# Registry scans oratab:
+# FREE:/u01/app/oracle/product/23ai/dbhomeFree:N
+# TESTDB:/u01/app/oracle/product/19c/dbhome_1:N
+
+# Creates registry entries:
+# - FREE (database) → /u01/app/oracle/product/23ai/dbhomeFree
+# - TESTDB (database) → /u01/app/oracle/product/19c/dbhome_1
+
+# Deduplication by ORACLE_HOME path (multiple SIDs per home)
+# Names derived from directory: dbhomeFree, dbhome_1, etc.
+```
+
+### Manual Registration for Non-Database Products
+
+Register other Oracle products manually:
+
+```bash
+# Data Safe connector
+oradba_homes.sh add \
+  --name datasafe-prod \
+  --path /u01/app/oracle/datasafe-prod \
+  --type datasafe
+
+# Instant Client
+oradba_homes.sh add \
+  --name ic23c \
+  --path /usr/lib/oracle/23/client64 \
+  --type iclient
+
+# Oracle Unified Directory
+oradba_homes.sh add \
+  --name oud1 \
+  --path /u01/app/oracle/oud1 \
+  --type oud
+
+# Oracle Java
+oradba_homes.sh add \
+  --name java21 \
+  --path /u01/app/oracle/product/jdk-21 \
+  --type java
+```
+
+### Registry Storage
+
+The registry uses two data sources:
+
+**1. /etc/oratab (Databases)**
+```bash
+# Standard oratab format
+FREE:/u01/app/oracle/product/23ai/dbhomeFree:N
+TESTDB:/u01/app/oracle/product/19c/dbhome_1:N
+PRODDB:/u01/app/oracle/product/19c/dbhome_1:Y
+```
+
+**2. oradba_homes.conf (All Products)**
+```bash
+# Auto-generated and manually registered homes
+# Format: NAME|TYPE|PATH|VERSION|DESCRIPTION
+FREE|database|/u01/app/oracle/product/23ai/dbhomeFree|23.4.0.24.05|Auto-synced from oratab
+datasafe-prod|datasafe|/u01/app/oracle/datasafe-prod|1.2.0|Production Data Safe
+ic23c|iclient|/usr/lib/oracle/23/client64|23.0.0.0.0|Instant Client 23c
+java21|java|/u01/app/oracle/product/jdk-21|21.0.2|Oracle Java 21
+```
+
+## Plugin System
+
+Each Oracle product type has a dedicated plugin that handles product-specific operations.
+
+### Supported Product Types
+
+| Type | Plugin | Description | Full Support |
+|------|--------|-------------|--------------|
+| database | database.sh | Oracle Database (RDBMS) | ✅ Yes |
+| datasafe | datasafe.sh | Data Safe On-Premises Connector | ✅ Yes |
+| client | client.sh | Oracle Full Client | ✅ Yes |
+| iclient | iclient.sh | Oracle Instant Client | ✅ Yes |
+| oud | oud.sh | Oracle Unified Directory | ✅ Yes |
+| java | java.sh | Oracle Java (JDK/JRE) | ✅ Yes |
+| weblogic | weblogic.sh | WebLogic Server | ⚠️ Basic |
+| oms | oms.sh | Enterprise Manager OMS | ⚠️ Basic |
+| emagent | emagent.sh | Enterprise Manager Agent | ⚠️ Basic |
+
+### Plugin Interface
+
+All plugins implement 11 standard functions:
+
+```bash
+# Core Functions
+plugin_should_handle()           # Can this plugin handle this path?
+plugin_detect_installation()     # Detect product at this path
+plugin_get_version()             # Get product version
+plugin_validate_installation()   # Validate installation integrity
+
+# Environment Setup
+plugin_set_environment()         # Set environment variables
+plugin_get_path_entries()        # Get PATH entries
+plugin_get_ld_library_path()     # Get LD_LIBRARY_PATH entries
+
+# Status and Display
+plugin_should_show_listener()    # Does product have listener?
+plugin_get_product_display_name()# Get display name
+plugin_supports_service_management() # Supports start/stop?
+plugin_get_description()         # Get plugin description
+```
+
+### Plugin-Based Environment Setup
+
+When you run `source oraenv.sh <name>`, the system:
+
+1. **Resolves Name**: Registry API finds installation
+2. **Loads Plugin**: Appropriate plugin for product type
+3. **Validates**: Plugin verifies installation
+4. **Sets Variables**: Plugin-specific environment setup
+5. **Configures Paths**: PATH and LD_LIBRARY_PATH from plugin
+6. **Loads Config**: Applies configuration from 6-level hierarchy
+
+Example for database:
+```bash
+source oraenv.sh FREE
+
+# Plugin: database.sh
+# Sets: ORACLE_HOME, ORACLE_BASE, ORACLE_SID
+# PATH: $ORACLE_HOME/bin (prepended)
+# LD_LIBRARY_PATH: $ORACLE_HOME/lib
+# Listener: Yes (checks for listener)
+# Version: From $ORACLE_HOME/bin/sqlplus -V
+```
+
+Example for Instant Client:
+```bash
+source oraenv.sh ic23c
+
+# Plugin: iclient.sh
+# Sets: ORACLE_HOME (Instant Client path)
+# PATH: $ORACLE_HOME (prepended, no bin/ subdirectory)
+# LD_LIBRARY_PATH: $ORACLE_HOME
+# Listener: No
+# Version: From library filenames (libclntsh.so.23.1)
+```
+
+## Using oraenv.sh
+
+### Basic Usage
+
+Set environment for any registered installation:
+
+```bash
+# Database
+source oraenv.sh FREE
+
+# Data Safe connector
+source oraenv.sh datasafe-prod
+
+# Instant Client
+source oraenv.sh ic23c
+
+# Oracle Java
+source oraenv.sh java21
+
+# Interactive selection (shows all registered installations)
+source oraenv.sh
+```
+
+### Interactive Mode
+
+When called without arguments, shows all registered installations:
 
 ```bash
 $ source oraenv.sh
 
-Available Oracle SIDs from /etc/oratab:
-1) FREE      (/u01/app/oracle/product/19.0.0/dbhome_1)
-2) TESTDB    (/u01/app/oracle/product/19.0.0/dbhome_2)
-3) PRODDB    (/u01/app/oracle/product/21.0.0/dbhome_1)
+Available Oracle Installations:
+  [1] FREE (database) - /u01/app/oracle/product/23ai/dbhomeFree [23.4.0.24.05]
+  [2] TESTDB (database) - /u01/app/oracle/product/19c/dbhome_1 [19.23.0.0.0]
+  [3] datasafe-prod (datasafe) - /u01/app/oracle/datasafe-prod [1.2.0]
+  [4] ic23c (iclient) - /usr/lib/oracle/23/client64 [23.0.0.0.0]
+  [5] java21 (java) - /u01/app/oracle/product/jdk-21 [21.0.2]
 
-Select database (1-3): 1
+Select [1-5, or 0 to cancel]: 1
 
-Setting environment for ORACLE_SID: FREE
-[Database status information displayed]
+Setting environment for: FREE (database)
+ORACLE_SID set to: FREE
+ORACLE_HOME set to: /u01/app/oracle/product/23ai/dbhomeFree
 ```
-
-**Interactive mode features:**
-
-- Automatically detects TTY for interactive use
-- Shows ORACLE_HOME for each SID
-- Numbered selection for easy choice
-- Validates selection
-- Displays status after environment is set
 
 ### Silent Mode
 
-For scripts and automation, use silent mode to suppress all output:
+For scripts and automation:
 
 ```bash
 #!/usr/bin/env bash
 
-# Set environment silently (no output)
+# Set environment silently (no output except errors)
 source oraenv.sh FREE --silent
 
 # Verify environment
@@ -96,469 +266,423 @@ if [[ "$ORACLE_SID" != "FREE" ]]; then
     exit 1
 fi
 
-# Continue with database operations
-sqlplus / as sysdba <<EOF
+# Continue with operations
+sqlplus -S / as sysdba <<EOF
     SELECT name FROM v\$database;
     EXIT;
 EOF
 ```
 
-**Silent mode characteristics:**
+### Case-Insensitive Matching
 
-- No output to stdout or stderr (except errors)
-- Skips status display
-- Ideal for cron jobs and scripts
-- Still sets all environment variables
-- Returns appropriate exit codes
-
-### Status Display Only
-
-Display database status without changing environment:
+Installation names are case-insensitive:
 
 ```bash
-# Show status for current ORACLE_SID
-source oraenv.sh $ORACLE_SID --status
-
-# Show status for different SID (changes environment but focuses on status)
-source oraenv.sh FREE --status
+# All equivalent
+source oraenv.sh FREE
+source oraenv.sh free
+source oraenv.sh Free
 ```
 
-## Command-Line Options
+### Auto-Generated Aliases
+
+Each registered installation gets an automatic alias:
 
 ```bash
-source oraenv.sh [ORACLE_SID] [OPTIONS]
+# Aliases created automatically
+free              # source oraenv.sh FREE
+testdb            # source oraenv.sh TESTDB
+datasafe-prod     # source oraenv.sh datasafe-prod
+ic23c             # source oraenv.sh ic23c
 
-Arguments:
-  ORACLE_SID       Oracle System Identifier from oratab
-                   If omitted, shows interactive selection menu
+# Use them directly
+free
+echo $ORACLE_SID  # Shows: FREE
 
-Options:
-  --silent         Silent mode - no output (for scripts)
-  --status         Display database status after setting environment
-  --force          Force environment setup even if already set
-  --help, -h       Display help message
+datasafe-prod
+cmctl status      # Data Safe connector command
 ```
 
-## Environment Variables Set
-
-After running `oraenv.sh`, these variables are configured:
+## Environment Variables
 
 ### Core Oracle Variables
 
+Set for all product types:
+
 ```bash
-ORACLE_SID       # Oracle System Identifier (e.g., FREE)
-ORACLE_HOME      # Oracle installation directory
-ORACLE_BASE      # Oracle base directory (usually /u01/app/oracle)
-ORACLE_UNQNAME   # Unique database name (often same as ORACLE_SID)
+ORACLE_SID        # Installation name (e.g., FREE, datasafe-prod, ic23c)
+ORACLE_HOME       # Product installation path
+ORACLE_BASE       # Oracle base directory
+```
+
+### Database-Specific Variables
+
+Set by database plugin only:
+
+```bash
+ORACLE_UNQNAME    # Database unique name (from Registry or autodetection)
+TWO_TASK          # TNS connection alias
+ORACLE_TERM       # Terminal type for SQL*Plus
 ```
 
 ### Path Variables
 
-```bash
-PATH             # Updated with $ORACLE_HOME/bin
-LD_LIBRARY_PATH  # Oracle libraries (Linux/Unix)
-DYLD_LIBRARY_PATH # Oracle libraries (macOS)
-```
-
-### TNS and SQL Variables
+Set by all plugins (product-specific):
 
 ```bash
-TNS_ADMIN        # TNS configuration directory
-                 # Default: $ORACLE_HOME/network/admin
-SQLPATH          # SQL*Plus script directory
-                 # Default: $ORADBA_PREFIX/sql
-ORACLE_PATH      # Alternative to SQLPATH
-NLS_LANG         # Language and character set
-                 # Default: AMERICAN_AMERICA.AL32UTF8
-NLS_DATE_FORMAT  # Date format for SQL*Plus
-                 # Default: YYYY-MM-DD HH24:MI:SS
+PATH              # Includes product bin directory
+LD_LIBRARY_PATH   # Includes product lib directory
+SQLPATH           # SQL script search path (databases and clients)
+TNS_ADMIN         # SQL*Net configuration directory
 ```
 
 ### OraDBA Variables
 
-```bash
-ORADBA_PREFIX           # OraDBA installation directory
-ORADBA_VERSION          # OraDBA version number
-ORADBA_CONFIG_DIR       # Configuration directory
-ORADBA_ETC              # etc/ directory
-ORADBA_LOG              # log/ directory
-ORADBA_TEMP             # Temporary directory
-ORATAB_FILE             # oratab file location
-
-# SID-specific variables (set after SID config loads)
-ORADBA_ORA_ADMIN_SID    # $ORACLE_BASE/admin/$ORACLE_SID
-ORADBA_ORA_DIAG_SID     # Diagnostic directory
-ORADBA_SID_ALERTLOG     # Alert log file path
-ORADBA_DIAGNOSTIC_DEST  # Custom diagnostic destination (if configured)
-
-# Lists (generated from oratab and database)
-ORADBA_SIDLIST          # All SIDs from oratab
-ORADBA_REALSIDLIST      # Real SIDs (excludes DGMGRL dummy entries)
-ORADBA_PDBLIST          # PDBs in current CDB (if applicable)
-```
-
-### Verification Commands
+Set by OraDBA environment system:
 
 ```bash
-# Check all Oracle environment variables
-env | grep ORACLE
-
-# Check OraDBA variables
-env | grep ORADBA
-
-# Display current environment summary
-oraup.sh
+ORADBA_PREFIX     # OraDBA installation directory
+ORADBA_VERSION    # OraDBA version
+ORADBA_PRODUCT_TYPE  # Product type (database, datasafe, iclient, etc.)
+ORADBA_PRODUCT_VERSION # Product version
+ORADBA_PLUGIN_NAME    # Plugin handling this installation
 ```
 
-## Configuration Loading Sequence
+### NLS Variables
 
-When you source `oraenv.sh`, OraDBA loads configuration files in a hierarchical order:
-
-1. Core configuration (system defaults)
-2. Standard configuration (aliases and environment)
-3. Customer configuration (your global customizations)
-4. Default SID configuration (database defaults)
-5. SID-specific configuration (per-database settings)
-
-This allows default settings to work everywhere while enabling customization at multiple levels.
-
-For complete details on the configuration hierarchy, files, and variables, see [Configuration System](configuration.md).
-
-## Scripting with oraenv.sh
-
-### Basic Script Template
+Configured from oradba_standard.conf:
 
 ```bash
-#!/usr/bin/env bash
-# ------------------------------------------------------------------------------
-# Example: Database backup script using OraDBA
-# ------------------------------------------------------------------------------
-
-# Exit on error
-set -e
-
-# OraDBA configuration
-ORADBA_PREFIX="${ORADBA_PREFIX:-/opt/oradba}"
-ORACLE_SID="${1:-FREE}"
-
-# Set environment silently
-source "${ORADBA_PREFIX}/bin/oraenv.sh" "${ORACLE_SID}" --silent
-
-# Verify environment
-if [[ -z "${ORACLE_HOME}" ]]; then
-    echo "Error: Failed to set Oracle environment" >&2
-    exit 1
-fi
-
-# Perform database operations
-echo "Backing up database: ${ORACLE_SID}"
-rman target / <<RMAN
-BACKUP DATABASE;
-RMAN
-
-echo "Backup completed successfully"
+NLS_LANG="AMERICAN_AMERICA.AL32UTF8"
+NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"
+NLS_TIMESTAMP_FORMAT="YYYY-MM-DD HH24:MI:SS.FF"
+NLS_TIMESTAMP_TZ_FORMAT="YYYY-MM-DD HH24:MI:SS.FF TZH:TZM"
 ```
 
-### Error Handling
+## Environment Libraries
+
+OraDBA v0.19.x uses modular environment libraries:
+
+### Parser Library (oradba_env_parser.sh)
+
+Parses and merges 6-level configuration hierarchy:
 
 ```bash
-#!/usr/bin/env bash
-
-# Function to set environment with error handling
-set_oracle_env() {
-    local sid="$1"
-    local oradba_prefix="${ORADBA_PREFIX:-/opt/oradba}"
-    
-    # Check if oraenv.sh exists
-    if [[ ! -f "${oradba_prefix}/bin/oraenv.sh" ]]; then
-        echo "Error: oraenv.sh not found at ${oradba_prefix}/bin/" >&2
-        return 1
-    fi
-    
-    # Source oraenv.sh
-    # shellcheck source=/dev/null
-    source "${oradba_prefix}/bin/oraenv.sh" "${sid}" --silent
-    
-    # Verify environment was set
-    if [[ "${ORACLE_SID}" != "${sid}" ]]; then
-        echo "Error: Failed to set environment for ${sid}" >&2
-        return 1
-    fi
-    
-    return 0
-}
-
-# Usage
-if set_oracle_env "FREE"; then
-    echo "Environment set successfully for FREE"
-    sqlplus / as sysdba <<< "SELECT name FROM v\$database;"
-else
-    echo "Failed to set environment" >&2
-    exit 1
-fi
+# Functions:
+oradba_env_parse_config()         # Parse all config levels
+oradba_env_merge_configs()        # Merge configs with override logic
+oradba_env_load_config_file()     # Load single config file
+oradba_env_validate_config()      # Validate configuration values
 ```
 
-### Loop Through Multiple Databases
+### Builder Library (oradba_env_builder.sh)
+
+Constructs Oracle environment:
 
 ```bash
-#!/usr/bin/env bash
-
-# Load OraDBA
-ORADBA_PREFIX="/opt/oradba"
-source "${ORADBA_PREFIX}/lib/oradba_common.sh"
-
-# Generate SID list
-generate_sid_lists "/etc/oratab"
-
-# Loop through all databases
-for sid in ${ORADBA_REALSIDLIST}; do
-    echo "Processing database: ${sid}"
-    
-    # Set environment
-    source "${ORADBA_PREFIX}/bin/oraenv.sh" "${sid}" --silent
-    
-    # Run SQL query
-    sqlplus -S / as sysdba <<EOF
-SET HEADING OFF FEEDBACK OFF
-SELECT '${sid}: ' || name FROM v\$database;
-EXIT;
-EOF
-done
+# Functions:
+oradba_env_build()                # Build complete environment
+oradba_env_set_oracle_vars()      # Set Oracle variables
+oradba_env_configure_paths()      # Configure PATH and LD_LIBRARY_PATH
+oradba_env_load_plugins()         # Load and execute plugin
+oradba_env_generate_aliases()     # Generate installation aliases
 ```
 
-## Integration Scenarios
+### Validator Library (oradba_env_validator.sh)
 
-### Bash Profile Integration
-
-The installer can add OraDBA to your shell profile automatically. Manual setup:
+Validates installations:
 
 ```bash
-# ~/.bash_profile or ~/.bashrc
-
-# OraDBA configuration
-export ORADBA_PREFIX="/opt/oradba"
-
-# OraDBA environment integration (recommended)
-if [ -f "${ORADBA_PREFIX}/bin/oraenv.sh" ]; then
-    # Load first Oracle SID from oratab (silent mode)
-    source "${ORADBA_PREFIX}/bin/oraenv.sh" --silent
-    
-    # Show environment status on interactive shells
-    if [[ $- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then
-        oraup.sh
-    fi
-fi
+# Functions:
+oradba_env_validate()             # Validate installation
+oradba_env_check_oracle_home()    # Verify ORACLE_HOME
+oradba_env_check_permissions()    # Check file permissions
+oradba_env_verify_product()       # Verify product integrity
 ```
 
-### Cron Jobs
+### Config Library (oradba_env_config.sh)
+
+Manages configuration system:
 
 ```bash
-# Example: Daily backup at 2 AM
-# m h  dom mon dow   command
-0 2 * * * . /opt/oradba/bin/oraenv.sh FREE --silent && /backup/scripts/daily_backup.sh 2>&1 | tee -a /backup/logs/backup.log
+# Functions:
+oradba_env_get_config_value()     # Get config value
+oradba_env_set_config_value()     # Set config value
+oradba_env_list_config_files()    # List all config files
+oradba_env_reload_config()        # Reload configuration
 ```
 
-**Cron job best practices:**
+### Status Library (oradba_env_status.sh)
 
-- Always source oraenv.sh with --silent
-- Use full paths to scripts
-- Redirect output to log files
-- Set explicit ORADBA_PREFIX if needed
-- Test scripts manually first
-
-### Systemd Service
-
-```ini
-[Unit]
-Description=Oracle Database %I Service
-After=network.target
-
-[Service]
-Type=forking
-User=oracle
-Group=oinstall
-Environment="ORADBA_PREFIX=/opt/oradba"
-ExecStart=/bin/bash -c 'source /opt/oradba/bin/oraenv.sh %i --silent && ${ORACLE_HOME}/bin/dbstart ${ORACLE_HOME}'
-ExecStop=/bin/bash -c 'source /opt/oradba/bin/oraenv.sh %i --silent && ${ORACLE_HOME}/bin/dbshut ${ORACLE_HOME}'
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Usage:
+Displays environment status:
 
 ```bash
-# Start database FREE
-sudo systemctl start oracle@FREE
-
-# Enable auto-start
-sudo systemctl enable oracle@FREE
+# Functions:
+oradba_env_show_status()          # Show current environment
+oradba_env_show_installation()    # Show installation details
+oradba_env_list_installations()   # List all registrations
+oradba_env_show_plugin_info()     # Show plugin information
 ```
 
-### SSH Remote Execution
+### Changes Library (oradba_env_changes.sh)
+
+Tracks configuration changes:
 
 ```bash
-# Execute SQL on remote host
-ssh oracle@dbserver 'source /opt/oradba/bin/oraenv.sh FREE --silent && sqlplus -S / as sysdba <<< "SELECT name FROM v\$database;"'
+# Functions:
+oradba_env_detect_changes()       # Detect config changes
+oradba_env_auto_reload()          # Auto-reload if changed
+oradba_env_track_modification()   # Track file modifications
+oradba_env_get_change_status()    # Get change status
 ```
 
 ## Advanced Usage
 
-### Custom oratab Location
+### Switching Between Installations
 
 ```bash
-# Set custom oratab file
-export ORATAB_FILE="/custom/path/oratab"
-source oraenv.sh FREE
-```
-
-### Debug Mode
-
-Enable detailed debugging output:
-
-```bash
-# Set DEBUG variable before sourcing
-export DEBUG=1
+# Switch to database
 source oraenv.sh FREE
 
-# Or set in configuration file
-echo "DEBUG=1" >> ~/.oradba_config
+# Switch to Instant Client
+source oraenv.sh ic23c
+
+# Switch to Data Safe
+source oraenv.sh datasafe-prod
+
+# Each switch:
+# - Clears previous environment
+# - Loads appropriate plugin
+# - Sets product-specific variables
+# - Configures paths correctly
 ```
 
-### Force Environment Reload
+### Verify Current Environment
 
 ```bash
-# Force reload even if ORACLE_SID is already set
-source oraenv.sh FREE --force
-```
-
-## Environment Verification
-
-After setting your environment, verify it's correct:
-
-```bash
-# Quick check
-echo "ORACLE_SID: $ORACLE_SID"
-echo "ORACLE_HOME: $ORACLE_HOME"
-
-# Comprehensive check using oraup.sh
+# Show current environment
 oraup.sh
 
-# Detailed status
-dbstatus.sh
+# Or use alias
+u
 
-# Test SQL*Plus connection
-sqlplus -V
-sqlplus / as sysdba <<< "SELECT name, open_mode FROM v\$database;"
+# Shows:
+# - Current ORACLE_SID/installation name
+# - Product type and version
+# - ORACLE_HOME and ORACLE_BASE
+# - Product-specific status (database state, connector status, etc.)
+# - All registered installations
 ```
 
-## Common Environment Variables Reference
+### List All Registered Installations
 
-### Standard Oracle Variables
+```bash
+# Simple list
+oradba_homes.sh list
 
-| Variable         | Description                | Example Value                             |
-|------------------|----------------------------|-------------------------------------------|
-| `ORACLE_SID`     | System Identifier          | `FREE`                                    |
-| `ORACLE_HOME`    | Installation directory     | `/u01/app/oracle/product/19.0.0/dbhome_1` |
-| `ORACLE_BASE`    | Base directory             | `/u01/app/oracle`                         |
-| `ORACLE_UNQNAME` | Unique database name       | `FREE` (or `FREE_STBY` for standby)       |
-| `TNS_ADMIN`      | TNS configuration location | `$ORACLE_HOME/network/admin`              |
+# Detailed list
+oradba_homes.sh list --verbose
 
-### NLS Variables
+# Filter by type
+oradba_homes.sh list --type database
+oradba_homes.sh list --type datasafe
+oradba_homes.sh list --type iclient
+```
 
-| Variable               | Description                | Default Value               |
-|------------------------|----------------------------|-----------------------------|
-| `NLS_LANG`             | Language and character set | `AMERICAN_AMERICA.AL32UTF8` |
-| `NLS_DATE_FORMAT`      | Date display format        | `YYYY-MM-DD HH24:MI:SS`     |
-| `NLS_TIMESTAMP_FORMAT` | Timestamp format           | `YYYY-MM-DD HH24:MI:SS.FF`  |
+### Show Installation Details
 
-### OraDBA Variables
+```bash
+# Show details for specific installation
+oradba_homes.sh show FREE
 
-| Variable         | Description             | Example Value        |
-|------------------|-------------------------|----------------------|
-| `ORADBA_PREFIX`  | Installation directory  | `/opt/oradba`        |
-| `ORADBA_VERSION` | Version number          | `0.7.4`              |
-| `ORADBA_ETC`     | Configuration directory | `$ORADBA_PREFIX/etc` |
-| `ORADBA_LOG`     | Log directory           | `$ORADBA_PREFIX/log` |
-| `ORADBA_SIDLIST` | All SIDs from oratab    | `FREE TESTDB PRODDB` |
+# Output:
+# Installation: FREE
+# Type: database
+# ORACLE_HOME: /u01/app/oracle/product/23ai/dbhomeFree
+# Version: 23.4.0.24.05
+# Plugin: database.sh
+# Status: OPEN
+# Description: Auto-synced from oratab
+```
+
+### Sync Database Homes from Oratab
+
+```bash
+# Manual sync (automatic on first login)
+oradba_homes.sh sync-oratab
+
+# Shows:
+# Syncing database homes from /etc/oratab...
+# Found: FREE → /u01/app/oracle/product/23ai/dbhomeFree
+# Found: TESTDB → /u01/app/oracle/product/19c/dbhome_1
+# Deduplicating by ORACLE_HOME...
+# Added: FREE (database)
+# Skipped: TESTDB (already registered)
+# Sync complete: 1 added, 1 skipped
+```
+
+## Product-Specific Examples
+
+### Database Environment
+
+```bash
+source oraenv.sh FREE
+
+# Variables set:
+# ORACLE_SID=FREE
+# ORACLE_HOME=/u01/app/oracle/product/23ai/dbhomeFree
+# ORACLE_BASE=/u01/app/oracle
+# PATH includes: $ORACLE_HOME/bin
+# LD_LIBRARY_PATH includes: $ORACLE_HOME/lib
+
+# Database operations:
+sqlplus / as sysdba
+rman target /
+lsnrctl status
+```
+
+### Data Safe Environment
+
+```bash
+source oraenv.sh datasafe-prod
+
+# Variables set:
+# ORACLE_SID=datasafe-prod
+# ORACLE_HOME=/u01/app/oracle/datasafe-prod
+# PATH includes: $ORACLE_HOME/bin
+# LD_LIBRARY_PATH includes: $ORACLE_HOME/lib
+
+# Data Safe operations:
+cmctl status
+cmctl start
+cmctl stop
+```
+
+### Instant Client Environment
+
+```bash
+source oraenv.sh ic23c
+
+# Variables set:
+# ORACLE_SID=ic23c
+# ORACLE_HOME=/usr/lib/oracle/23/client64
+# PATH includes: $ORACLE_HOME (no bin/ subdirectory)
+# LD_LIBRARY_PATH includes: $ORACLE_HOME
+# SQLPATH includes: OraDBA SQL scripts
+
+# Client operations:
+sqlplus64 username/password@remote_db
+sqlldr64 control=loader.ctl
+```
+
+### Oracle Java Environment
+
+```bash
+source oraenv.sh java21
+
+# Variables set:
+# ORACLE_SID=java21
+# ORACLE_HOME=/u01/app/oracle/product/jdk-21
+# PATH includes: $ORACLE_HOME/bin
+# LD_LIBRARY_PATH includes: $ORACLE_HOME/lib
+
+# Java operations:
+java -version
+javac MyApp.java
+```
+
+## Configuration System Integration
+
+The environment system integrates with the 6-level configuration hierarchy:
+
+1. **oradba_core.conf**: Core OraDBA settings
+2. **oradba_standard.conf**: Standard Oracle variables and aliases
+3. **oradba_local.conf**: Auto-detected local settings
+4. **oradba_customer.conf**: Global customizations
+5. **sid._DEFAULT_.conf**: Default template for all installations
+6. **sid.\<name>.conf**: Installation-specific settings
+
+Example custom configuration:
+
+```bash
+# In oradba_customer.conf:
+export NLS_LANG="GERMAN_GERMANY.UTF8"
+export ORACLE_BASE="/opt/oracle"
+export TNS_ADMIN="/opt/oracle/network/admin"
+
+# In sid.FREE.conf:
+export ORACLE_UNQNAME="FREE_SITE1"
+export TWO_TASK="FREE_REMOTE"
+```
+
+See [Configuration System](configuration.md) for complete details.
 
 ## Troubleshooting
 
-### oraenv.sh not found
+### Installation Not Found
 
 ```bash
-# Check installation
-ls -l /opt/oradba/bin/oraenv.sh
+$ source oraenv.sh MISSING
 
-# Use full path
-source /opt/oradba/bin/oraenv.sh FREE
+Error: Installation 'MISSING' not found in registry
 
-# Add to PATH
-export PATH="/opt/oradba/bin:$PATH"
+# Solutions:
+# 1. List available installations
+oradba_homes.sh list
+
+# 2. Register if missing
+oradba_homes.sh add --name MISSING --path /path/to/oracle_home --type database
+
+# 3. Sync from oratab (for databases)
+oradba_homes.sh sync-oratab
 ```
 
-### ORACLE_SID not in oratab
+### Wrong Product Type Detected
 
 ```bash
-# Check oratab file
-cat /etc/oratab | grep FREE
+# View current detection
+oradba_homes.sh show MYDB
 
-# Verify oratab location
-echo $ORATAB_FILE
-
-# Check for typos in SID name
+# Re-register with correct type
+oradba_homes.sh remove --name MYDB
+oradba_homes.sh add --name MYDB --path /path --type datasafe
 ```
 
-### Environment not persisting
+### Plugin Not Loading
 
 ```bash
-# Remember: Use 'source' not 'sh' or 'bash'
-# WRONG:
-sh oraenv.sh FREE          # Creates subshell, environment lost
-./oraenv.sh FREE           # Same problem
+# Check plugin availability
+ls -1 $ORADBA_PREFIX/lib/plugins/
 
-# CORRECT:
-source oraenv.sh FREE      # Runs in current shell
-. oraenv.sh FREE           # Same (POSIX syntax)
+# Verify plugin version
+grep "PLUGIN_VERSION" $ORADBA_PREFIX/lib/plugins/database.sh
+
+# Enable debug mode
+export ORADBA_DEBUG=true
+source oraenv.sh FREE
 ```
 
-### PDB aliases not created
+### Environment Not Persisting
 
 ```bash
-# Check if database is CDB
-sqlplus / as sysdba <<< "SELECT CDB FROM v\$database;"
+# Ensure you're using 'source' not direct execution
+source oraenv.sh FREE  # ✅ Correct
+./oraenv.sh FREE       # ❌ Wrong - creates subshell
 
-# Check if ORADBA_NO_PDB_ALIASES is set
-echo $ORADBA_NO_PDB_ALIASES
-
-# Manually regenerate PDB aliases
-source $ORADBA_PREFIX/lib/oradba_common.sh
-generate_pdb_aliases
+# Add to shell profile for persistence
+echo 'source /opt/oradba/bin/oraenv.sh FREE' >> ~/.bashrc
 ```
 
-See the [Troubleshooting Guide](troubleshooting.md) for more solutions.
+See [Troubleshooting Guide](troubleshooting.md) for more solutions.
 
-## Best Practices
+## Next Steps
 
-1. **Always use 'source'** - Never run oraenv.sh as a script (./oraenv.sh)
-2. **Use --silent in scripts** - Prevents output interference
-3. **Verify after setting** - Check $ORACLE_SID matches expectation
-4. **Use full paths in cron** - Don't rely on $PATH in cron jobs
-5. **Test interactively first** - Before adding to scripts or cron
-6. **Keep oratab updated** - Ensure all databases are listed
-7. **Use consistent naming** - SID names should be meaningful
-8. **Document custom configs** - Comment SID-specific settings
+- **[Configuration System](configuration.md)** - Customize environment and aliases
+- **[Quick Start](quickstart.md)** - Get started quickly
+- **[Aliases](aliases.md)** - Learn 50+ pre-configured aliases
+- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
-## See Also {.unlisted .unnumbered}
-
-- [Configuration](configuration.md) - Customize OraDBA settings
-- [Aliases](aliases.md) - 50+ convenient aliases
-- [PDB Aliases](pdb-aliases.md) - Pluggable database shortcuts
-- [Troubleshooting](troubleshooting.md) - Solve common issues
-- [Usage Examples](usage.md) - Practical scenarios
-
-## Navigation {.unlisted .unnumbered}
+## Navigation
 
 **Previous:** [Quick Start](quickstart.md)  
 **Next:** [Configuration System](configuration.md)

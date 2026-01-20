@@ -1,15 +1,14 @@
 # Configuration System
 
-**Purpose:** Comprehensive guide to OraDBA's hierarchical configuration system implemented in Phase 1-4
-(v0.19.0-v0.22.0) - the canonical reference for all configuration files, variables, and customization options.
+**Purpose:** Comprehensive guide to OraDBA v0.19.x hierarchical configuration system - the canonical reference for all configuration files, variables, and customization options.
 
-**Audience:** Users who need to customize OraDBA behavior, paths, or database-specific settings.
+**Audience:** Users who need to customize OraDBA behavior, paths, or installation-specific settings.
 
 ## Introduction
 
-OraDBA uses a sophisticated library-based configuration system powered by the Environment Management libraries
-(oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates
-configuration from six sources, allowing you to customize globally or per-database without modifying base files.
+OraDBA uses a sophisticated library-based configuration system powered by Environment Management libraries (oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates configuration from six sources, allowing you to customize globally or per-installation without modifying base files.
+
+This configuration system works with all 8 supported product types: databases, Data Safe connectors, Oracle clients, Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
 
 ## Configuration Hierarchy
 
@@ -20,19 +19,45 @@ earlier settings:
 2. **oradba_standard.conf** - Standard environment and aliases (required, don't modify)
 3. **oradba_local.conf** - Auto-detected local settings (auto-generated, don't modify)
 4. **oradba_customer.conf** - Your global custom settings (optional, **recommended for customization**)
-5. **sid._DEFAULT_.conf** - Default template for all databases (optional)
-6. **sid.<ORACLE_SID>.conf** - Database-specific settings (optional, auto-created from
-   template)
+5. **sid._DEFAULT_.conf** - Default template for all installations (optional)
+6. **sid.<NAME>.conf** - Installation-specific settings (optional, auto-created from template)
 
-![Configuration Hierarchy](images/config-hierarchy.png){ width=80% }
+```mermaid
+graph TB
+    Core["1. oradba_core.conf<br/>(Core Settings)"]
+    Standard["2. oradba_standard.conf<br/>(Standard Env)"]
+    Local["3. oradba_local.conf<br/>(Auto-detected)"]
+    Customer["4. oradba_customer.conf<br/>(Your Global Settings)"]
+    Default["5. sid._DEFAULT_.conf<br/>(Installation Defaults)"]
+    SID["6. sid.<NAME>.conf<br/>(Installation Specific)"]
+    
+    Core --> Standard
+    Standard --> Local
+    Local --> Customer
+    Customer --> Default
+    Default --> SID
+    
+    Parser[oradba_env_parser.sh<br/>Parses & Merges]
+    Builder[oradba_env_builder.sh<br/>Builds Environment]
+    Validator[oradba_env_validator.sh<br/>Validates Installation]
+    
+    SID --> Parser
+    Parser --> Builder
+    Builder --> Validator
+    
+    style Core fill:#FFE4E1
+    style Standard fill:#FFE4E1
+    style Local fill:#E0FFE0
+    style Customer fill:#87CEEB
+    style Default fill:#FFF8DC
+    style SID fill:#FFF8DC
+    style Parser fill:#DDA0DD
+    style Builder fill:#DDA0DD
+    style Validator fill:#DDA0DD
+```
 
-The diagram illustrates the 6-level configuration hierarchy with Environment Management library processing. The Parser
-reads all levels, the Builder constructs the environment, and the Validator verifies Oracle installations.
-
-![Configuration Load Sequence](images/config-sequence.png){ width=80% }
-
-The sequence diagram shows the library-based processing: oraenv.sh wrapper → oradba_env.sh builder → Environment
-Management libraries (Parser, Builder, Validator) working together to create the final environment.
+**Configuration processing:**  
+The Parser reads all 6 levels and merges them with later levels overriding earlier ones. The Builder constructs the environment using the merged configuration and the appropriate product plugin. The Validator verifies installation integrity.
 
 **Key Benefits:**
 
@@ -57,7 +82,7 @@ Management libraries (Parser, Builder, Validator) working together to create the
 # Installation paths
 ORADBA_PREFIX="/opt/oradba"                    # Installation directory
 ORADBA_LOCAL_BASE="/opt"                       # Parent directory (auto-detected)
-ORADBA_BASE="${ORADBA_PREFIX}"                 # Alias for TVD BasEnv compatibility
+ORADBA_BASE="${ORADBA_PREFIX}"                 # Alias to ORADBA_PREFIX
 ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
 ORADBA_BIN_DIR="${ORADBA_PREFIX}/bin"
 ORATAB_FILE="/etc/oratab"
@@ -137,13 +162,13 @@ instead to preserve your changes during updates.
 ```bash
 # Installation detection
 ORADBA_PREFIX="/opt/oradba"
-ORADBA_INSTALL_TYPE="standalone"    # or "coexist"
-ORADBA_INSTALL_DATE="2026-01-14"
-ORADBA_VERSION="0.22.0"
+ORADBA_INSTALL_TYPE="standalone"
+ORADBA_INSTALL_DATE="2025-01-14"
+ORADBA_VERSION="0.19.5"
 
-# Coexistence mode (if TVD BasEnv detected)
-ORADBA_COEXIST_MODE="basenv"        # Present if BasEnv installed
-BE_HOME="/opt/tvd/basenv"           # BasEnv installation path
+# System detection
+DETECTED_SHELL="bash"
+DETECTED_OS="Linux"
 ```
 
 **When to Edit:** Never - this file is auto-generated and auto-maintained. If you need to override these settings, use `oradba_customer.conf`.
@@ -235,64 +260,71 @@ cp ${ORADBA_PREFIX}/templates/etc/oradba_customer.conf.example \
 vi ${ORADBA_PREFIX}/etc/oradba_customer.conf
 ```
 
-### sid._DEFAULT_.conf - Database Defaults
+### sid._DEFAULT_.conf - Installation Defaults
 
 **Location:** `${ORADBA_PREFIX}/etc/sid._DEFAULT_.conf`
 
-**Purpose:** Default settings that apply to all databases (unless overridden per-SID)
+**Purpose:** Default settings that apply to all installations (unless overridden per-installation)
 
 **Example Configuration:**
 
 ```bash
 # ==============================================================================
-# Default Database Configuration
-# Applied to all SIDs unless overridden in sid.<ORACLE_SID>.conf
+# Default Installation Configuration
+# Applied to all installations unless overridden in sid.<NAME>.conf
 # ==============================================================================
 
-# --- Database Identity ---
+# --- Installation Identity ---
+ORADBA_INST_NAME="${ORACLE_SID}"
+ORADBA_INST_TYPE="unknown"  # Set by plugin: database, datasafe, iclient, etc.
+
+# --- Database-Specific Settings (for product type: database) ---
 ORADBA_DB_NAME="${ORACLE_SID}"
 ORADBA_DB_UNIQUE_NAME="${ORACLE_SID}"
 ORADBA_DB_ROLE="PRIMARY"
 ORADBA_CONNECT_TYPE="LOCAL"
 
 # --- Backup Settings ---
-ORADBA_DB_BACKUP_DIR="${BACKUP_DIR}/${ORACLE_SID}"
+ORADBA_BACKUP_DIR="${BACKUP_DIR}/${ORACLE_SID}"
 ORADBA_BACKUP_RETENTION=7
 ORADBA_BACKUP_TYPE="INCREMENTAL"
 ORADBA_BACKUP_COMPRESSION="MEDIUM"
 
 # --- Diagnostic Settings ---
-ORADBA_DIAGNOSTIC_DEST="${ORACLE_BASE}/diag/rdbms/${ORACLE_SID,,}/${ORACLE_SID}"
+ORADBA_DIAGNOSTIC_DEST="${ORACLE_BASE}/diag"
 ORADBA_ARCHIVE_DEST="/u01/app/oracle/archive/${ORACLE_SID}"
 ```
 
-**When to Edit:** Modify to set defaults that apply to all your databases.
-Individual databases can override in their own sid configs.
+**When to Edit:** Modify to set defaults that apply to all your installations. Individual installations can override in their own sid configs.
 
-### sid.<ORACLE_SID>.conf - Database-Specific Settings
+### sid.<NAME>.conf - Installation-Specific Settings
 
-**Location:** `${ORADBA_PREFIX}/etc/sid.<ORACLE_SID>.conf`
+**Location:** `${ORADBA_PREFIX}/etc/sid.<NAME>.conf`
 
-**Purpose:** Settings specific to one database, with auto-populated metadata
+**Purpose:** Settings specific to one installation (database, Data Safe connector, etc.)
 
 **Auto-Creation:** Automatically created on first environment switch if `ORADBA_AUTO_CREATE_SID_CONFIG=true`
 
-**Example (sid.FREE.conf):**
+**Example for Database (sid.FREE.conf):**
 
 ```bash
 # ==============================================================================
-# OraDBA SID Configuration: FREE
-# Auto-created: 2025-12-18 10:30:00
-# Last updated: 2025-12-18 10:30:00
+# OraDBA Installation Configuration: FREE
+# Product Type: database
+# Auto-created: 2025-01-14 10:30:00
+# Last updated: 2025-01-14 10:30:00
 # ==============================================================================
 
-# --- Database Identity (Auto-populated from v$database) ---
+# --- Installation Identity ---
+ORADBA_INST_NAME="FREE"
+ORADBA_INST_TYPE="database"
+
+# --- Database Identity (Auto-populated for databases) ---
 ORADBA_DB_NAME="FREE"
 ORADBA_DB_UNIQUE_NAME="FREE"
 ORADBA_DBID="3456789012"
 ORADBA_DB_ROLE="PRIMARY"
-ORADBA_DB_VERSION="19.0.0.0.0"
-ORADBA_DB_OPEN_MODE="READ WRITE"
+ORADBA_DB_VERSION="23.4.0.24.05"
 
 # --- Connection Settings ---
 ORADBA_TNS_ALIAS="FREE"
@@ -580,77 +612,41 @@ ORADBA_RLWRAP_FILTER="true"
 
 See [rlwrap Filter Configuration](rlwrap.md) for setup details.
 
-### Scenario 7: Auto-Discovery of Running Instances (v1.0.0+)
+### Scenario 7: Managing Non-Database Products
 
-**Problem:** Working with Oracle instances that aren't registered in oratab,
-or oratab is empty
+**Problem:** Want to configure Data Safe connector or Instant Client with custom settings
 
-**Solution:** Auto-discovery is enabled by default. When oraenv.sh is sourced
-and no instances are found in oratab, OraDBA automatically detects running
-Oracle processes (db_smon, ora_pmon, asm_smon) for the current user and
-extracts their ORACLE_HOME.
+**Solution:** Create installation-specific configuration files for any product type.
 
-**How it works:**
-
-1. Checks for existing oratab entries
-2. If empty or SID not found, scans for running Oracle processes
-3. Extracts ORACLE_HOME from `/proc/<pid>/exe` symlink
-4. Attempts to persist discovered instances to oratab
-5. Falls back to local oratab if system oratab is not writable
-
-**Example - First login with empty oratab:**
+**Example - Data Safe Connector:**
 
 ```bash
-$ source oraenv.sh
+# sid.datasafe-prod.conf
+ORADBA_INST_NAME="datasafe-prod"
+ORADBA_INST_TYPE="datasafe"
 
-[INFO] No Oracle instances or homes found in /etc/oratab
-[INFO] Discovering running Oracle instances...
-[INFO] Auto-discovered Oracle instance: FREE (/u01/app/oracle/product/23ai/dbhomeFree)
-[INFO] Discovered 1 running Oracle instance(s)
-[WARN] Cannot write to system oratab: /etc/oratab (permission denied)
-[WARN] Falling back to local oratab: /opt/oradba/etc/oratab
-[INFO] Added FREE to local oratab: /opt/oradba/etc/oratab
-[WARN] ACTION REQUIRED: Manually sync entries from /opt/oradba/etc/oratab to /etc/oratab
-[WARN] Suggested command: sudo cat /opt/oradba/etc/oratab >> /etc/oratab
-[INFO] ORATAB_FILE updated to: /opt/oradba/etc/oratab (current session only)
+# Custom startup behavior
+ORADBA_AUTO_START="true"
+ORADBA_STARTUP_WAIT=30
 
-Select Oracle SID or Oracle Home:
-  [1] FREE (/u01/app/oracle/product/23ai/dbhomeFree)
-Selection [1-1, or 0 to cancel]: 1
+# Monitoring
+ORADBA_HEALTH_CHECK_ENABLED="true"
+ORADBA_HEALTH_CHECK_INTERVAL=300
 ```
 
-**Disable auto-discovery:**
+**Example - Instant Client:**
 
 ```bash
-# oradba_customer.conf
-ORADBA_AUTO_DISCOVER_INSTANCES="false"
+# sid.ic23c.conf
+ORADBA_INST_NAME="ic23c"
+ORADBA_INST_TYPE="iclient"
+
+# Custom TNS settings
+TNS_ADMIN="/opt/oracle/network/admin"
+
+# Connection pooling
+ORADBA_CONNECTION_POOL_SIZE=10
 ```
-
-**Security Note:** Auto-discovery only detects Oracle processes running as the
-current user. Processes owned by other users are detected but not included
-(a warning is logged).
-
-**Persistence Behavior:**
-
-- **With write permission**: Discovered instances are added directly to system
-  oratab (`/etc/oratab`)
-- **Without write permission**: Falls back to local oratab
-  (`${ORADBA_PREFIX}/etc/oratab`) and updates `ORATAB_FILE` for current session
-- **Duplicate prevention**: Checks before adding - won't duplicate existing
-  entries
-
-**Manual sync after permission-denied fallback:**
-
-```bash
-# As root or with sudo
-sudo cat /opt/oradba/etc/oratab >> /etc/oratab
-
-# Verify
-cat /etc/oratab | grep FREE
-```
-
-See [Troubleshooting Guide](troubleshooting.md#auto-discovery-issues)
-for common auto-discovery scenarios and solutions.
 
 ## Configuration Variables Reference
 
@@ -671,9 +667,8 @@ for common auto-discovery scenarios and solutions.
 | Variable                            | Default | Description                                        |
 |-------------------------------------|---------|----------------------------------------------------|
 | `ORADBA_LOAD_ALIASES`               | `true`  | Load aliases and functions                         |
-| `ORADBA_SHOW_DB_STATUS`             | `true`  | Show database status on environment switch         |
-| `ORADBA_AUTO_CREATE_SID_CONFIG`     | `true`  | Auto-create SID configurations (real SIDs only)    |
-| `ORADBA_AUTO_DISCOVER_INSTANCES`    | `true`  | Auto-discover running Oracle instances (v1.0.0+)   |
+| `ORADBA_SHOW_DB_STATUS`             | `true`  | Show status display on environment switch          |
+| `ORADBA_AUTO_CREATE_SID_CONFIG`     | `true`  | Auto-create installation configurations            |
 | `ORADBA_RLWRAP_FILTER`              | `false` | Enable password filtering in rlwrap                |
 | `ORADBA_AUTO_DISCOVER_EXTENSIONS`   | `true`  | Auto-discover extensions in standard locations     |
 
@@ -791,226 +786,79 @@ across shells:
 export MY_CUSTOM_VAR="value"  # Use 'export' for environment variables
 ```
 
-## Coexistence Mode
-
-### Overview
-
-OraDBA can be installed alongside TVD BasEnv and DB*Star toolsets. When both are
-present, OraDBA automatically operates in **coexistence mode** with BasEnv having
-priority.
-
-**Detection:** Auto-detected during installation by checking for:
-
-- `.BE_HOME` file in `${HOME}`
-- `.TVDPERL_HOME` file in `${HOME}`
-- `BE_HOME` environment variable
-
-**Behavior:** OraDBA becomes a non-invasive add-on, skipping aliases that already exist in BasEnv.
-
-### Configuration File
-
-Coexistence settings are stored in `etc/oradba_local.conf` (auto-generated during installation):
-
-```bash
-# ------------------------------------------------------------------------------
-# OraDBA Local Configuration
-# ------------------------------------------------------------------------------
-# Auto-generated during installation
-
-# Coexistence mode (auto-detected)
-export ORADBA_COEXIST_MODE="basenv"    # or "standalone"
-
-# Installation metadata
-ORADBA_INSTALL_DATE="2026-01-02T10:30:00Z"
-ORADBA_INSTALL_VERSION="0.10.5"
-ORADBA_INSTALL_METHOD="embedded"
-ORADBA_BASENV_DETECTED="yes"
-
-# Force mode: Override coexistence restrictions
-# Uncomment to create all OraDBA aliases even when they exist in BasEnv
-# Warning: May override BasEnv aliases - use with caution
-# export ORADBA_FORCE=1
-```
-
-### Coexistence Mode Values
-
-**`standalone` (default):**
-
-- No other toolsets detected
-- OraDBA has full control
-- All aliases and features enabled
-
-**`basenv`:**
-
-- TVD BasEnv / DB*Star detected
-- OraDBA skips conflicting aliases
-- BasEnv settings preserved (PS1, BE_HOME, etc.)
-- Minimal footprint
-
-### Alias Behavior
-
-In coexistence mode, OraDBA uses "safe alias creation":
-
-| Alias      | Standalone Mode   | Coexistence Mode          |
-|------------|-------------------|---------------------------|
-| `sq`       | Created by OraDBA | Skipped (BasEnv has it)   |
-| `taa`      | Created by OraDBA | Skipped (BasEnv has it)   |
-| `cdd`      | Created by OraDBA | Skipped (BasEnv has it)   |
-| `oradba`   | Created by OraDBA | Created (OraDBA-specific) |
-| `dbctl`    | Created by OraDBA | Created (OraDBA-specific) |
-| `listener` | Created by OraDBA | Created (OraDBA-specific) |
-
-**Result:** You get the best of both worlds - BasEnv's comprehensive aliases plus OraDBA's unique features.
-
-### Force Mode
-
-To override coexistence restrictions and create all OraDBA aliases:
-
-**Enable Force Mode:**
-
-```bash
-# Edit local configuration
-vi ${ORADBA_PREFIX}/etc/oradba_local.conf
-
-# Uncomment or add:
-export ORADBA_FORCE=1
-
-# Re-source environment
-source ${ORADBA_PREFIX}/bin/oraenv.sh
-```
-
-**When to Use:**
-
-- You prefer OraDBA's alias implementations
-- Specific OraDBA features needed
-- Testing OraDBA functionality
-
-**Warning:** Force mode may shadow BasEnv aliases. BasEnv commands may behave differently.
-
-### Environment Variables
-
-**Protected Variables (never modified):**
-
-- `BE_HOME` - BasEnv home directory
-- `TVDPERL_HOME` - BasEnv Perl location
-- `PS1` / `PS1BASH` - Shell prompt
-- `TVD_BASE` - BasEnv base directory
-- All other BasEnv-specific variables
-
-**OraDBA Variables (namespaced):**
-
-- `ORADBA_PREFIX` - OraDBA installation directory
-- `ORADBA_BASE` - Alias to ORADBA_PREFIX
-- `ORADBA_COEXIST_MODE` - Coexistence mode setting
-- `ORADBA_FORCE` - Force override flag
-- All other `ORADBA_*` variables
-
-### Installation Layout
-
-Both toolsets can share the same parent directory:
-
-```bash
-/opt/oracle/local/
-├── dba/                      # TVD BasEnv (BE_HOME)
-│   ├── bin/
-│   ├── etc/
-│   └── lib/
-└── oradba/                   # OraDBA (ORADBA_PREFIX)
-    ├── bin/
-    ├── etc/
-    └── lib/
-```
-
-**Benefits:**
-
-- Logical grouping of Oracle tools
-- Easy navigation with `cdl` alias
-- Shared backup/log directories possible
-- Independent updates and configurations
-
-### Checking Coexistence Status
-
-**View current mode:**
-
-```bash
-# Check configuration
-cat ${ORADBA_PREFIX}/etc/oradba_local.conf | grep COEXIST
-
-# Check environment
-echo $ORADBA_COEXIST_MODE
-
-# Check during installation
-grep "basenv detected" ${ORADBA_PREFIX}/.install_info
-```
-
-**Test alias behavior:**
-
-```bash
-# Check if alias exists
-type sq
-
-# Check alias definition
-alias sq
-
-# In coexistence mode with BasEnv:
-# sq would be BasEnv's version or not created by OraDBA
-```
-
-### Troubleshooting
-
-**Problem:** Aliases not working after installation
-
-```bash
-# Verify coexistence mode is correct
-cat ${ORADBA_PREFIX}/etc/oradba_local.conf
-
-# Check if force mode is needed
-export ORADBA_FORCE=1
-source ${ORADBA_PREFIX}/bin/oraenv.sh
-```
-
-**Problem:** Want to switch from coexistence to standalone
-
-```bash
-# Edit local config
-vi ${ORADBA_PREFIX}/etc/oradba_local.conf
-
-# Change:
-export ORADBA_COEXIST_MODE="standalone"
-
-# Re-source
-source ${ORADBA_PREFIX}/bin/oraenv.sh
-```
-
-**Problem:** Need to reinstall with different mode
-
-```bash
-# Reinstall will auto-detect current environment
-./oradba_install.sh --force --prefix /opt/oracle/local/oradba
-```
-
 ## Best Practices
 
 1. **Never modify core or standard configs** - Use customer config for overrides
 2. **Use oradba_customer.conf for global settings** - All your customizations in one place
-3. **Use sid.\<SID>.conf for database-specific settings** - Per-database customization
+3. **Use sid.<NAME>.conf for installation-specific settings** - Per-installation customization
 4. **Comment your customizations** - Explain why you changed defaults
-5. **Backup your configs** - Keep copies of customer and SID configs
-6. **Test configuration changes** - Use DEBUG=1 to verify loading
+5. **Backup your configs** - Keep copies of customer and installation-specific configs
+6. **Test configuration changes** - Use `ORADBA_DEBUG=true` to verify loading
 7. **Use version control** - Track configuration changes over time
 8. **Document non-obvious settings** - Help future you understand decisions
-9. **Respect coexistence mode** - Use force mode sparingly to avoid conflicts
+9. **Namespace custom variables** - Use `ORADBA_CUSTOM_*` or `MY_*` prefix
 10. **Keep oradba_local.conf intact** - Auto-generated, reflects installation state
 
-## See Also {.unlisted .unnumbered}
+## Configuration for Different Product Types
 
-- [Installation](installation.md#parallel-installation-with-tvd-basenv--dbstar) - Parallel installation guide
+### Database Configurations
+
+Database installations can use all database-specific variables:
+
+```bash
+# sid.PRODDB.conf
+ORADBA_DB_NAME="PRODDB"
+ORADBA_DB_UNIQUE_NAME="PRODDB_SITE1"
+ORADBA_DB_ROLE="PRIMARY"
+ORADBA_BACKUP_RETENTION=30
+ORADBA_CONNECT_TYPE="LOCAL"
+TNS_ADMIN="/u01/app/oracle/network/admin"
+```
+
+### Data Safe Configurations
+
+Data Safe connectors have connector-specific settings:
+
+```bash
+# sid.datasafe-prod.conf
+ORADBA_INST_NAME="datasafe-prod"
+ORADBA_INST_TYPE="datasafe"
+ORADBA_STARTUP_WAIT=30
+ORADBA_AUTO_START="true"
+```
+
+### Instant Client Configurations
+
+Instant Client installations typically need minimal configuration:
+
+```bash
+# sid.ic23c.conf
+ORADBA_INST_NAME="ic23c"
+ORADBA_INST_TYPE="iclient"
+TNS_ADMIN="/opt/oracle/network/admin"
+LD_LIBRARY_PATH="${ORACLE_HOME}:/lib:/usr/lib"
+```
+
+### Java Configurations
+
+Oracle Java installations can configure JAVA_HOME-related settings:
+
+```bash
+# sid.java21.conf
+ORADBA_INST_NAME="java21"
+ORADBA_INST_TYPE="java"
+JAVA_OPTS="-Xmx2g -XX:+UseG1GC"
+```
+
+## See Also
+
+- [Installation](installation.md) - Installation and setup
 - [Environment Management](environment.md) - How oraenv.sh loads configurations
 - [Aliases](aliases.md) - Configuring and customizing aliases
-- [PDB Aliases](pdb-aliases.md) - PDB-specific configuration
+- [Registry API](quickstart.md#understand-the-registry) - Managing installations
 - [Troubleshooting](troubleshooting.md) - Configuration issues
 
-## Navigation {.unlisted .unnumbered}
+## Navigation
 
 **Previous:** [Environment Management](environment.md)  
-**Next:** [Alias Reference](aliases.md)
+**Next:** [Installation](installation.md)
