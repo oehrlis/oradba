@@ -455,7 +455,7 @@ cmd_status() {
         IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
         oracle_sid="$name"
         oracle_home="$path"
-        product_type="${ptype^^}"
+        product_type="$ptype"
     # Try oratab for database SIDs
     elif type -t parse_oratab &>/dev/null; then
         local oratab_entry

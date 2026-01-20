@@ -355,7 +355,7 @@ oradba_registry_validate() {
         
         # Check product type is valid
         case "${ptype}" in
-            database|datasafe|client|iclient|oud|weblogic|grid|oms|emagent) ;;
+            database|datasafe|client|iclient|java|oud|weblogic|grid|oms|emagent) ;;
             *) oradba_log WARN "Unknown product type: ${ptype} (${name})" && ((errors++)) ;;
         esac
     done < <(oradba_registry_get_all)

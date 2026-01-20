@@ -1735,10 +1735,22 @@ set_oracle_home_environment() {
             # ORACLE_HOME now points to oracle_cman_home, so just add bin
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
+        java)
+            # Java/JDK installation
+            export JAVA_HOME="${ORACLE_HOME}"
+            export PATH="${ORACLE_HOME}/bin:${PATH}"
+            ;;
         *)
             oradba_log WARN "Unknown product type: ${product_type}"
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
+    esac
+
+    # Add client path for non-client products if configured
+    # Check if the product needs external client tools
+    case "${product_type}" in
+        datasafe|oud|weblogic|oms|emagent|java)
+            # Source env_builder if available to use helper functions
     esac
 
     # Add client path for non-client products if configured

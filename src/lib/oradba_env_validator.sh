@@ -230,6 +230,31 @@ oradba_validate_environment() {
     echo "Product Type: $product_type"
     echo ""
     
+    # For non-database products, do minimal validation
+    # Convert to uppercase for comparison
+    local product_upper="${product_type^^}"
+    if [[ "$product_upper" =~ ^(JAVA|OUD|WEBLOGIC|OMS|EMAGENT)$ ]]; then
+        echo "=== Basic Validation ==="
+        if [[ -d "$ORACLE_HOME" ]]; then
+            echo "✓ ORACLE_HOME is valid: $ORACLE_HOME"
+        else
+            echo "✗ ERROR: ORACLE_HOME is not valid" >&2
+            return 1
+        fi
+        
+        if [[ "$PATH" =~ $ORACLE_HOME ]]; then
+            echo "✓ ORACLE_HOME is in PATH"
+        else
+            echo "⚠ WARNING: ORACLE_HOME not in PATH" >&2
+        fi
+        
+        echo ""
+        echo "=== Summary ==="
+        echo "Product validation complete for $product_type"
+        echo "Note: Detailed validation is only available for database products"
+        return 0
+    fi
+    
     # Level 1: Basic validation (always performed)
     echo "=== Basic Validation ==="
     
