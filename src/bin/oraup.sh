@@ -210,49 +210,17 @@ show_oracle_status_registry() {
     done
     
     # =========================================================================
-    # SECTION 1: Oracle Homes (unique database and other homes, not datasafe)
+    # SECTION 1: Oracle Homes (from oracle_homes.conf only, not database SIDs)
     # =========================================================================
-    # Build unique homes list: prefer dummy entries, then first SID for each path
-    declare -A seen_homes
-    local -a unique_homes=()
-    
-    # First pass: Add dummy entries (flag 'D')
-    for db_obj in "${databases[@]}"; do
-        local home flags
-        home=$(oradba_registry_get_field "$db_obj" "home")
-        flags=$(oradba_registry_get_field "$db_obj" "flags")
-        
-        if [[ "$flags" == "D" ]] && [[ -z "${seen_homes[$home]}" ]]; then
-            unique_homes+=("$db_obj")
-            seen_homes[$home]="1"
-        fi
-    done
-    
-    # Second pass: Add first SID for paths without dummy
-    for db_obj in "${databases[@]}"; do
-        local home flags
-        home=$(oradba_registry_get_field "$db_obj" "home")
-        flags=$(oradba_registry_get_field "$db_obj" "flags")
-        
-        if [[ "$flags" != "D" ]] && [[ -z "${seen_homes[$home]}" ]]; then
-            unique_homes+=("$db_obj")
-            seen_homes[$home]="1"
-        fi
-    done
-    
-    # Add other (non-database, non-datasafe) homes
-    for home_obj in "${other_homes[@]}"; do
-        unique_homes+=("$home_obj")
-    done
-    
-    if [[ ${#unique_homes[@]} -gt 0 ]]; then
+    # Show only registered homes from oracle_homes.conf (non-database, non-datasafe)
+    if [[ ${#other_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
         echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-15s %-12s %s\n" "NAME" "TYPE" "STATUS" "PATH"
+        printf "%-20s %-20s %-13s %s\n" "NAME" "TYPE" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
-        for home_obj in "${unique_homes[@]}"; do
+        for home_obj in "${other_homes[@]}"; do
             local name home ptype status
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
@@ -267,7 +235,7 @@ show_oracle_status_registry() {
                 status="available"
             fi
             
-            printf "%-20s %-15s %-12s %s\n" "$name" "$ptype" "$status" "$home"
+            printf "%-20s %-20s %-13s %s\n" "$name" "$ptype" "$status" "$home"
         done
     fi
     
@@ -278,7 +246,7 @@ show_oracle_status_registry() {
         echo ""
         echo "Database Instances"
         echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-8s %-12s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
+        printf "%-20s %-20s %-13s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
         for db_obj in "${databases[@]}"; do
@@ -301,7 +269,7 @@ show_oracle_status_registry() {
                 status="$mode"
             fi
             
-            printf "%-20s %-8s %-12s %s\n" "$sid" "$flags" "$status" "$home"
+            printf "%-20s %-20s %-13s %s\n" "$sid" "$flags" "$status" "$home"
         done
     fi
     
@@ -312,7 +280,7 @@ show_oracle_status_registry() {
         echo ""
         echo "Listener Status"
         echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-12s %-15s %s\n" "NAME" "STATUS" "PORT" "ORACLE_HOME"
+        printf "%-20s %-20s %-13s %s\n" "NAME" "PORT" "STATUS" "ORACLE_HOME"
         echo "---------------------------------------------------------------------------------"
         
         # Check for running listeners
@@ -326,10 +294,9 @@ show_oracle_status_registry() {
             # ps output format: /path/to/oracle_home/bin/tnslsnr LISTENER -inherit
             listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
             
-            # Get detailed listener status, port, and protocol
+            # Get detailed listener status and ports
             local lsnr_status="down"
-            local lsnr_port=""
-            local lsnr_protocol=""
+            local port_display=""
             
             if command -v lsnrctl &>/dev/null; then
                 local lsnr_output
@@ -338,27 +305,32 @@ show_oracle_status_registry() {
                 if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
                     lsnr_status="up"
                     
-                    # Extract port and protocol from Listening Endpoints
-                    # Look for both TCP and TCPS protocols
+                    # Extract all ports from Listening Endpoints (tcp:1521, tcps:2343, etc.)
                     local endpoints
                     endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
                     
                     if [[ -n "$endpoints" ]]; then
-                        # Extract first TCP or TCPS port
-                        lsnr_protocol=$(echo "$endpoints" | grep -o "PROTOCOL=[^)]*" | head -1 | cut -d= -f2)
-                        lsnr_port=$(echo "$endpoints" | grep -o "PORT=[0-9]*" | head -1 | cut -d= -f2)
+                        # Build port list with protocol:port format
+                        local -a port_list=()
+                        while IFS= read -r endpoint; do
+                            local protocol port
+                            protocol=$(echo "$endpoint" | grep -o "PROTOCOL=[^)]*" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
+                            port=$(echo "$endpoint" | grep -o "PORT=[0-9]*" | cut -d= -f2)
+                            if [[ -n "$protocol" && -n "$port" ]]; then
+                                port_list+=("${protocol}:${port}")
+                            fi
+                        done <<< "$endpoints"
+                        
+                        # Join ports with comma separator
+                        if [[ ${#port_list[@]} -gt 0 ]]; then
+                            port_display=$(IFS=', '; echo "${port_list[*]}")
+                        fi
                     fi
                 fi
             fi
             
-            # Format port display
-            local port_display=""
-            if [[ -n "$lsnr_port" ]]; then
-                port_display="${lsnr_protocol}:${lsnr_port}"
-            fi
-            
             # Use full path for listener home (not [SID] notation)
-            printf "%-20s %-12s %-15s %s\n" "$listener_name" "$lsnr_status" "$port_display" "$listener_home"
+            printf "%-20s %-20s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
             ((listener_count++))
         done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
         
@@ -374,13 +346,14 @@ show_oracle_status_registry() {
         echo ""
         echo "Data Safe Connectors"
         echo "---------------------------------------------------------------------------------"
-        printf "%-20s %-12s %s\n" "NAME" "STATUS" "PATH"
+        printf "%-20s %-20s %-13s %s\n" "NAME" "PORT" "STATUS" "DATASAFE_BASE_HOME"
         echo "---------------------------------------------------------------------------------"
         
         for ds_obj in "${datasafe_homes[@]}"; do
-            local name home status
+            local name home status port_display
             name=$(oradba_registry_get_field "$ds_obj" "name")
             home=$(oradba_registry_get_field "$ds_obj" "home")
+            port_display="n/a"
             
             # Check if directory exists first
             if [[ ! -d "$home" ]]; then
@@ -394,9 +367,12 @@ show_oracle_status_registry() {
                 else
                     status="available"
                 fi
+                
+                # Try to get port from configuration (future enhancement)
+                # For now, show n/a
             fi
             
-            printf "%-20s %-12s %s\n" "$name" "$status" "$home"
+            printf "%-20s %-20s %-13s %s\n" "$name" "$port_display" "$status" "$home"
         done
     fi
     
