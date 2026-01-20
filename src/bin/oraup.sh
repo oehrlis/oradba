@@ -232,7 +232,7 @@ show_oracle_status_registry() {
         echo "------------------------------------------------------------------------------------------"
         
         for home_obj in "${all_homes[@]}"; do
-            local name home ptype status flags desc
+            local name home ptype status flags
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
             ptype=$(oradba_registry_get_field "$home_obj" "type")
