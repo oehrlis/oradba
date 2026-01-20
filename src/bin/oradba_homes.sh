@@ -733,14 +733,26 @@ discover_homes() {
         echo "  [FOUND]  $home_name ($ptype) - $dir"
 
         if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
-            # Add automatically
-            if add_home --name "$home_name" --path "$dir" --type "$ptype" \
-                --order "$((50 + found_count * 10))" \
-                --desc "Auto-discovered $ptype" > /dev/null 2>&1; then
-                echo "           → Added successfully"
-                ((added_count++))
+            # Check if path already exists (different name)
+            local config_file
+            config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
+            local existing_name=""
+            if [[ -f "$config_file" ]] && grep -q ":${dir}:" "$config_file"; then
+                existing_name=$(grep ":${dir}:" "$config_file" | head -1 | cut -d':' -f1)
+            fi
+            
+            if [[ -n "$existing_name" ]]; then
+                echo "           → Already registered as '$existing_name'"
             else
-                echo "           → Failed to add"
+                # Add automatically
+                if add_home --name "$home_name" --path "$dir" --type "$ptype" \
+                    --order "$((50 + found_count * 10))" \
+                    --desc "Auto-discovered $ptype" > /dev/null 2>&1; then
+                    echo "           → Added successfully"
+                    ((added_count++))
+                else
+                    echo "           → Failed to add"
+                fi
             fi
         fi
 
