@@ -101,14 +101,14 @@ These files are kept temporarily for reference and will be removed in a future r
 
 Embed Mermaid directly in markdown files:
 
-```markdown
+\`\`\`markdown
 ## System Architecture
 
 \`\`\`mermaid
 graph TB
     A[Component A] --> B[Component B]
 \`\`\`
-```
+\`\`\`
 
 ### User Docs (src/doc/*.md)
 
@@ -118,42 +118,94 @@ Same approach - embed Mermaid code blocks directly in documentation.
 
 Planned integration with Pandoc for automatic Mermaid rendering in PDF output.
 
+Referenced in markdown using image syntax:
+
+```markdown
+![System Architecture](images/architecture-system.png)
+```
+
+### Mermaid Diagrams
+
+Referenced in markdown using link syntax:
+
+```markdown
+See the [Configuration Workflow](images/config-workflow-highlevel.md) for details.
+```
+
+Or embedded directly (if supported by renderer):
+
+```markdown
+```mermaid
+flowchart TD
+    Start --> End
+```
+
+## Export Settings
+
+### Excalidraw (PNG Images)
+
+All PNG images exported from Excalidraw with:
+
+- **Format**: PNG
+- **Scale**: 2x (for retina displays)
+- **Background**: Transparent or white
+- **Export location**: `doc/images/`
+
+### Mermaid Diagrams
+
+Mermaid diagrams use consistent formatting:
+
+- **Direction**: `flowchart TD` (top-down) or `LR` (left-right)
+- **Color coding**: Consistent across all diagrams
+  - Blue (#e1f5ff): Start/Entry points
+  - Orange (#fff3e0): Initialization
+  - Purple (#e1bee7): Registry operations
+  - Green (#c8e6c9): Database operations
+  - Yellow (#fff9c4): Listener operations
+- **Node types**:
+  - Rounded `([text])`: Start/End
+  - Rectangle `[text]`: Process steps
+  - Diamond `{text?}`: Decisions
+- **Documentation**: Each diagram includes comprehensive tables and usage guidance
+
 ## Creating New Diagrams
 
-### Mermaid Workflow
+### Mermaid Diagrams
 
-1. **Draft**: Use [Mermaid Live Editor](https://mermaid.live/) for initial creation
-2. **Consistency**: Follow existing diagram patterns and color schemes
-3. **Source File**: Create standalone .md file in `source/` for architecture diagrams
-4. **Embed**: Add Mermaid code block directly in documentation files
-5. **Validate**: Test rendering in VS Code and GitHub
-6. **Document**: Update this README with new diagram entry
+1. Use [Mermaid Live Editor](https://mermaid.live/) for drafting
+2. Follow existing diagram patterns for consistency
+3. Apply standard color coding
+4. Add comprehensive documentation sections
+5. Validate syntax before committing
+6. Update this README with new diagram entry
 
-### Color Coding Standards
+### PNG Images
 
-Consistent colors across all diagrams:
+1. Create/edit in [Excalidraw](https://excalidraw.com/)
+2. Save source file to `doc/images/source/`
+3. Export PNG to `doc/images/` (2x scale, transparent/white background)
+4. Update this README with image description
+5. Reference in relevant documentation
 
-- **#E6E6FA** (Lavender): User layer, entry points
-- **#87CEEB** (Sky Blue): CLI layer, parser
-- **#98FB98** (Pale Green): Registry API
-- **#FFD700** (Gold): Plugin system, builder
-- **#DDA0DD** (Plum): Environment libraries, validator
-- **#90EE90** (Light Green): Core libraries, success states
-- **#FFE4B5** (Moccasin): Configuration system, status
-- **#FFB6C6** (Pink): Oracle layer, error states
-- **#FFA07A** (Light Salmon): Change tracking
-- **#F0E68C** (Khaki): Config manager
+## Diagram Statistics
 
-### Diagram Types
+- **Total diagrams**: 19 (12 PNG + 7 Mermaid)
+- **Mermaid diagrams**: 7 (new in v1.2.2+)
+- **Architecture diagrams**: 3 Mermaid + 4 PNG
+- **Workflow diagrams**: 4 Mermaid + 3 PNG
+- **Development diagrams**: 5 PNG
 
-- **Flowchart**: Process flows, decision trees (`flowchart TD` or `flowchart LR`)
-- **Graph**: System architecture, component relationships (`graph TB` or `graph LR`)
-- **Sequence**: Interaction sequences, library calls (`sequenceDiagram`)
-- **State**: State machines, lifecycle (`stateDiagram-v2`)
+## Related Documentation
 
-## References
+- **[Architecture](../architecture.md)** - Main architecture document
+- **[Development Guide](../development.md)** - Development workflow
+- **[Code Analysis](../code_analysis_report.md)** - Code quality report
+- **[Function Inventory](../functions_inventory.md)** - Function catalog
+- Embed scene: Yes (includes source data in PNG)
 
-- [Mermaid Documentation](https://mermaid.js.org/)
-- [Mermaid Live Editor](https://mermaid.live/)
-- [GitHub Mermaid Support](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/)
-- [VS Code Mermaid Extension](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid)
+## File Naming Convention
+
+- Lowercase with hyphens
+- Descriptive names
+- Component prefix when applicable
+- Example: `architecture-system.png`, `config-hierarchy.png`
