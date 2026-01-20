@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD013 -->
 # Database Functions Library (oradba_db_functions.sh)
 
-**Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views.
+**Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views in OraDBA v0.19.x.
 
 **Audience:** Script developers and advanced users.
 
@@ -14,6 +14,8 @@
 ## Overview
 
 The `oradba_db_functions.sh` library provides reusable functions to query Oracle database information from v$ views. Functions are designed to work gracefully with databases in different states: NOMOUNT, MOUNT, and OPEN.
+
+This library is part of OraDBA's modular architecture, working alongside the Registry API and Plugin System to provide database-specific functionality.
 
 ## Location
 

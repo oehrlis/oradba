@@ -1,19 +1,14 @@
 # Alias Reference
 
-**Purpose:** Complete reference for OraDBA's 50+ shell aliases - the canonical location for all alias documentation.
+**Purpose:** Complete reference for OraDBA v0.19.x shell aliases - the canonical location for all alias documentation.
 
 **Audience:** All users who want to streamline database administration tasks.
 
 ## Introduction
 
-OraDBA provides 50+ shell aliases to streamline Oracle database administration
-tasks. Aliases are automatically loaded when you set your Oracle environment
-using `oraenv.sh`, giving you convenient shortcuts for common operations.
+OraDBA v0.19.x provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.
 
-![Alias Generation Flow](images/alias-generation.png){ width=80% }
-
-The alias system automatically detects if your database is a CDB and generates
-PDB-specific aliases accordingly.
+The alias system uses the Plugin System to detect product types and generates appropriate aliases. For databases, it automatically detects if your database is a CDB and generates PDB-specific aliases accordingly.
 
 ## Alias Categories
 
