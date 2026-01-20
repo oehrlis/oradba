@@ -505,7 +505,25 @@ _oraenv_handle_oracle_home() {
         fi
 
         # Set common environment variables
-        export_oracle_base_env
+        # Get product type for plugin-aware library path setup
+        local product_type="database"
+        if command -v get_oracle_home_type &>/dev/null; then
+            product_type=$(get_oracle_home_type "$requested_sid" 2>/dev/null || echo "database")
+        fi
+        
+        # Set library path using plugin system
+        oradba_set_lib_path "$ORACLE_HOME" "$product_type"
+        
+        # Set PATH
+        export PATH="${ORACLE_HOME}/bin:${PATH}"
+        
+        # Set TNS_ADMIN if not set
+        if [[ -z "${TNS_ADMIN}" ]] && [[ -d "${ORACLE_HOME}/network/admin" ]]; then
+            export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+        fi
+        
+        # Set NLS_LANG if not set
+        export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
         # Load hierarchical configuration for this Oracle Home
         load_config "$requested_sid"
@@ -701,7 +719,25 @@ _oraenv_setup_environment_variables() {
     fi
 
     # Set common environment variables
-    export_oracle_base_env
+    # Get product type for plugin-aware library path setup
+    local product_type="database"
+    if command -v get_oracle_home_type &>/dev/null; then
+        product_type=$(get_oracle_home_type "$sid" 2>/dev/null || echo "database")
+    fi
+    
+    # Set library path using plugin system
+    oradba_set_lib_path "$ORACLE_HOME" "$product_type"
+    
+    # Set PATH
+    export PATH="${ORACLE_HOME}/bin:${PATH}"
+    
+    # Set TNS_ADMIN if not set
+    if [[ -z "${TNS_ADMIN}" ]] && [[ -d "${ORACLE_HOME}/network/admin" ]]; then
+        export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+    fi
+    
+    # Set NLS_LANG if not set
+    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
     # Set startup flag from oratab
     local startup_flag

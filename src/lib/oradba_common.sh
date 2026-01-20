@@ -1020,7 +1020,11 @@ persist_discovered_instances() {
 # Args....: None
 # Returns.: 0 - Always successful
 # Output..: None (exports variables)
-# Notes...: Exports PATH, LD_LIBRARY_PATH, TNS_ADMIN, NLS_LANG, etc.
+# Notes...: DEPRECATED: Use oradba_set_lib_path() from oradba_env_builder.sh
+#           This function hardcodes LD_LIBRARY_PATH to ${ORACLE_HOME}/lib
+#           which is incorrect for instant client (libraries in root directory).
+#           The new oradba_set_lib_path() uses the plugin system for
+#           product-specific library path construction.
 #           Example: export_oracle_base_env
 # ------------------------------------------------------------------------------
 export_oracle_base_env() {
