@@ -197,6 +197,119 @@ oradba_registry_get_field() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_registry_sync_oratab
+# Purpose.: Sync database homes from oratab to oradba_homes.conf
+# Args....: $1 - (Optional) Force sync even if home exists (default: false)
+# Returns.: 0 on success, 1 on error
+# Output..: Number of homes added
+# Notes...: Deduplicates homes - only adds unique ORACLE_HOME paths
+#           Updates existing entries if they differ
+# ------------------------------------------------------------------------------
+oradba_registry_sync_oratab() {
+    local force="${1:-false}"
+    local homes_added=0
+    local -A seen_homes=()
+    
+    # Get paths
+    local oratab_path
+    oratab_path=$(get_oratab_path 2>/dev/null) || oratab_path="/etc/oratab"
+    
+    local homes_path
+    homes_path=$(get_oracle_homes_path 2>/dev/null) || homes_path="${ORADBA_PREFIX}/etc/oradba_homes.conf"
+    
+    # Check if oratab exists
+    if [[ ! -f "${oratab_path}" ]] || [[ ! -r "${oratab_path}" ]]; then
+        oradba_log DEBUG "oratab not found or not readable: ${oratab_path}"
+        return 0
+    fi
+    
+    # Ensure oradba_homes.conf exists
+    if [[ ! -f "${homes_path}" ]]; then
+        oradba_log DEBUG "Creating oradba_homes.conf: ${homes_path}"
+        mkdir -p "$(dirname "${homes_path}")"
+        cat > "${homes_path}" << 'EOF'
+# ------------------------------------------------------------------------------
+# Oracle Homes Configuration
+# Auto-generated from oratab
+# ------------------------------------------------------------------------------
+# Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER[:ALIAS_NAME][:DESCRIPTION][:VERSION]
+# ------------------------------------------------------------------------------
+EOF
+    fi
+    
+    oradba_log DEBUG "Syncing database homes from ${oratab_path} to ${homes_path}"
+    
+    # Read oratab and extract unique homes
+    while IFS=: read -r sid home flags; do
+        # Skip comments and empty lines
+        [[ "${sid}" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${sid}" ]] && continue
+        [[ -z "${home}" ]] && continue
+        [[ ! -d "${home}" ]] && continue
+        
+        # Skip dummy entries (unless forced)
+        if [[ "${flags}" == *"D"* ]] && [[ "${force}" != "true" ]]; then
+            continue
+        fi
+        
+        # Deduplicate by home path
+        if [[ -n "${seen_homes[${home}]:-}" ]]; then
+            oradba_log DEBUG "Skipping duplicate home: ${home} (already seen for ${seen_homes[${home}]})"
+            continue
+        fi
+        seen_homes["${home}"]="${sid}"
+        
+        # Check if home already exists in oradba_homes.conf
+        if grep -q "^[^:]*:${home}:" "${homes_path}" 2>/dev/null; then
+            oradba_log DEBUG "Home already registered: ${home}"
+            continue
+        fi
+        
+        # Detect product type
+        local ptype="database"
+        if type -t detect_product_type &>/dev/null; then
+            ptype=$(detect_product_type "${home}" 2>/dev/null) || ptype="database"
+        fi
+        
+        # Create a generic name from the home path if not the first SID
+        local home_name="${sid}"
+        local home_desc="Database home (from oratab)"
+        
+        # Use a more generic name for the home (use last directory component)
+        if [[ "${ptype}" == "database" ]]; then
+            home_name=$(basename "${home}")
+            home_desc="Database home for ${sid} (from oratab)"
+        fi
+        
+        # Avoid duplicate names - check if name already exists
+        if grep -q "^${home_name}:" "${homes_path}" 2>/dev/null; then
+            # Name exists, append counter
+            local counter=2
+            while grep -q "^${home_name}${counter}:" "${homes_path}" 2>/dev/null; do
+                ((counter++))
+            done
+            home_name="${home_name}${counter}"
+        fi
+        
+        # Add to oradba_homes.conf
+        # Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
+        echo "${home_name}:${home}:${ptype}:10::${home_desc}:AUTO" >> "${homes_path}"
+        ((homes_added++))
+        
+        oradba_log DEBUG "Added home: ${home_name} -> ${home} (${ptype})"
+    done < "${oratab_path}"
+    
+    if [[ ${homes_added} -gt 0 ]]; then
+        oradba_log INFO "Added ${homes_added} database home(s) from oratab to oradba_homes.conf"
+    else
+        oradba_log DEBUG "No new database homes to add from oratab"
+    fi
+    
+    echo "${homes_added}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_registry_discover_all
 # Purpose.: Auto-discover Oracle installations on the system
 # Returns.: 0 on success

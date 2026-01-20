@@ -127,6 +127,11 @@ cmd_list() {
             ;;
             
         homes)
+            # Sync database homes from oratab first
+            if type -t oradba_registry_sync_oratab &>/dev/null; then
+                oradba_registry_sync_oratab >/dev/null 2>&1
+            fi
+            
             echo "=== Oracle Homes (from oradba_homes.conf) ==="
             echo ""
             if [[ -f "$homes_file" ]]; then
@@ -140,6 +145,11 @@ cmd_list() {
             ;;
             
         all|*)
+            # Sync database homes from oratab first
+            if type -t oradba_registry_sync_oratab &>/dev/null; then
+                oradba_registry_sync_oratab >/dev/null 2>&1
+            fi
+            
             # List SIDs
             echo "=== Oracle Database SIDs (from oratab) ==="
             echo ""
