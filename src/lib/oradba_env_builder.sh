@@ -509,6 +509,8 @@ oradba_product_needs_client() {
 # Args....: None (reads ORADBA_CLIENT_PATH_FOR_NON_CLIENT env var)
 # Returns.: 0 on success, 1 if no client found
 # Output..: Prints resolved client home path
+# Notes...: Accepts DATABASE, CLIENT, or ICLIENT product types
+#           (all have client tools like sqlplus, sqlldr, etc.)
 # ------------------------------------------------------------------------------
 oradba_resolve_client_home() {
     local setting="${ORADBA_CLIENT_PATH_FOR_NON_CLIENT:-none}"
@@ -538,8 +540,8 @@ oradba_resolve_client_home() {
             # Convert type to uppercase for comparison
             local ptype_upper="${ptype^^}"
             
-            # Check if it's a client type
-            if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]]; then
+            # Check if it's a client type or database (databases have client tools)
+            if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]] || [[ "${ptype_upper}" == "DATABASE" ]]; then
                 # Validate directory exists
                 if [[ -d "${path}" ]]; then
                     client_home="${path}"
@@ -560,8 +562,8 @@ oradba_resolve_client_home() {
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
-                # Validate it's a client type
-                if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]]; then
+                # Validate it has client tools (database, client, or instant client)
+                if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]] || [[ "${ptype_upper}" == "DATABASE" ]]; then
                     # Validate directory exists
                     if [[ -d "${path}" ]]; then
                         client_home="${path}"
