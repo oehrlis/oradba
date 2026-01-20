@@ -1,8 +1,8 @@
-# OraDBA v1.0.0 User Documentation
+# OraDBA v0.19.x User Documentation
 
 Complete user guides and reference materials for the Oracle Database Administration Toolset.
 
-**Version:** 1.0.0 | **Audience:** Database administrators, operators, and users of OraDBA
+**Version:** 0.19.x | **Audience:** Database administrators, operators, and users managing Oracle environments
 
 !!! info "For Developers"
     See [Developer Documentation](https://github.com/oehrlis/oradba/tree/main/doc)

@@ -9,17 +9,17 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 
 ## Quick Navigation
 
-| Category               | Document                                         | Status      | Description                                          |
-|------------------------|--------------------------------------------------|-------------|------------------------------------------------------|
-| **Getting Started**    | [development.md](development.md)                 | ✅ Current  | Complete development guide - setup, workflow, CI/CD  |
-| **Architecture**       | [architecture.md](architecture.md)               | ✅ Current  | Registry API, Plugin System, v0.19.0+ architecture   |
-| **API Reference**      | [api.md](api.md)                                 | ✅ Current  | Registry API, Plugin Interface, core libraries       |
-| **Extension System**   | [extension-system.md](extension-system.md)       | ⏳ Review   | Extension development guide and API                  |
-| **Testing**            | [automated_testing.md](automated_testing.md)     | ⏳ Review   | Automated testing guide and framework                |
-| **Testing**            | [manual_testing.md](manual_testing.md)           | ⏳ Review   | Manual testing procedures                            |
-| **Environment Design** | [oradba-env-design.md](oradba-env-design.md)     | 📚 Archive  | Original design document (historical reference)      |
-| **Archive**            | [archive/](archive/)                             | 📚          | Historical docs, completed plans, legacy references  |
-| **Diagrams**           | [images/](images/)                               | ✅          | Mermaid diagrams (Registry API, Plugin System)      |
+| Category               | Document                                     | Status      | Description                                         |
+|------------------------|----------------------------------------------|-------------|-----------------------------------------------------|
+| **Getting Started**    | [development.md](development.md)             | ✅ Current  | Complete development guide - setup, workflow, CI/CD |
+| **Architecture**       | [architecture.md](architecture.md)           | ✅ Current  | Registry API, Plugin System, v0.19.0+ architecture  |
+| **API Reference**      | [api.md](api.md)                             | ✅ Current  | Registry API, Plugin Interface, core libraries      |
+| **Extension System**   | [extension-system.md](extension-system.md)   | ⏳ Review   | Extension development guide and API                 |
+| **Testing**            | [automated_testing.md](automated_testing.md) | ⏳ Review   | Automated testing guide and framework               |
+| **Testing**            | [manual_testing.md](manual_testing.md)       | ⏳ Review   | Manual testing procedures                           |
+| **Environment Design** | [oradba-env-design.md](oradba-env-design.md) | 📚 Archive  | Original design document (historical reference)     |
+| **Archive**            | [archive/](archive/)                         | 📚          | Historical docs, completed plans, legacy references |
+| **Diagrams**           | [images/](images/)                           | ✅          | Mermaid diagrams (Registry API, Plugin System)      |
 
 ## Key Changes in v0.19.0+
 
@@ -159,6 +159,7 @@ Complete flowchart showing unified access to oratab and oradba_homes.conf, auto-
 Shows all 6 plugins, discovery mechanism, and 8-function interface.
 
 Additional diagrams embedded in [development.md](development.md):
+
 - CI/CD Pipeline
 - Testing Strategy
 
