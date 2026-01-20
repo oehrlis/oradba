@@ -8,7 +8,7 @@ flowchart TD
     Discovery --> ScanDir[Scan src/lib/plugins/ directory]
     ScanDir --> FilterFiles{Filter<br/>*_plugin.sh}
     FilterFiles -->|Skip| SkipInterface[Skip plugin_interface.sh]
-    FilterFiles -->|Found| ListPlugins[Found plugins:<br/>• database_plugin.sh<br/>• datasafe_plugin.sh<br/>• client_plugin.sh<br/>• iclient_plugin.sh<br/>• oud_plugin.sh]
+    FilterFiles -->|Found| ListPlugins[Found plugins:<br/>• database_plugin.sh<br/>• datasafe_plugin.sh<br/>• client_plugin.sh<br/>• iclient_plugin.sh<br/>• oud_plugin.sh<br/>• java_plugin.sh]
     
     SkipInterface --> ValidationPhase
     ListPlugins --> ValidationPhase[Validation Phase]
