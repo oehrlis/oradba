@@ -318,8 +318,10 @@ show_oracle_status_registry() {
             
             if [[ -x "${listener_home}/bin/lsnrctl" ]]; then
                 local lsnr_output
-                # Set environment for lsnrctl execution from listener's home
-                lsnr_output=$(LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                # Set full environment for lsnrctl execution from listener's home
+                # Need ORACLE_HOME and LD_LIBRARY_PATH for lsnrctl to work correctly
+                lsnr_output=$(ORACLE_HOME="${listener_home}" \
+                              LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
                               "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
                 
                 if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
