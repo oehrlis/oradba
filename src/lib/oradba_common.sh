@@ -1753,6 +1753,29 @@ set_oracle_home_environment() {
             # Source env_builder if available to use helper functions
     esac
 
+    # Add Java path for products that need it if configured
+    # This happens BEFORE client path so Java takes precedence
+    case "${product_type}" in
+        datasafe|oud|weblogic|oms|emagent)
+            # Source env_builder if available to use helper functions
+            if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                # Only source if not already loaded
+                if ! command -v oradba_add_java_path &>/dev/null; then
+                    # shellcheck source=/dev/null
+                    source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                fi
+                
+                # Add Java path if function is available
+                if command -v oradba_add_java_path &>/dev/null; then
+                    # Convert to uppercase for function call
+                    local product_upper="${product_type^^}"
+                    # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
+                    oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
+                fi
+            fi
+            ;;
+    esac
+
     # Add client path for non-client products if configured
     # Check if the product needs external client tools
     case "${product_type}" in

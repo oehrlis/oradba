@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Autonomous JAVA_HOME Detection and Export** (2026-01-21)
+  - Automatic detection and export of JAVA_HOME environment variable
+  - Similar to existing ORADBA_CLIENT_PATH_FOR_NON_CLIENT mechanism
+  - New configuration variable: `ORADBA_JAVA_PATH_FOR_NON_JAVA`
+  - Supports "none" (default - backward compatible), "auto", or named Java from oradba_homes.conf
+  - Auto mode checks `$ORACLE_HOME/java` first, then `oradba_homes.conf`
+  - Exports JAVA_HOME and prepends Java bin directory to PATH (takes precedence)
+  - Useful for DataSafe, OUD, WebLogic, and overriding database-shipped Java
+  - New functions: `oradba_product_needs_java()`, `oradba_resolve_java_home()`, `oradba_add_java_path()`
+  - Comprehensive test coverage: 27 unit and integration tests
+  - Documentation updated in `oradba_standard.conf` and `oradba_customer.conf.example`
+
 ## [0.19.1] - 2026-01-21
 
 ### Fixed

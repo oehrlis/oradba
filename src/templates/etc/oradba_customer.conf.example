@@ -57,6 +57,31 @@
 # ORADBA_CLIENT_PATH_FOR_NON_CLIENT="none"
 
 # ------------------------------------------------------------------------------
+# Example: Java Path for Products Requiring Java
+# ------------------------------------------------------------------------------
+
+# Add Java to JAVA_HOME and PATH for products that need Java but don't ship it
+# (e.g., DataSafe, OUD, WebLogic) or to override Java shipped with products
+# Java's bin directory is added to the FRONT of PATH (takes precedence)
+# JAVA_HOME is exported to point to the selected Java installation
+
+# Automatically find Java (checks $ORACLE_HOME/java, then oradba_homes.conf)
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="auto"
+
+# Use a specific Java from oradba_homes.conf
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="JAVA17"
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="JDK11"
+
+# Disable Java path addition (default - backward compatible)
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="none"
+
+# Example: For DataSafe or OUD requiring Java
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="auto"
+
+# Example: Override Java for database home (e.g., for newer Java version)
+# ORADBA_JAVA_PATH_FOR_NON_JAVA="JAVA17"
+
+# ------------------------------------------------------------------------------
 # Example: Customize Behavior
 # ------------------------------------------------------------------------------
 
