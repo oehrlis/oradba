@@ -644,6 +644,61 @@ remove_home() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: generate_home_name
+# Purpose.: Generate home name from directory name and product type
+# Args....: $1 - Directory name (basename of path)
+#           $2 - Product type (java, iclient, client, etc.)
+# Returns.: 0 on success
+# Output..: Normalized home name
+# Notes...: Java, JRE, and instant client use lowercase conventions
+# ------------------------------------------------------------------------------
+generate_home_name() {
+    local dir_name="$1"
+    local ptype="$2"
+    local home_name
+    
+    # Special handling for java, iclient products - use lowercase
+    case "$ptype" in
+        java)
+            # Normalize Java/JDK/JRE names to lowercase jdkNNN or jreNNN
+            if [[ "$dir_name" =~ ^[Jj][Dd][Kk][-_]?([0-9]+) ]]; then
+                # JDK with version number: jdk17, jdk-17, JDK_17 -> jdk17
+                home_name="jdk${BASH_REMATCH[1]}"
+            elif [[ "$dir_name" =~ ^[Jj][Rr][Ee][-_]?([0-9]+) ]]; then
+                # JRE with version number: jre8, jre-8, JRE_8 -> jre8
+                home_name="jre${BASH_REMATCH[1]}"
+            elif [[ "$dir_name" =~ ^[Jj]ava[-_]?([0-9]+) ]]; then
+                # Java with version number: java17 -> jdk17
+                home_name="jdk${BASH_REMATCH[1]}"
+            else
+                # No version number, use lowercase of original
+                home_name=$(echo "$dir_name" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+            fi
+            ;;
+        iclient)
+            # Normalize instant client names to lowercase iclientNNN
+            if [[ "$dir_name" =~ instantclient[-_]?([0-9]+) ]]; then
+                # instantclient_19_8 -> iclient19
+                local version="${BASH_REMATCH[1]}"
+                # Extract major version only (first digits)
+                version="${version%%[_.-]*}"
+                home_name="iclient${version}"
+            else
+                # Use lowercase of original
+                home_name=$(echo "$dir_name" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+            fi
+            ;;
+        *)
+            # Other products: use uppercase (backward compatible)
+            home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+            ;;
+    esac
+    
+    echo "$home_name"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: discover_homes
 # Purpose.: Auto-discover Oracle Homes
 # ------------------------------------------------------------------------------
@@ -714,11 +769,11 @@ discover_homes() {
 
         ((found_count++))
 
-        # Generate name from path
+        # Generate name from path and product type
         local dir_name
         dir_name=$(basename "$dir")
         local home_name
-        home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_')
+        home_name=$(generate_home_name "$dir_name" "$ptype")
 
         # Check if already registered
         if is_oracle_home "$home_name" 2> /dev/null; then
@@ -752,7 +807,7 @@ discover_homes() {
             fi
         fi
 
-    done < <(find "$product_dir" -maxdepth 2 -type d -print0 2> /dev/null)
+    done < <(find "$product_dir" -maxdepth 3 -type d -print0 2> /dev/null)
 
     echo ""
     echo "Discovery Summary:"
@@ -1174,5 +1229,7 @@ main() {
     esac
 }
 
-# Run main function
-main "$@"
+# Run main function only when script is executed directly, not when sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

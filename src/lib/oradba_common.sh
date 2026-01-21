@@ -1401,8 +1401,14 @@ detect_product_type() {
         return 0
     fi
 
-    # Check for Data Safe
-    if [[ -f "${oracle_home}/datasafe/lib/datasafe.jar" ]]; then
+    # Check for Data Safe On-Premises Connector
+    # Data Safe has oracle_cman_home subdirectory with cmctl binary
+    if [[ -d "${oracle_home}/oracle_cman_home" ]] && [[ -x "${oracle_home}/oracle_cman_home/bin/cmctl" ]]; then
+        echo "datasafe"
+        return 0
+    fi
+    # Alternative check: connector.conf and setup.py files
+    if [[ -f "${oracle_home}/connector.conf" ]] && [[ -f "${oracle_home}/setup.py" ]]; then
         echo "datasafe"
         return 0
     fi
