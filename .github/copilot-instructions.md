@@ -2,7 +2,13 @@
 
 ## Project Overview
 
-OraDBA is a comprehensive Oracle Database administration toolkit for Unix/Linux environments. It provides environment management, automation tools, and integration with Oracle products including Database, Data Safe On-Premises Connectors, Instant Client, OUD, WebLogic, and EM.
+OraDBA is a comprehensive Oracle Database administration toolkit for Unix/Linux environments. It provides environment management, automation tools, and integration with Oracle products including Database, Data Safe On-Premises Connectors, Instant Client, OUD, Java, WebLogic, and EM.
+
+**Current Version**: v0.19.0  
+**Architecture**: Registry API + Plugin System + Environment Management Libraries  
+**Test Coverage**: 1086 tests (100% passing)  
+**Documentation**: 437 functions (100% documented)  
+**Plugin Interface**: v2.0.0 (11 required functions per plugin)
 
 ## Code Quality Standards
 
@@ -93,12 +99,159 @@ oradba/
 - `iclient` - Oracle Instant Client
 - `datasafe` - Oracle Data Safe On-Premises Connector
 - `oud` - Oracle Unified Directory
-- `weblogic` - WebLogic Server
-- `grid` - Grid Infrastructure
-- `oms` - Enterprise Manager OMS
-- `emagent` - Enterprise Manager Agent
+- `java` - Oracle Java (JDK/JRE)
+- `weblogic` - WebLogic Server (planned)
+- `grid` - Grid Infrastructure (future)
+- `oms` - Enterprise Manager OMS (future)
+- `emagent` - Enterprise Manager Agent (future)
+
+## Architecture Deep Dive (v0.19.0+)
+
+### Registry API
+
+The Registry API provides unified access to Oracle installations via `src/lib/oradba_registry.sh`:
+
+**Core Functions**:
+- `get_all_installations()` - List all Oracle Homes (oratab + oradba_homes.conf)
+- `get_installation_by_name()` - Get specific installation metadata
+- `get_installations_by_type()` - Filter by product type (database, client, etc.)
+- `get_database_installations()` - Get only database entries from oratab
+
+**Registry Sources**:
+1. `/etc/oratab` or `/var/opt/oracle/oratab` - Database installations (SID-based)
+2. `${ORADBA_BASE}/etc/oradba_homes.conf` - Non-database Oracle Homes (product-based)
+
+**Output Format**: Pipe-delimited fields
+```
+NAME|TYPE|ORACLE_HOME|VERSION|EDITION|AUTOSTART|DESCRIPTION
+```
+
+### Plugin System (Interface v2.0.0)
+
+Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_interface.sh`:
+
+**Required Metadata**:
+```bash
+export plugin_name="database"          # Product identifier
+export plugin_version="2.0.0"          # Plugin version
+export plugin_description="Description" # Human-readable description
+```
+
+**Required Functions** (11):
+1. `plugin_detect_installation()` - Auto-detect product installations
+2. `plugin_validate_home()` - Validate ORACLE_HOME path
+3. `plugin_adjust_environment()` - Adjust path for product (e.g., append /bin)
+4. `plugin_check_status()` - Check if product is available
+5. `plugin_get_metadata()` - Get product metadata (version, edition, etc.)
+6. `plugin_should_show_listener()` - Whether to display listener status
+7. `plugin_discover_instances()` - Find product instances (databases, OUD instances)
+8. `plugin_get_instance_status()` - Get instance status (OPEN, MOUNTED, etc.)
+9. `plugin_get_instance_type()` - Get instance type (CDB, PDB, SINGLE, etc.)
+10. `plugin_get_pdb_status()` - Get PDB status (database plugin only)
+11. `plugin_get_version()` - Extract product version
+
+**Current Plugins** (6):
+- `database_plugin.sh` - Oracle Database (CDB/PDB support)
+- `datasafe_plugin.sh` - Data Safe On-Premises Connector
+- `client_plugin.sh` - Full Oracle Client
+- `iclient_plugin.sh` - Instant Client
+- `oud_plugin.sh` - Oracle Unified Directory
+- `java_plugin.sh` - Oracle Java (JDK/JRE detection)
+
+### Environment Management Libraries
+
+Six specialized libraries in `src/lib/`:
+
+1. **oradba_env_parser.sh** - Parse oratab and oradba_homes.conf
+2. **oradba_env_builder.sh** - Build environment variables (PATH, LD_LIBRARY_PATH, etc.)
+3. **oradba_env_validator.sh** - Validate Oracle environment setup
+4. **oradba_env_config.sh** - Manage configuration files
+5. **oradba_env_status.sh** - Display environment status
+6. **oradba_env_changes.sh** - Detect and highlight environment changes
+
+### Oracle Homes Management
+
+**oradba_homes.conf Format**:
+```properties
+# NAME:TYPE:ORACLE_HOME:VERSION:EDITION:DESCRIPTION
+cman01:datasafe:/u01/app/oracle/cman01:N/A:N/A:Data Safe Connector
+jdk17:java:/u01/app/oracle/product/jdk-17:17.0.1:JDK:Java Development Kit
+```
+
+**Fields**:
+- **NAME**: Unique identifier (used for environment switching)
+- **TYPE**: Product type (database, datasafe, client, iclient, oud, java, weblogic)
+- **ORACLE_HOME**: Installation path
+- **VERSION**: Product version (from oracle binary or "N/A")
+- **EDITION**: Edition (EE, SE2, PE, JDK, JRE, "N/A")
+- **DESCRIPTION**: Human-readable description
 
 ## Development Workflow
+
+### Branch Strategy & Commits
+
+**Branch Naming**:
+- Features: `feat/issue-XX-description` (e.g., `feat/issue-89-api-reference`)
+- Bug fixes: `fix/issue-XX-description` (e.g., `fix/issue-85-path-issue`)
+- Main branch: `main` (no develop branch)
+- Merge strategy: Merge commits
+
+**Commit Messages**:
+- Conventional commits **recommended** (not strict)
+- Format: `type: description` (e.g., `feat: add API reference generation`)
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+
+**Example Workflow**:
+```bash
+# Create feature branch
+git checkout -b feat/issue-92-developer-docs
+
+# Make changes, test locally
+make test
+make lint
+
+# Commit changes
+git add .
+git commit -m "docs: add developer documentation guide"
+
+# Push and create PR
+git push origin feat/issue-92-developer-docs
+```
+
+### Pull Request Checklist
+
+Before submitting PR, ensure:
+- ✅ All tests pass (`make test`)
+- ✅ All linting passes (`make lint`)
+- ✅ Developer documentation updated (if applicable)
+- ✅ User documentation updated (if user-facing changes)
+- ✅ CHANGELOG.md updated
+- ✅ Function headers complete (Purpose, Args, Returns, Output)
+- ✅ Backward compatibility maintained (from v0.19.0+)
+
+### Release Process (Maintainer Reference)
+
+**Version Management**:
+1. Manual testing by maintainer
+2. Update VERSION file (semantic versioning)
+3. Update CHANGELOG.md with release notes
+4. Update `doc/releases/vX.Y.Z.md` (consumed by release workflow)
+
+**Tag & Release**:
+```bash
+# Create annotated tag
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin main --tags
+```
+
+**Automated Steps** (via GitHub Actions):
+- Build artifacts created by release workflow
+- Documentation site deployed by doc workflow
+- GitHub release created automatically
+
+**Manual Steps**:
+- Update extension repositories (if needed)
+- No announcements required
 
 ### Making Changes
 
@@ -106,7 +259,7 @@ oradba/
 2. **Lint code**: Run `make lint` (all linters) or `make lint-shell`/`make lint-markdown` before committing
 3. **Update tests**: Add/update tests for new functionality
 4. **Update docs**: Keep CHANGELOG.md and release notes in sync
-5. **Commit messages**: Use conventional commits format:
+5. **Commit messages**: Use conventional commits format (recommended):
    - `feat:` for new features
    - `fix:` for bug fixes
    - `docs:` for documentation
@@ -129,19 +282,83 @@ OraDBA has comprehensive test coverage with BATS unit/integration tests and Dock
 ### Documentation
 
 - **User docs**: Update `src/doc/*.md` for user-facing changes
+- **Developer docs**: Update `doc/*.md` for architecture, development guides
 - **Release notes**: Update `doc/releases/v*.md` for releases
 - **CHANGELOG**: Keep `CHANGELOG.md` current with all changes
 - **Function headers**: Document all functions with purpose, args, returns, output
 - **Alias help**: Update `src/doc/alias_help.txt` when aliases change
+- **Templates**: Reuse/adapt templates from `doc/templates/` (header.sh, header.sql, etc.)
+
+### Code Templates
+
+**Function Header Template** (based on `doc/templates/header.sh`):
+```bash
+# ------------------------------------------------------------------------------
+# Function: function_name
+# Purpose.: Brief description of what the function does
+# Args....: $1 - Description of first argument
+#           $2 - Description of second argument (optional)
+# Returns.: 0 on success, 1 on error
+# Output..: Description of what gets printed to stdout
+# Notes...: Additional context, usage examples, or warnings (optional)
+# ------------------------------------------------------------------------------
+function_name() {
+    local arg1="$1"
+    local arg2="${2:-default}"
+    
+    # Function implementation
+}
+```
+
+**VSCode Snippets** (not in git, document in developer docs):
+- Trigger: `orafunc` for function header template
+- Location: `.vscode/oradba.code-snippets`
+- Include: Function headers, test templates, plugin templates
 
 ### Validation Scripts
 
 Update validation/check scripts when project structure or requirements change:
 
 - **Installation checks**: `src/bin/oradba_check.sh` - Update when installation requirements change
-- **Installation validation**: `src/bin/oradba_validate.sh` - Update when scripts/libs change
-- **Project structure**: `scripts/validate_project.sh` - Update when project structure changes
-- **Test environment**: `scripts/validate_test_environment.sh` - Update when test structure changes
+- **Installation validation**: `src/bin/oradba_validate.sh` - Update when scripts/libs change (Registry API, plugins, 437 functions)
+- **Project structure**: `scripts/validate_project.sh` - Update when project structure changes (src/, lib/plugins/, etc.)
+- **Test environment**: `scripts/validate_test_environment.sh` - Update when test structure changes (1086 tests, Docker setup)
+
+## Autonomous Implementation Guidelines
+
+When implementing issues autonomously (especially via Copilot Agent):
+
+### Prerequisites
+1. **Read the issue completely** - Understand objectives, tasks, success criteria
+2. **Read related documentation** - Check doc/architecture.md, CONTRIBUTING.md, related source files
+3. **Analyze existing patterns** - Find similar implementations to follow
+4. **Verify test coverage** - Check if tests exist for the area being modified
+5. **Check copilot-instructions.md** - Follow project-specific patterns and standards
+
+### Implementation Process
+1. **Create branch** - Use descriptive name: `feat/issue-XX-description` or `fix/issue-XX-description`
+2. **Read existing code** - Understand current implementation before changing
+3. **Follow patterns** - Match existing code style, naming, structure
+4. **Document changes** - Update function headers, comments, documentation
+5. **Add tests** - Create/update BATS tests for new functionality
+6. **Validate** - Run `make test` and `make lint` before committing
+7. **Atomic commits** - One logical change per commit with clear messages
+8. **Update CHANGELOG** - Add entry describing the change
+
+### Validation Before Completion
+- ✅ All tests pass (`make test`)
+- ✅ Linting passes (`make lint`)
+- ✅ Function headers complete (Purpose, Args, Returns, Output)
+- ✅ Documentation updated (if user-facing changes)
+- ✅ CHANGELOG.md updated
+- ✅ Commit messages follow conventional commits
+
+### When to Ask for Clarification
+- Ambiguous requirements or success criteria
+- Multiple valid implementation approaches
+- Breaking changes that affect backward compatibility
+- Design decisions that impact future development
+- Missing information about expected behavior
 
 ## Common Patterns
 

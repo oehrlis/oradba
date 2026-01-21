@@ -1,0 +1,110 @@
+name: Docker Integration Tests
+
+on:
+  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable debug output'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  docker-integration:
+    name: Oracle 26ai Docker Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker environment
+        run: |
+          echo "::group::Docker environment info"
+          docker --version
+          docker info
+          echo "::endgroup::"
+      
+      - name: Pull Oracle 26ai Free Docker image
+        run: |
+          echo "::group::Pulling Oracle 26ai Free image"
+          docker pull container-registry.oracle.com/database/free:latest
+          echo "::endgroup::"
+      
+      - name: Prepare test environment
+        run: |
+          echo "::group::Test environment setup"
+          echo "Project: OraDBA"
+          echo "Test type: Docker Integration Tests"
+          echo "Test file: tests/docker_automated_tests.sh"
+          echo "Debug mode: ${{ github.event.inputs.debug_mode }}"
+          echo "::endgroup::"
+      
+      - name: Run Docker integration tests
+        id: run_tests
+        run: |
+          echo "::group::Running integration tests"
+          
+          # Run tests in Docker container
+          docker run --name oradba-test \
+            -e ORADBA_DEBUG="${{ github.event.inputs.debug_mode }}" \
+            -v $PWD:/oradba \
+            -w /oradba \
+            container-registry.oracle.com/database/free:latest \
+            bash tests/docker_automated_tests.sh
+          
+          # Capture exit code
+          TEST_EXIT_CODE=$?
+          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          echo "::endgroup::"
+          
+          # Copy test results from container
+          echo "::group::Copying test results"
+          docker cp oradba-test:/tmp/oradba_test_results.txt ./docker_test_results.txt || true
+          echo "::endgroup::"
+          
+          # Exit with test result
+          exit $TEST_EXIT_CODE
+      
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "::group::Test Summary"
+          if [ -f docker_test_results.txt ]; then
+            echo "Test results:"
+            cat docker_test_results.txt
+          else
+            echo "Warning: Test results file not found"
+          fi
+          echo "::endgroup::"
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-test-results
+          path: |
+            docker_test_results.txt
+          retention-days: 30
+          if-no-files-found: warn
+      
+      - name: Cleanup Docker container
+        if: always()
+        run: |
+          docker rm -f oradba-test 2>/dev/null || true
+      
+      - name: Test status
+        if: always()
+        run: |
+          if [ "${{ steps.run_tests.outputs.test_exit_code }}" != "0" ]; then
+            echo "::error::Docker integration tests failed"
+            exit 1
+          else
+            echo "::notice::Docker integration tests passed"
+          fi

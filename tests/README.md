@@ -1,14 +1,82 @@
-# Test Suite
+# OraDBA Test Infrastructure
+
+OraDBA has comprehensive test coverage with two complementary test frameworks:
+**BATS unit/functional tests** and **Docker integration tests**.
+
+## Test Types
+
+### BATS Tests (Unit & Functional Testing)
+
+**Purpose**: Fast unit and functional tests for OraDBA components without requiring Oracle installation.
+
+**Statistics**:
+
+- **1086 tests** across 65 BATS test files
+- **1045 passing** (96.2%)
+- **41 skipped** (integration tests requiring Oracle/Docker)
+- **100% pass rate** (all non-skipped tests pass)
+
+**Execution**:
+
+```bash
+# Smart test selection (runs only affected tests, ~1-3 min)
+make test
+
+# Full test suite (all 1086 tests, ~10 min)
+make test-full
+
+# Specific test file
+bats tests/test_file.bats
+
+# Specific test
+bats tests/test_file.bats -f "test name pattern"
+```
+
+**CI/CD**: Runs automatically on all PRs and pushes via GitHub Actions
+
+### Docker Integration Tests (End-to-End Testing)
+
+**Purpose**: Comprehensive integration testing with real Oracle Database operations in Oracle 26ai Free Docker container.
+
+**Statistics**:
+
+- **21 test suites** in `docker_automated_tests.sh` (1594 lines)
+- Tests real database operations (start/stop/mount)
+- Tests listener management (status/reload)
+- Tests RMAN backup/restore workflows
+- Tests SQL script execution
+
+**Execution**:
+
+```bash
+# Via GitHub Actions (recommended)
+# Go to: Actions → Docker Integration Tests → Run workflow
+
+# Or locally with Docker
+docker pull container-registry.oracle.com/database/free:latest
+
+docker run -it --rm -v $PWD:/oradba \
+  container-registry.oracle.com/database/free:latest \
+  bash -c "cd /oradba && bash tests/docker_automated_tests.sh"
+```
+
+**CI/CD**: Manual trigger only (see GitHub Actions workflow)
+
+**Duration**: ~20-40 minutes (depends on database operations)
+
+---
+
+## BATS Test Files
 
 BATS (Bash Automated Testing System) test suite for OraDBA functionality.
 
-## Overview
+### Overview
 
 The OraDBA test suite provides comprehensive testing of shell scripts, library
 functions, and utilities. Tests use BATS framework and are organized by component,
 with unit tests for libraries and integration tests for scripts.
 
-## Test Files
+### Test Files
 
 | Test File                                                            | Component                  | Tests | Description                           |
 |----------------------------------------------------------------------|----------------------------|-------|---------------------------------------|

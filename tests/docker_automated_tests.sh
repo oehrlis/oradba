@@ -14,6 +14,54 @@
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
+#
+# Usage:
+#   # Pull Oracle 26ai Free Docker image
+#   docker pull container-registry.oracle.com/database/free:latest
+#
+#   # Run container with OraDBA mounted
+#   docker run -it --rm -v $PWD:/oradba \
+#     container-registry.oracle.com/database/free:latest \
+#     bash
+#
+#   # Inside container, run tests
+#   cd /oradba
+#   bash tests/docker_automated_tests.sh
+#
+#   # Or run directly (one-liner)
+#   docker run -it --rm -v $PWD:/oradba \
+#     container-registry.oracle.com/database/free:latest \
+#     bash -c "cd /oradba && bash tests/docker_automated_tests.sh"
+#
+# Test Suites (21 total):
+#   1. Installation integrity and file structure
+#   2. Environment loading (oraenv.sh, library loading)
+#   3. Auto-discovery (running instances → oratab)
+#   4. Oracle Homes registry management
+#   5. Listener control (status/start/stop/reload)
+#   6. Database control (startup/shutdown/mount)
+#   7. Validation tools (oradba_check.sh, oradba_validate.sh)
+#   8. Extension discovery and loading
+#   9. Oracle Homes export/import
+#   10. Environment management (oradba_env.sh)
+#   11. Output formats (JSON/XML/CSV/table)
+#   12. Utility scripts
+#   13. Database status queries
+#   14. Shell alias functionality
+#   15. SQL script execution
+#   16. RMAN integration (backup/restore)
+#   17. Log management (rotation, cleanup)
+#   18. sqlnet.ora and tnsnames.ora configuration
+#   19. systemd service operations
+#   20. Help system outputs
+#   21. Configuration file parsing
+#
+# Output:
+#   - Color-coded console output
+#   - Detailed results: /tmp/oradba_test_results_*.log
+#
+# Duration: ~20-40 minutes (depends on database operations)
+# ------------------------------------------------------------------------------
 
 # NOTE: set -e disabled due to docker exec environment issues
 # In docker exec context, functions with ((TESTS_TOTAL++)) followed by

@@ -105,10 +105,50 @@ main "$@"
 
 ### Testing
 
-- Add BATS tests for new functionality
-- Ensure all tests pass before submitting PR
+OraDBA has two complementary test frameworks:
+
+#### BATS Tests (Unit & Functional)
+
+- Add BATS tests for new functionality in `tests/test_*.bats`
+- Ensure all tests pass before submitting PR: `make test-full`
 - Test on multiple environments when possible
 - Include both positive and negative test cases
+- Update `.testmap.yml` for smart test selection
+
+**Run tests**:
+
+```bash
+make test        # Smart selection (fast, ~1-3 min)
+make test-full   # All 1086 tests (~10 min)
+bats tests/test_file.bats  # Specific file
+```
+
+#### Docker Integration Tests (Manual)
+
+For changes affecting database operations, listener control, or RMAN:
+
+1. **Test locally** with Docker:
+
+   ```bash
+   docker run -it --rm -v $PWD:/oradba \
+     container-registry.oracle.com/database/free:latest \
+     bash -c "cd /oradba && bash tests/docker_automated_tests.sh"
+   ```
+
+2. **Or trigger GitHub Actions workflow**:
+   - Go to: Actions → Docker Integration Tests → Run workflow
+   - Wait ~20-40 minutes for results
+   - Download test results artifact
+
+**When to run Docker tests**:
+
+- Before major releases (v0.x.0)
+- After database control changes (`oradba_dbctl.sh`, `oradba_lsnrctl.sh`)
+- After RMAN script modifications
+- After service management changes
+- When troubleshooting integration issues
+
+See [tests/README.md](tests/README.md) for detailed test documentation.
 
 ### Commit Messages
 

@@ -27,7 +27,7 @@ setup() {
 
 teardown() {
     if [[ -n "$TEST_TEMP_DIR" ]] && [[ -d "$TEST_TEMP_DIR" ]]; then
-        rm -rf "$TEST_TEMP_DIR"
+        /bin/rm -rf "$TEST_TEMP_DIR"
     fi
 }
 
@@ -576,7 +576,7 @@ teardown() {
         grep -q "export ORACLE_BASE=\"${test_base}\"" "$test_prefix/etc/oradba_local.conf"
         
         # Cleanup
-        rm -rf "$test_base"
+        /bin/rm -rf "$test_base"
     else
         skip "Tarball or standalone installer not found"
     fi
@@ -605,7 +605,7 @@ teardown() {
         grep -q "export ORACLE_BASE=\"${test_base}\"" "$test_prefix/etc/oradba_local.conf"
         
         # Cleanup
-        rm -rf "$test_base"
+        /bin/rm -rf "$test_base"
     else
         skip "Tarball or standalone installer not found"
     fi
@@ -630,7 +630,7 @@ teardown() {
         grep -q "# ORACLE_BASE not set - will use default from oradba_standard.conf" "$test_prefix/etc/oradba_local.conf"
         
         # Cleanup
-        rm -rf "$test_prefix"
+        /bin/rm -rf "$test_prefix"
     else
         skip "Tarball or standalone installer not found"
     fi
