@@ -137,13 +137,41 @@ check_file "src/lib/oradba_aliases.sh"
 check_file "src/lib/extensions.sh"
 
 echo ""
-echo "Checking environment management libraries..."
+echo "Checking Registry API (v0.19.0+)..."
+check_file "src/lib/oradba_registry.sh"
+
+echo ""
+echo "Checking environment management libraries (v0.19.0+)..."
 check_file "src/lib/oradba_env_parser.sh"
 check_file "src/lib/oradba_env_builder.sh"
 check_file "src/lib/oradba_env_validator.sh"
 check_file "src/lib/oradba_env_config.sh"
 check_file "src/lib/oradba_env_status.sh"
 check_file "src/lib/oradba_env_changes.sh"
+
+echo ""
+echo "Checking Plugin System (v0.19.0+)..."
+check_dir "src/lib/plugins"
+check_file "src/lib/plugins/plugin_interface.sh"
+check_file "src/lib/plugins/database_plugin.sh"
+check_file "src/lib/plugins/client_plugin.sh"
+check_file "src/lib/plugins/iclient_plugin.sh"
+check_file "src/lib/plugins/datasafe_plugin.sh"
+check_file "src/lib/plugins/oud_plugin.sh"
+check_file "src/lib/plugins/java_plugin.sh"
+check_file "src/lib/plugins/weblogic_plugin.sh" "false"
+check_file "src/lib/plugins/emagent_plugin.sh" "false"
+check_file "src/lib/plugins/oms_plugin.sh" "false"
+
+echo ""
+echo "Counting plugin files..."
+PLUGIN_COUNT=$(find src/lib/plugins -name "*_plugin.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
+if [[ $PLUGIN_COUNT -ge 6 ]]; then
+    echo "✓ Found $PLUGIN_COUNT product plugins (6+ required)"
+else
+    echo "✗ Found only $PLUGIN_COUNT product plugins (expected 6+)"
+    ERRORS=$((ERRORS + 1))
+fi
 
 echo ""
 echo "Checking configuration files..."
@@ -165,6 +193,9 @@ echo ""
 echo "Checking test structure..."
 check_dir "tests"
 check_file "tests/run_tests.sh"
+
+echo ""
+echo "Checking core library tests..."
 check_file "tests/test_oradba_common.bats"
 check_file "tests/test_oradba_db_functions.bats"
 check_file "tests/test_oradba_aliases.bats"
@@ -172,10 +203,30 @@ check_file "tests/test_extensions.bats"
 check_file "tests/test_execute_db_query.bats"
 check_file "tests/test_logging.bats"
 check_file "tests/test_logging_infrastructure.bats"
+
+echo ""
+echo "Checking environment management tests..."
 check_file "tests/test_oradba_env_parser.bats"
 check_file "tests/test_oradba_env_config.bats"
 check_file "tests/test_oradba_env_status.bats"
 check_file "tests/test_oradba_env_changes.bats"
+
+echo ""
+echo "Checking Registry API tests (v0.19.0+)..."
+check_file "tests/test_registry.bats"
+
+echo ""
+echo "Checking Plugin System tests (v0.19.0+)..."
+check_file "tests/test_plugin_interface.bats"
+check_file "tests/test_database_plugin.bats"
+check_file "tests/test_client_plugin.bats"
+check_file "tests/test_iclient_plugin.bats"
+check_file "tests/test_datasafe_plugin.bats"
+check_file "tests/test_oud_plugin.bats"
+check_file "tests/test_java_plugin.bats"
+
+echo ""
+echo "Checking script and tool tests..."
 check_file "tests/test_oraenv.bats"
 check_file "tests/test_oraup.bats"
 check_file "tests/test_installer.bats"
@@ -186,6 +237,7 @@ check_file "tests/test_oradba_homes.bats"
 check_file "tests/test_oracle_homes.bats"
 check_file "tests/test_oratab_priority.bats"
 check_file "tests/test_sid_config.bats"
+check_file "tests/test_client_path_config.bats"
 check_file "tests/test_oradba_rman.bats"
 check_file "tests/test_oradba_sqlnet.bats"
 check_file "tests/test_service_management.bats"
@@ -193,6 +245,16 @@ check_file "tests/test_longops.bats"
 check_file "tests/test_get_seps_pwd.bats"
 check_file "tests/test_job_wrappers.bats"
 check_file "tests/test_sync_scripts.bats"
+
+echo ""
+echo "Counting test files..."
+BATS_COUNT=$(find tests -name "*.bats" -type f 2>/dev/null | wc -l | tr -d ' ')
+if [[ $BATS_COUNT -ge 37 ]]; then
+    echo "✓ Found $BATS_COUNT BATS test files (37+ required)"
+else
+    echo "✗ Found only $BATS_COUNT BATS test files (expected 37+)"
+    ERRORS=$((ERRORS + 1))
+fi
 
 echo ""
 echo "Checking scripts directory..."
@@ -220,7 +282,8 @@ check_file "src/doc/reference.md"
 check_file "src/doc/extensions.md"
 check_file "src/doc/service-management.md"
 check_file "src/doc/sqlnet-config.md"
-check_dir "src/doc/images"
+check_dir "src/doc/javascripts" "false"
+check_dir "src/doc/stylesheets" "false"
 
 echo ""
 echo "Checking GitHub issue templates..."

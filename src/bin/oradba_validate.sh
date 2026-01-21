@@ -212,13 +212,37 @@ test_item "oradba_aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_aliases.s
 test_item "oradba_db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_db_functions.sh' ]]" "optional"
 test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
 
-# Phase 1-3 libraries (new configuration system)
+# Registry API (v0.19.0+)
+test_item "oradba_registry.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_registry.sh' ]]"
+
+# Environment Management Libraries (v0.19.0+)
 test_item "oradba_env_parser.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_parser.sh' ]]"
 test_item "oradba_env_builder.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_builder.sh' ]]"
 test_item "oradba_env_validator.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_validator.sh' ]]" "optional"
 test_item "oradba_env_config.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_config.sh' ]]" "optional"
 test_item "oradba_env_status.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_status.sh' ]]" "optional"
 test_item "oradba_env_changes.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_changes.sh' ]]" "optional"
+
+# Plugin System (v0.19.0+)
+if [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Checking Plugin System..."
+    echo "-------------------------------------------------------------------------------"
+else
+    echo "Checking Plugin System..."
+fi
+
+test_item "Plugin directory exists" "[[ -d '${ORADBA_BASE}/lib/plugins' ]]"
+test_item "Plugin interface exists" "[[ -f '${ORADBA_BASE}/lib/plugins/plugin_interface.sh' ]]"
+test_item "Database plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/database_plugin.sh' ]]"
+test_item "Client plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/client_plugin.sh' ]]"
+test_item "Instant Client plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/iclient_plugin.sh' ]]"
+test_item "DataSafe plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh' ]]"
+test_item "OUD plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/oud_plugin.sh' ]]"
+test_item "Java plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/java_plugin.sh' ]]"
+test_item "WebLogic plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/weblogic_plugin.sh' ]]" "optional"
+test_item "EM Agent plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/emagent_plugin.sh' ]]" "optional"
+test_item "OMS plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/oms_plugin.sh' ]]" "optional"
 
 # Check configuration files
 if [[ "${VERBOSE}" == "true" ]]; then
@@ -241,6 +265,7 @@ test_item "oradba_customer.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_custom
 # Templates (should exist for user creation)
 test_item "oradba_customer.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/oradba_customer.conf.example' ]]"
 test_item "sid.ORACLE_SID.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example' ]]"
+test_item "oradba_homes.conf.template exists" "[[ -f '${ORADBA_BASE}/templates/etc/oradba_homes.conf.template' ]]"
 test_item "oradba_services.conf.example exists" "[[ -f '${ORADBA_BASE}/templates/etc/oradba_services.conf.example' ]]" "optional"
 
 # Service configs (optional, may be created by user)
