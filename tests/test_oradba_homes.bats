@@ -685,6 +685,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 # ------------------------------------------------------------------------------
 
 @test "generate_home_name: JDK with version lowercase" {
+    # shellcheck source=../src/bin/oradba_homes.sh
     source "$HOMES_SCRIPT"
     
     run generate_home_name "jdk-17" "java"
@@ -701,6 +702,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 }
 
 @test "generate_home_name: JRE with version lowercase" {
+    # shellcheck source=../src/bin/oradba_homes.sh
     source "$HOMES_SCRIPT"
     
     run generate_home_name "jre-8" "java"
@@ -717,6 +719,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 }
 
 @test "generate_home_name: instant client lowercase" {
+    # shellcheck source=../src/bin/oradba_homes.sh
     source "$HOMES_SCRIPT"
     
     run generate_home_name "instantclient_19_8" "iclient"
@@ -729,6 +732,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 }
 
 @test "generate_home_name: other products uppercase" {
+    # shellcheck source=../src/bin/oradba_homes.sh
     source "$HOMES_SCRIPT"
     
     # Database should use uppercase (backward compatible)
