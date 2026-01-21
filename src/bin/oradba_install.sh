@@ -1736,6 +1736,9 @@ extract_github_release() {
     else
         log_info "Fetching version ${version} from GitHub..."
         
+        # Normalize version: strip leading 'v' if present
+        version="${version#v}"
+        
         # Check if this is an archived version
         check_archived_version "$version"
         

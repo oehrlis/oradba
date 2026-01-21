@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-01-21
+
 ### Fixed
+
+- **Installer Version Normalization** (2026-01-21)
+  - Fixed double 'v' prefix when using `--version v0.19.0` format
+  - Installer now strips leading 'v' from version string before constructing URLs
+  - Both `--version 0.19.0` and `--version v0.19.0` now work correctly
+  - Example: `./oradba_install.sh --github --version v0.19.0` now downloads from
+    correct URL
 
 - **Installer GitHub API Rate Limiting** (2026-01-21)
   - Improved error handling for GitHub API rate limit errors in installer
@@ -21,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Environment Pollution with Internal Functions** (2026-01-21)
   - Clean up internal helper functions after use to prevent environment pollution
-  - Remove `has_rlwrap`, `create_dynamic_alias`, `get_diagnostic_dest`, `generate_base_aliases`, `generate_sid_aliases` after sourcing
+  - Remove `has_rlwrap`, `create_dynamic_alias`, `get_diagnostic_dest`,
+    `generate_base_aliases`, `generate_sid_aliases` after sourcing
   - Keep only `oradba_tnsping` function (required by tnsping alias at runtime)
   - Eliminates 5 unnecessary `BASH_FUNC_*` environment variables
   - Improves environment hygiene and reduces namespace pollution
