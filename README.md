@@ -289,8 +289,6 @@ Complete user guides available in multiple formats:
 
 - **[User Guide (PDF)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** -
   Download complete guide
-- **[User Guide (HTML)](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html)** -
-  Single-page HTML
 - **[Online Documentation](https://code.oradba.ch/oradba)** - Browse chapters individually
 
 **User Guide Contents:**
