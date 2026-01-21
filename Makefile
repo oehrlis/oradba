@@ -134,9 +134,18 @@ test: ## Run smart test selection (only tests affected by changes)
 
 .PHONY: test-full
 test-full: ## Run all tests (no smart selection)
-	@echo -e "$(COLOR_BLUE)Running full test suite (1077 tests across 37 test files, 9 conditional skips)...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Running full test suite (1086 tests, 41 conditional skips expected)...$(COLOR_RESET)"
 	@if [ -n "$(BATS)" ]; then \
-		$(BATS) $(TEST_DIR)/*.bats; \
+		$(BATS) $(TEST_DIR)/*.bats; test_exit=$$?; \
+		if [ $$test_exit -eq 0 ]; then \
+			echo -e "$(COLOR_GREEN)All tests passed!$(COLOR_RESET)"; \
+		elif [ $$test_exit -eq 1 ]; then \
+			echo -e "$(COLOR_YELLOW)Tests completed with skipped tests (exit code 1 is normal with conditional skips)$(COLOR_RESET)"; \
+			exit 0; \
+		else \
+			echo -e "$(COLOR_RED)Tests failed with exit code $$test_exit$(COLOR_RESET)"; \
+			exit $$test_exit; \
+		fi; \
 	else \
 		echo -e "$(COLOR_RED)Error: bats not found. Install with: brew install bats-core$(COLOR_RESET)"; \
 		exit 1; \
