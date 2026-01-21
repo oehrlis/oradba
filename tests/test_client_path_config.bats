@@ -32,7 +32,7 @@ setup() {
 }
 
 teardown() {
-    rm -rf "${TEST_DIR}"
+    /bin/rm -rf "${TEST_DIR}"
     unset ORADBA_CLIENT_PATH_FOR_NON_CLIENT
 }
 
