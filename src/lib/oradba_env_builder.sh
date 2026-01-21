@@ -77,6 +77,14 @@ if [[ -z "${ORADBA_ENV_CONFIG_LOADED}" ]]; then
     fi
 fi
 
+# Require extensions library
+if [[ -z "${ORADBA_EXTENSIONS_LOADED}" ]]; then
+    if [[ -f "${ORADBA_BASE}/lib/extensions.sh" ]]; then
+        # shellcheck source=./extensions.sh
+        source "${ORADBA_BASE}/lib/extensions.sh"
+    fi
+fi
+
 # ------------------------------------------------------------------------------
 # Function: oradba_clean_path
 # Purpose.: Remove Oracle-related directories from PATH
@@ -946,6 +954,13 @@ oradba_build_environment() {
     if [[ -n "${DYLD_LIBRARY_PATH:-}" ]]; then
         final_lib_path="$(oradba_dedupe_path "$DYLD_LIBRARY_PATH")"
         export DYLD_LIBRARY_PATH="$final_lib_path"
+    fi
+    
+    # Load extensions after Oracle environment is fully set up
+    # Extensions are loaded based on priority (mixed with Oracle paths)
+    # Default priority: 50 (loaded after Oracle paths)
+    if command -v load_extensions >/dev/null 2>&1; then
+        load_extensions
     fi
     
     # Set tracking variables

@@ -19,6 +19,10 @@
 
 # Requires: oradba_common.sh must be sourced first
 
+# Prevent multiple sourcing
+[[ -n "${ORADBA_EXTENSIONS_LOADED}" ]] && return 0
+readonly ORADBA_EXTENSIONS_LOADED=1
+
 # ------------------------------------------------------------------------------
 # Extension Discovery Functions
 # ------------------------------------------------------------------------------
@@ -464,15 +468,34 @@ load_extension() {
 
     oradba_log DEBUG "Loading extension: ${ext_name} (${ext_path})"
 
-    # Add to PATH (bin directory)
-    if [[ -d "${ext_path}/bin" ]]; then
+    # Check what the extension provides (from .extension metadata)
+    metadata="${ext_path}/.extension"
+    local provides_bin="true"
+    local provides_sql="true"
+    local provides_rcv="true"
+    
+    # Read provides section if metadata exists
+    if [[ -f "${metadata}" ]]; then
+        # Check each provides flag
+        provides_bin=$(grep -A5 "^provides:" "${metadata}" | grep "bin:" | awk '{print $2}' | head -1)
+        provides_sql=$(grep -A5 "^provides:" "${metadata}" | grep "sql:" | awk '{print $2}' | head -1)
+        provides_rcv=$(grep -A5 "^provides:" "${metadata}" | grep "rcv:" | awk '{print $2}' | head -1)
+        
+        # Default to true if not specified
+        provides_bin="${provides_bin:-true}"
+        provides_sql="${provides_sql:-true}"
+        provides_rcv="${provides_rcv:-true}"
+    fi
+
+    # Add to PATH (bin directory) - only if provides bin
+    if [[ "${provides_bin}" == "true" ]] && [[ -d "${ext_path}/bin" ]]; then
         # Add to beginning of PATH (after ORADBA_BIN)
         export PATH="${ext_path}/bin:${PATH}"
         oradba_log DEBUG "  Added ${ext_name}/bin to PATH"
     fi
 
-    # Add to SQLPATH (sql directory)
-    if [[ -d "${ext_path}/sql" ]]; then
+    # Add to SQLPATH (sql directory) - only if provides sql
+    if [[ "${provides_sql}" == "true" ]] && [[ -d "${ext_path}/sql" ]]; then
         # Use add_to_sqlpath from oradba_common.sh if available, otherwise append
         if command -v add_to_sqlpath > /dev/null 2>&1; then
             add_to_sqlpath "${ext_path}/sql"
@@ -482,8 +505,8 @@ load_extension() {
         oradba_log DEBUG "  Added ${ext_name}/sql to SQLPATH"
     fi
 
-    # Add RMAN search path (rcv directory)
-    if [[ -d "${ext_path}/rcv" ]]; then
+    # Add RMAN search path (rcv directory) - only if provides rcv
+    if [[ "${provides_rcv}" == "true" ]] && [[ -d "${ext_path}/rcv" ]]; then
         export ORADBA_RCV_PATHS="${ORADBA_RCV_PATHS:+${ORADBA_RCV_PATHS}:}${ext_path}/rcv"
         oradba_log DEBUG "  Added ${ext_name}/rcv to RMAN search paths"
     fi
