@@ -650,6 +650,191 @@ oradba_add_client_path() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_product_needs_java
+# Purpose.: Determine if a product type needs Java (JAVA_HOME)
+# Args....: $1 - Product type (uppercase: DATASAFE, OUD, WLS, etc.)
+# Returns.: 0 if product needs Java, 1 if it has its own or doesn't need Java
+# ------------------------------------------------------------------------------
+oradba_product_needs_java() {
+    local product_type="$1"
+    
+    # Products that typically need Java but may not ship it
+    # (or users want to override the shipped Java)
+    case "${product_type}" in
+        DATASAFE|OUD|WLS|WEBLOGIC|OMS|EMAGENT)
+            return 0
+            ;;
+        *)
+            # DATABASE and CLIENT products ship Java in $ORACLE_HOME/java
+            # but users might want to override it
+            return 1
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
+# Function: oradba_resolve_java_home
+# Purpose.: Resolve Java home path from ORADBA_JAVA_PATH_FOR_NON_JAVA setting
+# Args....: $1 - Current ORACLE_HOME (optional, for auto-detection of $ORACLE_HOME/java)
+# Returns.: 0 on success, 1 if no Java found
+# Output..: Prints resolved Java home path
+# Notes...: Supports "auto", "none", or named Java from oradba_homes.conf
+# ------------------------------------------------------------------------------
+oradba_resolve_java_home() {
+    local current_oracle_home="${1:-}"
+    local setting="${ORADBA_JAVA_PATH_FOR_NON_JAVA:-none}"
+    local homes_file
+    local java_home=""
+    
+    # Handle "none" - no Java needed
+    [[ "${setting}" == "none" ]] && return 1
+    
+    # Handle "auto" - find Java automatically
+    if [[ "${setting}" == "auto" ]]; then
+        # First, check $ORACLE_HOME/java if ORACLE_HOME is set
+        if [[ -n "${current_oracle_home}" ]] && [[ -d "${current_oracle_home}/java" ]]; then
+            local java_in_home="${current_oracle_home}/java"
+            if [[ -x "${java_in_home}/bin/java" ]]; then
+                oradba_log DEBUG "Found Java in ORACLE_HOME: ${java_in_home}"
+                echo "${java_in_home}"
+                return 0
+            fi
+        fi
+        
+        # Get oracle homes config file
+        if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+            homes_file=$(get_oracle_homes_path 2>/dev/null) || homes_file=""
+        else
+            homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+        fi
+        
+        [[ ! -f "${homes_file}" ]] && return 1
+        
+        # Find first JAVA type in oradba_homes.conf
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+        while IFS=':' read -r name path ptype _order alias _desc _version; do
+            # Skip empty lines and comments
+            [[ -z "${name}" ]] && continue
+            [[ "${name}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Convert type to uppercase for comparison
+            local ptype_upper="${ptype^^}"
+            
+            # Check if it's a Java type
+            if [[ "${ptype_upper}" == "JAVA" ]]; then
+                # Validate directory exists and has java binary
+                if [[ -d "${path}" ]] && [[ -x "${path}/bin/java" ]]; then
+                    java_home="${path}"
+                    oradba_log DEBUG "Found Java in oradba_homes.conf: ${java_home}"
+                    break
+                fi
+            fi
+        done < <(grep -v "^#\|^$" "${homes_file}")
+    else
+        # Handle specific Java name (could be name or alias)
+        # Get oracle homes config file
+        if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+            homes_file=$(get_oracle_homes_path 2>/dev/null) || homes_file=""
+        else
+            homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
+        fi
+        
+        [[ ! -f "${homes_file}" ]] && return 1
+        
+        # Format: NAME:PATH:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+        while IFS=':' read -r name path ptype _order alias _desc _version; do
+            # Skip empty lines and comments
+            [[ -z "${name}" ]] && continue
+            [[ "${name}" =~ ^[[:space:]]*# ]] && continue
+            
+            # Convert type to uppercase for comparison
+            local ptype_upper="${ptype^^}"
+            
+            # Match by name or alias
+            if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
+                # Validate it's a Java type
+                if [[ "${ptype_upper}" == "JAVA" ]]; then
+                    # Validate directory exists and has java binary
+                    if [[ -d "${path}" ]] && [[ -x "${path}/bin/java" ]]; then
+                        java_home="${path}"
+                        oradba_log DEBUG "Resolved Java home by name '${setting}': ${java_home}"
+                        break
+                    fi
+                fi
+            fi
+        done < <(grep -v "^#\|^$" "${homes_file}")
+    fi
+    
+    # Return result
+    if [[ -n "${java_home}" ]] && [[ -d "${java_home}" ]]; then
+        echo "${java_home}"
+        return 0
+    fi
+    
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: oradba_add_java_path
+# Purpose.: Add Java to JAVA_HOME and PATH for products that need it
+# Args....: $1 - Current product type (uppercase)
+#           $2 - Current ORACLE_HOME (optional, for auto-detection)
+# Returns.: 0 on success or not needed, 1 on error
+# Notes...: Prepends Java bin directory to PATH (takes precedence)
+#           Exports JAVA_HOME environment variable
+# ------------------------------------------------------------------------------
+oradba_add_java_path() {
+    local product_type="$1"
+    local current_oracle_home="${2:-}"
+    local java_home=""
+    local java_bin=""
+    
+    # Check if product needs Java or if user wants to override
+    # If ORADBA_JAVA_PATH_FOR_NON_JAVA is set to anything other than "none",
+    # we honor it regardless of product type (allows override for DATABASE/CLIENT)
+    local setting="${ORADBA_JAVA_PATH_FOR_NON_JAVA:-none}"
+    if [[ "${setting}" == "none" ]]; then
+        # Only auto-detect for products that need Java
+        if ! oradba_product_needs_java "${product_type}"; then
+            oradba_log DEBUG "Product ${product_type} has built-in Java or doesn't need it, skipping"
+            return 0
+        fi
+    fi
+    
+    # Resolve Java home
+    java_home=$(oradba_resolve_java_home "${current_oracle_home}") || {
+        oradba_log DEBUG "No Java home configured or found for ${product_type}"
+        return 0
+    }
+    
+    oradba_log DEBUG "Resolved Java home: ${java_home}"
+    
+    # Set Java bin directory
+    if [[ -d "${java_home}/bin" ]]; then
+        java_bin="${java_home}/bin"
+    else
+        oradba_log WARN "Java bin directory not found: ${java_home}/bin"
+        return 1
+    fi
+    
+    # Export JAVA_HOME
+    export JAVA_HOME="${java_home}"
+    oradba_log DEBUG "Exported JAVA_HOME=${JAVA_HOME}"
+    
+    # Check if already in PATH
+    if [[ ":${PATH}:" == *":${java_bin}:"* ]]; then
+        oradba_log DEBUG "Java path already in PATH: ${java_bin}"
+        return 0
+    fi
+    
+    # Prepend to PATH (before current entries so it takes precedence)
+    export PATH="${java_bin}:${PATH}"
+    oradba_log DEBUG "Added Java path for ${product_type}: ${java_bin}"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_build_environment
 # Purpose.: Main function to build complete environment
 # Args....: $1 - SID or ORACLE_HOME
@@ -728,6 +913,11 @@ oradba_build_environment() {
     if command -v oradba_apply_product_config &>/dev/null; then
         oradba_apply_product_config "$product_type" "$oracle_sid"
     fi
+    
+    # Add Java path for products that need it (e.g., DataSafe, OUD, WebLogic)
+    # This happens BEFORE client path so Java takes precedence (prepended to PATH)
+    # Pass oracle_home for auto-detection of $ORACLE_HOME/java
+    oradba_add_java_path "$product_type" "$oracle_home"
     
     # Add client path for non-client products (e.g., DataSafe, OUD, WebLogic)
     # This happens after product PATH setup and config files, but before deduplication
