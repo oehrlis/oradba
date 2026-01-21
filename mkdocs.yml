@@ -132,6 +132,19 @@ nav:
   - Extensions:
     - Extension System: extensions.md
     - Extensions Catalog: extensions-catalog.md
+  
+  - Developer Reference:
+    - API Reference:
+      - Overview: api/index.md
+      - Core Utilities: api/common.md
+      - Registry API: api/registry.md
+      - Plugin Interface: api/plugins.md
+      - Environment Management: api/environment.md
+      - Database Operations: api/database.md
+      - Alias Management: api/aliases.md
+      - Extension System: api/extensions.md
+      - Scripts & Commands: api/scripts.md
+      - Function Index: api/function-index.md
 
 # Extra configuration
 extra:
