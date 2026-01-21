@@ -55,6 +55,10 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 - **Intelligent Environment Setup**: Automatic configuration with product type detection
   (RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS)
+- **Autonomous Path Management**: Automatic Java and client tools detection and setup
+  - Java path auto-detection for DataSafe, OUD, WebLogic (checks `$ORACLE_HOME/java` first)
+  - Client path configuration for products without Oracle client tools
+  - Configurable via `ORADBA_JAVA_PATH_FOR_NON_JAVA` and `ORADBA_CLIENT_PATH_FOR_NON_CLIENT`
 - **Status & Monitoring**: Real-time service status for databases, listeners, and Data Safe
   connectors with change detection and auto-reload
 - **Extension System**: Modular plugin architecture for custom scripts and tools
