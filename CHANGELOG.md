@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Installer GitHub API Rate Limiting** (2026-01-21)
+  - Improved error handling for GitHub API rate limit errors in installer
+  - Now detects rate limit responses and shows helpful workarounds:
+    1. Wait a few minutes and retry
+    2. Use authenticated requests with GITHUB_TOKEN
+    3. Download manually from releases page
+    4. Install specific version with `--version` flag
+  - Shows first 200 characters of API response on unexpected failures for debugging
+  - Resolves generic "Failed to determine latest version" error message
+
 - **Environment Pollution with Internal Functions** (2026-01-21)
   - Clean up internal helper functions after use to prevent environment pollution
   - Remove `has_rlwrap`, `create_dynamic_alias`, `get_diagnostic_dest`, `generate_base_aliases`, `generate_sid_aliases` after sourcing
