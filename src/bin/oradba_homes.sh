@@ -690,7 +690,7 @@ generate_home_name() {
             ;;
         *)
             # Other products: use uppercase (backward compatible)
-            home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_')
+            home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
             ;;
     esac
     
