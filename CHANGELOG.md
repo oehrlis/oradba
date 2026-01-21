@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Test Infrastructure Improvements
 
 - **Test Infrastructure Fixes** (2026-01-21)
   - Fixed plugin count test: Updated from 5 to 9 plugins (added java, weblogic, oms, emagent)
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated test counts in documentation (Makefile, README, release notes)
   - Enhanced .testmap.yml with individual plugin mappings
 
-### Added
+### Bug Fixes
 
 - **Java Plugin for Oracle Java Management** (2026-01-20)
   - Added comprehensive Java plugin for Oracle Java installations
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improves separation of concerns and maintainability
   - Each plugin is now self-contained for version detection
 
-### Fixed
+### Known Issues
 
 - **Auto-Sync Module Sourcing** (2026-01-20)
   - Fixed missing source of oradba_registry.sh in oradba_env.sh commands
