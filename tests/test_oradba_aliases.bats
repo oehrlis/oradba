@@ -28,7 +28,13 @@ setup() {
     source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
     
     # Source the aliases library
+    # Note: This cleans up internal helper functions after sourcing (v0.19.1)
+    # Only oradba_tnsping remains as it's needed by the tnsping alias
     source "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    
+    # Re-define internal functions for testing
+    # These are normally cleaned up but we need them for unit tests
+    source <(sed -n '/^has_rlwrap()/,/^}/p; /^create_dynamic_alias()/,/^}/p; /^get_diagnostic_dest()/,/^}/p; /^generate_base_aliases()/,/^}/p; /^generate_sid_aliases()/,/^}/p' "${PROJECT_ROOT}/src/lib/oradba_aliases.sh")
     
     # Create temp directory for tests
     TEMP_TEST_DIR="${BATS_TMPDIR}/oradba_aliases_test_$$"
@@ -61,18 +67,22 @@ teardown() {
 }
 
 @test "has_rlwrap function exists" {
+    # Note: Function is cleaned up after sourcing but re-defined in setup for testing
     type has_rlwrap
 }
 
 @test "get_diagnostic_dest function exists" {
+    # Note: Function is cleaned up after sourcing but re-defined in setup for testing
     type get_diagnostic_dest
 }
 
 @test "generate_sid_aliases function exists" {
+    # Note: Function is cleaned up after sourcing but re-defined in setup for testing
     type generate_sid_aliases
 }
 
 @test "create_dynamic_alias function exists" {
+    # Note: Function is cleaned up after sourcing but re-defined in setup for testing
     type create_dynamic_alias
 }
 
@@ -530,6 +540,31 @@ teardown() {
     # Main concern is no leaked 'sid', 'diag_dest', etc. at global scope
     run bash -c "declare -p sid 2>&1"
     [[ "$output" =~ (not found|not set) ]]
+}
+
+@test "internal helper functions are cleaned up after sourcing" {
+    # Start fresh bash and source oradba_aliases.sh
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type has_rlwrap 2>&1"
+    # Should not exist
+    [ "$status" -ne 0 ]
+    
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type create_dynamic_alias 2>&1"
+    [ "$status" -ne 0 ]
+    
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type get_diagnostic_dest 2>&1"
+    [ "$status" -ne 0 ]
+    
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type generate_base_aliases 2>&1"
+    [ "$status" -ne 0 ]
+    
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type generate_sid_aliases 2>&1"
+    [ "$status" -ne 0 ]
+}
+
+@test "oradba_tnsping function remains after sourcing" {
+    # oradba_tnsping must remain as it's used by the tnsping alias
+    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type oradba_tnsping"
+    [ "$status" -eq 0 ]
 }
 # ------------------------------------------------------------------------------
 # TNS Ping Wrapper Tests
