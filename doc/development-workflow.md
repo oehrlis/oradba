@@ -369,12 +369,14 @@ git push origin feat/issue-85-path-deduplication
 ### Local Testing (Fast Iteration)
 
 **Use for**:
+
 - During development
 - Quick validation of changes
 - Testing specific functionality
 - Debugging issues
 
 **Commands**:
+
 ```bash
 make test          # Smart selection (~1-3 min)
 bats tests/test_specific.bats  # Specific test
@@ -384,12 +386,14 @@ make lint-shell    # Shell linting only
 ### CI Testing (Comprehensive Validation)
 
 **Use for**:
+
 - Before submitting PR
 - After major changes
 - Before releases
 - Verifying cross-platform compatibility
 
 **Commands**:
+
 ```bash
 make test-full     # All tests (~10 min)
 make lint          # All linters
@@ -397,6 +401,7 @@ make ci            # Full pipeline (~10-15 min)
 ```
 
 **CI Workflow** (automatic on PR):
+
 1. Checkout code
 2. Install dependencies
 3. Run shellcheck on all scripts
@@ -544,8 +549,8 @@ make test V=1
 
 ## Resources
 
-- **BATS Documentation**: https://bats-core.readthedocs.io/
-- **ShellCheck Wiki**: https://www.shellcheck.net/wiki/
-- **Bash Reference**: https://www.gnu.org/software/bash/manual/
-- **Conventional Commits**: https://www.conventionalcommits.org/
-- **Keep a Changelog**: https://keepachangelog.com/
+- **BATS Documentation**: <https://bats-core.readthedocs.io/>
+- **ShellCheck Wiki**: <https://www.shellcheck.net/wiki/>
+- **Bash Reference**: <https://www.gnu.org/software/bash/manual/>
+- **Conventional Commits**: <https://www.conventionalcommits.org/>
+- **Keep a Changelog**: <https://keepachangelog.com/>

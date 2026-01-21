@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Enhanced Developer Documentation** (2026-01-21)
+  - Comprehensive enhancements to CONTRIBUTING.md with detailed code style guide
+  - Git workflow and branch strategy guidelines (feat/issue-XX, fix/issue-XX naming)
+  - Comprehensive pull request checklist and review process
+  - Detailed release process documentation for maintainers
+  - Enhanced code of conduct and security reporting guidelines
+  - New doc/function-header-guide.md with complete function header standards
+  - New doc/development-workflow.md with setup, testing strategy, and debugging
+  - New doc/plugin-development.md with step-by-step plugin development guide
+  - VSCode snippets documentation for function headers
+  - Testing decision tree (BATS vs Docker)
+  - Complete plugin interface specification (11 required functions)
+
 - **Autonomous JAVA_HOME Detection and Export** (2026-01-21)
   - Automatic detection and export of JAVA_HOME environment variable
   - Similar to existing ORADBA_CLIENT_PATH_FOR_NON_CLIENT mechanism

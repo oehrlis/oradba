@@ -6,20 +6,23 @@ Thank you for your interest in contributing to oradba! This document provides gu
 
 We are committed to providing a welcoming and inclusive environment for all contributors:
 
-- **Be respectful and inclusive**: Treat all contributors with respect, regardless of their background, experience level, or perspective
+- **Be respectful and inclusive**: Treat all contributors with respect, regardless of their
+  background, experience level, or perspective
 - **Focus on constructive feedback**: Provide helpful, actionable feedback that improves the project
 - **Help create a welcoming environment**: Be patient with newcomers and help them understand our processes
-- **Collaborate openly**: Share knowledge, ask questions, and work together to solve problems
+- **Collaborate openly**: Share knowledge, ask questions, and work together to solve
+  problems
 - **Assume good intentions**: Approach disagreements with empathy and understanding
 
-Unacceptable behavior includes harassment, discriminatory language, personal attacks, or any conduct that creates an unwelcoming environment.
+Unacceptable behavior includes harassment, discriminatory language, personal attacks, or any
+conduct that creates an unwelcoming environment.
 
 ### Security Reporting
 
 If you discover a security vulnerability:
 
 1. **Do NOT** open a public issue
-2. Email security concerns to: stefan.oehrli@oradba.ch
+2. Email security concerns to: <stefan.oehrli@oradba.ch>
 3. Include detailed information about the vulnerability
 4. Allow reasonable time for a fix before public disclosure
 

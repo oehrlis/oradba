@@ -49,7 +49,7 @@ function_name() {
 
 - **Format**: `# Purpose.: Brief description`
 - **Purpose**: One-line summary of what the function does
-- **Rules**: 
+- **Rules**:
   - Keep it concise (one line, under 80 characters preferred)
   - Use imperative mood ("Remove duplicates" not "Removes duplicates")
   - Focus on what, not how

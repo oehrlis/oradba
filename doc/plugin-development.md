@@ -77,6 +77,7 @@ plugin_detect_installation() {
 ```
 
 **Examples**:
+
 - Database: Scan for running `pmon` processes
 - DataSafe: Check for `cmctl` binary in typical locations
 - Client: Look for `sqlplus` without `rdbms` directory
@@ -103,6 +104,7 @@ plugin_validate_home() {
 ```
 
 **Validation Strategies**:
+
 - Check for specific binaries (e.g., `sqlplus`, `cmctl`)
 - Verify directory structure (e.g., `rdbms/`, `network/`)
 - Check for configuration files
