@@ -7,13 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-01-21
+
+### Documentation
+
+- **Release Archive Cleanup** (2026-01-21)
+  - Created consolidated release notes document (consolidated-v0.10.0-v0.18.5.md)
+  - Consolidated 8 major milestone releases (v0.10.0 through v0.18.5) into single reference
+  - Removed 21 patch release files (v0.10.1-v0.18.4) from archive
+  - Updated archive README with simplified navigation structure
+  - Fixed broken references in v0.14.0 and v0.17.0 to point to consolidated document
+  - Reduced archive from 29 to 10 files (65% reduction)
+  - Deleted 34 GitHub releases (v1.x.x pre-releases, v0.2.0-v0.4.0, and all patch releases)
+  - Preserved all 73 git tags for historical reference
+  - GitHub releases reduced to 40 major milestones (from 74 total releases)
+
 ### Test Infrastructure Improvements
 
 - **Test Infrastructure Fixes** (2026-01-21)
   - Fixed plugin count test: Updated from 5 to 9 plugins (added java, weblogic, oms, emagent)
   - Fixed client_path_config tests: Corrected oradba_homes.conf format from semicolons to colons
   - Fixed oradba_homes validation tests: Corrected field separator handling for pipe-delimited output
-  - All 1082 tests now pass (1041 passed, 41 skipped)
+  - All 1086 tests now pass (1045 passed, 41 skipped)
   - Updated test counts in documentation (Makefile, README, release notes)
   - Enhanced .testmap.yml with individual plugin mappings
 
