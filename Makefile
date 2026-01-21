@@ -382,9 +382,10 @@ docs-prepare: ## Prepare documentation images for distribution
 docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker)
 	@echo -e "$(COLOR_BLUE)Generating PDF documentation...$(COLOR_RESET)"
 	@mkdir -p $(DIST_DIR)
-	@# Create temp directory with fixed markdown files
+	@# Create temp directory with fixed markdown files (exclude api directory)
 	@mkdir -p $(DIST_DIR)/.tmp_docs
-	@cp $(USER_DOC_DIR)/*.md $(DIST_DIR)/.tmp_docs/
+	@# Copy only user documentation files, exclude api/* developer documentation
+	@find $(USER_DOC_DIR) -maxdepth 1 -name "*.md" -exec cp {} $(DIST_DIR)/.tmp_docs/ \;
 	@# Fix .md links to proper section anchors and fix image paths
 	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
 		sed -i.bak -E 's|\]\(01-introduction\.md\)|](#introduction)|g' "$$file"; \

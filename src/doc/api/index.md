@@ -1,5 +1,9 @@
 # API Reference
 
+!!! note "Developer Documentation"
+    This section contains comprehensive API reference documentation for OraDBA developers and advanced users.
+    For general user documentation, see the main [OraDBA Documentation](../index.md).
+
 Complete function reference for OraDBA libraries and scripts.
 
 ## Overview
