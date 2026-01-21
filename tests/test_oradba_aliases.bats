@@ -34,6 +34,7 @@ setup() {
     
     # Re-define internal functions for testing
     # These are normally cleaned up but we need them for unit tests
+    # shellcheck disable=SC1090  # Dynamic source for test setup only
     source <(sed -n '/^has_rlwrap()/,/^}/p; /^create_dynamic_alias()/,/^}/p; /^get_diagnostic_dest()/,/^}/p; /^generate_base_aliases()/,/^}/p; /^generate_sid_aliases()/,/^}/p' "${PROJECT_ROOT}/src/lib/oradba_aliases.sh")
     
     # Create temp directory for tests
