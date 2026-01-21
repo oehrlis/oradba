@@ -497,3 +497,107 @@ DB3:/opt/oracle/product/23ai:N"
     grep -q "^DB2:" "$test_oratab"
     grep -q "^DB3:" "$test_oratab"
 }
+
+# ------------------------------------------------------------------------------
+# Product Type Detection Tests
+# ------------------------------------------------------------------------------
+
+@test "detect_product_type detects Data Safe with oracle_cman_home structure" {
+    # Create Data Safe structure
+    local datasafe_home="${TEST_TEMP_DIR}/datasafe1"
+    mkdir -p "${datasafe_home}/oracle_cman_home/bin"
+    mkdir -p "${datasafe_home}/oracle_cman_home/lib"
+    touch "${datasafe_home}/oracle_cman_home/bin/cmctl"
+    chmod +x "${datasafe_home}/oracle_cman_home/bin/cmctl"
+    
+    run detect_product_type "${datasafe_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "datasafe" ]
+}
+
+@test "detect_product_type detects Data Safe with connector.conf and setup.py" {
+    # Create Data Safe structure (alternative detection)
+    local datasafe_home="${TEST_TEMP_DIR}/datasafe2"
+    mkdir -p "${datasafe_home}"
+    touch "${datasafe_home}/connector.conf"
+    touch "${datasafe_home}/setup.py"
+    
+    run detect_product_type "${datasafe_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "datasafe" ]
+}
+
+@test "detect_product_type detects JDK" {
+    # Create JDK structure
+    local jdk_home="${TEST_TEMP_DIR}/jdk-17"
+    mkdir -p "${jdk_home}/bin"
+    touch "${jdk_home}/bin/java"
+    touch "${jdk_home}/bin/javac"
+    chmod +x "${jdk_home}/bin/java"
+    chmod +x "${jdk_home}/bin/javac"
+    
+    run detect_product_type "${jdk_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "java" ]
+}
+
+@test "detect_product_type detects JRE" {
+    # Create JRE structure (no javac)
+    local jre_home="${TEST_TEMP_DIR}/jre-8"
+    mkdir -p "${jre_home}/bin"
+    touch "${jre_home}/bin/java"
+    chmod +x "${jre_home}/bin/java"
+    
+    run detect_product_type "${jre_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "java" ]
+}
+
+@test "detect_product_type detects nested JRE under JDK" {
+    # Create JDK with nested JRE
+    local jdk_home="${TEST_TEMP_DIR}/jdk-17"
+    local jre_home="${jdk_home}/jre"
+    mkdir -p "${jdk_home}/bin"
+    mkdir -p "${jre_home}/bin"
+    touch "${jdk_home}/bin/java"
+    touch "${jdk_home}/bin/javac"
+    touch "${jre_home}/bin/java"
+    chmod +x "${jdk_home}/bin/java"
+    chmod +x "${jdk_home}/bin/javac"
+    chmod +x "${jre_home}/bin/java"
+    
+    # Both should be detected as java
+    run detect_product_type "${jdk_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "java" ]
+    
+    run detect_product_type "${jre_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "java" ]
+}
+
+@test "detect_product_type detects instant client" {
+    # Create instant client structure
+    local iclient_home="${TEST_TEMP_DIR}/instantclient_19_8"
+    mkdir -p "${iclient_home}"
+    touch "${iclient_home}/libclntsh.so.19.1"
+    
+    run detect_product_type "${iclient_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient" ]
+}
+
+@test "detect_product_type returns unknown for invalid path" {
+    run detect_product_type "/nonexistent/path"
+    [ "$status" -eq 1 ]
+    [ "$output" = "unknown" ]
+}
+
+@test "detect_product_type returns unknown for empty directory" {
+    local empty_home="${TEST_TEMP_DIR}/empty"
+    mkdir -p "${empty_home}"
+    
+    run detect_product_type "${empty_home}"
+    [ "$status" -eq 1 ]
+    [ "$output" = "unknown" ]
+}

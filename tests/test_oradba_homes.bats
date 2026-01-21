@@ -679,3 +679,136 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Imported 2 Oracle Home" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Home Name Generation Tests
+# ------------------------------------------------------------------------------
+
+@test "generate_home_name: JDK with version lowercase" {
+    source "$HOMES_SCRIPT"
+    
+    run generate_home_name "jdk-17" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jdk17" ]
+    
+    run generate_home_name "JDK-17" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jdk17" ]
+    
+    run generate_home_name "jdk_17" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jdk17" ]
+}
+
+@test "generate_home_name: JRE with version lowercase" {
+    source "$HOMES_SCRIPT"
+    
+    run generate_home_name "jre-8" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jre8" ]
+    
+    run generate_home_name "JRE-8" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jre8" ]
+    
+    run generate_home_name "jre_11" "java"
+    [ "$status" -eq 0 ]
+    [ "$output" = "jre11" ]
+}
+
+@test "generate_home_name: instant client lowercase" {
+    source "$HOMES_SCRIPT"
+    
+    run generate_home_name "instantclient_19_8" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient19" ]
+    
+    run generate_home_name "instantclient_21_3" "iclient"
+    [ "$status" -eq 0 ]
+    [ "$output" = "iclient21" ]
+}
+
+@test "generate_home_name: other products uppercase" {
+    source "$HOMES_SCRIPT"
+    
+    # Database should use uppercase (backward compatible)
+    run generate_home_name "db19c" "database"
+    [ "$status" -eq 0 ]
+    [ "$output" = "DB19C" ]
+    
+    # OUD should use uppercase
+    run generate_home_name "oud12c" "oud"
+    [ "$status" -eq 0 ]
+    [ "$output" = "OUD12C" ]
+    
+    # Data Safe should use uppercase
+    run generate_home_name "datasafe-wob-ha1" "datasafe"
+    [ "$status" -eq 0 ]
+    [ "$output" = "DATASAFE_WOB_HA1" ]
+}
+
+# ------------------------------------------------------------------------------
+# Discovery Tests for New Features
+# ------------------------------------------------------------------------------
+
+@test "oradba_homes.sh discover: finds Data Safe homes" {
+    # Create Data Safe structure
+    mkdir -p "${ORACLE_BASE}/product/datasafe-conn1/oracle_cman_home/bin"
+    mkdir -p "${ORACLE_BASE}/product/datasafe-conn1/oracle_cman_home/lib"
+    touch "${ORACLE_BASE}/product/datasafe-conn1/connector.conf"
+    touch "${ORACLE_BASE}/product/datasafe-conn1/setup.py"
+    touch "${ORACLE_BASE}/product/datasafe-conn1/oracle_cman_home/bin/cmctl"
+    chmod +x "${ORACLE_BASE}/product/datasafe-conn1/oracle_cman_home/bin/cmctl"
+    
+    run "$HOMES_SCRIPT" discover --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "datasafe" ]]
+    [[ "$output" =~ "datasafe-conn1" ]]
+}
+
+@test "oradba_homes.sh discover: finds Java homes with correct naming" {
+    # Create JDK
+    mkdir -p "${ORACLE_BASE}/product/jdk-17/bin"
+    touch "${ORACLE_BASE}/product/jdk-17/bin/java"
+    touch "${ORACLE_BASE}/product/jdk-17/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17/bin/java"
+    chmod +x "${ORACLE_BASE}/product/jdk-17/bin/javac"
+    
+    # Create JRE
+    mkdir -p "${ORACLE_BASE}/product/jre-8/bin"
+    touch "${ORACLE_BASE}/product/jre-8/bin/java"
+    chmod +x "${ORACLE_BASE}/product/jre-8/bin/java"
+    
+    run "$HOMES_SCRIPT" discover --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "jdk17" ]]
+    [[ "$output" =~ "jre8" ]]
+}
+
+@test "oradba_homes.sh discover: finds nested JRE under JDK" {
+    # Create JDK with nested JRE
+    mkdir -p "${ORACLE_BASE}/product/jdk-17/bin"
+    mkdir -p "${ORACLE_BASE}/product/jdk-17/jre/bin"
+    touch "${ORACLE_BASE}/product/jdk-17/bin/java"
+    touch "${ORACLE_BASE}/product/jdk-17/bin/javac"
+    touch "${ORACLE_BASE}/product/jdk-17/jre/bin/java"
+    chmod +x "${ORACLE_BASE}/product/jdk-17/bin/java"
+    chmod +x "${ORACLE_BASE}/product/jdk-17/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17/jre/bin/java"
+    
+    run "$HOMES_SCRIPT" discover --dry-run
+    [ "$status" -eq 0 ]
+    # Should find both the JDK and the nested JRE
+    [[ "$output" =~ "jdk17" ]]
+    [[ "$output" =~ "jre" ]]
+}
+
+@test "oradba_homes.sh discover: finds instant client with correct naming" {
+    # Create instant client
+    mkdir -p "${ORACLE_BASE}/product/instantclient_19_8"
+    touch "${ORACLE_BASE}/product/instantclient_19_8/libclntsh.so.19.1"
+    
+    run "$HOMES_SCRIPT" discover --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "iclient19" ]]
+}
