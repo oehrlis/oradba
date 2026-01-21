@@ -594,8 +594,6 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 EOF
     
     # Collect all functions with their category
-    declare -A function_to_category
-    
     for data_file in "$TEMP_DIR"/*.data; do
         if [[ -f "$data_file" ]]; then
             awk '

@@ -4,6 +4,8 @@ Unified interface for Oracle installation discovery and management, combining or
 
 ---
 
+## Functions
+
 ### `oradba_registry_discover_all` {: #oradba-registry-discover-all }
 
 Auto-discover Oracle installations on the system
@@ -18,6 +20,7 @@ Auto-discover Oracle installations on the system
     Scans common locations and running processes
 
 ---
+
 ### `oradba_registry_get_all` {: #oradba-registry-get-all }
 
 Get all Oracle installations (databases + homes)
@@ -36,6 +39,7 @@ Get all Oracle installations (databases + homes)
     Combines oratab and oradba_homes.conf entries
 
 ---
+
 ### `oradba_registry_get_by_name` {: #oradba-registry-get-by-name }
 
 Get installation by name (SID or home name)
@@ -51,6 +55,7 @@ Get installation by name (SID or home name)
 **Output:** Installation object if found
 
 ---
+
 ### `oradba_registry_get_by_type` {: #oradba-registry-get-by-type }
 
 Get all installations of specific product type
@@ -66,6 +71,7 @@ Get all installations of specific product type
 **Output:** List of installation objects matching type
 
 ---
+
 ### `oradba_registry_get_databases` {: #oradba-registry-get-databases }
 
 Get all database installations
@@ -77,6 +83,7 @@ Get all database installations
 **Output:** List of database installation objects
 
 ---
+
 ### `oradba_registry_get_field` {: #oradba-registry-get-field }
 
 Extract specific field from installation object
@@ -93,6 +100,7 @@ Extract specific field from installation object
 **Output:** Field value
 
 ---
+
 ### `oradba_registry_sync_oratab` {: #oradba-registry-sync-oratab }
 
 Sync database homes from oratab to oradba_homes.conf
@@ -112,6 +120,7 @@ Sync database homes from oratab to oradba_homes.conf
     Updates existing entries if they differ
 
 ---
+
 ### `oradba_registry_validate` {: #oradba-registry-validate }
 
 Validate registry format and consistency

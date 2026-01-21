@@ -4,7 +4,8 @@ Complete function reference for OraDBA libraries and scripts.
 
 ## Overview
 
-OraDBA provides a comprehensive set of shell functions organized into logical categories. All functions follow standardized header documentation including purpose, arguments, return codes, and output specifications.
+OraDBA provides a comprehensive set of shell functions organized into logical categories. All functions follow
+standardized header documentation including purpose, arguments, return codes, and output specifications.
 
 ## Categories
 
@@ -34,7 +35,8 @@ Unified interface for Oracle installation discovery and management, combining or
 
 ### [Plugin Interface](plugins.md)
 
-Plugin interface for product-specific functionality supporting database, client, datasafe, java, oud, and other Oracle products.
+Plugin interface for product-specific functionality supporting database, client, datasafe, java, oud, and
+other Oracle products.
 
 **Required Plugin Functions:**
 
@@ -96,7 +98,8 @@ Extension system for loading and managing OraDBA extensions.
 
 ### [Scripts and Commands](scripts.md)
 
-Command-line scripts and tools for OraDBA operations including environment management, service control, and system utilities.
+Command-line scripts and tools for OraDBA operations including environment management, service control,
+and system utilities.
 
 **Includes:**
 
@@ -157,7 +160,8 @@ fi
 
 - [Function Index](function-index.md) - Alphabetical function list
 
-For developer documentation including architecture, development guides, and function header standards, see the project repository documentation.
+For developer documentation including architecture, development guides, and function header standards,
+see the project repository documentation.
 
 ---
 

@@ -4,6 +4,8 @@ Alias generation and management for database environments.
 
 ---
 
+## Functions
+
 ### `create_dynamic_alias` {: #create-dynamic-alias }
 
 Create a shell alias with optional variable expansion
@@ -21,6 +23,7 @@ Create a shell alias with optional variable expansion
 **Output:** Creates shell alias, handles shellcheck SC2139 suppression for expanded aliases
 
 ---
+
 ### `generate_base_aliases` {: #generate-base-aliases }
 
 Generate OraDBA base directory alias
@@ -36,6 +39,7 @@ Generate OraDBA base directory alias
 **Output:** Creates cdbase alias
 
 ---
+
 ### `generate_sid_aliases` {: #generate-sid-aliases }
 
 Generate SID-specific aliases based on current ORACLE_SID
@@ -51,6 +55,7 @@ Generate SID-specific aliases based on current ORACLE_SID
 **Output:** Creates taa, vaa, via, cdd, cddt, cdda aliases
 
 ---
+
 ### `get_diagnostic_dest` {: #get-diagnostic-dest }
 
 Get diagnostic_dest from database or fallback to convention
@@ -66,6 +71,7 @@ Get diagnostic_dest from database or fallback to convention
 **Output:** Path to diagnostic_dest directory
 
 ---
+
 ### `has_rlwrap` {: #has-rlwrap }
 
 Check if rlwrap command is available
@@ -81,6 +87,7 @@ Check if rlwrap command is available
 **Output:** None
 
 ---
+
 ### `oradba_tnsping` {: #oradba-tnsping }
 
 Wrapper for tnsping that falls back to sqlplus -P for Instant Client

@@ -2,7 +2,11 @@
 
 Plugin interface for product-specific functionality (database, client, datasafe, java, etc.).
 
+<!-- markdownlint-disable MD024 -->
+
 ---
+
+## Functions
 
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
@@ -22,6 +26,7 @@ Adjust environment for instant client
     Instant client uses ORACLE_HOME directly (no bin/ subdirectory)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for WebLogic
@@ -37,6 +42,7 @@ Adjust environment for WebLogic
 **Output:** Adjusted path (unchanged for WebLogic)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust ORACLE_HOME for product-specific requirements
@@ -56,6 +62,7 @@ Adjust ORACLE_HOME for product-specific requirements
     Most products return the path unchanged
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust ORACLE_HOME for Data Safe
@@ -74,6 +81,7 @@ Adjust ORACLE_HOME for Data Safe
     THIS IS THE KEY FUNCTION - Consolidates logic from 8+ files
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for Java (no adjustment needed)
@@ -89,6 +97,7 @@ Adjust environment for Java (no adjustment needed)
 **Output:** Path unchanged
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for EM Agent
@@ -104,6 +113,7 @@ Adjust environment for EM Agent
 **Output:** Adjusted path (unchanged for agent)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for OUD
@@ -119,6 +129,7 @@ Adjust environment for OUD
 **Output:** Adjusted path (unchanged for OUD)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for OMS
@@ -134,6 +145,7 @@ Adjust environment for OMS
 **Output:** Adjusted path (unchanged for OMS)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for client home
@@ -149,6 +161,7 @@ Adjust environment for client home
 **Output:** Adjusted ORACLE_HOME (unchanged for client)
 
 ---
+
 ### `plugin_adjust_environment` {: #plugin-adjust-environment }
 
 Adjust environment for database home
@@ -164,6 +177,7 @@ Adjust environment for database home
 **Output:** Adjusted ORACLE_HOME (unchanged for database)
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for Oracle Instant Client
@@ -182,6 +196,7 @@ Get LD_LIBRARY_PATH components for Oracle Instant Client
     Instant Client libraries are in root, lib64, or lib subdirectory
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for WebLogic
@@ -197,6 +212,7 @@ Get LD_LIBRARY_PATH components for WebLogic
 **Output:** Empty (no libraries added)
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for this product
@@ -218,6 +234,7 @@ Get LD_LIBRARY_PATH components for this product
     Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/lib
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for Data Safe connector
@@ -236,6 +253,7 @@ Get LD_LIBRARY_PATH components for Data Safe connector
     DataSafe requires oracle_cman_home/lib
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for Java
@@ -251,6 +269,7 @@ Get LD_LIBRARY_PATH components for Java
 **Output:** Library path components
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for EM Agent
@@ -266,6 +285,7 @@ Get LD_LIBRARY_PATH components for EM Agent
 **Output:** Empty (no libraries added)
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for Oracle Unified Directory
@@ -284,6 +304,7 @@ Get LD_LIBRARY_PATH components for Oracle Unified Directory
     OUD has lib directory
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for OMS
@@ -299,6 +320,7 @@ Get LD_LIBRARY_PATH components for OMS
 **Output:** Empty (no libraries added)
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for Oracle Full Client
@@ -317,6 +339,7 @@ Get LD_LIBRARY_PATH components for Oracle Full Client
     Prefers lib64 on 64-bit systems, falls back to lib
 
 ---
+
 ### `plugin_build_lib_path` {: #plugin-build-lib-path }
 
 Get LD_LIBRARY_PATH components for database installations
@@ -336,6 +359,7 @@ Get LD_LIBRARY_PATH components for database installations
     If GRID_HOME exists and differs from ORACLE_HOME, includes Grid lib
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for Oracle Instant Client
@@ -354,6 +378,7 @@ Get PATH components for Oracle Instant Client
     Instant Client has no bin/ subdirectory - binaries in root
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for WebLogic
@@ -369,6 +394,7 @@ Get PATH components for WebLogic
 **Output:** Empty (no binaries added to PATH)
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for this product
@@ -390,6 +416,7 @@ Get PATH components for this product
     Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/bin
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for Data Safe connector
@@ -408,6 +435,7 @@ Get PATH components for Data Safe connector
     DataSafe requires oracle_cman_home/bin
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for Java
@@ -423,6 +451,7 @@ Get PATH components for Java
 **Output:** bin directory path
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for EM Agent
@@ -438,6 +467,7 @@ Get PATH components for EM Agent
 **Output:** Empty (no binaries added to PATH)
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for Oracle Unified Directory
@@ -456,6 +486,7 @@ Get PATH components for Oracle Unified Directory
     OUD has bin directory with management tools
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for OMS
@@ -471,6 +502,7 @@ Get PATH components for OMS
 **Output:** Empty (no binaries added to PATH)
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for Oracle Full Client
@@ -489,6 +521,7 @@ Get PATH components for Oracle Full Client
     Full client has bin + OPatch directories
 
 ---
+
 ### `plugin_build_path` {: #plugin-build-path }
 
 Get PATH components for database installations
@@ -508,6 +541,7 @@ Get PATH components for database installations
     If GRID_HOME exists and differs from ORACLE_HOME, includes Grid bin
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check instant client availability
@@ -524,6 +558,7 @@ Check instant client availability
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check WebLogic status
@@ -540,6 +575,7 @@ Check WebLogic status
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check if product instance is running
@@ -559,6 +595,7 @@ Check if product instance is running
     Uses explicit environment (not current shell environment)
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check Data Safe connector status
@@ -578,6 +615,7 @@ Check Data Safe connector status
     Uses EXPLICIT environment (fixes Bug #83)
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check Java installation status
@@ -594,6 +632,7 @@ Check Java installation status
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check EM Agent status
@@ -610,6 +649,7 @@ Check EM Agent status
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check OUD instance status
@@ -626,6 +666,7 @@ Check OUD instance status
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check OMS status
@@ -642,6 +683,7 @@ Check OMS status
 **Output:** Status string
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check client availability
@@ -661,6 +703,7 @@ Check client availability
     Clients are always "available" (not "running" or "stopped")
 
 ---
+
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check if database instance is running
@@ -677,6 +720,7 @@ Check if database instance is running
 **Output:** Status string
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect Oracle Instant Client installations
@@ -688,6 +732,7 @@ Auto-detect Oracle Instant Client installations
 **Output:** List of instant client paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect WebLogic installations
@@ -699,6 +744,7 @@ Auto-detect WebLogic installations
 **Output:** List of WebLogic paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect installations of this product type
@@ -717,6 +763,7 @@ Auto-detect installations of this product type
     Used for auto-discovery when no registry files exist
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect Data Safe connector installations
@@ -728,6 +775,7 @@ Auto-detect Data Safe connector installations
 **Output:** List of connector base paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect Java installations under $ORACLE_BASE/product
@@ -739,6 +787,7 @@ Auto-detect Java installations under $ORACLE_BASE/product
 **Output:** List of Java installation paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect EM Agent installations
@@ -750,6 +799,7 @@ Auto-detect EM Agent installations
 **Output:** List of agent paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect OUD installations
@@ -761,6 +811,7 @@ Auto-detect OUD installations
 **Output:** List of OUD home paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect OMS installations
@@ -772,6 +823,7 @@ Auto-detect OMS installations
 **Output:** List of OMS paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect Oracle Full Client installations
@@ -783,6 +835,7 @@ Auto-detect Oracle Full Client installations
 **Output:** List of client home paths
 
 ---
+
 ### `plugin_detect_installation` {: #plugin-detect-installation }
 
 Auto-detect database installations
@@ -794,6 +847,7 @@ Auto-detect database installations
 **Output:** List of ORACLE_HOME paths
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover instances
@@ -809,6 +863,7 @@ Discover instances
 **Output:** Empty (instant clients don't have instances)
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover instances
@@ -824,6 +879,7 @@ Discover instances
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover all instances for this Oracle Home
@@ -843,6 +899,7 @@ Discover all instances for this Oracle Home
     Example: PROD1|running|node1
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover Data Safe connector instances
@@ -861,6 +918,7 @@ Discover Data Safe connector instances
     Usually 1:1 relationship (one connector per base)
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Java doesn't have instances
@@ -872,6 +930,7 @@ Java doesn't have instances
 **Output:** Empty
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover instances
@@ -887,6 +946,7 @@ Discover instances
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover OUD instances
@@ -902,6 +962,7 @@ Discover OUD instances
 **Output:** List of instance names
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover instances
@@ -917,6 +978,7 @@ Discover instances
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover instances for client home
@@ -935,6 +997,7 @@ Discover instances for client home
     Clients have no instances to discover
 
 ---
+
 ### `plugin_discover_instances` {: #plugin-discover-instances }
 
 Discover database instances for this home
@@ -950,6 +1013,7 @@ Discover database instances for this home
 **Output:** List of instances with status
 
 ---
+
 ### `plugin_get_adjusted_paths` {: #plugin-get-adjusted-paths }
 
 Get adjusted PATH and LD_LIBRARY_PATH for Data Safe
@@ -968,6 +1032,7 @@ Get adjusted PATH and LD_LIBRARY_PATH for Data Safe
     Helper function for environment setup (legacy, use plugin_build_path/lib_path)
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for Instant Client
@@ -982,6 +1047,7 @@ Get configuration section name for Instant Client
     Used by oradba_apply_product_config() to load instant client settings
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for WebLogic
@@ -993,6 +1059,7 @@ Get configuration section name for WebLogic
 **Output:** "WEBLOGIC"
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for this product
@@ -1012,6 +1079,7 @@ Get configuration section name for this product
     Example: "RDBMS", "DATASAFE", "CLIENT", "ICLIENT", "OUD", "WLS"
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for Data Safe
@@ -1026,6 +1094,7 @@ Get configuration section name for Data Safe
     Used by oradba_apply_product_config() to load Data Safe settings
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for Java
@@ -1037,6 +1106,7 @@ Get configuration section name for Java
 **Output:** "JAVA"
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for EM Agent
@@ -1048,6 +1118,7 @@ Get configuration section name for EM Agent
 **Output:** "EMAGENT"
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for OUD
@@ -1062,6 +1133,7 @@ Get configuration section name for OUD
     Used by oradba_apply_product_config() to load OUD settings
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for OMS
@@ -1073,6 +1145,7 @@ Get configuration section name for OMS
 **Output:** "OMS"
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for Full Client
@@ -1087,6 +1160,7 @@ Get configuration section name for Full Client
     Used by oradba_apply_product_config() to load client settings
 
 ---
+
 ### `plugin_get_config_section` {: #plugin-get-config-section }
 
 Get configuration section name for database
@@ -1101,6 +1175,7 @@ Get configuration section name for database
     Used by oradba_apply_product_config() to load database settings
 
 ---
+
 ### `plugin_get_display_name` {: #plugin-get-display-name }
 
 Get custom display name for instance
@@ -1119,6 +1194,7 @@ Get custom display name for instance
     Optional - defaults to installation name
 
 ---
+
 ### `plugin_get_display_name` {: #plugin-get-display-name }
 
 Get display name for OUD instance
@@ -1134,6 +1210,7 @@ Get display name for OUD instance
 **Output:** Display name
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get instant client metadata
@@ -1149,6 +1226,7 @@ Get instant client metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get WebLogic metadata
@@ -1164,6 +1242,7 @@ Get WebLogic metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get product metadata (version, features, etc.)
@@ -1185,6 +1264,7 @@ Get product metadata (version, features, etc.)
     patchlevel=221018
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get Data Safe connector metadata
@@ -1200,6 +1280,7 @@ Get Data Safe connector metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get Java installation metadata
@@ -1215,6 +1296,7 @@ Get Java installation metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get EM Agent metadata
@@ -1230,6 +1312,7 @@ Get EM Agent metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get OUD metadata
@@ -1245,6 +1328,7 @@ Get OUD metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get OMS metadata
@@ -1260,6 +1344,7 @@ Get OMS metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get Oracle Client metadata
@@ -1275,6 +1360,7 @@ Get Oracle Client metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_metadata` {: #plugin-get-metadata }
 
 Get database metadata
@@ -1290,6 +1376,7 @@ Get database metadata
 **Output:** Key=value pairs
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for Instant Client
@@ -1301,9 +1388,10 @@ Get list of required binaries for Instant Client
 **Output:** Space-separated list of required binaries
 
 !!! info "Notes"
-    Instant Client has sqlplus if SQL*Plus package installed
+    Instant Client has sqlplus if SQL\*Plus package installed
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for WebLogic
@@ -1315,6 +1403,7 @@ Get list of required binaries for WebLogic
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for this product
@@ -1336,6 +1425,7 @@ Get list of required binaries for this product
     Example (CLIENT): "sqlplus tnsping"2
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for Data Safe connector
@@ -1350,6 +1440,7 @@ Get list of required binaries for Data Safe connector
     Data Safe uses Connection Manager (cmctl)
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for Java
@@ -1361,6 +1452,7 @@ Get list of required binaries for Java
 **Output:** List of required binaries
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for EM Agent
@@ -1372,6 +1464,7 @@ Get list of required binaries for EM Agent
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for OUD
@@ -1386,6 +1479,7 @@ Get list of required binaries for OUD
     OUD has oud-setup and other management tools
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for OMS
@@ -1397,6 +1491,7 @@ Get list of required binaries for OMS
 **Output:** Empty (stub)
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for Full Client
@@ -1411,6 +1506,7 @@ Get list of required binaries for Full Client
     Full client has sqlplus and tnsping
 
 ---
+
 ### `plugin_get_required_binaries` {: #plugin-get-required-binaries }
 
 Get list of required binaries for database
@@ -1425,6 +1521,7 @@ Get list of required binaries for database
     Core database tools that should be available
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get Instant Client version
@@ -1443,9 +1540,10 @@ Get Instant Client version
     Detection methods (in order):
     1. sqlplus -version (if sqlplus available)
     2. Library filenames (libclntsh.so.X.Y, libclntshcore.so.X.Y, libocci.so.X.Y)
-    3. JDBC JAR manifest (ojdbc*.jar)
+    3. JDBC JAR manifest (ojdbc\*.jar)
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get WebLogic version
@@ -1464,6 +1562,7 @@ Get WebLogic version
     WebLogic version detection not implemented in stub
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get product version from ORACLE_HOME
@@ -1482,6 +1581,7 @@ Get product version from ORACLE_HOME
     Called by plugin_get_metadata, can be overridden for efficiency
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get Java version
@@ -1500,6 +1600,7 @@ Get Java version
     Parses output from java -version
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get EM Agent version
@@ -1518,6 +1619,7 @@ Get EM Agent version
     EM Agent version detection not implemented in stub
 
 ---
+
 ### `plugin_get_version` {: #plugin-get-version }
 
 Get OMS version
@@ -1536,6 +1638,7 @@ Get OMS version
     OMS version detection not implemented in stub
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Instant clients should NOT show listener status
@@ -1545,6 +1648,7 @@ Instant clients should NOT show listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 WebLogic should NOT show listener status
@@ -1554,6 +1658,7 @@ WebLogic should NOT show listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Determine if this product's tnslsnr should appear in listener section
@@ -1571,6 +1676,7 @@ Determine if this product's tnslsnr should appear in listener section
     DataSafe connectors: return 1 (they use tnslsnr but aren't DB listeners)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Data Safe connectors should NOT show in listener section
@@ -1583,6 +1689,7 @@ Data Safe connectors should NOT show in listener section
     Fixes Bug #84 - DataSafe uses tnslsnr but it's not a DB listener
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Java should NOT show listener status
@@ -1592,6 +1699,7 @@ Java should NOT show listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 EM Agent should NOT show listener status
@@ -1601,6 +1709,7 @@ EM Agent should NOT show listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 OUD should NOT show database listener status
@@ -1610,6 +1719,7 @@ OUD should NOT show database listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 OMS should NOT show listener status
@@ -1619,6 +1729,7 @@ OMS should NOT show listener status
 **Returns:** 1 (never show)
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Clients should NOT show listener status
@@ -1631,6 +1742,7 @@ Clients should NOT show listener status
     Client homes don't have their own listeners
 
 ---
+
 ### `plugin_should_show_listener` {: #plugin-should-show-listener }
 
 Database homes should show listener status
@@ -1640,6 +1752,7 @@ Database homes should show listener status
 **Returns:** 0 (always show)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Instant clients don't support aliases
@@ -1649,6 +1762,7 @@ Instant clients don't support aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 WebLogic doesn't support aliases
@@ -1658,6 +1772,7 @@ WebLogic doesn't support aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Whether this product supports SID-like aliases
@@ -1670,6 +1785,7 @@ Whether this product supports SID-like aliases
     Databases support aliases, most other products don't
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Data Safe connectors don't support aliases
@@ -1679,6 +1795,7 @@ Data Safe connectors don't support aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Java doesn't support instance aliases
@@ -1688,6 +1805,7 @@ Java doesn't support instance aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 EM Agent doesn't support aliases
@@ -1697,6 +1815,7 @@ EM Agent doesn't support aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 OUD instances can have aliases
@@ -1706,6 +1825,7 @@ OUD instances can have aliases
 **Returns:** 0 (supports aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 OMS doesn't support aliases
@@ -1715,6 +1835,7 @@ OMS doesn't support aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Clients don't support SID aliases
@@ -1724,6 +1845,7 @@ Clients don't support SID aliases
 **Returns:** 1 (no aliases)
 
 ---
+
 ### `plugin_supports_aliases` {: #plugin-supports-aliases }
 
 Databases support SID aliases
@@ -1733,6 +1855,7 @@ Databases support SID aliases
 **Returns:** 0 (supports aliases)
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is an Instant Client installation
@@ -1746,6 +1869,7 @@ Validate that path is an Instant Client installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is a WebLogic installation
@@ -1759,6 +1883,7 @@ Validate that path is a WebLogic installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is a valid ORACLE_HOME for this product
@@ -1777,6 +1902,7 @@ Validate that path is a valid ORACLE_HOME for this product
     Checks for product-specific files/directories
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is a Data Safe connector home
@@ -1790,6 +1916,7 @@ Validate that path is a Data Safe connector home
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is a Java installation
@@ -1803,6 +1930,7 @@ Validate that path is a Java installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is an EM Agent installation
@@ -1816,6 +1944,7 @@ Validate that path is an EM Agent installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is an OUD installation
@@ -1829,6 +1958,7 @@ Validate that path is an OUD installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is an OMS installation
@@ -1842,6 +1972,7 @@ Validate that path is an OMS installation
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is an Oracle Full Client home
@@ -1855,6 +1986,7 @@ Validate that path is an Oracle Full Client home
 **Returns:** 0 if valid, 1 if invalid
 
 ---
+
 ### `plugin_validate_home` {: #plugin-validate-home }
 
 Validate that path is a database home

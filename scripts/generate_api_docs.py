@@ -78,6 +78,23 @@ class FunctionDoc:
         self.returns = ""
         self.output = ""
         self.notes = ""
+    
+    @staticmethod
+    def escape_html(text):
+        """Escape HTML characters and fix markdown emphasis issues in text"""
+        if not text:
+            return text
+        # Escape HTML
+        text = text.replace('<', '\\<').replace('>', '\\>')
+        # Fix double underscores that look like emphasis (e.g., __PAYLOAD_BEGINS__)
+        text = text.replace('__', '\\_\\_')
+        # Fix asterisks in common patterns that shouldn't be emphasis
+        # Convert "(* " to "(\\* " and "*word" patterns like "oradba*" to "oradba\\*"
+        text = text.replace('(* ', '(\\* ')
+        # Escape asterisks that come after word characters (glob patterns)
+        import re
+        text = re.sub(r'(\w)(\*)', r'\1\\*', text)
+        return text
         
     def to_markdown(self):
         """Generate markdown documentation for this function"""
@@ -90,7 +107,7 @@ class FunctionDoc:
         
         # Purpose
         if self.purpose:
-            md.append(self.purpose)
+            md.append(self.escape_html(self.purpose))
             md.append("")
         
         # Source file
@@ -102,28 +119,31 @@ class FunctionDoc:
             md.append("**Arguments:**")
             md.append("")
             for arg in self.args:
-                md.append(f"- {arg}")
+                md.append(f"- {self.escape_html(arg)}")
             md.append("")
         
         # Returns
         if self.returns:
-            md.append(f"**Returns:** {self.returns}")
+            md.append(f"**Returns:** {self.escape_html(self.returns)}")
             md.append("")
         
         # Output
         if self.output:
-            md.append(f"**Output:** {self.output}")
+            md.append(f"**Output:** {self.escape_html(self.output)}")
             md.append("")
         
         # Notes
         if self.notes:
             md.append('!!! info "Notes"')
-            for line in self.notes.split('\n'):
+            # Fix malformed notes where # appears mid-line (missing newline in source)
+            notes_text = self.escape_html(self.notes)
+            # Split on mid-line # characters that indicate missing newlines
+            notes_text = notes_text.replace('products#', 'products\n').replace('environment#', 'environment\n')
+            for line in notes_text.split('\n'):
                 md.append(f"    {line}" if line else "")
             md.append("")
         
         md.append("---")
-        md.append("")
         
         return '\n'.join(md)
 
@@ -289,11 +309,24 @@ def generate_category_page(category, functions):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(f"# {title}\n\n")
         f.write(f"{description}\n\n")
+        
+        # For plugins and scripts categories, disable duplicate heading check
+        # since multiple plugins/scripts have same function names
+        if category in ("plugins", "scripts"):
+            f.write("<!-- markdownlint-disable MD024 -->\n\n")
+        
         f.write("---\n\n")
+        f.write("## Functions\n\n")
         
         # Sort functions alphabetically
-        for func in sorted(functions, key=lambda x: x.name):
+        sorted_functions = sorted(functions, key=lambda x: x.name)
+        for i, func in enumerate(sorted_functions):
             f.write(func.to_markdown())
+            # Add blank line after separator, except for last function
+            if i < len(sorted_functions) - 1:
+                f.write("\n\n")
+            else:
+                f.write("\n")
     
     print(f"[INFO]   Added {len(functions)} functions to {category}.md")
 
@@ -312,7 +345,8 @@ Complete function reference for OraDBA libraries and scripts.
 
 ## Overview
 
-OraDBA provides a comprehensive set of shell functions organized into logical categories. All functions follow standardized header documentation including purpose, arguments, return codes, and output specifications.
+OraDBA provides a comprehensive set of shell functions organized into logical categories. All functions follow
+standardized header documentation including purpose, arguments, return codes, and output specifications.
 
 ## Categories
 
@@ -342,7 +376,8 @@ Unified interface for Oracle installation discovery and management, combining or
 
 ### [Plugin Interface](plugins.md)
 
-Plugin interface for product-specific functionality supporting database, client, datasafe, java, oud, and other Oracle products.
+Plugin interface for product-specific functionality supporting database, client, datasafe, java, oud, and
+other Oracle products.
 
 **Required Plugin Functions:**
 
@@ -404,7 +439,8 @@ Extension system for loading and managing OraDBA extensions.
 
 ### [Scripts and Commands](scripts.md)
 
-Command-line scripts and tools for OraDBA operations including environment management, service control, and system utilities.
+Command-line scripts and tools for OraDBA operations including environment management, service control,
+and system utilities.
 
 **Includes:**
 
@@ -465,7 +501,8 @@ fi
 
 - [Function Index](function-index.md) - Alphabetical function list
 
-For developer documentation including architecture, development guides, and function header standards, see the project repository documentation.
+For developer documentation including architecture, development guides, and function header standards,
+see the project repository documentation.
 
 ---
 

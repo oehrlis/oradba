@@ -4,6 +4,8 @@ Extension system for loading and managing OraDBA extensions.
 
 ---
 
+## Functions
+
 ### `create_extension_alias` {: #create-extension-alias }
 
 Create navigation alias for extension
@@ -17,9 +19,10 @@ Create navigation alias for extension
 
 **Returns:** 0 on success
 
-**Output:** Creates alias like cde<name> (cd extension)
+**Output:** Creates alias like cde\<name\> (cd extension)
 
 ---
+
 ### `deduplicate_path` {: #deduplicate-path }
 
 Deduplicate PATH (keep first occurrence)
@@ -38,6 +41,7 @@ Deduplicate PATH (keep first occurrence)
     Uses oradba_dedupe_path() from oradba_env_builder.sh if available
 
 ---
+
 ### `deduplicate_sqlpath` {: #deduplicate-sqlpath }
 
 Deduplicate SQLPATH (keep first occurrence)
@@ -56,6 +60,7 @@ Deduplicate SQLPATH (keep first occurrence)
     Uses oradba_dedupe_path() from oradba_env_builder.sh if available
 
 ---
+
 ### `discover_extensions` {: #discover-extensions }
 
 Discover extensions in ORADBA_LOCAL_BASE
@@ -71,11 +76,13 @@ Discover extensions in ORADBA_LOCAL_BASE
 **Output:** List of extension paths (one per line) containing .extension marker file
 
 ---
+
 ### `extension_provides` {: #extension-provides }
 
 **Source:** `extensions.sh`
 
 ---
+
 ### `get_all_extensions` {: #get-all-extensions }
 
 Get all extensions (auto-discovered + manually configured)
@@ -91,6 +98,7 @@ Get all extensions (auto-discovered + manually configured)
 **Output:** List of extension paths (one per line)
 
 ---
+
 ### `get_extension_description` {: #get-extension-description }
 
 Get extension description from metadata
@@ -106,6 +114,7 @@ Get extension description from metadata
 **Output:** Description string or empty
 
 ---
+
 ### `get_extension_name` {: #get-extension-name }
 
 Get extension name from metadata or directory name
@@ -121,6 +130,7 @@ Get extension name from metadata or directory name
 **Output:** Extension name
 
 ---
+
 ### `get_extension_priority` {: #get-extension-priority }
 
 Get extension priority for sorting
@@ -136,6 +146,7 @@ Get extension priority for sorting
 **Output:** Priority number (lower = loaded first, default 50)
 
 ---
+
 ### `get_extension_property` {: #get-extension-property }
 
 Unified property accessor for extension metadata
@@ -145,6 +156,7 @@ Unified property accessor for extension metadata
 **Returns:** Property value from metadata, config override, or fallback
 
 ---
+
 ### `get_extension_version` {: #get-extension-version }
 
 Get extension version from metadata
@@ -160,6 +172,7 @@ Get extension version from metadata
 **Output:** Version string or "unknown"
 
 ---
+
 ### `is_extension_enabled` {: #is-extension-enabled }
 
 Check if extension is enabled
@@ -176,6 +189,7 @@ Check if extension is enabled
 **Output:** None
 
 ---
+
 ### `load_extension` {: #load-extension }
 
 Load single extension
@@ -191,6 +205,7 @@ Load single extension
 **Output:** Updates PATH/SQLPATH, sources library files, creates aliases
 
 ---
+
 ### `load_extensions` {: #load-extensions }
 
 Load all enabled extensions
@@ -209,6 +224,7 @@ Load all enabled extensions
     Called from oraenv.sh after configuration loading
 
 ---
+
 ### `parse_extension_metadata` {: #parse-extension-metadata }
 
 Parse extension metadata file for key-value pairs
@@ -225,6 +241,7 @@ Parse extension metadata file for key-value pairs
 **Output:** Value for the given key, or empty string if not found
 
 ---
+
 ### `remove_extension_paths` {: #remove-extension-paths }
 
 Remove extension paths from PATH and SQLPATH
@@ -240,6 +257,7 @@ Remove extension paths from PATH and SQLPATH
 **Output:** Updates PATH and SQLPATH environment variables
 
 ---
+
 ### `show_extension_info` {: #show-extension-info }
 
 Show detailed information about a specific extension
@@ -255,6 +273,7 @@ Show detailed information about a specific extension
 **Output:** Detailed extension information including structure and navigation alias
 
 ---
+
 ### `sort_extensions_by_priority` {: #sort-extensions-by-priority }
 
 Sort extensions by priority for loading order
@@ -270,6 +289,7 @@ Sort extensions by priority for loading order
 **Output:** Sorted list of extension paths (one per line)
 
 ---
+
 ### `validate_extension` {: #validate-extension }
 
 Validate extension structure (basic check)
