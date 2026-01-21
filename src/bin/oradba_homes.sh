@@ -701,6 +701,8 @@ generate_home_name() {
 # ------------------------------------------------------------------------------
 # Function: discover_homes
 # Purpose.: Auto-discover Oracle Homes
+# Notes...: Wrapper around auto_discover_oracle_homes() in oradba_common.sh
+#           Supports legacy options for backward compatibility
 # ------------------------------------------------------------------------------
 discover_homes() {
     local base_dir="${ORACLE_BASE:-}"
@@ -739,6 +741,21 @@ discover_homes() {
         return 1
     fi
 
+    # Dry-run mode: just show what would be discovered without adding
+    if [[ "$dry_run" == "true" ]]; then
+        echo ""
+        echo "DRY RUN - No changes will be made"
+        echo ""
+    fi
+    
+    # If auto-add is enabled, just call the common function
+    if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
+        # Use common auto_discover_oracle_homes() function
+        auto_discover_oracle_homes "${base_dir}/product"
+        return $?
+    fi
+    
+    # Otherwise, do a dry-run style discovery (show what would be added)
     echo ""
     echo "Discovering Oracle Homes under: $base_dir"
     echo "================================================================================"
@@ -753,7 +770,6 @@ discover_homes() {
     fi
 
     local found_count=0
-    local added_count=0
 
     # Find directories that look like Oracle Homes
     while IFS= read -r -d '' dir; do
@@ -780,42 +796,24 @@ discover_homes() {
             echo "  [EXISTS] $home_name ($ptype) - $dir"
             continue
         fi
+        
+        # Check if path already exists (different name)
+        local config_file
+        config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
+        if [[ -f "$config_file" ]] && grep -q ":${dir}:" "$config_file"; then
+            local existing_name
+            existing_name=$(grep ":${dir}:" "$config_file" | head -1 | cut -d':' -f1)
+            echo "  [EXISTS] $home_name ($ptype) - path registered as '$existing_name'"
+            continue
+        fi
 
         echo "  [FOUND]  $home_name ($ptype) - $dir"
-
-        if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
-            # Check if path already exists (different name)
-            local config_file
-            config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
-            local existing_name=""
-            if [[ -f "$config_file" ]] && grep -q ":${dir}:" "$config_file"; then
-                existing_name=$(grep ":${dir}:" "$config_file" | head -1 | cut -d':' -f1)
-            fi
-            
-            if [[ -n "$existing_name" ]]; then
-                echo "           → Already registered as '$existing_name'"
-            else
-                # Add automatically
-                if add_home --name "$home_name" --path "$dir" --type "$ptype" \
-                    --order "$((50 + found_count * 10))" \
-                    --desc "Auto-discovered $ptype" > /dev/null 2>&1; then
-                    echo "           → Added successfully"
-                    ((added_count++))
-                else
-                    echo "           → Failed to add"
-                fi
-            fi
-        fi
 
     done < <(find "$product_dir" -maxdepth 3 -type d -print0 2> /dev/null)
 
     echo ""
     echo "Discovery Summary:"
     echo "  Found: $found_count Oracle Home(s)"
-
-    if [[ "$auto_add" == "true" ]]; then
-        echo "  Added: $added_count Oracle Home(s)"
-    fi
 
     if [[ "$dry_run" == "true" ]]; then
         echo "  (Dry run - no changes made)"

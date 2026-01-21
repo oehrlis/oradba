@@ -328,6 +328,25 @@ _oraenv_gather_available_entries() {
             oradba_log ERROR "No Oracle instances or homes found"
             return 1
         fi
+        
+        # Also try auto-discovery for Oracle Homes (Issue #70)
+        if [[ "${ORADBA_AUTO_DISCOVER_HOMES:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
+            oradba_log INFO "Auto-discovering Oracle Homes..."
+            auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
+            
+            # Refresh homes list after discovery
+            homes_ref=()
+            if command -v oradba_registry_get_all &> /dev/null; then
+                local all_entries
+                all_entries=$(oradba_registry_get_all 2>/dev/null)
+                if [[ -n "${all_entries}" ]]; then
+                    while IFS='|' read -r ptype name home version flags order alias desc; do
+                        [[ "${ptype}" == "database" ]] && continue  # Skip database types
+                        homes_ref+=("${name}")
+                    done <<< "${all_entries}"
+                fi
+            fi
+        fi
     fi
     
     return 0

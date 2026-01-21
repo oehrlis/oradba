@@ -2502,3 +2502,207 @@ add_to_sqlpath() {
 
     oradba_log DEBUG "Added to SQLPATH: ${new_path}"
 }
+
+# ------------------------------------------------------------------------------
+# Function: auto_discover_oracle_homes
+# Purpose.: Auto-discover Oracle Homes and add to oradba_homes.conf
+# Args....: $1 - Discovery paths (optional, defaults to ORADBA_DISCOVERY_PATHS)
+#           $2 - Silent mode flag (optional, "true" for silent, default: false)
+# Returns.: 0 on success, 1 on error
+# Output..: Discovery summary (unless silent)
+# Notes...: Issue #70 - Unified auto-discovery function
+#           Used by both oraenv.sh initialization and oradba_homes.sh discover
+#           Silently skips already registered homes (no duplicates)
+#           Uses existing plugin system's detect_product_type()
+#           Generates home names using generate_home_name() logic
+#           Only adds homes if not already in oradba_homes.conf
+# ------------------------------------------------------------------------------
+auto_discover_oracle_homes() {
+    local discovery_paths="${1:-${ORADBA_DISCOVERY_PATHS}}"
+    local silent="${2:-false}"
+    local found_count=0
+    local added_count=0
+    local skipped_count=0
+    
+    # Check if ORACLE_BASE is set and use it as default discovery path
+    if [[ -z "${discovery_paths}" ]]; then
+        if [[ -n "${ORACLE_BASE}" ]]; then
+            discovery_paths="${ORACLE_BASE}/product"
+        else
+            [[ "${silent}" != "true" ]] && oradba_log WARN "No discovery paths configured"
+            return 1
+        fi
+    fi
+    
+    # Get config file path
+    local config_file
+    if ! config_file=$(get_oracle_homes_path 2>/dev/null); then
+        config_file="${ORADBA_PREFIX}/etc/oradba_homes.conf"
+    fi
+    
+    # Ensure config directory exists
+    local config_dir
+    config_dir=$(dirname "${config_file}")
+    [[ ! -d "${config_dir}" ]] && mkdir -p "${config_dir}"
+    
+    # Start discovery
+    [[ "${silent}" != "true" ]] && {
+        echo ""
+        echo "Auto-discovering Oracle Homes..."
+        echo "================================================================================"
+        echo "Search paths: ${discovery_paths}"
+        echo ""
+    }
+    
+    # Process each discovery path
+    for base_dir in ${discovery_paths}; do
+        [[ ! -d "${base_dir}" ]] && continue
+        
+        # Find directories up to 3 levels deep
+        while IFS= read -r -d '' dir; do
+            # Skip symbolic links
+            [[ -L "${dir}" ]] && continue
+            
+            # Detect product type using common function
+            local ptype
+            ptype=$(detect_product_type "${dir}")
+            
+            # Skip unknown types
+            [[ "${ptype}" == "unknown" ]] && continue
+            
+            ((found_count++))
+            
+            # Generate home name from path and product type
+            local dir_name home_name
+            dir_name=$(basename "${dir}")
+            
+            # Generate home name using same logic as oradba_homes.sh
+            case "${ptype}" in
+                java)
+                    # Normalize Java/JDK/JRE names to lowercase jdkNNN or jreNNN
+                    if [[ "${dir_name}" =~ ^[Jj][Dd][Kk][-_]?([0-9]+) ]]; then
+                        home_name="jdk${BASH_REMATCH[1]}"
+                    elif [[ "${dir_name}" =~ ^[Jj][Rr][Ee][-_]?([0-9]+) ]]; then
+                        home_name="jre${BASH_REMATCH[1]}"
+                    elif [[ "${dir_name}" =~ ^[Jj]ava[-_]?([0-9]+) ]]; then
+                        home_name="jdk${BASH_REMATCH[1]}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                iclient)
+                    # Normalize instant client names to lowercase iclientNNN
+                    if [[ "${dir_name}" =~ instantclient[-_]?([0-9]+) ]]; then
+                        local version="${BASH_REMATCH[1]}"
+                        version="${version%%[_.-]*}"
+                        home_name="iclient${version}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                datasafe)
+                    # DataSafe connectors: normalize to dsconnNN
+                    if [[ "${dir_name}" =~ ([Dd][Ss]|[Cc][Mm][Aa][Nn]|[Cc]onnector)[-_]?([0-9]+) ]]; then
+                        home_name="dsconn${BASH_REMATCH[2]}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                oud)
+                    # OUD instances: normalize to oudNNN
+                    if [[ "${dir_name}" =~ [Oo][Uu][Dd][-_]?([0-9]+) ]]; then
+                        home_name="oud${BASH_REMATCH[1]}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                database)
+                    # Database homes: normalize to rdbmsNNNN
+                    if [[ "${dir_name}" =~ ([0-9]{2,4}) ]]; then
+                        local version="${BASH_REMATCH[1]}"
+                        # If 4 digits (e.g., 1918), keep as-is; if 2-3 digits (e.g., 19), pad
+                        [[ ${#version} -eq 2 ]] && version="${version}00"
+                        [[ ${#version} -eq 3 ]] && version="${version}0"
+                        home_name="rdbms${version}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                client)
+                    # Full client: clientNNNN
+                    if [[ "${dir_name}" =~ ([0-9]{2,4}) ]]; then
+                        local version="${BASH_REMATCH[1]}"
+                        [[ ${#version} -eq 2 ]] && version="${version}00"
+                        [[ ${#version} -eq 3 ]] && version="${version}0"
+                        home_name="client${version}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                weblogic)
+                    # WebLogic: wlsNNNN
+                    if [[ "${dir_name}" =~ ([0-9]{2,4}) ]]; then
+                        home_name="wls${BASH_REMATCH[1]}"
+                    else
+                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                    fi
+                    ;;
+                *)
+                    # Other products: use uppercase (backward compatible)
+                    home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                    ;;
+            esac
+            
+            # Check if already registered (by name or path)
+            local already_exists=false
+            if [[ -f "${config_file}" ]]; then
+                # Check by name (first field)
+                if grep -q "^${home_name}:" "${config_file}"; then
+                    already_exists=true
+                    [[ "${silent}" != "true" ]] && echo "  [SKIP] ${home_name} (${ptype}) - already registered"
+                # Check by path (second field)
+                elif grep -q ":${dir}:" "${config_file}"; then
+                    local existing_name
+                    existing_name=$(grep ":${dir}:" "${config_file}" | head -1 | cut -d':' -f1)
+                    already_exists=true
+                    [[ "${silent}" != "true" ]] && echo "  [SKIP] ${home_name} (${ptype}) - path registered as '${existing_name}'"
+                fi
+            fi
+            
+            if [[ "${already_exists}" == "true" ]]; then
+                ((skipped_count++))
+                continue
+            fi
+            
+            # Add to config file
+            # Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
+            local order=$((50 + found_count * 10))
+            echo "${home_name}:${dir}:${ptype}:${order}::Auto-discovered ${ptype}:AUTO" >> "${config_file}"
+            
+            [[ "${silent}" != "true" ]] && echo "  [ADD] ${home_name} (${ptype}) - ${dir}"
+            ((added_count++))
+            
+        done < <(find "${base_dir}" -maxdepth 3 -type d -print0 2>/dev/null)
+    done
+    
+    # Summary
+    [[ "${silent}" != "true" ]] && {
+        echo ""
+        echo "Discovery Summary:"
+        echo "  Found:   ${found_count} Oracle Home(s)"
+        echo "  Skipped: ${skipped_count} already registered"
+        echo "  Added:   ${added_count} new Oracle Home(s)"
+        echo ""
+    }
+    
+    # Log summary
+    if [[ ${added_count} -gt 0 ]]; then
+        oradba_log INFO "Auto-discovery added ${added_count} Oracle Home(s) to ${config_file}"
+    elif [[ ${found_count} -gt 0 ]]; then
+        oradba_log DEBUG "Auto-discovery found ${found_count} Oracle Home(s), all already registered"
+    else
+        oradba_log DEBUG "Auto-discovery found no Oracle Homes in ${discovery_paths}"
+    fi
+    
+    return 0
+}

@@ -238,10 +238,9 @@ show_oracle_status_registry() {
             ptype=$(oradba_registry_get_field "$home_obj" "type")
             flags=$(oradba_registry_get_field "$home_obj" "flags")
             
-            # Add indicator for dummy entries
-            local display_name="$name"
+            # Skip dummy entries (Issue #99)
             if [[ "$flags" == "D" ]]; then
-                display_name="$name (dummy)"
+                continue
             fi
             
             # Check if directory exists
@@ -253,7 +252,7 @@ show_oracle_status_registry() {
                 status="available"
             fi
             
-            printf "%-20s %-16s %-13s %s\n" "$display_name" "$ptype" "$status" "$home"
+            printf "%-20s %-16s %-13s %s\n" "$name" "$ptype" "$status" "$home"
         done
     fi
     
@@ -291,9 +290,17 @@ show_oracle_status_registry() {
     # =========================================================================
     # SECTION 3: Listener Status
     # =========================================================================
-    # Show listeners if any database homes or SIDs exist
-    local total_databases=$((${#database_sids[@]} + ${#database_homes[@]}))
-    if [[ $total_databases -gt 0 ]]; then
+    # Only show listeners if database installations exist (Issue #99)
+    # Skip if only non-database products (DataSafe, Client, Java, etc.)
+    local total_databases=$((${#database_sids[@]}))
+    local has_database_listeners=false
+    
+    # Check if any database listeners are actually running
+    if ps -ef 2>/dev/null | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+        has_database_listeners=true
+    fi
+    
+    if [[ $total_databases -gt 0 ]] || [[ "$has_database_listeners" == "true" ]]; then
         echo ""
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
@@ -394,15 +401,19 @@ show_oracle_status_registry() {
             
             # Check if directory exists first
             if [[ ! -d "$home" ]]; then
-                status="missing"
+                status="unavailable"
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
                 status="empty"
             else
-                # Use DataSafe plugin to check status
-                if type -t plugin_check_status &>/dev/null; then
-                    status=$(plugin_check_status "$home")
+                # Use DataSafe plugin to check real status (Issue #99)
+                if command -v oradba_check_datasafe_status &>/dev/null; then
+                    status=$(oradba_check_datasafe_status "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+                    [[ -z "$status" ]] && status="unknown"
+                elif type -t plugin_check_status &>/dev/null; then
+                    status=$(plugin_check_status "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+                    [[ -z "$status" ]] && status="unknown"
                 else
-                    status="available"
+                    status="unknown"
                 fi
                 
                 # Try to get port from configuration (future enhancement)
