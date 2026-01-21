@@ -1229,5 +1229,7 @@ main() {
     esac
 }
 
-# Run main function
-main "$@"
+# Run main function only when script is executed directly, not when sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
