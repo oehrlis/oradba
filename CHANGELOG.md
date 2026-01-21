@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Environment Pollution with Internal Functions** (2026-01-21)
+  - Clean up internal helper functions after use to prevent environment pollution
+  - Remove `has_rlwrap`, `create_dynamic_alias`, `get_diagnostic_dest`, `generate_base_aliases`, `generate_sid_aliases` after sourcing
+  - Keep only `oradba_tnsping` function (required by tnsping alias at runtime)
+  - Eliminates 5 unnecessary `BASH_FUNC_*` environment variables
+  - Improves environment hygiene and reduces namespace pollution
+
 ## [0.19.0] - 2026-01-21
 
 ### Documentation

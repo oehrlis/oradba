@@ -264,3 +264,12 @@ generate_base_aliases
 if [[ -n "${ORACLE_SID}" ]]; then
     generate_sid_aliases
 fi
+
+# ------------------------------------------------------------------------------
+# Cleanup: Unset internal helper functions to keep environment clean
+# Note: Only remove functions used during initialization, keep runtime functions
+# Keep: oradba_tnsping (used by the tnsping alias at runtime)
+# ------------------------------------------------------------------------------
+unset -f has_rlwrap create_dynamic_alias get_diagnostic_dest generate_base_aliases generate_sid_aliases 2>/dev/null
+
+# Note: oradba_tnsping must remain as it's called by the tnsping alias
