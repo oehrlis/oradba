@@ -8,10 +8,6 @@
 # Reference: Architecture Review & Refactoring Plan (Phase 1.1)
 # ------------------------------------------------------------------------------
 
-# Load test helpers
-load 'test_helper/bats-support/load'
-load 'test_helper/bats-assert/load'
-
 # Setup test environment
 setup() {
     # Create temporary test directory
@@ -67,8 +63,8 @@ teardown() {
 # ------------------------------------------------------------------------------
 @test "registry module loads successfully" {
     run type oradba_registry_get_all
-    assert_success
-    assert_output --partial "function"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"function"* ]]
 }
 
 # ------------------------------------------------------------------------------
@@ -77,8 +73,8 @@ teardown() {
 @test "get_all returns empty when no registry files" {
     export ORADBA_AUTO_DISCOVER=false
     run oradba_registry_get_all
-    assert_success
-    assert_output ""
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -101,8 +97,8 @@ EOF
     }
     
     run oradba_registry_get_all
-    assert_success
-    assert_output --partial "database|TESTDB|${TEST_DIR}/homes/db19"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"database|TESTDB|${TEST_DIR}/homes/db19"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
@@ -124,8 +120,8 @@ client19:${TEST_DIR}/homes/client19:client:10:cli19:Client 19c:19.0.0
 EOF
     
     run oradba_registry_get_all
-    assert_success
-    assert_output --partial "client|client19|${TEST_DIR}/homes/client19"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"client|client19|${TEST_DIR}/homes/client19"* ]]
 }
 
 # ------------------------------------------------------------------------------
@@ -149,9 +145,9 @@ EOF
     }
     
     run oradba_registry_get_by_name "TESTDB"
-    assert_success
-    assert_output --partial "database|TESTDB|${TEST_DIR}/homes/testdb"
-    refute_output --partial "OTHERDB"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"database|TESTDB|${TEST_DIR}/homes/testdb"* ]]
+    [[ "$output" != *"OTHERDB"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
@@ -181,15 +177,15 @@ EOF
     
     # Get only databases
     run oradba_registry_get_by_type "database"
-    assert_success
-    assert_output --partial "database|TESTDB"
-    refute_output --partial "client"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"database|TESTDB"* ]]
+    [[ "$output" != *"client"* ]]
     
     # Get only clients
     run oradba_registry_get_by_type "client"
-    assert_success
-    assert_output --partial "client|client19"
-    refute_output --partial "TESTDB"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"client|client19"* ]]
+    [[ "$output" != *"TESTDB"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
@@ -216,9 +212,9 @@ EOF
     }
     
     run oradba_registry_get_databases
-    assert_success
-    assert_output --partial "database|PROD"
-    refute_output --partial "client"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"database|PROD"* ]]
+    [[ "$output" != *"client"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
@@ -230,16 +226,16 @@ EOF
     local install_obj="database|TESTDB|/u01/app/oracle/product/19|19.0.0|Y|10|test|Test Database"
     
     run oradba_registry_get_field "${install_obj}" "name"
-    assert_success
-    assert_output "TESTDB"
+    [ "$status" -eq 0 ]
+    [ "$output" = "TESTDB" ]
     
     run oradba_registry_get_field "${install_obj}" "type"
-    assert_success
-    assert_output "database"
+    [ "$status" -eq 0 ]
+    [ "$output" = "database" ]
     
     run oradba_registry_get_field "${install_obj}" "home"
-    assert_success
-    assert_output "/u01/app/oracle/product/19"
+    [ "$status" -eq 0 ]
+    [ "$output" = "/u01/app/oracle/product/19" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -265,8 +261,8 @@ EOF
     }
     
     run oradba_registry_validate
-    assert_failure
-    assert_output --partial "Duplicate installation name: TESTDB"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Duplicate installation name: TESTDB"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
@@ -288,8 +284,8 @@ EOF
     # Registry filters out non-existent homes during parsing
     # So validation passes (no invalid entries in registry)
     run oradba_registry_validate
-    assert_success
-    assert_output --partial "Registry validation passed"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Registry validation passed"* ]]
     
     rm -f "/tmp/test_oratab_$$"
 }
