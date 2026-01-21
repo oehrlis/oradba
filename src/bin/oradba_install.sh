@@ -1710,12 +1710,27 @@ extract_github_release() {
         log_info "Fetching latest release from GitHub..."
         # Get latest release version and construct download URL
         local latest_version
-        latest_version=$(curl -sL https://api.github.com/repos/oehrlis/oradba/releases/latest | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+        local api_response
+        api_response=$(curl -sL https://api.github.com/repos/oehrlis/oradba/releases/latest)
+        
+        # Check for API errors (rate limiting, etc.)
+        if echo "$api_response" | grep -q '"message".*"API rate limit exceeded"'; then
+            log_error "GitHub API rate limit exceeded"
+            log_info "You can either:"
+            log_info "  1. Wait a few minutes and try again"
+            log_info "  2. Use authenticated requests (set GITHUB_TOKEN)"
+            log_info "  3. Download manually from: https://github.com/oehrlis/oradba/releases/latest"
+            log_info "  4. Install specific version: $0 --github --version 0.19.0"
+            return 1
+        fi
+        
+        latest_version=$(echo "$api_response" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
         if [[ -n "$latest_version" ]]; then
             download_url="https://github.com/oehrlis/oradba/releases/latest/download/oradba-${latest_version}.tar.gz"
             tarball_name="oradba-${latest_version}.tar.gz"
         else
             log_error "Failed to determine latest version"
+            log_info "API response: $(echo "$api_response" | head -c 200)"
             return 1
         fi
     else
