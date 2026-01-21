@@ -1,0 +1,834 @@
+# Plugin Development Guide
+
+This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v2.0.0+).
+
+## Overview
+
+OraDBA's plugin system enables product-specific behavior for different Oracle products. Each plugin
+implements a standardized interface that allows OraDBA to:
+
+- Auto-detect installations
+- Validate Oracle Homes
+- Build environment variables (PATH, LD_LIBRARY_PATH)
+- Check service status
+- Discover instances
+- Get product metadata
+
+## Plugin Architecture
+
+### Design Principles
+
+1. **Separation of Concerns**: Each product type has its own plugin
+2. **Standardized Interface**: All plugins implement the same 11 required functions
+3. **Extensibility**: Easy to add support for new Oracle products
+4. **Isolation**: Plugins don't interfere with each other
+5. **Backward Compatibility**: Plugin interface versioning ensures compatibility
+
+### Plugin System Components
+
+```text
+OraDBA Core
+    ↓
+Plugin Loader (oradba_env_builder.sh)
+    ↓
+Plugin Interface (plugin_interface.sh)
+    ↓
+Product Plugins
+    ├─ database_plugin.sh       (Oracle Database)
+    ├─ datasafe_plugin.sh       (Data Safe Connectors)
+    ├─ client_plugin.sh         (Full Oracle Client)
+    ├─ iclient_plugin.sh        (Instant Client)
+    ├─ oud_plugin.sh            (Oracle Unified Directory)
+    └─ java_plugin.sh           (Oracle Java/JDK)
+```
+
+## Plugin Interface v2.0.0
+
+Each plugin must implement **11 required functions** and **3 metadata variables**.
+
+### Required Metadata
+
+```bash
+# Plugin metadata (REQUIRED)
+export plugin_name="myproduct"              # Product type identifier
+export plugin_version="1.0.0"               # Plugin version (semantic versioning)
+export plugin_description="My Oracle Product plugin"  # Human-readable description
+```
+
+### Required Functions
+
+#### 1. plugin_detect_installation
+
+Auto-detect installations of this product type.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_detect_installation
+# Purpose.: Auto-detect installations of this product type
+# Args....: None
+# Returns.: 0 on success
+# Output..: List of installation paths (one per line)
+# Notes...: Used for auto-discovery when no registry files exist
+# ------------------------------------------------------------------------------
+plugin_detect_installation() {
+    # Implementation: scan common locations for product
+    # Example: find /opt/oracle -name "product_binary"
+}
+```
+
+**Examples**:
+- Database: Scan for running `pmon` processes
+- DataSafe: Check for `cmctl` binary in typical locations
+- Client: Look for `sqlplus` without `rdbms` directory
+
+#### 2. plugin_validate_home
+
+Validate that a path is a valid ORACLE_HOME for this product.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_validate_home
+# Purpose.: Validate that path is a valid ORACLE_HOME for this product
+# Args....: $1 - Path to validate
+# Returns.: 0 if valid, 1 if invalid
+# Output..: None
+# Notes...: Checks for product-specific files/directories
+# ------------------------------------------------------------------------------
+plugin_validate_home() {
+    local home_path="$1"
+    
+    # Check for product-specific markers
+    # Example: [[ -x "${home_path}/bin/sqlplus" ]]
+}
+```
+
+**Validation Strategies**:
+- Check for specific binaries (e.g., `sqlplus`, `cmctl`)
+- Verify directory structure (e.g., `rdbms/`, `network/`)
+- Check for configuration files
+
+#### 3. plugin_adjust_environment
+
+Adjust ORACLE_HOME path for product-specific requirements.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_adjust_environment
+# Purpose.: Adjust ORACLE_HOME for product-specific requirements
+# Args....: $1 - Original ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Adjusted ORACLE_HOME path
+# Notes...: Example: DataSafe appends /oracle_cman_home
+#           Most products return the path unchanged
+# ------------------------------------------------------------------------------
+plugin_adjust_environment() {
+    local home_path="$1"
+    
+    # Most products return unchanged
+    echo "${home_path}"
+    
+    # DataSafe example:
+    # echo "${home_path}/oracle_cman_home"
+}
+```
+
+#### 4. plugin_check_status
+
+Check if product instance is running.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_check_status
+# Purpose.: Check if product instance is running
+# Args....: $1 - Installation path
+#           $2 - Instance name (optional)
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Uses explicit environment (not current shell environment)
+# ------------------------------------------------------------------------------
+plugin_check_status() {
+    local home_path="$1"
+    local instance_name="${2:-}"
+    
+    # Check if service/process is running
+    # Return appropriate status
+}
+```
+
+#### 5. plugin_get_metadata
+
+Get product metadata (version, edition, etc.).
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_get_metadata
+# Purpose.: Get product metadata (version, features, etc.)
+# Args....: $1 - Installation path
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Example output:
+#           version=19.21.0.0.0
+#           edition=Enterprise
+#           patchlevel=221018
+# ------------------------------------------------------------------------------
+plugin_get_metadata() {
+    local home_path="$1"
+    
+    # Extract version
+    local version
+    version=$(get_version_from_product "${home_path}")
+    
+    # Output key=value pairs
+    echo "version=${version}"
+    echo "edition=Enterprise"
+}
+```
+
+#### 6. plugin_should_show_listener
+
+Determine if this product's listener should appear in listener section.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_should_show_listener
+# Purpose.: Determine if this product's tnslsnr should appear in listener section
+# Args....: $1 - Installation path
+# Returns.: 0 if should show, 1 if should not show
+# Notes...: Database listeners: return 0
+#           DataSafe connectors: return 1 (they use tnslsnr but aren't DB listeners)
+# ------------------------------------------------------------------------------
+plugin_should_show_listener() {
+    local home_path="$1"
+    
+    # Database: return 0 (show listener)
+    # DataSafe: return 1 (don't show listener)
+    return 1
+}
+```
+
+#### 7. plugin_discover_instances
+
+Discover all instances for this Oracle Home.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_discover_instances
+# Purpose.: Discover all instances for this Oracle Home
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: List of instances (one per line)
+# Format..: instance_name|status|additional_metadata
+# Notes...: Handles 1:many relationships (RAC, WebLogic, OUD)
+#           Example: PROD1|running|node1
+# ------------------------------------------------------------------------------
+plugin_discover_instances() {
+    local home_path="$1"
+    
+    # Scan for instances
+    # Example: check running processes, config files
+    # Output instance info
+}
+```
+
+#### 8. plugin_build_path
+
+Get PATH components for this product.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_build_path
+# Purpose.: Get PATH components for this product
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated PATH components
+# Notes...: Returns the directories to add to PATH for this product
+#           Example (RDBMS): /u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch
+#           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
+#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/bin
+# ------------------------------------------------------------------------------
+plugin_build_path() {
+    local home_path="$1"
+    
+    # Build PATH for product
+    echo "${home_path}/bin:${home_path}/OPatch"
+}
+```
+
+#### 9. plugin_build_lib_path
+
+Get LD_LIBRARY_PATH components for this product.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_build_lib_path
+# Purpose.: Get LD_LIBRARY_PATH components for this product
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Colon-separated library path components
+# Notes...: Returns directories containing shared libraries
+#           Example (RDBMS): /u01/app/oracle/product/19/lib
+#           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
+# ------------------------------------------------------------------------------
+plugin_build_lib_path() {
+    local home_path="$1"
+    
+    # Build library path for product
+    echo "${home_path}/lib"
+}
+```
+
+#### 10. plugin_get_config_section
+
+Get configuration section name for this product.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_get_config_section
+# Purpose.: Get configuration section name for this product
+# Args....: None
+# Returns.: 0 on success
+# Output..: Configuration section name (uppercase)
+# Notes...: Used by oradba_apply_product_config() to load product-specific settings
+#           Example: "RDBMS", "DATASAFE", "CLIENT", "ICLIENT", "OUD", "WLS"
+# ------------------------------------------------------------------------------
+plugin_get_config_section() {
+    echo "MYPRODUCT"
+    return 0
+}
+```
+
+#### 11. plugin_get_required_binaries
+
+Get list of required binaries for this product.
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_get_required_binaries
+# Purpose.: Get list of required binaries for this product
+# Args....: None
+# Returns.: 0 on success
+# Output..: Space-separated list of required binary names
+# Notes...: Used by oradba_check_oracle_binaries() to validate installation
+#           Example (RDBMS): "sqlplus tnsping lsnrctl"
+#           Example (DATASAFE): "cmctl"
+#           Example (CLIENT): "sqlplus tnsping"
+# ------------------------------------------------------------------------------
+plugin_get_required_binaries() {
+    echo "myproduct_binary myctl"
+    return 0
+}
+```
+
+### Optional Functions
+
+These functions have default implementations but can be overridden:
+
+```bash
+# Custom display name for instance (defaults to installation name)
+plugin_get_display_name() {
+    local name="$1"
+    echo "${name}"
+}
+
+# Whether this product supports SID-like aliases (default: no)
+plugin_supports_aliases() {
+    return 1  # 0 = yes, 1 = no
+}
+
+# Get product version from ORACLE_HOME (has default implementation)
+plugin_get_version() {
+    local home_path="$1"
+    # Default implementation provided in plugin_interface.sh
+}
+```
+
+## Step-by-Step Plugin Development
+
+### Step 1: Create Plugin File
+
+Create a new file in `src/lib/plugins/`:
+
+```bash
+cd /path/to/oradba
+cat > src/lib/plugins/myproduct_plugin.sh << 'EOF'
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security
+# Name.....: myproduct_plugin.sh
+# Author...: Your Name (email)
+# Date.....: $(date +%Y.%m.%d)
+# Version..: 1.0.0
+# Purpose..: Plugin for My Oracle Product
+# Notes....: Implements plugin interface v2.0.0
+# ------------------------------------------------------------------------------
+
+# Plugin Metadata (REQUIRED)
+export plugin_name="myproduct"
+export plugin_version="1.0.0"
+export plugin_description="My Oracle Product plugin"
+
+# Implement all 11 required functions here...
+# (see examples below)
+
+EOF
+```
+
+### Step 2: Implement Required Functions
+
+Use the database plugin as a reference:
+
+```bash
+# View database plugin for reference
+cat src/lib/plugins/database_plugin.sh
+
+# Copy and adapt the structure
+```
+
+### Step 3: Add Product Type Detection
+
+Update `src/lib/oradba_common.sh` to recognize your product:
+
+```bash
+detect_product_type() {
+    local oracle_home="$1"
+    
+    # Add your product detection
+    if [[ -x "${oracle_home}/bin/myproduct" ]]; then
+        echo "myproduct"
+        return 0
+    fi
+    
+    # ... existing detections ...
+}
+```
+
+### Step 4: Update Registry Validation
+
+Add your product type to valid types in `src/lib/oradba_registry.sh`:
+
+```bash
+# Valid product types
+local valid_types="database|client|iclient|datasafe|oud|java|myproduct"
+```
+
+### Step 5: Create Tests
+
+Create comprehensive tests in `tests/`:
+
+```bash
+cat > tests/test_myproduct_plugin.bats << 'EOF'
+#!/usr/bin/env bats
+# ------------------------------------------------------------------------------
+# Tests for myproduct_plugin.sh
+# ------------------------------------------------------------------------------
+
+load test_helper
+
+setup() {
+    # Source the plugin
+    source src/lib/plugins/myproduct_plugin.sh
+}
+
+@test "plugin metadata is set correctly" {
+    [ -n "${plugin_name}" ]
+    [ "${plugin_name}" = "myproduct" ]
+    [ -n "${plugin_version}" ]
+    [ -n "${plugin_description}" ]
+}
+
+@test "plugin_validate_home detects valid home" {
+    # Create mock directory structure
+    local test_home="${BATS_TEST_TMPDIR}/myproduct_home"
+    mkdir -p "${test_home}/bin"
+    touch "${test_home}/bin/myproduct"
+    chmod +x "${test_home}/bin/myproduct"
+    
+    # Test validation
+    run plugin_validate_home "${test_home}"
+    [ "$status" -eq 0 ]
+}
+
+@test "plugin_validate_home rejects invalid home" {
+    local test_home="${BATS_TEST_TMPDIR}/invalid_home"
+    mkdir -p "${test_home}"
+    
+    run plugin_validate_home "${test_home}"
+    [ "$status" -eq 1 ]
+}
+
+@test "plugin_build_path returns correct path" {
+    local test_home="/opt/oracle/myproduct"
+    
+    run plugin_build_path "${test_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "${test_home}" ]]
+}
+
+@test "plugin_get_config_section returns correct section" {
+    run plugin_get_config_section
+    [ "$status" -eq 0 ]
+    [ "$output" = "MYPRODUCT" ]
+}
+
+# Add tests for all 11 required functions
+EOF
+
+# Run tests
+bats tests/test_myproduct_plugin.bats
+```
+
+### Step 6: Add Integration Tests
+
+Test integration with OraDBA core:
+
+```bash
+# Add to tests/test_integration.bats
+@test "myproduct plugin integrates with oradba_add_oracle_path" {
+    source src/lib/oradba_env_builder.sh
+    source src/lib/plugins/myproduct_plugin.sh
+    
+    local test_home="/opt/oracle/myproduct"
+    
+    run oradba_add_oracle_path "${test_home}" "myproduct"
+    [ "$status" -eq 0 ]
+    
+    # Verify PATH was modified
+    [[ "${PATH}" =~ "${test_home}" ]]
+}
+```
+
+### Step 7: Update Documentation
+
+1. Add to README.md supported products list
+2. Update doc/architecture.md plugin list
+3. Add plugin-specific documentation if needed
+
+### Step 8: Test Thoroughly
+
+```bash
+# Run all plugin tests
+bats tests/test_myproduct_plugin.bats
+
+# Run integration tests
+bats tests/test_integration.bats
+
+# Run full test suite
+make test-full
+
+# Check code quality
+make lint
+```
+
+## Complete Example: Simple Plugin
+
+Here's a complete, minimal plugin:
+
+```bash
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# Simple Example Plugin for OraDBA
+# ------------------------------------------------------------------------------
+
+# Plugin Metadata
+export plugin_name="example"
+export plugin_version="1.0.0"
+export plugin_description="Example Oracle Product plugin"
+
+# 1. Auto-detect installations
+plugin_detect_installation() {
+    # Scan for installations
+    find /opt/oracle -maxdepth 2 -name "example_binary" -type f 2>/dev/null | \
+        xargs -r dirname | sort -u
+}
+
+# 2. Validate home
+plugin_validate_home() {
+    local home_path="$1"
+    [[ -d "${home_path}" ]] && [[ -x "${home_path}/bin/example_binary" ]]
+}
+
+# 3. Adjust environment (most products don't need this)
+plugin_adjust_environment() {
+    local home_path="$1"
+    echo "${home_path}"
+}
+
+# 4. Check status
+plugin_check_status() {
+    local home_path="$1"
+    local instance_name="${2:-}"
+    
+    if pgrep -f "example_process" > /dev/null; then
+        echo "running"
+        return 0
+    else
+        echo "stopped"
+        return 1
+    fi
+}
+
+# 5. Get metadata
+plugin_get_metadata() {
+    local home_path="$1"
+    local version
+    
+    version=$("${home_path}/bin/example_binary" --version 2>&1 | head -1 | awk '{print $NF}')
+    
+    echo "version=${version}"
+    echo "edition=Standard"
+    return 0
+}
+
+# 6. Show listener?
+plugin_should_show_listener() {
+    return 1  # No listener for this product
+}
+
+# 7. Discover instances
+plugin_discover_instances() {
+    local home_path="$1"
+    # Single instance per home
+    echo "example|running|default"
+}
+
+# 8. Build PATH
+plugin_build_path() {
+    local home_path="$1"
+    echo "${home_path}/bin"
+}
+
+# 9. Build library path
+plugin_build_lib_path() {
+    local home_path="$1"
+    echo "${home_path}/lib"
+}
+
+# 10. Get config section
+plugin_get_config_section() {
+    echo "EXAMPLE"
+}
+
+# 11. Get required binaries
+plugin_get_required_binaries() {
+    echo "example_binary"
+}
+
+# Optional: Supports aliases?
+plugin_supports_aliases() {
+    return 1  # No SID-like aliases
+}
+```
+
+## Integration Points
+
+### Loading Plugins
+
+Plugins are loaded automatically by `oradba_env_builder.sh`:
+
+```bash
+# Load plugin for product type
+load_plugin() {
+    local product_type="$1"
+    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
+    
+    if [[ -f "${plugin_file}" ]]; then
+        source "${plugin_file}"
+        return 0
+    else
+        return 1
+    fi
+}
+```
+
+### Using Plugins
+
+OraDBA core uses plugins through standardized calls:
+
+```bash
+# Validate Oracle Home using plugin
+if load_plugin "${product_type}"; then
+    if plugin_validate_home "${oracle_home}"; then
+        echo "Valid home for ${product_type}"
+    fi
+fi
+
+# Build PATH using plugin
+if load_plugin "${product_type}"; then
+    path_components=$(plugin_build_path "${oracle_home}")
+    export PATH="${path_components}:${PATH}"
+fi
+```
+
+### Product Configuration
+
+Add product-specific configuration to `oradba_standard.conf`:
+
+```ini
+# ------------------------------------------------------------------------------
+# My Product Configuration
+# ------------------------------------------------------------------------------
+[MYPRODUCT]
+# Product-specific environment variables
+MYPRODUCT_SETTING1=value1
+MYPRODUCT_SETTING2=value2
+```
+
+## Testing Strategy
+
+### Unit Tests
+
+Test each function independently:
+
+```bash
+@test "plugin_validate_home with valid home" { }
+@test "plugin_validate_home with invalid home" { }
+@test "plugin_validate_home with missing directory" { }
+```
+
+### Integration Tests
+
+Test plugin interaction with OraDBA core:
+
+```bash
+@test "plugin integrates with environment builder" { }
+@test "plugin metadata accessible after load" { }
+@test "plugin PATH added correctly" { }
+```
+
+### Manual Testing
+
+1. Install plugin
+2. Add entry to oradba_homes.conf
+3. Source oraenv
+4. Verify environment variables
+5. Test status checks
+6. Verify aliases (if applicable)
+
+## Common Patterns
+
+### DataSafe Pattern (Subdirectory)
+
+```bash
+plugin_adjust_environment() {
+    local home_path="$1"
+    # DataSafe uses subdirectory
+    echo "${home_path}/oracle_cman_home"
+}
+```
+
+### Instant Client Pattern (No bin directory)
+
+```bash
+plugin_build_path() {
+    local home_path="$1"
+    # Instant Client: add home directly, not bin subdirectory
+    echo "${home_path}"
+}
+```
+
+### Multi-Instance Pattern (RAC, WebLogic)
+
+```bash
+plugin_discover_instances() {
+    local home_path="$1"
+    
+    # Discover multiple instances
+    for instance in $(find_instances); do
+        status=$(check_instance_status "${instance}")
+        echo "${instance}|${status}|node1"
+    done
+}
+```
+
+## Troubleshooting
+
+### Plugin Not Loading
+
+```bash
+# Check if plugin file exists
+ls -la src/lib/plugins/myproduct_plugin.sh
+
+# Check for syntax errors
+bash -n src/lib/plugins/myproduct_plugin.sh
+
+# Enable debug logging
+export ORADBA_LOG_LEVEL=DEBUG
+source oraenv
+```
+
+### Function Not Found
+
+```bash
+# Verify all 11 functions are implemented
+grep "^plugin_" src/lib/plugins/myproduct_plugin.sh | wc -l
+# Should show at least 11
+
+# Check function names match exactly
+grep "^plugin_" src/lib/plugins/myproduct_plugin.sh
+```
+
+### Tests Failing
+
+```bash
+# Run specific test with output
+bats tests/test_myproduct_plugin.bats -f "test_name" --tap
+
+# Check test environment
+ls -la "${BATS_TEST_TMPDIR}"
+
+# Add debug output to test
+@test "my test" {
+    echo "Debug info" >&3
+    run my_function
+    echo "Output: $output" >&3
+}
+```
+
+## Best Practices
+
+### DO
+
+✅ **Implement all 11 required functions**: Even if they return defaults
+✅ **Follow naming conventions**: Use `plugin_*` prefix
+✅ **Add comprehensive tests**: Cover edge cases
+✅ **Document behavior**: Use function headers
+✅ **Handle errors gracefully**: Return appropriate error codes
+✅ **Use plugin_get_version**: For consistency across plugins
+
+### DON'T
+
+❌ **Don't modify global state**: Except PATH/LD_LIBRARY_PATH as designed
+❌ **Don't hardcode paths**: Use variables and configuration
+❌ **Don't skip error handling**: Check return codes
+❌ **Don't assume dependencies**: Verify binaries exist before calling
+❌ **Don't break interface**: Maintain function signatures
+
+## Checklist
+
+Before submitting plugin:
+
+- [ ] All 11 required functions implemented
+- [ ] Plugin metadata set (name, version, description)
+- [ ] Tests created and passing
+- [ ] Integration tested with OraDBA core
+- [ ] Documentation updated
+- [ ] Code passes shellcheck
+- [ ] Function headers complete
+- [ ] Product type added to detect_product_type()
+- [ ] Product type added to registry validation
+- [ ] Configuration section added (if needed)
+
+## References
+
+- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface specification
+- [Database Plugin](../src/lib/plugins/database_plugin.sh) - Reference implementation
+- [Architecture](architecture.md) - System architecture
+- [Development Workflow](development-workflow.md) - Development process
+- [Extension System](extension-system.md) - Extension development
+
+## Support
+
+- Open an issue for plugin development questions
+- Review existing plugins for examples
+- Check plugin tests for usage patterns
+- See architecture documentation for system design
