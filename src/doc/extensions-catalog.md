@@ -33,8 +33,17 @@ All extensions work with OraDBA's Registry API and Plugin System, supporting dat
 **Repository:** [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)  
 **Category:** Development  
 **Status:** Active  
+**Version:** v0.4.0
 
-Template and example for creating OraDBA extensions
+Template for creating OraDBA v0.19.x extensions with priority-based loading, provides metadata, and comprehensive documentation
+
+**Features:**
+
+- Priority-based loading (default: 50, range: 10-90)
+- Selective directory inclusion via provides metadata
+- OraDBA library dependency tracking
+- Environment variables and navigation aliases
+- Example scripts (bin/, sql/, rcv/)
 
 [View Documentation](https://github.com/oehrlis/oradba_extension#readme){ .md-button }
 
@@ -57,6 +66,25 @@ Tools for managing Oracle Data Safe targets in OCI with simplified CLI and compr
 Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrades
 
 [View Documentation](https://github.com/oehrlis/odb_autoupgrade#readme){ .md-button }
+
+### OraDBA Extras Extension
+
+**Repository:** [oehrlis/odb_extras](https://github.com/oehrlis/odb_extras)  
+**Category:** Utilities  
+**Status:** Active  
+**Version:** v0.1.0
+
+User-specific tools and wrappers for GNU utilities, OCI CLI, jq, and other commonly used tools
+
+**Features:**
+
+- GNU tar wrapper (gnu-tar) for consistent behavior on Solaris/Linux
+- OCI CLI enhancements (oci-wrapper)
+- JSON processing helpers (jq wrappers)
+- Additional command-line utilities
+- No database dependencies (works with any Oracle product)
+
+[View Documentation](https://github.com/oehrlis/odb_extras#readme){ .md-button }
 
 <!-- EXTENSIONS_LIST_END -->
 
