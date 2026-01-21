@@ -83,8 +83,9 @@ class FunctionDoc:
         """Generate markdown documentation for this function"""
         md = []
         
-        # Function header with anchor
-        md.append(f"### `{self.name}` {{: #{self.name} }}")
+        # Function header with anchor (use lowercase with underscores for anchor ID)
+        anchor_id = self.name.lower().replace('_', '-')
+        md.append(f"### `{self.name}` {{: #{anchor_id} }}")
         md.append("")
         
         # Purpose
@@ -463,9 +464,8 @@ fi
 ## See Also
 
 - [Function Index](function-index.md) - Alphabetical function list
-- [Architecture Documentation](../../doc/architecture.md) - System design
-- [Development Guide](../../doc/development.md) - Development workflow
-- [Function Header Guide](../../doc/function-header-guide.md) - Header standards
+
+For developer documentation including architecture, development guides, and function header standards, see the project repository documentation.
 
 ---
 
@@ -500,7 +500,9 @@ def generate_function_index(functions_by_category):
         
         for func_name, category in all_functions:
             category_title = CATEGORY_TITLES.get(category, category.title())
-            f.write(f"- [`{func_name}`]({category}.md#{func_name}) - {category_title}\n")
+            # Convert function name to anchor format (lowercase with hyphens)
+            anchor = func_name.lower().replace('_', '-')
+            f.write(f"- [`{func_name}`]({category}.md#{anchor}) - {category_title}\n")
     
     print(f"[INFO]   Function index generated with {len(all_functions)} functions")
 

@@ -4,7 +4,7 @@ Command-line scripts and tools for OraDBA operations.
 
 ---
 
-### `_oraenv_apply_product_adjustments` {: #_oraenv_apply_product_adjustments }
+### `_oraenv_apply_product_adjustments` {: #-oraenv-apply-product-adjustments }
 
 Apply product-specific path adjustments (e.g., DataSafe plugin)
 
@@ -25,7 +25,7 @@ Apply product-specific path adjustments (e.g., DataSafe plugin)
     extensible product-specific environment handling.
 
 ---
-### `_oraenv_auto_discover_instances` {: #_oraenv_auto_discover_instances }
+### `_oraenv_auto_discover_instances` {: #-oraenv-auto-discover-instances }
 
 Auto-discover running Oracle instances when oratab is empty
 
@@ -47,7 +47,7 @@ Auto-discover running Oracle instances when oratab is empty
     to oratab via persist_discovered_instances().
 
 ---
-### `_oraenv_display_selection_menu` {: #_oraenv_display_selection_menu }
+### `_oraenv_display_selection_menu` {: #-oraenv-display-selection-menu }
 
 Display interactive selection menu for SIDs and Oracle Homes
 
@@ -67,7 +67,7 @@ Display interactive selection menu for SIDs and Oracle Homes
     numbered sequentially for user selection.
 
 ---
-### `_oraenv_find_oratab` {: #_oraenv_find_oratab }
+### `_oraenv_find_oratab` {: #-oraenv-find-oratab }
 
 Locate the oratab file using standard search paths
 
@@ -87,7 +87,7 @@ Locate the oratab file using standard search paths
     environment variable when found.
 
 ---
-### `_oraenv_gather_available_entries` {: #_oraenv_gather_available_entries }
+### `_oraenv_gather_available_entries` {: #-oraenv-gather-available-entries }
 
 Gather available database SIDs and Oracle Homes from registry
 
@@ -108,7 +108,7 @@ Gather available database SIDs and Oracle Homes from registry
     if enabled. Separates database SIDs from non-database Oracle Homes.
 
 ---
-### `_oraenv_handle_oracle_home` {: #_oraenv_handle_oracle_home }
+### `_oraenv_handle_oracle_home` {: #-oraenv-handle-oracle-home }
 
 Setup environment for an Oracle Home (non-database installation)
 
@@ -128,7 +128,7 @@ Setup environment for an Oracle Home (non-database installation)
     configuration, and logs environment details.
 
 ---
-### `_oraenv_load_configurations` {: #_oraenv_load_configurations }
+### `_oraenv_load_configurations` {: #-oraenv-load-configurations }
 
 Load hierarchical configurations and extensions for environment
 
@@ -149,7 +149,7 @@ Load hierarchical configurations and extensions for environment
     unless in basenv coexistence mode (unless ORADBA_EXTENSIONS_IN_COEXIST=true).
 
 ---
-### `_oraenv_lookup_oratab_entry` {: #_oraenv_lookup_oratab_entry }
+### `_oraenv_lookup_oratab_entry` {: #-oraenv-lookup-oratab-entry }
 
 Lookup database entry from registry or oratab file
 
@@ -170,7 +170,7 @@ Lookup database entry from registry or oratab file
     registry format to oratab format for compatibility.
 
 ---
-### `_oraenv_main` {: #_oraenv_main }
+### `_oraenv_main` {: #-oraenv-main }
 
 Main orchestration function for oraenv.sh
 
@@ -191,7 +191,7 @@ Main orchestration function for oraenv.sh
     Handles no-Oracle mode when oratab not found. Must be sourced, not executed.
 
 ---
-### `_oraenv_main` {: #_oraenv_main }
+### `_oraenv_main` {: #-oraenv-main }
 
 Main orchestration function for oraenv.sh
 
@@ -212,7 +212,7 @@ Main orchestration function for oraenv.sh
     Handles no-Oracle mode when oratab not found. Must be sourced, not executed.
 
 ---
-### `_oraenv_parse_args` {: #_oraenv_parse_args }
+### `_oraenv_parse_args` {: #-oraenv-parse-args }
 
 Parse command line arguments for oraenv.sh
 
@@ -231,7 +231,7 @@ Parse command line arguments for oraenv.sh
     --force, and --help flags
 
 ---
-### `_oraenv_parse_user_selection` {: #_oraenv_parse_user_selection }
+### `_oraenv_parse_user_selection` {: #-oraenv-parse-user-selection }
 
 Parse and validate user selection from interactive prompt
 
@@ -253,7 +253,7 @@ Parse and validate user selection from interactive prompt
     Numeric selection maps to arrays (Homes first, then SIDs).
 
 ---
-### `_oraenv_prompt_sid` {: #_oraenv_prompt_sid }
+### `_oraenv_prompt_sid` {: #-oraenv-prompt-sid }
 
 Get SID from user (interactive) or first entry (non-interactive)
 
@@ -268,7 +268,7 @@ Get SID from user (interactive) or first entry (non-interactive)
 **Output:** Selected SID or Oracle Home name
 
 ---
-### `_oraenv_set_environment` {: #_oraenv_set_environment }
+### `_oraenv_set_environment` {: #-oraenv-set-environment }
 
 Set Oracle environment for a database SID or Oracle Home
 
@@ -282,7 +282,7 @@ Set Oracle environment for a database SID or Oracle Home
 **Returns:** 0 on success, 1 on error
 
 ---
-### `_oraenv_setup_environment_variables` {: #_oraenv_setup_environment_variables }
+### `_oraenv_setup_environment_variables` {: #-oraenv-setup-environment-variables }
 
 Setup Oracle environment variables for database instance
 
@@ -304,7 +304,7 @@ Setup Oracle environment variables for database instance
     Startup flag (Y/N) extracted from oratab entry field 3.
 
 ---
-### `_oraenv_unset_old_env` {: #_oraenv_unset_old_env }
+### `_oraenv_unset_old_env` {: #-oraenv-unset-old-env }
 
 Unset previous Oracle environment variables before setting new ones
 
@@ -324,7 +324,7 @@ Unset previous Oracle environment variables before setting new ones
     Prevents PATH pollution when switching between Oracle environments.
 
 ---
-### `_oraenv_usage` {: #_oraenv_usage }
+### `_oraenv_usage` {: #-oraenv-usage }
 
 Display usage information for oraenv.sh
 
@@ -342,14 +342,14 @@ Display usage information for oraenv.sh
     Output goes to stderr so it's visible when script is sourced
 
 ---
-### `add_home` {: #add_home }
+### `add_home` {: #add-home }
 
 Add a new Oracle Home
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `ask_justification` {: #ask_justification }
+### `ask_justification` {: #ask-justification }
 
 Prompt for justification when operating on multiple databases
 
@@ -367,7 +367,7 @@ Prompt for justification when operating on multiple databases
     Skipped if FORCE_MODE=true; logs justification; requires 'yes' to proceed
 
 ---
-### `ask_justification` {: #ask_justification }
+### `ask_justification` {: #ask-justification }
 
 Prompt for justification when operating on multiple databases
 
@@ -385,7 +385,7 @@ Prompt for justification when operating on multiple databases
     Skipped if FORCE_MODE=true; logs justification; requires 'yes' to proceed
 
 ---
-### `ask_justification` {: #ask_justification }
+### `ask_justification` {: #ask-justification }
 
 Prompt for justification when operating on all listeners (safety check)
 
@@ -403,7 +403,7 @@ Prompt for justification when operating on all listeners (safety check)
     Skipped if FORCE_MODE=true; requires "yes" confirmation to proceed
 
 ---
-### `backup_config` {: #backup_config }
+### `backup_config` {: #backup-config }
 
 Backup all SQL*Net configuration files with timestamps
 
@@ -421,7 +421,7 @@ Backup all SQL*Net configuration files with timestamps
     Backs up sqlnet.ora, tnsnames.ora, ldap.ora using backup_file function
 
 ---
-### `backup_file` {: #backup_file }
+### `backup_file` {: #backup-file }
 
 Create timestamped backup copy of file
 
@@ -439,7 +439,7 @@ Create timestamped backup copy of file
     Backup format: <filename>.YYYYMMDD_HHMMSS.bak, preserves original file
 
 ---
-### `backup_installation` {: #backup_installation }
+### `backup_installation` {: #backup-installation }
 
 Create timestamped backup of existing installation
 
@@ -459,7 +459,7 @@ Create timestamped backup of existing installation
     Used before updates to enable rollback
 
 ---
-### `backup_modified_files` {: #backup_modified_files }
+### `backup_modified_files` {: #backup-modified-files }
 
 Backup modified configuration files before update
 
@@ -480,7 +480,7 @@ Backup modified configuration files before update
     Skips backup if .oradba.checksum doesn't exist (fresh install)
 
 ---
-### `check_additional_files` {: #check_additional_files }
+### `check_additional_files` {: #check-additional-files }
 
 Detect user-added files not in official checksum (customizations)
 
@@ -498,7 +498,7 @@ Detect user-added files not in official checksum (customizations)
     Helps identify user customizations before updates; shows backup commands if SHOW_BACKUP=true
 
 ---
-### `check_archived_version` {: #check_archived_version }
+### `check_archived_version` {: #check-archived-version }
 
 Check if version is pre-1.0 archived release and display notice
 
@@ -517,7 +517,7 @@ Check if version is pre-1.0 archived release and display notice
     Displays upgrade recommendation for production use
 
 ---
-### `check_database_connectivity` {: #check_database_connectivity }
+### `check_database_connectivity` {: #check-database-connectivity }
 
 Test database connectivity and process availability
 
@@ -535,7 +535,7 @@ Test database connectivity and process availability
     Skipped if ORACLE_HOME/ORACLE_SID not set; checks pmon process, tests sqlplus connection with 5s timeout
 
 ---
-### `check_disk_space` {: #check_disk_space }
+### `check_disk_space` {: #check-disk-space }
 
 Verify sufficient disk space for installation
 
@@ -555,7 +555,7 @@ Verify sufficient disk space for installation
     Warns if unable to determine space (continues anyway)
 
 ---
-### `check_disk_space` {: #check_disk_space }
+### `check_disk_space` {: #check-disk-space }
 
 Verify sufficient disk space for OraDBA installation (100 MB required)
 
@@ -573,7 +573,7 @@ Verify sufficient disk space for OraDBA installation (100 MB required)
     Critical check; finds existing parent if target doesn't exist; uses df -Pm
 
 ---
-### `check_existing_installation` {: #check_existing_installation }
+### `check_existing_installation` {: #check-existing-installation }
 
 Check if OraDBA is already installed at target location
 
@@ -592,7 +592,7 @@ Check if OraDBA is already installed at target location
     Used to determine if doing fresh install or update
 
 ---
-### `check_extension_checksums` {: #check_extension_checksums }
+### `check_extension_checksums` {: #check-extension-checksums }
 
 Verify integrity of all enabled extensions using their .extension.checksum files
 
@@ -610,7 +610,7 @@ Verify integrity of all enabled extensions using their .extension.checksum files
     Checks only enabled extensions; respects .checksumignore; verifies managed dirs (bin,sql,rcv,etc,lib)
 
 ---
-### `check_github_connectivity` {: #check_github_connectivity }
+### `check_github_connectivity` {: #check-github-connectivity }
 
 Test connectivity to GitHub API for update/installation features
 
@@ -628,7 +628,7 @@ Test connectivity to GitHub API for update/installation features
     Tests api.github.com with 5s timeout; informational only, tarball fallback available
 
 ---
-### `check_integrity` {: #check_integrity }
+### `check_integrity` {: #check-integrity }
 
 Verify OraDBA installation integrity using SHA256 checksums
 
@@ -646,7 +646,7 @@ Verify OraDBA installation integrity using SHA256 checksums
     Reads .oradba.checksum; excludes .install_info; calls check_additional_files and check_extension_checksums
 
 ---
-### `check_optional_tools` {: #check_optional_tools }
+### `check_optional_tools` {: #check-optional-tools }
 
 Check for optional tools and warn if missing
 
@@ -666,7 +666,7 @@ Check for optional tools and warn if missing
     Provides installation commands for missing tools
 
 ---
-### `check_optional_tools` {: #check_optional_tools }
+### `check_optional_tools` {: #check-optional-tools }
 
 Check availability of optional but recommended tools
 
@@ -684,7 +684,7 @@ Check availability of optional but recommended tools
     Informational; missing tools reduce user experience but don't block installation
 
 ---
-### `check_oracle_environment` {: #check_oracle_environment }
+### `check_oracle_environment` {: #check-oracle-environment }
 
 Check Oracle environment variables (ORACLE_HOME, ORACLE_BASE, ORACLE_SID, TNS_ADMIN)
 
@@ -702,7 +702,7 @@ Check Oracle environment variables (ORACLE_HOME, ORACLE_BASE, ORACLE_SID, TNS_AD
     Informational only; validates directory existence for set variables; not required for installation
 
 ---
-### `check_oracle_tools` {: #check_oracle_tools }
+### `check_oracle_tools` {: #check-oracle-tools }
 
 Check availability of Oracle tools (sqlplus, rman, lsnrctl, tnsping)
 
@@ -720,7 +720,7 @@ Check availability of Oracle tools (sqlplus, rman, lsnrctl, tnsping)
     Skipped if ORACLE_HOME not set; informational only; warns if tools missing
 
 ---
-### `check_oracle_user` {: #check_oracle_user }
+### `check_oracle_user` {: #check-oracle-user }
 
 Verify Oracle OS user exists on system
 
@@ -738,7 +738,7 @@ Verify Oracle OS user exists on system
     Checks user defined by ${ORACLE_USER} environment variable
 
 ---
-### `check_oracle_versions` {: #check_oracle_versions }
+### `check_oracle_versions` {: #check-oracle-versions }
 
 Scan Oracle Inventory and common locations for installed Oracle Homes
 
@@ -756,7 +756,7 @@ Scan Oracle Inventory and common locations for installed Oracle Homes
     Reads /etc/oraInst.loc or /var/opt/oracle/oraInst.loc; parses inventory.xml; falls back to common locations
 
 ---
-### `check_oradba_installation` {: #check_oradba_installation }
+### `check_oradba_installation` {: #check-oradba-installation }
 
 Verify OraDBA installation completeness and display installation info
 
@@ -774,7 +774,7 @@ Verify OraDBA installation completeness and display installation info
     Informational; shows install metadata in verbose mode; warns if directories missing
 
 ---
-### `check_parallel_method` {: #check_parallel_method }
+### `check_parallel_method` {: #check-parallel-method }
 
 Determine and validate parallel execution method
 
@@ -793,7 +793,7 @@ Determine and validate parallel execution method
     Falls back to background if GNU parallel not available
 
 ---
-### `check_permissions` {: #check_permissions }
+### `check_permissions` {: #check-permissions }
 
 Verify write permissions for installation directory
 
@@ -812,7 +812,7 @@ Verify write permissions for installation directory
     Suggests sudo if permissions insufficient
 
 ---
-### `check_required_tools` {: #check_required_tools }
+### `check_required_tools` {: #check-required-tools }
 
 Verify required system tools are available
 
@@ -832,7 +832,7 @@ Verify required system tools are available
     Installation cannot proceed if required tools missing
 
 ---
-### `check_root` {: #check_root }
+### `check_root` {: #check-root }
 
 Verify script is running as root (EUID 0)
 
@@ -850,7 +850,7 @@ Verify script is running as root (EUID 0)
     Checks EUID; required for system-wide operations (/etc/logrotate.d)
 
 ---
-### `check_root` {: #check_root }
+### `check_root` {: #check-root }
 
 Verify script is running with root privileges
 
@@ -868,7 +868,7 @@ Verify script is running with root privileges
     Required for systemd/init.d service management
 
 ---
-### `check_services_script` {: #check_services_script }
+### `check_services_script` {: #check-services-script }
 
 Validate oradba_services.sh exists and is executable
 
@@ -886,7 +886,7 @@ Validate oradba_services.sh exists and is executable
     Checks ${ORADBA_BASE}/bin/oradba_services.sh
 
 ---
-### `check_system_info` {: #check_system_info }
+### `check_system_info` {: #check-system-info }
 
 Display system information (OS, version, hostname, user, shell)
 
@@ -904,7 +904,7 @@ Display system information (OS, version, hostname, user, shell)
     Informational only; uses uname, /etc/os-release, sw_vers (macOS)
 
 ---
-### `check_system_tools` {: #check_system_tools }
+### `check_system_tools` {: #check-system-tools }
 
 Verify availability of critical system tools required for OraDBA
 
@@ -922,7 +922,7 @@ Verify availability of critical system tools required for OraDBA
     Critical check; missing tools prevent installation; shows versions in verbose mode
 
 ---
-### `check_updates` {: #check_updates }
+### `check_updates` {: #check-updates }
 
 Query GitHub API for latest OraDBA release and compare with installed version
 
@@ -940,7 +940,7 @@ Query GitHub API for latest OraDBA release and compare with installed version
     Uses curl with 10s timeout; queries api.github.com/repos/oehrlis/oradba/releases/latest
 
 ---
-### `check_version` {: #check_version }
+### `check_version` {: #check-version }
 
 Read and return OraDBA version from VERSION file
 
@@ -977,7 +977,7 @@ Remove temporary directory on script exit
     Removes TEMP_DIR if set and exists
 
 ---
-### `cmd_add` {: #cmd_add }
+### `cmd_add` {: #cmd-add }
 
 Add/install extension from source
 
@@ -998,14 +998,14 @@ Add/install extension from source
     Extracts to target directory
 
 ---
-### `cmd_changes` {: #cmd_changes }
+### `cmd_changes` {: #cmd-changes }
 
 Check for configuration file changes
 
 **Source:** `oradba_env.sh`
 
 ---
-### `cmd_check` {: #cmd_check }
+### `cmd_check` {: #cmd-check }
 
 Validate OraDBA installation health and requirements
 
@@ -1023,7 +1023,7 @@ Validate OraDBA installation health and requirements
     Checks OraDBA installation, oratab, Oracle Homes, directories, configuration files
 
 ---
-### `cmd_create` {: #cmd_create }
+### `cmd_create` {: #cmd-create }
 
 Create new extension from template
 
@@ -1044,7 +1044,7 @@ Create new extension from template
     Extracts and renames template files
 
 ---
-### `cmd_disabled` {: #cmd_disabled }
+### `cmd_disabled` {: #cmd-disabled }
 
 List only disabled extensions
 
@@ -1064,7 +1064,7 @@ List only disabled extensions
     Useful for identifying inactive extensions
 
 ---
-### `cmd_discover` {: #cmd_discover }
+### `cmd_discover` {: #cmd-discover }
 
 Discover and list all extensions in search paths
 
@@ -1084,7 +1084,7 @@ Discover and list all extensions in search paths
     Uses extension auto-discovery mechanism
 
 ---
-### `cmd_enabled` {: #cmd_enabled }
+### `cmd_enabled` {: #cmd-enabled }
 
 List only enabled extensions
 
@@ -1104,7 +1104,7 @@ List only enabled extensions
     Uses is_extension_enabled() check
 
 ---
-### `cmd_info` {: #cmd_info }
+### `cmd_info` {: #cmd-info }
 
 Display detailed information about specific extension
 
@@ -1124,7 +1124,7 @@ Display detailed information about specific extension
     Falls back to directory structure analysis
 
 ---
-### `cmd_link_oratab` {: #cmd_link_oratab }
+### `cmd_link_oratab` {: #cmd-link-oratab }
 
 Replace temp oratab with symlink to system /etc/oratab
 
@@ -1142,7 +1142,7 @@ Replace temp oratab with symlink to system /etc/oratab
     Creates symlink ${ORADBA_BASE}/etc/oratab → /etc/oratab; requires system oratab exists
 
 ---
-### `cmd_list` {: #cmd_list }
+### `cmd_list` {: #cmd-list }
 
 List all installed extensions with details
 
@@ -1162,14 +1162,14 @@ List all installed extensions with details
     Uses get_all_extensions() from extensions.sh library
 
 ---
-### `cmd_list` {: #cmd_list }
+### `cmd_list` {: #cmd-list }
 
 List available SIDs and/or Homes
 
 **Source:** `oradba_env.sh`
 
 ---
-### `cmd_paths` {: #cmd_paths }
+### `cmd_paths` {: #cmd-paths }
 
 Display extension search paths
 
@@ -1189,14 +1189,14 @@ Display extension search paths
     Useful for troubleshooting extension loading
 
 ---
-### `cmd_show` {: #cmd_show }
+### `cmd_show` {: #cmd-show }
 
 Show detailed information about SID or Home
 
 **Source:** `oradba_env.sh`
 
 ---
-### `cmd_show_config` {: #cmd_show_config }
+### `cmd_show_config` {: #cmd-show-config }
 
 Display current OraDBA configuration and environment
 
@@ -1214,14 +1214,14 @@ Display current OraDBA configuration and environment
     Shows OraDBA_BASE, PREFIX, config hierarchy, Oracle Homes, SIDs, key environment vars
 
 ---
-### `cmd_status` {: #cmd_status }
+### `cmd_status` {: #cmd-status }
 
 Check status of Oracle instance/service
 
 **Source:** `oradba_env.sh`
 
 ---
-### `cmd_validate` {: #cmd_validate }
+### `cmd_validate` {: #cmd-validate }
 
 Validate specific extension structure and metadata
 
@@ -1241,14 +1241,14 @@ Validate specific extension structure and metadata
     Provides detailed validation report
 
 ---
-### `cmd_validate` {: #cmd_validate }
+### `cmd_validate` {: #cmd-validate }
 
 Validate current Oracle environment or specified target
 
 **Source:** `oradba_env.sh`
 
 ---
-### `cmd_validate_all` {: #cmd_validate_all }
+### `cmd_validate_all` {: #cmd-validate-all }
 
 Validate all installed extensions
 
@@ -1268,14 +1268,14 @@ Validate all installed extensions
     Shows validation status per extension
 
 ---
-### `cmd_version` {: #cmd_version }
+### `cmd_version` {: #cmd-version }
 
 Display version information
 
 **Source:** `oradba_env.sh`
 
 ---
-### `create_symlinks` {: #create_symlinks }
+### `create_symlinks` {: #create-symlinks }
 
 Create symlinks in ORACLE_HOME/network/admin pointing to centralized config files
 
@@ -1293,7 +1293,7 @@ Create symlinks in ORACLE_HOME/network/admin pointing to centralized config file
     Handles read-only homes gracefully; skips if admin dir creation fails
 
 ---
-### `create_temp_oratab` {: #create_temp_oratab }
+### `create_temp_oratab` {: #create-temp-oratab }
 
 Create temporary oratab for pre-Oracle installations
 
@@ -1314,7 +1314,7 @@ Create temporary oratab for pre-Oracle installations
     Supports air-gapped and pre-Oracle environments
 
 ---
-### `create_tns_structure` {: #create_tns_structure }
+### `create_tns_structure` {: #create-tns-structure }
 
 Create directory structure for centralized TNS_ADMIN (admin/log/trace)
 
@@ -1332,7 +1332,7 @@ Create directory structure for centralized TNS_ADMIN (admin/log/trace)
     Creates ${ORACLE_BASE}/network/${SID}/{admin,log,trace} with 755 permissions
 
 ---
-### `create_tns_structure` {: #create_tns_structure }
+### `create_tns_structure` {: #create-tns-structure }
 
 Create directory structure for centralized TNS_ADMIN (admin/log/trace)
 
@@ -1350,7 +1350,7 @@ Create directory structure for centralized TNS_ADMIN (admin/log/trace)
     Creates ${ORACLE_BASE}/network/${SID}/{admin,log,trace} with 755 permissions
 
 ---
-### `customize_logrotate` {: #customize_logrotate }
+### `customize_logrotate` {: #customize-logrotate }
 
 Generate customized logrotate configurations in ~/.oradba/logrotate/
 
@@ -1368,14 +1368,14 @@ Generate customized logrotate configurations in ~/.oradba/logrotate/
     Creates oracle-alert-custom.logrotate and oracle-trace-custom.logrotate with paths customized to ORACLE_BASE
 
 ---
-### `dedupe_homes` {: #dedupe_homes }
+### `dedupe_homes` {: #dedupe-homes }
 
 Remove duplicate entries from configuration
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `detect_profile_file` {: #detect_profile_file }
+### `detect_profile_file` {: #detect-profile-file }
 
 Detect appropriate shell profile file for current user
 
@@ -1395,7 +1395,7 @@ Detect appropriate shell profile file for current user
     Creates .bash_profile if no profile exists
 
 ---
-### `determine_default_prefix` {: #determine_default_prefix }
+### `determine_default_prefix` {: #determine-default-prefix }
 
 Auto-detect default OraDBA installation prefix from Oracle environment
 
@@ -1415,14 +1415,14 @@ Auto-detect default OraDBA installation prefix from Oracle environment
     Falls back to path derivation and common locations
 
 ---
-### `discover_homes` {: #discover_homes }
+### `discover_homes` {: #discover-homes }
 
 Auto-discover Oracle Homes
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `display_header` {: #display_header }
+### `display_header` {: #display-header }
 
 Display formatted header with timestamp and database info
 
@@ -1440,7 +1440,7 @@ Display formatted header with timestamp and database info
     Shows monitoring context for watch mode refreshes
 
 ---
-### `download_extension_from_github` {: #download_extension_from_github }
+### `download_extension_from_github` {: #download-extension-from-github }
 
 Download extension from GitHub repository
 
@@ -1463,7 +1463,7 @@ Download extension from GitHub repository
     Adds 'v' prefix to versions if missing
 
 ---
-### `download_github_release` {: #download_github_release }
+### `download_github_release` {: #download-github-release }
 
 Download latest extension template from GitHub
 
@@ -1484,7 +1484,7 @@ Download latest extension template from GitHub
     Falls back through tarball URLs if needed
 
 ---
-### `execute_parallel_background` {: #execute_parallel_background }
+### `execute_parallel_background` {: #execute-parallel-background }
 
 Execute RMAN for multiple SIDs using background jobs
 
@@ -1504,7 +1504,7 @@ Execute RMAN for multiple SIDs using background jobs
     Updates FAILED_SIDS and SUCCESSFUL_SIDS arrays
 
 ---
-### `execute_parallel_gnu` {: #execute_parallel_gnu }
+### `execute_parallel_gnu` {: #execute-parallel-gnu }
 
 Execute RMAN for multiple SIDs using GNU parallel
 
@@ -1524,7 +1524,7 @@ Execute RMAN for multiple SIDs using GNU parallel
     Exports execute_rman_for_sid function for parallel
 
 ---
-### `execute_rman_for_sid` {: #execute_rman_for_sid }
+### `execute_rman_for_sid` {: #execute-rman-for-sid }
 
 Execute RMAN script for a specific Oracle SID
 
@@ -1544,14 +1544,14 @@ Execute RMAN script for a specific Oracle SID
     Creates timestamped logs per SID
 
 ---
-### `export_config` {: #export_config }
+### `export_config` {: #export-config }
 
 Export Oracle Homes configuration
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `extract_embedded_payload` {: #extract_embedded_payload }
+### `extract_embedded_payload` {: #extract-embedded-payload }
 
 Extract OraDBA from embedded base64 payload
 
@@ -1572,7 +1572,7 @@ Extract OraDBA from embedded base64 payload
     Suggests alternative methods if payload missing/corrupted
 
 ---
-### `extract_github_release` {: #extract_github_release }
+### `extract_github_release` {: #extract-github-release }
 
 Download and extract OraDBA from GitHub releases
 
@@ -1593,7 +1593,7 @@ Download and extract OraDBA from GitHub releases
     Verifies download and extracts to TEMP_DIR
 
 ---
-### `extract_local_tarball` {: #extract_local_tarball }
+### `extract_local_tarball` {: #extract-local-tarball }
 
 Extract OraDBA from local tarball file
 
@@ -1614,7 +1614,7 @@ Extract OraDBA from local tarball file
     Used for air-gapped installations
 
 ---
-### `force_logrotate` {: #force_logrotate }
+### `force_logrotate` {: #force-logrotate }
 
 Force immediate log rotation for testing (requires root)
 
@@ -1632,7 +1632,7 @@ Force immediate log rotation for testing (requires root)
     Uses logrotate -f -v; actually rotates logs; requires yes confirmation
 
 ---
-### `format_status` {: #format_status }
+### `format_status` {: #format-status }
 
 Format extension status with color
 
@@ -1651,7 +1651,7 @@ Format extension status with color
     Uses terminal color codes if TTY detected
 
 ---
-### `generate_cron` {: #generate_cron }
+### `generate_cron` {: #generate-cron }
 
 Generate crontab entry for automated user-mode log rotation
 
@@ -1669,7 +1669,7 @@ Generate crontab entry for automated user-mode log rotation
     Shows entry for manual addition to crontab; auto-detects script path; output redirected to null
 
 ---
-### `generate_home_name` {: #generate_home_name }
+### `generate_home_name` {: #generate-home-name }
 
 Generate home name from directory name and product type
 
@@ -1688,7 +1688,7 @@ Generate home name from directory name and product type
     Java, JRE, and instant client use lowercase conventions
 
 ---
-### `generate_tnsnames` {: #generate_tnsnames }
+### `generate_tnsnames` {: #generate-tnsnames }
 
 Generate and append TNS alias entry to tnsnames.ora
 
@@ -1706,7 +1706,7 @@ Generate and append TNS alias entry to tnsnames.ora
     Auto-detects hostname (FQDN preferred) and uses port 1521; warns if alias exists
 
 ---
-### `get_checksum_exclusions` {: #get_checksum_exclusions }
+### `get_checksum_exclusions` {: #get-checksum-exclusions }
 
 Parse .checksumignore file and generate awk exclusion patterns
 
@@ -1724,7 +1724,7 @@ Parse .checksumignore file and generate awk exclusion patterns
     Always excludes .extension, .checksumignore, log/; converts glob patterns (* to .*, ? to .)
 
 ---
-### `get_databases` {: #get_databases }
+### `get_databases` {: #get-databases }
 
 Parse oratab to extract database entries
 
@@ -1742,7 +1742,7 @@ Parse oratab to extract database entries
     Filters out entries with flag=D; reads from ${ORATAB:-/etc/oratab}
 
 ---
-### `get_db_mode` {: #get_db_mode }
+### `get_db_mode` {: #get-db-mode }
 
 Get database open mode (OPEN, MOUNTED, etc.)
 
@@ -1751,7 +1751,7 @@ Get database open mode (OPEN, MOUNTED, etc.)
 **Returns:** Open mode or "n/a"
 
 ---
-### `get_db_status` {: #get_db_status }
+### `get_db_status` {: #get-db-status }
 
 Get database instance status by checking pmon process
 
@@ -1760,7 +1760,7 @@ Get database instance status by checking pmon process
 **Returns:** "up" or "down"
 
 ---
-### `get_entry` {: #get_entry }
+### `get_entry` {: #get-entry }
 
 Retrieve a wallet entry value by key using mkstore
 
@@ -1778,7 +1778,7 @@ Retrieve a wallet entry value by key using mkstore
     Uses mkstore -viewEntry; filters output to extract value after '= '
 
 ---
-### `get_first_oracle_home` {: #get_first_oracle_home }
+### `get_first_oracle_home` {: #get-first-oracle-home }
 
 Get first valid Oracle Home from oratab
 
@@ -1796,7 +1796,7 @@ Get first valid Oracle Home from oratab
     Skips entries marked :D (dummy); returns first active database home
 
 ---
-### `get_installed_version` {: #get_installed_version }
+### `get_installed_version` {: #get-installed-version }
 
 Get currently installed OraDBA version
 
@@ -1815,7 +1815,7 @@ Get currently installed OraDBA version
     Returns "unknown" if VERSION file missing
 
 ---
-### `get_listener_status` {: #get_listener_status }
+### `get_listener_status` {: #get-listener-status }
 
 Get listener status
 
@@ -1824,7 +1824,7 @@ Get listener status
 **Returns:** "up" or "down"
 
 ---
-### `get_running_listeners` {: #get_running_listeners }
+### `get_running_listeners` {: #get-running-listeners }
 
 Get list of all currently running listeners
 
@@ -1842,7 +1842,7 @@ Get list of all currently running listeners
     Uses lsnrctl services to detect running listeners; parses output for names
 
 ---
-### `get_tns_admin` {: #get_tns_admin }
+### `get_tns_admin` {: #get-tns-admin }
 
 Determine TNS_ADMIN directory path
 
@@ -1860,14 +1860,14 @@ Determine TNS_ADMIN directory path
     Precedence: TNS_ADMIN env var, then ORACLE_HOME, finally HOME fallback
 
 ---
-### `import_config` {: #import_config }
+### `import_config` {: #import-config }
 
 Import Oracle Homes configuration
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `install_logrotate` {: #install_logrotate }
+### `install_logrotate` {: #install-logrotate }
 
 Install logrotate configurations to system directory (requires root)
 
@@ -1885,7 +1885,7 @@ Install logrotate configurations to system directory (requires root)
     Installs from ${TEMPLATE_DIR} to /etc/logrotate.d; backs up existing configs; sets 644 permissions
 
 ---
-### `install_sqlnet` {: #install_sqlnet }
+### `install_sqlnet` {: #install-sqlnet }
 
 Install sqlnet.ora from template with variable substitution
 
@@ -1903,7 +1903,7 @@ Install sqlnet.ora from template with variable substitution
     Uses envsubst if available, otherwise sed; backs up existing file; sets 644 permissions
 
 ---
-### `install_user` {: #install_user }
+### `install_user` {: #install-user }
 
 Set up user-mode logrotate configurations (non-root operation)
 
@@ -1921,7 +1921,7 @@ Set up user-mode logrotate configurations (non-root operation)
     Creates ~/.oradba/logrotate/ with user-specific configs and state directory; requires manual execution or crontab
 
 ---
-### `is_readonly_home` {: #is_readonly_home }
+### `is_readonly_home` {: #is-readonly-home }
 
 Detect Oracle read-only home configuration (18c+ feature)
 
@@ -1940,7 +1940,7 @@ Detect Oracle read-only home configuration (18c+ feature)
     Read-only homes use ORACLE_BASE_HOME and ORACLE_BASE_CONFIG for writable files
 
 ---
-### `list_aliases` {: #list_aliases }
+### `list_aliases` {: #list-aliases }
 
 List all TNS aliases defined in tnsnames.ora
 
@@ -1958,14 +1958,14 @@ List all TNS aliases defined in tnsnames.ora
     Extracts alias names from lines matching pattern: ALIAS = ...
 
 ---
-### `list_homes` {: #list_homes }
+### `list_homes` {: #list-homes }
 
 List registered Oracle Homes
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `list_logrotate` {: #list_logrotate }
+### `list_logrotate` {: #list-logrotate }
 
 List all installed OraDBA logrotate configurations
 
@@ -1983,7 +1983,7 @@ List all installed OraDBA logrotate configurations
     Searches for oradba* and oracle-* in /etc/logrotate.d
 
 ---
-### `load_config` {: #load_config }
+### `load_config` {: #load-config }
 
 Load configuration from multiple sources (script config, alt config, CLI config)
 
@@ -2001,7 +2001,7 @@ Load configuration from multiple sources (script config, alt config, CLI config)
     Sources ${SCRIPT_CONF}, ${ETC_BASE}/*.conf, ${CONFIG_FILE}; sets SSH_USER, SSH_PORT, PEER_HOSTS
 
 ---
-### `load_config` {: #load_config }
+### `load_config` {: #load-config }
 
 Load oradba_services.conf or create from template
 
@@ -2019,7 +2019,7 @@ Load oradba_services.conf or create from template
     Sources config file; creates from template if missing; uses defaults if unavailable
 
 ---
-### `load_config` {: #load_config }
+### `load_config` {: #load-config }
 
 Load configuration from multiple sources (script config, alt config, CLI config)
 
@@ -2037,7 +2037,7 @@ Load configuration from multiple sources (script config, alt config, CLI config)
     Sources ${SCRIPT_CONF}, ${ETC_BASE}/*.conf, ${CONFIG_FILE}; sets SSH_USER, SSH_PORT, PEER_HOSTS
 
 ---
-### `load_rman_config` {: #load_rman_config }
+### `load_rman_config` {: #load-rman-config }
 
 Load SID-specific RMAN configuration file
 
@@ -2057,7 +2057,7 @@ Load SID-specific RMAN configuration file
     CLI options override config file settings
 
 ---
-### `load_wallet_password` {: #load_wallet_password }
+### `load_wallet_password` {: #load-wallet-password }
 
 Load wallet password from file, environment, or interactive prompt
 
@@ -2075,7 +2075,7 @@ Load wallet password from file, environment, or interactive prompt
     Tries ${WALLET_DIR}/.wallet_pwd (base64), then env var, then prompts
 
 ---
-### `log_error` {: #log_error }
+### `log_error` {: #log-error }
 
 Display error message with red [ERROR] prefix
 
@@ -2093,7 +2093,7 @@ Display error message with red [ERROR] prefix
     Simple installer logging
 
 ---
-### `log_fail` {: #log_fail }
+### `log_fail` {: #log-fail }
 
 Log failed check with red X
 
@@ -2111,7 +2111,7 @@ Log failed check with red X
     Increments CHECKS_FAILED counter; never suppressed (critical errors)
 
 ---
-### `log_header` {: #log_header }
+### `log_header` {: #log-header }
 
 Display bold section header with underline
 
@@ -2129,7 +2129,7 @@ Display bold section header with underline
     Underline matches header length; respects --quiet flag
 
 ---
-### `log_info` {: #log_info }
+### `log_info` {: #log-info }
 
 Display informational message with green [INFO] prefix
 
@@ -2147,7 +2147,7 @@ Display informational message with green [INFO] prefix
     Simple installer logging, not the full oradba_log system
 
 ---
-### `log_info` {: #log_info }
+### `log_info` {: #log-info }
 
 Log informational message with blue info icon
 
@@ -2165,7 +2165,7 @@ Log informational message with blue info icon
     Increments CHECKS_INFO counter; respects --quiet flag
 
 ---
-### `log_pass` {: #log_pass }
+### `log_pass` {: #log-pass }
 
 Log successful check with green checkmark
 
@@ -2183,7 +2183,7 @@ Log successful check with green checkmark
     Increments CHECKS_PASSED counter; respects --quiet flag
 
 ---
-### `log_warn` {: #log_warn }
+### `log_warn` {: #log-warn }
 
 Display warning message with yellow [WARN] prefix
 
@@ -2201,7 +2201,7 @@ Display warning message with yellow [WARN] prefix
     Simple installer logging
 
 ---
-### `log_warn` {: #log_warn }
+### `log_warn` {: #log-warn }
 
 Log warning with yellow warning sign
 
@@ -2502,7 +2502,7 @@ Main entry point for Oracle status display utility
     Part of oraenv/oraup quick environment switching workflow
 
 ---
-### `migrate_config_files` {: #migrate_config_files }
+### `migrate_config_files` {: #migrate-config-files }
 
 Move SQL*Net config files from source to centralized target directory
 
@@ -2520,7 +2520,7 @@ Move SQL*Net config files from source to centralized target directory
     Handles sqlnet.ora, tnsnames.ora, ldap.ora, listener.ora; backs up before moving
 
 ---
-### `monitor_longops` {: #monitor_longops }
+### `monitor_longops` {: #monitor-longops }
 
 Query v$session_longops for a specific SID and display results
 
@@ -2538,7 +2538,7 @@ Query v$session_longops for a specific SID and display results
     Applies OPERATION_FILTER and SHOW_ALL filters; calculates elapsed/remaining minutes
 
 ---
-### `open_all_pdbs` {: #open_all_pdbs }
+### `open_all_pdbs` {: #open-all-pdbs }
 
 Open all pluggable databases in a CDB
 
@@ -2556,7 +2556,7 @@ Open all pluggable databases in a CDB
     Executes ALTER PLUGGABLE DATABASE ALL OPEN; checks for failures; warns if some PDBs fail
 
 ---
-### `parse_args` {: #parse_args }
+### `parse_args` {: #parse-args }
 
 Parse command line arguments and set mode flags
 
@@ -2574,7 +2574,7 @@ Parse command line arguments and set mode flags
     Sets OPERATION_FILTER, SHOW_ALL, WATCH_MODE, WATCH_INTERVAL, SID_LIST globals
 
 ---
-### `parse_args` {: #parse_args }
+### `parse_args` {: #parse-args }
 
 Parse command line arguments and validate required parameters
 
@@ -2592,7 +2592,7 @@ Parse command line arguments and validate required parameters
     Sets global vars CONNECT_STRING, CHECK, QUIET, DEBUG, WALLET_DIR
 
 ---
-### `parse_args` {: #parse_args }
+### `parse_args` {: #parse-args }
 
 Parse command line arguments and validate required parameters
 
@@ -2610,7 +2610,7 @@ Parse command line arguments and validate required parameters
     Sets DRYRUN, VERBOSE, DEBUG, DELETE, QUIET, PEER_HOSTS, REMOTE_BASE, SOURCE; validates source exists
 
 ---
-### `parse_args` {: #parse_args }
+### `parse_args` {: #parse-args }
 
 Parse command line arguments and validate required parameters
 
@@ -2628,7 +2628,7 @@ Parse command line arguments and validate required parameters
     Validates -p (source peer) and source path required; sets REMOTE_PEER, SOURCE, PEER_HOSTS
 
 ---
-### `perform_sync` {: #perform_sync }
+### `perform_sync` {: #perform-sync }
 
 Execute rsync to each peer host
 
@@ -2646,7 +2646,7 @@ Execute rsync to each peer host
     Skips local host; converts to absolute paths; tracks success/failure arrays
 
 ---
-### `perform_sync` {: #perform_sync }
+### `perform_sync` {: #perform-sync }
 
 Two-phase sync: pull from source peer to local, then push to all other peers
 
@@ -2664,7 +2664,7 @@ Two-phase sync: pull from source peer to local, then push to all other peers
     Phase 1: pull from REMOTE_PEER; Phase 2: push to peers (excluding source and self)
 
 ---
-### `perform_update` {: #perform_update }
+### `perform_update` {: #perform-update }
 
 Execute update of existing OraDBA installation
 
@@ -2685,7 +2685,7 @@ Execute update of existing OraDBA installation
     Preserves user customizations
 
 ---
-### `preserve_configs` {: #preserve_configs }
+### `preserve_configs` {: #preserve-configs }
 
 Save user configuration files before update
 
@@ -2706,7 +2706,7 @@ Save user configuration files before update
     Used to maintain user customizations across updates
 
 ---
-### `print_message` {: #print_message }
+### `print_message` {: #print-message }
 
 Print colored message to stdout
 
@@ -2724,7 +2724,7 @@ Print colored message to stdout
     Uses echo -e for ANSI color codes
 
 ---
-### `process_template` {: #process_template }
+### `process_template` {: #process-template }
 
 Process RMAN script template with tag substitution
 
@@ -2750,7 +2750,7 @@ Process RMAN script template with tag substitution
     Handles FRA vs explicit backup paths
 
 ---
-### `profile_has_oradba` {: #profile_has_oradba }
+### `profile_has_oradba` {: #profile-has-oradba }
 
 Check if profile already has OraDBA integration
 
@@ -2769,7 +2769,7 @@ Check if profile already has OraDBA integration
     Prevents duplicate profile entries
 
 ---
-### `prompt_oracle_base` {: #prompt_oracle_base }
+### `prompt_oracle_base` {: #prompt-oracle-base }
 
 Interactively prompt for Oracle Base directory if not specified
 
@@ -2789,14 +2789,14 @@ Interactively prompt for Oracle Base directory if not specified
     Default: /opt/oracle
 
 ---
-### `remove_home` {: #remove_home }
+### `remove_home` {: #remove-home }
 
 Remove an Oracle Home from configuration
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `restore_configs` {: #restore_configs }
+### `restore_configs` {: #restore-configs }
 
 Restore preserved configuration files after update
 
@@ -2817,7 +2817,7 @@ Restore preserved configuration files after update
     Removes temporary directory after restoration
 
 ---
-### `restore_from_backup` {: #restore_from_backup }
+### `restore_from_backup` {: #restore-from-backup }
 
 Restore installation from backup directory
 
@@ -2838,7 +2838,7 @@ Restore installation from backup directory
     Used for rollback if update fails
 
 ---
-### `run_as_oracle` {: #run_as_oracle }
+### `run_as_oracle` {: #run-as-oracle }
 
 Execute oradba_services.sh as Oracle user with sudo/su
 
@@ -2856,7 +2856,7 @@ Execute oradba_services.sh as Oracle user with sudo/su
     Uses 'su - ${ORACLE_USER}' to execute; passes --force flag
 
 ---
-### `run_monitor` {: #run_monitor }
+### `run_monitor` {: #run-monitor }
 
 Execute monitoring for all specified SIDs (single shot or watch mode)
 
@@ -2874,7 +2874,7 @@ Execute monitoring for all specified SIDs (single shot or watch mode)
     Watch mode clears screen and loops with WATCH_INTERVAL; sources oraenv per SID
 
 ---
-### `run_preflight_checks` {: #run_preflight_checks }
+### `run_preflight_checks` {: #run-preflight-checks }
 
 Execute all pre-installation validation checks
 
@@ -2894,7 +2894,7 @@ Execute all pre-installation validation checks
     Optional tool checks only warn, don't block
 
 ---
-### `run_user` {: #run_user }
+### `run_user` {: #run-user }
 
 Run logrotate manually with user-specific configurations (non-root)
 
@@ -2912,7 +2912,7 @@ Run logrotate manually with user-specific configurations (non-root)
     Uses ~/.oradba/logrotate/state/logrotate.status for tracking; requires --install-user first
 
 ---
-### `search_wallet` {: #search_wallet }
+### `search_wallet` {: #search-wallet }
 
 Search wallet for connect string and retrieve password
 
@@ -2930,7 +2930,7 @@ Search wallet for connect string and retrieve password
     Case-insensitive search; supports check mode (verify only) and quiet mode (password only)
 
 ---
-### `send_notification` {: #send_notification }
+### `send_notification` {: #send-notification }
 
 Send email notification on success or failure
 
@@ -2950,7 +2950,7 @@ Send email notification on success or failure
     Requires mail command (sendmail/mailx)
 
 ---
-### `set_listener_env` {: #set_listener_env }
+### `set_listener_env` {: #set-listener-env }
 
 Set Oracle environment for listener operations (ORACLE_HOME, PATH, TNS_ADMIN)
 
@@ -2968,7 +2968,7 @@ Set Oracle environment for listener operations (ORACLE_HOME, PATH, TNS_ADMIN)
     Gets Oracle Home from get_first_oracle_home; exports ORACLE_HOME, PATH, TNS_ADMIN
 
 ---
-### `setup_all_tns_admin` {: #setup_all_tns_admin }
+### `setup_all_tns_admin` {: #setup-all-tns-admin }
 
 Setup centralized TNS_ADMIN for all databases listed in oratab
 
@@ -2986,7 +2986,7 @@ Setup centralized TNS_ADMIN for all databases listed in oratab
     Skips ASM (+*) and agent entries; processes regular database SIDs only
 
 ---
-### `setup_tns_admin` {: #setup_tns_admin }
+### `setup_tns_admin` {: #setup-tns-admin }
 
 Complete setup of centralized TNS_ADMIN structure for one database
 
@@ -3004,7 +3004,7 @@ Complete setup of centralized TNS_ADMIN structure for one database
     Orchestrates: structure creation, file migration, path updates, symlinks; exports TNS_ADMIN
 
 ---
-### `should_log` {: #should_log }
+### `should_log` {: #should-log }
 
 Determine if a log message should be displayed based on level and mode
 
@@ -3022,7 +3022,7 @@ Determine if a log message should be displayed based on level and mode
     Suppresses DEBUG if DEBUG=false; suppresses all if QUIET=true
 
 ---
-### `should_log` {: #should_log }
+### `should_log` {: #should-log }
 
 Determine if a log message should be displayed based on level and mode
 
@@ -3040,7 +3040,7 @@ Determine if a log message should be displayed based on level and mode
     Suppresses non-ERROR if QUIET=true; suppresses DEBUG if DEBUG=false
 
 ---
-### `should_log` {: #should_log }
+### `should_log` {: #should-log }
 
 Determine if a log message should be displayed based on level and mode
 
@@ -3058,7 +3058,7 @@ Determine if a log message should be displayed based on level and mode
     Suppresses non-ERROR if QUIET=true; suppresses DEBUG if DEBUG=false
 
 ---
-### `show_alias_help` {: #show_alias_help }
+### `show_alias_help` {: #show-alias-help }
 
 Display comprehensive alias reference documentation
 
@@ -3076,7 +3076,7 @@ Display comprehensive alias reference documentation
     Shows full alias list with usage; provides links to online docs and alih/alig commands
 
 ---
-### `show_config_help` {: #show_config_help }
+### `show_config_help` {: #show-config-help }
 
 Display configuration system documentation and current settings
 
@@ -3094,14 +3094,14 @@ Display configuration system documentation and current settings
     Shows config system structure; explains override mechanism; provides edit commands
 
 ---
-### `show_home` {: #show_home }
+### `show_home` {: #show-home }
 
 Show detailed information about an Oracle Home
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `show_installed_extensions` {: #show_installed_extensions }
+### `show_installed_extensions` {: #show-installed-extensions }
 
 Display list of all installed extensions with status indicators
 
@@ -3119,7 +3119,7 @@ Display list of all installed extensions with status indicators
     Sorted by priority; shows checksum status for enabled extensions; uses extensions.sh library
 
 ---
-### `show_main_help` {: #show_main_help }
+### `show_main_help` {: #show-main-help }
 
 Display main OraDBA help menu with topic overview
 
@@ -3137,7 +3137,7 @@ Display main OraDBA help menu with topic overview
     Entry point for help system; shows available topics and resources
 
 ---
-### `show_online_help` {: #show_online_help }
+### `show_online_help` {: #show-online-help }
 
 Open online OraDBA documentation in default browser
 
@@ -3155,14 +3155,14 @@ Open online OraDBA documentation in default browser
     Tries open (macOS), xdg-open (Linux), then fallback to URL display
 
 ---
-### `show_oracle_status` {: #show_oracle_status }
+### `show_oracle_status` {: #show-oracle-status }
 
 Display comprehensive Oracle status overview
 
 **Source:** `oraup.sh`
 
 ---
-### `show_oracle_status_registry` {: #show_oracle_status_registry }
+### `show_oracle_status_registry` {: #show-oracle-status-registry }
 
 Display Oracle status using registry API (Phase 1)
 
@@ -3176,7 +3176,7 @@ Display Oracle status using registry API (Phase 1)
     Uses plugin system for product-specific behavior
 
 ---
-### `show_scripts_help` {: #show_scripts_help }
+### `show_scripts_help` {: #show-scripts-help }
 
 List all available OraDBA scripts with descriptions
 
@@ -3194,7 +3194,7 @@ List all available OraDBA scripts with descriptions
     Extracts purpose from script headers; shows SQL script location; provides usage info
 
 ---
-### `show_sql_help` {: #show_sql_help }
+### `show_sql_help` {: #show-sql-help }
 
 Display SQL*Plus scripts help and location info
 
@@ -3212,7 +3212,7 @@ Display SQL*Plus scripts help and location info
     Brief help; directs to oh.sql help within SQL*Plus for comprehensive info
 
 ---
-### `show_status` {: #show_status }
+### `show_status` {: #show-status }
 
 Display current status of a database instance
 
@@ -3230,7 +3230,7 @@ Display current status of a database instance
     Queries v$instance for status (OPEN/MOUNTED/etc.); sources environment per SID
 
 ---
-### `show_status` {: #show_status }
+### `show_status` {: #show-status }
 
 Display status of specified listener
 
@@ -3248,7 +3248,7 @@ Display status of specified listener
     Uses lsnrctl status to display listener information
 
 ---
-### `show_status` {: #show_status }
+### `show_status` {: #show-status }
 
 Show status of all Oracle services (databases and listeners)
 
@@ -3266,7 +3266,7 @@ Show status of all Oracle services (databases and listeners)
     Calls oradba_dbctl.sh status and oradba_lsnrctl.sh status
 
 ---
-### `show_summary` {: #show_summary }
+### `show_summary` {: #show-summary }
 
 Display synchronization results summary
 
@@ -3284,7 +3284,7 @@ Display synchronization results summary
     Shows local host, successful peers, failed peers; only in verbose mode
 
 ---
-### `show_summary` {: #show_summary }
+### `show_summary` {: #show-summary }
 
 Display two-phase synchronization results summary
 
@@ -3302,21 +3302,21 @@ Display two-phase synchronization results summary
     Shows phase 1 source and phase 2 distribution results; only in verbose mode
 
 ---
-### `show_usage` {: #show_usage }
+### `show_usage` {: #show-usage }
 
 Display usage information
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `show_usage` {: #show_usage }
+### `show_usage` {: #show-usage }
 
 Display usage information
 
 **Source:** `oraup.sh`
 
 ---
-### `show_variables_help` {: #show_variables_help }
+### `show_variables_help` {: #show-variables-help }
 
 Display currently set environment variables (ORADBA_* and Oracle)
 
@@ -3334,7 +3334,7 @@ Display currently set environment variables (ORADBA_* and Oracle)
     Shows active environment; explains key configuration variables
 
 ---
-### `show_version` {: #show_version }
+### `show_version` {: #show-version }
 
 Display script version information
 
@@ -3352,7 +3352,7 @@ Display script version information
     Uses SCRIPT_NAME and SCRIPT_VERSION constants
 
 ---
-### `start_all` {: #start_all }
+### `start_all` {: #start-all }
 
 Start all Oracle services in configured order
 
@@ -3370,7 +3370,7 @@ Start all Oracle services in configured order
     Processes STARTUP_ORDER (default: listener,database); tracks success/failure counts
 
 ---
-### `start_database` {: #start_database }
+### `start_database` {: #start-database }
 
 Start an Oracle database instance
 
@@ -3388,7 +3388,7 @@ Start an Oracle database instance
     Sources environment for SID; checks if already running; executes STARTUP; optionally opens PDBs
 
 ---
-### `start_databases` {: #start_databases }
+### `start_databases` {: #start-databases }
 
 Start Oracle databases using oradba_dbctl.sh
 
@@ -3406,7 +3406,7 @@ Start Oracle databases using oradba_dbctl.sh
     Constructs oradba_dbctl.sh start command with options
 
 ---
-### `start_listener` {: #start_listener }
+### `start_listener` {: #start-listener }
 
 Start specified Oracle listener
 
@@ -3424,7 +3424,7 @@ Start specified Oracle listener
     Checks if already running first; uses lsnrctl start
 
 ---
-### `start_listeners` {: #start_listeners }
+### `start_listeners` {: #start-listeners }
 
 Start Oracle listeners using oradba_lsnrctl.sh
 
@@ -3442,7 +3442,7 @@ Start Oracle listeners using oradba_lsnrctl.sh
     Constructs oradba_lsnrctl.sh command with options; respects force mode
 
 ---
-### `stop_all` {: #stop_all }
+### `stop_all` {: #stop-all }
 
 Stop all Oracle services in configured order
 
@@ -3460,7 +3460,7 @@ Stop all Oracle services in configured order
     Processes SHUTDOWN_ORDER (default: database,listener); tracks success/failure counts
 
 ---
-### `stop_database` {: #stop_database }
+### `stop_database` {: #stop-database }
 
 Stop an Oracle database instance with timeout and fallback
 
@@ -3478,7 +3478,7 @@ Stop an Oracle database instance with timeout and fallback
     Tries SHUTDOWN IMMEDIATE with ${SHUTDOWN_TIMEOUT}; falls back to SHUTDOWN ABORT on timeout
 
 ---
-### `stop_databases` {: #stop_databases }
+### `stop_databases` {: #stop-databases }
 
 Stop Oracle databases using oradba_dbctl.sh
 
@@ -3496,7 +3496,7 @@ Stop Oracle databases using oradba_dbctl.sh
     Constructs oradba_dbctl.sh stop command with options
 
 ---
-### `stop_listener` {: #stop_listener }
+### `stop_listener` {: #stop-listener }
 
 Stop specified Oracle listener
 
@@ -3514,7 +3514,7 @@ Stop specified Oracle listener
     Checks if running first; uses lsnrctl stop
 
 ---
-### `stop_listeners` {: #stop_listeners }
+### `stop_listeners` {: #stop-listeners }
 
 Stop Oracle listeners using oradba_lsnrctl.sh
 
@@ -3532,7 +3532,7 @@ Stop Oracle listeners using oradba_lsnrctl.sh
     Constructs oradba_lsnrctl.sh stop command with options
 
 ---
-### `test_item` {: #test_item }
+### `test_item` {: #test-item }
 
 Execute a single validation test and track results
 
@@ -3553,7 +3553,7 @@ Execute a single validation test and track results
     Optional tests show warning symbol instead of failure
 
 ---
-### `test_logrotate` {: #test_logrotate }
+### `test_logrotate` {: #test-logrotate }
 
 Test logrotate configurations in dry-run mode (no actual rotation)
 
@@ -3571,7 +3571,7 @@ Test logrotate configurations in dry-run mode (no actual rotation)
     Uses logrotate -d for debug/dry-run; safe to run without root
 
 ---
-### `test_tnsalias` {: #test_tnsalias }
+### `test_tnsalias` {: #test-tnsalias }
 
 Test TNS alias connectivity using tnsping and display entry details
 
@@ -3589,7 +3589,7 @@ Test TNS alias connectivity using tnsping and display entry details
     Uses tnsping for connectivity test (3 attempts), then displays full alias definition
 
 ---
-### `uninstall_logrotate` {: #uninstall_logrotate }
+### `uninstall_logrotate` {: #uninstall-logrotate }
 
 Remove OraDBA logrotate configurations from system directory (requires root)
 
@@ -3607,7 +3607,7 @@ Remove OraDBA logrotate configurations from system directory (requires root)
     Removes oradba* and oracle-* files from /etc/logrotate.d
 
 ---
-### `update_extension` {: #update_extension }
+### `update_extension` {: #update-extension }
 
 Update existing extension with backup of modified files
 
@@ -3629,7 +3629,7 @@ Update existing extension with backup of modified files
     Similar to RPM update behavior for configs
 
 ---
-### `update_profile` {: #update_profile }
+### `update_profile` {: #update-profile }
 
 Add OraDBA auto-loading to shell profile
 
@@ -3650,7 +3650,7 @@ Add OraDBA auto-loading to shell profile
     Respects UPDATE_PROFILE variable (yes/no/auto)
 
 ---
-### `update_sqlnet_paths` {: #update_sqlnet_paths }
+### `update_sqlnet_paths` {: #update-sqlnet-paths }
 
 Update sqlnet.ora with centralized log and trace directory paths
 
@@ -4002,7 +4002,7 @@ Display usage information and examples
     Shows wrapper purpose and available service actions
 
 ---
-### `validate_config` {: #validate_config }
+### `validate_config` {: #validate-config }
 
 Validate SQL*Net configuration files and environment
 
@@ -4020,7 +4020,7 @@ Validate SQL*Net configuration files and environment
     Checks file existence, readability, basic syntax; reports errors with count
 
 ---
-### `validate_environment` {: #validate_environment }
+### `validate_environment` {: #validate-environment }
 
 Validate wallet directory existence and mkstore availability
 
@@ -4038,7 +4038,7 @@ Validate wallet directory existence and mkstore availability
     Checks wallet dir exists and is readable; checks mkstore command available
 
 ---
-### `validate_extension_name` {: #validate_extension_name }
+### `validate_extension_name` {: #validate-extension-name }
 
 Validate extension name meets naming requirements
 
@@ -4057,7 +4057,7 @@ Validate extension name meets naming requirements
     Example valid names: myext, my_ext, my-ext-123
 
 ---
-### `validate_extension_structure` {: #validate_extension_structure }
+### `validate_extension_structure` {: #validate-extension-structure }
 
 Validate extension has proper directory structure
 
@@ -4076,14 +4076,14 @@ Validate extension has proper directory structure
     Used to verify downloaded/extracted extensions
 
 ---
-### `validate_homes` {: #validate_homes }
+### `validate_homes` {: #validate-homes }
 
 Validate Oracle Homes configuration
 
 **Source:** `oradba_homes.sh`
 
 ---
-### `validate_write_permissions` {: #validate_write_permissions }
+### `validate_write_permissions` {: #validate-write-permissions }
 
 Validate write permissions for installation target
 
@@ -4121,7 +4121,7 @@ Display script version information
     Simple version display and exit
 
 ---
-### `version_compare` {: #version_compare }
+### `version_compare` {: #version-compare }
 
 Compare two semantic version strings
 
@@ -4142,7 +4142,7 @@ Compare two semantic version strings
     Ignores pre-release suffixes (e.g., -beta)
 
 ---
-### `version_info` {: #version_info }
+### `version_info` {: #version-info }
 
 Display comprehensive version information, installation details, and integrity check
 

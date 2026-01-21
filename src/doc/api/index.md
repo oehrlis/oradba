@@ -156,9 +156,8 @@ fi
 ## See Also
 
 - [Function Index](function-index.md) - Alphabetical function list
-- [Architecture Documentation](../../doc/architecture.md) - System design
-- [Development Guide](../../doc/development.md) - Development workflow
-- [Function Header Guide](../../doc/function-header-guide.md) - Header standards
+
+For developer documentation including architecture, development guides, and function header standards, see the project repository documentation.
 
 ---
 

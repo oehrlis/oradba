@@ -4,7 +4,7 @@ Core utility functions used throughout OraDBA including logging, PATH management
 
 ---
 
-### `add_to_sqlpath` {: #add_to_sqlpath }
+### `add_to_sqlpath` {: #add-to-sqlpath }
 
 Add directory to SQLPATH if not already present
 
@@ -22,7 +22,7 @@ Add directory to SQLPATH if not already present
     Example: add_to_sqlpath "/u01/app/oracle/dba/sql"
 
 ---
-### `alias_exists` {: #alias_exists }
+### `alias_exists` {: #alias-exists }
 
 Check if an alias or command already exists
 
@@ -40,7 +40,7 @@ Check if an alias or command already exists
     Checks both shell aliases and commands in PATH
 
 ---
-### `capture_sid_config_vars` {: #capture_sid_config_vars }
+### `capture_sid_config_vars` {: #capture-sid-config-vars }
 
 Capture variables set by SID-specific configuration
 
@@ -60,7 +60,7 @@ Capture variables set by SID-specific configuration
     cleanup when switching SIDs.
 
 ---
-### `cleanup_previous_sid_config` {: #cleanup_previous_sid_config }
+### `cleanup_previous_sid_config` {: #cleanup-previous-sid-config }
 
 Unset variables from previous SID-specific configuration
 
@@ -80,7 +80,7 @@ Unset variables from previous SID-specific configuration
     when switching between SIDs.
 
 ---
-### `command_exists` {: #command_exists }
+### `command_exists` {: #command-exists }
 
 Check if a command is available in PATH
 
@@ -95,7 +95,7 @@ Check if a command is available in PATH
 **Output:** None
 
 ---
-### `configure_sqlpath` {: #configure_sqlpath }
+### `configure_sqlpath` {: #configure-sqlpath }
 
 Configure SQLPATH for SQL*Plus script discovery with priority order
 
@@ -116,7 +116,7 @@ Configure SQLPATH for SQL*Plus script discovery with priority order
     Example: configure_sqlpath
 
 ---
-### `create_sid_config` {: #create_sid_config }
+### `create_sid_config` {: #create-sid-config }
 
 Create SID-specific configuration file from template
 
@@ -136,7 +136,7 @@ Create SID-specific configuration file from template
     Example: create_sid_config "ORCL"
 
 ---
-### `derive_oracle_base` {: #derive_oracle_base }
+### `derive_oracle_base` {: #derive-oracle-base }
 
 Derive ORACLE_BASE from ORACLE_HOME by searching upward
 
@@ -155,7 +155,7 @@ Derive ORACLE_BASE from ORACLE_HOME by searching upward
     "oraInventory", or "admin" (max 5 levels)
 
 ---
-### `detect_oracle_version` {: #detect_oracle_version }
+### `detect_oracle_version` {: #detect-oracle-version }
 
 Detect Oracle version from ORACLE_HOME path
 
@@ -176,7 +176,7 @@ Detect Oracle version from ORACLE_HOME path
     Fallback methods: sqlplus, OPatch, inventory XML, path parsing
 
 ---
-### `detect_product_type` {: #detect_product_type }
+### `detect_product_type` {: #detect-product-type }
 
 Detect Oracle product type from ORACLE_HOME path
 
@@ -194,7 +194,7 @@ Detect Oracle product type from ORACLE_HOME path
     Checks for specific files/directories to identify product type
 
 ---
-### `discover_running_oracle_instances` {: #discover_running_oracle_instances }
+### `discover_running_oracle_instances` {: #discover-running-oracle-instances }
 
 Auto-discover running Oracle instances when oratab is empty
 
@@ -216,7 +216,7 @@ Auto-discover running Oracle instances when oratab is empty
     - Shows warning if Oracle processes run as different user
 
 ---
-### `execute_db_query` {: #execute_db_query }
+### `execute_db_query` {: #execute-db-query }
 
 Execute SQL*Plus query with standardized configuration and formatting
 
@@ -225,7 +225,7 @@ Execute SQL*Plus query with standardized configuration and formatting
 **Returns:** Query results in specified format
 
 ---
-### `generate_oracle_home_aliases` {: #generate_oracle_home_aliases }
+### `generate_oracle_home_aliases` {: #generate-oracle-home-aliases }
 
 Create shell aliases for all registered Oracle Homes
 
@@ -244,7 +244,7 @@ Create shell aliases for all registered Oracle Homes
     Example: DBHOMEFREE and rdbms26 both point to same home
 
 ---
-### `generate_pdb_aliases` {: #generate_pdb_aliases }
+### `generate_pdb_aliases` {: #generate-pdb-aliases }
 
 Generate aliases for PDBs in the current CDB
 
@@ -259,7 +259,7 @@ Generate aliases for PDBs in the current CDB
 **Output:** Creates shell aliases for each PDB and exports ORADBA_PDBLIST
 
 ---
-### `generate_sid_lists` {: #generate_sid_lists }
+### `generate_sid_lists` {: #generate-sid-lists }
 
 Generate SID lists and aliases from oratab and Oracle Homes config
 
@@ -277,7 +277,7 @@ Generate SID lists and aliases from oratab and Oracle Homes config
     SIDLIST includes all SIDs and aliases, REALSIDLIST excludes dummies
 
 ---
-### `get_install_info` {: #get_install_info }
+### `get_install_info` {: #get-install-info }
 
 Get installation metadata value by key
 
@@ -296,7 +296,7 @@ Get installation metadata value by key
     Example: install_date=$(get_install_info "install_date")
 
 ---
-### `get_oracle_home_alias` {: #get_oracle_home_alias }
+### `get_oracle_home_alias` {: #get-oracle-home-alias }
 
 Get alias name for a registered Oracle Home
 
@@ -314,7 +314,7 @@ Get alias name for a registered Oracle Home
     Reads from oradba_homes.conf, column 5 (ALIAS_NAME)
 
 ---
-### `get_oracle_home_path` {: #get_oracle_home_path }
+### `get_oracle_home_path` {: #get-oracle-home-path }
 
 Get ORACLE_HOME path for a registered Oracle Home
 
@@ -332,7 +332,7 @@ Get ORACLE_HOME path for a registered Oracle Home
     Reads from oradba_homes.conf, column 2 (PATH)
 
 ---
-### `get_oracle_home_type` {: #get_oracle_home_type }
+### `get_oracle_home_type` {: #get-oracle-home-type }
 
 Get product type for a registered Oracle Home
 
@@ -350,7 +350,7 @@ Get product type for a registered Oracle Home
     Reads from oradba_homes.conf, column 3 (TYPE)
 
 ---
-### `get_oracle_homes_path` {: #get_oracle_homes_path }
+### `get_oracle_homes_path` {: #get-oracle-homes-path }
 
 Get path to oradba_homes.conf configuration file
 
@@ -368,7 +368,7 @@ Get path to oradba_homes.conf configuration file
     Looks for ${ORADBA_BASE}/etc/oradba_homes.conf
 
 ---
-### `get_oracle_version` {: #get_oracle_version }
+### `get_oracle_version` {: #get-oracle-version }
 
 Retrieve Oracle database version from sqlplus
 
@@ -387,7 +387,7 @@ Retrieve Oracle database version from sqlplus
     for plugin-based detection (library filenames, JDBC JAR, etc.)
 
 ---
-### `get_oradba_version` {: #get_oradba_version }
+### `get_oradba_version` {: #get-oradba-version }
 
 Get OraDBA version from VERSION file
 
@@ -405,7 +405,7 @@ Get OraDBA version from VERSION file
     Example: version=$(get_oradba_version)
 
 ---
-### `get_oratab_path` {: #get_oratab_path }
+### `get_oratab_path` {: #get-oratab-path }
 
 Determine the correct oratab file path using priority order
 
@@ -424,7 +424,7 @@ Determine the correct oratab file path using priority order
     ${ORADBA_BASE}/etc/oratab > ${HOME}/.oratab
 
 ---
-### `get_script_dir` {: #get_script_dir }
+### `get_script_dir` {: #get-script-dir }
 
 Get the absolute path of the script directory
 
@@ -439,7 +439,7 @@ Get the absolute path of the script directory
 **Output:** Absolute directory path
 
 ---
-### `init_install_info` {: #init_install_info }
+### `init_install_info` {: #init-install-info }
 
 Initialize installation info file with metadata
 
@@ -459,7 +459,7 @@ Initialize installation info file with metadata
     Example: init_install_info
 
 ---
-### `init_logging` {: #init_logging }
+### `init_logging` {: #init-logging }
 
 Initialize logging infrastructure and create log directories
 
@@ -477,7 +477,7 @@ Initialize logging infrastructure and create log directories
     Falls back to ${HOME}/.oradba/logs if /var/log not writable
 
 ---
-### `init_session_log` {: #init_session_log }
+### `init_session_log` {: #init-session-log }
 
 Initialize session-specific log file for current execution
 
@@ -492,7 +492,7 @@ Initialize session-specific log file for current execution
 **Output:** Sets ORADBA_SESSION_LOG environment variable
 
 ---
-### `is_dummy_sid` {: #is_dummy_sid }
+### `is_dummy_sid` {: #is-dummy-sid }
 
 Check if current Oracle SID is marked as dummy/template in oratab
 
@@ -510,7 +510,7 @@ Check if current Oracle SID is marked as dummy/template in oratab
     Dummy entries are marked with ':D' flag in oratab file
 
 ---
-### `is_oracle_home` {: #is_oracle_home }
+### `is_oracle_home` {: #is-oracle-home }
 
 Check if given name refers to an Oracle Home (vs database SID)
 
@@ -528,7 +528,7 @@ Check if given name refers to an Oracle Home (vs database SID)
     Example: if is_oracle_home "ora19"; then echo "Oracle Home"; fi
 
 ---
-### `list_oracle_homes` {: #list_oracle_homes }
+### `list_oracle_homes` {: #list-oracle-homes }
 
 List all Oracle Homes from oradba_homes.conf
 
@@ -546,7 +546,7 @@ List all Oracle Homes from oradba_homes.conf
     Output sorted by ORDER (column 4), ascending
 
 ---
-### `load_config` {: #load_config }
+### `load_config` {: #load-config }
 
 Load hierarchical configuration files in priority order (6 levels)
 
@@ -566,7 +566,7 @@ Load hierarchical configuration files in priority order (6 levels)
     Example: load_config "ORCL"  # Loads all configs + ORCL-specific
 
 ---
-### `load_config_file` {: #load_config_file }
+### `load_config_file` {: #load-config-file }
 
 Load single configuration file with error handling
 
@@ -586,7 +586,7 @@ Load single configuration file with error handling
     Example: load_config_file "${ORADBA_BASE}/etc/oradba_core.conf" "required"
 
 ---
-### `load_rman_catalog_connection` {: #load_rman_catalog_connection }
+### `load_rman_catalog_connection` {: #load-rman-catalog-connection }
 
 Load and validate RMAN catalog connection string
 
@@ -600,7 +600,7 @@ Load and validate RMAN catalog connection string
     or catalog user@tnsalias (prompts for password)
 
 ---
-### `oradba_log` {: #oradba_log }
+### `oradba_log` {: #oradba-log }
 
 Modern unified logging function with level filtering and color support
 
@@ -623,7 +623,7 @@ Modern unified logging function with level filtering and color support
     Replaces deprecated log_info/log_warn/log_error/log_debug functions
 
 ---
-### `parse_oracle_home` {: #parse_oracle_home }
+### `parse_oracle_home` {: #parse-oracle-home }
 
 Parse Oracle Home configuration entry from oradba_homes.conf
 
@@ -642,7 +642,7 @@ Parse Oracle Home configuration entry from oradba_homes.conf
     Returns: "ora19 19c database /u01/app/oracle/product/19.3.0/dbhome_1 19.3.0"
 
 ---
-### `parse_oratab` {: #parse_oratab }
+### `parse_oratab` {: #parse-oratab }
 
 Parse oratab file to get Oracle home path for a SID
 
@@ -661,7 +661,7 @@ Parse oratab file to get Oracle home path for a SID
     Skips comment lines and dummy entries (:D flag)
 
 ---
-### `persist_discovered_instances` {: #persist_discovered_instances }
+### `persist_discovered_instances` {: #persist-discovered-instances }
 
 Write auto-discovered instances to oratab file with fallback
 
@@ -684,7 +684,7 @@ Write auto-discovered instances to oratab file with fallback
     Example: persist_discovered_instances "$discovered_data"
 
 ---
-### `resolve_oracle_home_name` {: #resolve_oracle_home_name }
+### `resolve_oracle_home_name` {: #resolve-oracle-home-name }
 
 Resolve Oracle Home alias to actual NAME from oradba_homes.conf
 
@@ -702,7 +702,7 @@ Resolve Oracle Home alias to actual NAME from oradba_homes.conf
     Checks both NAME and ALIAS_NAME columns in oradba_homes.conf
 
 ---
-### `safe_alias` {: #safe_alias }
+### `safe_alias` {: #safe-alias }
 
 Create alias respecting coexistence mode with other Oracle environments
 
@@ -722,7 +722,7 @@ Create alias respecting coexistence mode with other Oracle environments
     Example: safe_alias "ora19" "set_oracle_env 19.0.0"
 
 ---
-### `set_install_info` {: #set_install_info }
+### `set_install_info` {: #set-install-info }
 
 Set installation metadata key-value pair
 
@@ -742,7 +742,7 @@ Set installation metadata key-value pair
     Example: set_install_info "install_date" "2026-01-14"
 
 ---
-### `set_oracle_home_environment` {: #set_oracle_home_environment }
+### `set_oracle_home_environment` {: #set-oracle-home-environment }
 
 Set environment variables for a specific Oracle Home
 
@@ -762,7 +762,7 @@ Set environment variables for a specific Oracle Home
     Example: set_oracle_home_environment "ora19"
 
 ---
-### `show_config` {: #show_config }
+### `show_config` {: #show-config }
 
 Display OraDBA configuration hierarchy and load order
 
@@ -781,7 +781,7 @@ Display OraDBA configuration hierarchy and load order
     local → SID-specific, with [✓ loaded] or [✗ MISSING] status
 
 ---
-### `show_path` {: #show_path }
+### `show_path` {: #show-path }
 
 Display current PATH directories with existence check
 
@@ -799,7 +799,7 @@ Display current PATH directories with existence check
     Shows [✓] for existing directories, [✗ not found] for missing ones
 
 ---
-### `show_sqlpath` {: #show_sqlpath }
+### `show_sqlpath` {: #show-sqlpath }
 
 Display current SQLPATH directories with existence check
 
@@ -817,7 +817,7 @@ Display current SQLPATH directories with existence check
     Shows [✓] for existing directories, [✗ not found] for missing ones
 
 ---
-### `validate_directory` {: #validate_directory }
+### `validate_directory` {: #validate-directory }
 
 Validate directory exists and optionally create it
 
@@ -836,7 +836,7 @@ Validate directory exists and optionally create it
     Example: validate_directory "/u01/app/oracle" "create"
 
 ---
-### `verify_oracle_env` {: #verify_oracle_env }
+### `verify_oracle_env` {: #verify-oracle-env }
 
 Verify required Oracle environment variables are set
 
@@ -854,7 +854,7 @@ Verify required Oracle environment variables are set
     Checks ORACLE_SID and ORACLE_HOME
 
 ---
-### `version_compare` {: #version_compare }
+### `version_compare` {: #version-compare }
 
 Compare two semantic version strings
 
@@ -873,7 +873,7 @@ Compare two semantic version strings
     Example: version_compare "1.2.3" "1.2.0"; result=$?  # Returns 1
 
 ---
-### `version_meets_requirement` {: #version_meets_requirement }
+### `version_meets_requirement` {: #version-meets-requirement }
 
 Check if current version meets minimum requirement
 
