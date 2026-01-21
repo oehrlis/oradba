@@ -83,10 +83,12 @@ validate_test_infrastructure() {
     
     # Check BATS files
     BATS_COUNT=$(find tests -name "*.bats" -type f 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$BATS_COUNT" -eq 28 ]; then
-        check_pass "Found 28 BATS test files"
+    if [ "$BATS_COUNT" -eq 37 ]; then
+        check_pass "Found 37 BATS test files"
+    elif [ "$BATS_COUNT" -ge 37 ]; then
+        check_pass "Found $BATS_COUNT BATS test files (37+ expected)"
     else
-        check_warn "Found $BATS_COUNT BATS test files (expected 28)"
+        check_warn "Found $BATS_COUNT BATS test files (expected 37)"
     fi
     
     # Check .testmap.yml
@@ -183,6 +185,20 @@ validate_source_structure() {
         fi
     done
     
+    # Check plugin directory (v0.19.0+)
+    if [ -d "src/lib/plugins" ]; then
+        check_pass "src/lib/plugins/ exists (Plugin System v0.19.0+)"
+    else
+        check_fail "src/lib/plugins/ directory missing"
+    fi
+    
+    # Check Registry API (v0.19.0+)
+    if [ -f "src/lib/oradba_registry.sh" ]; then
+        check_pass "Registry API exists (oradba_registry.sh)"
+    else
+        check_fail "Registry API missing (oradba_registry.sh)"
+    fi
+    
     # Check environment libraries
     ENV_LIBS=(
         "src/lib/oradba_env_parser.sh"
@@ -224,6 +240,21 @@ validate_source_structure() {
         check_pass "All 3 core libraries present"
     else
         check_fail "Only $CORE_COUNT/3 core libraries found"
+    fi
+    
+    # Check plugin files (v0.19.0+)
+    PLUGIN_COUNT=$(find src/lib/plugins -name "*_plugin.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$PLUGIN_COUNT" -ge 6 ]; then
+        check_pass "$PLUGIN_COUNT product plugins found (6+ expected)"
+    else
+        check_fail "Only $PLUGIN_COUNT product plugins found (expected 6+)"
+    fi
+    
+    # Check plugin interface (v0.19.0+)
+    if [ -f "src/lib/plugins/plugin_interface.sh" ]; then
+        check_pass "Plugin interface exists (plugin_interface.sh)"
+    else
+        check_fail "Plugin interface missing (plugin_interface.sh)"
     fi
 }
 
