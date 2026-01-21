@@ -67,15 +67,11 @@ jobs:
         run: |
           echo "Generating PDF and HTML documentation..."
           docker pull oehrlis/pandoc:latest
-          make docs-pdf docs-html
+          make docs-pdf
           
           # Verify docs were generated
           if [ ! -f dist/oradba-user-guide.pdf ]; then
             echo "ERROR: PDF documentation not generated"
-            exit 1
-          fi
-          if [ ! -f dist/oradba-user-guide.html ]; then
-            echo "ERROR: HTML documentation not generated"
             exit 1
           fi
           echo "Documentation generated successfully ✓"
@@ -121,7 +117,6 @@ jobs:
           - **oradba_check.sh**: Standalone prerequisites checker (can be run before installation)
           - **oradba-${VERSION}.tar.gz**: Distribution tarball with version-substituted installer
           - **oradba-user-guide.pdf**: Complete user documentation (PDF)
-          - **oradba-user-guide.html**: Complete user documentation (HTML)
           EOF
           fi
       
@@ -133,8 +128,7 @@ jobs:
             "dist/oradba_install.sh" \
             "dist/oradba_check.sh" \
             "dist/oradba-${{ steps.version.outputs.version }}.tar.gz" \
-            "dist/oradba-user-guide.pdf" \
-            "dist/oradba-user-guide.html"; do
+            "dist/oradba-user-guide.pdf"; do
             if [ ! -f "$file" ]; then
               echo "ERROR: Missing required file: $file"
               MISSING=1
@@ -160,7 +154,6 @@ jobs:
             dist/oradba_check.sh
             dist/oradba-${{ steps.version.outputs.version }}.tar.gz
             dist/oradba-user-guide.pdf
-            dist/oradba-user-guide.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       

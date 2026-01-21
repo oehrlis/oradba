@@ -356,9 +356,9 @@ USER_DOC_METADATA := $(DOC_DIR)/metadata.yml
 PANDOC_IMAGE := oehrlis/pandoc:latest
 
 .PHONY: docs
-docs: ## Generate all documentation (HTML and PDF)
+docs: ## Generate all documentation (PDF only)
 	@if [ -n "$(DOCKER)" ]; then \
-		$(MAKE) docs-html docs-pdf; \
+		$(MAKE) docs-pdf; \
 	else \
 		echo -e "$(COLOR_YELLOW)⚠ Docker not available - skipping documentation generation$(COLOR_RESET)"; \
 		echo -e "$(COLOR_YELLOW)  Install Docker to generate documentation: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
@@ -376,46 +376,7 @@ docs-prepare: ## Prepare documentation images for distribution
 	@find $(DOC_DIR)/images -maxdepth 1 -name "*.png" -exec cp {} $(SRC_DIR)/doc/images/ \; 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Images copied for documentation build$(COLOR_RESET)"
 
-.PHONY: docs-html
-docs-html: docs-prepare ## Generate HTML user guide from markdown
-	@echo -e "$(COLOR_BLUE)Generating HTML documentation...$(COLOR_RESET)"
-	@mkdir -p $(DIST_DIR)
-	@# Create temp directory with fixed markdown files
-	@mkdir -p $(DIST_DIR)/.tmp_docs
-	@cp $(USER_DOC_DIR)/*.md $(DIST_DIR)/.tmp_docs/
-	@# Fix .md links to use anchors and copy images
-	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
-		sed -i.bak -E 's/\]\(([0-9]{2}-[^)]+)\.md\)/](#\1)/g' "$$file" && rm "$$file.bak"; \
-	done
-	@cp -r $(SRC_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
-	@if command -v pandoc >/dev/null 2>&1; then \
-		cd $(DIST_DIR)/.tmp_docs && \
-		pandoc *.md -o ../oradba-user-guide.html \
-			--metadata-file=../../$(DOC_DIR)/metadata.yml \
-			--css=../../$(DOC_DIR)/templates/pandoc-style.css \
-			--toc --toc-depth=3 \
-			--standalone \
-			--embed-resources; \
-		cd - >/dev/null; \
-	elif [ -n "$(DOCKER)" ]; then \
-		cd $(DIST_DIR)/.tmp_docs && \
-		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
-			*.md -o oradba-user-guide.html \
-			--metadata-file=/doc/metadata.yml \
-			--css=/doc/templates/pandoc-style.css \
-			--toc --toc-depth=3 \
-			--standalone \
-			--embed-resources; \
-		mv oradba-user-guide.html ../ 2>/dev/null || true; \
-		cd - >/dev/null; \
-	else \
-		echo -e "$(COLOR_YELLOW)⚠ Neither pandoc nor Docker available, skipping HTML generation$(COLOR_RESET)"; \
-	fi
-	@rm -rf $(DIST_DIR)/.tmp_docs
-	@if [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
-		echo -e "$(COLOR_GREEN)✓ HTML documentation generated: $(DIST_DIR)/oradba-user-guide.html$(COLOR_RESET)"; \
-		ls -lh $(DIST_DIR)/oradba-user-guide.html; \
-	fi
+
 
 .PHONY: docs-pdf
 docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker)
@@ -486,9 +447,7 @@ docs-check: ## Check if documentation source files exist
 .PHONY: docs-clean
 docs-clean: ## Remove generated documentation
 	@echo -e "$(COLOR_BLUE)Cleaning generated documentation...$(COLOR_RESET)"
-	@rm -f $(DIST_DIR)/oradba-user-guide.html 2>/dev/null || true
 	@rm -f $(DIST_DIR)/oradba-user-guide.pdf 2>/dev/null || true
-	@rm -f $(USER_DOC_DIR)/oradba-user-guide.html 2>/dev/null || true
 	@rm -f $(USER_DOC_DIR)/oradba-user-guide.pdf 2>/dev/null || true
 	@rm -rf $(DIST_DIR)/.tmp_docs 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Documentation cleaned$(COLOR_RESET)"
@@ -576,10 +535,9 @@ status: ## Show git status and current version
 clean: ## Clean build artifacts (preserves documentation)
 	@echo -e "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
 	@# Preserve documentation files if they exist
-	@if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ] || [ -f "$(DIST_DIR)/oradba-user-guide.html" ]; then \
+	@if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ]; then \
 		mkdir -p .tmp_docs_preserve; \
 		mv $(DIST_DIR)/oradba-user-guide.pdf .tmp_docs_preserve/ 2>/dev/null || true; \
-		mv $(DIST_DIR)/oradba-user-guide.html .tmp_docs_preserve/ 2>/dev/null || true; \
 		echo -e "$(COLOR_YELLOW)  Preserving documentation files during clean...$(COLOR_RESET)"; \
 	fi
 	@rm -rf $(DIST_DIR)

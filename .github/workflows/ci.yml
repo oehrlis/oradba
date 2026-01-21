@@ -240,7 +240,6 @@ jobs:
           name: oradba-documentation
           path: |
             dist/oradba-user-guide.pdf
-            dist/oradba-user-guide.html
           retention-days: 90
       
       - name: Display documentation info

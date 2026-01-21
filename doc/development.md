@@ -1785,12 +1785,11 @@ make build
 ### Generate Documentation
 
 ```bash
-# Build PDF and HTML documentation
+# Build PDF documentation
 make docs
 
-# Or individually
+# Or build PDF directly
 make docs-pdf        # Creates dist/oradba-user-guide.pdf
-make docs-html       # Creates dist/oradba-user-guide.html
 ```
 
 ### Complete CI Pipeline Locally
@@ -1903,7 +1902,6 @@ gh release view v0.8.2
 - `oradba-X.Y.Z.tar.gz` - Distribution tarball
 - `oradba_install.sh` - Self-contained installer
 - `oradba-user-guide.pdf` - PDF documentation
-- `oradba-user-guide.html` - HTML documentation
 
 **Download URLs:**
 
@@ -1911,7 +1909,6 @@ gh release view v0.8.2
 # Latest release (recommended for users)
 https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf
-https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.html
 
 # Specific version
 https://github.com/oehrlis/oradba/releases/download/v0.8.2/oradba_install.sh
@@ -1954,7 +1951,6 @@ ls -lh dist/
 # - dist/oradba-X.Y.Z.tar.gz
 # - dist/oradba_install.sh
 # - dist/oradba-user-guide.pdf
-# - dist/oradba-user-guide.html
 
 # Test installer
 ./dist/oradba_install.sh --help
@@ -2017,7 +2013,7 @@ make docs
 ls -lh dist/*.pdf dist/*.html
 
 # Then manually upload to release
-gh release upload v0.8.2 dist/oradba-user-guide.pdf dist/oradba-user-guide.html
+gh release upload v0.8.2 dist/oradba-user-guide.pdf
 ```
 
 **Manual release needed**
