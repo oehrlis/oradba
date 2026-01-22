@@ -241,6 +241,12 @@ backup_modified_files() {
         # Skip .install_info (always modified during installation)
         [[ "$line" =~ \.install_info ]] && continue
 
+        # Skip user-managed configuration files (not in checksum, but defensive check)
+        [[ "$line" =~ etc/oradba_homes\.conf ]] && continue
+        [[ "$line" =~ etc/oradba_customer\.conf ]] && continue
+        [[ "$line" =~ etc/oradba_local\.conf ]] && continue
+        [[ "$line" =~ etc/sid\..+\.conf ]] && continue
+
         # Parse checksum line: <hash>  <filepath> (two spaces)
         # Skip lines that don't match expected format
         [[ "$line" =~ ^[a-f0-9]{64}\ \ .+ ]] || continue

@@ -191,8 +191,14 @@ echo "Generating checksums..."
     # Change to staging directory to generate relative paths
     cd "$TEMP_TAR_DIR" || exit 1
 
-    # Generate checksums for all files (excluding checksum file itself)
+    # Generate checksums for all files (excluding checksum file itself and user-modifiable configs)
     find bin lib sql rcv etc templates doc -type f 2> /dev/null | sort | while read -r file; do
+        # Skip user-modifiable configuration files
+        case "$file" in
+            etc/oradba_homes.conf|etc/oradba_customer.conf|etc/oradba_local.conf|etc/sid.*.conf)
+                continue
+                ;;
+        esac
         sha256sum "$file"
     done
 

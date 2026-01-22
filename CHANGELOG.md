@@ -38,6 +38,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Installer Configuration File Handling** (2026-01-22, Critical Fix)
+  - Fixed incorrect \"MODIFIED\" reporting for `etc/oradba_homes.conf` during updates
+  - Root cause: `oradba_homes.conf` was treated as core file instead of user-managed configuration
+  - Solution:
+    - Excluded user-modifiable configs from checksum generation: `oradba_homes.conf`, `oradba_customer.conf`, `oradba_local.conf`, `sid.*.conf`
+    - Added defensive skip in backup logic to prevent false modification warnings
+    - User configurations now properly preserved during updates without .save backups
+  - Benefits:
+    - No more confusing \"MODIFIED\" warnings for files that are supposed to be modified
+    - Cleaner update experience for users with custom Oracle Home registrations
+    - Consistent behavior with other user configuration files
+  - Files changed:
+    - `scripts/build_installer.sh`: Exclude user configs from checksum generation
+    - `src/bin/oradba_install.sh`: Skip user configs in modification detection
+
 - **AutoDiscovery and Environment Setup Issues on Clean Install** (2026-01-22, Critical Bug Fix)
   - Fixed multiple autodiscovery issues that produced incorrect entries on clean installations
   - **Issue 1: OUD Home False Positive**
