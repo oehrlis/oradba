@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Plugin Loader Variable Assignment Bug** (2026-01-22)
+  - Fixed `oradba_apply_oracle_plugin` function failing to assign plugin results to variables
+  - Root cause: Internal parameter name `result_var` caused collision when callers used same variable name
+  - Changed internal parameter from `result_var` to `result_var_name` to prevent collision
+  - Affected code: DataSafe status detection in `oraup.sh` and `oradba_env_status.sh`
+  - Added regression test to prevent future variable name collisions
+  - All variable names now work correctly, including `result_var`
+
 ### Added
 
 - **API Reference Documentation** (2026-01-21)
