@@ -15,6 +15,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.19.6] - 2026-01-22
+
+### Added
+
+- **Phase 2 Debug Support for Oracle Management Tools** (2026-01-22)
+  - Added comprehensive debug logging to Phase 2 management scripts:
+    - `oradba_dbctl.sh`: Database start/stop/restart/status with detailed tracing
+    - `oradba_lsnrctl.sh`: Listener operations, port detection, environment setup
+    - `oradba_services.sh`: Service orchestration, configuration loading, startup/shutdown order
+  - Dual activation methods for all scripts:
+    - Environment variable: `ORADBA_DEBUG=true`
+    - CLI flag: `--debug` or `-d`
+  - Instrumented key decision points:
+    - Database startup/shutdown operations and timeout handling
+    - Listener status checks and configuration management
+    - Service orchestration logic and dependency ordering
+    - Oracle Home detection and environment setup
+    - Error handling and fallback mechanisms
+  - Backward compatible: no output changes unless debug enabled
+  - Usage examples:
+    - `ORADBA_DEBUG=true oradba_dbctl.sh start ORCL`
+    - `oradba_lsnrctl.sh --debug stop LISTENER`
+    - `oradba_services.sh --debug restart`
+
 ## [0.19.5] - 2026-01-22
 
 ### Added
