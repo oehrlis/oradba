@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **API Reference Documentation** (2026-01-21)
+  - Generated comprehensive API reference from 510 function headers
+  - New script: `scripts/generate_api_docs.py` for automated documentation generation
+  - Complete function documentation organized by 8 categories:
+    - Core Utilities (48 functions) - logging, PATH management, Oracle environment
+    - Registry API (8 functions) - unified installation discovery and management
+    - Plugin Interface (129 functions) - product-specific functionality
+    - Environment Management (54 functions) - building, parsing, validating environments
+    - Database Operations (11 functions) - query execution, status checks
+    - Alias Management (6 functions) - database alias generation
+    - Extension System (19 functions) - extension loading and management
+    - Scripts & Commands (235 functions) - CLI tools and utilities
+  - Searchable function index with 510 functions and cross-references
+  - Published to documentation site at `src/doc/api/`
+
 ## [0.19.3] - 2026-01-22
 
 ### Fixed
@@ -40,9 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Handles network connectivity issues gracefully
     - Fast detection (<100ms for running services)
 
-## [Unreleased]
-
-### Added
+## [0.19.2] - 2026-01-21
 
 - **API Reference Documentation** (2026-01-21)
   - Generated comprehensive API reference from 510 function headers
