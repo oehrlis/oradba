@@ -73,7 +73,7 @@ CHECKS_INFO=0
 log_pass() {
     ((CHECKS_PASSED++))
     [[ "$QUIET" == "true" ]] && return # Don't show passes in quiet mode
-    echo -e "  ${GREEN}✓${NC} $1"
+    echo -e "  ${GREEN}[OK]${NC} $1"
 }
 
 # ------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ log_pass() {
 # ------------------------------------------------------------------------------
 log_fail() {
     ((CHECKS_FAILED++))
-    echo -e "  ${RED}✗${NC} $1"
+    echo -e "  ${RED}[FAIL]${NC} $1"
 }
 
 # ------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ log_fail() {
 log_warn() {
     ((CHECKS_WARNING++))
     [[ "$QUIET" == "true" ]] && return # Don't show warnings in quiet mode
-    echo -e "  ${YELLOW}⚠${NC} $1"
+    echo -e "  ${YELLOW}[WARN]${NC} $1"
 }
 
 # ------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ log_warn() {
 log_info() {
     ((CHECKS_INFO++))
     [[ "$QUIET" == "true" ]] && return # Don't show info in quiet mode
-    echo -e "  ${BLUE}ℹ${NC} $1"
+    echo -e "  ${BLUE}[INFO]${NC} $1"
 }
 
 # ------------------------------------------------------------------------------
@@ -806,10 +806,10 @@ check_disk_space || critical_failed=true
 # Summary
 if [[ "$QUIET" != "true" ]]; then
     log_header "Summary"
-    echo -e "  ${GREEN}✓ Passed:${NC}   $CHECKS_PASSED"
-    echo -e "  ${RED}✗ Failed:${NC}   $CHECKS_FAILED"
-    echo -e "  ${YELLOW}⚠ Warnings:${NC} $CHECKS_WARNING"
-    echo -e "  ${BLUE}ℹ Info:${NC}     $CHECKS_INFO"
+    echo -e "  ${GREEN}[OK]   Passed:${NC}   $CHECKS_PASSED"
+    echo -e "  ${RED}[FAIL] Failed:${NC}   $CHECKS_FAILED"
+    echo -e "  ${YELLOW}[WARN] Warnings:${NC} $CHECKS_WARNING"
+    echo -e "  ${BLUE}[INFO] Info:${NC}     $CHECKS_INFO"
     echo ""
 fi
 

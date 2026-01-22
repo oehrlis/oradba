@@ -26,6 +26,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrated with MkDocs navigation structure
   - Usage examples for common patterns in API overview
 
+- **Enhanced Oracle Homes Auto-Discovery** (2026-01-21, Issue #70)
+  - New configuration variables in `oradba_standard.conf`:
+    - `ORADBA_AUTO_DISCOVER_HOMES` (default: false) - Enable/disable auto-discovery on login
+    - `ORADBA_DISCOVERY_PATHS` (default: `${ORACLE_BASE}/product`) - Paths to scan
+  - Unified `auto_discover_oracle_homes()` function in `oradba_common.sh`
+    - Used by both `oraenv.sh` initialization and `oradba_homes.sh discover` command
+    - Leverages existing plugin system (`detect_product_type()`)
+    - Silently skips already registered homes (no duplicates)
+    - Scans up to 3 levels deep in configured discovery paths
+  - Smart home name generation based on product type:
+    - java → jdk17, jre17
+    - iclient → iclient2610
+    - datasafe → dsconn01, dsconn02
+    - database → rdbms1918
+    - client → client2610
+    - oud → oud1221
+    - weblogic → wls1221
+  - Integration points:
+    - `oraenv.sh`: Auto-discovers on environment load if `ORADBA_AUTO_DISCOVER_HOMES=true`
+    - `oradba_homes.sh discover --auto-add`: Uses common function for consistent behavior
+  - Single source of truth for maintainability
+  - Opt-in feature (backward compatible, default: false)
+  - Silent mode support for non-interactive use
+
+### Fixed
+
+- **oraup.sh Display Issues for Non-Database Environments** (2026-01-21, Issue #99)
+  - Fixed listener section display logic:
+    - Only shown if database SIDs exist OR database listeners are actively running
+    - Skipped for pure Data Safe/client/non-database environments
+    - Eliminates confusing "No database listeners running" message in irrelevant contexts
+  - Fixed Data Safe connector status display:
+    - Now uses `oradba_check_datasafe_status()` for real connector health
+    - Shows accurate status: running/stopped/unavailable/empty/unknown
+    - No longer hardcoded to "N/A" or "available"
+  - Fixed dummy entry display:
+    - Dummy entries (flag 'D') now skipped in Oracle Homes section
+    - Prevents confusion when no oratab exists and dummy entry is created
+    - Cleaner, more relevant output for Data Safe-only environments
+
+### Changed
+
+- **Improved Shell Compatibility in oradba_check.sh** (2026-01-21)
+  - Replaced Unicode special characters (✓ ✗ ⚠ ℹ) with ASCII-compatible alternatives ([OK] [FAIL] [WARN] [INFO])
+  - Ensures consistent display across all shell environments and terminal emulators
+  - Improves compatibility with older systems and non-UTF8 terminals
+  - Better accessibility for screen readers
+
+### Enhanced
+
 - **Enhanced Developer Documentation** (2026-01-21)
   - Comprehensive enhancements to CONTRIBUTING.md with detailed code style guide
   - Git workflow and branch strategy guidelines (feat/issue-XX, fix/issue-XX naming)
