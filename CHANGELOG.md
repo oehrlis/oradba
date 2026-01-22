@@ -21,18 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Example: `ORADBA_DEBUG=true oraup.sh` to see detailed execution trace
   - Helps diagnose issues with Oracle Home detection, listener display, and plugin behavior
 
-### Fixed
-
-- **Plugin Loader Variable Assignment Bug** (2026-01-22)
-  - Fixed `oradba_apply_oracle_plugin` function failing to assign plugin results to variables
-  - Root cause: Internal parameter name `result_var` caused collision when callers used same variable name
-  - Changed internal parameter from `result_var` to `result_var_name` to prevent collision
-  - Affected code: DataSafe status detection in `oraup.sh` and `oradba_env_status.sh`
-  - Added regression test to prevent future variable name collisions
-  - All variable names now work correctly, including `result_var`
-
-### Added
-
 - **API Reference Documentation** (2026-01-21)
   - Generated comprehensive API reference from 510 function headers
   - New script: `scripts/generate_api_docs.py` for automated documentation generation
@@ -48,6 +36,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Searchable function index with 510 functions and cross-references
   - Published to documentation site at `src/doc/api/`
 
+### Fixed
+
+- **Plugin Loader Variable Assignment Bug** (2026-01-22)
+  - Fixed `oradba_apply_oracle_plugin` function failing to assign plugin results to variables
+  - Root cause: Internal parameter name `result_var` caused collision when callers used same variable name
+  - Changed internal parameter from `result_var` to `result_var_name` to prevent collision
+  - Affected code: DataSafe status detection in `oraup.sh` and `oradba_env_status.sh`
+  - Added regression test to prevent future variable name collisions
+  - All variable names now work correctly, including `result_var`
+
 ## [0.19.4] - 2026-01-22
 
 ### Fixed
@@ -56,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed incorrect \"MODIFIED\" reporting for `etc/oradba_homes.conf` during updates
   - Root cause: `oradba_homes.conf` was treated as core file instead of user-managed configuration
   - Solution:
-    - Excluded user-modifiable configs from checksum generation: `oradba_homes.conf`, `oradba_customer.conf`, `oradba_local.conf`, `sid.*.conf`
+    - Excluded user-modifiable configs from checksum generation:
+      `oradba_homes.conf`, `oradba_customer.conf`, `oradba_local.conf`, `sid.*.conf`
     - Added defensive skip in backup logic to prevent false modification warnings
     - User configurations now properly preserved during updates without .save backups
     - **Removed `src/etc/oradba_homes.conf` from git** (should only exist as template)
