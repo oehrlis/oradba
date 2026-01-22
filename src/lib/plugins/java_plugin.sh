@@ -25,31 +25,51 @@ export plugin_description="Oracle Java plugin"
 # Purpose.: Auto-detect Java installations under $ORACLE_BASE/product
 # Returns.: 0 on success
 # Output..: List of Java installation paths
+# Notes...: Excludes JRE subdirectories within JDK installations
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     local -a java_homes=()
     local oracle_base="${ORACLE_BASE:-/opt/oracle}"
     
+    # Skip if product directory doesn't exist
+    [[ ! -d "${oracle_base}/product" ]] && return 0
+    
     # Check for Java installations under $ORACLE_BASE/product/java*
-    if [[ -d "${oracle_base}/product" ]]; then
-        while IFS= read -r -d '' java_dir; do
-            if [[ -x "${java_dir}/bin/java" ]]; then
-                java_homes+=("${java_dir}")
-            fi
-        done < <(find "${oracle_base}/product" -maxdepth 1 -type d -name "java*" -print0 2>/dev/null)
-    fi
+    while IFS= read -r -d '' java_dir; do
+        if [[ -x "${java_dir}/bin/java" ]]; then
+            java_homes+=("${java_dir}")
+        fi
+    done < <(find "${oracle_base}/product" -maxdepth 1 -type d -name "java*" -print0 2>/dev/null)
     
     # Check for jdk* directories as well
-    if [[ -d "${oracle_base}/product" ]]; then
-        while IFS= read -r -d '' jdk_dir; do
-            if [[ -x "${jdk_dir}/bin/java" ]]; then
-                java_homes+=("${jdk_dir}")
-            fi
-        done < <(find "${oracle_base}/product" -maxdepth 1 -type d -name "jdk*" -print0 2>/dev/null)
-    fi
+    while IFS= read -r -d '' jdk_dir; do
+        if [[ -x "${jdk_dir}/bin/java" ]]; then
+            java_homes+=("${jdk_dir}")
+        fi
+    done < <(find "${oracle_base}/product" -maxdepth 1 -type d -name "jdk*" -print0 2>/dev/null)
+    
+    # Check for jre* directories, but ONLY if they are standalone (not inside a JDK)
+    while IFS= read -r -d '' jre_dir; do
+        # Skip if this is a jre subdirectory within a JDK
+        local parent_dir
+        parent_dir=$(dirname "${jre_dir}")
+        
+        # If parent has javac (it's a JDK), skip this JRE
+        if [[ -x "${parent_dir}/bin/javac" ]]; then
+            continue
+        fi
+        
+        # This is a standalone JRE, include it
+        if [[ -x "${jre_dir}/bin/java" ]]; then
+            java_homes+=("${jre_dir}")
+        fi
+    done < <(find "${oracle_base}/product" -maxdepth 2 -type d -name "jre" -print0 2>/dev/null)
     
     # Deduplicate and print
-    printf '%s\n' "${java_homes[@]}" | sort -u
+    if [[ ${#java_homes[@]} -gt 0 ]]; then
+        printf '%s\n' "${java_homes[@]}" | sort -u
+    fi
+    
     return 0
 }
 

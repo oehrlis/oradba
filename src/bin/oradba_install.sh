@@ -1605,14 +1605,51 @@ ORATAB_HEADER
             echo ""
         } >> "$oratab_path"
 
-        # Add dummy entry if in pre-Oracle mode
-        if [[ -n "$DUMMY_ORACLE_HOME" ]] || [[ ! -f "/etc/oratab" ]]; then
+        # Determine if we should add dummy entry
+        # Only add dummy if:
+        # 1. Explicitly requested via --dummy-home OR
+        # 2. No /etc/oratab exists AND no Oracle products found
+        local should_add_dummy=false
+        
+        if [[ -n "$DUMMY_ORACLE_HOME" ]]; then
+            # Explicitly requested
+            should_add_dummy=true
+        elif [[ ! -f "/etc/oratab" ]]; then
+            # No system oratab - check if any Oracle products exist
+            local has_oracle_products=false
+            
+            # Check common product locations
+            if [[ -n "${dummy_base}" ]]; then
+                for check_dir in "${dummy_base}/product" "/u01/app/oracle/product" "/opt/oracle/product"; do
+                    if [[ -d "${check_dir}" ]]; then
+                        # Count directories that look like Oracle products
+                        local product_count
+                        product_count=$(find "${check_dir}" -maxdepth 2 -type f \( -name "oracle" -o -name "sqlplus" -o -name "cmctl" -o -name "java" \) 2>/dev/null | wc -l)
+                        if [[ ${product_count:-0} -gt 0 ]]; then
+                            has_oracle_products=true
+                            break
+                        fi
+                    fi
+                done
+            fi
+            
+            # Only add dummy if no Oracle products found
+            if [[ "${has_oracle_products}" == "false" ]]; then
+                should_add_dummy=true
+            fi
+        fi
+
+        # Add dummy entry if needed
+        if [[ "${should_add_dummy}" == "true" ]]; then
             log_info "  Adding dummy Oracle entry: dummy:${dummy_home}:N"
             echo "# Dummy entry for pre-Oracle environment" >> "$oratab_path"
+            echo "# This entry will be hidden from status displays once real Oracle products are found" >> "$oratab_path"
             echo "# To hide this entry from oraup status display:" >> "$oratab_path"
             echo "#   1. Set ORADBA_SHOW_DUMMY_ENTRIES=false in oradba_customer.conf, OR" >> "$oratab_path"
             echo "#   2. Remove this entry once Oracle is installed" >> "$oratab_path"
             echo "dummy:${dummy_home}:N" >> "$oratab_path"
+        else
+            log_info "  Oracle products detected - dummy entry not needed"
         fi
 
         log_info "  Temporary oratab created: ${oratab_path}"

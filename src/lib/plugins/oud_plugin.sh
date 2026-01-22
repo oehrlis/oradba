@@ -30,29 +30,35 @@ export plugin_description="Oracle Unified Directory plugin"
 plugin_detect_installation() {
     local -a homes=()
     
-    # Check common OUD installation directories
+    # Check common OUD installation directories (only if they exist)
     for base_dir in /u01/app/oracle /opt/oracle /u00/app/oracle; do
-        if [[ -d "$base_dir" ]]; then
-            while IFS= read -r -d '' oud_dir; do
-                # OUD home usually has structure: product/OUD_version/oud
-                if plugin_validate_home "$oud_dir"; then
-                    homes+=("$oud_dir")
-                fi
-            done < <(find "$base_dir" -maxdepth 5 -type d -name "oud" -print0 2>/dev/null)
-            
-            # Also check for oudBase directories
-            while IFS= read -r -d '' oud_base; do
-                local parent_dir
-                parent_dir=$(dirname "$oud_base")
-                if plugin_validate_home "$parent_dir"; then
-                    homes+=("$parent_dir")
-                fi
-            done < <(find "$base_dir" -maxdepth 4 -type d -name "oudBase" -print0 2>/dev/null)
-        fi
+        # Skip if base directory doesn't exist
+        [[ ! -d "$base_dir" ]] && continue
+        
+        # Find directories named "oud"
+        while IFS= read -r -d '' oud_dir; do
+            # Validate that it's a real OUD installation
+            if plugin_validate_home "$oud_dir"; then
+                homes+=("$oud_dir")
+            fi
+        done < <(find "$base_dir" -maxdepth 5 -type d -name "oud" -print0 2>/dev/null)
+        
+        # Also check for oudBase directories
+        while IFS= read -r -d '' oud_base; do
+            local parent_dir
+            parent_dir=$(dirname "$oud_base")
+            # Validate parent directory as OUD home
+            if plugin_validate_home "$parent_dir"; then
+                homes+=("$parent_dir")
+            fi
+        done < <(find "$base_dir" -maxdepth 4 -type d -name "oudBase" -print0 2>/dev/null)
     done
     
-    # Deduplicate and print
-    printf '%s\n' "${homes[@]}" | sort -u
+    # Deduplicate and print only if we found valid homes
+    if [[ ${#homes[@]} -gt 0 ]]; then
+        printf '%s\n' "${homes[@]}" | sort -u
+    fi
+    
     return 0
 }
 
