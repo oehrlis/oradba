@@ -27,10 +27,20 @@ else
     BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fi
 
+# Debug support
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
+log_debug() {
+    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+        echo -e "[DEBUG] $*" >&2
+    fi
+}
+log_debug "Resolved BASE_DIR='${BASE_DIR}'"
+
 # Source required libraries
 # shellcheck source=../lib/oradba_common.sh
 if [[ -f "${BASE_DIR}/lib/oradba_common.sh" ]]; then
     source "${BASE_DIR}/lib/oradba_common.sh"
+    log_debug "Loaded oradba_common.sh"
 else
     echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 1
@@ -39,6 +49,7 @@ fi
 # shellcheck source=../lib/extensions.sh
 if [[ -f "${BASE_DIR}/lib/extensions.sh" ]]; then
     source "${BASE_DIR}/lib/extensions.sh"
+    log_debug "Loaded extensions.sh"
 else
     echo "ERROR: Cannot find extensions.sh library" >&2
     exit 1
@@ -138,6 +149,7 @@ COMMANDS
 
 OPTIONS
     -v, --verbose       Show detailed information
+    --debug             Enable debug logging (sets ORADBA_LOG_LEVEL=DEBUG)
     -h, --help          Display this help message
 
 ENVIRONMENT VARIABLES
@@ -183,6 +195,24 @@ SEE ALSO
     doc/extension-system.md - Complete extension system documentation
 
 EOF
+}
+
+# ----------------------------------------------------------------------------
+# Global option pre-parser (captures --debug anywhere)
+# ----------------------------------------------------------------------------
+preparse_debug_flag() {
+    local newargs=()
+    for arg in "$@"; do
+        if [[ "$arg" == "--debug" ]]; then
+            ORADBA_DEBUG="true"
+            export ORADBA_LOG_LEVEL=DEBUG
+            log_debug "Debug mode enabled via --debug"
+            continue
+        fi
+        newargs+=("$arg")
+    done
+    printf '%s
+' "${newargs[@]}"
 }
 
 # ------------------------------------------------------------------------------
@@ -620,6 +650,7 @@ cmd_create() {
     local use_github=false
     local temp_dir=""
     local ext_version="0.1.0"
+    log_debug "cmd_create invoked with args: '$*'"
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -702,12 +733,14 @@ cmd_create() {
         ext_version=$(echo "${github_output}" | tail -1)
         # Remove 'v' prefix if present (e.g., v0.1.0 -> 0.1.0)
         ext_version="${ext_version#v}"
+        log_debug "Using GitHub template, version='${ext_version}', file='${template_file}'"
     elif [[ -n "${template_file}" ]]; then
         echo -e "${BOLD}Creating extension from custom template${NC}"
         if [[ ! -f "${template_file}" ]]; then
             echo "ERROR: Template file not found: ${template_file}" >&2
             return 1
         fi
+        log_debug "Using custom template file='${template_file}'"
     else
         # Use default template from templates/oradba_extension/
         echo -e "${BOLD}Creating extension from default template${NC}"
@@ -733,6 +766,7 @@ cmd_create() {
             # Set extension version from template version (remove 'v' prefix if present)
             ext_version="${template_version#v}"
         fi
+        log_debug "Using default template file='${template_file}', version='${ext_version}'"
     fi
 
     echo ""
@@ -782,6 +816,7 @@ cmd_create() {
         if [[ "${DEBUG:-0}" -eq 1 ]]; then
             echo "DEBUG: Template files extracted directly (no single top-level directory)"
         fi
+        log_debug "Template extracted flat into '${extract_dir}'"
     else
         echo "ERROR: No files found in template archive" >&2
         rm -rf "${extract_dir}"
@@ -829,6 +864,7 @@ cmd_create() {
 
         echo "  Name:    ${ext_name}"
         echo "  Version: ${ext_version}"
+        log_debug "Updated metadata for name='${ext_name}', version='${ext_version}'"
     fi
 
     echo -e "${GREEN}✓ Extension created successfully${NC}"
@@ -881,6 +917,7 @@ cmd_add() {
     local do_update=false
     local temp_dir=""
     local tarball_path=""
+    log_debug "cmd_add invoked with args: '$*'"
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -937,6 +974,7 @@ cmd_add() {
         # Local tarball
         echo -e "${BOLD}Adding extension from local tarball${NC}"
         tarball_path="${source}"
+        log_debug "Source type=local file, tarball='${tarball_path}'"
 
     elif [[ "${source}" =~ ^https?:// ]]; then
         # Full URL - download to temp location
@@ -962,6 +1000,7 @@ cmd_add() {
             rm -rf "${temp_dir}"
             return 1
         fi
+        log_debug "Source type=URL, downloaded to '${tarball_path}'"
 
     else
         # GitHub repo (short format or repo@version)
@@ -982,6 +1021,7 @@ cmd_add() {
             rm -rf "${temp_dir}"
             return 1
         fi
+        log_debug "Source type=GitHub repo='${repo}', version='${version:-latest}', tarball='${tarball_path}'"
     fi
 
     # Validate tarball exists
@@ -1051,6 +1091,7 @@ cmd_add() {
             fi
         fi
     fi
+    log_debug "Determined extension name='${ext_name}'"
 
     # Validate extension name
     if ! validate_extension_name "${ext_name}"; then
@@ -1082,6 +1123,7 @@ cmd_add() {
             [[ -n "${temp_dir}" ]] && rm -rf "${temp_dir}"
             return 1
         fi
+        log_debug "Updated existing extension at '${ext_path}'"
     else
         # New installation
         echo "Installing extension..."
@@ -1128,6 +1170,7 @@ cmd_add() {
             fi
             rm -f "${ext_path}/.extension.bak"
         fi
+        log_debug "Installed new extension to '${ext_path}'"
     fi
 
     # Clean up
@@ -1193,6 +1236,7 @@ format_status() {
 # ------------------------------------------------------------------------------
 cmd_list() {
     local verbose=false
+    log_debug "cmd_list invoked with args: '$*'"
 
     # Parse options
     while [[ $# -gt 0 ]]; do
@@ -1214,6 +1258,7 @@ cmd_list() {
     # Get all extensions
     local extensions
     mapfile -t extensions < <(get_all_extensions)
+    log_debug "Found ${#extensions[@]} extension(s)"
 
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
@@ -1232,6 +1277,7 @@ cmd_list() {
     # Sort by priority
     local sorted
     mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}")
+    log_debug "Sorted ${#sorted[@]} extension(s) by priority"
 
     if [[ "${verbose}" == "true" ]]; then
         # Verbose output
@@ -1457,6 +1503,7 @@ cmd_validate_all() {
 #           Uses extension auto-discovery mechanism
 # ------------------------------------------------------------------------------
 cmd_discover() {
+    log_debug "cmd_discover invoked"
     echo -e "${BOLD}Auto-Discovery Configuration${NC}"
     echo ""
     echo "Auto-discovery: ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}"
@@ -1478,6 +1525,7 @@ cmd_discover() {
 
     local discovered
     mapfile -t discovered < <(discover_extensions)
+    log_debug "Discovered ${#discovered[@]} extension(s) in '${ORADBA_LOCAL_BASE:-unset}'"
 
     if [[ ${#discovered[@]} -eq 0 ]]; then
         echo "No extensions discovered in ${ORADBA_LOCAL_BASE}"
@@ -1508,6 +1556,7 @@ cmd_discover() {
 #           Useful for troubleshooting extension loading
 # ------------------------------------------------------------------------------
 cmd_paths() {
+    log_debug "cmd_paths invoked"
     echo -e "${BOLD}Extension Search Paths${NC}"
     echo ""
 
@@ -1552,11 +1601,13 @@ cmd_paths() {
 #           Uses is_extension_enabled() check
 # ------------------------------------------------------------------------------
 cmd_enabled() {
+    log_debug "cmd_enabled invoked"
     echo -e "${BOLD}Enabled Extensions${NC}"
     echo ""
 
     local extensions
     mapfile -t extensions < <(get_all_extensions)
+    log_debug "Found ${#extensions[@]} extension(s)"
 
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
@@ -1600,11 +1651,13 @@ cmd_enabled() {
 #           Useful for identifying inactive extensions
 # ------------------------------------------------------------------------------
 cmd_disabled() {
+    log_debug "cmd_disabled invoked"
     echo -e "${BOLD}Disabled Extensions${NC}"
     echo ""
 
     local extensions
     mapfile -t extensions < <(get_all_extensions)
+    log_debug "Found ${#extensions[@]} extension(s)"
 
     if [[ ${#extensions[@]} -eq 0 ]]; then
         echo "No extensions found."
@@ -1690,7 +1743,9 @@ main() {
 
 # Run main if not sourced
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
+    # Pre-parse global flags and remove them from args
+    mapfile -t _newargs < <(preparse_debug_flag "$@")
+    main "${_newargs[@]}"
 fi
 
 # EOF

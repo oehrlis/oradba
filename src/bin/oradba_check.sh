@@ -23,6 +23,7 @@ set -o pipefail
 # Script metadata
 # shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_NAME="$(basename "$0")"
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"  # Debug mode
 
 # Try to read version from VERSION file, fall back to hardcoded version
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -118,6 +119,20 @@ log_info() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: log_debug
+# Purpose.: Display debug message when debug mode is enabled
+# Args....: $* - Message text
+# Returns.: 0
+# Output..: Debug message to stderr (only if ORADBA_DEBUG=true)
+# Notes...: Enable via ORADBA_DEBUG=true or --debug flag
+# ------------------------------------------------------------------------------
+log_debug() {
+    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+        echo -e "[DEBUG] $*" >&2
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Function: log_header
 # Purpose.: Display bold section header with underline
 # Args....: $1 - Header text
@@ -154,6 +169,7 @@ OPTIONS:
     -d, --dir PATH      Check disk space for specific directory
     -q, --quiet         Minimal output (errors only)
     -v, --verbose       Verbose output with additional details
+    --debug             Enable debug logging (detailed operation tracking)
     -h, --help          Show this help message
     --version           Show version information
 
@@ -215,6 +231,11 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        --debug)
+            ORADBA_DEBUG="true"
+            log_debug "oradba_check.sh: Debug mode enabled via --debug flag"
+            shift
+            ;;
         --version)
             echo "OraDBA System Check v${SCRIPT_VERSION}"
             exit 0
@@ -229,6 +250,9 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Debug summary of parsed arguments
+log_debug "Args parsed: CHECK_DIR='${CHECK_DIR}', QUIET='${QUIET}', VERBOSE='${VERBOSE}', ORADBA_DEBUG='${ORADBA_DEBUG}'"
 
 # Print banner
 if [[ "$QUIET" != "true" ]]; then
@@ -322,6 +346,8 @@ check_system_tools() {
         local tool="${tool_info%%:*}"
         local desc="${tool_info#*:}"
 
+        log_debug "Checking system tool: ${tool} (${desc})"
+
         if command -v "$tool" > /dev/null 2>&1; then
             if [[ "$VERBOSE" == "true" ]]; then
                 local version
@@ -330,9 +356,11 @@ check_system_tools() {
             else
                 log_pass "$tool - $desc"
             fi
+            log_debug "Tool available: ${tool}"
         else
             log_fail "$tool missing - $desc"
             tools_ok=false
+            log_debug "Tool missing: ${tool}"
         fi
     done
 
@@ -344,6 +372,7 @@ check_system_tools() {
     else
         log_fail "sha256sum/shasum missing - Checksum verification"
         tools_ok=false
+        log_debug "Checksum tools missing: sha256sum/shasum"
     fi
 
     # Check for base64 (needed for installer with embedded payload)
@@ -355,8 +384,10 @@ check_system_tools() {
     fi
 
     if [ "$tools_ok" = true ]; then
+        log_debug "System tools check result: OK"
         return 0
     else
+        log_debug "System tools check result: FAILED"
         return 1
     fi
 }
@@ -406,6 +437,7 @@ check_optional_tools() {
     if [[ -z "$download_tool" ]]; then
         log_warn "curl/wget not found - Required for GitHub installation mode"
     fi
+    log_debug "Optional tools detected: ${download_tool:-none}"
 }
 
 # =============================================================================
@@ -439,6 +471,8 @@ check_github_connectivity() {
     local github_accessible=false
     local timeout=5
 
+    log_debug "GitHub check using ${download_tool}, URL=${github_url}, timeout=${timeout}s"
+
     if [[ "$download_tool" == "curl" ]]; then
         if curl -sf --connect-timeout "$timeout" --max-time $((timeout + 2)) "$github_url" > /dev/null 2>&1; then
             github_accessible=true
@@ -458,6 +492,7 @@ check_github_connectivity() {
     else
         log_warn "GitHub API not accessible (timeout: ${timeout}s)"
         log_info "  Note: GitHub-based updates and installation may not work"
+        log_debug "GitHub API access failed"
         if [[ "$VERBOSE" == "true" ]]; then
             log_info "$(printf '  %-16s %s' 'Possible causes:' 'Firewall, proxy, or network restrictions')"
             log_info "$(printf '  %-16s %s' 'Workaround:' 'Download releases manually or use tarball installation')"
@@ -487,11 +522,15 @@ check_disk_space() {
         check_dir="$(dirname "$check_dir")"
     done
 
+    log_debug "Disk space check: requested='${CHECK_DIR}', using='${check_dir}', required='${required_mb} MB'"
+
     log_info "$(printf '%-14s %s' 'Checking:' "$check_dir")"
 
     if command -v df > /dev/null 2>&1; then
         local available_mb
         available_mb=$(df -Pm "$check_dir" 2> /dev/null | awk 'NR==2 {print $4}')
+
+        log_debug "df -Pm result: available='${available_mb} MB'"
 
         if [[ -n "$available_mb" ]] && [[ "$available_mb" =~ ^[0-9]+$ ]]; then
             log_info "$(printf '%-14s %s' 'Available:' "${available_mb} MB")"
@@ -499,8 +538,10 @@ check_disk_space() {
 
             if [[ $available_mb -ge $required_mb ]]; then
                 log_pass "Sufficient disk space"
+                log_debug "Disk space sufficient"
             else
                 log_fail "Insufficient disk space (need ${required_mb} MB, have ${available_mb} MB)"
+                log_debug "Disk space insufficient"
                 return 1
             fi
         else
@@ -529,40 +570,51 @@ check_oracle_environment() {
     if [[ -n "$ORACLE_HOME" ]]; then
         if [[ -d "$ORACLE_HOME" ]]; then
             log_pass "ORACLE_HOME set and exists: $ORACLE_HOME"
+            log_debug "ORACLE_HOME exists: ${ORACLE_HOME}"
         else
             log_fail "ORACLE_HOME set but directory does not exist: $ORACLE_HOME"
+            log_debug "ORACLE_HOME missing directory: ${ORACLE_HOME}"
         fi
     else
         log_info "ORACLE_HOME not set (not required for OraDBA installation)"
+        log_debug "ORACLE_HOME not set"
     fi
 
     # ORACLE_BASE
     if [[ -n "$ORACLE_BASE" ]]; then
         if [[ -d "$ORACLE_BASE" ]]; then
             log_pass "ORACLE_BASE set and exists: $ORACLE_BASE"
+            log_debug "ORACLE_BASE exists: ${ORACLE_BASE}"
         else
             log_warn "ORACLE_BASE set but directory does not exist: $ORACLE_BASE"
+            log_debug "ORACLE_BASE missing directory: ${ORACLE_BASE}"
         fi
     else
         log_info "ORACLE_BASE not set"
+        log_debug "ORACLE_BASE not set"
     fi
 
     # ORACLE_SID
     if [[ -n "$ORACLE_SID" ]]; then
         log_pass "ORACLE_SID set: $ORACLE_SID"
+        log_debug "ORACLE_SID set: ${ORACLE_SID}"
     else
         log_info "ORACLE_SID not set"
+        log_debug "ORACLE_SID not set"
     fi
 
     # TNS_ADMIN
     if [[ -n "$TNS_ADMIN" ]]; then
         if [[ -d "$TNS_ADMIN" ]]; then
             log_pass "TNS_ADMIN set and exists: $TNS_ADMIN"
+            log_debug "TNS_ADMIN exists: ${TNS_ADMIN}"
         else
             log_warn "TNS_ADMIN set but directory does not exist: $TNS_ADMIN"
+            log_debug "TNS_ADMIN missing directory: ${TNS_ADMIN}"
         fi
     else
         log_info "TNS_ADMIN not set"
+        log_debug "TNS_ADMIN not set"
     fi
 
     return 0 # Environment variables are informational
@@ -584,6 +636,7 @@ check_oracle_tools() {
 
     if [[ -z "$ORACLE_HOME" ]]; then
         log_info "ORACLE_HOME not set - skipping Oracle tools check"
+        log_debug "Skipping oracle tools: ORACLE_HOME not set"
         return 0
     fi
 
@@ -603,8 +656,10 @@ check_oracle_tools() {
             tool_path=$(command -v "$tool")
             log_pass "$tool - $desc"
             [[ "$VERBOSE" == "true" ]] && log_info "$(printf '  %-16s %s' 'Path:' "$tool_path")"
+            log_debug "Oracle tool available: ${tool} at ${tool_path}"
         else
             log_warn "$tool not found - $desc"
+            log_debug "Oracle tool missing: ${tool}"
         fi
     done
 }
@@ -625,11 +680,13 @@ check_database_connectivity() {
 
     if [[ -z "$ORACLE_HOME" ]] || [[ -z "$ORACLE_SID" ]]; then
         log_info "ORACLE_HOME or ORACLE_SID not set - skipping connectivity check"
+        log_debug "Skipping connectivity: ORACLE_HOME='${ORACLE_HOME:-}', ORACLE_SID='${ORACLE_SID:-}'"
         return 0
     fi
 
     if ! command -v sqlplus > /dev/null 2>&1; then
         log_info "sqlplus not found - skipping connectivity check"
+        log_debug "Skipping connectivity: sqlplus not found"
         return 0
     fi
 
@@ -637,22 +694,27 @@ check_database_connectivity() {
     if pgrep -f "ora_pmon_${ORACLE_SID}" > /dev/null 2>&1 \
         || pgrep -f "db_pmon_${ORACLE_SID}" > /dev/null 2>&1; then
         log_pass "Database process found for $ORACLE_SID"
+        log_debug "PMON process detected for SID '${ORACLE_SID}'"
 
         # Try to connect
         if timeout 5 sqlplus -S / as sysdba <<< "SELECT 'CONNECTION_OK' FROM DUAL;" 2>&1 | grep -q "CONNECTION_OK"; then
             log_pass "Database connection successful"
+            log_debug "sysdba connection succeeded"
 
             # Get database version
             if [[ "$VERBOSE" == "true" ]]; then
                 local db_version
                 db_version=$(sqlplus -S / as sysdba <<< "SELECT banner FROM v\$version WHERE ROWNUM=1;" 2> /dev/null | grep "Oracle")
                 [[ -n "$db_version" ]] && log_info "$(printf '  %-16s %s' 'Version:' "$db_version")"
+                log_debug "Database version banner: ${db_version}"
             fi
         else
             log_warn "Database process found but connection failed"
+            log_debug "sysdba connection failed"
         fi
     else
         log_info "No database process found for ORACLE_SID: $ORACLE_SID"
+        log_debug "PMON process not found for SID '${ORACLE_SID}'"
     fi
 }
 
@@ -677,6 +739,8 @@ check_oracle_versions() {
     elif [[ -f /var/opt/oracle/oraInst.loc ]]; then
         inventory_loc=$(grep "^inventory_loc=" /var/opt/oracle/oraInst.loc | cut -d'=' -f2)
     fi
+
+    log_debug "Inventory loc: '${inventory_loc:-not found}'"
 
     if [[ -n "$inventory_loc" ]] && [[ -f "$inventory_loc/ContentsXML/inventory.xml" ]]; then
         log_info "$(printf '%-18s %s' 'Oracle Inventory:' "$inventory_loc")"
@@ -703,6 +767,7 @@ check_oracle_versions() {
         if [[ $homes_found -eq 0 ]]; then
             log_info "No Oracle Homes found in inventory"
         fi
+        log_debug "Homes found in inventory: ${homes_found}"
     else
         log_info "Oracle Inventory not found"
 
@@ -719,6 +784,7 @@ check_oracle_versions() {
                 for version_dir in "$loc"/*; do
                     if [[ -d "$version_dir/bin" ]] && [[ -f "$version_dir/bin/sqlplus" ]]; then
                         log_info "$(printf '  %-16s %s' 'Oracle Home:' "$version_dir")"
+                        log_debug "Found Oracle Home candidate: ${version_dir}"
                     fi
                 done
             fi
@@ -742,10 +808,12 @@ check_oradba_installation() {
 
     if [[ -d "$CHECK_DIR" ]]; then
         log_pass "OraDBA directory exists: $CHECK_DIR"
+        log_debug "OraDBA directory exists: ${CHECK_DIR}"
 
         # Check for .install_info
         if [[ -f "$CHECK_DIR/.install_info" ]]; then
             log_pass ".install_info found"
+            log_debug ".install_info found at ${CHECK_DIR}/.install_info"
 
             if [[ "$VERBOSE" == "true" ]]; then
                 while IFS='=' read -r key value; do
@@ -773,10 +841,12 @@ check_oradba_installation() {
 
         if [[ ${#missing_dirs[@]} -gt 0 ]]; then
             log_warn "Incomplete installation - missing directories: ${missing_dirs[*]}"
+            log_debug "Missing directories: ${missing_dirs[*]}"
         fi
     else
         log_info "OraDBA not installed at: $CHECK_DIR"
         log_info "Use --dir to check different location"
+        log_debug "OraDBA directory not found at ${CHECK_DIR}"
     fi
 }
 

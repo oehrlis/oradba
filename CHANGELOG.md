@@ -21,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Example: `ORADBA_DEBUG=true oraup.sh` to see detailed execution trace
   - Helps diagnose issues with Oracle Home detection, listener display, and plugin behavior
 
+- **Debug Flags in CLI Tools** (2026-01-22)
+  - Added Phase 1 debug support to two key scripts:
+    - oradba_check.sh: `--debug` flag and `ORADBA_DEBUG=true` enable detailed tracing
+    - oradba_extension.sh: `--debug` flag sets `ORADBA_LOG_LEVEL=DEBUG` and enables tracing
+  - Instrumented decision points for visibility (tool detection, GitHub connectivity, disk space, extension discovery/loading)
+  - Backward compatible: no output changes unless debug enabled
+  - Usage:
+    - `ORADBA_DEBUG=true oradba_check.sh --verbose`
+    - `oradba_extension.sh --debug list`
+
 - **API Reference Documentation** (2026-01-21)
   - Generated comprehensive API reference from 510 function headers
   - New script: `scripts/generate_api_docs.py` for automated documentation generation
