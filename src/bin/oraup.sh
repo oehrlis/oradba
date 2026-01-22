@@ -21,31 +21,39 @@ ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=../lib/oradba_common.sh
     source "${ORADBA_BASE}/lib/oradba_common.sh"
+    oradba_log DEBUG "oraup.sh: Sourced oradba_common.sh from ${ORADBA_BASE}/lib"
 fi
 
 # Source status library if available
 if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
     # shellcheck source=../lib/oradba_env_status.sh
     source "${ORADBA_BASE}/lib/oradba_env_status.sh"
+    oradba_log DEBUG "oraup.sh: Sourced oradba_env_status.sh"
 fi
 
 # Source registry API if available (Phase 1 - Bug #85 fix)
 if [[ -f "${ORADBA_BASE}/lib/oradba_registry.sh" ]]; then
     # shellcheck source=../lib/oradba_registry.sh
     source "${ORADBA_BASE}/lib/oradba_registry.sh"
+    oradba_log DEBUG "oraup.sh: Sourced oradba_registry.sh"
 fi
 
 # Load plugins if available
 if [[ -d "${ORADBA_BASE}/lib/plugins" ]]; then
+    oradba_log DEBUG "oraup.sh: Loading plugins from ${ORADBA_BASE}/lib/plugins"
     for plugin in "${ORADBA_BASE}/lib/plugins/"*.sh; do
         # shellcheck source=/dev/null
-        [[ -f "$plugin" ]] && [[ "$plugin" != */plugin_interface.sh ]] && source "$plugin"
+        if [[ -f "$plugin" ]] && [[ "$plugin" != */plugin_interface.sh ]]; then
+            source "$plugin"
+            oradba_log DEBUG "oraup.sh: Loaded plugin $(basename "$plugin")"
+        fi
     done
 fi
 
 # Get oratab file path using centralized function
 if type get_oratab_path &> /dev/null; then
     ORATAB_FILE=$(get_oratab_path)
+    oradba_log DEBUG "oraup.sh: Using oratab file: ${ORATAB_FILE}"
 else
     # Fallback if oradba_common.sh not sourced
     ORATAB_FILE="${ORATAB_FILE:-/etc/oratab}"
@@ -53,10 +61,12 @@ else
         for alt_oratab in "/var/opt/oracle/oratab" "${ORADBA_BASE}/etc/oratab" "${HOME}/.oratab"; do
             if [[ -f "$alt_oratab" ]]; then
                 ORATAB_FILE="$alt_oratab"
+                oradba_log DEBUG "oraup.sh: Found alternative oratab: ${ORATAB_FILE}"
                 break
             fi
         done
     fi
+    oradba_log DEBUG "oraup.sh: Using oratab file (fallback): ${ORATAB_FILE}"
 fi
 
 # ------------------------------------------------------------------------------
@@ -191,6 +201,8 @@ get_listener_status() {
 show_oracle_status_registry() {
     local -a installations=("$@")
     
+    oradba_log DEBUG "oraup.sh: show_oracle_status_registry called with ${#installations[@]} installations"
+    
     # Separate by type and source
     local -a database_sids=()      # Real SIDs from oratab (with flags)
     local -a database_homes=()     # Database homes from oracle_homes.conf or dummy entries
@@ -198,23 +210,30 @@ show_oracle_status_registry() {
     local -a other_homes=()
     
     for install in "${installations[@]}"; do
-        local ptype flags
+        local ptype flags name
         ptype=$(oradba_registry_get_field "$install" "type")
         flags=$(oradba_registry_get_field "$install" "flags")
+        name=$(oradba_registry_get_field "$install" "name")
+        
+        oradba_log DEBUG "oraup.sh: Processing installation: name=${name}, type=${ptype}, flags=${flags}"
         
         if [[ "$ptype" == "database" ]]; then
             # Distinguish between real SIDs and homes
             if [[ -n "$flags" && "$flags" != "D" ]]; then
                 # Real database SID from oratab (has flag Y or N)
                 database_sids+=("$install")
+                oradba_log DEBUG "oraup.sh: Classified as database SID: ${name}"
             else
                 # Database home from oracle_homes.conf (no flags) or dummy entry (flag D)
                 database_homes+=("$install")
+                oradba_log DEBUG "oraup.sh: Classified as database home: ${name}"
             fi
         elif [[ "$ptype" == "datasafe" ]]; then
             datasafe_homes+=("$install")
+            oradba_log DEBUG "oraup.sh: Classified as datasafe: ${name}"
         else
             other_homes+=("$install")
+            oradba_log DEBUG "oraup.sh: Classified as other home (${ptype}): ${name}"
         fi
     done
     
@@ -223,6 +242,8 @@ show_oracle_status_registry() {
     # =========================================================================
     # Show database homes from oracle_homes.conf, dummy entries, and other products
     local -a all_homes=("${database_homes[@]}" "${other_homes[@]}")
+    
+    oradba_log DEBUG "oraup.sh: Section 1 - Oracle Homes: ${#all_homes[@]} total homes"
     
     if [[ ${#all_homes[@]} -gt 0 ]]; then
         echo ""
@@ -300,7 +321,10 @@ show_oracle_status_registry() {
         has_database_listeners=true
     fi
     
+    oradba_log DEBUG "oraup.sh: Listener section check: total_databases=${total_databases}, has_database_listeners=${has_database_listeners}"
+    
     if [[ $total_databases -gt 0 ]] || [[ "$has_database_listeners" == "true" ]]; then
+        oradba_log DEBUG "oraup.sh: Displaying listener section"
         echo ""
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
@@ -386,6 +410,8 @@ show_oracle_status_registry() {
     # =========================================================================
     # SECTION 4: Data Safe Connectors
     # =========================================================================
+    oradba_log DEBUG "oraup.sh: Section 4 - Data Safe Connectors: ${#datasafe_homes[@]} connectors"
+    
     if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Data Safe Connectors"
@@ -493,6 +519,8 @@ main() {
     local verbose=false
     local quiet=false
 
+    oradba_log DEBUG "oraup.sh: Starting main function with $# arguments: $*"
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -518,9 +546,14 @@ main() {
 
     # Show status
     if [[ "$quiet" == "false" ]]; then
+        oradba_log DEBUG "oraup.sh: Calling show_oracle_status with verbose=${verbose}"
         show_oracle_status "$verbose"
+    else
+        oradba_log DEBUG "oraup.sh: Quiet mode - skipping status display"
     fi
 }
 
 # Run main function
+oradba_log DEBUG "oraup.sh: Script started, calling main with arguments: $*"
 main "$@"
+oradba_log DEBUG "oraup.sh: Script completed"

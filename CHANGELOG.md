@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Debug Logging in oraup.sh** (2026-01-22)
+  - Added comprehensive debug logging throughout oraup.sh for troubleshooting
+  - Debug messages track:
+    - Library and plugin loading
+    - Oratab file detection and selection
+    - Installation classification (database SID, database home, datasafe, other)
+    - Section display decisions (Oracle Homes, Databases, Listeners, DataSafe)
+    - Main function execution flow
+  - Enable with: `export ORADBA_DEBUG=true` or `export ORADBA_LOG_LEVEL=DEBUG`
+  - Example: `ORADBA_DEBUG=true oraup.sh` to see detailed execution trace
+  - Helps diagnose issues with Oracle Home detection, listener display, and plugin behavior
+
 ### Fixed
 
 - **Plugin Loader Variable Assignment Bug** (2026-01-22)
