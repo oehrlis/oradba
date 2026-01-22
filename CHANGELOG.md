@@ -24,6 +24,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Searchable function index with 510 functions and cross-references
   - Published to documentation site at `src/doc/api/`
 
+## [0.19.4] - 2026-01-22
+
+### Fixed
+
+- **AutoDiscovery and Environment Setup Issues on Clean Install** (2026-01-22, Critical Bug Fix)
+  - Fixed multiple autodiscovery issues that produced incorrect entries on clean installations
+  - **Issue 1: OUD Home False Positive**
+    - OUD plugin now only reports existing, validated homes
+    - Added check to skip non-existent base directories
+    - Prevents reporting of non-existent OUD installations
+  - **Issue 2: Incorrect "Dummy" Entry Handling**
+    - Installer now checks for existing Oracle products before adding dummy entry
+    - Dummy entry only added if explicitly requested OR no Oracle products found
+    - Searches common locations for oracle, sqlplus, cmctl, java binaries
+    - Prevents dummy entry when real Oracle products exist
+  - **Issue 3: Over-Discovery of Nested Installations**
+    - Java plugin now excludes JRE subdirectories within JDK installations
+    - iClient plugin excludes libraries inside DataSafe oracle_cman_home directories
+    - `detect_product_type()` function enhanced with nested installation checks
+    - Prevents duplicate entries for JRE inside JDK and iClient inside DataSafe
+  - **Issue 4: Naming Convention Improvements**
+    - Fixed DataSafe naming: `dsconn` → `dscon` (consistent with user feedback)
+    - Naming patterns now consistent: jdk8, jre8, dscon1, iclient19
+  - **Issue 5: User Guidance**
+    - Added note in autodiscovery output about customizing discovered entries
+    - Users informed they can edit `oradba_homes.conf` to change names, order, or descriptions
+  - Enhanced plugin detection in:
+    - `src/lib/plugins/oud_plugin.sh` - Validate homes exist before reporting
+    - `src/lib/plugins/java_plugin.sh` - Exclude nested JRE directories
+    - `src/lib/plugins/iclient_plugin.sh` - Exclude libraries in product homes
+    - `src/lib/oradba_common.sh` - Improved `detect_product_type()` logic
+    - `src/bin/oradba_install.sh` - Smart dummy entry logic
+  - Benefits:
+    - Accurate environment reporting on clean installs
+    - No false positive OUD entries
+    - No duplicate JRE/iClient entries
+    - Dummy entry only when truly needed
+    - Cleaner, more usable discovered names
+    - Clear user guidance on customization
+
 ## [0.19.3] - 2026-01-22
 
 ### Fixed
