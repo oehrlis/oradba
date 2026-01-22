@@ -22,6 +22,7 @@ set -e
 # Variables
 INSTALLER_VERSION="__VERSION__"
 TEMP_DIR=""
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"  # Debug mode (can be set via env or --debug flag)
 
 # Colors for output
 RED='\033[0;31m'
@@ -42,6 +43,7 @@ NC='\033[0m' # No Color
 determine_default_prefix() {
     # Priority 1: ORACLE_BASE is set
     if [[ -n "${ORACLE_BASE}" ]]; then
+        [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] oradba_install.sh: Using ORACLE_BASE: ${ORACLE_BASE}/local/oradba" >&2
         echo "${ORACLE_BASE}/local/oradba"
         return 0
     fi
@@ -161,6 +163,20 @@ log_warn() {
 # ------------------------------------------------------------------------------
 log_error() {
     echo -e "${RED}[ERROR]${NC} $*" >&2
+}
+
+# ------------------------------------------------------------------------------
+# Function: log_debug
+# Purpose.: Display debug message with [DEBUG] prefix when debug mode is enabled
+# Args....: $* - Message text
+# Returns.: 0
+# Output..: Debug message to stderr (only if ORADBA_DEBUG=true)
+# Notes...: Enable via ORADBA_DEBUG=true or --debug flag
+# ------------------------------------------------------------------------------
+log_debug() {
+    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+        echo -e "[DEBUG] $*" >&2
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -335,6 +351,7 @@ Other Options:
   --force             Force update even if same version
   --update-profile    Update shell profile for automatic environment loading
   --no-update-profile Don't update shell profile (default: prompt user)
+  --debug             Enable debug logging (shows detailed operation steps)
   -h, --help          Display this help message
   -v, --show-version  Display installer version information
 
@@ -951,6 +968,11 @@ while [[ $# -gt 0 ]]; do
             UPDATE_PROFILE="no" # Silent mode implies no profile update prompts
             shift
             ;;
+        --debug)
+            ORADBA_DEBUG="true"
+            log_debug "oradba_install.sh: Debug mode enabled via --debug flag"
+            shift
+            ;;
         -h | --help)
             usage
             ;;
@@ -964,6 +986,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+log_debug "oradba_install.sh: CLI parsing complete"
+log_debug "oradba_install.sh: INSTALL_MODE=${INSTALL_MODE}, UPDATE_MODE=${UPDATE_MODE}"
+log_debug "oradba_install.sh: USER_PREFIX=${USER_PREFIX}, ORACLE_BASE_ARG=${ORACLE_BASE_ARG}, USER_LEVEL=${USER_LEVEL}"
+log_debug "oradba_install.sh: GITHUB_VERSION=${GITHUB_VERSION}, LOCAL_TARBALL=${LOCAL_TARBALL}"
 
 # Validate arguments (before checking prefix requirements)
 if [[ "$INSTALL_MODE" == "local" ]] && [[ -z "$LOCAL_TARBALL" ]]; then

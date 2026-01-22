@@ -69,10 +69,12 @@ Validate OraDBA installation and configuration.
 OPTIONS:
     -h, --help      Display this help message
     -v, --verbose   Verbose output (show all tests)
+    --debug         Enable debug logging (ORADBA_DEBUG=true)
     
 EXAMPLES:
     ${0##*/}                 # Run validation
     ${0##*/} --verbose       # Run with detailed output
+    ${0##*/} --debug         # Run with debug logging
 
 EOF
     exit 0
@@ -88,12 +90,20 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        --debug)
+            export ORADBA_DEBUG="true"
+            export ORADBA_LOG_LEVEL="DEBUG"
+            oradba_log DEBUG "oradba_validate.sh: Debug mode enabled via --debug flag"
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             usage
             ;;
     esac
 done
+
+oradba_log DEBUG "oradba_validate.sh: Starting validation with VERBOSE=${VERBOSE}"
 
 # ------------------------------------------------------------------------------
 # Function: test_item
@@ -111,12 +121,16 @@ test_item() {
     local test_command="$2"
     local test_type="${3:-required}" # required|optional
 
+    oradba_log DEBUG "oradba_validate.sh: Running test '${test_name}' (type=${test_type})"
+    oradba_log DEBUG "oradba_validate.sh: Test command: ${test_command}"
+
     TOTAL=$((TOTAL + 1))
 
     if eval "${test_command}" > /dev/null 2>&1; then
         if [[ "${VERBOSE}" == "true" ]]; then
             echo -e "${GREEN}✓${NC} ${test_name}"
         fi
+        oradba_log DEBUG "oradba_validate.sh: Test PASSED: ${test_name}"
         PASSED=$((PASSED + 1))
         return 0
     else
@@ -124,9 +138,11 @@ test_item() {
             if [[ "${VERBOSE}" == "true" ]]; then
                 echo -e "${YELLOW}⚠${NC} ${test_name} (optional)"
             fi
+            oradba_log DEBUG "oradba_validate.sh: Test WARNING (optional): ${test_name}"
             WARNINGS=$((WARNINGS + 1))
         else
             echo -e "${RED}✗${NC} ${test_name}"
+            oradba_log DEBUG "oradba_validate.sh: Test FAILED: ${test_name}"
             FAILED=$((FAILED + 1))
         fi
         return 1
