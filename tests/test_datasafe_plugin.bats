@@ -327,25 +327,87 @@ SETUP_PY
     [ "$output" = "stopped" ]
 }
 
-@test "datasafe plugin uses correct cmctl show status command" {
+@test "datasafe plugin uses correct cmctl show services command" {
     # Create mock DataSafe home
     local ds_home="${TEST_DIR}/test_homes/datasafe_cmctl_test"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora with instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
     
     # Create mock cmctl that verifies correct command
     cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
 #!/usr/bin/env bash
-# Verify we receive "show status" not just "status"
-if [[ "$1" == "show" ]] && [[ "$2" == "status" ]]; then
-    echo "CMAN Status: READY"
+# Verify we receive "show services -c <instance>" not "show status"
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]] && [[ -n "$4" ]]; then
+    echo "Services Summary..."
+    echo "Instance: $4"
+    echo "READY"
     exit 0
-elif [[ "$1" == "status" ]] && [[ "$2" != "show" ]]; then
-    echo "NL-00853: undefined command \"status\""
+elif [[ "$1" == "show" ]] && [[ "$2" == "status" ]]; then
+    echo "NL-00853: undefined command - use 'show services -c <instance>'"
     exit 1
 else
     exit 1
 fi
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin parses instance name from cman.ora" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_cman_ora_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with custom instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+# Comment line
+  my_custom_instance = (configuration=(address=(protocol=tcp)))
+CMAN_ORA
+    
+    # Create mock cmctl that echoes the instance name it receives
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    echo "Instance: $4"
+    echo "Services Summary..."
+    exit 0
+fi
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin uses default instance name when cman.ora missing" {
+    # Create mock DataSafe home without cman.ora
+    local ds_home="${TEST_DIR}/test_homes/datasafe_no_cman_ora"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cmctl that verifies default instance name "cust_cman"
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]] && [[ "$4" == "cust_cman" ]]; then
+    echo "Services Summary for cust_cman"
+    exit 0
+fi
+exit 1
 CMCTL_MOCK
     chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
     

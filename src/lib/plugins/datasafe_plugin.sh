@@ -109,9 +109,9 @@ plugin_adjust_environment() {
 # Returns.: 0 if running, 1 if stopped, 2 if unavailable
 # Output..: Status string (running|stopped|unavailable)
 # Notes...: Multi-layered detection with fallback:
-#           1. Process-based detection (most reliable)
-#           2. Python setup.py (proven working)
-#           3. Fixed cmctl command (show status, not status)
+#           1. cmctl show services -c <instance> (most accurate)
+#           2. Process-based detection (reliable fallback)
+#           3. Python setup.py (last resort)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local base_path="$1"
@@ -121,7 +121,40 @@ plugin_check_status() {
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
     
-    # Primary Method: Process-based detection (most reliable)
+    # Primary Method: cmctl show services command (most accurate)
+    local cmctl="${cman_home}/bin/cmctl"
+    if [[ -x "${cmctl}" ]]; then
+        # Extract instance name from cman.ora
+        local instance_name="cust_cman"  # Default for DataSafe
+        local cman_conf="${cman_home}/network/admin/cman.ora"
+        
+        if [[ -f "${cman_conf}" ]]; then
+            # Extract first non-comment line with = sign (instance name)
+            local extracted_name
+            extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+            [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
+        fi
+        
+        # Use correct command: "show services -c <instance_name>"
+        local status
+        status=$(ORACLE_HOME="${cman_home}" \
+                 LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                 "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
+        
+        # Check for service information in output
+        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|running"; then
+            echo "running"
+            return 0
+        fi
+        
+        # Check for explicit stopped/not running messages
+        if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
+            echo "stopped"
+            return 1
+        fi
+    fi
+    
+    # Secondary Method: Process-based detection (reliable fallback)
     # Check for running cmadmin or cmgw processes
     if ps -ef 2>/dev/null | grep -q "[c]madmin.*${base_path}"; then
         echo "running"
@@ -133,7 +166,7 @@ plugin_check_status() {
         return 0
     fi
     
-    # Secondary Method: Python setup.py (proven working)
+    # Tertiary Method: Python setup.py (last resort)
     if [[ -f "${base_path}/setup.py" ]]; then
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
             echo "running"
@@ -142,27 +175,6 @@ plugin_check_status() {
         
         # Check for stopped status
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
-            echo "stopped"
-            return 1
-        fi
-    fi
-    
-    # Tertiary Method: Fixed cmctl command
-    local cmctl="${cman_home}/bin/cmctl"
-    if [[ -x "${cmctl}" ]]; then
-        # Use correct command: "show status" not "status"
-        local status
-        status=$(ORACLE_HOME="${cman_home}" \
-                 LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                 "${cmctl}" show status 2>/dev/null)
-        
-        if echo "${status}" | grep -qiE "READY|started"; then
-            echo "running"
-            return 0
-        fi
-        
-        # If cmctl responded but not ready, it's stopped
-        if [[ -n "${status}" ]]; then
             echo "stopped"
             return 1
         fi
