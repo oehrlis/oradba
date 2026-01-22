@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.19.5] - 2026-01-22
+
+### Added
+
 - **Debug Logging in oraup.sh** (2026-01-22)
   - Added comprehensive debug logging throughout oraup.sh for troubleshooting
   - Debug messages track:
