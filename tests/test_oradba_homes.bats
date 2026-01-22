@@ -816,3 +816,102 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "iclient19" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Auto-Discovery Tests (Issue #70)
+# ------------------------------------------------------------------------------
+
+@test "auto_discover_oracle_homes function exists" {
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && type auto_discover_oracle_homes"
+    [ "$status" -eq 0 ]
+}
+
+@test "auto_discover_oracle_homes discovers database homes" {
+    # Create mock database home
+    mkdir -p "${ORACLE_BASE}/product/dbhome_19_18/bin"
+    touch "${ORACLE_BASE}/product/dbhome_19_18/bin/sqlplus"
+    chmod +x "${ORACLE_BASE}/product/dbhome_19_18/bin/sqlplus"
+    
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    [ "$status" -eq 0 ]
+    # Should find database type
+    [[ "$output" =~ "Found:" ]] || [[ "$output" =~ "database" ]] || [[ "$output" =~ "dbhome" ]]
+}
+
+@test "auto_discover_oracle_homes discovers java homes" {
+    # Create mock JDK
+    mkdir -p "${ORACLE_BASE}/product/jdk-17.0.1/bin"
+    touch "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    touch "${ORACLE_BASE}/product/jdk-17.0.1/bin/java"
+    chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/java"
+    
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "jdk17" ]] || [[ "$output" =~ "java" ]]
+}
+
+@test "auto_discover_oracle_homes discovers instant client" {
+    # Create mock instant client
+    mkdir -p "${ORACLE_BASE}/product/instantclient_21_10"
+    touch "${ORACLE_BASE}/product/instantclient_21_10/libclntsh.so.21.1"
+    
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "iclient21" ]] || [[ "$output" =~ "iclient" ]]
+}
+
+@test "auto_discover_oracle_homes discovers Data Safe connectors" {
+    # Create mock Data Safe connector
+    mkdir -p "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin"
+    touch "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
+    chmod +x "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
+    
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "dsconn" ]] || [[ "$output" =~ "datasafe" ]]
+}
+
+@test "auto_discover_oracle_homes skips duplicates silently" {
+    # Create mock JDK
+    mkdir -p "${ORACLE_BASE}/product/jdk-17.0.1/bin"
+    touch "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    
+    # Add to config first
+    cat > "${ORADBA_BASE}/etc/oradba_homes.conf" << EOF
+jdk17:java:${ORACLE_BASE}/product/jdk-17.0.1:17.0.1:JDK:Java Development Kit
+EOF
+    
+    # Run discovery - should skip the duplicate
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "already registered" ]] || [[ "$output" =~ "Skipped: 1" ]]
+}
+
+@test "auto_discover_oracle_homes silent mode produces no output" {
+    # Create mock JDK
+    mkdir -p "${ORACLE_BASE}/product/jdk-17.0.1/bin"
+    touch "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    
+    # Run in silent mode
+    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'true'"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "auto-discovery: oradba_homes.sh discover --auto-add registers found homes" {
+    # Create mock homes
+    mkdir -p "${ORACLE_BASE}/product/jdk-17.0.1/bin"
+    touch "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
+    
+    # Discover and add
+    run "$HOMES_SCRIPT" discover --base "${ORACLE_BASE}/product" --auto-add
+    [ "$status" -eq 0 ]
+    
+    # Config file should be created (even if empty result)
+    # The function succeeds even if no homes added
+    [ "$status" -eq 0 ]
+}

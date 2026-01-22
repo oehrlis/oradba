@@ -539,7 +539,64 @@ vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 ## Common Configuration Scenarios
 
-### Scenario 1: Custom Oracle Base
+### Scenario 1: Enable Oracle Homes Auto-Discovery (v0.19.2+)
+
+**Problem:** You want OraDBA to automatically discover and register Oracle installations
+
+**Solution:** Enable auto-discovery in `oradba_customer.conf`:
+
+```bash
+# oradba_customer.conf
+
+# Enable auto-discovery on environment load
+export ORADBA_AUTO_DISCOVER_HOMES="true"
+
+# Customize discovery paths (optional, default: ${ORACLE_BASE}/product)
+export ORADBA_DISCOVERY_PATHS="${ORACLE_BASE}/product /opt/oracle /u01/oracle"
+```
+
+**How It Works:**
+
+- Scans configured paths (up to 3 levels deep) for Oracle installations
+- Detects all product types: database, client, instant client, Data Safe, OUD, Java, WebLogic
+- Generates smart names based on product type and version (jdk17, iclient2610, dsconn01, etc.)
+- Silently skips already registered homes (no duplicates)
+- Adds discovered homes to `${ORADBA_PREFIX}/etc/oradba_homes.conf`
+
+**Manual Discovery:**
+
+```bash
+# Discover and display found homes (dry run)
+oradba_homes.sh discover
+
+# Discover and automatically add to configuration
+oradba_homes.sh discover --auto-add
+
+# Discover from custom path
+oradba_homes.sh discover --base /u01/oracle --auto-add
+```
+
+**Example Output:**
+
+```bash
+Found Oracle Homes:
+  jdk17     : /u01/app/oracle/product/jdk-17.0.1
+  iclient26 : /u01/app/oracle/product/instantclient_26_10
+  dsconn01  : /u01/app/oracle/product/exacc-test-ha1
+  rdbms1918 : /u01/app/oracle/product/dbhome_19_18
+
+Use --auto-add to register these homes.
+```
+
+**Benefits:**
+
+- Automatic registration of all Oracle products
+- Consistent naming across installations
+- Opt-in feature (backward compatible)
+- Silent mode for non-interactive use
+- Single source of truth for discovery logic
+
+### Scenario 2: Custom Oracle Base
 
 **Problem:** Your Oracle base is not `/u01/app/oracle`
 

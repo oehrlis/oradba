@@ -208,6 +208,12 @@ else
 fi
 
 test_item "oradba_common.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_common.sh' ]]"
+
+# Check for auto-discovery function (v0.19.2+)
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    test_item "auto_discover_oracle_homes function exists" "grep -q 'auto_discover_oracle_homes()' '${ORADBA_BASE}/lib/oradba_common.sh'"
+fi
+
 test_item "oradba_aliases.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_aliases.sh' ]]"
 test_item "oradba_db_functions.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_db_functions.sh' ]]" "optional"
 test_item "extensions.sh exists" "[[ -f '${ORADBA_BASE}/lib/extensions.sh' ]]" "optional"
@@ -256,6 +262,11 @@ fi
 # Core required configs (Phase 1-3)
 test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf' ]]"
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
+
+# Check for auto-discovery configuration variables (v0.19.2+)
+test_item "ORADBA_AUTO_DISCOVER_HOMES defined in oradba_standard.conf" "grep -q 'ORADBA_AUTO_DISCOVER_HOMES' '${ORADBA_BASE}/etc/oradba_standard.conf'"
+test_item "ORADBA_DISCOVERY_PATHS defined in oradba_standard.conf" "grep -q 'ORADBA_DISCOVERY_PATHS' '${ORADBA_BASE}/etc/oradba_standard.conf'"
+
 test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.conf' ]]"
 
 # Optional user configs (Phase 1-3)

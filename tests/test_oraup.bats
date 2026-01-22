@@ -145,3 +145,36 @@ setup() {
     # Verify that show_oracle_status_registry handles display logic
     grep -q "show_oracle_status_registry" "${ORAUP_SCRIPT}"
 }
+
+# ------------------------------------------------------------------------------
+# Display Logic Tests (Issue #99)
+# ------------------------------------------------------------------------------
+
+@test "oraup.sh skips dummy entries in Oracle Homes section" {
+    # Verify that oraup.sh checks for flag 'D' and skips dummy entries
+    grep -q 'flags.*==.*"D"' "${ORAUP_SCRIPT}" && \
+    grep -A 2 'flags.*==.*"D"' "${ORAUP_SCRIPT}" | grep -q "continue"
+}
+
+@test "oraup.sh has listener section visibility logic" {
+    # Verify that listener section checks for database SIDs or running listeners
+    grep -q "total_databases" "${ORAUP_SCRIPT}" && \
+    grep -q "has_database_listeners" "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh uses oradba_check_datasafe_status for Data Safe" {
+    # Verify that Data Safe status uses plugin function
+    grep -q "oradba_check_datasafe_status" "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh does not hardcode Data Safe status" {
+    # Verify that status is retrieved dynamically, not hardcoded to N/A
+    ! grep -E 'status=.*"N/A".*datasafe' "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh listener section checks database existence" {
+    # Verify logic: listener section shown only if databases exist or listeners running
+    # Check that the code has conditional logic for showing listener section
+    grep -q "total_databases\|has_database_listeners\|show.*listener" "${ORAUP_SCRIPT}"
+}
+
