@@ -1334,10 +1334,18 @@ detect_product_type() {
     [[ -z "${oracle_home}" ]] && echo "unknown" && return 1
     [[ ! -d "${oracle_home}" ]] && echo "unknown" && return 1
 
-    # Check for Java/JDK installations
+    # Check for Java/JDK installations (standalone, not embedded in DB/client)
     if [[ -x "${oracle_home}/bin/java" ]]; then
         # Check if it's ONLY Java (not a database or client with Java embedded)
         if [[ ! -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -f "${oracle_home}/bin/oracle" ]]; then
+            # Additional check: if this is jre subdirectory inside a JDK, skip it
+            local parent_dir
+            parent_dir=$(dirname "${oracle_home}")
+            if [[ "$(basename "${oracle_home}")" == "jre" ]] && [[ -x "${parent_dir}/bin/javac" ]]; then
+                # This is jre inside a JDK, don't detect as standalone Java
+                echo "unknown"
+                return 1
+            fi
             echo "java"
             return 0
         fi
@@ -1367,8 +1375,27 @@ detect_product_type() {
         return 0
     fi
 
+    # Check for Data Safe On-Premises Connector (check BEFORE Instant Client)
+    # Data Safe has oracle_cman_home subdirectory with cmctl binary
+    if [[ -d "${oracle_home}/oracle_cman_home" ]] && [[ -x "${oracle_home}/oracle_cman_home/bin/cmctl" ]]; then
+        echo "datasafe"
+        return 0
+    fi
+    # Alternative check: connector.conf and setup.py files
+    if [[ -f "${oracle_home}/connector.conf" ]] && [[ -f "${oracle_home}/setup.py" ]]; then
+        echo "datasafe"
+        return 0
+    fi
+
     # Check for Instant Client (libraries without bin directory)
     # Instant Client has libclntsh in root or lib directories
+    # IMPORTANT: Exclude if inside DataSafe oracle_cman_home or other product homes
+    if [[ "${oracle_home}" =~ /oracle_cman_home/ ]]; then
+        # This is inside DataSafe, not a standalone Instant Client
+        echo "unknown"
+        return 1
+    fi
+    
     if [[ -f "${oracle_home}/libclntsh.so" ]] || [[ -f "${oracle_home}/libclntsh.dylib" ]]; then
         echo "iclient"
         return 0
@@ -1398,18 +1425,6 @@ detect_product_type() {
     # Check for Oracle Client
     if [[ -f "${oracle_home}/bin/sqlplus" ]] && [[ ! -f "${oracle_home}/bin/oracle" ]]; then
         echo "client"
-        return 0
-    fi
-
-    # Check for Data Safe On-Premises Connector
-    # Data Safe has oracle_cman_home subdirectory with cmctl binary
-    if [[ -d "${oracle_home}/oracle_cman_home" ]] && [[ -x "${oracle_home}/oracle_cman_home/bin/cmctl" ]]; then
-        echo "datasafe"
-        return 0
-    fi
-    # Alternative check: connector.conf and setup.py files
-    if [[ -f "${oracle_home}/connector.conf" ]] && [[ -f "${oracle_home}/setup.py" ]]; then
-        echo "datasafe"
         return 0
     fi
 
@@ -2601,9 +2616,9 @@ auto_discover_oracle_homes() {
                     fi
                     ;;
                 datasafe)
-                    # DataSafe connectors: normalize to dsconnNN
+                    # DataSafe connectors: normalize to dsconNN
                     if [[ "${dir_name}" =~ ([Dd][Ss]|[Cc][Mm][Aa][Nn]|[Cc]onnector)[-_]?([0-9]+) ]]; then
-                        home_name="dsconn${BASH_REMATCH[2]}"
+                        home_name="dscon${BASH_REMATCH[2]}"
                     else
                         home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
                     fi
@@ -2693,6 +2708,11 @@ auto_discover_oracle_homes() {
         echo "  Skipped: ${skipped_count} already registered"
         echo "  Added:   ${added_count} new Oracle Home(s)"
         echo ""
+        if [[ ${added_count} -gt 0 ]]; then
+            echo "Note: Discovered entries can be customized in ${config_file}"
+            echo "      You can edit the file to change names, order, or descriptions."
+            echo ""
+        fi
     }
     
     # Log summary

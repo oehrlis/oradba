@@ -26,34 +26,70 @@ export plugin_description="Oracle Instant Client plugin"
 # Purpose.: Auto-detect Oracle Instant Client installations
 # Returns.: 0 on success
 # Output..: List of instant client paths
+# Notes...: Excludes libraries found inside other Oracle product homes
+#           (e.g., DataSafe oracle_cman_home/lib, Database homes)
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     local -a homes=()
     
     # Check common installation directories
     for base_dir in /usr/lib/oracle /opt/oracle /usr/local/oracle; do
-        if [[ -d "$base_dir" ]]; then
-            while IFS= read -r -d '' ic_dir; do
-                if plugin_validate_home "$ic_dir"; then
-                    homes+=("$ic_dir")
+        # Skip if base directory doesn't exist
+        [[ ! -d "$base_dir" ]] && continue
+        
+        while IFS= read -r -d '' ic_dir; do
+            # Validate it's a true Instant Client installation
+            if plugin_validate_home "$ic_dir"; then
+                # Additional check: exclude if inside another product home
+                # Check for DataSafe (oracle_cman_home parent)
+                if [[ "$ic_dir" =~ /oracle_cman_home/ ]]; then
+                    continue
                 fi
-            done < <(find "$base_dir" -maxdepth 3 -type f -name "libclntsh.so*" -print0 2>/dev/null | \
-                     xargs -0 dirname | sort -u)
-        fi
+                
+                # Check for Database home (has bin/oracle or rdbms/)
+                local parent_dir
+                parent_dir=$(dirname "$ic_dir")
+                if [[ -f "${parent_dir}/bin/oracle" ]] || [[ -d "${parent_dir}/rdbms" ]]; then
+                    continue
+                fi
+                
+                # Check for full client (has bin/sqlplus but not oracle)
+                if [[ -f "${parent_dir}/bin/sqlplus" ]]; then
+                    continue
+                fi
+                
+                homes+=("$ic_dir")
+            fi
+        done < <(find "$base_dir" -maxdepth 3 -type f -name "libclntsh.so*" -print0 2>/dev/null | \
+                 xargs -0 dirname 2>/dev/null | sort -u)
     done
     
-    # Also check LD_LIBRARY_PATH
+    # Also check LD_LIBRARY_PATH for standalone Instant Clients
     if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
         IFS=: read -ra lib_paths <<< "$LD_LIBRARY_PATH"
         for lib_path in "${lib_paths[@]}"; do
             if [[ -d "$lib_path" ]] && plugin_validate_home "$lib_path"; then
+                # Exclude if inside another product home
+                if [[ "$lib_path" =~ /oracle_cman_home/ ]]; then
+                    continue
+                fi
+                
+                local parent_dir
+                parent_dir=$(dirname "$lib_path")
+                if [[ -f "${parent_dir}/bin/oracle" ]] || [[ -d "${parent_dir}/rdbms" ]] || [[ -f "${parent_dir}/bin/sqlplus" ]]; then
+                    continue
+                fi
+                
                 homes+=("$lib_path")
             fi
         done
     fi
     
     # Deduplicate and print
-    printf '%s\n' "${homes[@]}" | sort -u
+    if [[ ${#homes[@]} -gt 0 ]]; then
+        printf '%s\n' "${homes[@]}" | sort -u
+    fi
+    
     return 0
 }
 
