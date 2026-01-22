@@ -229,55 +229,70 @@ teardown() {
 }
 
 @test "datasafe plugin detects running connector via cmadmin process" {
-    # Create mock DataSafe home
+    # Create mock DataSafe home WITHOUT cmctl (so it falls back to process detection)
     local ds_home="${TEST_DIR}/test_homes/datasafe_proc_test"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create a non-executable cmctl or don't create it at all - ensures fallback to process check
+    # We'll just not create cmctl, so it's not executable
     
     # Mock ps command to simulate running cmadmin process
-    # Create a wrapper script that returns process info
-    cat > "${TEST_DIR}/mock_ps" <<'MOCK_PS_SCRIPT'
+    # Use absolute path that matches the base_path pattern
+    cat > "${TEST_DIR}/ps" <<MOCK_PS_SCRIPT
 #!/usr/bin/env bash
-echo "oracle 12345 /test/datasafe_proc_test/oracle_cman_home/bin/cmadmin"
+# Check if we're looking for -ef
+if [[ "\$1" == "-ef" ]]; then
+    echo "oracle 12345 ${ds_home}/oracle_cman_home/bin/cmadmin cust_cman"
+fi
 MOCK_PS_SCRIPT
-    chmod +x "${TEST_DIR}/mock_ps"
+    chmod +x "${TEST_DIR}/ps"
     
     # Temporarily override PATH to use our mock ps
+    local OLD_PATH="${PATH}"
     export PATH="${TEST_DIR}:${PATH}"
     
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     
     # Restore PATH
-    export PATH="${PATH#${TEST_DIR}:}"
+    export PATH="${OLD_PATH}"
+    rm -f "${TEST_DIR}/ps"
     
     [ "$status" -eq 0 ]
     [ "$output" = "running" ]
 }
 
 @test "datasafe plugin detects running connector via cmgw process" {
-    # Create mock DataSafe home
+    # Create mock DataSafe home WITHOUT cmctl (so it falls back to process detection)
     local ds_home="${TEST_DIR}/test_homes/datasafe_cmgw_test"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Don't create cmctl - ensures fallback to process check
     
     # Mock ps command to simulate running cmgw process
-    cat > "${TEST_DIR}/mock_ps_cmgw" <<'MOCK_PS_SCRIPT'
+    cat > "${TEST_DIR}/ps" <<MOCK_PS_SCRIPT
 #!/usr/bin/env bash
-echo "oracle 12346 /test/datasafe_cmgw_test/oracle_cman_home/bin/cmgw"
+# Check if we're looking for -ef
+if [[ "\$1" == "-ef" ]]; then
+    echo "oracle 12346 ${ds_home}/oracle_cman_home/bin/cmgw cmgw0"
+fi
 MOCK_PS_SCRIPT
-    chmod +x "${TEST_DIR}/mock_ps_cmgw"
+    chmod +x "${TEST_DIR}/ps"
     
-    # Create wrapper that uses our mock
-    mv "${TEST_DIR}/mock_ps_cmgw" "${TEST_DIR}/ps"
+    # Temporarily override PATH to use our mock ps
+    local OLD_PATH="${PATH}"
     export PATH="${TEST_DIR}:${PATH}"
     
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     
     # Cleanup
+    export PATH="${OLD_PATH}"
     rm -f "${TEST_DIR}/ps"
-    export PATH="${PATH#${TEST_DIR}:}"
     
     [ "$status" -eq 0 ]
     [ "$output" = "running" ]

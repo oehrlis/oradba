@@ -2769,22 +2769,21 @@ oradba_apply_oracle_plugin() {
     fi
     
     # Execute plugin function
-    local result
+    local plugin_result
     if [[ -n "${extra_arg}" ]]; then
-        result=$("${plugin_function}" "${oracle_home}" "${extra_arg}" 2>/dev/null)
+        plugin_result=$("${plugin_function}" "${oracle_home}" "${extra_arg}" 2>/dev/null)
     else
-        result=$("${plugin_function}" "${oracle_home}" 2>/dev/null)
+        plugin_result=$("${plugin_function}" "${oracle_home}" 2>/dev/null)
     fi
     local exit_code=$?
     
     # Store result if variable name provided
     if [[ -n "${result_var}" ]]; then
-        # Use printf %s to handle special characters safely
-        # shellcheck disable=SC2229
-        printf -v "${result_var}" '%s' "${result}"
+        # Use eval to assign to the variable name
+        eval "${result_var}=\"\${plugin_result}\""
     else
         # Output result to stdout if no variable
-        echo "${result}"
+        echo "${plugin_result}"
     fi
     
     return ${exit_code}

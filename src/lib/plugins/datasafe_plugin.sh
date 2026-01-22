@@ -156,12 +156,12 @@ plugin_check_status() {
     
     # Secondary Method: Process-based detection (reliable fallback)
     # Check for running cmadmin or cmgw processes
-    if ps -ef 2>/dev/null | grep -q "[c]madmin.*${base_path}"; then
+    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
         echo "running"
         return 0
     fi
     
-    if ps -ef 2>/dev/null | grep -q "[c]mgw.*${base_path}"; then
+    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
         echo "running"
         return 0
     fi
