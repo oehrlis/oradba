@@ -150,6 +150,7 @@ def cleanup_broken_links(docs_dir: Path) -> None:
         r'\[([^\]]+)\]\(releases/[^\)]*\)',      # releases/
         r'\[([^\]]+)\]\(etc/\)',                 # etc/
         r'\[([^\]]+)\]\(\.\./datasafe/\)',       # ../datasafe/ (extension subdirectory)
+        r'\[([^\]]+)\]\((?:\.\./)*\.github/[^\)]+\)',  # .github/ directory (any ../prefix)
     ]
     
     files_cleaned = 0
