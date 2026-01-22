@@ -169,7 +169,8 @@ oradba_check_process_running() {
 # Args....: $1 - ORACLE_HOME (DataSafe connector path)
 # Returns.: 0 if running, 1 if not running
 # Output..: Status string (RUNNING|STOPPED|UNKNOWN)
-# Notes...: Uses direct cmctl command (faster than Python setup.py)
+# Notes...: Uses datasafe plugin for status detection
+#           Converts plugin output to uppercase format
 # ------------------------------------------------------------------------------
 oradba_check_datasafe_status() {
     local oracle_home="$1"
@@ -182,11 +183,29 @@ oradba_check_datasafe_status() {
     # Use datasafe plugin for status check
     local status_result=""
     if oradba_apply_oracle_plugin "check_status" "datasafe" "${oracle_home}" "" "status_result" 2>/dev/null; then
-        echo "${status_result}"
-        return 0
+        # Convert plugin output (running/stopped/unavailable) to uppercase
+        case "${status_result,,}" in
+            running) 
+                echo "RUNNING"
+                return 0
+                ;;
+            stopped) 
+                echo "STOPPED"
+                return 1
+                ;;
+            unavailable)
+                echo "UNKNOWN"
+                return 1
+                ;;
+            *)
+                echo "UNKNOWN"
+                return 1
+                ;;
+        esac
     fi
     
-    # Plugin not found or failed
+    # Plugin not found or failed - log debug info
+    oradba_log DEBUG "Plugin status check failed for DataSafe: ${oracle_home}"
     echo "UNKNOWN"
     return 1
 }

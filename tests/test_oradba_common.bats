@@ -601,3 +601,53 @@ DB3:/opt/oracle/product/23ai:N"
     [ "$status" -eq 1 ]
     [ "$output" = "unknown" ]
 }
+
+# ------------------------------------------------------------------------------
+# oradba_apply_oracle_plugin Tests
+# ------------------------------------------------------------------------------
+
+@test "oradba_apply_oracle_plugin function exists" {
+    type -t oradba_apply_oracle_plugin | grep -q "function"
+}
+
+@test "oradba_apply_oracle_plugin fails with missing arguments" {
+    run oradba_apply_oracle_plugin
+    [ "$status" -eq 1 ]
+}
+
+@test "oradba_apply_oracle_plugin fails for non-existent plugin" {
+    run oradba_apply_oracle_plugin "check_status" "nonexistent" "/some/path"
+    [ "$status" -eq 1 ]
+}
+
+@test "oradba_apply_oracle_plugin loads and executes datasafe plugin" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_TEMP_DIR}/datasafe_plugin_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    touch "${ds_home}/oracle_cman_home/bin/cmctl"
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    # Test loading and executing plugin
+    run oradba_apply_oracle_plugin "validate_home" "datasafe" "${ds_home}"
+    [ "$status" -eq 0 ]
+}
+
+@test "oradba_apply_oracle_plugin stores result in variable" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_TEMP_DIR}/datasafe_var_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Test storing result in variable
+    local result=""
+    oradba_apply_oracle_plugin "adjust_environment" "datasafe" "${ds_home}" "" "result"
+    [[ "${result}" == *"oracle_cman_home"* ]]
+}
+
+@test "oradba_apply_oracle_plugin handles plugin function failure" {
+    # Test with invalid path - validate_home should fail
+    local result=""
+    run oradba_apply_oracle_plugin "validate_home" "datasafe" "/nonexistent/path" "" "result"
+    [ "$status" -ne 0 ]
+}

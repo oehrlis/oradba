@@ -33,6 +33,7 @@ plugin_detect_installation() {
     local -a homes=()
     
     # Check running cmctl processes
+    # shellcheck disable=SC2009
     while read -r cmctl_line; do
         local pid
         pid=$(echo "${cmctl_line}" | awk '{print $2}')
@@ -107,8 +108,11 @@ plugin_adjust_environment() {
 # Args....: $1 - Base path or oracle_cman_home path
 #           $2 - Connector name (optional)
 # Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string
-# Notes...: Uses EXPLICIT environment (fixes Bug #83)
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Multi-layered detection with fallback:
+#           1. cmctl show services -c <instance> (most accurate)
+#           2. Process-based detection (reliable fallback)
+#           3. Python setup.py (last resort)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local base_path="$1"
@@ -118,26 +122,76 @@ plugin_check_status() {
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
     
-    # Check cmctl exists
+    # Primary Method: cmctl show services command (most accurate)
     local cmctl="${cman_home}/bin/cmctl"
+    if [[ -x "${cmctl}" ]]; then
+        # Extract instance name from cman.ora
+        local instance_name="cust_cman"  # Default for DataSafe
+        local cman_conf="${cman_home}/network/admin/cman.ora"
+        
+        if [[ -f "${cman_conf}" ]]; then
+            # Extract first non-comment line with = sign (instance name)
+            local extracted_name
+            extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+            [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
+        fi
+        
+        # Use correct command: "show services -c <instance_name>"
+        local status
+        status=$(ORACLE_HOME="${cman_home}" \
+                 LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                 "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
+        
+        # Check for service information in output
+        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|running"; then
+            echo "running"
+            return 0
+        fi
+        
+        # Check for explicit stopped/not running messages
+        if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
+            echo "stopped"
+            return 1
+        fi
+    fi
+    
+    # Secondary Method: Process-based detection (reliable fallback)
+    # Check for running cmadmin or cmgw processes
+    # shellcheck disable=SC2009
+    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
+        echo "running"
+        return 0
+    fi
+    
+    # shellcheck disable=SC2009
+    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
+        echo "running"
+        return 0
+    fi
+    
+    # Tertiary Method: Python setup.py (last resort)
+    if [[ -f "${base_path}/setup.py" ]]; then
+        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
+            echo "running"
+            return 0
+        fi
+        
+        # Check for stopped status
+        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
+            echo "stopped"
+            return 1
+        fi
+    fi
+    
+    # If no detection method worked, check if it's unavailable
     if [[ ! -x "${cmctl}" ]]; then
         echo "unavailable"
         return 2
     fi
     
-    # Check status with EXPLICIT environment (Bug #83 fix)
-    local status
-    status=$(ORACLE_HOME="${cman_home}" \
-             LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-             "${cmctl}" status 2>/dev/null)
-    
-    if echo "${status}" | grep -q "READY"; then
-        echo "running"
-        return 0
-    else
-        echo "stopped"
-        return 1
-    fi
+    # Default to stopped if cmctl exists but we can't determine status
+    echo "stopped"
+    return 1
 }
 
 # ------------------------------------------------------------------------------
