@@ -2706,3 +2706,86 @@ auto_discover_oracle_homes() {
     
     return 0
 }
+
+# ------------------------------------------------------------------------------
+# Function: oradba_apply_oracle_plugin
+# Purpose.: Load and execute a plugin function dynamically
+# Args....: $1 - Function name (without "plugin_" prefix)
+#           $2 - Product type (database, datasafe, client, etc.)
+#           $3 - Oracle home path
+#           $4 - Extra argument (optional)
+#           $5 - Result variable name (optional)
+# Returns.: Plugin function exit code, 1 if plugin not found
+# Output..: Plugin function output (or stored in result variable)
+# Notes...: Dynamically loads plugins if not already loaded
+#           Used by oradba_env_status.sh and other components
+# ------------------------------------------------------------------------------
+oradba_apply_oracle_plugin() {
+    local function_name="$1"
+    local product_type="$2"
+    local oracle_home="$3"
+    local extra_arg="${4:-}"
+    local result_var="${5:-}"
+    
+    # Validate required arguments
+    [[ -z "${function_name}" ]] && return 1
+    [[ -z "${product_type}" ]] && return 1
+    [[ -z "${oracle_home}" ]] && return 1
+    
+    # Determine ORADBA_BASE for plugin location
+    local oradba_base="${ORADBA_BASE}"
+    if [[ -z "${oradba_base}" ]]; then
+        # Try to derive from script location
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        oradba_base="$(cd "${script_dir}/../.." && pwd)"
+    fi
+    
+    # Construct plugin file path
+    local plugin_file="${oradba_base}/src/lib/plugins/${product_type}_plugin.sh"
+    if [[ ! -f "${plugin_file}" ]]; then
+        # Try alternate path without src/
+        plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
+        if [[ ! -f "${plugin_file}" ]]; then
+            oradba_log DEBUG "Plugin not found: ${product_type}_plugin.sh"
+            return 1
+        fi
+    fi
+    
+    # Source plugin if function doesn't exist
+    local plugin_function="plugin_${function_name}"
+    if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+        # shellcheck disable=SC1090
+        source "${plugin_file}" || {
+            oradba_log DEBUG "Failed to load plugin: ${plugin_file}"
+            return 1
+        }
+    fi
+    
+    # Verify function exists after sourcing
+    if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+        oradba_log DEBUG "Plugin function not found: ${plugin_function}"
+        return 1
+    fi
+    
+    # Execute plugin function
+    local result
+    if [[ -n "${extra_arg}" ]]; then
+        result=$("${plugin_function}" "${oracle_home}" "${extra_arg}" 2>/dev/null)
+    else
+        result=$("${plugin_function}" "${oracle_home}" 2>/dev/null)
+    fi
+    local exit_code=$?
+    
+    # Store result if variable name provided
+    if [[ -n "${result_var}" ]]; then
+        # Use printf %s to handle special characters safely
+        # shellcheck disable=SC2229
+        printf -v "${result_var}" '%s' "${result}"
+    else
+        # Output result to stdout if no variable
+        echo "${result}"
+    fi
+    
+    return ${exit_code}
+}

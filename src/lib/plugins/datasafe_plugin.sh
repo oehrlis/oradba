@@ -107,8 +107,11 @@ plugin_adjust_environment() {
 # Args....: $1 - Base path or oracle_cman_home path
 #           $2 - Connector name (optional)
 # Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string
-# Notes...: Uses EXPLICIT environment (fixes Bug #83)
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Multi-layered detection with fallback:
+#           1. Process-based detection (most reliable)
+#           2. Python setup.py (proven working)
+#           3. Fixed cmctl command (show status, not status)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local base_path="$1"
@@ -118,26 +121,62 @@ plugin_check_status() {
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
     
-    # Check cmctl exists
+    # Primary Method: Process-based detection (most reliable)
+    # Check for running cmadmin or cmgw processes
+    if ps -ef 2>/dev/null | grep -q "[c]madmin.*${base_path}"; then
+        echo "running"
+        return 0
+    fi
+    
+    if ps -ef 2>/dev/null | grep -q "[c]mgw.*${base_path}"; then
+        echo "running"
+        return 0
+    fi
+    
+    # Secondary Method: Python setup.py (proven working)
+    if [[ -f "${base_path}/setup.py" ]]; then
+        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
+            echo "running"
+            return 0
+        fi
+        
+        # Check for stopped status
+        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
+            echo "stopped"
+            return 1
+        fi
+    fi
+    
+    # Tertiary Method: Fixed cmctl command
     local cmctl="${cman_home}/bin/cmctl"
+    if [[ -x "${cmctl}" ]]; then
+        # Use correct command: "show status" not "status"
+        local status
+        status=$(ORACLE_HOME="${cman_home}" \
+                 LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                 "${cmctl}" show status 2>/dev/null)
+        
+        if echo "${status}" | grep -qiE "READY|started"; then
+            echo "running"
+            return 0
+        fi
+        
+        # If cmctl responded but not ready, it's stopped
+        if [[ -n "${status}" ]]; then
+            echo "stopped"
+            return 1
+        fi
+    fi
+    
+    # If no detection method worked, check if it's unavailable
     if [[ ! -x "${cmctl}" ]]; then
         echo "unavailable"
         return 2
     fi
     
-    # Check status with EXPLICIT environment (Bug #83 fix)
-    local status
-    status=$(ORACLE_HOME="${cman_home}" \
-             LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-             "${cmctl}" status 2>/dev/null)
-    
-    if echo "${status}" | grep -q "READY"; then
-        echo "running"
-        return 0
-    else
-        echo "stopped"
-        return 1
-    fi
+    # Default to stopped if cmctl exists but we can't determine status
+    echo "stopped"
+    return 1
 }
 
 # ------------------------------------------------------------------------------

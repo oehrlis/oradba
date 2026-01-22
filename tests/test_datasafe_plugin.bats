@@ -227,3 +227,130 @@ teardown() {
     run type plugin_get_adjusted_paths
     [ "$status" -eq 0 ]
 }
+
+@test "datasafe plugin detects running connector via cmadmin process" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_proc_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Mock ps command to simulate running cmadmin process
+    # Create a wrapper script that returns process info
+    cat > "${TEST_DIR}/mock_ps" <<'MOCK_PS_SCRIPT'
+#!/usr/bin/env bash
+echo "oracle 12345 /test/datasafe_proc_test/oracle_cman_home/bin/cmadmin"
+MOCK_PS_SCRIPT
+    chmod +x "${TEST_DIR}/mock_ps"
+    
+    # Temporarily override PATH to use our mock ps
+    export PATH="${TEST_DIR}:${PATH}"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    
+    # Restore PATH
+    export PATH="${PATH#${TEST_DIR}:}"
+    
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin detects running connector via cmgw process" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_cmgw_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Mock ps command to simulate running cmgw process
+    cat > "${TEST_DIR}/mock_ps_cmgw" <<'MOCK_PS_SCRIPT'
+#!/usr/bin/env bash
+echo "oracle 12346 /test/datasafe_cmgw_test/oracle_cman_home/bin/cmgw"
+MOCK_PS_SCRIPT
+    chmod +x "${TEST_DIR}/mock_ps_cmgw"
+    
+    # Create wrapper that uses our mock
+    mv "${TEST_DIR}/mock_ps_cmgw" "${TEST_DIR}/ps"
+    export PATH="${TEST_DIR}:${PATH}"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    
+    # Cleanup
+    rm -f "${TEST_DIR}/ps"
+    export PATH="${PATH#${TEST_DIR}:}"
+    
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin uses setup.py when processes not found" {
+    # Create mock DataSafe home with setup.py
+    local ds_home="${TEST_DIR}/test_homes/datasafe_setup_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock setup.py that returns "already started"
+    cat > "${ds_home}/setup.py" <<'SETUP_PY'
+#!/usr/bin/env python3
+import sys
+if "status" in sys.argv:
+    print("Connector is already started")
+    sys.exit(0)
+SETUP_PY
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin detects stopped connector via setup.py" {
+    # Create mock DataSafe home with setup.py
+    local ds_home="${TEST_DIR}/test_homes/datasafe_stopped_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock setup.py that returns "not running"
+    cat > "${ds_home}/setup.py" <<'SETUP_PY'
+#!/usr/bin/env python3
+import sys
+if "status" in sys.argv:
+    print("Connector is not running")
+    sys.exit(0)
+SETUP_PY
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    [ "$status" -eq 1 ]
+    [ "$output" = "stopped" ]
+}
+
+@test "datasafe plugin uses correct cmctl show status command" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_cmctl_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock cmctl that verifies correct command
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+# Verify we receive "show status" not just "status"
+if [[ "$1" == "show" ]] && [[ "$2" == "status" ]]; then
+    echo "CMAN Status: READY"
+    exit 0
+elif [[ "$1" == "status" ]] && [[ "$2" != "show" ]]; then
+    echo "NL-00853: undefined command \"status\""
+    exit 1
+else
+    exit 1
+fi
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_status "${ds_home}" ""
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
