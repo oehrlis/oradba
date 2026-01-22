@@ -30,6 +30,15 @@ extensions:
     maintainer: Stefan Oehrli
     status: active
     
+  - name: odb_extras
+    display_name: OraDBA Extras Extension
+    repo: oehrlis/odb_extras
+    docs_path: doc
+    description: Additional Oracle DBA utilities and helper scripts
+    category: Operations
+    maintainer: Stefan Oehrli
+    status: active
+    
   # Add more extensions here as they are approved:
   # - name: oradba_monitoring
   #   display_name: OraDBA Monitoring Extension
