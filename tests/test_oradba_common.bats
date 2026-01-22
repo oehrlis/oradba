@@ -645,6 +645,20 @@ DB3:/opt/oracle/product/23ai:N"
     [[ "${result}" == *"oracle_cman_home"* ]]
 }
 
+@test "oradba_apply_oracle_plugin handles variable name collision (result_var)" {
+    # Regression test for bug where variable named "result_var" would fail
+    # due to internal parameter name collision
+    local ds_home="${TEST_TEMP_DIR}/datasafe_collision_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Test with variable named "result_var" (same as old internal param name)
+    local result_var=""
+    oradba_apply_oracle_plugin "adjust_environment" "datasafe" "${ds_home}" "" "result_var"
+    [[ "${result_var}" == *"oracle_cman_home"* ]]
+}
+
+
 @test "oradba_apply_oracle_plugin handles plugin function failure" {
     # Test with invalid path - validate_home should fail
     local result=""

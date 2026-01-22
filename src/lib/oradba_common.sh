@@ -2745,7 +2745,7 @@ oradba_apply_oracle_plugin() {
     local product_type="$2"
     local oracle_home="$3"
     local extra_arg="${4:-}"
-    local result_var="${5:-}"
+    local result_var_name="${5:-}"
     
     # Validate required arguments
     [[ -z "${function_name}" ]] && return 1
@@ -2798,9 +2798,9 @@ oradba_apply_oracle_plugin() {
     local exit_code=$?
     
     # Store result if variable name provided
-    if [[ -n "${result_var}" ]]; then
+    if [[ -n "${result_var_name}" ]]; then
         # Use eval to assign to the variable name
-        eval "${result_var}=\"\${plugin_result}\""
+        eval "${result_var_name}=\"\${plugin_result}\""
     else
         # Output result to stdout if no variable
         echo "${plugin_result}"
