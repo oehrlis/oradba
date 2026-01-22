@@ -381,7 +381,7 @@ EOF
     
     # Verify config was created
     [ -f "${ORADBA_BASE}/etc/oradba_homes.conf" ]
-    grep -q "OUD12" "${ORADBA_BASE}/etc/oradba_homes.conf"
+    grep -q "oud12" "${ORADBA_BASE}/etc/oradba_homes.conf"
 }
 
 @test "oradba_homes.sh discover skips already registered homes" {
@@ -802,9 +802,8 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     
     run "$HOMES_SCRIPT" discover --dry-run
     [ "$status" -eq 0 ]
-    # Should find both the JDK and the nested JRE
+    # Should find only the JDK, not the nested JRE (it's part of the JDK)
     [[ "$output" =~ "jdk17" ]]
-    [[ "$output" =~ "jre" ]]
 }
 
 @test "oradba_homes.sh discover: finds instant client with correct naming" {

@@ -210,8 +210,8 @@ EOF
     # Check that ANSI color codes are present when running in terminal
     run "$CHECK_SCRIPT"
     [ "$status" -eq 0 ]
-    # Should have color-coded symbols (✓ ✗ ⚠ ℹ)
-    [[ "$output" =~ "✓" ]] || [[ "$output" =~ "✗" ]] || [[ "$output" =~ "⚠" ]] || [[ "$output" =~ "ℹ" ]]
+    # Should have status indicators: [OK] [FAIL] [WARN] [INFO]
+    [[ "$output" =~ \[OK\] ]] || [[ "$output" =~ \[FAIL\] ]] || [[ "$output" =~ \[WARN\] ]] || [[ "$output" =~ \[INFO\] ]]
 }
 
 @test "oradba_check.sh displays banner" {

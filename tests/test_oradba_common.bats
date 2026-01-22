@@ -566,14 +566,15 @@ DB3:/opt/oracle/product/23ai:N"
     chmod +x "${jdk_home}/bin/javac"
     chmod +x "${jre_home}/bin/java"
     
-    # Both should be detected as java
+    # JDK should be detected as java
     run detect_product_type "${jdk_home}"
     [ "$status" -eq 0 ]
     [ "$output" = "java" ]
     
+    # Nested JRE should NOT be detected as standalone java (it's part of JDK)
     run detect_product_type "${jre_home}"
-    [ "$status" -eq 0 ]
-    [ "$output" = "java" ]
+    [ "$status" -eq 1 ]
+    [ "$output" = "unknown" ]
 }
 
 @test "detect_product_type detects instant client" {

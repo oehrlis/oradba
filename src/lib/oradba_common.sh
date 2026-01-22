@@ -2552,7 +2552,7 @@ auto_discover_oracle_homes() {
     # Get config file path
     local config_file
     if ! config_file=$(get_oracle_homes_path 2>/dev/null); then
-        config_file="${ORADBA_PREFIX}/etc/oradba_homes.conf"
+        config_file="${ORADBA_BASE:-${ORADBA_PREFIX}}/etc/oradba_homes.conf"
     fi
     
     # Ensure config directory exists

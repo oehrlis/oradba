@@ -279,6 +279,18 @@ OraDBA has comprehensive test coverage with BATS unit/integration tests and Dock
 - **Test mapping**: Edit `.testmap.yml` to map source files to test files
 - **Test coverage**: Aim for high coverage of critical functions
 
+**Performance Optimization**: When analyzing test results, save output to a log file first to avoid running tests multiple times:
+```bash
+# Instead of multiple separate runs (each 10-20 min), do this once:
+bats tests/test_*.bats > /tmp/test_results.log 2>&1
+
+# Then analyze the log file multiple times:
+grep -E "^(ok|not ok)" /tmp/test_results.log | tail -30   # Failed tests
+tail -3 /tmp/test_results.log                             # Summary
+grep -E "^[0-9]+ tests," /tmp/test_results.log            # Test count
+```
+This prevents the test suite from running 3x when session crashes or requires re-analysis.
+
 ### Documentation
 
 - **User docs**: Update `src/doc/*.md` for user-facing changes
