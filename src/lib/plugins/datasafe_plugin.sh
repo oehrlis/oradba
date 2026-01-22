@@ -33,6 +33,7 @@ plugin_detect_installation() {
     local -a homes=()
     
     # Check running cmctl processes
+    # shellcheck disable=SC2009
     while read -r cmctl_line; do
         local pid
         pid=$(echo "${cmctl_line}" | awk '{print $2}')
@@ -156,11 +157,13 @@ plugin_check_status() {
     
     # Secondary Method: Process-based detection (reliable fallback)
     # Check for running cmadmin or cmgw processes
+    # shellcheck disable=SC2009
     if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
         echo "running"
         return 0
     fi
     
+    # shellcheck disable=SC2009
     if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
         echo "running"
         return 0
