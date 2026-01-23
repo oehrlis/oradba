@@ -550,3 +550,75 @@ CMCTL_MOCK
     [ "$status" -eq 0 ]
     [ "$output" = "19.3.0.0.0" ]
 }
+
+@test "datasafe plugin accepts instance name parameter in check_status" {
+    # Create mock DataSafe home with cmctl
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn1"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+test_instance = (configuration = (address = (protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl that responds to show services
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    echo "Services Summary..."
+    echo "Instance test_instance: Status READY"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Test with instance name
+    run plugin_check_status "${ds_home}" "test_instance"
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
+
+@test "datasafe plugin extracts instance name from cman.ora" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn1"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with specific instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+my_custom_cman = (
+  configuration = (
+    address = (protocol=tcp)(host=localhost)(port=1521)
+  )
+)
+CMAN_ORA
+    
+    # Create mock cmctl
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]]; then
+    if [[ "$4" == "my_custom_cman" ]]; then
+        echo "Instance my_custom_cman: Status READY"
+        exit 0
+    else
+        echo "TNS-12541: TNS:no listener"
+        exit 1
+    fi
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Plugin should extract instance name from cman.ora
+    run plugin_check_status "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "running" ]
+}
