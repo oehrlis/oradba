@@ -162,9 +162,9 @@ setup() {
     grep -q "has_database_listeners" "${ORAUP_SCRIPT}"
 }
 
-@test "oraup.sh uses oradba_check_datasafe_status for Data Safe" {
-    # Verify that Data Safe status uses plugin function
-    grep -q "oradba_check_datasafe_status" "${ORAUP_SCRIPT}"
+@test "oraup.sh uses oradba_get_product_status for Data Safe" {
+    # Verify that Data Safe status uses modern plugin architecture (same as oradba_env.sh)
+    grep -q "oradba_get_product_status" "${ORAUP_SCRIPT}"
 }
 
 @test "oraup.sh does not hardcode Data Safe status" {
