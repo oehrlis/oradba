@@ -81,68 +81,106 @@ print_info "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:-<not set>}"
 # ------------------------------------------------------------------------------
 print_header "2. Plugin System Status"
 
-# Check for datasafe plugin
-PLUGIN_PATHS=(
-    "${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
-    "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-)
+# Check for datasafe plugin - detect which structure we're using
+echo "Checking datasafe plugin location:"
 
-echo "Checking plugin file locations:"
-for plugin_path in "${PLUGIN_PATHS[@]}"; do
-    if [[ -f "${plugin_path}" ]]; then
-        print_success "Found: ${plugin_path}"
-        print_info "  Size: $(stat -f%z "${plugin_path}" 2>/dev/null || stat -c%s "${plugin_path}" 2>/dev/null) bytes"
-        print_info "  Modified: $(stat -f%Sm "${plugin_path}" 2>/dev/null || stat -c%y "${plugin_path}" 2>/dev/null)"
-    else
-        print_error "Not found: ${plugin_path}"
-    fi
-done
+PLUGIN_FILE=""
+if [[ -f "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh" ]]; then
+    PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+    print_success "Found: ${PLUGIN_FILE} (installed version)"
+    print_info "  Size: $(stat -f%z "${PLUGIN_FILE}" 2>/dev/null || stat -c%s "${PLUGIN_FILE}" 2>/dev/null) bytes"
+    print_info "  Modified: $(stat -f%Sm "${PLUGIN_FILE}" 2>/dev/null || stat -c%y "${PLUGIN_FILE}" 2>/dev/null)"
+elif [[ -f "${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh" ]]; then
+    PLUGIN_FILE="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+    print_success "Found: ${PLUGIN_FILE} (dev/GitHub version)"
+    print_info "  Size: $(stat -f%z "${PLUGIN_FILE}" 2>/dev/null || stat -c%s "${PLUGIN_FILE}" 2>/dev/null) bytes"
+    print_info "  Modified: $(stat -f%Sm "${PLUGIN_FILE}" 2>/dev/null || stat -c%y "${PLUGIN_FILE}" 2>/dev/null)"
+else
+    print_error "Not found: datasafe_plugin.sh in lib/plugins/ or src/lib/plugins/"
+fi
 
 # Check if plugin can be sourced
-echo ""
-echo "Testing plugin loading:"
-for plugin_path in "${PLUGIN_PATHS[@]}"; do
-    if [[ -f "${plugin_path}" ]]; then
-        if bash -c "source '${plugin_path}' 2>/dev/null && declare -F plugin_check_status >/dev/null" ; then
-            print_success "Plugin loads successfully: ${plugin_path}"
-        else
-            print_error "Plugin failed to load or missing functions: ${plugin_path}"
-        fi
+if [[ -n "${PLUGIN_FILE}" ]]; then
+    echo ""
+    echo "Testing plugin loading:"
+    if bash -c "source '${PLUGIN_FILE}' 2>/dev/null && declare -F plugin_check_status >/dev/null" ; then
+        print_success "Plugin loads successfully"
+    else
+        print_error "Plugin failed to load or missing functions"
     fi
-done
+fi
 
 # ------------------------------------------------------------------------------
 # SECTION 3: Library Loading
 # ------------------------------------------------------------------------------
 print_header "3. OraDBA Libraries Status"
 
-LIBS=(
-    "${ORADBA_BASE}/src/lib/oradba_common.sh"
-    "${ORADBA_BASE}/src/lib/oradba_env_status.sh"
-)
+# Check for libraries - detect which structure we're using
+echo "Checking for OraDBA libraries:"
 
-for lib in "${LIBS[@]}"; do
-    if [[ -f "${lib}" ]]; then
-        print_success "Found: $(basename "${lib}")"
-        if bash -c "source '${lib}' 2>/dev/null"; then
-            print_info "  Can be sourced successfully"
-        else
-            print_error "  Failed to source"
-        fi
+# Check oradba_common.sh
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    print_success "Found: oradba_common.sh (installed version)"
+    COMMON_LIB="${ORADBA_BASE}/lib/oradba_common.sh"
+    if bash -c "source '${COMMON_LIB}' 2>/dev/null"; then
+        print_info "  Can be sourced successfully"
     else
-        print_error "Not found: ${lib}"
+        print_error "  Failed to source"
     fi
-done
+elif [[ -f "${ORADBA_BASE}/src/lib/oradba_common.sh" ]]; then
+    print_success "Found: oradba_common.sh (dev/GitHub version)"
+    COMMON_LIB="${ORADBA_BASE}/src/lib/oradba_common.sh"
+    if bash -c "source '${COMMON_LIB}' 2>/dev/null"; then
+        print_info "  Can be sourced successfully"
+    else
+        print_error "  Failed to source"
+    fi
+else
+    print_error "Not found: oradba_common.sh"
+fi
+
+# Check oradba_env_status.sh
+if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
+    print_success "Found: oradba_env_status.sh (installed version)"
+    STATUS_LIB="${ORADBA_BASE}/lib/oradba_env_status.sh"
+    if bash -c "source '${STATUS_LIB}' 2>/dev/null"; then
+        print_info "  Can be sourced successfully"
+    else
+        print_error "  Failed to source"
+    fi
+elif [[ -f "${ORADBA_BASE}/src/lib/oradba_env_status.sh" ]]; then
+    print_success "Found: oradba_env_status.sh (dev/GitHub version)"
+    STATUS_LIB="${ORADBA_BASE}/src/lib/oradba_env_status.sh"
+    if bash -c "source '${STATUS_LIB}' 2>/dev/null"; then
+        print_info "  Can be sourced successfully"
+    else
+        print_error "  Failed to source"
+    fi
+else
+    print_error "Not found: oradba_env_status.sh"
+fi
 
 # ------------------------------------------------------------------------------
 # SECTION 4: DataSafe Installations Discovery
 # ------------------------------------------------------------------------------
 print_header "4. DataSafe Installations Discovery"
 
-# Check oradba_homes.conf
-HOMES_CONF="${ORADBA_BASE}/src/etc/oradba_homes.conf"
-if [[ -f "${HOMES_CONF}" ]]; then
-    print_success "Found oradba_homes.conf"
+# Check oradba_homes.conf - try installed path first, then dev path
+HOMES_CONF_PATHS=(
+    "${ORADBA_BASE}/etc/oradba_homes.conf"
+    "${ORADBA_BASE}/src/etc/oradba_homes.conf"
+)
+
+HOMES_CONF=""
+for conf_path in "${HOMES_CONF_PATHS[@]}"; do
+    if [[ -f "${conf_path}" ]]; then
+        HOMES_CONF="${conf_path}"
+        break
+    fi
+done
+
+if [[ -n "${HOMES_CONF}" ]]; then
+    print_success "Found oradba_homes.conf: ${HOMES_CONF}"
     echo ""
     echo "DataSafe entries in oradba_homes.conf:"
     if grep -E "^[^#]*:datasafe:" "${HOMES_CONF}" 2>/dev/null; then
@@ -151,7 +189,7 @@ if [[ -f "${HOMES_CONF}" ]]; then
         print_warning "No DataSafe entries found in oradba_homes.conf"
     fi
 else
-    print_error "oradba_homes.conf not found at ${HOMES_CONF}"
+    print_error "oradba_homes.conf not found in any expected location"
 fi
 
 # Check for running cmctl processes
@@ -291,14 +329,13 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     # Test plugin functions directly
     print_header "7. Testing Plugin Functions Directly"
     
-    # Source the plugin
+    # Detect plugin file location
     PLUGIN_FILE=""
-    for plugin_path in "${PLUGIN_PATHS[@]}"; do
-        if [[ -f "${plugin_path}" ]]; then
-            PLUGIN_FILE="${plugin_path}"
-            break
-        fi
-    done
+    if [[ -f "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh" ]]; then
+        PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+    elif [[ -f "${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh" ]]; then
+        PLUGIN_FILE="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+    fi
     
     if [[ -n "${PLUGIN_FILE}" ]]; then
         # Create minimal oradba_log stub
@@ -348,13 +385,19 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     # Test OraDBA functions
     print_header "8. Testing OraDBA Functions"
     
-    # Source required libraries
-    if [[ -f "${ORADBA_BASE}/src/lib/oradba_common.sh" ]]; then
+    # Source required libraries - try installed path first, then dev path
+    if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${ORADBA_BASE}/lib/oradba_common.sh" 2>/dev/null || true
+    elif [[ -f "${ORADBA_BASE}/src/lib/oradba_common.sh" ]]; then
         # shellcheck disable=SC1091
         source "${ORADBA_BASE}/src/lib/oradba_common.sh" 2>/dev/null || true
     fi
     
-    if [[ -f "${ORADBA_BASE}/src/lib/oradba_env_status.sh" ]]; then
+    if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${ORADBA_BASE}/lib/oradba_env_status.sh" 2>/dev/null || true
+    elif [[ -f "${ORADBA_BASE}/src/lib/oradba_env_status.sh" ]]; then
         # shellcheck disable=SC1091
         source "${ORADBA_BASE}/src/lib/oradba_env_status.sh" 2>/dev/null || true
     fi

@@ -334,9 +334,14 @@ dscon1 = (
 ### Manual Status Check
 
 ```bash
-# Source the environment
-source /path/to/oradba/src/lib/oradba_common.sh
-source /path/to/oradba/src/lib/oradba_env_status.sh
+# Source the environment (adjust paths based on installation)
+# For installed version:
+source ${ORADBA_BASE}/lib/oradba_common.sh
+source ${ORADBA_BASE}/lib/oradba_env_status.sh
+
+# For development/GitHub version:
+# source ${ORADBA_BASE}/src/lib/oradba_common.sh
+# source ${ORADBA_BASE}/src/lib/oradba_env_status.sh
 
 # Check status
 oradba_get_product_status "datasafe" "dscon1" "/appl/oracle/product/exacc-wob-vwg-ha1"
