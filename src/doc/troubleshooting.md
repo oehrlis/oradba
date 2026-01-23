@@ -265,17 +265,190 @@ echo 'TNS_ADMIN=/custom/path' >> ~/.oradba_config
 
 ## Debug Mode
 
-Enable detailed logging:
+OraDBA provides comprehensive debug logging across all major script categories.
+Debug mode helps troubleshoot issues by showing detailed execution flow, decision
+points, and system interactions.
+
+### Activation Methods
+
+Debug support can be enabled in two ways:
+
+#### Environment Variable (Global)
 
 ```bash
-# Enable debug
+# Enable for all OraDBA scripts
+export ORADBA_DEBUG=true
+
+# Alternative method (legacy)
+export ORADBA_LOG_LEVEL=DEBUG
+```
+
+#### Command Line Flag (Per Script)
+
+```bash
+# Enable for individual script runs
+script_name.sh --debug [other options]
+script_name.sh -d [other options]
+```
+
+### Script Categories with Debug Support
+
+#### Phase 1: Infrastructure Scripts (v0.19.5+)
+
+Core system and infrastructure management:
+
+```bash
+# Environment status and configuration
+ORADBA_DEBUG=true oraup.sh
+oraenv.sh --debug ORCL
+
+# Installation and system validation
+ORADBA_DEBUG=true oradba_check.sh
+oradba_validate.sh --debug
+
+# Extension management
+oradba_extension.sh --debug list
+ORADBA_DEBUG=true oradba_extension.sh install example
+```
+
+#### Phase 2: Management Tools (v0.19.6+)
+
+Oracle database and listener management:
+
+```bash
+# Database control operations
+ORADBA_DEBUG=true oradba_dbctl.sh start ORCL
+oradba_dbctl.sh --debug status
+
+# Listener management
+oradba_lsnrctl.sh --debug start LISTENER
+ORADBA_DEBUG=true oradba_lsnrctl.sh status
+
+# Service orchestration
+oradba_services.sh --debug restart
+ORADBA_DEBUG=true oradba_services.sh start
+```
+
+#### Phase 3: Job Automation (v0.19.7+)
+
+Backup and monitoring operations:
+
+```bash
+# RMAN operation monitoring
+ORADBA_DEBUG=true rman_jobs.sh
+rman_jobs.sh --debug -w -i 10
+
+# DataPump export monitoring
+exp_jobs.sh --debug -o "%EXP%" -w
+ORADBA_DEBUG=true exp_jobs.sh --all
+
+# DataPump import monitoring
+imp_jobs.sh --debug -w -i 5
+ORADBA_DEBUG=true imp_jobs.sh ORCL
+
+# Long operations monitoring (core script)
+longops.sh --debug -o "RMAN%" -w
+ORADBA_DEBUG=true longops.sh --all ORCL FREE
+```
+
+### Debug Output Information
+
+When debug mode is enabled, you'll see detailed information about:
+
+**Infrastructure Scripts:**
+
+- Library and plugin loading
+- Oracle Home detection and validation
+- Registry API operations
+- Environment variable resolution
+- Configuration file processing
+
+**Management Tools:**
+
+- Database startup/shutdown sequences
+- Listener operations and port detection
+- Service orchestration and dependency management
+- Oracle environment setup and validation
+- SQL operation execution and error handling
+
+**Job Automation:**
+
+- Wrapper script argument processing
+- Filter application and SQL query construction
+- Database connection establishment
+- Monitoring loop iterations and timing
+- Environment sourcing per SID
+
+### Common Debug Patterns
+
+**Environment Issues:**
+
+```bash
+# Debug Oracle environment setup
+ORADBA_DEBUG=true oraenv.sh ORCL
+# Shows: registry lookup, plugin application, path construction
+
+# Debug home detection
+ORADBA_DEBUG=true oraup.sh
+# Shows: oratab parsing, home classification, plugin discovery
+```
+
+**Database Operations:**
+
+```bash
+# Debug database startup
+oradba_dbctl.sh --debug start ORCL
+# Shows: environment setup, SQL execution, timeout handling
+
+# Debug service coordination
+oradba_services.sh --debug restart
+# Shows: startup order, listener/database dependencies
+```
+
+**Monitoring Operations:**
+
+```bash
+# Debug backup monitoring
+rman_jobs.sh --debug -w
+# Shows: argument filtering, longops.sh invocation, SQL query construction
+
+# Debug with operation filter
+longops.sh --debug -o "RMAN%" -a
+# Shows: filter construction, environment sourcing, query execution
+```
+
+### Debug Output Format
+
+Debug messages follow this pattern:
+
+```text
+DEBUG: script_name.sh: message content
+```
+
+For scripts using `oradba_log`:
+
+```text
+[DEBUG] timestamp script_name.sh: message content
+```
+
+### Legacy Debug Support
+
+**Note:** The following method is deprecated but still supported:
+
+```bash
+# Legacy method (still works)
 export DEBUG=1
 
-# Run oraenv.sh
+# Run any script
 source oraenv.sh FREE
-
-# Check output for detailed information
 ```
+
+### Performance Considerations
+
+- Debug mode has minimal performance impact when disabled
+- Debug output can be verbose - use judiciously in production
+- Log files may grow larger when debug is enabled globally
+- Consider per-script activation for focused troubleshooting
 
 ## Verification Steps
 

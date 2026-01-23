@@ -37,12 +37,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Database connection establishment and environment sourcing
     - Watch mode iterations and timing
     - Operation filtering and result processing
+  - Enhanced management tools with comprehensive debug logging:
+    - `oradba_dbctl.sh`: Database startup/shutdown with detailed operation tracing
+    - `oradba_lsnrctl.sh`: Listener management with environment setup debugging
+    - `oradba_services.sh`: Service orchestration with command construction tracing
   - Updated troubleshooting documentation with comprehensive Phase 1-3 debug examples
+  - Complete debug coverage across all OraDBA script categories
   - Backward compatible: no output changes unless debug enabled
   - Usage examples:
     - `ORADBA_DEBUG=true rman_jobs.sh -w -i 10`
     - `exp_jobs.sh --debug -o "%EXP%" --all`
     - `longops.sh --debug -o "RMAN%" -w ORCL FREE`
+    - `oradba_dbctl.sh --debug start ORCL`
+    - `oradba_services.sh --debug restart`
 
 ## [0.19.6] - 2026-01-22
 

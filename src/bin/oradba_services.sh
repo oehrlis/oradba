@@ -25,6 +25,7 @@ ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 # Source common functions
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_common.sh"
+    oradba_log DEBUG "${SCRIPT_NAME}: Sourced oradba_common.sh successfully"
 else
     echo "ERROR: Cannot find oradba_common.sh library"
     exit 1
@@ -72,6 +73,7 @@ Actions:
 Options:
     -f, --force             Force operation without confirmation
     -c, --config FILE       Use alternate configuration file
+    -d, --debug             Enable debug logging
     -h, --help              Show this help message
 
 Configuration:
@@ -90,8 +92,11 @@ Examples:
     ${SCRIPT_NAME} stop --force             # Stop all without confirmation
     ${SCRIPT_NAME} restart                  # Restart all services
     ${SCRIPT_NAME} status                   # Show status
+    ${SCRIPT_NAME} --debug start            # Start with debug logging
+    ORADBA_DEBUG=true ${SCRIPT_NAME} status # Status with debug logging
 
 Environment Variables:
+    ORADBA_DEBUG               Enable debug logging (true/false)
     ORADBA_LOG                 Log directory (default: /var/log/oracle)
 
 EOF
@@ -113,26 +118,41 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 # Notes...: Sources config file; creates from template if missing; uses defaults if unavailable
 # ------------------------------------------------------------------------------
 load_config() {
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Attempting to load config from: ${CONFIG_FILE}"
+    
     # Copy example config if it doesn't exist
     if [[ ! -f "${CONFIG_FILE}" ]]; then
         local example_file="${ORADBA_BASE}/templates/etc/oradba_services.conf.example"
+        oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Config file not found, checking for template: ${example_file}"
+        
         if [[ -f "${example_file}" ]]; then
             oradba_log INFO "Configuration file not found, copying from template"
             mkdir -p "$(dirname "${CONFIG_FILE}")"
             cp "${example_file}" "${CONFIG_FILE}"
             oradba_log INFO "Created ${CONFIG_FILE} from template"
+            oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Successfully created config from template"
         else
             oradba_log WARN "No configuration template found at ${example_file}"
+            oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Template not found, will use defaults"
         fi
     fi
     
     if [[ -f "${CONFIG_FILE}" ]]; then
         oradba_log INFO "Loading configuration from ${CONFIG_FILE}"
+        oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Sourcing configuration file"
         # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
+        oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Configuration loaded successfully"
     else
         oradba_log INFO "No configuration file found, using defaults"
+        oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Using default configuration values"
     fi
+    
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Final config values:"
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - STARTUP_ORDER=${STARTUP_ORDER}"
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - SHUTDOWN_ORDER=${SHUTDOWN_ORDER}"
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - SPECIFIC_DBS=${SPECIFIC_DBS}"
+    oradba_log DEBUG "${SCRIPT_NAME}: load_config() - SPECIFIC_LISTENERS=${SPECIFIC_LISTENERS}"
 }
 
 # ------------------------------------------------------------------------------
@@ -144,23 +164,37 @@ load_config() {
 # Notes...: Constructs oradba_lsnrctl.sh command with options; respects force mode
 # ------------------------------------------------------------------------------
 start_listeners() {
+    oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Starting listener startup process"
     oradba_log INFO "Starting Oracle listeners..."
 
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh start"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Base command: ${cmd}"
 
     # Add force flag if set
-    [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
+    if [[ "${FORCE_MODE}" == "true" ]]; then
+        cmd="${cmd} --force"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added --force flag"
+    fi
 
     # Add listener options
-    [[ -n "${LSNR_OPTIONS}" ]] && cmd="${cmd} ${LSNR_OPTIONS}"
+    if [[ -n "${LSNR_OPTIONS}" ]]; then
+        cmd="${cmd} ${LSNR_OPTIONS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added listener options: ${LSNR_OPTIONS}"
+    fi
 
     # Add specific listeners if configured
-    [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
+    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+        cmd="${cmd} ${SPECIFIC_LISTENERS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added specific listeners: ${SPECIFIC_LISTENERS}"
+    fi
 
     oradba_log INFO "Executing: ${cmd}"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Executing command via eval"
     eval "${cmd}"
 
     local rc=$?
+    oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Command completed with exit code: ${rc}"
+    
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Listeners started successfully"
         return 0
@@ -179,23 +213,37 @@ start_listeners() {
 # Notes...: Constructs oradba_lsnrctl.sh stop command with options
 # ------------------------------------------------------------------------------
 stop_listeners() {
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Starting listener shutdown process"
     oradba_log INFO "Stopping Oracle listeners..."
 
     local cmd="${ORADBA_BIN}/oradba_lsnrctl.sh stop"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Base command: ${cmd}"
 
     # Add force flag if set
-    [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
+    if [[ "${FORCE_MODE}" == "true" ]]; then
+        cmd="${cmd} --force"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added --force flag"
+    fi
 
     # Add listener options
-    [[ -n "${LSNR_OPTIONS}" ]] && cmd="${cmd} ${LSNR_OPTIONS}"
+    if [[ -n "${LSNR_OPTIONS}" ]]; then
+        cmd="${cmd} ${LSNR_OPTIONS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added listener options: ${LSNR_OPTIONS}"
+    fi
 
     # Add specific listeners if configured
-    [[ -n "${SPECIFIC_LISTENERS}" ]] && cmd="${cmd} ${SPECIFIC_LISTENERS}"
+    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+        cmd="${cmd} ${SPECIFIC_LISTENERS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added specific listeners: ${SPECIFIC_LISTENERS}"
+    fi
 
     oradba_log INFO "Executing: ${cmd}"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Executing command via eval"
     eval "${cmd}"
 
     local rc=$?
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Command completed with exit code: ${rc}"
+    
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Listeners stopped successfully"
         return 0
@@ -214,23 +262,37 @@ stop_listeners() {
 # Notes...: Constructs oradba_dbctl.sh start command with options
 # ------------------------------------------------------------------------------
 start_databases() {
+    oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Starting database startup process"
     oradba_log INFO "Starting Oracle databases..."
 
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh start"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Base command: ${cmd}"
 
     # Add force flag if set
-    [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
+    if [[ "${FORCE_MODE}" == "true" ]]; then
+        cmd="${cmd} --force"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added --force flag"
+    fi
 
     # Add database options
-    [[ -n "${DB_OPTIONS}" ]] && cmd="${cmd} ${DB_OPTIONS}"
+    if [[ -n "${DB_OPTIONS}" ]]; then
+        cmd="${cmd} ${DB_OPTIONS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added database options: ${DB_OPTIONS}"
+    fi
 
     # Add specific databases if configured
-    [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
+    if [[ -n "${SPECIFIC_DBS}" ]]; then
+        cmd="${cmd} ${SPECIFIC_DBS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added specific databases: ${SPECIFIC_DBS}"
+    fi
 
     oradba_log INFO "Executing: ${cmd}"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Executing command via eval"
     eval "${cmd}"
 
     local rc=$?
+    oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Command completed with exit code: ${rc}"
+    
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Databases started successfully"
         return 0
@@ -249,23 +311,37 @@ start_databases() {
 # Notes...: Constructs oradba_dbctl.sh stop command with options
 # ------------------------------------------------------------------------------
 stop_databases() {
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Starting database shutdown process"
     oradba_log INFO "Stopping Oracle databases..."
 
     local cmd="${ORADBA_BIN}/oradba_dbctl.sh stop"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Base command: ${cmd}"
 
     # Add force flag if set
-    [[ "${FORCE_MODE}" == "true" ]] && cmd="${cmd} --force"
+    if [[ "${FORCE_MODE}" == "true" ]]; then
+        cmd="${cmd} --force"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added --force flag"
+    fi
 
     # Add database options
-    [[ -n "${DB_OPTIONS}" ]] && cmd="${cmd} ${DB_OPTIONS}"
+    if [[ -n "${DB_OPTIONS}" ]]; then
+        cmd="${cmd} ${DB_OPTIONS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added database options: ${DB_OPTIONS}"
+    fi
 
     # Add specific databases if configured
-    [[ -n "${SPECIFIC_DBS}" ]] && cmd="${cmd} ${SPECIFIC_DBS}"
+    if [[ -n "${SPECIFIC_DBS}" ]]; then
+        cmd="${cmd} ${SPECIFIC_DBS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added specific databases: ${SPECIFIC_DBS}"
+    fi
 
     oradba_log INFO "Executing: ${cmd}"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Executing command via eval"
     eval "${cmd}"
 
     local rc=$?
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Command completed with exit code: ${rc}"
+    
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Databases stopped successfully"
         return 0
@@ -284,24 +360,32 @@ stop_databases() {
 # Notes...: Calls oradba_dbctl.sh status and oradba_lsnrctl.sh status
 # ------------------------------------------------------------------------------
 show_status() {
+    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Displaying Oracle services status"
     echo ""
-    echo "=========================================="
+    echo "==========================================" 
     echo "Oracle Services Status"
-    echo "=========================================="
+    echo "==========================================" 
     echo ""
 
     echo "Listeners:"
     echo "----------"
     local lsnr_cmd="${ORADBA_BIN}/oradba_lsnrctl.sh status"
-    [[ -n "${SPECIFIC_LISTENERS}" ]] && lsnr_cmd="${lsnr_cmd} ${SPECIFIC_LISTENERS}"
+    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+        lsnr_cmd="${lsnr_cmd} ${SPECIFIC_LISTENERS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Added specific listeners to status check: ${SPECIFIC_LISTENERS}"
+    fi
+    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Executing listener status: ${lsnr_cmd}"
     eval "${lsnr_cmd}"
 
     echo ""
     echo "Databases:"
     echo "----------"
     local db_cmd="${ORADBA_BIN}/oradba_dbctl.sh status"
-    [[ -n "${SPECIFIC_DBS}" ]] && db_cmd="${db_cmd} ${SPECIFIC_DBS}"
-    eval "${db_cmd}"
+    if [[ -n "${SPECIFIC_DBS}" ]]; then
+        db_cmd="${db_cmd} ${SPECIFIC_DBS}"
+        oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Added specific databases to status check: ${SPECIFIC_DBS}"
+    fi
+    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Executing database status: ${db_cmd}"
 
     echo ""
 }
@@ -315,22 +399,27 @@ show_status() {
 # Notes...: Processes STARTUP_ORDER (default: listener,database); tracks success/failure counts
 # ------------------------------------------------------------------------------
 start_all() {
+    oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Starting all Oracle services in configured order"
     oradba_log INFO "========== Starting Oracle services =========="
 
     local success=true
 
     # Parse startup order
     IFS=',' read -ra order <<< "${STARTUP_ORDER}"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Parsed startup order: ${order[*]}"
 
     for service in "${order[@]}"; do
+        oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Processing service: ${service}"
         case "${service}" in
             listener)
+                oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Starting listeners"
                 if ! start_listeners; then
                     oradba_log ERROR "Listener startup failed"
                     success=false
                 fi
                 ;;
             database)
+                oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Starting databases"
                 if ! start_databases; then
                     oradba_log ERROR "Database startup failed"
                     success=false
@@ -338,15 +427,18 @@ start_all() {
                 ;;
             *)
                 oradba_log WARN "Unknown service in startup order: ${service}"
+                oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Unknown service encountered: ${service}"
                 ;;
         esac
     done
 
     if [[ "${success}" == "true" ]]; then
         oradba_log INFO "All services started successfully"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_all() - All services completed successfully"
         return 0
     else
         oradba_log ERROR "Some services failed to start"
+        oradba_log DEBUG "${SCRIPT_NAME}: start_all() - Some services failed during startup"
         return 1
     fi
 }
@@ -360,22 +452,27 @@ start_all() {
 # Notes...: Processes SHUTDOWN_ORDER (default: database,listener); tracks success/failure counts
 # ------------------------------------------------------------------------------
 stop_all() {
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Stopping all Oracle services in configured order"
     oradba_log INFO "========== Stopping Oracle services =========="
 
     local success=true
 
     # Parse shutdown order
     IFS=',' read -ra order <<< "${SHUTDOWN_ORDER}"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Parsed shutdown order: ${order[*]}"
 
     for service in "${order[@]}"; do
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Processing service: ${service}"
         case "${service}" in
             listener)
+                oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Stopping listeners"
                 if ! stop_listeners; then
                     oradba_log ERROR "Listener shutdown failed"
                     success=false
                 fi
                 ;;
             database)
+                oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Stopping databases"
                 if ! stop_databases; then
                     oradba_log ERROR "Database shutdown failed"
                     success=false
@@ -383,15 +480,18 @@ stop_all() {
                 ;;
             *)
                 oradba_log WARN "Unknown service in shutdown order: ${service}"
+                oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Unknown service encountered: ${service}"
                 ;;
         esac
     done
 
     if [[ "${success}" == "true" ]]; then
         oradba_log INFO "All services stopped successfully"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - All services completed successfully"
         return 0
     else
         oradba_log ERROR "Some services failed to stop"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_all() - Some services failed during shutdown"
         return 1
     fi
 }
@@ -405,9 +505,25 @@ if [[ $# -eq 0 ]]; then
     usage
 fi
 
+# Check for global --debug flag first
+for arg in "$@"; do
+    if [[ "$arg" == "--debug" ]] || [[ "$arg" == "-d" ]]; then
+        export ORADBA_LOG_LEVEL=DEBUG
+        oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via CLI flag"
+        break
+    fi
+done
+
+# Check for ORADBA_DEBUG environment variable
+if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    export ORADBA_LOG_LEVEL=DEBUG
+    oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via ORADBA_DEBUG environment variable"
+fi
+
 # Get action
 ACTION="$1"
 shift
+oradba_log DEBUG "${SCRIPT_NAME}: Action specified: ${ACTION}"
 
 case "${ACTION}" in
     start | stop | restart | status) ;;
@@ -419,11 +535,18 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -f | --force)
             FORCE_MODE=true
+            oradba_log DEBUG "${SCRIPT_NAME}: Force mode enabled"
             shift
             ;;
         -c | --config)
             CONFIG_FILE="$2"
+            oradba_log DEBUG "${SCRIPT_NAME}: Using custom config file: ${CONFIG_FILE}"
             shift 2
+            ;;
+        -d | --debug)
+            export ORADBA_LOG_LEVEL=DEBUG
+            oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via CLI flag"
+            shift
             ;;
         -h | --help)
             usage
@@ -447,37 +570,49 @@ oradba_log INFO "========== Starting ${ACTION} operation =========="
 oradba_log INFO "User: $(whoami), Host: $(hostname)"
 oradba_log INFO "Startup order: ${STARTUP_ORDER}"
 oradba_log INFO "Shutdown order: ${SHUTDOWN_ORDER}"
+oradba_log DEBUG "${SCRIPT_NAME}: Configuration loaded and logged"
 
 # Execute action
+oradba_log DEBUG "${SCRIPT_NAME}: Executing action: ${ACTION}"
 case "${ACTION}" in
     start)
+        oradba_log DEBUG "${SCRIPT_NAME}: Calling start_all function"
         if start_all; then
             oradba_log INFO "Oracle services startup completed successfully"
+            oradba_log DEBUG "${SCRIPT_NAME}: start_all completed successfully"
             exit 0
         else
             oradba_log ERROR "Oracle services startup completed with errors"
+            oradba_log DEBUG "${SCRIPT_NAME}: start_all failed"
             exit 1
         fi
         ;;
     stop)
+        oradba_log DEBUG "${SCRIPT_NAME}: Calling stop_all function"
         if stop_all; then
             oradba_log INFO "Oracle services shutdown completed successfully"
+            oradba_log DEBUG "${SCRIPT_NAME}: stop_all completed successfully"
             exit 0
         else
             oradba_log ERROR "Oracle services shutdown completed with errors"
+            oradba_log DEBUG "${SCRIPT_NAME}: stop_all failed"
             exit 1
         fi
         ;;
     restart)
+        oradba_log DEBUG "${SCRIPT_NAME}: Calling stop_all, sleep 5, then start_all"
         if stop_all && sleep 5 && start_all; then
             oradba_log INFO "Oracle services restart completed successfully"
+            oradba_log DEBUG "${SCRIPT_NAME}: restart sequence completed successfully"
             exit 0
         else
             oradba_log ERROR "Oracle services restart completed with errors"
+            oradba_log DEBUG "${SCRIPT_NAME}: restart sequence failed"
             exit 1
         fi
         ;;
     status)
+        oradba_log DEBUG "${SCRIPT_NAME}: Calling show_status function"
         show_status
         exit 0
         ;;

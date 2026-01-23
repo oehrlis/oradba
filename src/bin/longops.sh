@@ -22,11 +22,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 readonly SCRIPT_NAME
 
+# Debug flag
+DEBUG_ENABLED=false
+
 # Source common functions if available
 if [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then
     # shellcheck source=../lib/oradba_common.sh
     source "${SCRIPT_DIR}/../lib/oradba_common.sh"
 fi
+
+# Enable debug logging function
+debug_log() {
+    if [[ "${DEBUG_ENABLED}" == "true" ]] || [[ "${ORADBA_DEBUG}" == "true" ]]; then
+        if command -v oradba_log >/dev/null 2>&1; then
+            oradba_log DEBUG "${SCRIPT_NAME}: $*"
+        else
+            echo "DEBUG: ${SCRIPT_NAME}: $*" >&2
+        fi
+    fi
+}
 
 # Default values
 WATCH_MODE=false
@@ -54,7 +68,8 @@ OPTIONS:
     -a, --all               Show all operations (completed and running)
     -w, --watch             Watch mode - continuously monitor operations
     -i, --interval SECONDS  Watch interval in seconds (default: 5)
-    -h, --help             Show this help message
+    -d, --debug             Enable debug logging
+    -h, --help              Show this help message
 
 ARGUMENTS:
     SID...                 Oracle SID(s) to monitor (default: \$ORACLE_SID)
@@ -63,8 +78,8 @@ EXAMPLES:
     # Monitor RMAN operations in current database
     ${SCRIPT_NAME} -o "RMAN%"
 
-    # Monitor DataPump exports continuously
-    ${SCRIPT_NAME} -o "%EXP%" -w
+    # Monitor DataPump exports continuously with debug
+    ${SCRIPT_NAME} -o "%EXP%" -w --debug
 
     # Monitor DataPump imports with 10 second interval
     ${SCRIPT_NAME} -o "%IMP%" -w -i 10
@@ -72,8 +87,8 @@ EXAMPLES:
     # Monitor all long operations in multiple databases
     ${SCRIPT_NAME} -a ORCL FREE CDB1
 
-    # Monitor specific operation pattern
-    ${SCRIPT_NAME} -o "%Backup%"
+    # Monitor specific operation pattern with debug
+    ${SCRIPT_NAME} -o "%Backup%" --debug
 
 COMMON OPERATION PATTERNS:
     RMAN%           - RMAN backup/restore operations
@@ -82,6 +97,10 @@ COMMON OPERATION PATTERNS:
     %Backup%        - All backup operations
     %Restore%       - All restore operations
     %Table Scan%    - Full table scan operations
+
+DEBUG MODE:
+    Enable with --debug flag or ORADBA_DEBUG=true environment variable.
+    Shows SQL query construction, filter application, environment sourcing.
 
 Press Ctrl+C to exit watch mode.
 
@@ -98,23 +117,34 @@ EOF
 # Notes...: Sets OPERATION_FILTER, SHOW_ALL, WATCH_MODE, WATCH_INTERVAL, SID_LIST globals
 # ------------------------------------------------------------------------------
 parse_args() {
+    debug_log "Starting argument parsing with: $*"
+    
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -o | --operation)
                 OPERATION_FILTER="$2"
+                debug_log "Set operation filter: ${OPERATION_FILTER}"
                 shift 2
                 ;;
             -a | --all)
                 SHOW_ALL=true
+                debug_log "Enabled show all operations mode"
                 shift
                 ;;
             -w | --watch)
                 WATCH_MODE=true
+                debug_log "Enabled watch mode"
                 shift
                 ;;
             -i | --interval)
                 WATCH_INTERVAL="$2"
+                debug_log "Set watch interval: ${WATCH_INTERVAL} seconds"
                 shift 2
+                ;;
+            -d | --debug)
+                DEBUG_ENABLED=true
+                debug_log "Debug mode activated via command line flag"
+                shift
                 ;;
             -h | --help)
                 usage
@@ -126,10 +156,18 @@ parse_args() {
                 ;;
             *)
                 SID_LIST="${SID_LIST} $1"
+                debug_log "Added SID to monitoring list: $1"
                 shift
                 ;;
         esac
     done
+    
+    debug_log "Argument parsing complete. Final settings:"
+    debug_log "  Operation filter: ${OPERATION_FILTER:-<none>}"
+    debug_log "  Show all: ${SHOW_ALL}"
+    debug_log "  Watch mode: ${WATCH_MODE}"
+    debug_log "  Watch interval: ${WATCH_INTERVAL}"
+    debug_log "  SID list: ${SID_LIST:-<empty>}"
 }
 
 # ------------------------------------------------------------------------------
@@ -144,9 +182,12 @@ monitor_longops() {
     local sid=$1
     local where_clause=""
 
+    debug_log "Starting monitor_longops for SID: ${sid}"
+    
     # Build WHERE clause based on filters
     if [[ -n "${OPERATION_FILTER}" ]]; then
         where_clause="opname LIKE '${OPERATION_FILTER}'"
+        debug_log "Applied operation filter: ${OPERATION_FILTER}"
     fi
 
     if [[ "${SHOW_ALL}" != "true" ]]; then
@@ -155,12 +196,22 @@ monitor_longops() {
         else
             where_clause="totalwork != 0 AND sofar <> totalwork"
         fi
+        debug_log "Applied running operations filter (excluding completed)"
+    else
+        debug_log "Show all operations enabled (including completed)"
     fi
 
     # Add WHERE keyword if we have conditions
     if [[ -n "${where_clause}" ]]; then
         where_clause="WHERE ${where_clause}"
+        debug_log "Final WHERE clause: ${where_clause}"
+    else
+        debug_log "No WHERE clause filters applied"
     fi
+
+    debug_log "Executing SQL query against v\$session_longops"
+    debug_log "Current ORACLE_SID: ${ORACLE_SID:-<not set>}"
+    debug_log "Current ORACLE_HOME: ${ORACLE_HOME:-<not set>}"
 
     # Execute SQL query
     sqlplus -S /nolog << EOF
@@ -201,6 +252,8 @@ ORDER BY
 
 EXIT;
 EOF
+    local sqlplus_exit_code=$?
+    debug_log "SQL query completed with exit code: ${sqlplus_exit_code}"
 }
 
 # ------------------------------------------------------------------------------
@@ -235,33 +288,52 @@ display_header() {
 run_monitor() {
     local sid_to_monitor="${SID_LIST:-${ORACLE_SID}}"
 
+    debug_log "Starting run_monitor function"
+    debug_log "SID_LIST: ${SID_LIST:-<empty>}"
+    debug_log "ORACLE_SID: ${ORACLE_SID:-<not set>}"
+    debug_log "Final SID to monitor: ${sid_to_monitor:-<none>}"
+
     # Check if we have a SID
     if [[ -z "${sid_to_monitor}" ]]; then
         echo "Error: No Oracle SID specified and ORACLE_SID is not set." >&2
         echo "Use -h or --help for usage information." >&2
+        debug_log "ERROR: No SID available for monitoring"
         exit 1
     fi
 
     # Watch mode - continuous monitoring
     if [[ "${WATCH_MODE}" == "true" ]]; then
+        debug_log "Starting watch mode with interval ${WATCH_INTERVAL} seconds"
+        
         # Trap Ctrl+C for clean exit
-        trap 'echo ""; echo "Monitoring stopped."; exit 0' INT TERM
+        trap 'echo ""; echo "Monitoring stopped."; debug_log "Watch mode stopped by user"; exit 0' INT TERM
 
         echo "Starting watch mode (Ctrl+C to exit)..."
         echo ""
 
+        local iteration=1
         while true; do
+            debug_log "Watch mode iteration ${iteration}"
+            
             # Clear screen
             clear
 
             # Loop over SID list
             for sid in ${sid_to_monitor}; do
+                debug_log "Processing SID: ${sid} in watch mode"
                 display_header "${sid}"
 
                 # Source Oracle environment if oraenv.sh is available
                 if [[ -f "${SCRIPT_DIR}/oraenv.sh" ]]; then
+                    debug_log "Sourcing Oracle environment for SID: ${sid}"
                     # shellcheck source=oraenv.sh
-                    source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
+                    if source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1; then
+                        debug_log "Successfully sourced environment for SID: ${sid}"
+                    else
+                        debug_log "WARNING: Failed to source environment for SID: ${sid}"
+                    fi
+                else
+                    debug_log "oraenv.sh not found, using current environment"
                 fi
 
                 monitor_longops "${sid}"
@@ -269,24 +341,36 @@ run_monitor() {
             done
 
             echo "Next refresh in ${WATCH_INTERVAL} seconds... (Ctrl+C to exit)"
+            debug_log "Sleeping for ${WATCH_INTERVAL} seconds before next iteration"
             sleep "${WATCH_INTERVAL}"
+            iteration=$((iteration + 1))
         done
     else
+        debug_log "Starting single run mode"
         # Single run mode
         for sid in ${sid_to_monitor}; do
+            debug_log "Processing SID: ${sid} in single run mode"
             echo "================================================================================"
             echo "Long Operations for ${sid}"
             echo "================================================================================"
 
             # Source Oracle environment if oraenv.sh is available
             if [[ -f "${SCRIPT_DIR}/oraenv.sh" ]]; then
+                debug_log "Sourcing Oracle environment for SID: ${sid}"
                 # shellcheck source=oraenv.sh
-                source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
+                if source "${SCRIPT_DIR}/oraenv.sh" "${sid}" > /dev/null 2>&1; then
+                    debug_log "Successfully sourced environment for SID: ${sid}"
+                else
+                    debug_log "WARNING: Failed to source environment for SID: ${sid}"
+                fi
+            else
+                debug_log "oraenv.sh not found, using current environment"
             fi
 
             monitor_longops "${sid}"
             echo ""
         done
+        debug_log "Single run mode completed"
     fi
 }
 
@@ -299,6 +383,15 @@ run_monitor() {
 # Notes...: Workflow: parse args → run monitor; defaults to $ORACLE_SID if no SIDs specified
 # ------------------------------------------------------------------------------
 main() {
+    # Check for debug activation early
+    [[ "${ORADBA_DEBUG}" == "true" ]] && DEBUG_ENABLED=true
+    
+    debug_log "Starting longops.sh with arguments: $*"
+    debug_log "Initial environment - ORACLE_SID: ${ORACLE_SID:-<not set>}, ORACLE_HOME: ${ORACLE_HOME:-<not set>}"
+    debug_log "Script directory: ${SCRIPT_DIR}"
+    debug_log "Common library available: $(if [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then echo "yes"; else echo "no"; fi)"
+    debug_log "oraenv.sh available: $(if [[ -f "${SCRIPT_DIR}/oraenv.sh" ]]; then echo "yes"; else echo "no"; fi)"
+    
     parse_args "$@"
     run_monitor
 }
