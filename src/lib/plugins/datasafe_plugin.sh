@@ -130,9 +130,10 @@ plugin_check_status() {
         local cman_conf="${cman_home}/network/admin/cman.ora"
         
         if [[ -f "${cman_conf}" ]]; then
-            # Extract first non-comment line with = sign (instance name)
+            # Extract instance name from cman.ora (format: instance_name = (configuration...))
+            # Match identifier followed by = and opening paren
             local extracted_name
-            extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+            extracted_name=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
             [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
         fi
         
@@ -216,9 +217,10 @@ plugin_get_version() {
     local cman_conf="${cman_home}/network/admin/cman.ora"
     
     if [[ -f "${cman_conf}" ]]; then
-        # Extract first non-comment line with = sign (instance name)
+        # Extract instance name from cman.ora (format: instance_name = (configuration...))
+        # Match identifier followed by = and opening paren
         local extracted_name
-        extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+        extracted_name=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
         [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
     fi
     
@@ -228,14 +230,13 @@ plugin_get_version() {
                      LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
                      "${cmctl}" show version -c "${instance_name}" 2>/dev/null)
     
-    # Parse version from output
+    # Parse version from output using sed for portability
     # Expected format: "Oracle Connection Manager Version 23.4.0.0.0"
     local version
-    if version=$(echo "${version_output}" | grep -oP 'Version\s+\K[\d.]+' | head -1); then
-        if [[ -n "${version}" ]]; then
-            echo "${version}"
-            return 0
-        fi
+    version=$(echo "${version_output}" | sed -n 's/.*Version[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    if [[ -n "${version}" ]]; then
+        echo "${version}"
+        return 0
     fi
     
     # Fallback: try without instance name (older versions)
@@ -243,11 +244,10 @@ plugin_get_version() {
                      LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
                      "${cmctl}" version 2>/dev/null)
     
-    if version=$(echo "${version_output}" | grep -oP 'Version\s+\K[\d.]+' | head -1); then
-        if [[ -n "${version}" ]]; then
-            echo "${version}"
-            return 0
-        fi
+    version=$(echo "${version_output}" | sed -n 's/.*Version[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    if [[ -n "${version}" ]]; then
+        echo "${version}"
+        return 0
     fi
     
     # No version found
