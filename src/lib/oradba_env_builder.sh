@@ -644,6 +644,10 @@ oradba_add_client_path() {
         return 1
     fi
     
+    # Export ORACLE_CLIENT_HOME
+    export ORACLE_CLIENT_HOME="${client_home}"
+    oradba_log DEBUG "Exported ORACLE_CLIENT_HOME=${ORACLE_CLIENT_HOME}"
+    
     # Check if already in PATH
     if [[ ":${PATH}:" == *":${client_bin}:"* ]]; then
         oradba_log DEBUG "Client path already in PATH: ${client_bin}"

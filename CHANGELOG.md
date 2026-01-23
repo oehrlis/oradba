@@ -41,6 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Java and Client Path Configuration Variables Not Working** (Issue #[Bug])
+  - Fixed `ORADBA_JAVA_PATH_FOR_NON_JAVA` and `ORADBA_CLIENT_PATH_FOR_NON_CLIENT` not being honored during environment setup
+  - Root cause: Functions `oradba_add_java_path` and `oradba_add_client_path` were implemented but never called from `oraenv.sh`
+  - Added calls to both functions in environment setup after configuration loading
+  - Added `ORACLE_CLIENT_HOME` export when client path is configured
+  - Created `_oraenv_apply_path_configs` helper function to eliminate code duplication
+  - Now correctly sets `JAVA_HOME` and `ORACLE_CLIENT_HOME` when configured
+  - Adds Java and client bin directories to PATH as specified
+  - Supports all three modes: 'none' (default), 'auto' (first match), and explicit home name
+  - Updated unit tests to validate `ORACLE_CLIENT_HOME` export
+  - Verified with comprehensive integration tests
+
 - **DataSafe Status Detection in oraup.sh** (Issue #100)
   - Fixed "unknown" status showing for running DataSafe connectors
   - Changed `oraup.sh` to use `oradba_get_product_status()` API (same as `oradba_env.sh`)
