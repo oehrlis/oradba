@@ -209,6 +209,7 @@ teardown() {
         "plugin_adjust_environment"
         "plugin_check_status"
         "plugin_get_metadata"
+        "plugin_get_version"
         "plugin_should_show_listener"
         "plugin_discover_instances"
         "plugin_supports_aliases"
@@ -430,4 +431,122 @@ CMCTL_MOCK
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 0 ]
     [ "$output" = "running" ]
+}
+
+@test "datasafe plugin gets version from cmctl" {
+    # Create mock DataSafe home with version detection
+    local ds_home="${TEST_DIR}/test_homes/datasafe_version_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl that returns version information
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]] && [[ "$3" == "-c" ]]; then
+    echo "Oracle Connection Manager Version 23.4.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_version "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "23.4.0.0.0" ]
+}
+
+@test "datasafe plugin returns ERR when cmctl missing" {
+    # Create mock DataSafe home without cmctl
+    local ds_home="${TEST_DIR}/test_homes/datasafe_no_cmctl"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_version "${ds_home}"
+    [ "$status" -eq 1 ]
+    [ "$output" = "ERR" ]
+}
+
+@test "datasafe plugin parses version from cmctl output" {
+    # Create mock DataSafe home with different version format
+    local ds_home="${TEST_DIR}/test_homes/datasafe_version_alt"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cmctl with version in output
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    echo "Connection Manager"
+    echo "Version 19.21.0.0.0"
+    echo "Additional info"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_version "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "19.21.0.0.0" ]
+}
+
+@test "datasafe plugin metadata includes version" {
+    # Create mock DataSafe home with version
+    local ds_home="${TEST_DIR}/test_homes/datasafe_metadata_version"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cmctl
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 21.9.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"version=21.9.0.0.0"* ]]
+    [[ "$output" == *"type=datasafe"* ]]
+}
+
+@test "datasafe plugin handles version fallback without instance" {
+    # Test fallback to 'cmctl version' without instance parameter
+    local ds_home="${TEST_DIR}/test_homes/datasafe_version_fallback"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock cmctl that doesn't support 'show version -c' but supports 'version'
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    # Simulate no output for 'show version -c'
+    exit 1
+elif [[ "$1" == "version" ]]; then
+    echo "Oracle Connection Manager Version 19.3.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_version "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "19.3.0.0.0" ]
 }

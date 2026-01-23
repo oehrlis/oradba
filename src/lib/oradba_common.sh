@@ -541,10 +541,18 @@ get_oracle_version() {
         "${sqlplus_bin}" -version | grep -oP 'Release \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1
         return $?
     else
-        # No sqlplus - try plugin-based detection (instant client basic, etc.)
+        # No sqlplus - try plugin-based detection (instant client basic, datasafe, etc.)
         oradba_log DEBUG "sqlplus not found, trying plugin-based version detection"
+        
+        # Try to use ORADBA_CURRENT_HOME_TYPE if set, otherwise detect
+        local product_type="${ORADBA_CURRENT_HOME_TYPE:-}"
+        if [[ -z "${product_type}" ]]; then
+            product_type=$(detect_product_type "${ORACLE_HOME}")
+            oradba_log DEBUG "Detected product type: ${product_type}"
+        fi
+        
         local version_code
-        version_code=$(detect_oracle_version "${ORACLE_HOME}")
+        version_code=$(detect_oracle_version "${ORACLE_HOME}" "${product_type}")
         
         if [[ -n "${version_code}" && "${version_code}" != "Unknown" && "${version_code}" != "ERR" ]]; then
             # Convert XXYZ format back to X.Y.Z.W format for display
