@@ -270,8 +270,8 @@ show_oracle_home_status() {
             product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
             ;;
         datasafe|DATASAFE|oud|OUD|weblogic|WLS|oms|OMS|emagent)
-            # These products don't have sqlplus - version detection not applicable
-            product_version="N/A"
+            # These products don't have sqlplus - use plugin-based detection
+            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
             ;;
         *)
             # Try to get version, but don't show errors
