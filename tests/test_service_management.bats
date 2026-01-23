@@ -43,6 +43,10 @@ setup() {
     [ -f "${PROJECT_ROOT}/src/bin/oradba_services_root.sh" ]
 }
 
+@test "oradba_dsctl.sh exists" {
+    [ -f "${PROJECT_ROOT}/src/bin/oradba_dsctl.sh" ]
+}
+
 # ------------------------------------------------------------------------------
 # Script Permissions Tests
 # ------------------------------------------------------------------------------
@@ -63,6 +67,10 @@ setup() {
     [ -x "${PROJECT_ROOT}/src/bin/oradba_services_root.sh" ]
 }
 
+@test "oradba_dsctl.sh is executable" {
+    [ -x "${PROJECT_ROOT}/src/bin/oradba_dsctl.sh" ]
+}
+
 # ------------------------------------------------------------------------------
 # Syntax Tests
 # ------------------------------------------------------------------------------
@@ -81,6 +89,10 @@ setup() {
 
 @test "oradba_services_root.sh has valid bash syntax" {
     bash -n "${PROJECT_ROOT}/src/bin/oradba_services_root.sh"
+}
+
+@test "oradba_dsctl.sh has valid bash syntax" {
+    bash -n "${PROJECT_ROOT}/src/bin/oradba_dsctl.sh"
 }
 
 # ------------------------------------------------------------------------------
@@ -111,6 +123,12 @@ setup() {
     [[ "$output" =~ "Usage:" ]]
 }
 
+@test "oradba_dsctl.sh --help displays usage" {
+    run "${PROJECT_ROOT}/src/bin/oradba_dsctl.sh" --help
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Usage:" ]]
+}
+
 # ------------------------------------------------------------------------------
 # Invalid Action Tests
 # ------------------------------------------------------------------------------
@@ -129,6 +147,12 @@ setup() {
 
 @test "oradba_services.sh rejects invalid action" {
     run "${PROJECT_ROOT}/src/bin/oradba_services.sh" invalid_action
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Usage:" ]]
+}
+
+@test "oradba_dsctl.sh rejects invalid action" {
+    run "${PROJECT_ROOT}/src/bin/oradba_dsctl.sh" invalid_action
     [ "$status" -eq 1 ]
     [[ "$output" =~ "Usage:" ]]
 }

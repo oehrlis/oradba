@@ -836,6 +836,52 @@ cd $ORACLE_HOME/agent/bin
 cmctl stop cman
 ```
 
+**Using oradba_dsctl.sh for Connector Management:**
+
+The `oradba_dsctl.sh` script provides unified control for Data Safe connectors, similar to `oradba_dbctl.sh` for databases.
+
+```bash
+# Start all connectors with autostart enabled (Y flag in oradba_homes.conf)
+oradba_dsctl.sh start
+
+# Start specific connector
+oradba_dsctl.sh start datasafe1
+
+# Start multiple connectors
+oradba_dsctl.sh start datasafe1 datasafe2
+
+# Stop connector with custom timeout
+oradba_dsctl.sh stop datasafe1 --timeout 120
+
+# Stop all connectors (requires justification)
+oradba_dsctl.sh stop
+
+# Force stop without confirmation
+oradba_dsctl.sh stop --force
+
+# Restart connector
+oradba_dsctl.sh restart datasafe1
+
+# Check status of all connectors
+oradba_dsctl.sh status
+
+# Check status with debug logging
+oradba_dsctl.sh status --debug
+
+# Enable autostart for connector (in oradba_homes.conf)
+oradba_homes.sh update --name datasafe1 --autostart Y
+```
+
+**Script features:**
+
+- Integrates with oradba_registry API for automatic connector discovery
+- Uses `cmctl` for connector management (startup/shutdown)
+- Supports graceful shutdown with configurable timeout (default: 180s)
+- Process-based fallback when graceful shutdown times out
+- Comprehensive logging using `oradba_log`
+- Justification prompt for bulk operations
+- Debug mode support via `--debug` flag or `ORADBA_DEBUG` environment variable
+
 **Troubleshooting Data Safe:**
 
 ```bash

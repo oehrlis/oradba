@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **oradba_dsctl.sh: Unified Data Safe Connector Control Script** (Issue #[TBD])
+  - New control script `oradba_dsctl.sh` for managing Oracle Data Safe on-premises connectors
+  - Supports start/stop/restart/status operations for Data Safe connectors
+  - Uses `cmctl` command for connector management (startup/shutdown)
+  - Integrates with oradba_registry API for connector discovery from oradba_homes.conf
+  - Follows same patterns and structure as `oradba_dbctl.sh` for consistency
+  - Features:
+    - Automatic connector discovery using registry API (datasafe type)
+    - Honors autostart flag (Y) from oradba_homes.conf
+    - Justification prompt for bulk operations (similar to oradba_dbctl.sh)
+    - Graceful shutdown with configurable timeout and fallback to force kill
+    - Comprehensive logging using oradba_log
+    - Debug mode support via --debug flag or ORADBA_DEBUG environment variable
+    - Force mode (--force) to skip confirmation prompts
+    - Configurable shutdown timeout (--timeout or ORADBA_SHUTDOWN_TIMEOUT)
+  - Implementation details:
+    - Uses datasafe_plugin.sh for connector status checks
+    - Extracts CMAN instance name from cman.ora configuration
+    - Handles oracle_cman_home path adjustments automatically
+    - Process-based fallback when graceful shutdown times out
+  - Added comprehensive test suite with 50 BATS tests covering:
+    - Script existence, permissions, and syntax validation
+    - Help and usage output verification
+    - Action and option parsing
+    - Function definitions and documentation headers
+    - Integration with required libraries (oradba_common.sh, datasafe_plugin.sh, oradba_registry.sh)
+    - Code quality checks (logging, error handling, cmctl usage)
+
 ### Changed
 
 ### Fixed
