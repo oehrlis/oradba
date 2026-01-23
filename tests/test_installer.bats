@@ -524,6 +524,26 @@ teardown() {
     grep -q "update_profile()" "$STANDALONE_INSTALLER"
 }
 
+@test "installer help shows --enable-auto-discover flag" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "enable-auto-discover"
+}
+
+@test "installer code has --enable-auto-discover flag" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    grep -q "\-\-enable-auto-discover" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has ENABLE_AUTO_DISCOVER variable" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    grep -q 'ENABLE_AUTO_DISCOVER=' "$STANDALONE_INSTALLER"
+}
+
+@test "installer help shows --enable-auto-discover usage example" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "enable-auto-discover"
+}
+
 @test "profile file detection supports multiple shells" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check for bashrc, profile, and zshrc fallbacks
