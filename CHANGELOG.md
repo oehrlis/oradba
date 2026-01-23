@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.19.8] - 2026-01-23
+
+### Added
+
 - **oradba_install.sh: Auto-Discovery Flag for Profile Integration** (Issue #94)
   - New `--enable-auto-discover` flag enables automatic Oracle Homes discovery on shell startup
   - When combined with `--update-profile`, adds `export ORADBA_AUTO_DISCOVER_HOMES="true"` to shell profile
@@ -54,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto-discovery of Oracle Homes does not work on first login** (Issue #[TBD])
   - Fixed `ORADBA_AUTO_DISCOVER_HOMES` not triggering on first login with empty oratab/oradba_homes.conf
-  - Root cause: Early return in `_oraenv_gather_available_entries()` prevented Oracle Home discovery when no running instances found
+  - Root cause: Early return in `_oraenv_gather_available_entries()` prevented Oracle Home discovery when no running
+    instances found
   - Restructured control flow to attempt both instance and home discovery before returning error
   - Now correctly discovers and registers Oracle Homes on first login when `ORADBA_AUTO_DISCOVER_HOMES=true`
   - Both discovery methods run when their respective flags are enabled
