@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **oradba_install.sh: Auto-Discovery Flag for Profile Integration** (Issue #94)
+  - New `--enable-auto-discover` flag enables automatic Oracle Homes discovery on shell startup
+  - When combined with `--update-profile`, adds `export ORADBA_AUTO_DISCOVER_HOMES="true"` to shell profile
+  - Automatically discovers and registers new Oracle products into `oradba_homes.conf` on first login
+  - Works with `--update-profile` and `--no-update-profile` combinations
+  - Updates both profile writing and manual instructions to include the export statement
+  - Benefits:
+    - Eliminates manual configuration step for auto-discovery
+    - Ensures consistent auto-discovery behavior across environments
+    - Simplifies deployment in environments with dynamic Oracle installations
+
 - **oradba_dsctl.sh: Unified Data Safe Connector Control Script** (Issue #[TBD])
   - New control script `oradba_dsctl.sh` for managing Oracle Data Safe on-premises connectors
   - Supports start/stop/restart/status operations for Data Safe connectors
