@@ -144,6 +144,14 @@ COMMANDS
     disabled
         List only disabled extensions that will be skipped.
 
+    enable <extension-name>
+        Enable a specific extension. Updates the extension's .extension metadata
+        file to set enabled: true. Requires reloading the environment to take effect.
+
+    disable <extension-name>
+        Disable a specific extension. Updates the extension's .extension metadata
+        file to set enabled: false. Requires reloading the environment to take effect.
+
     help
         Display this help message.
 
@@ -190,6 +198,12 @@ EXAMPLES
 
     # Show enabled extensions
     $(basename "$0") enabled
+
+    # Enable an extension
+    $(basename "$0") enable customer
+
+    # Disable an extension
+    $(basename "$0") disable customer
 
 SEE ALSO
     doc/extension-system.md - Complete extension system documentation
@@ -1684,9 +1698,187 @@ cmd_disabled() {
 }
 
 # ------------------------------------------------------------------------------
+# Command: enable - Enable an extension
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_enable
+# Purpose.: Enable a specific extension by updating its .extension metadata
+# Args....: $1 - Extension name
+# Returns.: 0 on success, 1 on error
+# Output..: Success/error message to stdout/stderr
+# Notes...: Updates enabled: true in .extension file
+#           Creates .extension file if missing
+#           Prompts user to reload environment
+# ------------------------------------------------------------------------------
+cmd_enable() {
+    local ext_name="$1"
+    
+    if [[ -z "${ext_name}" ]]; then
+        echo "ERROR: Extension name required" >&2
+        echo "Usage: $(basename "$0") enable <extension-name>" >&2
+        return 1
+    fi
+    
+    log_debug "cmd_enable invoked for '${ext_name}'"
+    
+    # Find extension (search discovered extensions first)
+    local extensions ext_path found=false
+    mapfile -t extensions < <(get_all_extensions)
+    
+    for path in "${extensions[@]}"; do
+        local name
+        name="$(get_extension_name "${path}")"
+        if [[ "${name}" == "${ext_name}" ]]; then
+            ext_path="${path}"
+            found=true
+            break
+        fi
+    done
+    
+    # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
+    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+        local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
+        if [[ -d "${potential_path}" ]]; then
+            ext_path="${potential_path}"
+            found=true
+            log_debug "Found undiscovered extension directory: ${potential_path}"
+        fi
+    fi
+    
+    if [[ "${found}" != "true" ]]; then
+        echo "ERROR: Extension '${ext_name}' not found" >&2
+        return 1
+    fi
+    
+    # Update or create .extension file
+    local metadata="${ext_path}/.extension"
+    if [[ -f "${metadata}" ]]; then
+        # Check if already enabled
+        if is_extension_enabled "${ext_name}" "${ext_path}"; then
+            echo "Extension '${ext_name}' is already enabled"
+            return 0
+        fi
+        
+        # Update existing file
+        if grep -q "^enabled:" "${metadata}"; then
+            # Replace existing enabled line
+            sed -i.bak "s/^enabled:.*/enabled: true/" "${metadata}" 2> /dev/null \
+                || sed -i '' "s/^enabled:.*/enabled: true/" "${metadata}" 2> /dev/null
+        else
+            # Add enabled line
+            echo "enabled: true" >> "${metadata}"
+        fi
+        rm -f "${metadata}.bak"
+    else
+        # Create new metadata file (extension has no metadata yet)
+        cat > "${metadata}" << EOF
+name: ${ext_name}
+enabled: true
+EOF
+    fi
+    
+    echo -e "${GREEN}✓ Extension '${ext_name}' enabled successfully${NC}"
+    echo ""
+    echo "To apply changes, reload your environment:"
+    echo "  source \${ORADBA_BASE}/bin/oraenv.sh \${ORACLE_SID}"
+    echo ""
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Command: disable - Disable an extension
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: cmd_disable
+# Purpose.: Disable a specific extension by updating its .extension metadata
+# Args....: $1 - Extension name
+# Returns.: 0 on success, 1 on error
+# Output..: Success/error message to stdout/stderr
+# Notes...: Updates enabled: false in .extension file
+#           Creates .extension file if missing
+#           Prompts user to reload environment
+# ------------------------------------------------------------------------------
+cmd_disable() {
+    local ext_name="$1"
+    
+    if [[ -z "${ext_name}" ]]; then
+        echo "ERROR: Extension name required" >&2
+        echo "Usage: $(basename "$0") disable <extension-name>" >&2
+        return 1
+    fi
+    
+    log_debug "cmd_disable invoked for '${ext_name}'"
+    
+    # Find extension (search discovered extensions first)
+    local extensions ext_path found=false
+    mapfile -t extensions < <(get_all_extensions)
+    
+    for path in "${extensions[@]}"; do
+        local name
+        name="$(get_extension_name "${path}")"
+        if [[ "${name}" == "${ext_name}" ]]; then
+            ext_path="${path}"
+            found=true
+            break
+        fi
+    done
+    
+    # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
+    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+        local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
+        if [[ -d "${potential_path}" ]]; then
+            ext_path="${potential_path}"
+            found=true
+            log_debug "Found undiscovered extension directory: ${potential_path}"
+        fi
+    fi
+    
+    if [[ "${found}" != "true" ]]; then
+        echo "ERROR: Extension '${ext_name}' not found" >&2
+        return 1
+    fi
+    
+    # Update or create .extension file
+    local metadata="${ext_path}/.extension"
+    if [[ -f "${metadata}" ]]; then
+        # Check if already disabled
+        if ! is_extension_enabled "${ext_name}" "${ext_path}"; then
+            echo "Extension '${ext_name}' is already disabled"
+            return 0
+        fi
+        
+        # Update existing file
+        if grep -q "^enabled:" "${metadata}"; then
+            # Replace existing enabled line
+            sed -i.bak "s/^enabled:.*/enabled: false/" "${metadata}" 2> /dev/null \
+                || sed -i '' "s/^enabled:.*/enabled: false/" "${metadata}" 2> /dev/null
+        else
+            # Add enabled line
+            echo "enabled: false" >> "${metadata}"
+        fi
+        rm -f "${metadata}.bak"
+    else
+        # Create new metadata file (extension has no metadata yet)
+        cat > "${metadata}" << EOF
+name: ${ext_name}
+enabled: false
+EOF
+    fi
+    
+    echo -e "${GREEN}✓ Extension '${ext_name}' disabled successfully${NC}"
+    echo ""
+    echo "To apply changes, reload your environment:"
+    echo "  source \${ORADBA_BASE}/bin/oraenv.sh \${ORACLE_SID}"
+    echo ""
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: main
 # Purpose.: Main entry point for extension management tool
-# Args....: $1 - Command (add|create|list|info|validate|validate-all|discover|paths|enabled|disabled|help)
+# Args....: $1 - Command (add|create|list|info|validate|validate-all|discover|paths|enabled|disabled|enable|disable|help)
 #           $@ - Command-specific arguments
 # Returns.: 0 on success, 1 on error
 # Output..: Command output to stdout, errors to stderr
@@ -1728,6 +1920,12 @@ main() {
             ;;
         disabled)
             cmd_disabled "$@"
+            ;;
+        enable)
+            cmd_enable "$@"
+            ;;
+        disable)
+            cmd_disable "$@"
             ;;
         help | -h | --help)
             usage
