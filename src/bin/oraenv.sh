@@ -306,6 +306,7 @@ _oraenv_gather_available_entries() {
 
     # If no entries found, try auto-discovery
     if [[ $total_entries -eq 0 ]]; then
+        # Try auto-discovery for running instances
         if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]] && command -v discover_running_oracle_instances &> /dev/null; then
             local discovered_oratab
             discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
@@ -315,21 +316,10 @@ _oraenv_gather_available_entries() {
                 
                 # Extract SIDs from discovered entries (filter empty lines)
                 mapfile -t sids_ref < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
-                
-                if [[ ${#sids_ref[@]} -eq 0 ]]; then
-                    oradba_log ERROR "No Oracle instances or homes found"
-                    return 1
-                fi
-            else
-                oradba_log ERROR "No Oracle instances or homes found"
-                return 1
             fi
-        else
-            oradba_log ERROR "No Oracle instances or homes found"
-            return 1
         fi
         
-        # Also try auto-discovery for Oracle Homes (Issue #70)
+        # Try auto-discovery for Oracle Homes (Issue #70)
         if [[ "${ORADBA_AUTO_DISCOVER_HOMES:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
             oradba_log INFO "Auto-discovering Oracle Homes..."
             auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
@@ -346,6 +336,13 @@ _oraenv_gather_available_entries() {
                     done <<< "${all_entries}"
                 fi
             fi
+        fi
+        
+        # Check if any entries were found after auto-discovery
+        total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
+        if [[ $total_entries -eq 0 ]]; then
+            oradba_log ERROR "No Oracle instances or homes found"
+            return 1
         fi
     fi
     

@@ -405,3 +405,37 @@ EOF
         grep -q "grep.*ORACLE_SID\\|awk.*sid" || true
 }
 
+@test "oraenv.sh supports ORADBA_AUTO_DISCOVER_HOMES flag" {
+    # Check that ORADBA_AUTO_DISCOVER_HOMES is referenced in the script
+    grep -q "ORADBA_AUTO_DISCOVER_HOMES" "$ORAENV_SCRIPT"
+}
+
+@test "oraenv.sh calls auto_discover_oracle_homes when enabled" {
+    # Check that auto_discover_oracle_homes is called when flag is true
+    grep -A 5 "ORADBA_AUTO_DISCOVER_HOMES" "$ORAENV_SCRIPT" | grep -q "auto_discover_oracle_homes"
+}
+
+@test "oraenv.sh auto-discovers homes before returning error" {
+    # Verify that home discovery happens before error is returned
+    # when no instances or homes are found
+    
+    # Extract the _oraenv_gather_available_entries function
+    awk '/_oraenv_gather_available_entries\(\)/,/^}$/' "$ORAENV_SCRIPT" > "${TEST_TEMP_DIR}/gather_func.txt"
+    
+    # Check that auto_discover_oracle_homes is called before the final error return
+    # The function should try both instance and home discovery before failing
+    grep -q "auto_discover_oracle_homes" "${TEST_TEMP_DIR}/gather_func.txt"
+    
+    # Verify the error check happens AFTER home discovery attempt
+    # Find line numbers of auto_discover_oracle_homes and the final error check
+    home_line=$(grep -n "auto_discover_oracle_homes" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
+    error_line=$(grep -n "No Oracle instances or homes found" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
+    
+    # Verify both patterns were found
+    [ -n "$home_line" ] || skip "Could not find auto_discover_oracle_homes in function"
+    [ -n "$error_line" ] || skip "Could not find error message in function"
+    
+    # Error check should come after home discovery (higher line number)
+    [ "$error_line" -gt "$home_line" ]
+}
+
