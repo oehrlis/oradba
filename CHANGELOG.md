@@ -41,6 +41,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Auto-discovery of Oracle Homes does not work on first login** (Issue #[TBD])
+  - Fixed `ORADBA_AUTO_DISCOVER_HOMES` not triggering on first login with empty oratab/oradba_homes.conf
+  - Root cause: Early return in `_oraenv_gather_available_entries()` prevented Oracle Home discovery when no running instances found
+  - Restructured control flow to attempt both instance and home discovery before returning error
+  - Now correctly discovers and registers Oracle Homes on first login when `ORADBA_AUTO_DISCOVER_HOMES=true`
+  - Both discovery methods run when their respective flags are enabled
+  - Final error check only happens after both discovery attempts complete
+  - Added tests to verify correct behavior and prevent regression
 - **Java and Client Path Configuration Variables Not Working** (Issue #[Bug])
   - Fixed `ORADBA_JAVA_PATH_FOR_NON_JAVA` and `ORADBA_CLIENT_PATH_FOR_NON_CLIENT` not being honored during environment setup
   - Root cause: Functions `oradba_add_java_path` and `oradba_add_client_path` were implemented but never called from `oraenv.sh`
