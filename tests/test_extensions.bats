@@ -1241,4 +1241,242 @@ EOF
     unset EXT_TWO_BASE
 }
 
+# ==============================================================================
+# Enable/Disable Command Tests
+# ==============================================================================
+
+@test "cmd_enable enables a disabled extension" {
+    # Source helper functions and cmd_enable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create disabled extension
+    mkdir -p "${TEST_TEMP_DIR}/test_enable/bin"
+    cat > "${TEST_TEMP_DIR}/test_enable/.extension" << 'EOF'
+name: test_enable
+enabled: false
+EOF
+    
+    # Enable it
+    run cmd_enable "test_enable"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"enabled successfully"* ]]
+    
+    # Verify enabled in metadata
+    grep -q "^enabled: true" "${TEST_TEMP_DIR}/test_enable/.extension"
+}
+
+@test "cmd_enable reports if already enabled" {
+    # Source helper functions and cmd_enable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create enabled extension
+    mkdir -p "${TEST_TEMP_DIR}/test_already_enabled/bin"
+    cat > "${TEST_TEMP_DIR}/test_already_enabled/.extension" << 'EOF'
+name: test_already_enabled
+enabled: true
+EOF
+    
+    # Try to enable again
+    run cmd_enable "test_already_enabled"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"already enabled"* ]]
+}
+
+@test "cmd_enable creates .extension file if missing" {
+    # Source helper functions and cmd_enable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create extension without .extension file
+    mkdir -p "${TEST_TEMP_DIR}/test_no_metadata/bin"
+    
+    # Enable it
+    run cmd_enable "test_no_metadata"
+    [[ "$status" -eq 0 ]]
+    
+    # Verify .extension file created with enabled: true
+    [[ -f "${TEST_TEMP_DIR}/test_no_metadata/.extension" ]]
+    grep -q "^enabled: true" "${TEST_TEMP_DIR}/test_no_metadata/.extension"
+}
+
+@test "cmd_disable disables an enabled extension" {
+    # Source helper functions and cmd_disable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_disable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create enabled extension
+    mkdir -p "${TEST_TEMP_DIR}/test_disable/bin"
+    cat > "${TEST_TEMP_DIR}/test_disable/.extension" << 'EOF'
+name: test_disable
+enabled: true
+EOF
+    
+    # Disable it
+    run cmd_disable "test_disable"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"disabled successfully"* ]]
+    
+    # Verify disabled in metadata
+    grep -q "^enabled: false" "${TEST_TEMP_DIR}/test_disable/.extension"
+}
+
+@test "cmd_disable reports if already disabled" {
+    # Source helper functions and cmd_disable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_disable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create disabled extension
+    mkdir -p "${TEST_TEMP_DIR}/test_already_disabled/bin"
+    cat > "${TEST_TEMP_DIR}/test_already_disabled/.extension" << 'EOF'
+name: test_already_disabled
+enabled: false
+EOF
+    
+    # Try to disable again
+    run cmd_disable "test_already_disabled"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"already disabled"* ]]
+}
+
+@test "cmd_enable fails with no extension name" {
+    # Source helper functions and cmd_enable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Try to enable without name
+    run cmd_enable
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"Extension name required"* ]]
+}
+
+@test "cmd_disable fails with no extension name" {
+    # Source helper functions and cmd_disable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_disable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Try to disable without name
+    run cmd_disable
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"Extension name required"* ]]
+}
+
+@test "cmd_enable fails with non-existent extension" {
+    # Source helper functions and cmd_enable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Try to enable non-existent extension
+    run cmd_enable "nonexistent_ext"
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"not found"* ]]
+}
+
+@test "cmd_disable fails with non-existent extension" {
+    # Source helper functions and cmd_disable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_disable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Try to disable non-existent extension
+    run cmd_disable "nonexistent_ext"
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"not found"* ]]
+}
+
+@test "enable/disable integration: extension loads after enable" {
+    # Source helper functions and cmd_enable/cmd_disable
+    # shellcheck disable=SC1090
+    source <(cat << 'EOFUNC'
+log_debug() { :; }  # Stub
+GREEN='\033[0;32m'
+NC='\033[0m'
+EOFUNC
+    sed -n '/^cmd_enable()/,/^}/p; /^cmd_disable()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh"
+    )
+    
+    # Create disabled extension
+    mkdir -p "${TEST_TEMP_DIR}/test_integration/bin"
+    cat > "${TEST_TEMP_DIR}/test_integration/.extension" << 'EOF'
+name: test_integration
+enabled: false
+EOF
+    
+    # Initial state: should not load
+    local orig_path="${PATH}"
+    load_extensions
+    [[ "${PATH}" != *"test_integration/bin"* ]]
+    
+    # Enable extension
+    cmd_enable "test_integration" > /dev/null
+    
+    # Reload extensions - should now load
+    export PATH="${orig_path}"
+    load_extensions
+    [[ "${PATH}" == *"test_integration/bin"* ]]
+    
+    # Verify environment variables are set
+    [[ -n "${ORADBA_EXT_TEST_INTEGRATION_PATH}" ]]
+    [[ -n "${TEST_INTEGRATION_BASE}" ]]
+    
+    # Cleanup
+    export PATH="${orig_path}"
+    unset ORADBA_EXT_TEST_INTEGRATION_PATH
+    unset TEST_INTEGRATION_BASE
+}
+
 # EOF
