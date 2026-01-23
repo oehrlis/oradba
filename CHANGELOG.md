@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DataSafe Status Detection in oraup.sh** (Issue #100)
+  - Fixed "unknown" status showing for running DataSafe connectors
+  - Changed `oraup.sh` to use `oradba_get_product_status()` API (same as `oradba_env.sh`)
+  - Removed complex direct function call logic with fallbacks
+  - Now consistent with proven pattern used by `oradba_env.sh status` command
+  - Both commands now properly show "running" status for active DataSafe connectors
+
 ### Removed
 
 ## [0.19.7] - 2026-01-22

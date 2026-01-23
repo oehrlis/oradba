@@ -431,12 +431,9 @@ show_oracle_status_registry() {
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
                 status="empty"
             else
-                # Use DataSafe plugin to check real status (Issue #99)
-                if command -v oradba_check_datasafe_status &>/dev/null; then
-                    status=$(oradba_check_datasafe_status "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
-                    [[ -z "$status" ]] && status="unknown"
-                elif type -t plugin_check_status &>/dev/null; then
-                    status=$(plugin_check_status "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+                # Use modern plugin architecture (same as oradba_env.sh)
+                if type -t oradba_get_product_status &>/dev/null; then
+                    status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
                     [[ -z "$status" ]] && status="unknown"
                 else
                     status="unknown"
