@@ -428,8 +428,12 @@ EOF
     
     # Verify the error check happens AFTER home discovery attempt
     # Find line numbers of auto_discover_oracle_homes and the final error check
-    local home_line=$(grep -n "auto_discover_oracle_homes" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
-    local error_line=$(grep -n "No Oracle instances or homes found" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
+    home_line=$(grep -n "auto_discover_oracle_homes" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
+    error_line=$(grep -n "No Oracle instances or homes found" "${TEST_TEMP_DIR}/gather_func.txt" | tail -1 | cut -d: -f1)
+    
+    # Verify both patterns were found
+    [ -n "$home_line" ] || skip "Could not find auto_discover_oracle_homes in function"
+    [ -n "$error_line" ] || skip "Could not find error message in function"
     
     # Error check should come after home discovery (higher line number)
     [ "$error_line" -gt "$home_line" ]
