@@ -34,6 +34,7 @@ setup() {
 teardown() {
     /bin/rm -rf "${TEST_DIR}"
     unset ORADBA_CLIENT_PATH_FOR_NON_CLIENT
+    unset ORACLE_CLIENT_HOME
 }
 
 # Helper: Setup mock Oracle homes
@@ -182,18 +183,34 @@ EOF
 @test "add_client_path: adds client bin to PATH for DATASAFE" {
     export ORADBA_CLIENT_PATH_FOR_NON_CLIENT="CL19"
     export PATH="/usr/bin:/bin"
+    unset ORACLE_CLIENT_HOME
     
     oradba_add_client_path "DATASAFE"
     [[ "$PATH" =~ test_homes/client_19c/bin ]]
+    [[ "$ORACLE_CLIENT_HOME" =~ test_homes/client_19c ]]
+}
+
+@test "add_client_path: exports ORACLE_CLIENT_HOME" {
+    export ORADBA_CLIENT_PATH_FOR_NON_CLIENT="CL19"
+    export PATH="/usr/bin:/bin"
+    unset ORACLE_CLIENT_HOME
+    
+    oradba_add_client_path "DATASAFE"
+    
+    # Verify ORACLE_CLIENT_HOME is set and points to correct location
+    [[ -n "${ORACLE_CLIENT_HOME}" ]]
+    [[ "${ORACLE_CLIENT_HOME}" =~ test_homes/client_19c ]]
 }
 
 @test "add_client_path: adds instant client to PATH (no bin subdirectory)" {
     export ORADBA_CLIENT_PATH_FOR_NON_CLIENT="IC19"
     export PATH="/usr/bin:/bin"
+    unset ORACLE_CLIENT_HOME
     
     oradba_add_client_path "OUD"
     [[ "$PATH" =~ test_homes/instantclient_19_19 ]]
     [[ ! "$PATH" =~ instantclient_19_19/bin ]]
+    [[ "$ORACLE_CLIENT_HOME" =~ test_homes/instantclient_19_19 ]]
 }
 
 @test "add_client_path: appends client path after existing entries" {
