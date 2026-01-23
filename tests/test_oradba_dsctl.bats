@@ -89,6 +89,7 @@ teardown() {
 @test "oradba_dsctl.sh help output mentions oradba_homes.conf" {
     run "${ORADBA_BIN}/oradba_dsctl.sh" --help
     [ "$status" -eq 1 ]
+    # shellcheck disable=SC2076
     [[ "$output" =~ "oradba_homes.conf" ]]
 }
 
