@@ -179,7 +179,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_get_metadata "${ds_home}"
     [ "$status" -eq 0 ]
-    [[ "$output" == *"type=datasafe"* ]]
+    [[ "$output" == *"type=datasafe_connector"* ]]
 }
 
 @test "datasafe plugin has adjusted paths helper" {
@@ -522,7 +522,7 @@ CMCTL_MOCK
     run plugin_get_metadata "${ds_home}"
     [ "$status" -eq 0 ]
     [[ "$output" == *"version=21.9.0.0.0"* ]]
-    [[ "$output" == *"type=datasafe"* ]]
+    [[ "$output" == *"type=datasafe_connector"* ]]
 }
 
 @test "datasafe plugin handles version fallback without instance" {
