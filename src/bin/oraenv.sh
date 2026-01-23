@@ -536,9 +536,31 @@ _oraenv_handle_oracle_home() {
         load_config "$requested_sid"
         oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
 
+        # Get product type for Java and client path setup
+        local product_type
+        product_type=$(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")
+        
+        # Add Java path for products that need it (e.g., DataSafe, OUD, WebLogic)
+        # This happens AFTER config files are loaded so user settings are honored
+        if command -v oradba_add_java_path &>/dev/null; then
+            oradba_add_java_path "${product_type}" "${ORACLE_HOME}"
+        fi
+        
+        # Add client path for non-client products (e.g., DataSafe, OUD, WebLogic)
+        if command -v oradba_add_client_path &>/dev/null; then
+            oradba_add_client_path "${product_type}"
+        fi
+        
+        # Final PATH deduplication after all configs and path additions
+        if command -v oradba_dedupe_path &>/dev/null; then
+            local final_path
+            final_path="$(oradba_dedupe_path "$PATH")"
+            export PATH="$final_path"
+        fi
+
         oradba_log DEBUG "Oracle Home environment set: $requested_sid"
         oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
-        oradba_log DEBUG "Product Type: $(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")"
+        oradba_log DEBUG "Product Type: ${product_type}"
 
         return 0
     else
@@ -867,6 +889,27 @@ _oraenv_set_environment() {
 
     # Load configurations and extensions
     _oraenv_load_configurations "$actual_sid"
+
+    # Get product type for Java and client path setup
+    local product_type="${ORADBA_CURRENT_HOME_TYPE:-database}"
+    
+    # Add Java path for products that need it (e.g., DataSafe, OUD, WebLogic)
+    # This happens AFTER config files are loaded so user settings are honored
+    if command -v oradba_add_java_path &>/dev/null; then
+        oradba_add_java_path "${product_type}" "${ORACLE_HOME}"
+    fi
+    
+    # Add client path for non-client products (e.g., DataSafe, OUD, WebLogic)
+    if command -v oradba_add_client_path &>/dev/null; then
+        oradba_add_client_path "${product_type}"
+    fi
+    
+    # Final PATH deduplication after all configs and path additions
+    if command -v oradba_dedupe_path &>/dev/null; then
+        local final_path
+        final_path="$(oradba_dedupe_path "$PATH")"
+        export PATH="$final_path"
+    fi
 
     oradba_log DEBUG "Oracle environment set for SID: $ORACLE_SID"
     oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
