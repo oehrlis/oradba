@@ -384,6 +384,10 @@ longops.sh -o "%IMP%"          # DataPump imports
 # Watch mode (continuous monitoring)
 longops.sh -w                  # Default 5-second refresh
 longops.sh -w -i 10            # 10-second refresh interval
+
+# Debug mode (v0.19.7+)
+longops.sh --debug -o "RMAN%" -w    # Show SQL construction and execution
+ORADBA_DEBUG=true longops.sh --all  # Debug all operations
 ```
 
 **Convenience wrappers:**
@@ -393,6 +397,11 @@ rman_jobs.sh                   # Monitor RMAN operations
 rman_jobs.sh -w                # Continuous RMAN monitoring
 exp_jobs.sh                    # Monitor DataPump exports
 imp_jobs.sh -w                 # Monitor DataPump imports
+
+# Debug mode for wrappers (v0.19.7+)
+rman_jobs.sh --debug -w -i 10       # Debug RMAN monitoring
+exp_jobs.sh --debug --all           # Debug DataPump export operations
+ORADBA_DEBUG=true imp_jobs.sh -w    # Debug DataPump import operations
 ```
 
 ### Wallet Password Utility

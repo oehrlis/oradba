@@ -15,6 +15,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.19.7] - 2026-01-22
+
+### Added
+
+- **Phase 3 Debug Support for Job Automation Scripts** (2026-01-22)
+  - Added comprehensive debug logging to backup and monitoring scripts:
+    - `rman_jobs.sh`: RMAN operation monitoring wrapper with debug tracing
+    - `exp_jobs.sh`: DataPump export monitoring wrapper with debug tracing  
+    - `imp_jobs.sh`: DataPump import monitoring wrapper with debug tracing
+    - `longops.sh`: Core long operations monitoring with detailed SQL debugging
+  - Dual activation methods for all scripts:
+    - Environment variable: `ORADBA_DEBUG=true`
+    - CLI flag: `--debug` or `-d`
+  - Debug features for wrapper scripts:
+    - Argument processing and filtering
+    - Wrapper operation and target script invocation
+    - Debug flag propagation to underlying longops.sh
+  - Debug features for longops.sh:
+    - SQL query construction and WHERE clause building
+    - Database connection establishment and environment sourcing
+    - Watch mode iterations and timing
+    - Operation filtering and result processing
+  - Updated troubleshooting documentation with comprehensive Phase 1-3 debug examples
+  - Backward compatible: no output changes unless debug enabled
+  - Usage examples:
+    - `ORADBA_DEBUG=true rman_jobs.sh -w -i 10`
+    - `exp_jobs.sh --debug -o "%EXP%" --all`
+    - `longops.sh --debug -o "RMAN%" -w ORCL FREE`
+
 ## [0.19.6] - 2026-01-22
 
 ### Added
