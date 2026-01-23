@@ -351,6 +351,7 @@ Other Options:
   --force             Force update even if same version
   --update-profile    Update shell profile for automatic environment loading
   --no-update-profile Don't update shell profile (default: prompt user)
+  --enable-auto-discover Enable auto-discovery of Oracle Homes on login
   --debug             Enable debug logging (shows detailed operation steps)
   -h, --help          Display this help message
   -v, --show-version  Display installer version information
@@ -391,6 +392,9 @@ Examples:
   
   # Install as different user
   sudo $0 --prefix /opt/oradba --user oracle
+  
+  # Install with auto-discovery enabled
+  $0 --user-level --update-profile --enable-auto-discover
 
 Pre-Oracle Installation:
   When installing before Oracle, use --user-level, --prefix, or --base to
@@ -732,6 +736,7 @@ profile_has_oradba() {
 #           Creates backup of profile before modification
 #           Adds oraenv.sh sourcing and oraup.sh status display
 #           Respects UPDATE_PROFILE variable (yes/no/auto)
+#           Exports ORADBA_AUTO_DISCOVER_HOMES=true if ENABLE_AUTO_DISCOVER is set
 # ------------------------------------------------------------------------------
 update_profile() {
     local install_prefix="$1"
@@ -780,6 +785,10 @@ update_profile() {
         echo "To manually add OraDBA to your profile, add these lines to $profile_file:"
         echo ""
         echo "  # OraDBA Environment Integration"
+        if [[ "$ENABLE_AUTO_DISCOVER" == "true" ]]; then
+            echo "  export ORADBA_AUTO_DISCOVER_HOMES=\"true\""
+            echo ""
+        fi
         echo "  if [ -f \"${install_prefix}/bin/oraenv.sh\" ]; then"
         echo "      # Load first Oracle SID from oratab (silent mode)"
         echo "      source \"${install_prefix}/bin/oraenv.sh\" --silent"
@@ -809,6 +818,18 @@ update_profile() {
     cat >> "$profile_file" << EOF
 
 # OraDBA Environment Integration (added $(date '+%Y-%m-%d'))
+EOF
+
+    # Add auto-discovery export if enabled
+    if [[ "$ENABLE_AUTO_DISCOVER" == "true" ]]; then
+        cat >> "$profile_file" << 'EOF'
+export ORADBA_AUTO_DISCOVER_HOMES="true"
+
+EOF
+    fi
+
+    # Add oraenv.sh sourcing
+    cat >> "$profile_file" << EOF
 if [ -f "${install_prefix}/bin/oraenv.sh" ]; then
     # Load first Oracle SID from oratab (silent mode)
     source "${install_prefix}/bin/oraenv.sh" --silent
@@ -909,6 +930,7 @@ DUMMY_ORACLE_HOME="" # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto" # auto, yes, no
+ENABLE_AUTO_DISCOVER=false # Flag for --enable-auto-discover
 SILENT_MODE=false
 
 while [[ $# -gt 0 ]]; do
@@ -961,6 +983,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-update-profile)
             UPDATE_PROFILE="no"
+            shift
+            ;;
+        --enable-auto-discover)
+            ENABLE_AUTO_DISCOVER=true
             shift
             ;;
         --silent)
