@@ -144,13 +144,15 @@ plugin_check_status() {
                  "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
         
         # Check for explicit stopped/not running messages FIRST (more specific)
+        # Use word boundaries to avoid matching "running" in "not running"
         if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
             echo "stopped"
             return 1
         fi
         
         # Then check for service information in output (running state)
-        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started"; then
+        # Check for positive indicators: Services Summary, READY, started, or "is running"
+        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|is running"; then
             echo "running"
             return 0
         fi
