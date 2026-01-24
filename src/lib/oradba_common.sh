@@ -2811,9 +2811,6 @@ oradba_apply_oracle_plugin() {
         return 1
     fi
     
-    # Ensure cleanup on exit
-    trap 'rm -f "${temp_output}" 2>/dev/null' RETURN
-    
     if [[ -n "${extra_arg}" ]]; then
         "${plugin_function}" "${oracle_home}" "${extra_arg}" > "${temp_output}" 2>/dev/null
         exit_code=$?
@@ -2829,6 +2826,9 @@ oradba_apply_oracle_plugin() {
         oradba_log DEBUG "Temp file disappeared during plugin execution"
         plugin_result=""
     fi
+    
+    # Cleanup temp file
+    rm -f "${temp_output}" 2>/dev/null
     
     # Store result if variable name provided
     if [[ -n "${result_var_name}" ]]; then
