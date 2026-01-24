@@ -15,6 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.19.10] - 2026-01-24
+
+### Changed
+
+- **DataSafe status checks use instance name parameter**
+  - `oradba_check_datasafe_status()` now accepts an optional instance name parameter
+  - `oradba_get_product_status()` passes the instance name for DataSafe connectors
+  - Plugin status checks receive instance context for more accurate detection
+- **Plugin execution temp file read optimization**
+  - Replaced subshell `cat` with bash builtin file read in `oradba_apply_oracle_plugin()`
+  - Reduces subshell creation during plugin execution
+
+### Fixed
+
+- **DataSafe status detection tests**
+  - Updated `check_datasafe_status` test to use direct `declare -F` validation
+  - Prevents false failures when functions are already sourced
+
 ## [0.19.9] - 2026-01-23
 
 ### Added
