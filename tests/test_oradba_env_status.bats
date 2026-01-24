@@ -159,9 +159,8 @@ teardown() {
 
 # Test oradba_check_datasafe_status with instance name parameter
 @test "check_datasafe_status: should accept instance name parameter" {
-    # Test that function accepts 2 parameters
-    run bash -c "declare -F oradba_check_datasafe_status"
-    [ "$status" -eq 0 ]
+    # Test that function is declared
+    declare -F oradba_check_datasafe_status | grep -q "oradba_check_datasafe_status"
     
     # Test with empty home should return UNKNOWN
     run oradba_check_datasafe_status "" "test_instance"
