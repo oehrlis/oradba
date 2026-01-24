@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.19.9] - 2026-01-23
+
+### Added
+
+- add oradba_datasafe_debug.sh for debugging Data Safe connectors
+
 ## [0.19.8] - 2026-01-23
 
 ### Added
