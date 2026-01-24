@@ -260,12 +260,16 @@ oradba_get_product_status() {
     
     # Try to use plugin for status check
     local status_result=""
-    if oradba_apply_oracle_plugin "check_status" "${plugin_type}" "${home_path}" "${instance_name}" "status_result" 2>/dev/null; then
+    oradba_apply_oracle_plugin "check_status" "${plugin_type}" "${home_path}" "${instance_name}" "status_result" 2>/dev/null
+    
+    # Use plugin result if we got output, regardless of exit code
+    # (plugins may return non-zero for "stopped" status, which is valid)
+    if [[ -n "${status_result}" ]]; then
         echo "${status_result}"
         return 0
     fi
     
-    # Fallback to legacy product-specific functions
+    # Fallback to legacy product-specific functions only if plugin had no output
     oradba_log DEBUG "Using fallback status check for ${product_type}"
     case "${product_type^^}" in
         RDBMS|DATABASE)
