@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document describes the workflow for checking DataSafe On-Premises Connector status in OraDBA. The implementation uses a plugin-based architecture with multiple fallback methods to ensure robust status detection.
+This document describes the workflow for checking DataSafe On-Premises Connector status in OraDBA.
+The implementation uses a plugin-based architecture with multiple fallback methods to ensure robust
+status detection.
 
 ## Architecture
 
@@ -106,12 +108,14 @@ flowchart TD
 **Location:** `src/bin/oraup.sh`
 
 **Responsibilities:**
+
 - Retrieves DataSafe connector installations from the registry
 - Iterates through each connector
 - Calls the status checking function
 - Formats and displays the output
 
 **Key Code:**
+
 ```bash
 status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
 ```
@@ -121,16 +125,19 @@ status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '
 **Location:** `src/lib/oradba_env_status.sh`
 
 **Functions:**
+
 - `oradba_get_product_status()` - Routes to product-specific status functions
 - `oradba_check_datasafe_status()` - DataSafe-specific status wrapper
 
 **Responsibilities:**
+
 - Product type routing
 - Parameter passing (home path, instance name)
 - Plugin invocation
 - Case conversion (lowercase → UPPERCASE)
 
 **Key Features:**
+
 - Accepts optional instance name parameter
 - Converts plugin output to standardized uppercase format
 - Handles plugin loading failures gracefully
@@ -144,6 +151,7 @@ status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '
 **Three-Tier Detection Strategy:**
 
 #### Method 1: cmctl Command (Primary - Most Accurate)
+
 - **What:** Uses Oracle Connection Manager control utility
 - **Command:** `cmctl show services -c <instance_name>`
 - **Requirements:**
@@ -159,6 +167,7 @@ status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '
   - Official Oracle utility
 
 #### Method 2: Process Detection (Secondary - Reliable Fallback)
+
 - **What:** Checks for running DataSafe processes
 - **Processes Checked:**
   - `cmadmin` - Connection Manager admin process
@@ -173,6 +182,7 @@ status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '
   - Fast and reliable
 
 #### Method 3: Python Setup (Tertiary - Last Resort)
+
 - **What:** Uses DataSafe Python setup script
 - **Command:** `python3 setup.py status`
 - **Requirements:**
@@ -186,6 +196,7 @@ status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '
   - Vendor-provided status method
 
 #### Final Fallback
+
 - **UNAVAILABLE:** cmctl doesn't exist or isn't executable
 - **STOPPED:** cmctl exists but all methods failed to detect running state
 
@@ -198,6 +209,7 @@ The instance name is resolved in the following priority order:
 3. **Default Value:** Falls back to "cust_cman" (common DataSafe default)
 
 **Extraction Logic:**
+
 ```bash
 # From cman.ora, extract line like: instance_name = (configuration...)
 grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' cman.ora | 
@@ -209,7 +221,8 @@ grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' cman.ora |
 ## Path Adjustment
 
 DataSafe connectors have a unique directory structure:
-```
+
+```text
 /path/to/datasafe/
 ├── oracle_cman_home/          ← Actual ORACLE_HOME
 │   ├── bin/
@@ -221,41 +234,46 @@ DataSafe connectors have a unique directory structure:
 ```
 
 The plugin automatically adjusts paths:
+
 - **Input:** Base path (`/path/to/datasafe`)
 - **Adjusted:** `oracle_cman_home` path (`/path/to/datasafe/oracle_cman_home`)
 - **Used for:** `ORACLE_HOME`, `LD_LIBRARY_PATH`, `cmctl` execution
 
 ## Status Output Mapping
 
-| Plugin Output | oradba_env_status Output | oraup.sh Display | Meaning |
-|--------------|-------------------------|------------------|---------|
-| `running` | `RUNNING` | `running` | Service is active and responding |
-| `stopped` | `STOPPED` | `stopped` | Service is installed but not running |
-| `unavailable` | `UNKNOWN` | `unknown` | Cannot determine status (cmctl missing) |
-| (plugin fails) | `UNKNOWN` | `unknown` | Plugin loading or execution failed |
+| Plugin Output  | oradba_env_status Output | oraup.sh Display | Meaning                                    |
+|----------------|--------------------------|------------------|--------------------------------------------|
+| `running`      | `RUNNING`                | `running`        | Service is active and responding           |
+| `stopped`      | `STOPPED`                | `stopped`        | Service is installed but not running       |
+| `unavailable`  | `UNKNOWN`                | `unknown`        | Cannot determine status (cmctl missing)    |
+| (plugin fails) | `UNKNOWN`                | `unknown`        | Plugin loading or execution failed         |
 
 ## Error Handling
 
 ### Plugin Loading Failures
+
 - **Cause:** Plugin file not found, syntax error, missing functions
 - **Behavior:** Returns `UNKNOWN` status
 - **Logging:** Debug message logged via `oradba_log DEBUG`
 
 ### cmctl Execution Failures
+
 - **Cause:** Wrong instance name, TNS errors, permission issues
 - **Behavior:** Falls back to process detection
 - **Detection:** Checks for TNS error codes in output
 
 ### Environment Issues
+
 - **Missing ORACLE_HOME:** Set by plugin before cmctl execution
 - **Missing LD_LIBRARY_PATH:** Constructed from `oracle_cman_home/lib`
 - **Wrong instance name:** Auto-extracted from `cman.ora`
 
 ## Call Chain Example
 
-**Scenario:** Check status of DataSafe connector "dscon1" at `/appl/oracle/product/exacc-wob-vwg-ha1`
+**Scenario:** Check status of DataSafe connector "dscon1" at
+`/appl/oracle/product/exacc-wob-vwg-ha1`
 
-```
+```text
 1. oraup.sh
    └─ oradba_get_product_status("datasafe", "dscon1", "/appl/oracle/product/exacc-wob-vwg-ha1")
 
@@ -263,7 +281,8 @@ The plugin automatically adjusts paths:
    └─ oradba_check_datasafe_status("/appl/oracle/product/exacc-wob-vwg-ha1", "dscon1")
 
 3. oradba_env_status.sh :: oradba_check_datasafe_status()
-   └─ oradba_apply_oracle_plugin("check_status", "datasafe", "/appl/.../ha1", "dscon1", "status_result")
+   └─ oradba_apply_oracle_plugin("check_status", "datasafe", "/appl/.../ha1", "dscon1",
+      "status_result")
 
 4. oradba_common.sh :: oradba_apply_oracle_plugin()
    ├─ Load: /path/to/oradba/lib/plugins/datasafe_plugin.sh
@@ -288,6 +307,7 @@ The plugin automatically adjusts paths:
 ### oradba_homes.conf
 
 DataSafe connectors are registered in the homes configuration:
+
 ```properties
 # NAME:TYPE:ORACLE_HOME:VERSION:EDITION:DESCRIPTION
 dscon1:datasafe:/appl/oracle/product/exacc-wob-vwg-ha1:N/A:N/A:DataSafe Connector 1
@@ -297,7 +317,8 @@ dscon2:datasafe:/appl/oracle/product/exacc-wob-vwg-ha2:N/A:N/A:DataSafe Connecto
 ### cman.ora
 
 Instance name is extracted from the Connection Manager configuration:
-```
+
+```text
 dscon1 = (
   configuration = (
     address = (protocol=tcp)(host=localhost)(port=1521)
@@ -312,6 +333,7 @@ dscon1 = (
 **Location:** `src/bin/oradba_datasafe_debug.sh`
 
 **Usage:**
+
 ```bash
 # General diagnostics
 ./oradba_datasafe_debug.sh
@@ -321,6 +343,7 @@ dscon1 = (
 ```
 
 **Output Sections:**
+
 1. Environment variables check
 2. Plugin file location and loading test
 3. Library availability
@@ -359,12 +382,14 @@ oraup.sh
 ### Status Shows "unknown" or "n/a"
 
 **Possible Causes:**
+
 1. Plugin file not found at `lib/plugins/datasafe_plugin.sh`
 2. Instance name not being passed correctly
 3. cmctl can't connect to service (wrong instance name)
 4. TNS errors in cmctl output
 
 **Solutions:**
+
 1. Verify `ORADBA_BASE` is set correctly
 2. Check instance name in `cman.ora` matches parameter
 3. Run debug script for detailed diagnostics
@@ -373,12 +398,14 @@ oraup.sh
 ### cmctl Commands Fail
 
 **Possible Causes:**
+
 1. `ORACLE_HOME` not pointing to `oracle_cman_home`
 2. `LD_LIBRARY_PATH` doesn't include `oracle_cman_home/lib`
 3. Instance name incorrect
 4. Service not configured
 
 **Solutions:**
+
 1. Verify path adjustment logic in plugin
 2. Check environment variables in debug output
 3. Extract instance name from `cman.ora`
@@ -387,11 +414,13 @@ oraup.sh
 ### Process Detection Returns False Positives
 
 **Possible Causes:**
+
 1. Multiple DataSafe installations
 2. Old processes from different installation
 3. Process grep pattern too broad
 
 **Solutions:**
+
 1. Process detection includes base path in grep pattern
 2. Use cmctl method when possible (more accurate)
 3. Verify processes belong to correct installation path
