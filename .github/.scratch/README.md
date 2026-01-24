@@ -17,3 +17,16 @@ Examples:
 - Draft implementations
 - Copilot-generated summaries
 - Temporary queries or results
+
+## Current Documents
+
+### Architecture Review (2026-01-24)
+
+Comprehensive architecture review of the Modular Library System (v0.19.x):
+
+- **architecture-review-summary.md** (13KB) - Quick start guide and overview
+- **architecture-review-report.md** (36KB) - Detailed findings and analysis
+- **architecture-review-recommendations.md** (15KB) - Prioritized action plan
+- **architecture-review-questions.md** (18KB) - 32 clarifying questions
+
+These documents provide a complete review of the Registry API, Plugin System, Environment Management Libraries, configuration hierarchy, testing coverage, and integration points.
