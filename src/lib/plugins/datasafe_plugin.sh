@@ -143,16 +143,18 @@ plugin_check_status() {
                  LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
                  "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
         
-        # Check for service information in output
-        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|running"; then
-            echo "running"
-            return 0
-        fi
-        
-        # Check for explicit stopped/not running messages
+        # Check for explicit stopped/not running messages FIRST (more specific)
+        # Use word boundaries to avoid matching "running" in "not running"
         if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
             echo "stopped"
             return 1
+        fi
+        
+        # Then check for service information in output (running state)
+        # Check for positive indicators: Services Summary, READY, started, or "is running"
+        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|is running"; then
+            echo "running"
+            return 0
         fi
     fi
     

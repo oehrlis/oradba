@@ -163,54 +163,7 @@ oradba_check_process_running() {
     return 1
 }
 
-# ------------------------------------------------------------------------------
-# Function: oradba_check_datasafe_status
-# Purpose.: Check if DataSafe On-Premises Connector is running
-# Args....: $1 - ORACLE_HOME (DataSafe connector path)
-#           $2 - Instance name (optional, for connector identification)
-# Returns.: 0 if running, 1 if not running
-# Output..: Status string (RUNNING|STOPPED|UNKNOWN)
-# Notes...: Uses datasafe plugin for status detection
-#           Converts plugin output to uppercase format
-# ------------------------------------------------------------------------------
-oradba_check_datasafe_status() {
-    local oracle_home="$1"
-    local instance_name="${2:-}"
-    
-    [[ -z "$oracle_home" ]] && {
-        echo "UNKNOWN"
-        return 1
-    }
-    
-    # Use datasafe plugin for status check
-    local status_result=""
-    if oradba_apply_oracle_plugin "check_status" "datasafe" "${oracle_home}" "${instance_name}" "status_result" 2>/dev/null; then
-        # Convert plugin output (running/stopped/unavailable) to uppercase
-        case "${status_result,,}" in
-            running) 
-                echo "RUNNING"
-                return 0
-                ;;
-            stopped) 
-                echo "STOPPED"
-                return 1
-                ;;
-            unavailable)
-                echo "UNKNOWN"
-                return 1
-                ;;
-            *)
-                echo "UNKNOWN"
-                return 1
-                ;;
-        esac
-    fi
-    
-    # Plugin not found or failed - log debug info
-    oradba_log DEBUG "Plugin status check failed for DataSafe: ${oracle_home}"
-    echo "UNKNOWN"
-    return 1
-}
+
 
 # ------------------------------------------------------------------------------
 # Function: oradba_check_oud_status
@@ -307,12 +260,29 @@ oradba_get_product_status() {
     
     # Try to use plugin for status check
     local status_result=""
-    if oradba_apply_oracle_plugin "check_status" "${plugin_type}" "${home_path}" "${instance_name}" "status_result" 2>/dev/null; then
-        echo "${status_result}"
-        return 0
-    fi
+    local plugin_exit_code=0
+    oradba_apply_oracle_plugin "check_status" "${plugin_type}" "${home_path}" "${instance_name}" "status_result" 2>/dev/null
+    plugin_exit_code=$?
     
-    # Fallback to legacy product-specific functions
+    # For certain product types, accept plugin output regardless of exit code
+    # (plugins may return non-zero for "stopped" status, which is valid)
+    case "${plugin_type}" in
+        datasafe|database)
+            if [[ -n "${status_result}" ]]; then
+                echo "${status_result}"
+                return ${plugin_exit_code}
+            fi
+            ;;
+        *)
+            # For other products, only use plugin output if exit code was 0
+            if [[ ${plugin_exit_code} -eq 0 ]] && [[ -n "${status_result}" ]]; then
+                echo "${status_result}"
+                return 0
+            fi
+            ;;
+    esac
+    
+    # Fallback to legacy product-specific functions only if plugin had no output or failed
     oradba_log DEBUG "Using fallback status check for ${product_type}"
     case "${product_type^^}" in
         RDBMS|DATABASE)
@@ -333,9 +303,6 @@ oradba_get_product_status() {
             # Client installations don't have services
             echo "N/A"
             return 0
-            ;;
-        DATASAFE)
-            oradba_check_datasafe_status "$home_path" "$instance_name"
             ;;
         OUD)
             oradba_check_oud_status "$instance_name"
