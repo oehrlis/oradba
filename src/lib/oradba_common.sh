@@ -2803,7 +2803,16 @@ oradba_apply_oracle_plugin() {
     
     # Capture output using a temporary file to avoid subshell
     local temp_output
-    temp_output=$(mktemp 2>/dev/null || echo "/tmp/oradba_plugin_$$")
+    temp_output=$(mktemp 2>/dev/null)
+    
+    # Validate mktemp succeeded
+    if [[ ! -f "${temp_output}" ]]; then
+        oradba_log DEBUG "Failed to create temp file for plugin execution"
+        return 1
+    fi
+    
+    # Ensure cleanup on exit
+    trap 'rm -f "${temp_output}" 2>/dev/null' RETURN
     
     if [[ -n "${extra_arg}" ]]; then
         "${plugin_function}" "${oracle_home}" "${extra_arg}" > "${temp_output}" 2>/dev/null
@@ -2813,9 +2822,13 @@ oradba_apply_oracle_plugin() {
         exit_code=$?
     fi
     
-    # Read result from temp file
-    plugin_result=$(cat "${temp_output}" 2>/dev/null)
-    rm -f "${temp_output}" 2>/dev/null
+    # Read result from temp file if it exists
+    if [[ -f "${temp_output}" ]]; then
+        plugin_result=$(cat "${temp_output}" 2>/dev/null)
+    else
+        oradba_log DEBUG "Temp file disappeared during plugin execution"
+        plugin_result=""
+    fi
     
     # Store result if variable name provided
     if [[ -n "${result_var_name}" ]]; then
