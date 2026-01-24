@@ -11,45 +11,47 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 
 ## Features
 
-### v1.2.2+ Registry API and Plugin System
+### v0.19.0+ Registry API and Plugin System
 
-- **Registry API** (v1.2.2): Unified interface for Oracle installation metadata
+- **Registry API** (v0.19.0+): Unified interface for Oracle installation metadata
   - Single API for oratab and oradba_homes.conf access
   - Consistent pipe-delimited format: `type|name|home|version|flags|order|alias|desc`
   - Efficient querying by name, type, or all entries
   - Eliminates duplicate parsing logic across 20+ files
-- **Plugin System** (v1.2.2): Product-specific behavior encapsulation
-  - 5 plugins: database, datasafe, client, iclient, oud
+- **Plugin System** (v0.19.0+): Product-specific behavior encapsulation
+  - 9 plugins: database, datasafe, client, iclient, oud, java, weblogic, emagent, oms
   - 8-function interface: validate, adjust, status, metadata, discover, etc.
-  - 99 comprehensive plugin tests (100% pass rate)
-  - Consolidates DataSafe logic (was duplicated across 8+ files)
+  - Comprehensive plugin tests (100% pass rate)
+  - Consolidates product-specific logic into dedicated plugins
   - Extensible architecture for new product types
 
-### v1.0.0 Architecture
+### v0.19.0+ Architecture
 
-- **Modular Library System** (v1.0.0): Clean separation of concerns with 6 specialized libraries
+- **Modular Library System** (v0.19.0+): Clean separation of concerns with 6 specialized libraries
   - Environment Parser - Extract and parse Oracle environment metadata
   - Environment Builder - Construct complete Oracle environment variables
   - Environment Validator - Multi-level validation (basic/standard/full)
   - Configuration Manager - Section-based hierarchical configuration
   - Status Checker - Real-time service and database status monitoring
   - Change Detector - Configuration change tracking and auto-reload
-- **Hierarchical Configuration** (v1.0.0): 6-level INI-style configuration system
+- **Hierarchical Configuration** (v0.19.0+): 6-level INI-style configuration system
   - Product sections: [RDBMS], [CLIENT], [ICLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
   - Variable expansion: ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE}
   - Override hierarchy: core → standard → local → customer → services → SID
-- **Oracle Homes Management** (v0.18.0+): Unified support for all Oracle products
+- **Oracle Homes Management** (v0.19.0+): Unified support for all Oracle products
   - Database, Client, Instant Client (ICLIENT), Grid Infrastructure, ASM
   - Oracle Unified Directory (OUD), WebLogic Server (WLS), Data Safe On-Premises Connectors (DATASAFE)
+  - Enterprise Manager (OMS, EM Agent), Java/JDK
   - Auto-discovery, export/import, version tracking
   - User-friendly aliases and integrated environment setup
-- **Auto-Discovery of Running Instances** (v1.0.0): Zero-config instant startup
+- **Auto-Discovery of Running Instances** (v0.19.0+): Zero-config instant startup
   - Automatically detects running Oracle instances when oratab is empty
   - Persists discovered instances to oratab (or local oratab if permission denied)
   - Supports database instances (db_smon_*, ora_pmon_*) and ASM (+ASM)
+  - Discovers Oracle Homes for all product types via `ORADBA_AUTO_DISCOVER_HOMES`
   - Current user filtering for security
   - Duplicate prevention for idempotent operations
-  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES`
+  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES` and `ORADBA_AUTO_DISCOVER_HOMES`
 
 ### Core Capabilities
 
@@ -69,7 +71,7 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
 - **Database Status Display**: Comprehensive information for all states (OPEN/MOUNT/NOMOUNT)
 - **SQL & RMAN Scripts**: Ready-to-use administration scripts with central logging
 - **Self-Contained Installer**: Single executable, no external dependencies
-- **Comprehensive Testing**: BATS test suite with 1033+ tests, 100% pass rate, CI/CD integration
+- **Comprehensive Testing**: BATS test suite with 1086+ tests, 100% pass rate, CI/CD integration
 
 ## Quick Start
 
@@ -138,20 +140,20 @@ source oraenv.sh FREE
 # Or use auto-generated aliases
 free              # Shortcut for: source /opt/oradba/bin/oraenv.sh FREE
 
-# Setup Oracle Homes (v0.18.0+)
+# Setup Oracle Homes (v0.19.0+)
 source oraenv.sh OUD12     # Oracle Unified Directory
 source oraenv.sh WLS14     # WebLogic Server
 
 # Interactive selection (displays both Oracle Homes and database SIDs)
 source oraenv.sh
 
-# Check environment status and changes (v1.0.0+)
+# Check environment status and changes (v0.19.0+)
 oradba_env.sh status FREE  # Check database/service status
 oradba_env.sh changes      # Detect configuration changes
 oradba_env.sh validate     # Validate current environment
 ```
 
-Manage Oracle Homes (v0.18.0+):
+Manage Oracle Homes (v0.19.0+):
 
 ```bash
 # List registered Oracle Homes
@@ -164,14 +166,14 @@ oradba_homes.sh discover --auto-add
 oradba_homes.sh add --name OUD12 \
   --path /u01/app/oracle/product/12.2.1.4/oud --type oud
 
-# Export/import Oracle Homes configuration (v1.0.0+)
+# Export/import Oracle Homes configuration (v0.19.0+)
 oradba_homes.sh export > homes_backup.conf
 oradba_homes.sh import homes_backup.conf
 
 # Show environment status (includes Oracle Homes)
 oraup.sh
 
-# Query installations via Registry API (v1.2.2+)
+# Query installations via Registry API (v0.19.0+)
 oradba_registry_get_all                    # All installations
 oradba_registry_get_by_name "ORCLCDB"     # Specific database/home
 oradba_registry_get_by_type "database"    # All databases
