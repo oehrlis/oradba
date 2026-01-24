@@ -105,17 +105,19 @@ teardown() {
     [ "$status" -eq 1 ]
 }
 
-# Test oradba_check_datasafe_status
-@test "check_datasafe_status: should return UNKNOWN for missing home" {
-    run oradba_check_datasafe_status ""
+# Test DataSafe status via plugin system
+@test "get_product_status: datasafe should use plugin for status" {
+    # DataSafe status is now exclusively handled by plugin system
+    run oradba_get_product_status "datasafe" "test_instance" "/nonexistent/datasafe/home"
+    # Plugin will return lowercase status or unknown
     [ "$status" -eq 1 ]
-    [ "$output" = "UNKNOWN" ]
+    [[ "$output" =~ unavailable|unknown ]]
 }
 
-@test "check_datasafe_status: should return STOPPED for non-running service" {
-    run oradba_check_datasafe_status "/nonexistent/datasafe/home"
+@test "get_product_status: datasafe should handle missing home" {
+    run oradba_get_product_status "DATASAFE" "test_instance" ""
+    # Should fail gracefully
     [ "$status" -eq 1 ]
-    [ "$output" = "UNKNOWN" ]
 }
 
 # Test oradba_check_oud_status
@@ -151,34 +153,16 @@ teardown() {
     declare -F oradba_check_asm_status | grep -q "oradba_check_asm_status"
     declare -F oradba_check_listener_status | grep -q "oradba_check_listener_status"
     declare -F oradba_check_process_running | grep -q "oradba_check_process_running"
-    declare -F oradba_check_datasafe_status | grep -q "oradba_check_datasafe_status"
     declare -F oradba_check_oud_status | grep -q "oradba_check_oud_status"
     declare -F oradba_check_wls_status | grep -q "oradba_check_wls_status"
     declare -F oradba_get_product_status | grep -q "oradba_get_product_status"
 }
 
-# Test oradba_check_datasafe_status with instance name parameter
-@test "check_datasafe_status: should accept instance name parameter" {
-    # Test that function exists
-    declare -F oradba_check_datasafe_status | grep -q "oradba_check_datasafe_status"
-    
-    # Test with empty home should return UNKNOWN
-    run oradba_check_datasafe_status "" "test_instance"
-    [ "$status" -eq 1 ]
-    [ "$output" = "UNKNOWN" ]
-}
-
-@test "check_datasafe_status: should handle missing home" {
-    run oradba_check_datasafe_status "/nonexistent/datasafe/home" "test_instance"
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ UNKNOWN|STOPPED ]]
-}
-
-@test "get_product_status: should pass instance name to datasafe check" {
-    # Test that DATASAFE case passes instance_name
+@test "get_product_status: should pass instance name to datasafe via plugin" {
+    # Test that DATASAFE uses plugin system with instance_name
     # This is validated by checking the function can be called with all parameters
     run oradba_get_product_status "DATASAFE" "test_instance" "/nonexistent/path"
-    # Should return UNKNOWN or STOPPED (not fail due to parameter issues)
+    # Plugin will return lowercase status or fail
     [ "$status" -eq 1 ]
-    [[ "$output" =~ UNKNOWN|STOPPED ]]
+    [[ "$output" =~ unavailable|unknown ]]
 }
