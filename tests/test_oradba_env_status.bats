@@ -110,14 +110,15 @@ teardown() {
     # DataSafe status is now exclusively handled by plugin system
     run oradba_get_product_status "datasafe" "test_instance" "/nonexistent/datasafe/home"
     # Plugin will return lowercase status or unknown
-    [ "$status" -eq 1 ]
+    # Exit code: 2 for unavailable, 1 for stopped, 0 for running
+    [ "$status" -ne 0 ]
     [[ "$output" =~ unavailable|unknown ]]
 }
 
 @test "get_product_status: datasafe should handle missing home" {
     run oradba_get_product_status "DATASAFE" "test_instance" ""
     # Should fail gracefully
-    [ "$status" -eq 1 ]
+    [ "$status" -ne 0 ]
 }
 
 # Test oradba_check_oud_status
@@ -163,6 +164,7 @@ teardown() {
     # This is validated by checking the function can be called with all parameters
     run oradba_get_product_status "DATASAFE" "test_instance" "/nonexistent/path"
     # Plugin will return lowercase status or fail
-    [ "$status" -eq 1 ]
+    # Exit code: non-zero for unavailable/stopped
+    [ "$status" -ne 0 ]
     [[ "$output" =~ unavailable|unknown ]]
 }
