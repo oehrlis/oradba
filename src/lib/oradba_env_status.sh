@@ -167,6 +167,7 @@ oradba_check_process_running() {
 # Function: oradba_check_datasafe_status
 # Purpose.: Check if DataSafe On-Premises Connector is running
 # Args....: $1 - ORACLE_HOME (DataSafe connector path)
+#           $2 - Instance name (optional, for connector identification)
 # Returns.: 0 if running, 1 if not running
 # Output..: Status string (RUNNING|STOPPED|UNKNOWN)
 # Notes...: Uses datasafe plugin for status detection
@@ -174,6 +175,7 @@ oradba_check_process_running() {
 # ------------------------------------------------------------------------------
 oradba_check_datasafe_status() {
     local oracle_home="$1"
+    local instance_name="${2:-}"
     
     [[ -z "$oracle_home" ]] && {
         echo "UNKNOWN"
@@ -182,7 +184,7 @@ oradba_check_datasafe_status() {
     
     # Use datasafe plugin for status check
     local status_result=""
-    if oradba_apply_oracle_plugin "check_status" "datasafe" "${oracle_home}" "" "status_result" 2>/dev/null; then
+    if oradba_apply_oracle_plugin "check_status" "datasafe" "${oracle_home}" "${instance_name}" "status_result" 2>/dev/null; then
         # Convert plugin output (running/stopped/unavailable) to uppercase
         case "${status_result,,}" in
             running) 
@@ -333,7 +335,7 @@ oradba_get_product_status() {
             return 0
             ;;
         DATASAFE)
-            oradba_check_datasafe_status "$home_path"
+            oradba_check_datasafe_status "$home_path" "$instance_name"
             ;;
         OUD)
             oradba_check_oud_status "$instance_name"

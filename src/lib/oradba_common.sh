@@ -1678,7 +1678,7 @@ set_oracle_home_environment() {
     
     if [[ "${product_type}" == "datasafe" ]]; then
         # Load datasafe plugin for oracle_cman_home adjustment
-        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
             # shellcheck source=/dev/null
             source "${plugin_file}"

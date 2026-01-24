@@ -156,3 +156,30 @@ teardown() {
     declare -F oradba_check_wls_status | grep -q "oradba_check_wls_status"
     declare -F oradba_get_product_status | grep -q "oradba_get_product_status"
 }
+
+# Test oradba_check_datasafe_status with instance name parameter
+@test "check_datasafe_status: should accept instance name parameter" {
+    # Test that function accepts 2 parameters
+    run bash -c "declare -F oradba_check_datasafe_status"
+    [ "$status" -eq 0 ]
+    
+    # Test with empty home should return UNKNOWN
+    run oradba_check_datasafe_status "" "test_instance"
+    [ "$status" -eq 1 ]
+    [ "$output" = "UNKNOWN" ]
+}
+
+@test "check_datasafe_status: should handle missing home" {
+    run oradba_check_datasafe_status "/nonexistent/datasafe/home" "test_instance"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ UNKNOWN|STOPPED ]]
+}
+
+@test "get_product_status: should pass instance name to datasafe check" {
+    # Test that DATASAFE case passes instance_name
+    # This is validated by checking the function can be called with all parameters
+    run oradba_get_product_status "DATASAFE" "test_instance" "/nonexistent/path"
+    # Should return UNKNOWN or STOPPED (not fail due to parameter issues)
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ UNKNOWN|STOPPED ]]
+}
