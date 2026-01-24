@@ -2821,7 +2821,7 @@ oradba_apply_oracle_plugin() {
     
     # Read result from temp file if it exists
     if [[ -f "${temp_output}" ]]; then
-        plugin_result=$(cat "${temp_output}" 2>/dev/null)
+        plugin_result=$(<"${temp_output}")
     else
         oradba_log DEBUG "Temp file disappeared during plugin execution"
         plugin_result=""
