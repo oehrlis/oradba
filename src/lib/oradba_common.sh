@@ -2796,14 +2796,26 @@ oradba_apply_oracle_plugin() {
         return 1
     fi
     
-    # Execute plugin function
+    # Execute plugin function directly (not in subshell) to preserve function scope
+    # This is critical for plugins that call other plugin functions internally
     local plugin_result
+    local exit_code
+    
+    # Capture output using a temporary file to avoid subshell
+    local temp_output
+    temp_output=$(mktemp 2>/dev/null || echo "/tmp/oradba_plugin_$$")
+    
     if [[ -n "${extra_arg}" ]]; then
-        plugin_result=$("${plugin_function}" "${oracle_home}" "${extra_arg}" 2>/dev/null)
+        "${plugin_function}" "${oracle_home}" "${extra_arg}" > "${temp_output}" 2>/dev/null
+        exit_code=$?
     else
-        plugin_result=$("${plugin_function}" "${oracle_home}" 2>/dev/null)
+        "${plugin_function}" "${oracle_home}" > "${temp_output}" 2>/dev/null
+        exit_code=$?
     fi
-    local exit_code=$?
+    
+    # Read result from temp file
+    plugin_result=$(cat "${temp_output}" 2>/dev/null)
+    rm -f "${temp_output}" 2>/dev/null
     
     # Store result if variable name provided
     if [[ -n "${result_var_name}" ]]; then
