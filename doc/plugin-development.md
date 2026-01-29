@@ -1,6 +1,11 @@
 # Plugin Development Guide
 
-This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v2.0.0+).
+This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v1.0.0+).
+
+> **📖 Related Documentation:**
+> - [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Start here** for interface specification and return value conventions
+> - [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Template implementation
+> - [Architecture](architecture.md) - System architecture
 
 ## Overview
 
@@ -13,6 +18,13 @@ implements a standardized interface that allows OraDBA to:
 - Check service status
 - Discover instances
 - Get product metadata
+
+**Before developing a plugin, read [plugin-standards.md](../src/lib/plugins/plugin-standards.md)** which formalizes:
+- The 11 core required functions
+- Return value standards (exit codes + stdout)
+- Optional function patterns
+- Testing requirements
+- Best practices and anti-patterns
 
 ## Plugin Architecture
 
@@ -42,9 +54,16 @@ Product Plugins
     └─ java_plugin.sh           (Oracle Java/JDK)
 ```
 
-## Plugin Interface v2.0.0
+## Plugin Interface v1.0.0
 
 Each plugin must implement **11 required functions** and **3 metadata variables**.
+
+> **📖 Complete Specification:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+> - Detailed function descriptions
+> - Exit code standards (0=success, 1=expected failure, 2=unavailable)
+> - Return value conventions (no sentinel strings!)
+> - Function templates for all 11 functions
+> - Extension patterns for optional functions
 
 ### Required Metadata
 
@@ -56,6 +75,28 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 ```
 
 ### Required Functions
+
+**Summary:** 11 core functions all plugins must implement.
+
+| # | Function | Purpose | Exit Codes |
+|---|----------|---------|------------|
+| 1 | `plugin_detect_installation` | Auto-discover installations | 0=success |
+| 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid |
+| 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success |
+| 4 | `plugin_check_status` | Check service status | 0=running, 1=stopped, 2=unavailable |
+| 5 | `plugin_get_metadata` | Get installation metadata | 0=success |
+| 6 | `plugin_should_show_listener` | Show in listener list? | 0=yes, 1=no |
+| 7 | `plugin_discover_instances` | Discover instances | 0=success |
+| 8 | `plugin_supports_aliases` | Supports SID aliases? | 0=yes, 1=no |
+| 9 | `plugin_build_path` | Get PATH components | 0=success |
+| 10 | `plugin_build_lib_path` | Get LD_LIBRARY_PATH components | 0=success |
+| 11 | `plugin_get_config_section` | Get config section name | 0=success |
+
+> **📖 Detailed Documentation:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+> - Complete function specifications
+> - Function templates (copy-paste ready)
+> - Return value standards
+> - Usage examples
 
 #### 1. plugin_detect_installation
 
@@ -343,6 +384,12 @@ plugin_get_version() {
     # Default implementation provided in plugin_interface.sh
 }
 ```
+
+> **📖 Extension Patterns:** See [plugin-standards.md - Optional Functions](../src/lib/plugins/plugin-standards.md#optional-functions-and-extension-patterns) for:
+> - Common optional functions (plugin_get_version, plugin_get_required_binaries)
+> - Product-specific extension patterns
+> - When to use simple vs. complex extension patterns
+> - Extension module structure (separate files for complex features)
 
 ## Step-by-Step Plugin Development
 
@@ -822,7 +869,8 @@ Before submitting plugin:
 
 ## References
 
-- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface specification
+- **[Plugin Standards](../src/lib/plugins/plugin-standards.md)** - **Official specification** for plugin interface
+- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface template implementation
 - [Database Plugin](../src/lib/plugins/database_plugin.sh) - Reference implementation
 - [Architecture](architecture.md) - System architecture
 - [Development Workflow](development-workflow.md) - Development process
