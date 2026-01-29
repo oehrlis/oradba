@@ -23,6 +23,7 @@ See [Migration from Non-Compliant Code](#migration-from-non-compliant-code) for 
 - [Introduction](#introduction)
 - [Core Plugin Functions](#core-plugin-functions)
 - [Return Value Standards](#return-value-standards)
+- [Subshell Execution Model](#subshell-execution-model)
 - [Optional Functions and Extension Patterns](#optional-functions-and-extension-patterns)
 - [Function Templates](#function-templates)
 - [Interface Versioning](#interface-versioning)
@@ -486,6 +487,161 @@ Test both exit codes AND output:
 }
 
 ```
+
+## Subshell Execution Model
+
+### Overview
+
+Starting with Phase 3 (Issue #136), all plugin functions execute in isolated subshells to prevent side effects and environment pollution. This ensures plugins cannot accidentally modify the caller's environment.
+
+### Minimal Oracle Environment
+
+**Critical Requirement:** The subshell wrapper MUST provide minimal Oracle environment variables to ensure plugins can execute Oracle commands:
+
+- `ORACLE_HOME` - Oracle installation directory (required)
+- `LD_LIBRARY_PATH` - Must include `$ORACLE_HOME/lib` (required)
+
+**Why This is Required:**
+
+- Plugins call Oracle binaries (sqlplus, lsnrctl, cmctl, etc.)
+- Oracle binaries require ORACLE_HOME to locate components
+- Oracle shared libraries (.so files) require LD_LIBRARY_PATH
+- Without these, Oracle commands will fail with "command not found" or library errors
+
+### Wrapper Implementation Pattern
+
+```bash
+execute_plugin_in_subshell() {
+    local plugin_name="$1"
+    local function_name="$2"
+    shift 2
+    local args=("$@")
+    
+    # Execute in isolated subshell with minimal Oracle environment
+    local output
+    local exit_code
+    
+    output=$(
+        # Enable strict error handling
+        set -euo pipefail
+        
+        # ✅ CRITICAL: Pass minimal Oracle environment
+        export ORACLE_HOME="${ORACLE_HOME:-}"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+        
+        # Source plugin in subshell (isolated from parent)
+        source "${ORADBA_PLUGIN_DIR}/${plugin_name}_plugin.sh" || return 2
+        
+        # Execute plugin function with arguments
+        "${function_name}" "${args[@]}"
+    )
+    exit_code=$?
+    
+    # Output result to parent (if any)
+    [[ -n "${output}" ]] && echo "${output}"
+    
+    # Propagate exit code to parent
+    return ${exit_code}
+}
+```
+
+### Environment Isolation
+
+**What is Isolated:**
+
+- All environment variables except ORACLE_HOME and LD_LIBRARY_PATH
+- Global shell variables
+- Function definitions (unless re-sourced)
+- File descriptors
+- Traps and signal handlers
+
+**What is Inherited:**
+
+- ORACLE_HOME (explicitly passed)
+- LD_LIBRARY_PATH (explicitly passed)
+- Exit codes (propagated via return)
+- Stdout output (captured and returned)
+
+### Plugin Developer Guidelines
+
+When writing plugins, you can **assume** the following environment is available:
+
+```bash
+plugin_function() {
+    local home_path="$1"
+    
+    # ✅ ORACLE_HOME is available - use it for Oracle commands
+    local version=$("${ORACLE_HOME}/bin/sqlplus" -v 2>/dev/null | head -1)
+    
+    # ✅ LD_LIBRARY_PATH is available - Oracle libraries will load
+    local status=$("${ORACLE_HOME}/bin/lsnrctl" status 2>/dev/null)
+    
+    # ❌ Don't assume other variables exist
+    # [[ -n "${CUSTOM_VAR}" ]] - May not exist in subshell
+    
+    return 0
+}
+```
+
+### Testing Subshell Isolation
+
+Plugins should be tested to verify:
+
+1. Oracle commands work (ORACLE_HOME available)
+2. Oracle libraries load (LD_LIBRARY_PATH available)
+3. No environment pollution (variables don't leak to parent)
+
+Example test:
+
+```bash
+@test "plugin can execute Oracle commands in subshell" {
+    export ORACLE_HOME="/u01/oracle"
+    export LD_LIBRARY_PATH="${ORACLE_HOME}/lib"
+    
+    # Execute plugin function
+    run execute_plugin_in_subshell "database" "plugin_get_version" "${ORACLE_HOME}"
+    
+    # Should succeed
+    [ "$status" -eq 0 ]
+    [ -n "$output" ]
+}
+
+@test "subshell has access to ORACLE_HOME" {
+    export ORACLE_HOME="/u01/oracle"
+    
+    run execute_plugin_in_subshell "test" "plugin_check_oracle_home"
+    
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "/u01/oracle" ]]
+}
+
+@test "environment variables don't leak from subshell" {
+    export ORACLE_HOME="/u01/oracle"
+    TEST_VAR="original"
+    
+    # Plugin tries to modify TEST_VAR
+    run execute_plugin_in_subshell "test" "plugin_modify_var"
+    
+    # Variable unchanged in parent
+    [ "${TEST_VAR}" = "original" ]
+}
+```
+
+### Performance Impact
+
+Subshell execution adds minimal overhead:
+
+- Subshell creation: ~5-10ms
+- Plugin sourcing: ~5-10ms
+- Total overhead: typically < 10%
+
+This is acceptable for interactive and automation use cases.
+
+### References
+
+- Phase 3 Implementation: Issue #136
+- Subshell Isolation Tests: `tests/test_plugin_isolation.bats`
+- Phase 3 Sub-Issues: `.github/.scratch/phase3-subissues.md`
 
 ## Optional Functions and Extension Patterns
 
@@ -1437,6 +1593,13 @@ bats tests/test_product_plugin.bats --tap
    - Return exit code 2 for unavailable resources
    - Provide helpful error messages (to stderr)
 
+9. **Assume minimal Oracle environment in subshell**
+
+   - ORACLE_HOME is available - use for Oracle binary paths
+   - LD_LIBRARY_PATH is available - Oracle libraries will load
+   - Don't assume other environment variables exist
+   - Test with subshell isolation enabled
+
 ### DON'T ❌
 
 1. **Don't echo sentinel strings**
@@ -1486,6 +1649,13 @@ bats tests/test_product_plugin.bats --tap
    - Remove echo statements used for debugging
    - Remove test data generation
    - Clean up temporary files
+
+9. **Don't assume full parent environment**
+
+   - Only ORACLE_HOME and LD_LIBRARY_PATH are guaranteed
+   - Other variables may not exist in subshell
+   - Check variable existence before using
+   - Don't rely on caller's custom environment variables
 
 ### Code Quality
 
