@@ -1,6 +1,8 @@
 # Plugin Development Guide
 
-This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v2.0.0+).
+This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v1.0.0).
+
+**For complete interface specification and standards**, see [plugin-standards.md](../src/lib/plugins/plugin-standards.md).
 
 ## Overview
 
@@ -42,9 +44,16 @@ Product Plugins
     └─ java_plugin.sh           (Oracle Java/JDK)
 ```
 
-## Plugin Interface v2.0.0
+## Plugin Interface v1.0.0
 
 Each plugin must implement **11 required functions** and **3 metadata variables**.
+
+**See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for**:
+
+- Complete function specifications
+- Return value standards (exit codes + stdout)
+- Extension patterns for optional functions
+- Function templates and best practices
 
 ### Required Metadata
 
@@ -56,6 +65,31 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 ```
 
 ### Required Functions
+
+**Core Functions (11 Required)** - [View detailed specifications](../src/lib/plugins/plugin-standards.md#core-plugin-functions)
+
+1. `plugin_detect_installation` - Auto-detect installations
+2. `plugin_validate_home` - Validate installation path
+3. `plugin_adjust_environment` - Adjust ORACLE_HOME if needed
+4. `plugin_check_status` - Check service/instance status
+5. `plugin_get_metadata` - Get installation metadata
+6. `plugin_should_show_listener` - Show in listener list?
+7. `plugin_discover_instances` - Discover running instances
+8. `plugin_supports_aliases` - Supports SID aliases?
+9. `plugin_build_path` - Get PATH components
+10. `plugin_build_lib_path` - Get LD_LIBRARY_PATH components
+11. `plugin_get_config_section` - Get config file section name
+
+**Return Value Standards** - [View complete specification](../src/lib/plugins/plugin-standards.md#return-value-standards)
+
+All functions follow strict exit code conventions:
+
+- Exit 0: Success (valid data on stdout)
+- Exit 1: Expected failure (operation not applicable)
+- Exit 2: Unavailable (binary missing, command failed)
+
+❌ **NEVER** echo sentinel strings like `"ERR"`, `"unknown"`, `"N/A"`  
+✅ **USE** exit codes for control flow, stdout for clean data only
 
 #### 1. plugin_detect_installation
 
@@ -822,7 +856,8 @@ Before submitting plugin:
 
 ## References
 
-- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface specification
+- [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Complete interface specification**
+- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface template
 - [Database Plugin](../src/lib/plugins/database_plugin.sh) - Reference implementation
 - [Architecture](architecture.md) - System architecture
 - [Development Workflow](development-workflow.md) - Development process
