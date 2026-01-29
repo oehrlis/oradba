@@ -161,12 +161,12 @@ teardown() {
 }
 
 # Test plugin_get_version with missing java
-@test "plugin_get_version returns ERR for missing java" {
+@test "plugin_get_version returns exit 2 for missing java (no output)" {
     mkdir -p "${TEST_DIR}/java17/bin"
     
     run plugin_get_version "${TEST_DIR}/java17"
-    [[ "$output" == "ERR" ]]
-    [[ $status -eq 1 ]]
+    [[ -z "$output" ]]
+    [[ $status -eq 2 ]]
 }
 
 # Test plugin_get_version with mock java (Java 8 format)

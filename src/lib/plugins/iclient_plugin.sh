@@ -288,15 +288,21 @@ plugin_build_lib_path() {
 # Function: plugin_get_version
 # Purpose.: Get Instant Client version
 # Args....: $1 - Installation path (ORACLE_HOME)
-# Returns.: 0 on success, 1 if version cannot be determined
-# Output..: Version string in X.Y format (e.g., "23.26" or "19.21")
+# Returns.: 0 on success with clean version string to stdout
+#           1 when version not applicable (no output)
+#           2 on error or unavailable (no output)
+# Output..: Version string in X.Y format (e.g., "23.26.0.0.0" or "19.21.0.0.0")
 # Notes...: Detection methods (in order):
 #           1. sqlplus -version (if sqlplus available)
 #           2. Library filenames (libclntsh.so.X.Y, libclntshcore.so.X.Y, libocci.so.X.Y)
 #           3. JDBC JAR manifest (ojdbc*.jar)
+#           No sentinel strings (ERR, unknown, N/A) in output
 # ------------------------------------------------------------------------------
 plugin_get_version() {
     local home_path="$1"
+    
+    # Validate home path exists
+    [[ ! -d "${home_path}" ]] && return 2
     
     # Debug: Log entry point
     if declare -f oradba_log >/dev/null 2>&1; then
@@ -368,7 +374,7 @@ plugin_get_version() {
         fi
     done
     
-    echo "unknown"
+    # No version found - not applicable
     return 1
 }
 

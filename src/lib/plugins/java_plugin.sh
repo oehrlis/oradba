@@ -252,9 +252,12 @@ plugin_get_required_binaries() {
 # Function: plugin_get_version
 # Purpose.: Get Java version
 # Args....: $1 - Installation path
-# Returns.: 0 on success, 1 on error
-# Output..: Java version string (e.g., "17.0.1", "1.8.0_291", "21.0.2")
+# Returns.: 0 on success with clean version string to stdout
+#           1 when version not applicable (no output)
+#           2 on error or unavailable (no output)
+# Output..: Java version string (e.g., "17.0.1", "8.0.291", "21.0.2")
 # Notes...: Parses output from java -version
+#           No sentinel strings (ERR, unknown, N/A) in output
 # ------------------------------------------------------------------------------
 plugin_get_version() {
     local home_path="$1"
@@ -262,11 +265,15 @@ plugin_get_version() {
     local version_output
     local version
     
+    # Check if home path exists
+    [[ ! -d "${home_path}" ]] && return 2
+    
     # Check if java executable exists
-    [[ ! -x "${java_bin}" ]] && { echo "ERR"; return 1; }
+    [[ ! -x "${java_bin}" ]] && return 2
     
     # Get version from java -version (stderr)
     version_output=$("${java_bin}" -version 2>&1 | head -1)
+    [[ -z "${version_output}" ]] && return 2
     
     # Parse version from different formats:
     # - Java 8:  java version "1.8.0_291"
@@ -286,9 +293,8 @@ plugin_get_version() {
         return 0
     fi
     
-    # Fallback
-    echo "ERR"
-    return 1
+    # Version extraction failed
+    return 2
 }
 
 # ------------------------------------------------------------------------------

@@ -165,8 +165,16 @@ plugin_get_required_binaries() {
 # Output..: "ERR"
 # Notes...: EM Agent version detection not implemented in stub
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Function: plugin_get_version
+# Purpose.: Get EM Agent version
+# Args....: $1 - Installation path
+# Returns.: 1 (version not applicable for stub)
+# Output..: No output
+# Notes...: EM Agent version detection not implemented in stub
+#           Returns exit code 1 (N/A) per plugin standards
+# ------------------------------------------------------------------------------
 plugin_get_version() {
-    echo "ERR"
     return 1
 }
 

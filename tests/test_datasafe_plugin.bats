@@ -462,7 +462,7 @@ CMCTL_MOCK
     [ "$output" = "23.4.0.0.0" ]
 }
 
-@test "datasafe plugin returns ERR when cmctl missing" {
+@test "datasafe plugin returns exit 2 when cmctl missing (no output)" {
     # Create mock DataSafe home without cmctl
     local ds_home="${TEST_DIR}/test_homes/datasafe_no_cmctl"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
@@ -470,8 +470,8 @@ CMCTL_MOCK
     
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_get_version "${ds_home}"
-    [ "$status" -eq 1 ]
-    [ "$output" = "ERR" ]
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin parses version from cmctl output" {
