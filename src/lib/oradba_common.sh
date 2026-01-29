@@ -1487,10 +1487,9 @@ detect_oracle_version() {
         if declare -f plugin_get_version >/dev/null 2>&1; then
             oradba_log DEBUG "Calling plugin_get_version for ${oracle_home}"
             local plugin_version
-            plugin_version=$(plugin_get_version "${oracle_home}")
-            oradba_log DEBUG "Plugin returned version: ${plugin_version}"
-            
-            if [[ -n "${plugin_version}" && "${plugin_version}" != "unknown" && "${plugin_version}" != "ERR" ]]; then
+            if plugin_version=$(plugin_get_version "${oracle_home}"); then
+                oradba_log DEBUG "Plugin returned version: ${plugin_version}"
+                
                 # Convert X.Y.Z.W format to XXYZ format
                 local major minor
                 major=$(echo "${plugin_version}" | cut -d. -f1)
@@ -1498,6 +1497,8 @@ detect_oracle_version() {
                 oradba_log DEBUG "Converting ${plugin_version} to format: ${major}${minor}"
                 printf "%02d%02d" "${major}" "${minor}"
                 return 0
+            else
+                oradba_log DEBUG "Plugin returned exit code $?: version not available"
             fi
         else
             oradba_log DEBUG "plugin_get_version function not found in ${plugin_file}"

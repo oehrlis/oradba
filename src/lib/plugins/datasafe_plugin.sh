@@ -201,18 +201,26 @@ plugin_check_status() {
 # Function: plugin_get_version
 # Purpose.: Get Data Safe connector version
 # Args....: $1 - Base path
-# Returns.: 0 on success, 1 on error
+# Returns.: 0 on success with clean version string to stdout
+#           1 when version not applicable (no output)
+#           2 on error or unavailable (no output)
 # Output..: Version string (e.g., "23.4.0.0.0")
 # Notes...: Uses cmctl show version command
+#           No sentinel strings (ERR, unknown, N/A) in output
 # ------------------------------------------------------------------------------
 plugin_get_version() {
     local base_path="$1"
     local cman_home
+    local version
+    
+    # Validate base path exists
+    [[ ! -d "${base_path}" ]] && return 2
+    
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Check if cmctl is available
     local cmctl="${cman_home}/bin/cmctl"
-    [[ ! -x "${cmctl}" ]] && { echo "ERR"; return 1; }
+    [[ ! -x "${cmctl}" ]] && return 2
     
     # Extract instance name from cman.ora
     local instance_name="cust_cman"  # Default
@@ -234,7 +242,6 @@ plugin_get_version() {
     
     # Parse version from output using sed for portability
     # Expected format: "Oracle Connection Manager Version 23.4.0.0.0"
-    local version
     version=$(echo "${version_output}" | sed -n 's/.*Version[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
     if [[ -n "${version}" ]]; then
         echo "${version}"
@@ -252,9 +259,8 @@ plugin_get_version() {
         return 0
     fi
     
-    # No version found
-    echo "ERR"
-    return 1
+    # No version found - error
+    return 2
 }
 
 # ------------------------------------------------------------------------------
@@ -267,12 +273,16 @@ plugin_get_version() {
 plugin_get_metadata() {
     local base_path="$1"
     local cman_home
+    local version
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Get version using plugin_get_version
-    local version
-    version=$(plugin_get_version "${base_path}")
-    echo "version=${version}"
+    if version=$(plugin_get_version "${base_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"
+    fi
+    
     echo "type=datasafe_connector"
     
     # Check if cmctl is available

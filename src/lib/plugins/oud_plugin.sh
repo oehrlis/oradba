@@ -137,6 +137,48 @@ plugin_check_status() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_get_version
+# Purpose.: Get OUD version
+# Args....: $1 - Installation path
+# Returns.: 0 on success with clean version string to stdout
+#           1 when version not applicable (no output)
+#           2 on error or unavailable (no output)
+# Output..: Version string (e.g., "12.2.1.4.0")
+# Notes...: Detection methods (in order):
+#           1. config/buildinfo file
+#           2. setup --version command
+#           No sentinel strings (ERR, unknown, N/A) in output
+# ------------------------------------------------------------------------------
+plugin_get_version() {
+    local home_path="$1"
+    local version
+    
+    # Validate home path exists
+    [[ ! -d "${home_path}" ]] && return 2
+    
+    # Check for version file
+    if [[ -f "${home_path}/config/buildinfo" ]]; then
+        version=$(grep -E "^product.version=" "${home_path}/config/buildinfo" 2>/dev/null | cut -d= -f2)
+        if [[ -n "${version}" ]]; then
+            echo "${version}"
+            return 0
+        fi
+    fi
+    
+    # Alternative: Check setup command
+    if [[ -x "${home_path}/setup" ]]; then
+        version=$("${home_path}/setup" --version 2>/dev/null | head -1 | grep -oP '\d+\.\d+\.\d+\.\d+')
+        if [[ -n "${version}" ]]; then
+            echo "${version}"
+            return 0
+        fi
+    fi
+    
+    # No version found - not applicable
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_get_metadata
 # Purpose.: Get OUD metadata
 # Args....: $1 - Path to OUD home
@@ -145,21 +187,15 @@ plugin_check_status() {
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     local home_path="$1"
+    local version
     
-    # Try to get version
-    local version="unknown"
-    
-    # Check for version file
-    if [[ -f "${home_path}/config/buildinfo" ]]; then
-        version=$(grep -E "^product.version=" "${home_path}/config/buildinfo" 2>/dev/null | cut -d= -f2)
+    # Get version using plugin_get_version
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"
     fi
     
-    # Alternative: Check setup command
-    if [[ -z "$version" || "$version" == "unknown" ]] && [[ -x "${home_path}/setup" ]]; then
-        version=$("${home_path}/setup" --version 2>/dev/null | head -1 | grep -oP '\d+\.\d+\.\d+\.\d+' || echo "unknown")
-    fi
-    
-    echo "version=${version}"
     echo "type=oud"
     
     # Check for configured instances

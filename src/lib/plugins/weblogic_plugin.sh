@@ -161,12 +161,12 @@ plugin_get_required_binaries() {
 # Function: plugin_get_version
 # Purpose.: Get WebLogic version
 # Args....: $1 - Installation path
-# Returns.: 1 (version not applicable)
-# Output..: "ERR"
+# Returns.: 1 (version not applicable for stub)
+# Output..: No output
 # Notes...: WebLogic version detection not implemented in stub
+#           Returns exit code 1 (N/A) per plugin standards
 # ------------------------------------------------------------------------------
 plugin_get_version() {
-    echo "ERR"
     return 1
 }
 

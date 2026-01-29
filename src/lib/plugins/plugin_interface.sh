@@ -246,28 +246,42 @@ plugin_supports_aliases() {
 # Function: plugin_get_version
 # Purpose.: Get product version from ORACLE_HOME
 # Args....: $1 - Installation path
-# Returns.: 0 on success
-# Output..: Version string (e.g., 19.21.0.0.0)
+# Returns.: 0 on success with clean version string to stdout
+#           1 when version not applicable (no output)
+#           2 on error or unavailable (no output)
+# Output..: Version string on success only (e.g., "19.21.0.0.0")
 # Notes...: Called by plugin_get_metadata, can be overridden for efficiency
+#           No sentinel strings (ERR, unknown, N/A) in output
+#           See plugin-standards.md for exit code contract details
 # ------------------------------------------------------------------------------
 plugin_get_version() {
     local home_path="$1"
+    local version
+    
+    # Validate home path exists
+    [[ ! -d "${home_path}" ]] && return 2
     
     # Try version file first
     local version_file="${home_path}/inventory/ContentsXML/comps.xml"
     if [[ -f "${version_file}" ]]; then
-        grep -oP 'VER="\K[^"]+' "${version_file}" 2>/dev/null | head -1
-        return $?
+        version=$(grep -oP 'VER="\K[^"]+' "${version_file}" 2>/dev/null | head -1)
+        if [[ -n "${version}" ]]; then
+            echo "${version}"
+            return 0
+        fi
     fi
     
     # Fallback to opatch if available
     if [[ -x "${home_path}/OPatch/opatch" ]]; then
-        "${home_path}/OPatch/opatch" version 2>/dev/null | \
-            grep -oP 'OPatch Version: \K[\d.]+' | head -1
-        return $?
+        version=$("${home_path}/OPatch/opatch" version 2>/dev/null | \
+                  grep -oP 'OPatch Version: \K[\d.]+' | head -1)
+        if [[ -n "${version}" ]]; then
+            echo "${version}"
+            return 0
+        fi
     fi
     
-    echo "unknown"
+    # No version found - not applicable
     return 1
 }
 

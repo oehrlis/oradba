@@ -136,11 +136,14 @@ plugin_check_status() {
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     local home_path="$1"
-    
-    # Get version
     local version
-    version=$(plugin_get_version "${home_path}")
-    echo "version=${version}"
+    
+    # Get version using plugin_get_version
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"
+    fi
     
     # Detect edition
     if [[ -f "${home_path}/bin/oracle" ]]; then

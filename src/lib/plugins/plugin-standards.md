@@ -4,6 +4,20 @@
 **Last Updated:** January 2026  
 **Status:** Active
 
+## Recent Changes
+
+**January 2026 - Phase 2.1 Refactoring (Issue #136)**
+
+All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
+
+- ✅ All sentinel strings ("ERR", "unknown", "N/A") removed from plugin_get_version output
+- ✅ Exit codes standardized: 0=success with clean version, 1=N/A, 2=error
+- ✅ All 9 plugins (6 production + 3 stubs) updated to new contract
+- ✅ Tests updated to validate exit codes instead of sentinel strings
+- ✅ Backward compatibility maintained in plugin_get_metadata (can still output "version=N/A")
+
+See [Migration from Non-Compliant Code](#migration-from-non-compliant-code) for before/after examples.
+
 ## Table of Contents
 
 - [Introduction](#introduction)
