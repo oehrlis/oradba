@@ -22,7 +22,8 @@
 
 ### Purpose
 
-This document formalizes the OraDBA plugin interface specification (v1.0.0) and establishes standards for plugin development. It serves as:
+This document formalizes the OraDBA plugin interface specification (v1.0.0) and establishes standards
+for plugin development. It serves as:
 
 - **Reference guide** for implementing new product plugins
 - **Contract specification** between OraDBA core and product plugins
@@ -64,7 +65,7 @@ export plugin_description="My Product"      # Human-readable description
 ### Required Functions Table
 
 | # | Function Name | Purpose | Exit Codes | Required |
-|---|---------------|---------|------------|----------|
+| --- | --------------- | --------- | ------------ | ---------- |
 | 1 | `plugin_detect_installation` | Auto-discover installations | 0=success | ✅ |
 | 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid | ✅ |
 | 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success | ✅ |
@@ -90,6 +91,7 @@ export plugin_description="My Product"      # Human-readable description
 **Output**: List of installation paths (one per line), sorted and deduplicated
 
 **Notes**:
+
 - Scans common locations (e.g., `/opt/oracle`, `/u01/app/oracle`)
 - May check running processes (e.g., `pmon`, `cmctl`)
 - Excludes installations inside other product homes
@@ -108,6 +110,7 @@ export plugin_description="My Product"      # Human-readable description
 **Output**: None (status via exit code only)
 
 **Notes**:
+
 - Checks for product-specific files/directories
 - Examples: `bin/sqlplus` (database), `bin/cmctl` (datasafe), `libclntsh.so` (iclient)
 - Should NOT echo anything (exit code is the contract)
@@ -125,6 +128,7 @@ export plugin_description="My Product"      # Human-readable description
 **Output**: Adjusted ORACLE_HOME path (may be same as input)
 
 **Notes**:
+
 - Most products return path unchanged
 - DataSafe appends `/oracle_cman_home`
 - Used to handle products with non-standard directory structures
@@ -136,10 +140,12 @@ export plugin_description="My Product"      # Human-readable description
 **Signature**: `plugin_check_status <home_path> [instance_name]`
 
 **Args**:
+
 - `$1` - Installation path (ORACLE_HOME)
 - `$2` - Instance name (optional)
 
 **Returns**:
+
 - Exit 0 if running
 - Exit 1 if stopped
 - Exit 2 if unavailable (binary missing, command failed)
@@ -147,6 +153,7 @@ export plugin_description="My Product"      # Human-readable description
 **Output**: Status string (`running`, `stopped`, or `unavailable`)
 
 **Notes**:
+
 - Uses explicit environment (not current shell environment)
 - For databases: checks `pmon` processes or connects with sqlplus
 - For datasafe: checks `cmctl status`
@@ -165,13 +172,15 @@ export plugin_description="My Product"      # Human-readable description
 **Output**: Key=value pairs (one per line)
 
 **Format**:
-```
+
+```text
 version=19.21.0.0.0
 edition=Enterprise
 patchlevel=221018
 ```
 
 **Notes**:
+
 - Version detection varies by product (see optional `plugin_get_version`)
 - May include product-specific metadata
 - All values should be clean data (no "unknown" or "ERR" sentinels)
@@ -189,6 +198,7 @@ patchlevel=221018
 **Output**: None (status via exit code only)
 
 **Notes**:
+
 - Database listeners: return 0 (show in listener list)
 - DataSafe connectors: return 1 (use `tnslsnr` but aren't DB listeners)
 - Most products: return 1 (no listener)
@@ -205,9 +215,10 @@ patchlevel=221018
 
 **Output**: List of instances (one per line), pipe-delimited
 
-**Format**: `instance_name|status|additional_metadata`
+ **Format**: `instance_name | status | additional_metadata`
 
 **Notes**:
+
 - Handles 1:many relationships (RAC, WebLogic, OUD)
 - Most products have single instance per home
 - May return empty output if no instances found
@@ -223,6 +234,7 @@ patchlevel=221018
 **Output**: None (status via exit code only)
 
 **Notes**:
+
 - Databases support aliases (exit 0)
 - Most other products don't (exit 1)
 
@@ -239,11 +251,13 @@ patchlevel=221018
 **Output**: Colon-separated PATH components
 
 **Examples**:
+
 - RDBMS: `/u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch`
 - Instant Client: `/u01/app/oracle/instantclient_19_21` (no `bin/`)
 - DataSafe: `/u01/app/oracle/ds-name/oracle_cman_home/bin`
 
 **Notes**:
+
 - Returns directories to prepend to PATH
 - May return multiple directories (colon-separated)
 - Caller handles deduplication
@@ -261,11 +275,13 @@ patchlevel=221018
 **Output**: Colon-separated library path components
 
 **Examples**:
+
 - RDBMS: `/u01/app/oracle/product/19/lib`
 - Instant Client: `/u01/app/oracle/instantclient_19_21` (libraries in root)
 - DataSafe: `/u01/app/oracle/ds-name/oracle_cman_home/lib`
 
 **Notes**:
+
 - Returns directories containing shared libraries
 - May return multiple directories (colon-separated)
 - Caller handles deduplication
@@ -283,6 +299,7 @@ patchlevel=221018
 **Examples**: `RDBMS`, `DATASAFE`, `CLIENT`, `ICLIENT`, `OUD`, `WLS`
 
 **Notes**:
+
 - Used by `oradba_apply_product_config()` to load product-specific settings
 - Section names should be uppercase
 - Must match section headers in config files
@@ -296,7 +313,7 @@ patchlevel=221018
 **All plugin functions MUST follow these conventions:**
 
 | Exit Code | Meaning | Usage |
-|-----------|---------|-------|
+| ----------- | --------- | ------- |
 | **0** | Success | Operation completed successfully, valid data on stdout |
 | **1** | Expected failure | Operation not applicable, service stopped, version N/A |
 | **2** | Unavailable | Binary missing, command failed, resource not accessible |
@@ -315,6 +332,7 @@ patchlevel=221018
 ### Why Avoid Sentinel Strings?
 
 **Problem with sentinels**:
+
 ```bash
 # ❌ WRONG: Fragile string checking
 version=$(plugin_get_version "${home}")
@@ -325,6 +343,7 @@ fi
 ```
 
 **Solution with exit codes**:
+
 ```bash
 # ✅ CORRECT: Clean contract
 if version=$(plugin_get_version "${home}"); then
@@ -401,7 +420,7 @@ Plugins MAY implement additional functions beyond the 11 core functions for prod
 ### Common Optional Functions
 
 | Function | Purpose | Usage |
-|----------|---------|-------|
+| ---------- | --------- | ------- |
 | `plugin_get_version` | Extract product version | Common across most plugins |
 | `plugin_get_required_binaries` | List required binaries | Used by validators |
 | `plugin_get_display_name` | Custom display name | Override default naming |
@@ -411,6 +430,7 @@ Plugins MAY implement additional functions beyond the 11 core functions for prod
 **Naming Convention**: `plugin_<product>_<function_name>`
 
 **Examples**:
+
 - `plugin_database_get_pdb_status` - Database-specific: PDB status
 - `plugin_database_check_rac` - Database-specific: RAC configuration
 - `plugin_datasafe_get_connector_config` - DataSafe-specific: connector config
@@ -465,7 +485,8 @@ plugin_get_required_binaries() {
 For **4+ optional functions** or **complex logic (>100 lines)**, create a separate extension module:
 
 **File Structure**:
-```
+
+```text
 src/lib/plugins/
 ├── database_plugin.sh          # Core functions only (11 required)
 ├── database_extensions.sh      # Optional complex features
@@ -474,6 +495,7 @@ src/lib/plugins/
 ```
 
 **Main Plugin** (`database_plugin.sh`):
+
 ```bash
 #!/usr/bin/env bash
 # database_plugin.sh
@@ -502,6 +524,7 @@ fi
 ```
 
 **Extension Module** (`database_extensions.sh`):
+
 ```bash
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
@@ -548,6 +571,7 @@ plugin_database_get_asm_diskgroups() {
 ```
 
 **Benefits of Separation**:
+
 - ✅ Core plugin stays focused and testable
 - ✅ Optional features don't bloat core
 - ✅ Extensions can evolve independently
@@ -555,6 +579,7 @@ plugin_database_get_asm_diskgroups() {
 - ✅ Easier to maintain and debug
 
 **When to Use Each Pattern**:
+
 - **In-plugin**: 1-3 simple optional functions (<50 lines total)
 - **Separate module**: 4+ optional functions OR complex logic (>100 lines)
 
@@ -870,7 +895,8 @@ export plugin_version="1.0.0"
 export plugin_description="My Product plugin"
 ```
 
-**Note**: The `plugin_version` is the plugin's own version, not the interface version. The interface version is implicitly v1.0.0 for all plugins implementing the 11 core functions.
+**Note**: The `plugin_version` is the plugin's own version, not the interface version. The interface version
+is implicitly v1.0.0 for all plugins implementing the 11 core functions.
 
 ### Version Policy
 
@@ -983,7 +1009,7 @@ Each plugin should have dedicated tests for its specific behavior:
 
 ### Test Organization
 
-```
+```text
 tests/
 ├── test_plugin_interface.bats         # Generic: all plugins
 ├── test_plugin_return_values.bats     # Generic: return conventions
@@ -1025,6 +1051,7 @@ bats tests/test_database_plugin.bats --tap
 ### DO ✅
 
 - **Use exit codes for control flow, stdout for data**
+
   ```bash
   if version=$(plugin_get_version "${home}"); then
       echo "Version: ${version}"
@@ -1032,6 +1059,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Validate all input parameters**
+
   ```bash
   plugin_build_path() {
       local home_path="$1"
@@ -1042,29 +1070,34 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Fail fast and clearly**
+
   ```bash
   [[ ! -x "${binary}" ]] && return 2  # Unavailable
   [[ -z "${result}" ]] && return 1    # Not applicable
   ```
 
 - **Document all exit codes in function header**
+
   ```bash
   # Returns.: 0 if running, 1 if stopped, 2 if unavailable
   ```
 
 - **Use subshell-safe patterns**
+
   ```bash
   # Avoid global state modification
   # Return data via stdout, not global variables
   ```
 
 - **Add logging to stderr (not stdout)**
+
   ```bash
   oradba_log DEBUG "Checking status for ${home}" >&2
   echo "running"  # Clean stdout
   ```
 
 - **Follow naming conventions for extensions**
+
   ```bash
   plugin_database_get_pdb_status  # Product-specific
   plugin_get_version               # Common optional
@@ -1073,6 +1106,7 @@ bats tests/test_database_plugin.bats --tap
 ### DON'T ❌
 
 - **Don't echo "ERR", "unknown", or other sentinels**
+
   ```bash
   # ❌ WRONG
   echo "ERR"
@@ -1084,6 +1118,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Don't modify caller's variables or environment**
+
   ```bash
   # ❌ WRONG
   export MODIFIED_VAR="value"
@@ -1093,6 +1128,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Don't call `oradba_log()` directly to stdout**
+
   ```bash
   # ❌ WRONG
   oradba_log INFO "Processing..." >&1
@@ -1102,6 +1138,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Don't mix data and error messages on stdout**
+
   ```bash
   # ❌ WRONG
   echo "version=19.21.0.0.0"
@@ -1113,6 +1150,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Don't assume dependencies are loaded**
+
   ```bash
   # ✅ CORRECT: Check before use
   if declare -f oradba_log >/dev/null 2>&1; then
@@ -1121,6 +1159,7 @@ bats tests/test_database_plugin.bats --tap
   ```
 
 - **Don't break backward compatibility without version bump**
+
   ```bash
   # ❌ WRONG: Changing function signature
   plugin_check_status() {
@@ -1315,7 +1354,8 @@ When updating existing plugins:
 ## References
 
 - **Plugin Interface**: [plugin_interface.sh](plugin_interface.sh) - Interface specification and template
-- **Plugin Development**: [../../doc/plugin-development.md](../../doc/plugin-development.md) - Comprehensive development guide
+- **Plugin Development**: [../../doc/plugin-development.md](../../doc/plugin-development.md) -
+  Comprehensive development guide
 - **Database Plugin**: [database_plugin.sh](database_plugin.sh) - Reference implementation
 - **Testing**: [../../tests/test_plugin_interface.bats](../../tests/test_plugin_interface.bats) - Interface compliance tests
 - **Architecture**: [../../doc/architecture.md](../../doc/architecture.md) - System architecture overview
@@ -1325,7 +1365,7 @@ When updating existing plugins:
 ## Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
+| --------- | ------ | ------------- |
 | v1.0.0 | 2026-01-29 | Initial plugin standards documentation |
 
 ---

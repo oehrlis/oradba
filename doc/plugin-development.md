@@ -49,6 +49,7 @@ Product Plugins
 Each plugin must implement **11 required functions** and **3 metadata variables**.
 
 **See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for**:
+
 - Complete function specifications
 - Return value standards (exit codes + stdout)
 - Extension patterns for optional functions
@@ -82,6 +83,7 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 **Return Value Standards** - [View complete specification](../src/lib/plugins/plugin-standards.md#return-value-standards)
 
 All functions follow strict exit code conventions:
+
 - Exit 0: Success (valid data on stdout)
 - Exit 1: Expected failure (operation not applicable)
 - Exit 2: Unavailable (binary missing, command failed)
