@@ -1,8 +1,13 @@
 # Plugin Development Guide
 
-This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v1.0.0).
+This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v1.0.0+).
 
-**For complete interface specification and standards**, see [plugin-standards.md](../src/lib/plugins/plugin-standards.md).
+> **📖 Related Documentation:**
+>
+> - [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Start here** for interface
+>   specification and return value conventions
+> - [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Template implementation
+> - [Architecture](architecture.md) - System architecture
 
 ## Overview
 
@@ -15,6 +20,15 @@ implements a standardized interface that allows OraDBA to:
 - Check service status
 - Discover instances
 - Get product metadata
+
+**Before developing a plugin, read [plugin-standards.md](../src/lib/plugins/plugin-standards.md)**
+which formalizes:
+
+- The 11 core required functions
+- Return value standards (exit codes + stdout)
+- Optional function patterns
+- Testing requirements
+- Best practices and anti-patterns
 
 ## Plugin Architecture
 
@@ -48,12 +62,13 @@ Product Plugins
 
 Each plugin must implement **11 required functions** and **3 metadata variables**.
 
-**See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for**:
-
-- Complete function specifications
-- Return value standards (exit codes + stdout)
-- Extension patterns for optional functions
-- Function templates and best practices
+> **📖 Complete Specification:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+>
+> - Detailed function descriptions
+> - Exit code standards (0=success, 1=expected failure, 2=unavailable)
+> - Return value conventions (no sentinel strings!)
+> - Function templates for all 11 functions
+> - Extension patterns for optional functions
 
 ### Required Metadata
 
@@ -66,30 +81,28 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 
 ### Required Functions
 
-**Core Functions (11 Required)** - [View detailed specifications](../src/lib/plugins/plugin-standards.md#core-plugin-functions)
+**Summary:** 11 core functions all plugins must implement.
 
-1. `plugin_detect_installation` - Auto-detect installations
-2. `plugin_validate_home` - Validate installation path
-3. `plugin_adjust_environment` - Adjust ORACLE_HOME if needed
-4. `plugin_check_status` - Check service/instance status
-5. `plugin_get_metadata` - Get installation metadata
-6. `plugin_should_show_listener` - Show in listener list?
-7. `plugin_discover_instances` - Discover running instances
-8. `plugin_supports_aliases` - Supports SID aliases?
-9. `plugin_build_path` - Get PATH components
-10. `plugin_build_lib_path` - Get LD_LIBRARY_PATH components
-11. `plugin_get_config_section` - Get config file section name
+| # | Function | Purpose | Exit Codes |
+| --- | ---------- | --------- | ------------ |
+| 1 | `plugin_detect_installation` | Auto-discover installations | 0=success |
+| 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid |
+| 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success |
+| 4 | `plugin_check_status` | Check service status | 0=running, 1=stopped, 2=unavailable |
+| 5 | `plugin_get_metadata` | Get installation metadata | 0=success |
+| 6 | `plugin_should_show_listener` | Show in listener list? | 0=yes, 1=no |
+| 7 | `plugin_discover_instances` | Discover instances | 0=success |
+| 8 | `plugin_supports_aliases` | Supports SID aliases? | 0=yes, 1=no |
+| 9 | `plugin_build_path` | Get PATH components | 0=success |
+| 10 | `plugin_build_lib_path` | Get LD_LIBRARY_PATH components | 0=success |
+| 11 | `plugin_get_config_section` | Get config section name | 0=success |
 
-**Return Value Standards** - [View complete specification](../src/lib/plugins/plugin-standards.md#return-value-standards)
-
-All functions follow strict exit code conventions:
-
-- Exit 0: Success (valid data on stdout)
-- Exit 1: Expected failure (operation not applicable)
-- Exit 2: Unavailable (binary missing, command failed)
-
-❌ **NEVER** echo sentinel strings like `"ERR"`, `"unknown"`, `"N/A"`  
-✅ **USE** exit codes for control flow, stdout for clean data only
+> **📖 Detailed Documentation:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+>
+> - Complete function specifications
+> - Function templates (copy-paste ready)
+> - Return value standards
+> - Usage examples
 
 #### 1. plugin_detect_installation
 
@@ -378,6 +391,15 @@ plugin_get_version() {
 }
 ```
 
+> **📖 Extension Patterns:** See
+> [plugin-standards.md - Optional Functions](../src/lib/plugins/plugin-standards.md#optional-functions-and-extension-patterns)
+> for:
+>
+> - Common optional functions (plugin_get_version, plugin_get_required_binaries)
+> - Product-specific extension patterns
+> - When to use simple vs. complex extension patterns
+> - Extension module structure (separate files for complex features)
+
 ## Step-by-Step Plugin Development
 
 ### Step 1: Create Plugin File
@@ -574,7 +596,7 @@ export plugin_description="Example Oracle Product plugin"
 plugin_detect_installation() {
     # Scan for installations
     find /opt/oracle -maxdepth 2 -name "example_binary" -type f 2>/dev/null | \
-        xargs -r dirname | sort -u
+ xargs -r dirname | sort -u 
 }
 
 # 2. Validate home
@@ -856,8 +878,8 @@ Before submitting plugin:
 
 ## References
 
-- [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Complete interface specification**
-- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface template
+- **[Plugin Standards](../src/lib/plugins/plugin-standards.md)** - **Official specification** for plugin interface
+- [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface template implementation
 - [Database Plugin](../src/lib/plugins/database_plugin.sh) - Reference implementation
 - [Architecture](architecture.md) - System architecture
 - [Development Workflow](development-workflow.md) - Development process

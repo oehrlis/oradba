@@ -9,8 +9,9 @@
 # Purpose..: Plugin interface template for product-specific behavior
 # Notes....: All product plugins must implement these functions
 #            See plugin-standards.md for complete interface specification
+#            Interface version: v1.0.0 (January 2026)
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
-#            Plugin Standards: plugin-standards.md (v1.0.0)
+#            plugin-standards.md - Plugin interface specification
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
@@ -42,6 +43,7 @@ plugin_description=""       # Human-readable description
 # Returns.: 0 on success
 # Output..: List of installation paths (one per line)
 # Notes...: Used for auto-discovery when no registry files exist
+#           See plugin-standards.md for return value conventions
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     oradba_log ERROR "plugin_detect_installation not implemented in ${plugin_name}"
@@ -55,6 +57,7 @@ plugin_detect_installation() {
 # Returns.: 0 if valid, 1 if invalid
 # Output..: None
 # Notes...: Checks for product-specific files/directories
+#           See plugin-standards.md for validation strategies
 # ------------------------------------------------------------------------------
 plugin_validate_home() {
     local home_path="$1"
@@ -85,6 +88,7 @@ plugin_adjust_environment() {
 # Returns.: 0 if running, 1 if stopped, 2 if unavailable
 # Output..: Status string (running|stopped|unavailable)
 # Notes...: Uses explicit environment (not current shell environment)
+#           See plugin-standards.md for exit code standards (0=running, 1=stopped, 2=unavailable)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"
