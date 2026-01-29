@@ -30,9 +30,12 @@ This document formalizes the OraDBA plugin interface specification. It defines:
 
 ### Relationship to Plugin Interface
 
-This document is the **specification** for the plugin interface defined in `plugin_interface.sh`. The interface file provides the template implementation, while this document explains the "why" and "how" of each function.
+This document is the **specification** for the plugin interface defined in `plugin_interface.sh`.
+The interface file provides the template implementation, while this document explains the "why"
+and "how" of each function.
 
 **Key files:**
+
 - `plugin_interface.sh` - Template with function signatures and default implementations
 - `plugin-standards.md` - **This document** - Specification and standards
 - `plugin-development.md` - Developer guide for creating new plugins
@@ -47,12 +50,13 @@ This document is the **specification** for the plugin interface defined in `plug
 
 ## Core Plugin Functions
 
-Every plugin MUST implement these 11 required functions. All functions must follow the return value standards defined in this document.
+Every plugin MUST implement these 11 required functions. All functions must follow the return
+value standards defined in this document.
 
 ### Function Summary Table
 
 | # | Function Name | Purpose | Exit Codes | Required |
-|---|---------------|---------|------------|----------|
+| --- | --- | --- | --- | --- |
 | 1 | `plugin_detect_installation` | Auto-discover installations | 0=success | ✅ |
 | 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid | ✅ |
 | 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success | ✅ |
@@ -74,14 +78,17 @@ Every plugin MUST implement these 11 required functions. All functions must foll
 **Usage:** Called during initial setup or when scanning for new installations.
 
 **Exit Codes:**
+
 - `0` - Success, installations found (or none found - both valid)
 
 **Output Format:**
+
 - One installation path per line
 - Paths should be absolute
 - Empty output with exit 0 is valid (no installations found)
 
 **Notes:**
+
 - Check running processes (e.g., pmon for database, cmctl for DataSafe)
 - Scan common installation locations
 - Check process environment variables
@@ -94,13 +101,16 @@ Every plugin MUST implement these 11 required functions. All functions must foll
 **Usage:** Called when adding new Oracle Homes or validating configuration.
 
 **Exit Codes:**
+
 - `0` - Path is valid for this product
 - `1` - Path is invalid or not this product type
 
 **Output Format:**
+
 - No output (validation is boolean)
 
 **Notes:**
+
 - Check for product-specific binaries
 - Verify required directory structure
 - Don't assume path exists - check first
@@ -113,12 +123,15 @@ Every plugin MUST implement these 11 required functions. All functions must foll
 **Usage:** Called when setting up environment variables.
 
 **Exit Codes:**
+
 - `0` - Success
 
 **Output Format:**
+
 - Single line: adjusted ORACLE_HOME path
 
 **Notes:**
+
 - Most products return path unchanged
 - DataSafe appends `/oracle_cman_home` subdirectory
 - Output must be a valid filesystem path
@@ -129,14 +142,17 @@ Every plugin MUST implement these 11 required functions. All functions must foll
 **Purpose:** Check if product instance/service is currently running.
 
 **Exit Codes:**
+
 - `0` - Running/active
 - `1` - Stopped/inactive
 - `2` - Unavailable (binary missing, command failed)
 
 **Output Format:**
+
 - Single word: `running`, `stopped`, or `unavailable`
 
 **Notes:**
+
 - Use explicit environment (don't rely on shell environment)
 - Check actual service status, not just binary existence
 - Timeout commands appropriately (avoid hangs)
@@ -147,23 +163,29 @@ Every plugin MUST implement these 11 required functions. All functions must foll
 **Purpose:** Get product metadata (version, edition, features, etc.).
 
 **Exit Codes:**
+
 - `0` - Success
 - `1` - Metadata not applicable
 - `2` - Metadata extraction failed
 
 **Output Format:**
+
 - Key=value pairs, one per line
 - Standard keys: `version`, `edition`, `patchlevel`
 - Custom keys allowed (product-specific)
 
-**Example:**
-```
+#### Example
+
+```text
+
 version=19.21.0.0.0
 edition=Enterprise
 patchlevel=221018
+
 ```
 
 **Notes:**
+
 - Call `plugin_get_version()` if available
 - Return minimal metadata if full extraction fails
 - Don't error on missing optional metadata
@@ -173,13 +195,16 @@ patchlevel=221018
 **Purpose:** Determine if this product's TNS listener should appear in listener sections.
 
 **Exit Codes:**
+
 - `0` - Show listener (database products)
 - `1` - Don't show listener (other products using tnslsnr)
 
 **Output Format:**
+
 - No output (boolean return code only)
 
 **Notes:**
+
 - Database listeners: return 0
 - DataSafe connectors: return 1 (use tnslsnr but aren't DB listeners)
 - Most non-database products: return 1
@@ -189,14 +214,17 @@ patchlevel=221018
 **Purpose:** Discover all instances/services for this Oracle Home.
 
 **Exit Codes:**
+
 - `0` - Success (instances found or none - both valid)
 
 **Output Format:**
+
 - One instance per line
 - Format: `instance_name|status|additional_metadata`
 - Empty output with exit 0 is valid (no instances)
 
 **Notes:**
+
 - Handles 1:many relationships (RAC, WebLogic domains, OUD instances)
 - Single-instance products can return empty or single entry
 - Status field should match `plugin_check_status` output
@@ -206,13 +234,16 @@ patchlevel=221018
 **Purpose:** Indicate whether this product supports SID-like aliases.
 
 **Exit Codes:**
+
 - `0` - Supports aliases (like database SIDs)
 - `1` - Does not support aliases
 
 **Output Format:**
+
 - No output (boolean return code only)
 
 **Notes:**
+
 - Database products: return 0
 - Most other products: return 1
 - Affects alias generation and environment switching
@@ -222,14 +253,17 @@ patchlevel=221018
 **Purpose:** Get PATH components to add for this product.
 
 **Exit Codes:**
+
 - `0` - Success
 - `1` - Build failed (fallback to default)
 
 **Output Format:**
+
 - Colon-separated list of directories
 - Example: `/u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch`
 
 **Notes:**
+
 - Don't validate directory existence
 - Instant Client: return ORACLE_HOME directly (no bin subdirectory)
 - Database: typically `${ORACLE_HOME}/bin:${ORACLE_HOME}/OPatch`
@@ -240,14 +274,17 @@ patchlevel=221018
 **Purpose:** Get LD_LIBRARY_PATH components to add for this product.
 
 **Exit Codes:**
+
 - `0` - Success
 - `1` - Build failed (fallback to default)
 
 **Output Format:**
+
 - Colon-separated list of library directories
 - Example: `/u01/app/oracle/product/19/lib`
 
 **Notes:**
+
 - Don't validate directory existence
 - Database: typically `${ORACLE_HOME}/lib`
 - Instant Client: return ORACLE_HOME directly
@@ -258,13 +295,16 @@ patchlevel=221018
 **Purpose:** Get the configuration section name for this product.
 
 **Exit Codes:**
+
 - `0` - Success
 
 **Output Format:**
+
 - Single line: uppercase section name
 - Example: `RDBMS`, `DATASAFE`, `CLIENT`, `ICLIENT`, `OUD`, `WLS`
 
 **Notes:**
+
 - Used by `oradba_apply_product_config()` to load settings
 - Convention: uppercase product identifier
 - Must match section names in oradba_standard.conf
@@ -276,7 +316,7 @@ patchlevel=221018
 **All plugin functions MUST follow these conventions:**
 
 | Exit Code | Meaning | When to Use |
-|-----------|---------|-------------|
+| ----------- | --------- | ------------- |
 | **0** | Success | Function completed successfully, valid data on stdout |
 | **1** | Expected failure | Operation not applicable, service stopped, feature not available |
 | **2** | Unavailable | Binary missing, command failed, resource not accessible |
@@ -310,6 +350,7 @@ if [[ -n "${version}" && "${version}" != "ERR" && "${version}" != "unknown" ]]; 
     # What if version is "ERR123" or "unknown-version"?
     # Fragile and error-prone!
 fi
+
 ```
 
 ```bash
@@ -323,6 +364,7 @@ else
         2) echo "Version detection failed" ;;
     esac
 fi
+
 ```
 
 ### Standard Patterns
@@ -330,6 +372,7 @@ fi
 #### Pattern 1: Simple Success/Failure
 
 ```bash
+
 plugin_function() {
     local arg="$1"
     
@@ -344,11 +387,13 @@ plugin_function() {
     echo "${result}"
     return 0
 }
+
 ```
 
 #### Pattern 2: Conditional Output
 
 ```bash
+
 plugin_function() {
     local arg="$1"
     
@@ -366,11 +411,13 @@ plugin_function() {
     echo "${data}"
     return 0
 }
+
 ```
 
 #### Pattern 3: Multiple Exit Points
 
 ```bash
+
 plugin_function() {
     local home_path="$1"
     local binary="${home_path}/bin/tool"
@@ -394,6 +441,7 @@ plugin_function() {
     # No method worked - not applicable
     return 1
 }
+
 ```
 
 ### Testing Return Values
@@ -422,6 +470,7 @@ Test both exit codes AND output:
     [ "$status" -eq 2 ]
     [ -z "$output" ]  # No output expected
 }
+
 ```
 
 ## Optional Functions and Extension Patterns
@@ -433,12 +482,12 @@ Plugins MAY implement additional functions beyond the 11 core functions for prod
 #### Common Optional Functions
 
 | Function | Purpose | Usage | Exit Codes |
-|----------|---------|-------|------------|
+| ---------- | --------- | ------- | ------------ |
 | `plugin_get_version` | Extract product version | Called by `plugin_get_metadata` | 0=success, 1=N/A, 2=failed |
 | `plugin_get_required_binaries` | List required binaries | Used by validators | 0=success |
 | `plugin_get_display_name` | Custom display name | Override default naming | 0=success |
 
-**Example: plugin_get_version**
+#### Example plugin_get_version
 
 ```bash
 # ------------------------------------------------------------------------------
@@ -473,6 +522,7 @@ plugin_get_version() {
     # No version available
     return 1
 }
+
 ```
 
 ### Product-Specific Extensions
@@ -481,7 +531,8 @@ For features unique to a product, use descriptive function names.
 
 **Naming Convention:** `plugin_<product>_<function_name>`
 
-**Examples:**
+#### Examples
+
 - `plugin_database_get_pdb_status` - Database-specific: PDB status
 - `plugin_database_check_rac` - Database-specific: RAC configuration
 - `plugin_datasafe_get_connector_config` - DataSafe-specific: connector config
@@ -534,9 +585,11 @@ plugin_get_required_binaries() {
     echo "binary1 binary2"
     return 0
 }
+
 ```
 
 **When to use:**
+
 - Small number of optional functions (1-3)
 - Simple logic (<50 lines total for all optional functions)
 - No complex interdependencies
@@ -547,7 +600,7 @@ For **4+ optional functions** OR **complex logic (>100 lines)**, create a separa
 
 **File Structure:**
 
-```
+```text
 src/lib/plugins/
 ├── product_plugin.sh          # Core functions only (11 required)
 ├── product_extensions.sh      # Optional complex features
@@ -581,6 +634,7 @@ if [[ -f "${ORADBA_BASE}/lib/plugins/product_extensions.sh" ]]; then
     # shellcheck source=/dev/null
     source "${ORADBA_BASE}/lib/plugins/product_extensions.sh"
 fi
+
 ```
 
 **Extension Module (product_extensions.sh):**
@@ -637,6 +691,7 @@ plugin_product_discover_subsystems() {
     # ... 60+ lines ...
     return 0
 }
+
 ```
 
 **Benefits of Separation:**
@@ -652,14 +707,14 @@ plugin_product_discover_subsystems() {
 **When to Use:**
 
 | Scenario | Simple (In-Plugin) | Complex (Separate Module) |
-|----------|-------------------|---------------------------|
+| ---------- | ------------------- | --------------------------- |
 | Number of optional functions | 1-3 | 4+ |
 | Lines of optional code | <50 | >100 |
 | Complexity | Simple logic | Complex algorithms |
 | Dependencies | Self-contained | Multiple helper functions |
 | Maintenance | Rarely changes | Evolves frequently |
 
-**Example: Database Plugin Extensions**
+#### Example Database Plugin Extensions
 
 If database plugin needed extensive PDB management:
 
@@ -671,6 +726,7 @@ If database plugin needed extensive PDB management:
 #   - plugin_database_check_rac()
 #   - plugin_database_get_asm_diskgroups()
 #   - plugin_database_check_dataguard()
+
 ```
 
 ## Function Templates
@@ -699,7 +755,7 @@ plugin_detect_installation() {
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             local home
             home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | \
-                   grep '^ORACLE_HOME=' | cut -d= -f2-)
+ grep '^ORACLE_HOME=' | cut -d= -f2-) 
             if [[ -n "${home}" ]] && [[ -d "${home}" ]]; then
                 homes+=("${home}")
             fi
@@ -719,6 +775,7 @@ plugin_detect_installation() {
     printf '%s\n' "${homes[@]}" | sort -u
     return 0
 }
+
 ```
 
 ### Template: plugin_validate_home
@@ -751,6 +808,7 @@ plugin_validate_home() {
     
     return 0
 }
+
 ```
 
 ### Template: plugin_adjust_environment
@@ -780,6 +838,7 @@ plugin_adjust_environment() {
     # fi
     # return 0
 }
+
 ```
 
 ### Template: plugin_check_status
@@ -827,6 +886,7 @@ plugin_check_status() {
         return 2
     fi
 }
+
 ```
 
 ### Template: plugin_get_metadata
@@ -872,6 +932,7 @@ plugin_get_metadata() {
     
     return 0
 }
+
 ```
 
 ### Template: plugin_should_show_listener
@@ -895,6 +956,7 @@ plugin_should_show_listener() {
     # Non-database products: don't show listener
     # return 1
 }
+
 ```
 
 ### Template: plugin_discover_instances
@@ -939,6 +1001,7 @@ plugin_discover_instances() {
     
     return 0
 }
+
 ```
 
 ### Template: plugin_supports_aliases
@@ -959,6 +1022,7 @@ plugin_supports_aliases() {
     # Non-database products: return 1
     # return 1
 }
+
 ```
 
 ### Template: plugin_build_path
@@ -991,6 +1055,7 @@ plugin_build_path() {
     # echo "${adjusted_home}/oracle_cman_home/bin"
     # return 0
 }
+
 ```
 
 ### Template: plugin_build_lib_path
@@ -1023,6 +1088,7 @@ plugin_build_lib_path() {
     # echo "${adjusted_home}"
     # return 0
 }
+
 ```
 
 ### Template: plugin_get_config_section
@@ -1040,6 +1106,7 @@ plugin_get_config_section() {
     echo "PRODUCT"
     return 0
 }
+
 ```
 
 ### Template: plugin_get_required_binaries
@@ -1057,6 +1124,7 @@ plugin_get_required_binaries() {
     echo "product_binary product_ctl"
     return 0
 }
+
 ```
 
 ## Interface Versioning
@@ -1066,10 +1134,14 @@ plugin_get_required_binaries() {
 **All plugins MUST declare:**
 
 ```bash
+
 export plugin_interface_version="1.0.0"
+
 ```
 
-**Note:** Some plugin files may reference "v2.0.0" in comments. This was an accidental internal reference and should be **ignored**. The official interface version is **v1.0.0** (established January 2026).
+**Note:** Some plugin files may reference "v2.0.0" in comments. This was an accidental internal
+reference and should be **ignored**. The official interface version is **v1.0.0**
+(established January 2026).
 
 ### Version Policy
 
@@ -1120,6 +1192,7 @@ export plugin_name="product"
 export plugin_version="1.0.0"  # Plugin version
 export plugin_interface_version="1.0.0"  # Interface version (optional but recommended)
 export plugin_description="Product plugin"
+
 ```
 
 ## Testing Requirements
@@ -1131,52 +1204,61 @@ All plugins MUST have tests covering:
 #### Generic Tests (All Plugins)
 
 1. **Plugin metadata**
+
    - All 3 metadata variables are set
    - `plugin_name` matches product type
    - Versions follow semantic versioning
 
 2. **Core functions exist**
+
    - All 11 core functions are defined
    - Functions are callable
    - No syntax errors
 
 3. **Return value conventions**
+
    - Exit codes match standards (0/1/2)
    - No sentinel strings on stdout
    - Empty output + exit code correlation
 
 4. **Function signatures**
+
    - Correct number of parameters
    - No hard failures on missing parameters
 
 #### Plugin-Specific Tests
 
 1. **Detection accuracy**
+
    - `plugin_detect_installation` finds real installations
    - No false positives
 
 2. **Validation correctness**
+
    - `plugin_validate_home` accepts valid homes
    - `plugin_validate_home` rejects invalid homes
    - Edge cases handled (missing directories, symlinks)
 
 3. **Status checking**
+
    - `plugin_check_status` returns correct codes
    - Running vs stopped detection works
    - Handles missing binaries gracefully
 
 4. **Path building**
+
    - `plugin_build_path` returns valid format
    - `plugin_build_lib_path` returns valid format
    - Paths are colon-separated
 
 5. **Optional function behavior**
+
    - `plugin_get_version` returns valid versions
    - Product-specific extensions work correctly
 
 ### Test Organization
 
-```
+```text
 tests/
 ├── test_plugin_interface.bats         # Generic: all plugins comply
 ├── test_plugin_return_values.bats     # Generic: return conventions
@@ -1271,6 +1353,7 @@ teardown() {
 }
 
 # Add more tests for each function...
+
 ```
 
 ### Running Tests
@@ -1287,6 +1370,7 @@ bats tests/test_product_plugin.bats -f "validate_home"
 
 # Run with verbose output
 bats tests/test_product_plugin.bats --tap
+
 ```
 
 ## Best Practices
@@ -1294,39 +1378,47 @@ bats tests/test_product_plugin.bats --tap
 ### DO ✅
 
 1. **Use exit codes for control flow**
+
    - Caller checks exit code, not output strings
    - Always return appropriate exit code (0/1/2)
 
 2. **Validate all input parameters**
+
    - Check for empty/null parameters
    - Validate paths exist before using
    - Handle edge cases gracefully
 
 3. **Fail fast and clearly**
+
    - Return early on errors
    - Don't continue with invalid state
    - Use appropriate exit codes
 
 4. **Document all exit codes**
+
    - Function header lists all possible exit codes
    - Comments explain when each code is used
 
 5. **Use subshell-safe patterns**
+
    - Don't modify global state (except PATH/LD_LIBRARY_PATH as designed)
    - Don't rely on caller's environment
    - Use explicit environment variables
 
 6. **Add logging to stderr**
+
    - Use stderr for debug/log messages
    - Never mix data and logging on stdout
    - Respect ORADBA_LOG_LEVEL
 
 7. **Follow naming conventions**
+
    - Core functions: `plugin_*`
    - Product extensions: `plugin_<product>_*`
    - Internal helpers: no `plugin_` prefix
 
 8. **Handle missing binaries gracefully**
+
    - Check binary existence before calling
    - Return exit code 2 for unavailable resources
    - Provide helpful error messages (to stderr)
@@ -1334,41 +1426,49 @@ bats tests/test_product_plugin.bats --tap
 ### DON'T ❌
 
 1. **Don't echo sentinel strings**
+
    - Never output "ERR", "unknown", "N/A"
    - Use exit codes instead
    - Empty output + exit code is sufficient
 
 2. **Don't modify caller's variables**
+
    - Don't export unexpected variables
    - Don't unset caller's variables
    - Keep side effects minimal
 
 3. **Don't call oradba_log() directly**
+
    - Use stderr instead: `echo "message" >&2`
    - Caller controls logging, not plugin
    - Exception: internal plugins (database, datasafe) may use oradba_log
 
 4. **Don't mix data and errors on stdout**
+
    - Stdout is for data only
    - Stderr is for errors/logging
    - Never output both data and errors
 
 5. **Don't assume dependencies are loaded**
+
    - Check if functions exist before calling
    - Load required libraries explicitly
    - Handle missing dependencies gracefully
 
 6. **Don't break backward compatibility**
+
    - Maintain function signatures
    - Keep exit code semantics
    - Version bump required for breaking changes
 
 7. **Don't hardcode paths**
+
    - Use parameters and configuration
    - Support different installation layouts
    - Make paths configurable
 
 8. **Don't leave debug code**
+
    - Remove echo statements used for debugging
    - Remove test data generation
    - Clean up temporary files
@@ -1376,20 +1476,24 @@ bats tests/test_product_plugin.bats --tap
 ### Code Quality
 
 1. **Pass shellcheck**
+
    - No warnings or errors
    - Use `# shellcheck disable=SCXXXX` sparingly with comments
 
 2. **Use consistent formatting**
+
    - 4 spaces for indentation
    - Function headers with 78-char width
    - Blank lines between sections
 
 3. **Add comprehensive tests**
+
    - Test all 11 core functions
    - Test edge cases
    - Test error conditions
 
 4. **Document complex logic**
+
    - Add comments for non-obvious code
    - Explain "why", not "what"
    - Reference external documentation
@@ -1403,6 +1507,7 @@ bats tests/test_product_plugin.bats --tap
 **Before (non-compliant):**
 
 ```bash
+
 plugin_get_version() {
     local home_path="$1"
     
@@ -1425,11 +1530,13 @@ version=$(plugin_get_version "${home}")
 if [[ -n "${version}" && "${version}" != "ERR" && "${version}" != "unknown" ]]; then
     echo "Version: ${version}"
 fi
+
 ```
 
 **After (compliant):**
 
 ```bash
+
 plugin_get_version() {
     local home_path="$1"
     local version
@@ -1453,6 +1560,7 @@ else
         2) echo "Version detection failed" ;;
     esac
 fi
+
 ```
 
 #### Anti-Pattern 2: Global State Modification
@@ -1460,17 +1568,20 @@ fi
 **Before (non-compliant):**
 
 ```bash
+
 plugin_setup_environment() {
     # ❌ WRONG: Modifies global state unexpectedly
     export PRODUCT_CONFIG="${ORACLE_HOME}/config"
     export PRODUCT_MODE="production"
     unset OLD_VARIABLE
 }
+
 ```
 
 **After (compliant):**
 
 ```bash
+
 plugin_get_config_path() {
     local home_path="$1"
     
@@ -1482,6 +1593,7 @@ plugin_get_config_path() {
 # Caller decides whether to export
 PRODUCT_CONFIG=$(plugin_get_config_path "${ORACLE_HOME}")
 export PRODUCT_CONFIG
+
 ```
 
 #### Anti-Pattern 3: Mixing Output Types
@@ -1489,6 +1601,7 @@ export PRODUCT_CONFIG
 **Before (non-compliant):**
 
 ```bash
+
 plugin_check_status() {
     local home_path="$1"
     
@@ -1503,11 +1616,13 @@ plugin_check_status() {
         return 1
     fi
 }
+
 ```
 
 **After (compliant):**
 
 ```bash
+
 plugin_check_status() {
     local home_path="$1"
     
@@ -1522,6 +1637,7 @@ plugin_check_status() {
         return 1
     fi
 }
+
 ```
 
 #### Anti-Pattern 4: Assuming Dependencies
@@ -1529,6 +1645,7 @@ plugin_check_status() {
 **Before (non-compliant):**
 
 ```bash
+
 plugin_get_info() {
     # ❌ WRONG: Assumes helper_function exists
     local info
@@ -1536,11 +1653,13 @@ plugin_get_info() {
     echo "${info}"
     return 0
 }
+
 ```
 
 **After (compliant):**
 
 ```bash
+
 plugin_get_info() {
     local home_path="$1"
     local info
@@ -1556,6 +1675,7 @@ plugin_get_info() {
     echo "${info}"
     return 0
 }
+
 ```
 
 ### Migration Checklist
@@ -1580,16 +1700,19 @@ Update tests to check exit codes:
 **Before (non-compliant):**
 
 ```bash
+
 @test "plugin_get_version returns version" {
     run plugin_get_version "${home}"
     [[ "$output" != "ERR" ]]
     [[ "$output" != "unknown" ]]
 }
+
 ```
 
 **After (compliant):**
 
 ```bash
+
 @test "plugin_get_version returns version successfully" {
     run plugin_get_version "${home}"
     [ "$status" -eq 0 ]
@@ -1607,6 +1730,7 @@ Update tests to check exit codes:
     [ "$status" -eq 2 ]
     [ -z "$output" ]
 }
+
 ```
 
 ---
@@ -1614,7 +1738,7 @@ Update tests to check exit codes:
 ## Document History
 
 | Version | Date | Changes |
-|---------|------|---------|
+| --------- | ------ | --------- |
 | 1.0.0 | January 2026 | Initial release - formalized plugin standards |
 
 ## References

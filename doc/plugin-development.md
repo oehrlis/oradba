@@ -3,7 +3,9 @@
 This guide provides comprehensive instructions for developing plugins for the OraDBA plugin system (v1.0.0+).
 
 > **📖 Related Documentation:**
-> - [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Start here** for interface specification and return value conventions
+>
+> - [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Start here** for interface
+>   specification and return value conventions
 > - [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Template implementation
 > - [Architecture](architecture.md) - System architecture
 
@@ -19,7 +21,9 @@ implements a standardized interface that allows OraDBA to:
 - Discover instances
 - Get product metadata
 
-**Before developing a plugin, read [plugin-standards.md](../src/lib/plugins/plugin-standards.md)** which formalizes:
+**Before developing a plugin, read [plugin-standards.md](../src/lib/plugins/plugin-standards.md)**
+which formalizes:
+
 - The 11 core required functions
 - Return value standards (exit codes + stdout)
 - Optional function patterns
@@ -59,6 +63,7 @@ Product Plugins
 Each plugin must implement **11 required functions** and **3 metadata variables**.
 
 > **📖 Complete Specification:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+>
 > - Detailed function descriptions
 > - Exit code standards (0=success, 1=expected failure, 2=unavailable)
 > - Return value conventions (no sentinel strings!)
@@ -79,7 +84,7 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 **Summary:** 11 core functions all plugins must implement.
 
 | # | Function | Purpose | Exit Codes |
-|---|----------|---------|------------|
+| --- | ---------- | --------- | ------------ |
 | 1 | `plugin_detect_installation` | Auto-discover installations | 0=success |
 | 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid |
 | 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success |
@@ -93,6 +98,7 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 | 11 | `plugin_get_config_section` | Get config section name | 0=success |
 
 > **📖 Detailed Documentation:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+>
 > - Complete function specifications
 > - Function templates (copy-paste ready)
 > - Return value standards
@@ -385,7 +391,10 @@ plugin_get_version() {
 }
 ```
 
-> **📖 Extension Patterns:** See [plugin-standards.md - Optional Functions](../src/lib/plugins/plugin-standards.md#optional-functions-and-extension-patterns) for:
+> **📖 Extension Patterns:** See
+> [plugin-standards.md - Optional Functions](../src/lib/plugins/plugin-standards.md#optional-functions-and-extension-patterns)
+> for:
+>
 > - Common optional functions (plugin_get_version, plugin_get_required_binaries)
 > - Product-specific extension patterns
 > - When to use simple vs. complex extension patterns
@@ -587,7 +596,7 @@ export plugin_description="Example Oracle Product plugin"
 plugin_detect_installation() {
     # Scan for installations
     find /opt/oracle -maxdepth 2 -name "example_binary" -type f 2>/dev/null | \
-        xargs -r dirname | sort -u
+ xargs -r dirname | sort -u 
 }
 
 # 2. Validate home
