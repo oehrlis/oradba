@@ -139,9 +139,12 @@ plugin_get_metadata() {
     
     echo "product=java"
     
-    # Get version if possible
-    version=$(plugin_get_version "${home_path}")
-    echo "version=${version}"
+    # Get version using plugin_get_version
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"
+    fi
     
     # Detect if JDK or JRE
     if [[ -x "${home_path}/bin/javac" ]]; then

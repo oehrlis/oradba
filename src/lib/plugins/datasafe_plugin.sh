@@ -273,12 +273,16 @@ plugin_get_version() {
 plugin_get_metadata() {
     local base_path="$1"
     local cman_home
+    local version
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Get version using plugin_get_version
-    local version
-    version=$(plugin_get_version "${base_path}")
-    echo "version=${version}"
+    if version=$(plugin_get_version "${base_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"
+    fi
+    
     echo "type=datasafe_connector"
     
     # Check if cmctl is available
