@@ -131,6 +131,7 @@ NAME|TYPE|ORACLE_HOME|VERSION|EDITION|AUTOSTART|DESCRIPTION
 Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_interface.sh`.
 
 > **📖 Complete Specification**: See [doc/plugin-standards.md](../doc/plugin-standards.md) for:
+>
 > - Official plugin interface v1.0.0 specification
 > - Exit code standards and return value conventions  
 > - Function templates for all 11 required functions
@@ -138,6 +139,7 @@ Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_
 > - Testing requirements and best practices
 
 **Required Metadata**:
+
 ```bash
 export plugin_name="database"          # Product identifier
 export plugin_version="1.0.0"          # Plugin version
@@ -145,6 +147,7 @@ export plugin_description="Description" # Human-readable description
 ```
 
 **Required Functions** (11):
+
 1. `plugin_detect_installation()` - Auto-detect product installations
 2. `plugin_validate_home()` - Validate ORACLE_HOME path
 3. `plugin_adjust_environment()` - Adjust path for product (e.g., append /bin)
@@ -158,6 +161,7 @@ export plugin_description="Description" # Human-readable description
 11. `plugin_get_config_section()` - Get config section name
 
 **Current Plugins** (6):
+
 - `database_plugin.sh` - Oracle Database (CDB/PDB support)
 - `datasafe_plugin.sh` - Data Safe On-Premises Connector
 - `client_plugin.sh` - Full Oracle Client
@@ -177,6 +181,7 @@ export plugin_description="Description" # Human-readable description
 - **Function headers** - Document all functions (Purpose, Args, Returns, Output)
 
 **When implementing/reviewing plugin code:**
+
 1. ✅ Check exit codes match specification (0/1/2)
 2. ✅ Verify stdout contains only clean data (no error strings)
 3. ✅ Confirm all 11 required functions implemented
@@ -184,6 +189,7 @@ export plugin_description="Description" # Human-readable description
 5. ✅ Add comprehensive tests for all plugin functions
 
 **Quick Exit Code Reference:**
+
 - Return 0 with clean data = Success
 - Return 1 with no/empty data = Not Applicable (expected)
 - Return 2 with no data = Error/Unavailable (failure)

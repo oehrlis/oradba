@@ -15,7 +15,7 @@ Each plugin must implement 11 required functions following the plugin standards.
 ## Current Plugins
 
 | Plugin | Product | Status |
-|--------|---------|--------|
+| ------ | ------- | ------ |
 | `database_plugin.sh` | Oracle Database (RDBMS) | ✅ Production |
 | `datasafe_plugin.sh` | Data Safe On-Premises Connector | ✅ Production |
 | `client_plugin.sh` | Oracle Full Client | ✅ Production |
