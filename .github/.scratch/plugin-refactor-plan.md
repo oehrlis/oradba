@@ -67,6 +67,8 @@ architectural issues identified in #114 and the architecture review (#127).
 - #144: Introduce `plugin_build_base_path`, `plugin_build_env`,
   `plugin_build_bin_path`, `plugin_get_instance_list`, and listener functions
   where applicable
+- #146: Align plugin interface and configs to updated core functions
+- #151: Update core callers for new plugin function names
 
 **Deliverables**:
 
@@ -87,6 +89,12 @@ src/lib/plugins/oud_plugin.sh
 src/lib/oradba_common.sh (detect_oracle_version, get_oracle_version)
 src/lib/oradba_env_builder.sh
 src/lib/oradba_env_validator.sh
+.github/copilot-instructions.md
+doc/plugin-standards.md
+doc/plugin-development.md
+doc/images/plugin-system.md
+doc/images/architecture-system.md
+doc/images/registry-api-flow.md
 ```
 
 ---
@@ -101,6 +109,7 @@ src/lib/oradba_env_validator.sh
 - #134: Implement execute_plugin_function_v2() with subshell isolation
 - #135: Migrate all plugin invocations to v2 wrapper
 - #136: Add plugin isolation tests
+- #152: Final doc/diagram parity after code changes
 
 **Deliverables**:
 
@@ -169,6 +178,7 @@ oradba_parser_init() {
 - #141: Revert all v2.0.0 references to v1.0.0
 - #142: Mark stub plugins as experimental
 - #143: Update all documentation for new architecture
+- #153: Document interface rename and env enhancements in release notes
 
 **Deliverables**:
 
