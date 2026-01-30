@@ -8,7 +8,7 @@ OraDBA is a comprehensive Oracle Database administration toolkit for Unix/Linux 
 **Architecture**: Registry API + Plugin System + Environment Management Libraries  
 **Test Coverage**: 1086 tests (100% passing)  
 **Documentation**: 437 functions (100% documented)  
-**Plugin Interface**: v2.0.0 (11 required functions per plugin)
+**Plugin Interface**: v1.0.0 (universal core functions + category-specific listener handling)
 
 ## Code Quality Standards
 
@@ -128,7 +128,7 @@ NAME|TYPE|ORACLE_HOME|VERSION|EDITION|AUTOSTART|DESCRIPTION
 
 ### Plugin System (Interface v1.0.0)
 
-Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_interface.sh`.
+Each plugin implements the universal core functions defined in `src/lib/plugins/plugin_interface.sh`, plus category-specific listener functions where applicable.
 
 > **📖 Complete Specification**: See [doc/plugin-standards.md](../doc/plugin-standards.md) for:
 >
@@ -146,21 +146,28 @@ export plugin_version="1.0.0"          # Plugin version
 export plugin_description="Description" # Human-readable description
 ```
 
-**Required Functions** (11):
+**Core Functions** (universal):
 
-1. `plugin_detect_installation()` - Auto-detect product installations
-2. `plugin_validate_home()` - Validate ORACLE_HOME path
-3. `plugin_adjust_environment()` - Adjust path for product (e.g., append /bin)
-4. `plugin_check_status()` - Check if product is available
-5. `plugin_get_metadata()` - Get product metadata (version, edition, etc.)
-6. `plugin_should_show_listener()` - Whether to display listener status
-7. `plugin_discover_instances()` - Find product instances (databases, OUD instances)
-8. `plugin_supports_aliases()` - Support SID aliases?
-9. `plugin_build_path()` - Build PATH components
-10. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components
-11. `plugin_get_config_section()` - Get config section name
+1. `plugin_detect_installation()` - Auto-detect product installations  
+2. `plugin_validate_home()` - Validate ORACLE_HOME/ORACLE_BASE_HOME  
+3. `plugin_adjust_environment()` - Adjust ORACLE_HOME for product layout  
+4. `plugin_build_base_path()` - Resolve ORACLE_BASE_HOME vs ORACLE_HOME  
+5. `plugin_build_env()` - Build env vars (ORACLE_HOME, PATH, LD_LIBRARY_PATH, etc.)  
+6. `plugin_check_status()` - Check instance/service status  
+7. `plugin_get_metadata()` - Get product metadata (version, edition, etc.)  
+8. `plugin_discover_instances()` - Discover instances/domains for a home  
+9. `plugin_get_instance_list()` - Enumerate instances/domains (multi-instance products)  
+10. `plugin_supports_aliases()` - Support SID-like aliases?  
+11. `plugin_build_bin_path()` - Build PATH components  
+12. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components  
+13. `plugin_get_config_section()` - Get config section name  
 
-**Current Plugins** (6):
+**Category-Specific (when applicable):**
+
+- `plugin_should_show_listener()` - Whether to display listener status  
+- `plugin_check_listener_status()` - Listener lifecycle per Oracle Home  
+
+**Current Plugins** (6 + planned):
 
 - `database_plugin.sh` - Oracle Database (CDB/PDB support)
 - `datasafe_plugin.sh` - Data Safe On-Premises Connector
@@ -168,12 +175,13 @@ export plugin_description="Description" # Human-readable description
 - `iclient_plugin.sh` - Instant Client
 - `oud_plugin.sh` - Oracle Unified Directory
 - `java_plugin.sh` - Oracle Java (JDK/JRE detection)
+- `weblogic_plugin.sh` - WebLogic Server (planned)
 
 ### Plugin Standards Compliance
 
 **All plugin development must follow [doc/plugin-standards.md](../doc/plugin-standards.md):**
 
-- **11 required functions** - No exceptions, implement all
+- **Universal core functions** - Implement all; add category-specific listener functions when required
 - **Exit code contract** - 0=success, 1=N/A, 2=error
 - **No sentinel strings** - Never echo "ERR", "unknown", "N/A" on stdout
 - **Subshell isolation** - Plugins execute in isolated subshells

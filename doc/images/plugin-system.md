@@ -2,7 +2,7 @@
 flowchart TD
     Start([Script starts:<br/>oraenv.sh or oraup.sh])
     
-    Start --> LoadInterface[Load plugin_interface.sh<br/>Define 11-function template]
+    Start --> LoadInterface[Load plugin_interface.sh<br/>Define core interface functions]
     
     LoadInterface --> Discovery[Plugin Discovery Phase]
     Discovery --> ScanDir[Scan src/lib/plugins/ directory]
@@ -23,17 +23,24 @@ flowchart TD
     LoadingPhase[Loading Phase] --> SourcePlugin[source plugin_file.sh]
     SourcePlugin --> SetMetadata[Set plugin metadata:<br/>• plugin_name<br/>• plugin_version<br/>• plugin_description]
     
-    SetMetadata --> DefineFunc[Define 8 Interface Functions]
-    
-    DefineFunc --> Func1[1. plugin_detect_installation<br/>Auto-discover installations]
-    DefineFunc --> Func2[2. plugin_validate_home<br/>Verify ORACLE_HOME valid]
-    DefineFunc --> Func3[3. plugin_adjust_environment<br/>Adjust paths if needed]
-    DefineFunc --> Func4[4. plugin_check_status<br/>Check instance running]
-    DefineFunc --> Func5[5. plugin_get_metadata<br/>Get version/edition info]
-    DefineFunc --> Func6[6. plugin_should_show_listener<br/>Show in listener section?]
-    DefineFunc --> Func7[7. plugin_discover_instances<br/>Find all instances for home]
-    DefineFunc --> Func8[8. plugin_supports_aliases<br/>Generate SID aliases?]
-    
+    SetMetadata --> DefineFunc[Define Interface Functions]
+
+    DefineFunc --> Func1[plugin_detect_installation<br/>Auto-discover installations]
+    DefineFunc --> Func2[plugin_validate_home<br/>Validate ORACLE_HOME/BASE_HOME]
+    DefineFunc --> Func3[plugin_adjust_environment<br/>Align ORACLE_HOME to layout]
+    DefineFunc --> Func4[plugin_build_base_path<br/>Resolve ORACLE_BASE_HOME]
+    DefineFunc --> Func5[plugin_build_env<br/>Build env vars per product/instance]
+    DefineFunc --> Func6[plugin_check_status<br/>Check instance/service state]
+    DefineFunc --> Func7[plugin_get_metadata<br/>Version/edition metadata]
+    DefineFunc --> Func8[plugin_discover_instances<br/>Discover instances/domains]
+    DefineFunc --> Func9[plugin_get_instance_list<br/>Enumerate instances/domains]
+    DefineFunc --> Func10[plugin_supports_aliases<br/>SID-like aliases?]
+    DefineFunc --> Func11[plugin_build_bin_path<br/>PATH components]
+    DefineFunc --> Func12[plugin_build_lib_path<br/>LD_LIBRARY_PATH components]
+    DefineFunc --> Func13[plugin_get_config_section<br/>Config section name]
+    DefineFunc --> Func14[plugin_should_show_listener (category)<br/>Listener visible?]
+    DefineFunc --> Func15[plugin_check_listener_status (category)<br/>Listener status]
+
     Func1 --> NextPlugin
     Func2 --> NextPlugin
     Func3 --> NextPlugin
@@ -41,7 +48,14 @@ flowchart TD
     Func5 --> NextPlugin
     Func6 --> NextPlugin
     Func7 --> NextPlugin
-    Func8 --> NextPlugin[Next plugin]
+    Func8 --> NextPlugin
+    Func9 --> NextPlugin
+    Func10 --> NextPlugin
+    Func11 --> NextPlugin
+    Func12 --> NextPlugin
+    Func13 --> NextPlugin
+    Func14 --> NextPlugin
+    Func15 --> NextPlugin[Next plugin]
     
     NextPlugin --> LoopPlugins
     LoopPlugins -->|No| UsagePhase
@@ -93,10 +107,17 @@ flowchart TD
     style Func2 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
     style Func3 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
     style Func4 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    style Func5 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
-    style Func6 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style Func5 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Func6 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
     style Func7 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
     style Func8 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style Func9 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style Func10 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Func11 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Func12 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Func13 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Func14 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style Func15 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
     
     style UsagePhase fill:#ffccbc,stroke:#bf360c,stroke-width:2px
     style OraenvUse fill:#ffccbc,stroke:#bf360c,stroke-width:2px

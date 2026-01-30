@@ -38,7 +38,7 @@ flowchart TD
     OratexistabData --> DetectDB{Detect<br/>Product<br/>Type}
     HomesData --> DetectOther{Use<br/>Configured<br/>Type}
     
-    DetectDB -->|Use plugin| DBPlugin[database_plugin.sh<br/>plugin_validate_home]
+    DetectDB -->|Use plugin| DBPlugin[database_plugin.sh<br/>plugin_validate_home<br/>plugin_build_env]
     DetectDB -->|Fallback| DefaultDB[type=database]
     
     DetectOther --> TypeCheck{Type<br/>Valid?}
@@ -57,7 +57,7 @@ flowchart TD
     JavaPlugin --> Validate
     DefaultDB --> Validate
     
-    Validate[Plugin Validation<br/>plugin_validate_home]
+    Validate[Plugin Validation<br/>plugin_validate_home<br/>plugin_build_env]
     
     Validate --> FormatEntry[Format Registry Entry<br/>type:name:home:version:flags:order:alias:desc]
     

@@ -6,7 +6,7 @@
 
 ## Recent Changes
 
-### January 2026 - Phase 2.1 Refactoring (Issue #136)
+### January 2026 - Phase 2.1 Refactoring (Issue #135)
 
 All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
 
@@ -37,7 +37,8 @@ See [Migration from Non-Compliant Code](#migration-from-non-compliant-code) for 
 
 This document formalizes the OraDBA plugin interface specification. It defines:
 
-- **Required plugin functions**: The 11 core functions every plugin MUST implement
+- **Required plugin functions**: The universal core functions every plugin MUST
+  implement, plus category-specific functions where applicable
 - **Return value conventions**: Exit codes and stdout standards
 - **Extension patterns**: How to add optional/complex features
 - **Testing requirements**: What must be tested
@@ -63,30 +64,95 @@ and "how" of each function.
 - **Debugging**: Understand expected behavior and return values
 - **Proposing interface changes**: Breaking changes require version bump
 
+## Product Types and Categories
+
+Oracle products share common concepts (installations with an `ORACLE_HOME`) but
+have category-specific needs. Plugins must respect these differences so that
+discovery, environment building, and status logic remain accurate.
+
+### Cross-Cutting Expectations
+
+- Always treat each installation (`ORACLE_HOME`) independently; multiple installations can coexist on a host.
+- Support multiple instances/domains per installation where applicable; handle each instance separately.
+- If `ORACLE_HOME` differs from the actual installation path, use `ORACLE_BASE_HOME`
+  to point to the real base and adjust `ORACLE_HOME` accordingly.
+- Environment variables such as `PATH`, `LD_LIBRARY_PATH`, `CLASSPATH`, and product
+  identifiers (`ORACLE_SID` for databases or equivalent IDs for other products) must
+  be set per product type and per instance.
+- When invoking commands as another user (e.g., `oracle`), construct the environment
+  explicitly for the target user before running commands.
+- Provide clear error messages when required environment variables or configuration
+  files are missing or misconfigured.
+
+### Database (RDBMS, etc.)
+
+- Focused on Oracle Database (not MySQL/NoSQL).
+- Instances are defined in `oratab` with format `<ORACLE_SID>:<ORACLE_HOME>:<Y|N|D>` where `D` marks dummy installs.
+- One installation can host multiple database instances in various states (started, stopped, mounted, nomount, etc.).
+- Listener management is tied to an Oracle Home, not a single database; listener status is required.
+
+### Middleware (WebLogic, Unified Directory, etc.)
+
+- Multiple domains/instances can run under one installation.
+- Unified Directory can run standalone or with WebLogic/ODSM.
+- Clarify per-product how to enumerate domains/instances because `oratab` is database-only.
+- Environment variables and domain layout are product-specific.
+
+### Special Cases (Data Safe On-Premises Connector)
+
+- Single service per installation (1:1 relationship between software and connector service).
+- Requires registration with OCI Data Safe; treat as its own category with middleware-like layout but dedicated status handling.
+
+### Pure Client / Software-Only (Oracle Client, Instant Client, JDK, etc.)
+
+- Software-only; no server component.
+- Provide version/environment/path details; no listener/instance management.
+- Often dependencies for other categories (e.g., Java runtime for middleware).
+
+### Not Yet Defined / Other Product Types
+
+- Examples: Grid Infrastructure, Oracle Enterprise Manager Agent/Cloud Control, future products.
+- Document open questions for category-specific environment variables and aliases before adding plugins.
+
 ## Core Plugin Functions
 
-Every plugin MUST implement these 11 required functions. All functions must follow the return
-value standards defined in this document.
+Every plugin MUST implement the universal core functions. Category-specific
+functions are mandatory for the product types that require them. All functions
+must follow the return value standards defined in this document.
 
-### Function Summary Table
+### Universal Core Functions
 
-| # | Function Name | Purpose | Exit Codes | Required |
-| --- | --- | --- | --- | --- |
-| 1 | `plugin_detect_installation` | Auto-discover installations | 0=success | ✅ |
-| 2 | `plugin_validate_home` | Validate installation path | 0=valid, 1=invalid | ✅ |
-| 3 | `plugin_adjust_environment` | Adjust ORACLE_HOME if needed | 0=success | ✅ |
-| 4 | `plugin_check_status` | Check service/instance status | 0=running, 1=stopped, 2=unavailable | ✅ |
-| 5 | `plugin_get_metadata` | Get installation metadata | 0=success | ✅ |
-| 6 | `plugin_should_show_listener` | Show in listener list? | 0=yes, 1=no | ✅ |
-| 7 | `plugin_discover_instances` | Discover running instances | 0=success | ✅ |
-| 8 | `plugin_supports_aliases` | Supports SID aliases? | 0=yes, 1=no | ✅ |
-| 9 | `plugin_build_path` | Get PATH components | 0=success | ✅ |
-| 10 | `plugin_build_lib_path` | Get LD_LIBRARY_PATH components | 0=success | ✅ |
-| 11 | `plugin_get_config_section` | Get config file section name | 0=success | ✅ |
+| #  | Function Name                | Purpose                                              | Exit Codes                          | Required                     |
+|----|------------------------------|------------------------------------------------------|-------------------------------------|------------------------------|
+| 1  | `plugin_detect_installation` | Auto-discover installations                          | 0=success                           | ✅                           |
+| 2  | `plugin_validate_home`       | Validate installation path                           | 0=valid, 1=invalid                  | ✅                           |
+| 3  | `plugin_adjust_environment`  | Adjust ORACLE_HOME if needed                         | 0=success                           | ✅                           |
+| 4  | `plugin_build_base_path`     | Resolve actual installation/ORACLE_BASE_HOME         | 0=success                           | ✅                           |
+| 5  | `plugin_build_env`           | Build environment variables for the product/instance | 0=success                           | ✅                           |
+| 6  | `plugin_check_status`        | Check service/instance status                        | 0=running, 1=stopped, 2=unavailable | ✅                           |
+| 7  | `plugin_get_metadata`        | Get installation metadata                            | 0=success                           | ✅                           |
+| 8  | `plugin_discover_instances`  | Discover instances/domains for this home             | 0=success                           | ✅                           |
+| 9  | `plugin_get_instance_list`   | Enumerate instances/domains for this home            | 0=success                           | ✅ (multi-instance products) |
+| 10 | `plugin_supports_aliases`    | Supports SID-like aliases?                           | 0=yes, 1=no                         | ✅                           |
+| 11 | `plugin_build_bin_path`      | Get PATH components                                  | 0=success                           | ✅                           |
+| 12 | `plugin_build_lib_path`      | Get LD_LIBRARY_PATH components                       | 0=success                           | ✅                           |
+| 13 | `plugin_get_config_section`  | Get config file section name                         | 0=success                           | ✅                           |
+
+### Category-Specific Mandatory Functions
+
+| Function Name                                  | Applies To                                             | Purpose                                   | Exit Codes                          |
+|------------------------------------------------|--------------------------------------------------------|-------------------------------------------|-------------------------------------|
+| `plugin_should_show_listener`                  | Database and any product exposing a listener component | Decide whether to render listener entries | 0=yes, 1=no                         |
+| `plugin_check_listener_status` (or equivalent) | Database (and products with dedicated listener)        | Report listener status per Oracle Home    | 0=running, 1=stopped, 2=unavailable |
+
+`plugin_get_instance_list` is universal but mandatory only for multi-instance
+products (database, middleware, etc.). Define additional product-specific helpers
+when needed (for example, listener extensions or category-only environment helpers).
+Document any product-specific environment variables or aliases when they are introduced.
 
 ### Detailed Function Descriptions
 
-#### 1. plugin_detect_installation
+#### plugin_detect_installation
 
 **Purpose:** Auto-discover installations of this product type on the system.
 
@@ -109,9 +175,10 @@ value standards defined in this document.
 - Check process environment variables
 - Deduplicate results before output
 
-#### 2. plugin_validate_home
+#### plugin_validate_home
 
-**Purpose:** Validate that a given path is a valid ORACLE_HOME for this product type.
+**Purpose:** Validate that a given path is a valid ORACLE_HOME for this product
+type (or a valid ORACLE_BASE_HOME that can be resolved to ORACLE_HOME).
 
 **Usage:** Called when adding new Oracle Homes or validating configuration.
 
@@ -131,9 +198,10 @@ value standards defined in this document.
 - Don't assume path exists - check first
 - Be specific: distinguish between similar products (client vs database)
 
-#### 3. plugin_adjust_environment
+#### plugin_adjust_environment
 
-**Purpose:** Adjust ORACLE_HOME path for product-specific requirements.
+**Purpose:** Adjust ORACLE_HOME path for product-specific requirements and align
+it with `ORACLE_BASE_HOME` when they differ.
 
 **Usage:** Called when setting up environment variables.
 
@@ -147,12 +215,57 @@ value standards defined in this document.
 
 **Notes:**
 
-- Most products return path unchanged
-- DataSafe appends `/oracle_cman_home` subdirectory
+- Most products return path unchanged.
+- DataSafe appends `/oracle_cman_home` subdirectory.
+- Align ORACLE_HOME to the resolved base returned by `plugin_build_base_path` when the install layout uses ORACLE_BASE_HOME.
 - Output must be a valid filesystem path
 - Don't validate existence - just transform path
 
-#### 4. plugin_check_status
+#### plugin_build_base_path
+
+**Purpose:** Return the actual installation base path, accounting for `ORACLE_BASE_HOME` when it differs from `ORACLE_HOME`.
+
+**Usage:** Called before path/env builders to normalize installation roots.
+
+**Exit Codes:**
+
+- `0` - Success
+
+**Output Format:**
+
+- Single line: normalized base path
+
+**Notes:**
+
+- Use when installations are staged in a base directory with multiple Oracle Homes beneath it.
+- Do not attempt to auto-correct invalid inputs; return the best-known base or empty with exit 1 if not applicable.
+
+#### plugin_build_env
+
+**Purpose:** Build all environment variables required for the product type (and instance, if applicable).
+
+**Usage:** Called whenever subshells need a complete product/instance environment.
+
+**Exit Codes:**
+
+- `0` - Success
+- `1` - Not applicable (e.g., minimal client needing no env tweaks)
+- `2` - Unavailable (missing inputs or binaries)
+
+**Output Format:**
+
+- Key=value pairs, one per line. Typical keys: `ORACLE_HOME`, `ORACLE_BASE_HOME`
+- (when set), `ORACLE_SID` or equivalent instance/domain identifier, `PATH`,
+- `LD_LIBRARY_PATH`, `CLASSPATH`, product-specific variables as required.
+
+**Notes:**
+
+- Must be aware of the target user; if running under `sudo -u oracle`, build the environment for that user explicitly.
+- Database products must set `ORACLE_HOME`, `ORACLE_SID`, and paths; middleware products must
+  set their domain/instance identifiers; pure clients may only need PATH/LD_LIBRARY_PATH.
+- Keep PATH and LD_LIBRARY_PATH scoped to the current product/instance; do not leak unrelated installations.
+
+#### plugin_check_status
 
 **Purpose:** Check if product instance/service is currently running.
 
@@ -164,7 +277,8 @@ value standards defined in this document.
 
 **Output Format:**
 
-- Single word: `running`, `stopped`, or `unavailable`
+- Single word: `running`, `stopped`, or `unavailable`. Database plugins may add
+  finer-grained state in metadata (mounted, nomount, etc.).
 
 **Notes:**
 
@@ -172,8 +286,10 @@ value standards defined in this document.
 - Check actual service status, not just binary existence
 - Timeout commands appropriately (avoid hangs)
 - Handle missing binaries gracefully (return 2)
+- Database listeners should be covered by a dedicated `plugin_check_listener_status`
+  function rather than overloading instance status.
 
-#### 5. plugin_get_metadata
+#### plugin_get_metadata
 
 **Purpose:** Get product metadata (version, edition, features, etc.).
 
@@ -205,26 +321,7 @@ patchlevel=221018
 - Return minimal metadata if full extraction fails
 - Don't error on missing optional metadata
 
-#### 6. plugin_should_show_listener
-
-**Purpose:** Determine if this product's TNS listener should appear in listener sections.
-
-**Exit Codes:**
-
-- `0` - Show listener (database products)
-- `1` - Don't show listener (other products using tnslsnr)
-
-**Output Format:**
-
-- No output (boolean return code only)
-
-**Notes:**
-
-- Database listeners: return 0
-- DataSafe connectors: return 1 (use tnslsnr but aren't DB listeners)
-- Most non-database products: return 1
-
-#### 7. plugin_discover_instances
+#### plugin_discover_instances
 
 **Purpose:** Discover all instances/services for this Oracle Home.
 
@@ -243,8 +340,29 @@ patchlevel=221018
 - Handles 1:many relationships (RAC, WebLogic domains, OUD instances)
 - Single-instance products can return empty or single entry
 - Status field should match `plugin_check_status` output
+- Use `plugin_get_instance_list` for per-home enumeration when multiple
+  instances/domains exist; `plugin_discover_instances` can orchestrate across homes.
 
-#### 8. plugin_supports_aliases
+#### plugin_get_instance_list
+
+**Purpose:** Enumerate all instances/domains within the specified ORACLE_HOME.
+
+**Exit Codes:**
+
+- `0` - Success (instances found or none - both valid)
+
+**Output Format:**
+
+- One instance per line: `instance_name|status|additional_metadata`
+
+**Notes:**
+
+- Mandatory for database, middleware, and any product supporting multiple instances/domains per installation.
+- Status should map to `plugin_check_status` (database plugins may include
+  mounted/nomount/etc. in metadata, not in the status token).
+- Support dummy entries (e.g., `D` flag in oratab) by setting status to `stopped` and metadata flagging dummy installs.
+
+#### 10. plugin_supports_aliases
 
 **Purpose:** Indicate whether this product supports SID-like aliases.
 
@@ -263,7 +381,7 @@ patchlevel=221018
 - Most other products: return 1
 - Affects alias generation and environment switching
 
-#### 9. plugin_build_path
+#### 11. plugin_build_bin_path
 
 **Purpose:** Get PATH components to add for this product.
 
@@ -284,7 +402,7 @@ patchlevel=221018
 - Database: typically `${ORACLE_HOME}/bin:${ORACLE_HOME}/OPatch`
 - DataSafe: use adjusted path (oracle_cman_home)
 
-#### 10. plugin_build_lib_path
+#### 12. plugin_build_lib_path
 
 **Purpose:** Get LD_LIBRARY_PATH components to add for this product.
 
@@ -305,7 +423,7 @@ patchlevel=221018
 - Instant Client: return ORACLE_HOME directly
 - May include multiple directories (lib, lib32, etc.)
 
-#### 11. plugin_get_config_section
+#### 13. plugin_get_config_section
 
 **Purpose:** Get the configuration section name for this product.
 
@@ -322,7 +440,47 @@ patchlevel=221018
 
 - Used by `oradba_apply_product_config()` to load settings
 - Convention: uppercase product identifier
-- Must match section names in oradba_standard.conf
+- Must match section names in oradba_standard.conf and reflect the product category
+  (e.g., `RDBMS`, `MIDDLEWARE`, `DATASAFE`, `CLIENT`, `ICLIENT`, `JAVA`)
+
+#### plugin_should_show_listener (category-specific)
+
+**Purpose:** Determine if this product's listener should appear in listener sections.
+
+**Exit Codes:**
+
+- `0` - Show listener (database products and any product exposing a listener)
+- `1` - Don't show listener (products that reuse tnslsnr but should not be shown)
+
+**Output Format:**
+
+- No output (boolean return code only)
+
+**Notes:**
+
+- Required for products that ship or rely on a listener (databases, Data Safe).
+- Database listeners: return 0.
+- DataSafe connectors: return 1 (use tnslsnr but aren't DB listeners).
+- Most non-database products: return 1.
+
+#### plugin_check_listener_status (category-specific)
+
+**Purpose:** Report listener status for products that expose a listener component tied to an Oracle Home.
+
+**Exit Codes:**
+
+- `0` - Running/active
+- `1` - Stopped/inactive
+- `2` - Unavailable (binary missing, command failed)
+
+**Output Format:**
+
+- Single word: `running`, `stopped`, or `unavailable`
+
+**Notes:**
+
+- Separate from `plugin_check_status` for database instances; listener lifecycle is managed per Oracle Home.
+- Use explicit environment and timeouts; handle missing binaries with exit 2.
 
 ## Return Value Standards
 
@@ -649,7 +807,7 @@ This is acceptable for interactive and automation use cases.
 
 ### Optional Functions
 
-Plugins MAY implement additional functions beyond the 11 core functions for product-specific features.
+Plugins MAY implement additional functions beyond the universal core functions for product-specific features.
 
 #### Common Optional Functions
 
@@ -727,20 +885,27 @@ export plugin_version="1.0.0"
 export plugin_description="Product description"
 
 # ------------------------------------------------------------------------------
-# Core Functions (11 Required)
+# Core Functions (universal)
 # ------------------------------------------------------------------------------
 
 plugin_detect_installation() { ... }
 plugin_validate_home() { ... }
 plugin_adjust_environment() { ... }
+plugin_build_base_path() { ... }
+plugin_build_env() { ... }
 plugin_check_status() { ... }
 plugin_get_metadata() { ... }
-plugin_should_show_listener() { ... }
 plugin_discover_instances() { ... }
+plugin_get_instance_list() { ... }
 plugin_supports_aliases() { ... }
-plugin_build_path() { ... }
+plugin_build_bin_path() { ... }
 plugin_build_lib_path() { ... }
 plugin_get_config_section() { ... }
+
+# Category-Specific Functions
+# ------------------------------------------------------------------------------
+plugin_should_show_listener() { ... }
+plugin_check_listener_status() { ... }
 
 # ------------------------------------------------------------------------------
 # Optional Functions (Simple Extensions)
@@ -774,7 +939,7 @@ For **4+ optional functions** OR **complex logic (>100 lines)**, create a separa
 
 ```text
 src/lib/plugins/
-├── product_plugin.sh          # Core functions only (11 required)
+├── product_plugin.sh          # Core functions only (universal + category-specific)
 ├── product_extensions.sh      # Optional complex features
 └── ...
 ```
@@ -790,12 +955,28 @@ export plugin_version="1.0.0"
 export plugin_description="Product plugin"
 
 # ------------------------------------------------------------------------------
-# Core Functions (11 Required)
+# Core Functions (universal)
 # ------------------------------------------------------------------------------
 
 plugin_detect_installation() { ... }
 plugin_validate_home() { ... }
-# ... other 9 core functions ...
+plugin_adjust_environment() { ... }
+plugin_build_base_path() { ... }
+plugin_build_env() { ... }
+plugin_check_status() { ... }
+plugin_get_metadata() { ... }
+plugin_discover_instances() { ... }
+plugin_get_instance_list() { ... }
+plugin_supports_aliases() { ... }
+plugin_build_bin_path() { ... }
+plugin_build_lib_path() { ... }
+plugin_get_config_section() { ... }
+
+# ------------------------------------------------------------------------------
+# Category-Specific Functions
+# ------------------------------------------------------------------------------
+plugin_should_show_listener() { ... }
+plugin_check_listener_status() { ... }
 
 # ------------------------------------------------------------------------------
 # Load Optional Extensions
@@ -1008,7 +1189,72 @@ plugin_adjust_environment() {
     # else
     #     echo "${home_path}"
     # fi
-    # return 0
+# return 0
+}
+
+```
+
+### Template: plugin_build_base_path
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve the actual installation base (ORACLE_BASE_HOME-aware)
+# Args....: $1 - Input ORACLE_HOME or ORACLE_BASE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: Use when ORACLE_HOME differs from installation base
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+
+    # If ORACLE_BASE_HOME is provided via env, prefer it
+    if [[ -n "${ORACLE_BASE_HOME:-}" ]]; then
+        echo "${ORACLE_BASE_HOME}"
+        return 0
+    fi
+
+    # Fallback: return given path
+    echo "${home_path}"
+    return 0
+}
+
+```
+
+### Template: plugin_build_env
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for the product/instance
+# Args....: $1 - ORACLE_HOME
+#           $2 - Instance/domain identifier (if applicable)
+# Returns.: 0 on success, 1 if not applicable, 2 if unavailable
+# Output..: Key=value pairs (one per line)
+# Notes...: Scope PATH/LD_LIBRARY_PATH to this product/instance only
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    local instance="${2:-}"
+
+    [[ -z "${home_path}" ]] && return 2
+
+    local base_path
+    base_path=$(plugin_build_base_path "${home_path}")
+
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+
+    echo "ORACLE_BASE_HOME=${base_path}"
+    echo "ORACLE_HOME=${home_path}"
+    [[ -n "${instance}" ]] && echo "ORACLE_SID=${instance}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}:${PATH:-}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}:${LD_LIBRARY_PATH:-}"
+
+    return 0
 }
 
 ```
@@ -1076,12 +1322,10 @@ plugin_get_metadata() {
     local home_path="$1"
     
     # Get version (use plugin_get_version if available)
-    local version="unknown"
+    local version=""
     if type plugin_get_version &>/dev/null; then
         if version=$(plugin_get_version "${home_path}"); then
             : # version set successfully
-        else
-            version="N/A"
         fi
     fi
     
@@ -1092,15 +1336,15 @@ plugin_get_metadata() {
     fi
     
     # Get patch level (if applicable)
-    local patchlevel="N/A"
+    local patchlevel=""
     if [[ -x "${home_path}/OPatch/opatch" ]]; then
         patchlevel=$("${home_path}/OPatch/opatch" lspatches 2>/dev/null | head -1 | awk '{print $1}')
     fi
     
     # Output metadata
-    echo "version=${version}"
-    echo "edition=${edition}"
-    [[ "${patchlevel}" != "N/A" ]] && echo "patchlevel=${patchlevel}"
+    [[ -n "${version}" ]] && echo "version=${version}"
+    [[ -n "${edition}" ]] && echo "edition=${edition}"
+    [[ -n "${patchlevel}" ]] && echo "patchlevel=${patchlevel}"
     
     return 0
 }
@@ -1112,21 +1356,55 @@ plugin_get_metadata() {
 ```bash
 # ------------------------------------------------------------------------------
 # Function: plugin_should_show_listener
-# Purpose.: Determine if this product's tnslsnr should appear in listener section
+# Purpose.: Decide whether to render listener entries for this product
 # Args....: $1 - Installation path
 # Returns.: 0 if should show, 1 if should not show
 # Output..: None
-# Notes...: Database listeners: return 0
-#           DataSafe connectors: return 1 (they use tnslsnr but aren't DB listeners)
+# Notes...: Category-specific: required for products exposing a listener
 # ------------------------------------------------------------------------------
 plugin_should_show_listener() {
     local home_path="$1"
-    
+    [[ -z "${home_path}" ]] && return 1
+
     # Database products: show listener
     return 0
-    
-    # Non-database products: don't show listener
+
+    # DataSafe example: reuse tnslsnr but should not appear as DB listener
     # return 1
+}
+
+```
+
+### Template: plugin_check_listener_status
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Report listener status for this ORACLE_HOME
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Listener lifecycle is distinct from database instance lifecycle
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    local home_path="$1"
+    local binary="${home_path}/bin/lsnrctl"
+
+    [[ ! -x "${binary}" ]] && { echo "unavailable"; return 2; }
+
+    local status
+    status=$("${binary}" status 2>/dev/null)
+
+    if echo "${status}" | grep -qi "listener is running"; then
+        echo "running"
+        return 0
+    elif echo "${status}" | grep -qi "listener is not running"; then
+        echo "stopped"
+        return 1
+    else
+        echo "unavailable"
+        return 2
+    fi
 }
 
 ```
@@ -1176,6 +1454,38 @@ plugin_discover_instances() {
 
 ```
 
+### Template: plugin_get_instance_list
+
+```bash
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate all instances/domains for this ORACLE_HOME
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: Mandatory for products with multiple instances/domains per home
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+
+    # Example: read instances from oratab-like file
+    local instance_file="${home_path}/install/oratab"
+    [[ ! -f "${instance_file}" ]] && return 0
+
+    while IFS=: read -r sid home flag; do
+        [[ -z "${sid}" || -z "${home}" ]] && continue
+        local status="stopped"
+        if plugin_check_status "${home}" "${sid}" &>/dev/null; then
+            status="running"
+        fi
+        echo "${sid}|${status}|flag=${flag}"
+    done < "${instance_file}"
+
+    return 0
+}
+
+```
+
 ### Template: plugin_supports_aliases
 
 ```bash
@@ -1197,18 +1507,18 @@ plugin_supports_aliases() {
 
 ```
 
-### Template: plugin_build_path
+### Template: plugin_build_bin_path
 
 ```bash
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for this product
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success, 1 if failed
 # Output..: Colon-separated PATH components
 # Notes...: Don't validate existence - just build path list
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local home_path="$1"
     
     # Adjust environment if needed
@@ -1383,7 +1693,7 @@ All plugins MUST have tests covering:
 
 2. **Core functions exist**
 
-   - All 11 core functions are defined
+   - All universal core functions are defined
    - Functions are callable
    - No syntax errors
 
@@ -1417,9 +1727,11 @@ All plugins MUST have tests covering:
    - Running vs stopped detection works
    - Handles missing binaries gracefully
 
-4. **Path building**
+4. **Path and environment building**
 
-   - `plugin_build_path` returns valid format
+   - `plugin_build_base_path` resolves ORACLE_BASE_HOME correctly
+   - `plugin_build_env` outputs required variables for the product/instance
+   - `plugin_build_bin_path` returns valid format
    - `plugin_build_lib_path` returns valid format
    - Paths are colon-separated
 
@@ -1496,8 +1808,8 @@ teardown() {
     [ "$status" -eq 1 ]
 }
 
-@test "plugin_build_path returns valid format" {
-    run plugin_build_path "${TEST_HOME}"
+@test "plugin_build_bin_path returns valid format" {
+    run plugin_build_bin_path "${TEST_HOME}"
     [ "$status" -eq 0 ]
     [ -n "$output" ]
     [[ "$output" =~ : ]] || [[ "$output" =~ ^/ ]]  # Colon-separated or absolute path
@@ -1674,7 +1986,7 @@ bats tests/test_product_plugin.bats --tap
 
 3. **Add comprehensive tests**
 
-   - Test all 11 core functions
+   - Test all universal core functions and category-specific functions in scope
    - Test edge cases
    - Test error conditions
 
@@ -1871,7 +2183,7 @@ When updating a plugin to comply with standards:
 - [ ] Remove all sentinel strings ("ERR", "unknown", "N/A")
 - [ ] Update exit codes to standard conventions (0/1/2)
 - [ ] Separate stdout (data) from stderr (logging)
-- [ ] Add function headers for all 11 core functions
+- [ ] Add function headers for all universal core (and category-specific) functions
 - [ ] Validate all input parameters
 - [ ] Remove global state modifications
 - [ ] Add error handling for missing binaries
