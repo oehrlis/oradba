@@ -38,7 +38,7 @@ New to OraDBA development? Start here:
 
    - Quick start for developers
    - v0.19.0+ architecture overview (Registry API, Plugin System, Environment Libraries)
-   - Plugin development guide with 8-function template
+   - Plugin development guide with 11-function template
    - Project structure with all 6 plugins
    - Testing framework (108+ plugin tests, 900+ core tests)
    - CI/CD pipeline and workflows
@@ -54,7 +54,7 @@ New to OraDBA development? Start here:
 
 3. **[api.md](api.md)** - Learn the API
    - Registry API functions (get_all, get_by_name, get_by_type, get_by_home, get_status, validate_entry)
-   - Plugin Interface (8 required functions per plugin)
+   - Plugin Interface (11 required functions per plugin)
    - Core utility functions
    - Database operation helpers
 
@@ -65,7 +65,7 @@ New to OraDBA development? Start here:
 **[development.md](development.md)** - Complete development guide
 
 - **Architecture**: Registry API, Plugin System (6 plugins), Environment Libraries
-- **Plugin Development**: 8-function interface, detection, validation, metadata extraction
+- **Plugin Development**: 11-function interface, detection, validation, metadata extraction
 - **Project Structure**: All 6 plugins (database, datasafe, client, iclient, oud, java)
 - **Testing**: 108+ plugin tests, 900+ core tests, 68 Docker integration tests
 - **Smart Test Selection**: ~1-3 min during development, ~8-10 min full suite
@@ -106,7 +106,7 @@ make ci                # Complete CI pipeline (~10-15 min)
   - iclient_plugin.sh (15 tests) - Oracle Instant Client
   - oud_plugin.sh (15 tests) - Oracle Unified Directory
   - java_plugin.sh (22 tests) - Java JDK/JRE
-  - 8-function standard interface
+  - 11-function standard interface
 - **Environment Management Libraries**: 6 specialized libraries
 - **Data Flow**: Mermaid diagram showing Registry API integration
 - **Design Principles**: Modularity, testability, extensibility
@@ -129,7 +129,7 @@ make ci                # Complete CI pipeline (~10-15 min)
   - `oradba_registry_get_by_home` - Get by ORACLE_HOME path
   - `oradba_registry_get_status` - Check service status
   - `oradba_registry_validate_entry` - Validate entry
-- **Plugin Interface** (8 required functions)
+- **Plugin Interface** (11 required functions)
   - `plugin_detect_installation` - Auto-discover installations
   - `plugin_validate_home` - Validate ORACLE_HOME
   - `plugin_adjust_environment` - Adjust PATH/environment
@@ -156,7 +156,7 @@ make ci                # Complete CI pipeline (~10-15 min)
 Complete flowchart showing unified access to oratab and oradba_homes.conf, auto-sync, plugin integration, and Registry consumers.
 
 **[images/plugin-system.md](images/plugin-system.md)** - Plugin System Overview (Mermaid)  
-Shows all 6 plugins, discovery mechanism, and 8-function interface.
+Shows all 6 plugins, discovery mechanism, and 11-function interface.
 
 Additional diagrams embedded in [development.md](development.md):
 

@@ -6,7 +6,7 @@
 
 ## Recent Changes
 
-**January 2026 - Phase 2.1 Refactoring (Issue #136)**
+### January 2026 - Phase 2.1 Refactoring (Issue #136)
 
 All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
 
@@ -492,11 +492,13 @@ Test both exit codes AND output:
 
 ### Overview
 
-Starting with Phase 3 (Issue #136), all plugin functions execute in isolated subshells to prevent side effects and environment pollution. This ensures plugins cannot accidentally modify the caller's environment.
+Starting with Phase 3 (Issue #136), all plugin functions execute in isolated subshells to prevent side effects
+and environment pollution. This ensures plugins cannot accidentally modify the caller's environment.
 
 ### Minimal Oracle Environment
 
-**Critical Requirement:** The subshell wrapper MUST provide minimal Oracle environment variables to ensure plugins can execute Oracle commands:
+**Critical Requirement:** The subshell wrapper MUST provide minimal Oracle environment variables to ensure plugins
+can execute Oracle commands:
 
 - `ORACLE_HOME` - Oracle installation directory (required)
 - `LD_LIBRARY_PATH` - Must include `$ORACLE_HOME/lib` (required)

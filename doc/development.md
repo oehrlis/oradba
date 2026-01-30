@@ -28,7 +28,7 @@ make build
 OraDBA v0.19.0+ uses a modular, library-based architecture:
 
 - **Registry API**: Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
-- **Plugin System**: 6 product-specific plugins with 8-function interface
+- **Plugin System**: 6 product-specific plugins with 11-function interface
 - **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
 - **Oracle Homes Management**: Central registry with comprehensive metadata
 - **Hierarchical Configuration**: 6-level configuration system with override capabilities
@@ -75,7 +75,7 @@ OraDBA supports 6 product types via plugins:
 5. **oud_plugin.sh** - Oracle Unified Directory  
 6. **java_plugin.sh** - Oracle Java/JDK
 
-**Plugin Interface** (8 required functions):
+**Plugin Interface** (11 required functions):
 
 ```bash
 plugin_detect_installation()      # Auto-discover installations
@@ -86,6 +86,9 @@ plugin_get_metadata()              # Get version/edition
 plugin_should_show_listener()      # Show listener status?
 plugin_discover_instances()        # Find instances for home
 plugin_supports_aliases()          # Generate SID aliases?
+plugin_build_path()                # Build PATH components
+plugin_build_lib_path()            # Build LD_LIBRARY_PATH components
+plugin_get_config_section()        # Get config section name
 ```
 
 ### Developing a New Plugin
@@ -93,7 +96,7 @@ plugin_supports_aliases()          # Generate SID aliases?
 To add support for a new Oracle product type:
 
 1. **Create plugin file**: `src/lib/plugins/myproduct_plugin.sh`
-2. **Implement 8 required functions** (see template below)
+2. **Implement 11 required functions** (see template below)
 3. **Add tests**: `tests/test_myproduct_plugin.bats`
 4. **Update validation**: Add to valid types in `src/lib/oradba_registry.sh`
 5. **Update detection**: Add case to `detect_product_type()` in `src/lib/oradba_common.sh`

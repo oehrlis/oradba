@@ -6,7 +6,7 @@
 oradba is a professional Oracle Database administration toolset built on a modular, library-based architecture. The current architecture (v0.19.0+) features:
 
 - **Registry API** (v0.19.0+): Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
-- **Plugin System** (v0.19.0+): Product-specific plugins with 8-function interface for 6 Oracle product types
+- **Plugin System** (v0.19.0+): Product-specific plugins with 11-function interface for 6 Oracle product types
 - **Environment Management Libraries** (v0.19.0+): Modular libraries for parsing, building, and validating Oracle environments
 - **Oracle Homes Management**: Central registry (oradba_homes.conf) with comprehensive metadata
 - **Hierarchical Configuration**: 6-level configuration system with override capabilities
@@ -128,7 +128,7 @@ For detailed visual documentation of workflows and component interactions, see t
 - **[Configuration System](images/config-workflow-highlevel.md)** - 5-layer hierarchy and loading flow
 - **[oraenv Workflow](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
 - **[oraup Workflow](images/oraup-workflow-highlevel.md)** - Status display with Registry API integration
-- **[Plugin System](images/plugin-system.md)** - 8-function interface and lifecycle
+- **[Plugin System](images/plugin-system.md)** - 11-function interface and lifecycle
 
 These Mermaid diagrams are interactive and render automatically in VS Code, GitHub, and modern documentation sites.
 
@@ -201,7 +201,7 @@ java:jdk17:/opt/oracle/product/jdk-17.0.17:17.0.0::4::Oracle Java 17
 5. **oud_plugin.sh** - Oracle Unified Directory
 6. **java_plugin.sh** - Oracle Java/JDK (v0.19.0+)
 
-**Plugin Interface** (8 required functions):
+**Plugin Interface** (11 required functions):
 
 ```bash
 # Auto-detect installations of this product type
@@ -227,12 +227,23 @@ plugin_discover_instances "$oracle_home"
 
 # Does this product support SID aliases?
 plugin_supports_aliases  # Returns 0 (yes) or 1 (no)
+
+# Build PATH components for this product
+plugin_build_path "$oracle_home"
+
+# Build LD_LIBRARY_PATH components for this product
+plugin_build_lib_path "$oracle_home"
+
+# Get configuration section name for this product
+plugin_get_config_section
 ```
+
+> **📖 Full Specification**: See [Plugin Standards](plugin-standards.md) and [Plugin Development Guide](plugin-development.md)
 
 **Plugin Architecture Benefits**:
 
 - **Encapsulation**: Product-specific logic in dedicated plugins
-- **Consistency**: All plugins implement same 8-function interface
+- **Consistency**: All plugins implement same 11-function interface
 - **Extensibility**: Easy to add new product types (e.g., Java plugin in v0.19.0)
 - **Testability**: Each plugin independently tested (108+ plugin tests total)
 - **Maintainability**: Changes to one product don't affect others
@@ -1018,7 +1029,7 @@ sequenceDiagram
 
 1. **Library-Based Architecture**: Environment Management libraries provide modular, testable components
 2. **Registry API** (v0.19.0+): Single source of truth for Oracle installation metadata
-3. **Plugin System** (v0.19.0+): Product-specific logic encapsulated in dedicated plugins with 8-function interface
+3. **Plugin System** (v0.19.0+): Product-specific logic encapsulated in dedicated plugins with 11-function interface
 4. **Separation of Concerns**: Parser, Builder, Validator, Registry, Plugins have distinct responsibilities
 5. **Hierarchical Configuration**: 6-level override system provides flexibility without complexity
 6. **Auto-Detection**: Intelligently derives ORACLE_BASE, product type, version via plugins
@@ -1030,7 +1041,7 @@ sequenceDiagram
 ## Key Features
 
 - **Registry API** (v0.19.0+): Unified interface for oratab and oradba_homes.conf access
-- **Plugin System** (v0.19.0+): 6 product plugins (database, datasafe, client, iclient, oud, java) with consistent 8-function interface
+- **Plugin System** (v0.19.0+): 6 product plugins (database, datasafe, client, iclient, oud, java) with consistent 11-function interface
 - **Oracle Homes Management**: Track multiple Oracle installations with comprehensive metadata
 - **Product Type Detection**: Automatic identification of 6 product types via plugin validation
 - **Export/Import**: Backup and migrate Oracle Homes configuration  

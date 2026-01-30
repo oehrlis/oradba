@@ -147,7 +147,7 @@ graph TB
 The Environment Management Library architecture provides:
 
 1. **Registry API**: Unified interface for Oracle installation metadata
-2. **Plugin System**: Product-specific logic with 8-function interface
+2. **Plugin System**: Product-specific logic with 11-function interface
 3. **Parser Library**: Loads and merges 6 configuration levels
 4. **Builder Library**: Constructs Oracle environment variables
 5. **Validator Library**: Checks Oracle Home validity using plugins

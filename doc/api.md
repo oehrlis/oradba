@@ -346,7 +346,7 @@ done
 
 ## Plugin Interface
 
-Each of the 6 product plugins implements this standard 8-function interface.
+Each of the 6 product plugins implements this standard 11-function interface.
 All plugin functions must be prefixed with `plugin_` when called.
 
 ### Loading Plugins

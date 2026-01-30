@@ -126,18 +126,28 @@ The Registry API provides unified access to Oracle installations via `src/lib/or
 NAME|TYPE|ORACLE_HOME|VERSION|EDITION|AUTOSTART|DESCRIPTION
 ```
 
-### Plugin System (Interface v2.0.0)
+### Plugin System (Interface v1.0.0)
 
-Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_interface.sh`:
+Each plugin implements 11 required functions defined in `src/lib/plugins/plugin_interface.sh`.
+
+> **📖 Complete Specification**: See [doc/plugin-standards.md](../doc/plugin-standards.md) for:
+>
+> - Official plugin interface v1.0.0 specification
+> - Exit code standards and return value conventions  
+> - Function templates for all 11 required functions
+> - Subshell execution model and Oracle environment requirements
+> - Testing requirements and best practices
 
 **Required Metadata**:
+
 ```bash
 export plugin_name="database"          # Product identifier
-export plugin_version="2.0.0"          # Plugin version
+export plugin_version="1.0.0"          # Plugin version
 export plugin_description="Description" # Human-readable description
 ```
 
 **Required Functions** (11):
+
 1. `plugin_detect_installation()` - Auto-detect product installations
 2. `plugin_validate_home()` - Validate ORACLE_HOME path
 3. `plugin_adjust_environment()` - Adjust path for product (e.g., append /bin)
@@ -145,18 +155,46 @@ export plugin_description="Description" # Human-readable description
 5. `plugin_get_metadata()` - Get product metadata (version, edition, etc.)
 6. `plugin_should_show_listener()` - Whether to display listener status
 7. `plugin_discover_instances()` - Find product instances (databases, OUD instances)
-8. `plugin_get_instance_status()` - Get instance status (OPEN, MOUNTED, etc.)
-9. `plugin_get_instance_type()` - Get instance type (CDB, PDB, SINGLE, etc.)
-10. `plugin_get_pdb_status()` - Get PDB status (database plugin only)
-11. `plugin_get_version()` - Extract product version
+8. `plugin_supports_aliases()` - Support SID aliases?
+9. `plugin_build_path()` - Build PATH components
+10. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components
+11. `plugin_get_config_section()` - Get config section name
 
 **Current Plugins** (6):
+
 - `database_plugin.sh` - Oracle Database (CDB/PDB support)
 - `datasafe_plugin.sh` - Data Safe On-Premises Connector
 - `client_plugin.sh` - Full Oracle Client
 - `iclient_plugin.sh` - Instant Client
 - `oud_plugin.sh` - Oracle Unified Directory
 - `java_plugin.sh` - Oracle Java (JDK/JRE detection)
+
+### Plugin Standards Compliance
+
+**All plugin development must follow [doc/plugin-standards.md](../doc/plugin-standards.md):**
+
+- **11 required functions** - No exceptions, implement all
+- **Exit code contract** - 0=success, 1=N/A, 2=error
+- **No sentinel strings** - Never echo "ERR", "unknown", "N/A" on stdout
+- **Subshell isolation** - Plugins execute in isolated subshells
+- **Oracle environment** - ORACLE_HOME and LD_LIBRARY_PATH guaranteed available
+- **Function headers** - Document all functions (Purpose, Args, Returns, Output)
+
+**When implementing/reviewing plugin code:**
+
+1. ✅ Check exit codes match specification (0/1/2)
+2. ✅ Verify stdout contains only clean data (no error strings)
+3. ✅ Confirm all 11 required functions implemented
+4. ✅ Ensure Oracle environment assumptions are documented
+5. ✅ Add comprehensive tests for all plugin functions
+
+**Quick Exit Code Reference:**
+
+- Return 0 with clean data = Success
+- Return 1 with no/empty data = Not Applicable (expected)
+- Return 2 with no data = Error/Unavailable (failure)
+
+**See**: [Plugin Standards](../doc/plugin-standards.md) and [Plugin Development Guide](../doc/plugin-development.md)
 
 ### Environment Management Libraries
 
