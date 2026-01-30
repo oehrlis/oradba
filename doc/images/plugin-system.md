@@ -2,7 +2,7 @@
 flowchart TD
     Start([Script starts:<br/>oraenv.sh or oraup.sh])
     
-    Start --> LoadInterface[Load plugin_interface.sh<br/>Define 8-function template]
+    Start --> LoadInterface[Load plugin_interface.sh<br/>Define 11-function template]
     
     LoadInterface --> Discovery[Plugin Discovery Phase]
     Discovery --> ScanDir[Scan src/lib/plugins/ directory]

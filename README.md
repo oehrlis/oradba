@@ -20,7 +20,7 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
   - Eliminates duplicate parsing logic across 20+ files
 - **Plugin System** (v0.19.0+): Product-specific behavior encapsulation
   - 9 plugins: database, datasafe, client, iclient, oud, java, weblogic, emagent, oms
-  - 8-function interface: validate, adjust, status, metadata, discover, etc.
+  - 11-function interface: validate, adjust, status, metadata, discover, etc.
   - Comprehensive plugin tests (100% pass rate)
   - Consolidates product-specific logic into dedicated plugins
   - Extensible architecture for new product types

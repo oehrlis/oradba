@@ -39,7 +39,7 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 | **Configuration Hierarchy** | 6-level config with processing libraries                  | [config-hierarchy.md](config-hierarchy.md)                   |
 | **Configuration Details**   | Internal function calls, variable export, cleanup         | [config-workflow-detailed.md](config-workflow-detailed.md)   |
 | **Configuration Sequence**  | Library-based config loading sequence diagram             | [config-sequence.md](config-sequence.md)                     |
-| **Plugin System**           | Plugin lifecycle, 8-function interface, integration       | [plugin-system.md](plugin-system.md)                         |
+| **Plugin System**           | Plugin lifecycle, 11-function interface, integration       | [plugin-system.md](plugin-system.md)                         |
 | **Registry API Flow**       | Unified installation metadata access                      | [registry-api-flow.md](registry-api-flow.md)                 |
 
 ### Workflows & Operations

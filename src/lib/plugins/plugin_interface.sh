@@ -8,10 +8,10 @@
 # Version..: 1.0.0
 # Purpose..: Plugin interface template for product-specific behavior
 # Notes....: All product plugins must implement these functions
-#            See plugin-standards.md for complete interface specification
+#            See doc/plugin-standards.md for complete interface specification
 #            Interface version: v1.0.0 (January 2026)
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
-#            plugin-standards.md - Plugin interface specification
+#            doc/plugin-standards.md - Plugin interface specification
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ plugin_description=""       # Human-readable description
 # ------------------------------------------------------------------------------
 # Required Plugin Functions
 # ------------------------------------------------------------------------------
-# NOTE: See plugin-standards.md for:
+# NOTE: See doc/plugin-standards.md for:
 #       - Complete function specifications
 #       - Return value standards (exit codes + stdout)
 #       - Extension patterns for optional functions
@@ -43,7 +43,7 @@ plugin_description=""       # Human-readable description
 # Returns.: 0 on success
 # Output..: List of installation paths (one per line)
 # Notes...: Used for auto-discovery when no registry files exist
-#           See plugin-standards.md for return value conventions
+#           See doc/plugin-standards.md for return value conventions
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     oradba_log ERROR "plugin_detect_installation not implemented in ${plugin_name}"

@@ -4,7 +4,7 @@ This guide provides comprehensive instructions for developing plugins for the Or
 
 > **📖 Related Documentation:**
 >
-> - [Plugin Standards](../src/lib/plugins/plugin-standards.md) - **Start here** for interface
+> - [Plugin Standards](plugin-standards.md) - **Start here** for interface
 >   specification and return value conventions
 > - [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Template implementation
 > - [Architecture](architecture.md) - System architecture
@@ -21,7 +21,7 @@ implements a standardized interface that allows OraDBA to:
 - Discover instances
 - Get product metadata
 
-**Before developing a plugin, read [plugin-standards.md](../src/lib/plugins/plugin-standards.md)**
+**Before developing a plugin, read [plugin-standards.md](plugin-standards.md)**
 which formalizes:
 
 - The 11 core required functions
@@ -62,7 +62,7 @@ Product Plugins
 
 Each plugin must implement **11 required functions** and **3 metadata variables**.
 
-> **📖 Complete Specification:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+> **📖 Complete Specification:** See [plugin-standards.md](plugin-standards.md) for:
 >
 > - Detailed function descriptions
 > - Exit code standards (0=success, 1=expected failure, 2=unavailable)
@@ -97,7 +97,7 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 | 10 | `plugin_build_lib_path` | Get LD_LIBRARY_PATH components | 0=success |
 | 11 | `plugin_get_config_section` | Get config section name | 0=success |
 
-> **📖 Detailed Documentation:** See [plugin-standards.md](../src/lib/plugins/plugin-standards.md) for:
+> **📖 Detailed Documentation:** See [plugin-standards.md](plugin-standards.md) for:
 >
 > - Complete function specifications
 > - Function templates (copy-paste ready)
@@ -392,7 +392,7 @@ plugin_get_version() {
 ```
 
 > **📖 Extension Patterns:** See
-> [plugin-standards.md - Optional Functions](../src/lib/plugins/plugin-standards.md#optional-functions-and-extension-patterns)
+> [plugin-standards.md - Optional Functions](plugin-standards.md#optional-functions-and-extension-patterns)
 > for:
 >
 > - Common optional functions (plugin_get_version, plugin_get_required_binaries)
@@ -878,7 +878,7 @@ Before submitting plugin:
 
 ## References
 
-- **[Plugin Standards](../src/lib/plugins/plugin-standards.md)** - **Official specification** for plugin interface
+- **[Plugin Standards](plugin-standards.md)** - **Official specification** for plugin interface
 - [Plugin Interface](../src/lib/plugins/plugin_interface.sh) - Interface template implementation
 - [Database Plugin](../src/lib/plugins/database_plugin.sh) - Reference implementation
 - [Architecture](architecture.md) - System architecture
