@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     for category-specific listener handling
   - Exit code standards unchanged (0=success, 1=n/a, 2=error)
   - See `doc/releases/v0.19.11.md` for complete details and migration guide
+- **Documentation parity with plugin interface v1.0.0**
+  - Updated all documentation to reflect 13 universal core functions (previously incorrectly listed as 11)
+  - Fixed function name references: `plugin_build_path` → `plugin_build_bin_path`
+  - Clarified distinction between universal core functions (13) and category-specific functions (2)
+  - Updated: copilot-instructions.md, README.md, architecture.md, development.md, plugin-development.md,
+    plugin-standards.md, function-header-guide.md
+  - All mermaid diagrams verified to match actual code implementation
 
 ### Fixed
 

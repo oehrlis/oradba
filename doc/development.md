@@ -75,20 +75,29 @@ OraDBA supports 6 product types via plugins:
 5. **oud_plugin.sh** - Oracle Unified Directory  
 6. **java_plugin.sh** - Oracle Java/JDK
 
-**Plugin Interface** (11 required functions):
+**Plugin Interface** (13 universal core functions):
 
 ```bash
-plugin_detect_installation()      # Auto-discover installations
-plugin_validate_home()             # Validate ORACLE_HOME
-plugin_adjust_environment()        # Adjust paths if needed
-plugin_check_status()              # Check service status
-plugin_get_metadata()              # Get version/edition
+plugin_detect_installation()      # 1. Auto-discover installations
+plugin_validate_home()             # 2. Validate ORACLE_HOME
+plugin_adjust_environment()        # 3. Adjust paths if needed
+plugin_build_base_path()           # 4. Resolve ORACLE_BASE_HOME
+plugin_build_env()                 # 5. Build environment variables
+plugin_check_status()              # 6. Check service status
+plugin_get_metadata()              # 7. Get version/edition
+plugin_discover_instances()        # 8. Find instances for home
+plugin_get_instance_list()         # 9. Enumerate instances/domains
+plugin_supports_aliases()          # 10. Generate SID aliases?
+plugin_build_bin_path()            # 11. Build PATH components
+plugin_build_lib_path()            # 12. Build LD_LIBRARY_PATH components
+plugin_get_config_section()        # 13. Get config section name
+```
+
+**Category-Specific** (when applicable):
+
+```bash
 plugin_should_show_listener()      # Show listener status?
-plugin_discover_instances()        # Find instances for home
-plugin_supports_aliases()          # Generate SID aliases?
-plugin_build_path()                # Build PATH components
-plugin_build_lib_path()            # Build LD_LIBRARY_PATH components
-plugin_get_config_section()        # Get config section name
+plugin_check_listener_status()     # Check listener status per home
 ```
 
 ### Developing a New Plugin
@@ -96,7 +105,7 @@ plugin_get_config_section()        # Get config section name
 To add support for a new Oracle product type:
 
 1. **Create plugin file**: `src/lib/plugins/myproduct_plugin.sh`
-2. **Implement 11 required functions** (see template below)
+2. **Implement 13 universal core functions** (see template below)
 3. **Add tests**: `tests/test_myproduct_plugin.bats`
 4. **Update validation**: Add to valid types in `src/lib/oradba_registry.sh`
 5. **Update detection**: Add case to `detect_product_type()` in `src/lib/oradba_common.sh`

@@ -174,7 +174,7 @@ function_name() {
 # Notes...: Example: oradba_add_oracle_path "/u01/app/oracle/product/19c" "database"
 
 # Implementation detail
-# Notes...: Uses plugin_build_path() from product-specific plugins
+# Notes...: Uses plugin_build_bin_path() from product-specific plugins
 #           Falls back to basic bin directory for unknown products
 ```
 
@@ -233,7 +233,7 @@ oradba_dedupe_path() {
 #           $2 - Product type (optional, lowercase: database, client, iclient, etc.)
 # Returns.: 0 on success, 1 on error
 # Output..: Modified PATH environment variable
-# Notes...: Uses plugin_build_path() from product-specific plugins
+# Notes...: Uses plugin_build_bin_path() from product-specific plugins
 #           Falls back to basic bin directory for unknown products
 # ------------------------------------------------------------------------------
 oradba_add_oracle_path() {
@@ -252,7 +252,7 @@ oradba_add_oracle_path() {
     
     # Use plugin to build path
     local plugin_path
-    plugin_path=$(plugin_build_path "${oracle_home}")
+    plugin_path=$(plugin_build_bin_path "${oracle_home}")
     
     # Add to PATH
     export PATH="${plugin_path}:${PATH}"
