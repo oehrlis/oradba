@@ -111,18 +111,19 @@ plugin_adjust_environment() {
 # Purpose.: Check Java installation status
 # Args....: $1 - Path to Java home
 #           $2 - Ignored
-# Returns.: 0 if available, 1 if not
-# Output..: Status string
+# Returns.: 0 if available (java executable exists and is executable)
+#           1 if not applicable
+#           2 if unavailable (missing or non-functional)
+# Output..: None - status communicated via exit code only
+# Notes...: Java is software-only, no running service
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"
     
     if [[ -x "${home_path}/bin/java" ]]; then
-        echo "available"
         return 0
     else
-        echo "unavailable"
-        return 1
+        return 2
     fi
 }
 

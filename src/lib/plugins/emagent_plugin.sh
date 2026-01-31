@@ -64,12 +64,12 @@ plugin_adjust_environment() {
 # Purpose.: Check EM Agent status
 # Args....: $1 - Path to agent home
 #           $2 - Ignored
-# Returns.: 0 on success
-# Output..: Status string
+# Returns.: 0 if running, 1 if stopped/N/A, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
+# Notes...: Stub implementation - returns 1 (not applicable)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
-    echo "N/A"
-    return 0
+    return 1
 }
 
 # ------------------------------------------------------------------------------
