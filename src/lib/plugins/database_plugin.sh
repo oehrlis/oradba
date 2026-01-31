@@ -92,12 +92,20 @@ plugin_adjust_environment() {
 # Purpose.: Check if database instance is running
 # Args....: $1 - ORACLE_HOME path
 #           $2 - SID (optional)
-# Returns.: 0 if running, 1 if stopped
-# Output..: Status string
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Returns unavailable if oracle binary is missing
+#           Can return metadata for mounted/nomount states in future enhancement
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"
     local sid="${2:-}"
+    
+    # Validate ORACLE_HOME exists and has oracle binary
+    if [[ ! -d "${home_path}" ]] || [[ ! -f "${home_path}/bin/oracle" ]]; then
+        echo "unavailable"
+        return 2
+    fi
     
     if [[ -z "${sid}" ]]; then
         # No SID specified, check if any pmon from this home
@@ -168,6 +176,48 @@ plugin_get_metadata() {
 # ------------------------------------------------------------------------------
 plugin_should_show_listener() {
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Check listener status for database Oracle Home
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Listener lifecycle is separate from instance lifecycle
+#           Uses lsnrctl status to check listener state
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    local home_path="$1"
+    local lsnrctl="${home_path}/bin/lsnrctl"
+    
+    # Check if lsnrctl exists
+    [[ ! -x "${lsnrctl}" ]] && {
+        echo "unavailable"
+        return 2
+    }
+    
+    # Check listener status using lsnrctl
+    # Set minimal environment for the command
+    local status_output
+    status_output=$(ORACLE_HOME="${home_path}" \
+                    LD_LIBRARY_PATH="${home_path}/lib:${LD_LIBRARY_PATH:-}" \
+                    "${lsnrctl}" status 2>/dev/null)
+    local exit_code=$?
+    
+    # Parse output - listener is running if we get a successful status
+    if [[ ${exit_code} -eq 0 ]] && echo "${status_output}" | grep -q "Instance.*status READY"; then
+        echo "running"
+        return 0
+    elif [[ ${exit_code} -eq 0 ]] || echo "${status_output}" | grep -q "Connecting to"; then
+        # If we got a connection attempt or partial output, listener might be running
+        echo "running"
+        return 0
+    else
+        # Listener is not running
+        echo "stopped"
+        return 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -256,6 +306,7 @@ plugin_build_env() {
 # Returns.: 0 on success
 # Output..: instance_name|status|additional_metadata (one per line)
 # Notes...: Reads oratab for instances using this ORACLE_HOME
+#           Handles D (dummy) flag - sets status=stopped and metadata=dummy
 # ------------------------------------------------------------------------------
 plugin_get_instance_list() {
     local home_path="$1"
@@ -271,9 +322,23 @@ plugin_get_instance_list() {
         
         # Match ORACLE_HOME
         if [[ "${oh}" == "${home_path}" ]]; then
-            # Get status (will require sourcing environment, simplified here)
-            local status=""
-            echo "${sid}|${status}|autostart=${autostart}"
+            local status
+            local metadata="autostart=${autostart}"
+            
+            # Handle D (dummy) flag - mark as stopped with dummy flag
+            if [[ "${autostart}" == "D" ]]; then
+                status="stopped"
+                metadata="${metadata},dummy=true"
+            else
+                # Check actual status for non-dummy instances
+                if ps -ef | grep -q "[p]mon_${sid}$"; then
+                    status="running"
+                else
+                    status="stopped"
+                fi
+            fi
+            
+            echo "${sid}|${status}|${metadata}"
         fi
     done < "${oratab_file}"
     
