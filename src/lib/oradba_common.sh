@@ -1471,40 +1471,19 @@ detect_oracle_version() {
         product_type=$(detect_product_type "${oracle_home}")
     fi
 
-    # Try plugin-based version detection first
-    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
-    if [[ ! -f "${plugin_file}" ]]; then
-        plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
-    fi
-    
-    oradba_log DEBUG "Trying plugin version detection for ${product_type}: ${plugin_file}"
-    
-    if [[ -f "${plugin_file}" ]]; then
-        # Source plugin and try plugin_get_version
-        # shellcheck source=/dev/null
-        source "${plugin_file}" 2>/dev/null
-        
-        if declare -f plugin_get_version >/dev/null 2>&1; then
-            oradba_log DEBUG "Calling plugin_get_version for ${oracle_home}"
-            local plugin_version
-            if plugin_version=$(plugin_get_version "${oracle_home}"); then
-                oradba_log DEBUG "Plugin returned version: ${plugin_version}"
-                
-                # Convert X.Y.Z.W format to XXYZ format
-                local major minor
-                major=$(echo "${plugin_version}" | cut -d. -f1)
-                minor=$(echo "${plugin_version}" | cut -d. -f2)
-                oradba_log DEBUG "Converting ${plugin_version} to format: ${major}${minor}"
-                printf "%02d%02d" "${major}" "${minor}"
-                return 0
-            else
-                oradba_log DEBUG "Plugin returned exit code $?: version not available"
-            fi
-        else
-            oradba_log DEBUG "plugin_get_version function not found in ${plugin_file}"
-        fi
+    # Try plugin-based version detection first (subshell isolated)
+    local plugin_version
+    if execute_plugin_function_v2 "${product_type}" "get_version" "${oracle_home}" "plugin_version"; then
+        oradba_log DEBUG "Plugin returned version: ${plugin_version}"
+        # Convert X.Y.Z.W format to XXYZ format
+        local major minor
+        major=$(echo "${plugin_version}" | cut -d. -f1)
+        minor=$(echo "${plugin_version}" | cut -d. -f2)
+        oradba_log DEBUG "Converting ${plugin_version} to format: ${major}${minor}"
+        printf "%02d%02d" "${major}" "${minor}"
+        return 0
     else
-        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
+        oradba_log DEBUG "Plugin get_version not available (exit $?)"
     fi
 
     # Fallback: Generic version detection methods
