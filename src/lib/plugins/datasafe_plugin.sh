@@ -358,7 +358,6 @@ plugin_build_base_path() {
 # ------------------------------------------------------------------------------
 plugin_build_env() {
     local base_path="$1"
-    local instance="${2:-}"
     
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
@@ -389,7 +388,7 @@ plugin_get_instance_list() {
     # DataSafe: single instance per installation, use basename as instance name
     local instance_name
     instance_name=$(basename "${base_path}")
-    echo "${instance_name}|unknown|datasafe"
+    echo "${instance_name}||datasafe"
     return 0
 }
 

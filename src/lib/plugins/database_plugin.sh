@@ -272,7 +272,7 @@ plugin_get_instance_list() {
         # Match ORACLE_HOME
         if [[ "${oh}" == "${home_path}" ]]; then
             # Get status (will require sourcing environment, simplified here)
-            local status="unknown"
+            local status=""
             echo "${sid}|${status}|autostart=${autostart}"
         fi
     done < "${oratab_file}"
