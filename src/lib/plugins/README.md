@@ -4,7 +4,8 @@ This directory contains plugin implementations for different Oracle products.
 
 ## Plugin Interface v1.0.0
 
-Each plugin must implement the universal core functions (13) plus category-specific functions when applicable (2 for listener-based products) following the plugin standards.
+Each plugin must implement the universal core functions (13) plus category-specific
+functions when applicable (2 for listener-based products) following the plugin standards.
 
 **📖 For Plugin Development, see:**
 
@@ -77,7 +78,7 @@ Each plugin must implement the universal core functions (13) plus category-speci
 
 1. Read **[Plugin Standards](../../../doc/plugin-standards.md)** first
 2. Copy **[Plugin Interface Template](plugin_interface.sh)**
-3. Implement 11 required functions
+3. Implement 13 core functions plus category-specific functions when applicable
 4. Follow **[Plugin Development Guide](../../../doc/plugin-development.md)**
 5. Add tests in `tests/test_<product>_plugin.bats`
 6. Update this README with new plugin
