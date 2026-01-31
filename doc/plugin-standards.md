@@ -6,7 +6,17 @@
 
 ## Recent Changes
 
-### January 2026 - Phase 2.1 Refactoring (Issue #135)
+### January 2026 - Phase 2.2 Refactoring (Issue #140)
+
+All plugins have been standardized to conform to the exit code contract for `plugin_check_status()`:
+
+- ✅ All status strings ("running", "stopped", "unavailable", "available") removed from plugin_check_status output
+- ✅ Exit codes standardized: 0=running/available, 1=stopped/N/A, 2=unavailable/error
+- ✅ All 9 plugins (6 production + 3 stubs) updated to new contract
+- ✅ Tests updated to validate exit codes only (no output string assertions)
+- ⚠️ **Breaking change**: Callers must use exit codes only, not parse stdout
+
+### January 2026 - Phase 2.1 Refactoring (Issue #135, #139)
 
 All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
 
@@ -271,14 +281,14 @@ it with `ORACLE_BASE_HOME` when they differ.
 
 **Exit Codes:**
 
-- `0` - Running/active
-- `1` - Stopped/inactive
-- `2` - Unavailable (binary missing, command failed)
+- `0` - Running/active (for services) or Available (for software-only products)
+- `1` - Stopped/inactive (for services) or Not Applicable (for stubs)
+- `2` - Unavailable (binary missing, command failed, cannot determine status)
 
 **Output Format:**
 
-- Single word: `running`, `stopped`, or `unavailable`. Database plugins may add
-  finer-grained state in metadata (mounted, nomount, etc.).
+- **No output to stdout** - Status is communicated via exit code only
+- Previous versions used status strings ("running", "stopped", "unavailable") but this has been deprecated in favor of exit codes only (Issue #140)
 
 **Notes:**
 
@@ -288,6 +298,7 @@ it with `ORACLE_BASE_HOME` when they differ.
 - Handle missing binaries gracefully (return 2)
 - Database listeners should be covered by a dedicated `plugin_check_listener_status`
   function rather than overloading instance status.
+- **Breaking change (v0.20.0):** Callers must check exit codes only; do not parse stdout
 
 #### plugin_get_metadata
 
@@ -1267,9 +1278,10 @@ plugin_build_env() {
 # Purpose.: Check if product instance is running
 # Args....: $1 - Installation path
 #           $2 - Instance name (optional)
-# Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string (running|stopped|unavailable)
+# Returns.: 0 if running/available, 1 if stopped/N/A, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
 # Notes...: Uses explicit environment (not current shell environment)
+#           No output strings - breaking change in v0.20.0 (Issue #140)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"
@@ -1282,7 +1294,6 @@ plugin_check_status() {
     # Check if status binary exists
     local status_binary="${adjusted_home}/bin/product_ctl"
     if [[ ! -x "${status_binary}" ]]; then
-        echo "unavailable"
         return 2
     fi
     
@@ -1292,15 +1303,12 @@ plugin_check_status() {
              LD_LIBRARY_PATH="${adjusted_home}/lib:${LD_LIBRARY_PATH:-}" \
              "${status_binary}" status 2>/dev/null)
     
-    # Parse status output
+    # Parse status output and return exit code only
     if echo "${status}" | grep -qiE "running|active|started"; then
-        echo "running"
         return 0
     elif echo "${status}" | grep -qiE "stopped|inactive|down"; then
-        echo "stopped"
         return 1
     else
-        echo "unavailable"
         return 2
     fi
 }
@@ -2095,47 +2103,57 @@ export PRODUCT_CONFIG
 
 ```
 
-#### Anti-Pattern 3: Mixing Output Types
+#### Anti-Pattern 3: Status Strings in plugin_check_status
 
-**Before (non-compliant):**
-
-```bash
-
-plugin_check_status() {
-    local home_path="$1"
-    
-    # ❌ WRONG: Mixes data and log messages on stdout
-    echo "Checking status of ${home_path}..."
-    
-    if pgrep -f "product_process" >/dev/null; then
-        echo "Status: running"
-        return 0
-    else
-        echo "Status: stopped"
-        return 1
-    fi
-}
-
-```
-
-**After (compliant):**
+**Before (non-compliant, deprecated in v0.20.0):**
 
 ```bash
 
 plugin_check_status() {
     local home_path="$1"
     
-    # ✅ CORRECT: Logs to stderr, data to stdout
-    echo "Checking status of ${home_path}..." >&2
-    
+    # ❌ WRONG: Outputs status strings
     if pgrep -f "product_process" >/dev/null; then
-        echo "running"  # Clean data only
+        echo "running"
         return 0
     else
         echo "stopped"
         return 1
     fi
 }
+
+# Caller must parse strings
+status=$(plugin_check_status "${home}")
+if [[ "${status}" == "running" ]]; then
+    echo "Service is running"
+fi
+
+```
+
+**After (compliant, v0.20.0+):**
+
+```bash
+
+plugin_check_status() {
+    local home_path="$1"
+    
+    # ✅ CORRECT: Exit code only, no output
+    if pgrep -f "product_process" >/dev/null; then
+        return 0  # Running
+    else
+        return 1  # Stopped
+    fi
+}
+
+# Caller checks exit code only
+if plugin_check_status "${home}"; then
+    echo "Service is running"
+else
+    case $? in
+        1) echo "Service is stopped" ;;
+        2) echo "Service status unavailable" ;;
+    esac
+fi
 
 ```
 
