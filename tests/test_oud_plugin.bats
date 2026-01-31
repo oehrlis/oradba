@@ -355,3 +355,108 @@ teardown() {
     [ "$status" -eq 0 ]
     [ "$output" = "${oud_home}" ]
 }
+
+# ==============================================================================
+# Instance Base Directory Priority Tests
+# ==============================================================================
+
+@test "oud get_oud_instance_base uses OUD_INSTANCE_BASE when set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local custom_base="${TEST_DIR}/custom_instances"
+    mkdir -p "${custom_base}"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_INSTANCE_BASE
+    export OUD_INSTANCE_BASE="${custom_base}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${custom_base}" ]
+    
+    unset OUD_INSTANCE_BASE
+}
+
+@test "oud get_oud_instance_base uses OUD_DATA/instances when OUD_INSTANCE_BASE not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oud_data="${TEST_DIR}/oud_data"
+    mkdir -p "${oud_data}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_DATA
+    export OUD_DATA="${oud_data}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oud_data}/instances" ]
+    
+    unset OUD_DATA
+}
+
+@test "oud get_oud_instance_base uses ORACLE_DATA/instances when higher priority not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oracle_data="${TEST_DIR}/oracle_data"
+    mkdir -p "${oracle_data}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set ORACLE_DATA
+    export ORACLE_DATA="${oracle_data}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oracle_data}/instances" ]
+    
+    unset ORACLE_DATA
+}
+
+@test "oud get_oud_instance_base uses ORACLE_BASE/instances when higher priority not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oracle_base="${TEST_DIR}/oracle_base"
+    mkdir -p "${oracle_base}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set ORACLE_BASE
+    export ORACLE_BASE="${oracle_base}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oracle_base}/instances" ]
+    
+    unset ORACLE_BASE
+}
+
+@test "oud get_oud_instance_base falls back to ORACLE_HOME/oudBase" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Ensure no environment variables are set
+    unset OUD_INSTANCE_BASE OUD_DATA ORACLE_DATA ORACLE_BASE
+    
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oud_home}/oudBase" ]
+}
+
+@test "oud plugin_get_instance_list uses OUD_INSTANCE_BASE for discovery" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local custom_base="${TEST_DIR}/custom_instances"
+    mkdir -p "${custom_base}/instance1"
+    mkdir -p "${custom_base}/instance2"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_INSTANCE_BASE
+    export OUD_INSTANCE_BASE="${custom_base}"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"instance1"* ]]
+    [[ "$output" == *"instance2"* ]]
+    [[ "$output" == *"${custom_base}"* ]]
+    
+    unset OUD_INSTANCE_BASE
+}
