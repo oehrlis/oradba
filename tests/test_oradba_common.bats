@@ -666,3 +666,24 @@ DB3:/opt/oracle/product/23ai:N"
     run oradba_apply_oracle_plugin "validate_home" "datasafe" "/nonexistent/path" "" "result"
     [ "$status" -ne 0 ]
 }
+
+@test "execute_plugin_function_v2 runs plugin in subshell with minimal env" {
+    local tmp_plugin_dir="${TEST_TEMP_DIR}/plugins"
+    mkdir -p "${tmp_plugin_dir}"
+    cat > "${tmp_plugin_dir}/dummy_plugin.sh" <<'EOF'
+plugin_echo_env() {
+    echo "oh=${ORACLE_HOME:-}"
+    echo "ll=${LD_LIBRARY_PATH:-}"
+    return 0
+}
+EOF
+    export ORADBA_BASE="${tmp_plugin_dir}/.."
+    mkdir -p "${ORADBA_BASE}/src/lib/plugins"
+    mv "${tmp_plugin_dir}/dummy_plugin.sh" "${ORADBA_BASE}/src/lib/plugins/dummy_plugin.sh"
+
+    local result
+    run execute_plugin_function_v2 "dummy" "echo_env" "/fake/home" "result"
+    assert_success
+    [[ "${result}" == *"oh=/fake/home"* ]]
+    [[ "${result}" == *"ll=/fake/home/lib"* ]]
+}

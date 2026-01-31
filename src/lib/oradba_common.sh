@@ -2842,3 +2842,71 @@ oradba_apply_oracle_plugin() {
     
     return ${exit_code}
 }
+
+# ------------------------------------------------------------------------------
+# Function: execute_plugin_function_v2
+# Purpose.: Execute a plugin function in an isolated subshell with minimal env
+# Args....: $1 - product type (plugin name, e.g., database, datasafe)
+#           $2 - function name (without plugin_ prefix)
+#           $3 - ORACLE_HOME / base path
+#           $4 - result variable name (optional)
+#           $5 - extra argument (optional)
+# Returns.: Exit code from plugin function
+# Output..: Stdout from plugin function (or stored in result variable)
+# Notes...: Adds subshell isolation (Phase 3) and minimal ORACLE_HOME/LD_LIBRARY_PATH
+# ------------------------------------------------------------------------------
+execute_plugin_function_v2() {
+    local product_type="$1"
+    local function_name="$2"
+    local oracle_home="$3"
+    local result_var_name="${4:-}"
+    local extra_arg="${5:-}"
+
+    [[ -z "${function_name}" ]] && return 1
+    [[ -z "${product_type}" ]] && return 1
+    [[ -z "${oracle_home}" ]] && return 1
+
+    local oradba_base="${ORADBA_BASE}"
+    if [[ -z "${oradba_base}" ]]; then
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        oradba_base="$(cd "${script_dir}/../.." && pwd)"
+    fi
+
+    local plugin_file="${oradba_base}/src/lib/plugins/${product_type}_plugin.sh"
+    if [[ ! -f "${plugin_file}" ]]; then
+        plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
+        [[ ! -f "${plugin_file}" ]] && { oradba_log DEBUG "Plugin not found: ${product_type}_plugin.sh"; return 1; }
+    fi
+
+    local plugin_function="plugin_${function_name}"
+    local output
+    output=$(
+        ORACLE_HOME="${oracle_home}"
+        export ORACLE_HOME
+        if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
+            LD_LIBRARY_PATH="${oracle_home}/lib"
+            export LD_LIBRARY_PATH
+        fi
+        set -euo pipefail
+        # shellcheck disable=SC1090
+        source "${plugin_file}"
+        if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+            exit 1
+        fi
+        if [[ -n "${extra_arg}" ]]; then
+            "${plugin_function}" "${oracle_home}" "${extra_arg}"
+        else
+            "${plugin_function}" "${oracle_home}"
+        fi
+    )
+    local exit_code=$?
+
+    if [[ -n "${result_var_name}" ]]; then
+        eval "${result_var_name}=\"\${output}\""
+    else
+        [[ -n "${output}" ]] && echo "${output}"
+    fi
+
+    return ${exit_code}
+}
