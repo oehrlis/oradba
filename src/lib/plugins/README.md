@@ -4,7 +4,7 @@ This directory contains plugin implementations for different Oracle products.
 
 ## Plugin Interface v1.0.0
 
-Each plugin must implement 11 required functions following the plugin standards.
+Each plugin must implement the universal core functions (13) plus category-specific functions when applicable (2 for listener-based products) following the plugin standards.
 
 **📖 For Plugin Development, see:**
 
@@ -28,19 +28,28 @@ Each plugin must implement 11 required functions following the plugin standards.
 
 ## Quick Reference
 
-### Required Functions (11)
+### Required Functions (13 core + 2 category-specific)
+
+#### Universal Core Functions (13)
 
 1. `plugin_detect_installation()` - Auto-discover installations
 2. `plugin_validate_home()` - Validate ORACLE_HOME
 3. `plugin_adjust_environment()` - Adjust path for product
-4. `plugin_check_status()` - Check service status
-5. `plugin_get_metadata()` - Get product metadata
-6. `plugin_should_show_listener()` - Show listener status?
-7. `plugin_discover_instances()` - Find instances
-8. `plugin_supports_aliases()` - Support SID aliases?
-9. `plugin_build_path()` - Build PATH components
-10. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components
-11. `plugin_get_config_section()` - Get config section name
+4. `plugin_build_base_path()` - Resolve ORACLE_BASE_HOME vs ORACLE_HOME
+5. `plugin_build_env()` - Build environment variables
+6. `plugin_check_status()` - Check service status
+7. `plugin_get_metadata()` - Get product metadata
+8. `plugin_discover_instances()` - Find instances
+9. `plugin_get_instance_list()` - Enumerate instances/domains
+10. `plugin_supports_aliases()` - Support SID aliases?
+11. `plugin_build_bin_path()` - Build PATH components
+12. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components
+13. `plugin_get_config_section()` - Get config section name
+
+#### Category-Specific Functions (when applicable)
+
+- `plugin_should_show_listener()` - Show listener status? (database-like products)
+- `plugin_check_listener_status()` - Check listener status (database-like products)
 
 ### Exit Code Contract
 
