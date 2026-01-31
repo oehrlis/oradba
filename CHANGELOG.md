@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Plugin Interface Enhancements (v1.0.0)**
+  - **Function rename**: `plugin_build_path` split into `plugin_build_bin_path` (PATH) and
+    `plugin_build_lib_path` (LD_LIBRARY_PATH)
+  - **New functions**: `plugin_build_base_path` (resolve ORACLE_BASE_HOME), `plugin_build_env`
+    (unified env builder), `plugin_get_instance_list` (enumerate instances/domains)
+  - **Listener separation**: `plugin_should_show_listener` and `plugin_check_listener_status`
+    for category-specific listener handling
+  - Exit code standards unchanged (0=success, 1=n/a, 2=error)
+  - See `doc/releases/v0.19.11.md` for complete details and migration guide
 - **Documentation parity with plugin interface v1.0.0**
   - Updated all documentation to reflect 13 universal core functions (previously incorrectly listed as 11)
   - Fixed function name references: `plugin_build_path` → `plugin_build_bin_path`
