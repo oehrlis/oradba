@@ -27,7 +27,7 @@ plugin_version=""           # Plugin version (semantic versioning)
 plugin_description=""       # Human-readable description
 
 # ------------------------------------------------------------------------------
-# Required Plugin Functions
+# Required Plugin Functions (Universal Core)
 # ------------------------------------------------------------------------------
 # NOTE: See doc/plugin-standards.md for:
 #       - Complete function specifications
@@ -71,13 +71,43 @@ plugin_validate_home() {
 # Args....: $1 - Original ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: Adjusted ORACLE_HOME path
-# Notes...: Example: DataSafe appends /oracle_cman_home
-#           Most products return the path unchanged
+# Notes...: Example: DataSafe appends /oracle_cman_home; align ORACLE_HOME with ORACLE_BASE_HOME if needed
 # ------------------------------------------------------------------------------
 plugin_adjust_environment() {
     local home_path="$1"
     echo "${home_path}"
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base (ORACLE_BASE_HOME-aware)
+# Args....: $1 - ORACLE_HOME or ORACLE_BASE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: Use when ORACLE_HOME differs from installation base
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    oradba_log ERROR "plugin_build_base_path not implemented in ${plugin_name}"
+    echo "${home_path}"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for the product/instance
+# Args....: $1 - ORACLE_HOME
+#           $2 - Instance/domain identifier (optional)
+# Returns.: 0 on success, 1 if not applicable, 2 if unavailable
+# Output..: Key=value pairs (one per line)
+# Notes...: Should emit ORACLE_HOME, ORACLE_BASE_HOME (if set), PATH, LD_LIBRARY_PATH, and instance/domain IDs
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    local instance="${2:-}"
+    oradba_log ERROR "plugin_build_env not implemented in ${plugin_name}"
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -111,22 +141,8 @@ plugin_check_status() {
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     local home_path="$1"
-    echo "version=unknown"
+    echo "version="
     return 0
-}
-
-# ------------------------------------------------------------------------------
-# Function: plugin_should_show_listener
-# Purpose.: Determine if this product's tnslsnr should appear in listener section
-# Args....: $1 - Installation path
-# Returns.: 0 if should show, 1 if should not show
-# Notes...: Database listeners: return 0
-#           DataSafe connectors: return 1 (they use tnslsnr but aren't DB listeners)
-# ------------------------------------------------------------------------------
-plugin_should_show_listener() {
-    local home_path="$1"
-    # Default: don't show listener (override in product plugins)
-    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -137,17 +153,41 @@ plugin_should_show_listener() {
 # Output..: List of instances (one per line)
 # Format..: instance_name|status|additional_metadata
 # Notes...: Handles 1:many relationships (RAC, WebLogic, OUD)
-#           Example: PROD1|running|node1
 # ------------------------------------------------------------------------------
 plugin_discover_instances() {
     local home_path="$1"
-    # Default: single instance with same name as home
-    # Override in products with multiple instances (RAC, WebLogic, OUD)
+    # Default: no instances
     return 0
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate instances/domains within this ORACLE_HOME
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: Mandatory for multi-instance products (database, middleware, etc.)
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    oradba_log ERROR "plugin_get_instance_list not implemented in ${plugin_name}"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_supports_aliases
+# Purpose.: Whether this product supports SID-like aliases
+# Args....: None
+# Returns.: 0 if supports aliases, 1 if not
+# Output..: None
+# Notes...: Database products: return 0; most others: return 1
+# ------------------------------------------------------------------------------
+plugin_supports_aliases() {
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for this product
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
@@ -155,11 +195,11 @@ plugin_discover_instances() {
 # Notes...: Returns the directories to add to PATH for this product
 #           Example (RDBMS): /u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch
 #           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
-#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/bin
+#           Example (DATASAFE): adjusted oracle_cman_home/bin
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local home_path="$1"
-    oradba_log ERROR "plugin_build_path not implemented in ${plugin_name}"
+    oradba_log ERROR "plugin_build_bin_path not implemented in ${plugin_name}"
     echo "${home_path}/bin"
     return 1
 }
@@ -171,9 +211,6 @@ plugin_build_path() {
 # Returns.: 0 on success
 # Output..: Colon-separated library path components
 # Notes...: Returns the directories to add to LD_LIBRARY_PATH (or equivalent)
-#           Example (RDBMS): /u01/app/oracle/product/19/lib
-#           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
-#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/lib
 # ------------------------------------------------------------------------------
 plugin_build_lib_path() {
     local home_path="$1"
@@ -206,7 +243,7 @@ plugin_get_config_section() {
 # Notes...: Used by oradba_check_oracle_binaries() to validate installation
 #           Example (RDBMS): "sqlplus tnsping lsnrctl"
 #           Example (DATASAFE): "cmctl"
-#           Example (CLIENT): "sqlplus tnsping"2
+#           Example (CLIENT): "sqlplus tnsping"
 # ------------------------------------------------------------------------------
 plugin_get_required_binaries() {
     oradba_log ERROR "plugin_get_required_binaries not implemented in ${plugin_name}"
@@ -217,6 +254,35 @@ plugin_get_required_binaries() {
 # ------------------------------------------------------------------------------
 # Optional Plugin Functions
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Function: plugin_should_show_listener
+# Purpose.: Determine if this product's tnslsnr should appear in listener section
+# Args....: $1 - Installation path
+# Returns.: 0 if should show, 1 if should not show
+# Notes...: Database listeners: return 0
+#           DataSafe connectors: return 1 (they use tnslsnr but aren't DB listeners)
+# ------------------------------------------------------------------------------
+plugin_should_show_listener() {
+    local home_path="$1"
+    # Default: don't show listener (override in product plugins)
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Report listener status for this ORACLE_HOME
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Listener lifecycle is distinct from instance lifecycle; category-specific
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    local home_path="$1"
+    oradba_log ERROR "plugin_check_listener_status not implemented in ${plugin_name}"
+    echo "unavailable"
+    return 2
+}
 
 # ------------------------------------------------------------------------------
 # Function: plugin_get_display_name

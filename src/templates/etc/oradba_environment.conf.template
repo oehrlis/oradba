@@ -119,6 +119,39 @@ alias srvctl='srvctl'
 alias crs='crsctl stat res -t'
 alias asm='asmcmd'
 
+# ==============================================================================
+# Section: [MIDDLEWARE]
+# Applied to middleware products (e.g., WebLogic, OUD when domain-based)
+# ==============================================================================
+
+[MIDDLEWARE]
+
+# Domain/instance specific overrides can go here
+# export DOMAIN_HOME="${ORACLE_HOME}/user_projects/domains/base_domain"
+# export PATH="${ORACLE_HOME}/bin:${PATH}"
+
+# ==============================================================================
+# Section: [DATASAFE]
+# Applied to Data Safe on-premises connector
+# ==============================================================================
+
+[DATASAFE]
+
+# Data Safe specific settings
+# export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+# export PATH="${ORACLE_HOME}/oracle_cman_home/bin:${PATH}"
+
+# ==============================================================================
+# Section: [JAVA]
+# Applied to Java-only installations
+# ==============================================================================
+
+[JAVA]
+
+# Java-specific overrides
+# export JAVA_HOME="${ORACLE_HOME}"
+# export PATH="${JAVA_HOME}/bin:${PATH}"
+
 # Navigation aliases
 alias grid='cd ${GRID_HOME}'
 alias gridtrace='cd ${GRID_HOME}/log/${HOSTNAME}'
