@@ -85,8 +85,8 @@ teardown() {
     chmod +x "${TEST_DIR}/java17/bin/java"
     
     run plugin_check_status "${TEST_DIR}/java17"
-    [[ "$output" == "available" ]]
-    [[ $status -eq 0 ]]
+    [ -z "$output" ]
+    [ $status -eq 0 ]
 }
 
 # Test plugin_check_status with missing Java
@@ -94,8 +94,8 @@ teardown() {
     mkdir -p "${TEST_DIR}/java17/bin"
     
     run plugin_check_status "${TEST_DIR}/java17"
-    [[ "$output" == "unavailable" ]]
-    [[ $status -eq 1 ]]
+    [ -z "$output" ]
+    [ $status -eq 2 ]
 }
 
 # Test plugin_should_show_listener
