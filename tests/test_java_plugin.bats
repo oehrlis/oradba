@@ -117,20 +117,20 @@ teardown() {
     [[ $status -eq 1 ]]
 }
 
-# Test plugin_build_path
-@test "plugin_build_path returns bin directory" {
+# Test plugin_build_bin_path
+@test "plugin_build_bin_path returns bin directory" {
     mkdir -p "${TEST_DIR}/java17/bin"
     
-    run plugin_build_path "${TEST_DIR}/java17"
+    run plugin_build_bin_path "${TEST_DIR}/java17"
     [[ "$output" == "${TEST_DIR}/java17/bin" ]]
     [[ $status -eq 0 ]]
 }
 
-# Test plugin_build_path with no bin directory
-@test "plugin_build_path returns empty for missing bin" {
+# Test plugin_build_bin_path with no bin directory
+@test "plugin_build_bin_path returns empty for missing bin" {
     mkdir -p "${TEST_DIR}/java17"
     
-    run plugin_build_path "${TEST_DIR}/java17"
+    run plugin_build_bin_path "${TEST_DIR}/java17"
     [[ -z "$output" ]]
     [[ $status -eq 0 ]]
 }
