@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Multi-instance support for middleware plugins**
+  - OUD plugin: Complete `plugin_get_instance_list()` implementation with pipe-delimited format
+  - WebLogic plugin: Domain discovery and instance list with proper exit codes
+  - Instance identifiers in environment builders (OUD_INSTANCE, WLS_DOMAIN)
+  - Filesystem-based discovery (oudBase for OUD, user_projects/domains for WebLogic)
+  - Comprehensive test coverage (26 OUD tests, 24 WebLogic tests)
+
 ### Changed
 
 ### Fixed
