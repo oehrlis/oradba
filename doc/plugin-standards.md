@@ -6,6 +6,18 @@
 
 ## Recent Changes
 
+### January 2026 - Phase 2.4 Completion (Issue #141)
+
+All 9 plugins have been audited for comprehensive return value standardization:
+
+- ✅ All sentinel strings removed from all plugin functions
+- ✅ Stub plugins (weblogic, emagent, oms) fixed: `plugin_check_status()` now outputs "unavailable" with exit 2
+- ✅ All 9 plugins across 13+ core functions confirmed compliant with return value standards
+- ✅ Phase 2 (Return Value Standardization) complete and validated
+- ✅ No critical issues remain; codebase ready for Phase 3 (Subshell Isolation)
+
+See `.github/.scratch/phase-2-4-audit-report.md` for detailed audit findings.
+
 ### January 2026 - Phase 2.1 Refactoring (Issue #135)
 
 All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
