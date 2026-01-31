@@ -306,6 +306,22 @@ plugin_should_show_listener() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Check listener status for Data Safe (not applicable)
+# Args....: $1 - Base path (unused for DataSafe)
+# Returns.: 1 (not applicable - DataSafe uses cman, not DB listener)
+# Output..: None (empty stdout per plugin standards)
+# Notes...: DataSafe has Connection Manager (cman) but it's not a database
+#           listener. Listener checks are not applicable for this product.
+#           Per plugin-standards.md: Return 1 for N/A, no sentinel strings.
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    # DataSafe uses Connection Manager (cman), not a database listener
+    # Return 1 = Not Applicable (no output to stdout)
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_discover_instances
 # Purpose.: Discover Data Safe connector instances
 # Args....: $1 - Base path
@@ -471,7 +487,7 @@ plugin_get_required_binaries() {
 # Args....: $1 - Base path
 # Returns.: 0 on success
 # Output..: PATH and LD_LIBRARY_PATH (one per line)
-# Notes...: Helper function for environment setup (legacy, use plugin_build_path/lib_path)
+# Notes...: Legacy helper function - use plugin_build_bin_path/plugin_build_lib_path instead
 # ------------------------------------------------------------------------------
 plugin_get_adjusted_paths() {
     local base_path="$1"
