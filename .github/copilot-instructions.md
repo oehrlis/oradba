@@ -134,7 +134,7 @@ Each plugin implements the universal core functions defined in `src/lib/plugins/
 >
 > - Official plugin interface v1.0.0 specification
 > - Exit code standards and return value conventions  
-> - Function templates for all 11 required functions
+> - Function templates for all 13 universal core functions
 > - Subshell execution model and Oracle environment requirements
 > - Testing requirements and best practices
 
@@ -192,7 +192,7 @@ export plugin_description="Description" # Human-readable description
 
 1. ✅ Check exit codes match specification (0/1/2)
 2. ✅ Verify stdout contains only clean data (no error strings)
-3. ✅ Confirm all 11 required functions implemented
+3. ✅ Confirm all 13 universal core functions implemented
 4. ✅ Ensure Oracle environment assumptions are documented
 5. ✅ Add comprehensive tests for all plugin functions
 

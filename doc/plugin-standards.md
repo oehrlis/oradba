@@ -1049,7 +1049,7 @@ plugin_product_discover_subsystems() {
 
 **Benefits of Separation:**
 
-- ✅ Core plugin stays focused (11 functions, ~300-500 lines)
+- ✅ Core plugin stays focused (13 universal core functions, ~300-500 lines)
 - ✅ Optional features don't bloat core
 - ✅ Extensions can evolve independently
 - ✅ Clear separation of required vs. optional
