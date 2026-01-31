@@ -847,6 +847,8 @@ Test each function independently:
 @test "plugin_validate_home with missing directory" { }
 ```
 
+Add the return-value contract suite (`tests/test_plugin_return_values.bats`) to enforce exit codes and stdout hygiene for core and category-specific functions.
+
 ### Integration Tests
 
 Test plugin interaction with OraDBA core:

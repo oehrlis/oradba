@@ -1702,6 +1702,7 @@ All plugins MUST have tests covering:
    - Exit codes match standards (0/1/2)
    - No sentinel strings on stdout
    - Empty output + exit code correlation
+   - Exercised by `tests/test_plugin_return_values.bats`
 
 4. **Function signatures**
 
