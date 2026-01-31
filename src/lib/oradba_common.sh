@@ -552,9 +552,7 @@ get_oracle_version() {
         fi
         
         local version_code
-        version_code=$(detect_oracle_version "${ORACLE_HOME}" "${product_type}")
-        
-        if [[ -n "${version_code}" && "${version_code}" != "Unknown" && "${version_code}" != "ERR" ]]; then
+        if version_code=$(detect_oracle_version "${ORACLE_HOME}" "${product_type}"); then
             # Convert XXYZ format back to X.Y.Z.W format for display
             # Example: 2326 -> 23.26.0.0
             local major="${version_code:0:2}"
@@ -1451,9 +1449,9 @@ detect_product_type() {
 # Purpose.: Detect Oracle version from ORACLE_HOME path
 # Args....: $1 - ORACLE_HOME path
 #           $2 - Product type (optional, will detect if not provided)
-# Returns.: 0 on success, 1 on error
+# Returns.: 0 on success, 1 on error (no version detected)
 # Output..: Oracle version in format XXYZ (e.g., 1920 for 19.2.0, 2301 for 23.1)
-#           or "Unknown" or "ERR" (for products without version info)
+#           No output on error (follows exit code contract)
 # Notes...: Delegates to product plugin if available, otherwise uses fallback methods
 #           Plugin detection via plugin_get_version() (returns X.Y.Z.W format)
 #           Fallback methods: sqlplus, OPatch, inventory XML, path parsing
@@ -1463,8 +1461,8 @@ detect_oracle_version() {
     local product_type="${2:-}"
     local version=""
 
-    [[ -z "${oracle_home}" ]] && echo "Unknown" && return 1
-    [[ ! -d "${oracle_home}" ]] && echo "Unknown" && return 1
+    [[ -z "${oracle_home}" ]] && return 1
+    [[ ! -d "${oracle_home}" ]] && return 1
 
     # Auto-detect product type if not provided
     if [[ -z "${product_type}" ]]; then
@@ -1560,7 +1558,7 @@ detect_oracle_version() {
         return 0
     fi
 
-    echo "Unknown"
+    # No version detected - return error without output
     return 1
 }
 
