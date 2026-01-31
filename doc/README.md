@@ -54,7 +54,7 @@ New to OraDBA development? Start here:
 
 3. **[api.md](api.md)** - Learn the API
    - Registry API functions (get_all, get_by_name, get_by_type, get_by_home, get_status, validate_entry)
-   - Plugin Interface (11 required functions per plugin)
+   - Plugin Interface (13 universal core functions per plugin)
    - Core utility functions
    - Database operation helpers
 
@@ -65,7 +65,7 @@ New to OraDBA development? Start here:
 **[development.md](development.md)** - Complete development guide
 
 - **Architecture**: Registry API, Plugin System (6 plugins), Environment Libraries
-- **Plugin Development**: 11-function interface, detection, validation, metadata extraction
+- **Plugin Development**: 13-function interface, detection, validation, metadata extraction
 - **Project Structure**: All 6 plugins (database, datasafe, client, iclient, oud, java)
 - **Testing**: 108+ plugin tests, 900+ core tests, 68 Docker integration tests
 - **Smart Test Selection**: ~1-3 min during development, ~8-10 min full suite
@@ -129,15 +129,20 @@ make ci                # Complete CI pipeline (~10-15 min)
   - `oradba_registry_get_by_home` - Get by ORACLE_HOME path
   - `oradba_registry_get_status` - Check service status
   - `oradba_registry_validate_entry` - Validate entry
-- **Plugin Interface** (11 required functions)
+- **Plugin Interface** (13 universal core functions)
   - `plugin_detect_installation` - Auto-discover installations
   - `plugin_validate_home` - Validate ORACLE_HOME
-  - `plugin_adjust_environment` - Adjust PATH/environment
-  - `plugin_check_status` - Check service status
+  - `plugin_adjust_environment` - Adjust ORACLE_HOME for product layout
+  - `plugin_build_base_path` - Resolve ORACLE_BASE_HOME
+  - `plugin_build_env` - Build environment variables
+  - `plugin_check_status` - Check instance/service status
   - `plugin_get_metadata` - Extract version/edition
-  - `plugin_should_show_listener` - Show listener status?
-  - `plugin_discover_instances` - Find instances
+  - `plugin_discover_instances` - Discover instances/domains
+  - `plugin_get_instance_list` - Enumerate instances/domains
   - `plugin_supports_aliases` - Generate aliases?
+  - `plugin_build_bin_path` - Get PATH components
+  - `plugin_build_lib_path` - Get LD_LIBRARY_PATH components
+  - `plugin_get_config_section` - Get config section name
 - **Core Utilities**: Logging, PATH management, database operations
 - **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
 
