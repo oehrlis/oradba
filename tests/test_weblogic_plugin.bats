@@ -310,7 +310,7 @@ teardown() {
     done
 }
 
-@test "weblogic plugin_get_version returns exit 1 (N/A for stub)" {
+@test "weblogic plugin_get_version returns exit 1 when not implemented" {
     local wls_home="${TEST_DIR}/test_homes/wls_12c"
     
     source "${TEST_DIR}/lib/plugins/weblogic_plugin.sh"
