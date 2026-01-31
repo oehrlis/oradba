@@ -360,7 +360,7 @@ Get LD_LIBRARY_PATH components for database installations
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for Oracle Instant Client
 
@@ -379,7 +379,7 @@ Get PATH components for Oracle Instant Client
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for WebLogic
 
@@ -395,7 +395,7 @@ Get PATH components for WebLogic
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for this product
 
@@ -417,7 +417,7 @@ Get PATH components for this product
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for Data Safe connector
 
@@ -436,7 +436,7 @@ Get PATH components for Data Safe connector
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for Java
 
@@ -452,7 +452,7 @@ Get PATH components for Java
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for EM Agent
 
@@ -468,7 +468,7 @@ Get PATH components for EM Agent
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for Oracle Unified Directory
 
@@ -487,7 +487,7 @@ Get PATH components for Oracle Unified Directory
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for OMS
 
@@ -503,7 +503,7 @@ Get PATH components for OMS
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for Oracle Full Client
 
@@ -522,7 +522,7 @@ Get PATH components for Oracle Full Client
 
 ---
 
-### `plugin_build_path` {: #plugin-build-path }
+### `plugin_build_bin_path` {: #plugin-build-bin-path }
 
 Get PATH components for database installations
 
@@ -1029,7 +1029,7 @@ Get adjusted PATH and LD_LIBRARY_PATH for Data Safe
 **Output:** PATH and LD_LIBRARY_PATH (one per line)
 
 !!! info "Notes"
-    Helper function for environment setup (legacy, use plugin_build_path/lib_path)
+    Helper function for environment setup (legacy, use plugin_build_bin_path/plugin_build_lib_path)
 
 ---
 

@@ -56,7 +56,7 @@ Add Oracle binaries to PATH using plugin system
 **Returns:** 0 on success
 
 !!! info "Notes"
-    Uses plugin_build_path() from product-specific plugins
+    Uses plugin_build_bin_path() from product-specific plugins
     Falls back to basic bin directory for unknown products
 
 ---
