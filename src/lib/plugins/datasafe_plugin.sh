@@ -471,7 +471,7 @@ plugin_get_required_binaries() {
 # Args....: $1 - Base path
 # Returns.: 0 on success
 # Output..: PATH and LD_LIBRARY_PATH (one per line)
-# Notes...: Helper function for environment setup (legacy, use plugin_build_path/lib_path)
+# Notes...: Helper function for environment setup (legacy, use plugin_build_bin_path/plugin_build_lib_path)
 # ------------------------------------------------------------------------------
 plugin_get_adjusted_paths() {
     local base_path="$1"
