@@ -10,7 +10,9 @@
 setup() {
     export TEST_ROOT="${BATS_TEST_TMPDIR}/plugin_rv_real_$$"
     mkdir -p "${TEST_ROOT}"
-    export ORADBA_BASE="$(pwd)/src"  # ensure plugins can source helper paths if they need ORADBA_BASE
+    local cwd
+    cwd="$(pwd)"
+    export ORADBA_BASE="${cwd}/src"  # ensure plugins can source helper paths if they need ORADBA_BASE
 }
 
 teardown() {
