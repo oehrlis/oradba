@@ -176,6 +176,58 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for Java
+# Args....: $1 - Input JAVA_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: For Java, base is same as JAVA_HOME
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for Java
+# Args....: $1 - JAVA_HOME
+#           $2 - Not used for Java
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds environment for Java
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
+    echo "JAVA_HOME=${home_path}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate Java instances
+# Args....: $1 - JAVA_HOME path
+# Returns.: 0 on success
+# Output..: Empty (Java doesn't have instances)
+# Notes...: Java installations don't have instances
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    # Java doesn't have instances
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: Java doesn't support instance aliases
 # Returns.: 1 (no aliases)
@@ -185,13 +237,13 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for Java
 # Args....: $1 - JAVA_HOME path
 # Returns.: 0 on success
 # Output..: bin directory path
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local home_path="$1"
     
     if [[ -d "${home_path}/bin" ]]; then

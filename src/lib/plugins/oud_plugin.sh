@@ -247,6 +247,61 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for OUD
+# Args....: $1 - Input ORACLE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: For OUD, base is same as ORACLE_HOME
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for Oracle Unified Directory
+# Args....: $1 - ORACLE_HOME
+#           $2 - OUD instance name (optional)
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds environment for OUD instance
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    local instance="${2:-}"
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
+    echo "ORACLE_HOME=${home_path}"
+    [[ -n "${instance}" ]] && echo "OUD_INSTANCE=${instance}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate all OUD instances for this installation
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: OUD can have multiple instances per installation
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    # TODO: Implement OUD instance discovery
+    # OUD instances are typically in $ORACLE_HOME/instances or similar
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: OUD instances can have aliases
 # Returns.: 0 (supports aliases)
@@ -269,14 +324,14 @@ plugin_get_display_name() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for Oracle Unified Directory
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: Colon-separated PATH components
 # Notes...: OUD has bin directory with management tools
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local oracle_home="$1"
     
     if [[ -d "${oracle_home}/bin" ]]; then
