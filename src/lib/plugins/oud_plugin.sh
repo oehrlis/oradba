@@ -293,11 +293,38 @@ plugin_build_env() {
 # Returns.: 0 on success
 # Output..: instance_name|status|additional_metadata (one per line)
 # Notes...: OUD can have multiple instances per installation
+#           Instances are discovered from $ORACLE_HOME/oudBase directory
+#           Status is determined by checking for running OUD processes
 # ------------------------------------------------------------------------------
 plugin_get_instance_list() {
     local home_path="$1"
-    # TODO: Implement OUD instance discovery
-    # OUD instances are typically in $ORACLE_HOME/instances or similar
+    
+    # Check for oudBase directory with instances
+    if [[ ! -d "${home_path}/oudBase" ]]; then
+        # No instances found - valid for fresh installations
+        return 0
+    fi
+    
+    # Enumerate instance directories in oudBase
+    while IFS= read -r -d '' instance_dir; do
+        local instance_name
+        instance_name=$(basename "$instance_dir")
+        
+        # Check instance status
+        local status
+        if pgrep -f "org.opends.server.core.DirectoryServer.*${instance_name}" >/dev/null 2>&1; then
+            status="running"
+        else
+            status="stopped"
+        fi
+        
+        # Build metadata
+        local metadata="path=${instance_dir}"
+        
+        # Output in required format: instance_name|status|additional_metadata
+        echo "${instance_name}|${status}|${metadata}"
+    done < <(find "${home_path}/oudBase" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+    
     return 0
 }
 

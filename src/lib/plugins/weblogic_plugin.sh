@@ -96,12 +96,29 @@ plugin_should_show_listener() {
 
 # ------------------------------------------------------------------------------
 # Function: plugin_discover_instances
-# Purpose.: Discover instances
+# Purpose.: Discover WebLogic domains for this installation
 # Args....: $1 - Path to WebLogic home
 # Returns.: 0 on success
-# Output..: Empty (stub)
+# Output..: List of domain names (one per line)
+# Notes...: Stub implementation - searches common domain locations
+#           Full implementation would parse domain config files
 # ------------------------------------------------------------------------------
 plugin_discover_instances() {
+    local home_path="$1"
+    
+    # Check common domain location: user_projects/domains
+    local domains_dir="${home_path}/../user_projects/domains"
+    if [[ -d "${domains_dir}" ]]; then
+        while IFS= read -r -d '' domain_dir; do
+            local domain_name
+            domain_name=$(basename "$domain_dir")
+            # Only list if it looks like a domain (has config directory)
+            if [[ -d "${domain_dir}/config" ]]; then
+                echo "$domain_name"
+            fi
+        done < <(find "${domains_dir}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+    fi
+    
     return 0
 }
 
@@ -122,31 +139,87 @@ plugin_build_base_path() {
 # ------------------------------------------------------------------------------
 # Function: plugin_build_env
 # Purpose.: Build environment variables for WebLogic
-# Args....: $1 - Installation path
+# Args....: $1 - Installation path (ORACLE_HOME)
 #           $2 - Domain name (optional)
 # Returns.: 0 on success
-# Output..: Key=value pairs
-# Notes...: Stub implementation
+# Output..: Key=value pairs (one per line)
+# Notes...: Stub implementation - sets ORACLE_HOME and WLS_DOMAIN
+#           Full implementation would include CLASSPATH, JAVA_HOME, etc.
 # ------------------------------------------------------------------------------
 plugin_build_env() {
     local home_path="$1"
-    local instance="${2:-}"
+    local domain_name="${2:-}"
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
     echo "ORACLE_HOME=${home_path}"
-    [[ -n "${instance}" ]] && echo "WLS_DOMAIN=${instance}"
+    
+    # Set domain-specific variables if domain provided
+    if [[ -n "${domain_name}" ]]; then
+        echo "WLS_DOMAIN=${domain_name}"
+        # Domain location - check common paths
+        local domains_dir="${home_path}/../user_projects/domains"
+        if [[ -d "${domains_dir}/${domain_name}" ]]; then
+            echo "DOMAIN_HOME=${domains_dir}/${domain_name}"
+        fi
+    fi
+    
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    
     return 0
 }
 
 # ------------------------------------------------------------------------------
 # Function: plugin_get_instance_list
-# Purpose.: Enumerate WebLogic domains
-# Args....: $1 - Installation path
+# Purpose.: Enumerate WebLogic domains for this installation
+# Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
-# Output..: Empty (stub)
-# Notes...: Stub implementation - will be implemented in Phase 3
+# Output..: domain_name|status|additional_metadata (one per line)
+# Notes...: Stub implementation - searches common domain locations
+#           Status is always "stopped" as we don't check actual process status yet
+#           Full implementation would check AdminServer and managed servers
 # ------------------------------------------------------------------------------
 plugin_get_instance_list() {
     local home_path="$1"
-    # Stub: WebLogic domain enumeration not implemented yet
+    
+    # Check common domain location: user_projects/domains
+    local domains_dir="${home_path}/../user_projects/domains"
+    if [[ ! -d "${domains_dir}" ]]; then
+        # No domains directory found - valid for fresh installations
+        return 0
+    fi
+    
+    # Enumerate domain directories
+    while IFS= read -r -d '' domain_dir; do
+        local domain_name
+        domain_name=$(basename "$domain_dir")
+        
+        # Verify it's a valid domain (has config directory)
+        if [[ ! -d "${domain_dir}/config" ]]; then
+            continue
+        fi
+        
+        # Status checking is stub - always return stopped for now
+        # Full implementation would check for AdminServer and managed server processes
+        local status="stopped"
+        
+        # Build metadata
+        local metadata="path=${domain_dir}"
+        
+        # Check if config.xml exists for additional validation
+        if [[ -f "${domain_dir}/config/config.xml" ]]; then
+            metadata="${metadata},has_config=true"
+        fi
+        
+        # Output in required format: domain_name|status|additional_metadata
+        echo "${domain_name}|${status}|${metadata}"
+    done < <(find "${domains_dir}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+    
     return 0
 }
 
