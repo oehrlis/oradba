@@ -201,6 +201,86 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base (ORACLE_BASE_HOME-aware)
+# Args....: $1 - Input ORACLE_HOME or ORACLE_BASE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: For database, prefer ORACLE_BASE_HOME if set, otherwise use ORACLE_HOME
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    # If ORACLE_BASE_HOME is provided via env, prefer it
+    if [[ -n "${ORACLE_BASE_HOME:-}" ]]; then
+        echo "${ORACLE_BASE_HOME}"
+    else
+        echo "${home_path}"
+    fi
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for database instance
+# Args....: $1 - ORACLE_HOME
+#           $2 - ORACLE_SID (optional)
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds complete environment for database instance
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    local instance="${2:-}"
+    
+    local base_path
+    base_path=$(plugin_build_base_path "${home_path}")
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
+    echo "ORACLE_BASE_HOME=${base_path}"
+    echo "ORACLE_HOME=${home_path}"
+    [[ -n "${instance}" ]] && echo "ORACLE_SID=${instance}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate all database instances for this ORACLE_HOME
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: Reads oratab for instances using this ORACLE_HOME
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    local oratab_file="${ORATAB_FILE:-/etc/oratab}"
+    
+    [[ ! -f "${oratab_file}" ]] && return 0
+    
+    # Find all SIDs using this ORACLE_HOME
+    while IFS=: read -r sid oh autostart; do
+        # Skip comments and empty lines
+        [[ "${sid}" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${sid}" ]] && continue
+        
+        # Match ORACLE_HOME
+        if [[ "${oh}" == "${home_path}" ]]; then
+            # Get status (will require sourcing environment, simplified here)
+            local status=""
+            echo "${sid}|${status}|autostart=${autostart}"
+        fi
+    done < "${oratab_file}"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: Databases support SID aliases
 # Returns.: 0 (supports aliases)
@@ -210,7 +290,7 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for database installations
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
@@ -218,7 +298,7 @@ plugin_supports_aliases() {
 # Notes...: Returns bin and OPatch directories
 #           If GRID_HOME exists and differs from ORACLE_HOME, includes Grid bin
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local oracle_home="$1"
     local new_path=""
     
