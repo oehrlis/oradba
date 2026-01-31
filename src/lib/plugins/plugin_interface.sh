@@ -27,9 +27,24 @@ plugin_version=""           # Plugin version (semantic versioning)
 plugin_description=""       # Human-readable description
 
 # ------------------------------------------------------------------------------
-# Required Plugin Functions (Universal Core)
+# Universal Core Functions (REQUIRED)
 # ------------------------------------------------------------------------------
-# NOTE: See doc/plugin-standards.md for:
+# NOTE: All plugins must implement these 13 universal core functions:
+#       1.  plugin_detect_installation  - Auto-discover installations
+#       2.  plugin_validate_home        - Validate installation path
+#       3.  plugin_adjust_environment   - Adjust ORACLE_HOME if needed
+#       4.  plugin_build_base_path      - Resolve ORACLE_BASE_HOME vs ORACLE_HOME
+#       5.  plugin_build_env            - Build environment variables
+#       6.  plugin_check_status         - Check service/instance status
+#       7.  plugin_get_metadata         - Get installation metadata
+#       8.  plugin_discover_instances   - Discover instances/domains
+#       9.  plugin_get_instance_list    - Enumerate instances/domains
+#       10. plugin_supports_aliases     - Support SID-like aliases?
+#       11. plugin_build_bin_path       - Get PATH components
+#       12. plugin_build_lib_path       - Get LD_LIBRARY_PATH components
+#       13. plugin_get_config_section   - Get config section name
+#
+#       See doc/plugin-standards.md for:
 #       - Complete function specifications
 #       - Return value standards (exit codes + stdout)
 #       - Extension patterns for optional functions
@@ -82,16 +97,18 @@ plugin_adjust_environment() {
 # ------------------------------------------------------------------------------
 # Function: plugin_build_base_path
 # Purpose.: Resolve actual installation base (ORACLE_BASE_HOME-aware)
-# Args....: $1 - ORACLE_HOME or ORACLE_BASE_HOME
+# Args....: $1 - Input ORACLE_HOME or ORACLE_BASE_HOME
 # Returns.: 0 on success
 # Output..: Normalized base path
 # Notes...: Use when ORACLE_HOME differs from installation base
+#           See plugin-standards.md for detailed specification
 # ------------------------------------------------------------------------------
 plugin_build_base_path() {
     local home_path="$1"
-    oradba_log ERROR "plugin_build_base_path not implemented in ${plugin_name}"
+    # Default: return input path as base
+    # Products with ORACLE_BASE_HOME should override this
     echo "${home_path}"
-    return 1
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -101,13 +118,15 @@ plugin_build_base_path() {
 #           $2 - Instance/domain identifier (optional)
 # Returns.: 0 on success, 1 if not applicable, 2 if unavailable
 # Output..: Key=value pairs (one per line)
-# Notes...: Should emit ORACLE_HOME, ORACLE_BASE_HOME (if set), PATH, LD_LIBRARY_PATH, and instance/domain IDs
+# Notes...: Builds complete environment: ORACLE_HOME, PATH, LD_LIBRARY_PATH, etc.
+#           See plugin-standards.md for detailed specification
 # ------------------------------------------------------------------------------
 plugin_build_env() {
     local home_path="$1"
     local instance="${2:-}"
+    
     oradba_log ERROR "plugin_build_env not implemented in ${plugin_name}"
-    return 1
+    return 2
 }
 
 # ------------------------------------------------------------------------------
@@ -162,25 +181,25 @@ plugin_discover_instances() {
 
 # ------------------------------------------------------------------------------
 # Function: plugin_get_instance_list
-# Purpose.: Enumerate instances/domains within this ORACLE_HOME
+# Purpose.: Enumerate all instances/domains for this ORACLE_HOME
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: instance_name|status|additional_metadata (one per line)
 # Notes...: Mandatory for multi-instance products (database, middleware, etc.)
+#           See plugin-standards.md for detailed specification
 # ------------------------------------------------------------------------------
 plugin_get_instance_list() {
     local home_path="$1"
-    oradba_log ERROR "plugin_get_instance_list not implemented in ${plugin_name}"
-    return 1
+    # Default: return empty list (no instances)
+    # Override for multi-instance products (database, RAC, WebLogic, OUD)
+    return 0
 }
 
 # ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: Whether this product supports SID-like aliases
-# Args....: None
 # Returns.: 0 if supports aliases, 1 if not
-# Output..: None
-# Notes...: Database products: return 0; most others: return 1
+# Notes...: Databases support aliases, most other products don't
 # ------------------------------------------------------------------------------
 plugin_supports_aliases() {
     return 1
@@ -195,7 +214,8 @@ plugin_supports_aliases() {
 # Notes...: Returns the directories to add to PATH for this product
 #           Example (RDBMS): /u01/app/oracle/product/19/bin:/u01/app/oracle/product/19/OPatch
 #           Example (ICLIENT): /u01/app/oracle/instantclient_19_21
-#           Example (DATASAFE): adjusted oracle_cman_home/bin
+#           Example (DATASAFE): /u01/app/oracle/ds-name/oracle_cman_home/bin
+#           See plugin-standards.md for detailed specification
 # ------------------------------------------------------------------------------
 plugin_build_bin_path() {
     local home_path="$1"
@@ -252,7 +272,39 @@ plugin_get_required_binaries() {
 }
 
 # ------------------------------------------------------------------------------
+# Category-Specific Mandatory Functions
+# ------------------------------------------------------------------------------
+# NOTE: These functions are mandatory for specific product categories:
+#       - plugin_check_listener_status: Database and listener-based products
+#       See doc/plugin-standards.md for category requirements
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Check listener status for products with listener components
+# Args....: $1 - Installation path (ORACLE_HOME)
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable
+# Output..: Status string (running|stopped|unavailable)
+# Notes...: Category-specific: mandatory for database and listener-based products
+#           Separate from plugin_check_status (instance status)
+#           Listener lifecycle is managed per Oracle Home, not per instance
+#           See plugin-standards.md for detailed specification
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    local home_path="$1"
+    # Default: not applicable for non-listener products
+    echo "unavailable"
+    return 2
+}
+
+# ------------------------------------------------------------------------------
 # Optional Plugin Functions
+# ------------------------------------------------------------------------------
+# NOTE: Optional functions have default implementations but can be overridden:
+#       - plugin_get_display_name: Custom display name for instance
+#       - plugin_get_version: Product version detection (has default implementation)
+#       - plugin_get_required_binaries: Required binaries list (optional)
+#       See doc/plugin-standards.md for extension patterns
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
@@ -296,16 +348,6 @@ plugin_get_display_name() {
     local name="$1"
     echo "${name}"
     return 0
-}
-
-# ------------------------------------------------------------------------------
-# Function: plugin_supports_aliases
-# Purpose.: Whether this product supports SID-like aliases
-# Returns.: 0 if supports aliases, 1 if not
-# Notes...: Databases support aliases, most other products don't
-# ------------------------------------------------------------------------------
-plugin_supports_aliases() {
-    return 1
 }
 
 # ------------------------------------------------------------------------------

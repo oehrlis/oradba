@@ -106,6 +106,49 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for EM Agent
+# Args....: $1 - Input path
+# Returns.: 0 on success
+# Output..: Base path
+# Notes...: Stub implementation
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for EM Agent
+# Args....: $1 - Installation path
+#           $2 - Instance (optional)
+# Returns.: 0 on success
+# Output..: Key=value pairs
+# Notes...: Stub implementation
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    echo "ORACLE_HOME=${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate EM Agent instances
+# Args....: $1 - Installation path
+# Returns.: 0 on success
+# Output..: Empty (stub)
+# Notes...: Stub implementation - will be implemented in Phase 3
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    # Stub: EM Agent instance enumeration not implemented yet
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: EM Agent doesn't support aliases
 # Returns.: 1 (no aliases)
@@ -115,13 +158,13 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for EM Agent
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: Empty (no binaries added to PATH)
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     return 0
 }
 

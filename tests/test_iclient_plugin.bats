@@ -202,6 +202,11 @@ teardown() {
         "plugin_should_show_listener"
         "plugin_discover_instances"
         "plugin_supports_aliases"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_config_section"
     )
     
     for func in "${required_functions[@]}"; do
@@ -209,6 +214,89 @@ teardown() {
         [ "$status" -eq 0 ]
     done
 }
+
+# ------------------------------------------------------------------------------
+# Builder Function Tests
+# ------------------------------------------------------------------------------
+
+@test "iclient plugin build_base_path returns home_path" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_base_path "${ic_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ic_home}" ]
+}
+
+@test "iclient plugin build_env returns all required env vars" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_env "${ic_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should contain ORACLE_HOME, PATH, LD_LIBRARY_PATH
+    echo "$output" | grep -q "ORACLE_HOME=${ic_home}"
+    echo "$output" | grep -q "PATH="
+    echo "$output" | grep -q "LD_LIBRARY_PATH="
+}
+
+@test "iclient plugin build_bin_path returns home root (no bin subdir)" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_bin_path "${ic_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ic_home}" ]
+}
+
+@test "iclient plugin build_lib_path prefers lib64" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}/lib64"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_lib_path "${ic_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ic_home}/lib64" ]
+}
+
+@test "iclient plugin build_lib_path returns lib when no lib64" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_lib_path "${ic_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ic_home}/lib" ]
+}
+
+@test "iclient plugin build_lib_path returns root when no lib subdirs" {
+    local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
+    mkdir -p "${ic_home}"
+    
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_build_lib_path "${ic_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ic_home}" ]
+}
+
+@test "iclient plugin get_config_section returns ICLIENT" {
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    
+    run plugin_get_config_section
+    [ "$status" -eq 0 ]
+    [ "$output" = "ICLIENT" ]
+}
+
 # ------------------------------------------------------------------------------
 # Version Detection Tests
 # ------------------------------------------------------------------------------

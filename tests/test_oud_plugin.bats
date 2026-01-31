@@ -197,10 +197,266 @@ teardown() {
         "plugin_should_show_listener"
         "plugin_discover_instances"
         "plugin_supports_aliases"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_instance_list"
+        "plugin_get_config_section"
     )
     
     for func in "${required_functions[@]}"; do
         run type "${func}"
         [ "$status" -eq 0 ]
     done
+}
+
+# ==============================================================================
+# Multi-Instance Support Tests (plugin_get_instance_list)
+# ==============================================================================
+
+@test "oud plugin_get_instance_list returns pipe-delimited format" {
+    # Create mock OUD home with instances
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/oudBase/instance1"
+    mkdir -p "${oud_home}/oudBase/instance2"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify pipe-delimited format: instance_name|status|metadata
+    [[ "$output" == *"|"* ]]
+    [[ "$output" == *"instance1|"* ]]
+    [[ "$output" == *"instance2|"* ]]
+}
+
+@test "oud plugin_get_instance_list includes status field" {
+    # Create mock OUD home with instances
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/oudBase/test_instance"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should include status (running or stopped)
+    [[ "$output" == *"test_instance|stopped|"* ]] || [[ "$output" == *"test_instance|running|"* ]]
+}
+
+@test "oud plugin_get_instance_list includes metadata" {
+    # Create mock OUD home with instances
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/oudBase/test_instance"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should include metadata field (path=...)
+    [[ "$output" == *"path="* ]]
+}
+
+@test "oud plugin_get_instance_list returns empty for no instances" {
+    # Create mock OUD home without oudBase
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}"
+    touch "${oud_home}/setup"
+    chmod +x "${oud_home}/setup"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "" ]
+}
+
+# ==============================================================================
+# Environment Builder Tests
+# ==============================================================================
+
+@test "oud plugin_build_env includes OUD_INSTANCE when instance provided" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/bin"
+    mkdir -p "${oud_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_env "${oud_home}" "instance1"
+    [ "$status" -eq 0 ]
+    
+    # Should include OUD_INSTANCE variable
+    [[ "$output" == *"OUD_INSTANCE=instance1"* ]]
+}
+
+@test "oud plugin_build_env includes ORACLE_HOME" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/bin"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_env "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should include ORACLE_HOME
+    [[ "$output" == *"ORACLE_HOME=${oud_home}"* ]]
+}
+
+@test "oud plugin_build_env includes PATH" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/bin"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_env "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should include PATH
+    [[ "$output" == *"PATH="* ]]
+}
+
+@test "oud plugin_build_env includes LD_LIBRARY_PATH" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_env "${oud_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should include LD_LIBRARY_PATH
+    [[ "$output" == *"LD_LIBRARY_PATH="* ]]
+}
+
+# ==============================================================================
+# Builder Function Tests
+# ==============================================================================
+
+@test "oud plugin_build_bin_path returns bin directory" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/bin"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_bin_path "${oud_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"/bin"* ]]
+}
+
+@test "oud plugin_build_lib_path returns lib directory" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_lib_path "${oud_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"/lib"* ]]
+}
+
+@test "oud plugin_build_base_path returns home unchanged" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    run plugin_build_base_path "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oud_home}" ]
+}
+
+# ==============================================================================
+# Instance Base Directory Priority Tests
+# ==============================================================================
+
+@test "oud get_oud_instance_base uses OUD_INSTANCE_BASE when set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local custom_base="${TEST_DIR}/custom_instances"
+    mkdir -p "${custom_base}"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_INSTANCE_BASE
+    export OUD_INSTANCE_BASE="${custom_base}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${custom_base}" ]
+    
+    unset OUD_INSTANCE_BASE
+}
+
+@test "oud get_oud_instance_base uses OUD_DATA/instances when OUD_INSTANCE_BASE not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oud_data="${TEST_DIR}/oud_data"
+    mkdir -p "${oud_data}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_DATA
+    export OUD_DATA="${oud_data}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oud_data}/instances" ]
+    
+    unset OUD_DATA
+}
+
+@test "oud get_oud_instance_base uses ORACLE_DATA/instances when higher priority not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oracle_data="${TEST_DIR}/oracle_data"
+    mkdir -p "${oracle_data}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set ORACLE_DATA
+    export ORACLE_DATA="${oracle_data}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oracle_data}/instances" ]
+    
+    unset ORACLE_DATA
+}
+
+@test "oud get_oud_instance_base uses ORACLE_BASE/instances when higher priority not set" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local oracle_base="${TEST_DIR}/oracle_base"
+    mkdir -p "${oracle_base}/instances"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set ORACLE_BASE
+    export ORACLE_BASE="${oracle_base}"
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oracle_base}/instances" ]
+    
+    unset ORACLE_BASE
+}
+
+@test "oud get_oud_instance_base falls back to ORACLE_HOME/oudBase" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    mkdir -p "${oud_home}/oudBase"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Ensure no environment variables are set
+    unset OUD_INSTANCE_BASE OUD_DATA ORACLE_DATA ORACLE_BASE
+    
+    run get_oud_instance_base "${oud_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${oud_home}/oudBase" ]
+}
+
+@test "oud plugin_get_instance_list uses OUD_INSTANCE_BASE for discovery" {
+    local oud_home="${TEST_DIR}/test_homes/oud_12c"
+    local custom_base="${TEST_DIR}/custom_instances"
+    mkdir -p "${custom_base}/instance1"
+    mkdir -p "${custom_base}/instance2"
+    
+    source "${TEST_DIR}/lib/plugins/oud_plugin.sh"
+    
+    # Set OUD_INSTANCE_BASE
+    export OUD_INSTANCE_BASE="${custom_base}"
+    run plugin_get_instance_list "${oud_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"instance1"* ]]
+    [[ "$output" == *"instance2"* ]]
+    [[ "$output" == *"${custom_base}"* ]]
+    
+    unset OUD_INSTANCE_BASE
 }

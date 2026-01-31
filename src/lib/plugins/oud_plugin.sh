@@ -22,6 +22,56 @@ export plugin_version="1.0.0"
 export plugin_description="Oracle Unified Directory plugin"
 
 # ------------------------------------------------------------------------------
+# Function: get_oud_instance_base
+# Purpose.: Get OUD instance base directory following priority order
+# Args....: $1 - ORACLE_HOME path (optional, for fallback)
+# Returns.: 0 on success
+# Output..: Instance base directory path
+# Notes...: Priority order:
+#           1. $OUD_INSTANCE_BASE (if set and exists)
+#           2. $OUD_DATA/instances (if OUD_DATA set and directory exists)
+#           3. $ORACLE_DATA/instances (if ORACLE_DATA set and directory exists)
+#           4. $ORACLE_BASE/instances (if ORACLE_BASE set and directory exists)
+#           5. $ORACLE_HOME/oudBase (fallback)
+# ------------------------------------------------------------------------------
+get_oud_instance_base() {
+    local home_path="${1:-}"
+    
+    # Priority 1: OUD_INSTANCE_BASE
+    if [[ -n "${OUD_INSTANCE_BASE:-}" ]] && [[ -d "${OUD_INSTANCE_BASE}" ]]; then
+        echo "${OUD_INSTANCE_BASE}"
+        return 0
+    fi
+    
+    # Priority 2: OUD_DATA/instances
+    if [[ -n "${OUD_DATA:-}" ]] && [[ -d "${OUD_DATA}/instances" ]]; then
+        echo "${OUD_DATA}/instances"
+        return 0
+    fi
+    
+    # Priority 3: ORACLE_DATA/instances (same as OUD_DATA per comment)
+    if [[ -n "${ORACLE_DATA:-}" ]] && [[ -d "${ORACLE_DATA}/instances" ]]; then
+        echo "${ORACLE_DATA}/instances"
+        return 0
+    fi
+    
+    # Priority 4: ORACLE_BASE/instances
+    if [[ -n "${ORACLE_BASE:-}" ]] && [[ -d "${ORACLE_BASE}/instances" ]]; then
+        echo "${ORACLE_BASE}/instances"
+        return 0
+    fi
+    
+    # Fallback: ORACLE_HOME/oudBase
+    if [[ -n "${home_path}" ]] && [[ -d "${home_path}/oudBase" ]]; then
+        echo "${home_path}/oudBase"
+        return 0
+    fi
+    
+    # No instance base found
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_detect_installation
 # Purpose.: Auto-detect OUD installations
 # Returns.: 0 on success
@@ -184,10 +234,12 @@ plugin_get_version() {
 # Args....: $1 - Path to OUD home
 # Returns.: 0 on success
 # Output..: Key=value pairs
+# Notes...: Uses get_oud_instance_base() to count instances
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     local home_path="$1"
     local version
+    local instance_base
     
     # Get version using plugin_get_version
     if version=$(plugin_get_version "${home_path}"); then
@@ -198,12 +250,13 @@ plugin_get_metadata() {
     
     echo "type=oud"
     
-    # Check for configured instances
-    if [[ -d "${home_path}/oudBase" ]]; then
+    # Check for configured instances using instance base
+    instance_base=$(get_oud_instance_base "${home_path}")
+    if [[ $? -eq 0 ]] && [[ -d "${instance_base}" ]]; then
         local instance_count=0
         while IFS= read -r -d '' instance_dir; do
             ((instance_count++))
-        done < <(find "${home_path}/oudBase" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+        done < <(find "${instance_base}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
         echo "instances=${instance_count}"
     else
         echo "instances=0"
@@ -227,12 +280,16 @@ plugin_should_show_listener() {
 # Args....: $1 - Path to OUD home
 # Returns.: 0 on success
 # Output..: List of instance names
+# Notes...: Uses get_oud_instance_base() to determine instance location
 # ------------------------------------------------------------------------------
 plugin_discover_instances() {
     local home_path="$1"
+    local instance_base
     
-    # Check for oudBase directory with instances
-    if [[ ! -d "${home_path}/oudBase" ]]; then
+    # Get instance base directory using priority order
+    instance_base=$(get_oud_instance_base "${home_path}")
+    if [[ $? -ne 0 ]] || [[ ! -d "${instance_base}" ]]; then
+        # No instance base found
         return 0
     fi
     
@@ -241,7 +298,96 @@ plugin_discover_instances() {
         local instance_name
         instance_name=$(basename "$instance_dir")
         echo "$instance_name"
-    done < <(find "${home_path}/oudBase" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+    done < <(find "${instance_base}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for OUD
+# Args....: $1 - Input ORACLE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: For OUD, base is same as ORACLE_HOME
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for Oracle Unified Directory
+# Args....: $1 - ORACLE_HOME
+#           $2 - OUD instance name (optional)
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds environment for OUD instance
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    local instance="${2:-}"
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
+    echo "ORACLE_HOME=${home_path}"
+    [[ -n "${instance}" ]] && echo "OUD_INSTANCE=${instance}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate all OUD instances for this installation
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: OUD can have multiple instances per installation
+#           Instances discovered using get_oud_instance_base() priority order:
+#           1. $OUD_INSTANCE_BASE
+#           2. $OUD_DATA/instances
+#           3. $ORACLE_DATA/instances
+#           4. $ORACLE_BASE/instances
+#           5. $ORACLE_HOME/oudBase (fallback)
+#           Status is determined by checking for running OUD processes
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    local instance_base
+    
+    # Get instance base directory using priority order
+    instance_base=$(get_oud_instance_base "${home_path}")
+    if [[ $? -ne 0 ]] || [[ ! -d "${instance_base}" ]]; then
+        # No instance base found - valid for fresh installations
+        return 0
+    fi
+    
+    # Enumerate instance directories in instance base
+    while IFS= read -r -d '' instance_dir; do
+        local instance_name
+        instance_name=$(basename "$instance_dir")
+        
+        # Check instance status
+        local status
+        if pgrep -f "org.opends.server.core.DirectoryServer.*${instance_name}" >/dev/null 2>&1; then
+            status="running"
+        else
+            status="stopped"
+        fi
+        
+        # Build metadata
+        local metadata="path=${instance_dir}"
+        
+        # Output in required format: instance_name|status|additional_metadata
+        echo "${instance_name}|${status}|${metadata}"
+    done < <(find "${instance_base}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
     
     return 0
 }
@@ -269,14 +415,14 @@ plugin_get_display_name() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for Oracle Unified Directory
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: Colon-separated PATH components
 # Notes...: OUD has bin directory with management tools
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local oracle_home="$1"
     
     if [[ -d "${oracle_home}/bin" ]]; then

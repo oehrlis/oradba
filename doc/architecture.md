@@ -201,41 +201,57 @@ java:jdk17:/opt/oracle/product/jdk-17.0.17:17.0.0::4::Oracle Java 17
 5. **oud_plugin.sh** - Oracle Unified Directory
 6. **java_plugin.sh** - Oracle Java/JDK (v0.19.0+)
 
-**Plugin Interface** (11 required functions):
+**Plugin Interface** (13 universal core functions):
 
 ```bash
-# Auto-detect installations of this product type
+# 1. Auto-detect installations of this product type
 plugin_detect_installation()
 
-# Validate that a path is a valid installation
+# 2. Validate that a path is a valid installation
 plugin_validate_home "$oracle_home"
 
-# Adjust ORACLE_HOME if needed (e.g., DataSafe oracle_cman_home)
+# 3. Adjust ORACLE_HOME if needed (e.g., DataSafe oracle_cman_home)
 plugin_adjust_environment "$oracle_home"
 
-# Check if instance/service is running
+# 4. Resolve ORACLE_BASE_HOME vs ORACLE_HOME
+plugin_build_base_path "$oracle_home"
+
+# 5. Build environment variables for product/instance
+plugin_build_env "$oracle_home" "$instance_name"
+
+# 6. Check if instance/service is running
 plugin_check_status "$oracle_home" "$instance_name"
 
-# Get product metadata (version, edition, etc.)
+# 7. Get product metadata (version, edition, etc.)
 plugin_get_metadata "$oracle_home"
 
+# 8. Discover instances for this Oracle Home
+plugin_discover_instances "$oracle_home"
+
+# 9. Enumerate instances/domains (multi-instance products)
+plugin_get_instance_list "$oracle_home"
+
+# 10. Does this product support SID aliases?
+plugin_supports_aliases  # Returns 0 (yes) or 1 (no)
+
+# 11. Build PATH components for this product
+plugin_build_bin_path "$oracle_home"
+
+# 12. Build LD_LIBRARY_PATH components for this product
+plugin_build_lib_path "$oracle_home"
+
+# 13. Get configuration section name for this product
+plugin_get_config_section
+```
+
+**Category-Specific Functions** (mandatory when applicable):
+
+```bash
 # Should this product show listener status?
 plugin_should_show_listener  # Returns 0 (yes) or 1 (no)
 
-# Discover instances for this Oracle Home
-plugin_discover_instances "$oracle_home"
-
-# Does this product support SID aliases?
-plugin_supports_aliases  # Returns 0 (yes) or 1 (no)
-
-# Build PATH components for this product
-plugin_build_path "$oracle_home"
-
-# Build LD_LIBRARY_PATH components for this product
-plugin_build_lib_path "$oracle_home"
-
-# Get configuration section name for this product
-plugin_get_config_section
+# Check listener status per Oracle Home
+plugin_check_listener_status "$oracle_home"
 ```
 
 > **📖 Full Specification**: See [Plugin Standards](plugin-standards.md) and [Plugin Development Guide](plugin-development.md)
@@ -243,7 +259,7 @@ plugin_get_config_section
 **Plugin Architecture Benefits**:
 
 - **Encapsulation**: Product-specific logic in dedicated plugins
-- **Consistency**: All plugins implement same 11-function interface
+- **Consistency**: All plugins implement same 13-function interface (+ category-specific)
 - **Extensibility**: Easy to add new product types (e.g., Java plugin in v0.19.0)
 - **Testability**: Each plugin independently tested (108+ plugin tests total)
 - **Maintainability**: Changes to one product don't affect others

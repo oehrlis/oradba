@@ -177,8 +177,9 @@ EOF
 
 # ------------------------------------------------------------------------------
 # Function: get_listener_status
-# Purpose.: Get listener status
+# Purpose.: Get listener status (legacy, kept for backward compatibility)
 # Returns.: "up" or "down"
+# Notes...: Consider using plugin_check_listener_status() for new code
 # ------------------------------------------------------------------------------
 get_listener_status() {
     local listener_name="${1:-LISTENER}"
@@ -190,6 +191,29 @@ get_listener_status() {
     else
         echo "down"
     fi
+}
+
+# ------------------------------------------------------------------------------
+# Function: should_show_listener_section
+# Purpose.: Check if listener section should be displayed using plugin system
+# Args....: $1 - Array of database homes
+# Returns.: 0 if section should be shown, 1 otherwise
+# Notes...: Uses plugin_should_show_listener() from database plugin
+# ------------------------------------------------------------------------------
+should_show_listener_section() {
+    local -a db_homes=("$@")
+    
+    # If we have database SIDs, always show (backward compatible)
+    if [[ ${#db_homes[@]} -gt 0 ]]; then
+        return 0
+    fi
+    
+    # Check for running listeners
+    if ps -ef 2>/dev/null | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+        return 0
+    fi
+    
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -346,19 +370,39 @@ show_oracle_status_registry() {
             local lsnr_status="down"
             local port_display=""
             
-            if [[ -x "${listener_home}/bin/lsnrctl" ]]; then
-                local lsnr_output
-                # Set full environment for lsnrctl execution from listener's home
-                # Need ORACLE_HOME and LD_LIBRARY_PATH for lsnrctl to work correctly
-                lsnr_output=$(ORACLE_HOME="${listener_home}" \
-                              LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
-                              "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
+            # Try to use plugin for status check if available
+            local plugin_file="${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+            local use_plugin=false
+            
+            if [[ -f "${plugin_file}" ]]; then
+                # shellcheck source=/dev/null
+                source "${plugin_file}" 2>/dev/null
+                if declare -f plugin_check_listener_status >/dev/null 2>&1; then
+                    use_plugin=true
+                fi
+            fi
+            
+            if [[ "$use_plugin" == "true" ]]; then
+                # Use plugin to check listener status
+                local plugin_status
+                if plugin_status=$(plugin_check_listener_status "${listener_home}"); then
+                    lsnr_status="$plugin_status"
+                    # Map plugin status to display status
+                    case "$lsnr_status" in
+                        running) lsnr_status="up" ;;
+                        stopped) lsnr_status="down" ;;
+                        unavailable) lsnr_status="unavailable" ;;
+                    esac
+                fi
                 
-                if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
-                    lsnr_status="up"
+                # Still extract ports using traditional method
+                if [[ "$lsnr_status" == "up" ]] && [[ -x "${listener_home}/bin/lsnrctl" ]]; then
+                    local lsnr_output
+                    lsnr_output=$(ORACLE_HOME="${listener_home}" \
+                                  LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                                  "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
                     
-                    # Extract all ports from Listening Endpoints
-                    # Build compact display: tcp_ports/tcps_ports (e.g., 1521/2345 or just 1521)
+                    # Extract ports (keeping existing logic)
                     local endpoints
                     endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
                     
@@ -392,6 +436,58 @@ show_oracle_status_registry() {
                             port_display="$tcp_str"
                         elif [[ -n "$tcps_str" ]]; then
                             port_display="$tcps_str"
+                        fi
+                    fi
+                fi
+            else
+                # Fallback to traditional method
+                if [[ -x "${listener_home}/bin/lsnrctl" ]]; then
+                    local lsnr_output
+                    # Set full environment for lsnrctl execution from listener's home
+                    # Need ORACLE_HOME and LD_LIBRARY_PATH for lsnrctl to work correctly
+                    lsnr_output=$(ORACLE_HOME="${listener_home}" \
+                                  LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                                  "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
+                    
+                    if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
+                        lsnr_status="up"
+                        
+                        # Extract all ports from Listening Endpoints
+                        # Build compact display: tcp_ports/tcps_ports (e.g., 1521/2345 or just 1521)
+                        local endpoints
+                        endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
+                        
+                        if [[ -n "$endpoints" ]]; then
+                            local -a tcp_ports=()
+                            local -a tcps_ports=()
+                            
+                            while IFS= read -r endpoint; do
+                                local protocol port
+                                protocol=$(echo "$endpoint" | grep -o "PROTOCOL=[^)]*" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
+                                port=$(echo "$endpoint" | grep -o "PORT=[0-9]*" | cut -d= -f2)
+                                
+                                if [[ -n "$port" ]]; then
+                                    if [[ "$protocol" == "tcps" ]]; then
+                                        tcps_ports+=("$port")
+                                    elif [[ "$protocol" == "tcp" ]]; then
+                                        tcp_ports+=("$port")
+                                    fi
+                                fi
+                            done <<< "$endpoints"
+                            
+                            # Format: tcp_port/tcps_port or just tcp_port
+                            local tcp_str=""
+                            local tcps_str=""
+                            [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(IFS=','; echo "${tcp_ports[*]}")
+                            [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(IFS=','; echo "${tcps_ports[*]}")
+                            
+                            if [[ -n "$tcp_str" && -n "$tcps_str" ]]; then
+                                port_display="${tcp_str}/${tcps_str}"
+                            elif [[ -n "$tcp_str" ]]; then
+                                port_display="$tcp_str"
+                            elif [[ -n "$tcps_str" ]]; then
+                                port_display="$tcps_str"
+                            fi
                         fi
                     fi
                 fi

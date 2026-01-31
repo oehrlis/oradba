@@ -178,21 +178,25 @@ teardown() {
 
 @test "database plugin check_status returns stopped when no SID provided" {
     local db_home="${TEST_DIR}/test_homes/db_19c"
-    mkdir -p "${db_home}"
+    mkdir -p "${db_home}/bin"
+    touch "${db_home}/bin/oracle"
+    chmod +x "${db_home}/bin/oracle"
     
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "${db_home}" ""
-    [ "$status" -ne 0 ]
+    [ "$status" -eq 1 ]
     [ "$output" = "stopped" ]
 }
 
 @test "database plugin check_status returns stopped for non-running SID" {
     local db_home="${TEST_DIR}/test_homes/db_19c"
-    mkdir -p "${db_home}"
+    mkdir -p "${db_home}/bin"
+    touch "${db_home}/bin/oracle"
+    chmod +x "${db_home}/bin/oracle"
     
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "${db_home}" "NONEXIST"
-    [ "$status" -ne 0 ]
+    [ "$status" -eq 1 ]
     [ "$output" = "stopped" ]
 }
 
@@ -206,12 +210,187 @@ teardown() {
         "plugin_check_status"
         "plugin_get_metadata"
         "plugin_should_show_listener"
+        "plugin_check_listener_status"
         "plugin_discover_instances"
+        "plugin_get_instance_list"
         "plugin_supports_aliases"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_config_section"
     )
     
     for func in "${required_functions[@]}"; do
         run type "${func}"
         [ "$status" -eq 0 ]
     done
+}
+
+@test "database plugin check_status returns unavailable for missing home" {
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    run plugin_check_status "/nonexistent/path" ""
+    [ "$status" -eq 2 ]
+    [ "$output" = "unavailable" ]
+}
+
+@test "database plugin check_status returns unavailable for home without oracle binary" {
+    local db_home="${TEST_DIR}/test_homes/incomplete"
+    mkdir -p "${db_home}/bin"
+    # Create home without oracle binary
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    run plugin_check_status "${db_home}" ""
+    [ "$status" -eq 2 ]
+    [ "$output" = "unavailable" ]
+}
+
+@test "database plugin check_listener_status returns unavailable when lsnrctl missing" {
+    local db_home="${TEST_DIR}/test_homes/no_lsnrctl"
+    mkdir -p "${db_home}/bin"
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    run plugin_check_listener_status "${db_home}"
+    [ "$status" -eq 2 ]
+    [ "$output" = "unavailable" ]
+}
+
+@test "database plugin check_listener_status returns stopped when listener not running" {
+    # Create mock database home with lsnrctl that returns error
+    local db_home="${TEST_DIR}/test_homes/db_listener_test"
+    mkdir -p "${db_home}/bin"
+    mkdir -p "${db_home}/lib"
+    
+    # Create mock lsnrctl that returns non-zero (listener stopped)
+    cat > "${db_home}/bin/lsnrctl" <<'EOF'
+#!/bin/bash
+exit 1
+EOF
+    chmod +x "${db_home}/bin/lsnrctl"
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    run plugin_check_listener_status "${db_home}"
+    [ "$status" -eq 1 ]
+    [ "$output" = "stopped" ]
+}
+
+@test "database plugin get_instance_list handles dummy flag" {
+    # Create mock oratab with dummy entry
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}"
+    
+    local test_oratab="${TEST_DIR}/test_oratab"
+    cat > "${test_oratab}" <<EOF
+# Test oratab
+PROD:${db_home}:Y
+TEST:${db_home}:N
+DUMMY:${db_home}:D
+EOF
+    
+    export ORATAB_FILE="${test_oratab}"
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_get_instance_list "${db_home}"
+    [ "$status" -eq 0 ]
+    
+    # Check that dummy entry is marked as stopped with dummy flag
+    echo "$output" | grep -q "DUMMY|stopped|.*dummy=true"
+}
+
+@test "database plugin get_instance_list shows status for non-dummy instances" {
+    # Create mock oratab
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}"
+    
+    local test_oratab="${TEST_DIR}/test_oratab"
+    cat > "${test_oratab}" <<EOF
+# Test oratab
+PROD:${db_home}:Y
+EOF
+    
+    export ORATAB_FILE="${test_oratab}"
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_get_instance_list "${db_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should have status field (running or stopped)
+    [[ "$output" =~ PROD\|(running|stopped)\|autostart=Y ]]
+}
+
+@test "database plugin build_base_path returns ORACLE_BASE_HOME when set" {
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}"
+    
+    export ORACLE_BASE_HOME="${TEST_DIR}/base"
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_build_base_path "${db_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${TEST_DIR}/base" ]
+    
+    unset ORACLE_BASE_HOME
+}
+
+@test "database plugin build_base_path returns home_path when ORACLE_BASE_HOME not set" {
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}"
+    
+    unset ORACLE_BASE_HOME
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_build_base_path "${db_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${db_home}" ]
+}
+
+@test "database plugin build_env returns all required env vars" {
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}/bin"
+    mkdir -p "${db_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_build_env "${db_home}" "TESTDB"
+    [ "$status" -eq 0 ]
+    
+    # Should contain ORACLE_HOME, ORACLE_SID, PATH, LD_LIBRARY_PATH
+    echo "$output" | grep -q "ORACLE_HOME=${db_home}"
+    echo "$output" | grep -q "ORACLE_SID=TESTDB"
+    echo "$output" | grep -q "PATH="
+    echo "$output" | grep -q "LD_LIBRARY_PATH="
+}
+
+@test "database plugin build_bin_path returns bin and OPatch" {
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}/bin"
+    mkdir -p "${db_home}/OPatch"
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_build_bin_path "${db_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${db_home}/bin"* ]]
+    [[ "$output" == *"${db_home}/OPatch"* ]]
+}
+
+@test "database plugin build_lib_path prefers lib64 over lib" {
+    local db_home="${TEST_DIR}/test_homes/db_19c"
+    mkdir -p "${db_home}/lib64"
+    mkdir -p "${db_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_build_lib_path "${db_home}"
+    [ "$status" -eq 0 ]
+    # lib64 should appear before lib
+    [[ "$output" == "${db_home}/lib64:"* ]]
+}
+
+@test "database plugin get_config_section returns RDBMS" {
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    run plugin_get_config_section
+    [ "$status" -eq 0 ]
+    [ "$output" = "RDBMS" ]
 }

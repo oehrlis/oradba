@@ -207,12 +207,19 @@ teardown() {
         "plugin_detect_installation"
         "plugin_validate_home"
         "plugin_adjust_environment"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
         "plugin_check_status"
         "plugin_get_metadata"
         "plugin_get_version"
-        "plugin_should_show_listener"
-        "plugin_discover_instances"
+        "plugin_get_instance_list"
         "plugin_supports_aliases"
+        "plugin_get_config_section"
+        "plugin_should_show_listener"
+        "plugin_check_listener_status"
+        "plugin_discover_instances"
     )
     
     for func in "${required_functions[@]}"; do
@@ -621,4 +628,151 @@ CMCTL_MOCK
     run plugin_check_status "${ds_home}"
     [ "$status" -eq 0 ]
     [ "$output" = "running" ]
+}
+
+# ==============================================================================
+# Builder Functions Tests (Plugin Interface v1.0.0)
+# ==============================================================================
+
+@test "datasafe plugin_build_base_path returns base path when given oracle_cman_home" {
+    local cman_home="/opt/oracle/datasafe/oracle_cman_home"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_base_path "${cman_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "/opt/oracle/datasafe" ]
+}
+
+@test "datasafe plugin_build_base_path returns path unchanged when not oracle_cman_home" {
+    local base_path="/opt/oracle/datasafe"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_base_path "${base_path}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${base_path}" ]
+}
+
+@test "datasafe plugin_build_bin_path returns oracle_cman_home/bin" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_build_path"
+    mkdir -p "${ds_base}/oracle_cman_home/bin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_bin_path "${ds_base}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ds_base}/oracle_cman_home/bin" ]
+}
+
+@test "datasafe plugin_build_bin_path returns empty when bin directory missing" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_no_bin"
+    mkdir -p "${ds_base}/oracle_cman_home"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_bin_path "${ds_base}"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_build_lib_path returns oracle_cman_home/lib" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_build_lib"
+    mkdir -p "${ds_base}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_lib_path "${ds_base}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${ds_base}/oracle_cman_home/lib" ]
+}
+
+@test "datasafe plugin_build_lib_path returns empty when lib directory missing" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_no_lib"
+    mkdir -p "${ds_base}/oracle_cman_home"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_lib_path "${ds_base}"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_build_env outputs complete environment" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_build_env"
+    mkdir -p "${ds_base}/oracle_cman_home/bin"
+    mkdir -p "${ds_base}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_env "${ds_base}"
+    [ "$status" -eq 0 ]
+    
+    # Check required key=value pairs
+    echo "$output" | grep -q "ORACLE_BASE_HOME=${ds_base}"
+    echo "$output" | grep -q "ORACLE_HOME=${ds_base}/oracle_cman_home"
+    echo "$output" | grep -q "PATH=${ds_base}/oracle_cman_home/bin"
+    echo "$output" | grep -q "LD_LIBRARY_PATH=${ds_base}/oracle_cman_home/lib"
+}
+
+@test "datasafe plugin_build_env handles missing directories gracefully" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_incomplete_env"
+    mkdir -p "${ds_base}/oracle_cman_home"
+    # Don't create bin or lib directories
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_build_env "${ds_base}"
+    [ "$status" -eq 0 ]
+    
+    # Should still output ORACLE_BASE_HOME and ORACLE_HOME
+    echo "$output" | grep -q "ORACLE_BASE_HOME=${ds_base}"
+    echo "$output" | grep -q "ORACLE_HOME=${ds_base}/oracle_cman_home"
+    
+    # PATH and LD_LIBRARY_PATH should not be present if dirs don't exist
+    ! echo "$output" | grep -q "^PATH="
+    ! echo "$output" | grep -q "^LD_LIBRARY_PATH="
+}
+
+@test "datasafe plugin_build_env with instance parameter (not used for DataSafe)" {
+    local ds_base="${TEST_DIR}/test_homes/datasafe_env_instance"
+    mkdir -p "${ds_base}/oracle_cman_home/bin"
+    mkdir -p "${ds_base}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    # DataSafe doesn't use instance parameter like databases do
+    run plugin_build_env "${ds_base}" "ignored_instance"
+    [ "$status" -eq 0 ]
+    
+    # Should not set ORACLE_SID
+    ! echo "$output" | grep -q "ORACLE_SID="
+}
+
+# ==============================================================================
+# Listener Visibility Tests (Category-Specific Functions)
+# ==============================================================================
+
+@test "datasafe plugin_should_show_listener returns 1 (don't show)" {
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_should_show_listener
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_check_listener_status returns 1 with no output" {
+    local ds_home="${TEST_DIR}/test_homes/datasafe_listener"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_listener_status "${ds_home}"
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_check_listener_status never outputs sentinel strings" {
+    # Per plugin-standards.md: No "ERR", "unknown", "N/A" on stdout
+    local ds_home="${TEST_DIR}/test_homes/datasafe_listener_check"
+    mkdir -p "${ds_home}/oracle_cman_home"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_check_listener_status "${ds_home}"
+    
+    # Should return 1 (not applicable)
+    [ "$status" -eq 1 ]
+    
+    # Should have no output (especially no sentinel strings)
+    [ -z "$output" ]
+    ! echo "$output" | grep -qiE "ERR|unknown|N/A"
 }

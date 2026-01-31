@@ -118,7 +118,7 @@ oradba_clean_path() {
 # Args....: $1 - ORACLE_HOME
 #          $2 - Product type (optional, lowercase: database, client, iclient, etc.)
 # Returns.: 0 on success
-# Notes...: Uses plugin_build_path() from product-specific plugins
+# Notes...: Uses plugin_build_bin_path() from product-specific plugins
 #           Falls back to basic bin directory for unknown products
 # ------------------------------------------------------------------------------
 oradba_add_oracle_path() {
@@ -147,10 +147,14 @@ oradba_add_oracle_path() {
         # shellcheck source=/dev/null
         source "${plugin_file}" 2>/dev/null
         
-        # Call plugin function if exists
-        if declare -f plugin_build_path >/dev/null 2>&1; then
-            product_path=$(plugin_build_path "${oracle_home}")
-            oradba_log DEBUG "Plugin ${product_type}: PATH components = ${product_path}"
+        # Call plugin function if exists and capture exit code
+        if declare -f plugin_build_bin_path >/dev/null 2>&1; then
+            if new_path=$(plugin_build_bin_path "${oracle_home}"); then
+                oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
+            else
+                oradba_log DEBUG "Plugin ${product_type}: plugin_build_bin_path failed, using fallback"
+                new_path=""
+            fi
         fi
     else
         oradba_log DEBUG "Plugin file not found: ${plugin_file}"
@@ -231,10 +235,14 @@ oradba_set_lib_path() {
         # shellcheck source=/dev/null
         source "${plugin_file}" 2>/dev/null
         
-        # Call plugin function if it exists
+        # Call plugin function if it exists and capture exit code
         if declare -f plugin_build_lib_path >/dev/null 2>&1; then
-            lib_path=$(plugin_build_lib_path "${oracle_home}")
-            oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
+            if lib_path=$(plugin_build_lib_path "${oracle_home}"); then
+                oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
+            else
+                oradba_log DEBUG "Plugin ${product_type}: plugin_build_lib_path failed, using fallback"
+                lib_path=""
+            fi
         fi
     else
         oradba_log DEBUG "Plugin file not found: ${plugin_file}"

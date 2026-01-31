@@ -162,10 +162,128 @@ teardown() {
         "plugin_should_show_listener"
         "plugin_discover_instances"
         "plugin_supports_aliases"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_config_section"
     )
     
     for func in "${required_functions[@]}"; do
         run type "${func}"
         [ "$status" -eq 0 ]
     done
+}
+
+# ==============================================================================
+# Builder Function Tests
+# ==============================================================================
+
+@test "client plugin build_base_path returns ORACLE_BASE_HOME when set" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    export ORACLE_BASE_HOME="${TEST_DIR}/base"
+    run plugin_build_base_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${TEST_DIR}/base" ]
+    
+    unset ORACLE_BASE_HOME
+}
+
+@test "client plugin build_base_path returns home_path when ORACLE_BASE_HOME not set" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_base_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${client_home}" ]
+}
+
+@test "client plugin build_env returns all required env vars" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/bin"
+    mkdir -p "${client_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_env "${client_home}"
+    [ "$status" -eq 0 ]
+    
+    # Should contain ORACLE_HOME, PATH, LD_LIBRARY_PATH
+    echo "$output" | grep -q "ORACLE_HOME=${client_home}"
+    echo "$output" | grep -q "ORACLE_BASE_HOME="
+    echo "$output" | grep -q "PATH="
+    echo "$output" | grep -q "LD_LIBRARY_PATH="
+}
+
+@test "client plugin build_bin_path returns bin and OPatch" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/bin"
+    mkdir -p "${client_home}/OPatch"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_bin_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${client_home}/bin"* ]]
+    [[ "$output" == *"${client_home}/OPatch"* ]]
+}
+
+@test "client plugin build_bin_path returns bin only when OPatch missing" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/bin"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_bin_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${client_home}/bin" ]
+}
+
+@test "client plugin build_lib_path prefers lib64 over lib" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/lib64"
+    mkdir -p "${client_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_lib_path "${client_home}"
+    [ "$status" -eq 0 ]
+    # lib64 should appear before lib
+    [[ "$output" == "${client_home}/lib64:"* ]]
+}
+
+@test "client plugin build_lib_path returns lib when lib64 missing" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/lib"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_lib_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${client_home}/lib" ]
+}
+
+@test "client plugin build_lib_path returns lib64 only when lib missing" {
+    local client_home="${TEST_DIR}/test_homes/client_19c"
+    mkdir -p "${client_home}/lib64"
+    
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_build_lib_path "${client_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "${client_home}/lib64" ]
+}
+
+@test "client plugin get_config_section returns CLIENT" {
+    source "${TEST_DIR}/lib/plugins/client_plugin.sh"
+    
+    run plugin_get_config_section
+    [ "$status" -eq 0 ]
+    [ "$output" = "CLIENT" ]
 }

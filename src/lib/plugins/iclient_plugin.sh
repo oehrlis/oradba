@@ -233,6 +233,58 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for instant client
+# Args....: $1 - Input ORACLE_HOME
+# Returns.: 0 on success
+# Output..: Normalized base path
+# Notes...: For instant client, base is same as ORACLE_HOME
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    echo "${home_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for Oracle Instant Client
+# Args....: $1 - ORACLE_HOME
+#           $2 - Not used for instant client
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds environment for instant client
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local home_path="$1"
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${home_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${home_path}")
+    
+    echo "ORACLE_HOME=${home_path}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate instant client instances
+# Args....: $1 - ORACLE_HOME path
+# Returns.: 0 on success
+# Output..: Empty (instant clients don't have instances)
+# Notes...: Instant clients have no instances
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local home_path="$1"
+    # Instant clients don't have instances
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: Instant clients don't support aliases
 # Returns.: 1 (no aliases)
@@ -242,14 +294,14 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for Oracle Instant Client
 # Args....: $1 - ORACLE_HOME path
 # Returns.: 0 on success
 # Output..: Colon-separated PATH components
 # Notes...: Instant Client has no bin/ subdirectory - binaries in root
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local oracle_home="$1"
     
     # Instant Client: executables are in the root directory

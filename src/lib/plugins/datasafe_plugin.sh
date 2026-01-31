@@ -306,6 +306,22 @@ plugin_should_show_listener() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_check_listener_status
+# Purpose.: Check listener status for Data Safe (not applicable)
+# Args....: $1 - Base path (unused for DataSafe)
+# Returns.: 1 (not applicable - DataSafe uses cman, not DB listener)
+# Output..: None (empty stdout per plugin standards)
+# Notes...: DataSafe has Connection Manager (cman) but it's not a database
+#           listener. Listener checks are not applicable for this product.
+#           Per plugin-standards.md: Return 1 for N/A, no sentinel strings.
+# ------------------------------------------------------------------------------
+plugin_check_listener_status() {
+    # DataSafe uses Connection Manager (cman), not a database listener
+    # Return 1 = Not Applicable (no output to stdout)
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_discover_instances
 # Purpose.: Discover Data Safe connector instances
 # Args....: $1 - Base path
@@ -329,6 +345,70 @@ plugin_discover_instances() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_build_base_path
+# Purpose.: Resolve actual installation base for Data Safe
+# Args....: $1 - Input path (base or oracle_cman_home)
+# Returns.: 0 on success
+# Output..: Normalized base path (without oracle_cman_home)
+# Notes...: DataSafe uses subdirectory structure, return base path
+# ------------------------------------------------------------------------------
+plugin_build_base_path() {
+    local home_path="$1"
+    # If path ends with oracle_cman_home, return parent
+    if [[ "${home_path}" =~ /oracle_cman_home$ ]]; then
+        echo "${home_path%/oracle_cman_home}"
+    else
+        echo "${home_path}"
+    fi
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_build_env
+# Purpose.: Build environment variables for Data Safe connector
+# Args....: $1 - Base path
+#           $2 - Instance identifier (optional, not used for DataSafe)
+# Returns.: 0 on success
+# Output..: Key=value pairs (one per line)
+# Notes...: Builds environment for Data Safe connector
+# ------------------------------------------------------------------------------
+plugin_build_env() {
+    local base_path="$1"
+    
+    local cman_home
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    local bin_path
+    bin_path=$(plugin_build_bin_path "${base_path}")
+    
+    local lib_path
+    lib_path=$(plugin_build_lib_path "${base_path}")
+    
+    echo "ORACLE_BASE_HOME=${base_path}"
+    echo "ORACLE_HOME=${cman_home}"
+    [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
+    [[ -n "${lib_path}" ]] && echo "LD_LIBRARY_PATH=${lib_path}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_instance_list
+# Purpose.: Enumerate Data Safe connector instances
+# Args....: $1 - Base path
+# Returns.: 0 on success
+# Output..: instance_name|status|additional_metadata (one per line)
+# Notes...: DataSafe typically has one instance per installation
+# ------------------------------------------------------------------------------
+plugin_get_instance_list() {
+    local base_path="$1"
+    # DataSafe: single instance per installation, use basename as instance name
+    local instance_name
+    instance_name=$(basename "${base_path}")
+    echo "${instance_name}||datasafe"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_supports_aliases
 # Purpose.: Data Safe connectors don't support aliases
 # Returns.: 1 (no aliases)
@@ -338,14 +418,14 @@ plugin_supports_aliases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_build_path
+# Function: plugin_build_bin_path
 # Purpose.: Get PATH components for Data Safe connector
 # Args....: $1 - Base path (will be adjusted to oracle_cman_home)
 # Returns.: 0 on success
 # Output..: Colon-separated PATH components
 # Notes...: DataSafe requires oracle_cman_home/bin
 # ------------------------------------------------------------------------------
-plugin_build_path() {
+plugin_build_bin_path() {
     local base_path="$1"
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
@@ -407,7 +487,7 @@ plugin_get_required_binaries() {
 # Args....: $1 - Base path
 # Returns.: 0 on success
 # Output..: PATH and LD_LIBRARY_PATH (one per line)
-# Notes...: Helper function for environment setup (legacy, use plugin_build_path/lib_path)
+# Notes...: Helper function for environment setup (legacy, use plugin_build_bin_path/plugin_build_lib_path)
 # ------------------------------------------------------------------------------
 plugin_get_adjusted_paths() {
     local base_path="$1"

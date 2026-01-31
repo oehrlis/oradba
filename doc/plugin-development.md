@@ -511,7 +511,7 @@ export plugin_name="myproduct"
 export plugin_version="1.0.0"
 export plugin_description="My Oracle Product plugin"
 
-# Implement all 11 required functions here...
+# Implement all 13 universal core functions here...
 # (see examples below)
 
 EOF
@@ -614,7 +614,7 @@ setup() {
     [ "$output" = "MYPRODUCT" ]
 }
 
-# Add tests for all 11 required functions
+# Add tests for all 13 universal core functions
 EOF
 
 # Run tests
@@ -923,9 +923,9 @@ source oraenv
 ### Function Not Found
 
 ```bash
-# Verify all 11 functions are implemented
+# Verify all 13 universal core functions are implemented
 grep "^plugin_" src/lib/plugins/myproduct_plugin.sh | wc -l
-# Should show at least 11
+# Should show at least 13
 
 # Check function names match exactly
 grep "^plugin_" src/lib/plugins/myproduct_plugin.sh
@@ -952,7 +952,7 @@ ls -la "${BATS_TEST_TMPDIR}"
 
 ### DO
 
-✅ **Implement all 11 required functions**: Even if they return defaults
+✅ **Implement all 13 universal core functions**: Even if they return defaults
 ✅ **Follow naming conventions**: Use `plugin_*` prefix
 ✅ **Add comprehensive tests**: Cover edge cases
 ✅ **Document behavior**: Use function headers
@@ -971,7 +971,8 @@ ls -la "${BATS_TEST_TMPDIR}"
 
 Before submitting plugin:
 
-- [ ] All 11 required functions implemented
+- [ ] All 13 universal core functions implemented
+- [ ] Category-specific functions added if applicable (listener handling, etc.)
 - [ ] Plugin metadata set (name, version, description)
 - [ ] Tests created and passing
 - [ ] Integration tested with OraDBA core

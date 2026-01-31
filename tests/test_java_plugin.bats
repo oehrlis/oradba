@@ -117,25 +117,52 @@ teardown() {
     [[ $status -eq 1 ]]
 }
 
-# Test plugin_build_path
-@test "plugin_build_path returns bin directory" {
+# ==============================================================================
+# Builder Function Tests
+# ==============================================================================
+
+# Test plugin_build_base_path
+@test "plugin_build_base_path returns home_path" {
+    mkdir -p "${TEST_DIR}/java17"
+    
+    run plugin_build_base_path "${TEST_DIR}/java17"
+    [[ "$output" == "${TEST_DIR}/java17" ]]
+    [[ $status -eq 0 ]]
+}
+
+# Test plugin_build_env
+@test "plugin_build_env returns all required env vars" {
+    mkdir -p "${TEST_DIR}/java17/bin"
+    mkdir -p "${TEST_DIR}/java17/lib"
+    
+    run plugin_build_env "${TEST_DIR}/java17"
+    [[ $status -eq 0 ]]
+    
+    # Should contain JAVA_HOME, PATH, LD_LIBRARY_PATH
+    echo "$output" | grep -q "JAVA_HOME=${TEST_DIR}/java17"
+    echo "$output" | grep -q "PATH="
+    echo "$output" | grep -q "LD_LIBRARY_PATH="
+}
+
+# Test plugin_build_bin_path
+@test "plugin_build_bin_path returns bin directory" {
     mkdir -p "${TEST_DIR}/java17/bin"
     
-    run plugin_build_path "${TEST_DIR}/java17"
+    run plugin_build_bin_path "${TEST_DIR}/java17"
     [[ "$output" == "${TEST_DIR}/java17/bin" ]]
     [[ $status -eq 0 ]]
 }
 
-# Test plugin_build_path with no bin directory
-@test "plugin_build_path returns empty for missing bin" {
+# Test plugin_build_bin_path with no bin directory
+@test "plugin_build_bin_path returns empty for missing bin" {
     mkdir -p "${TEST_DIR}/java17"
     
-    run plugin_build_path "${TEST_DIR}/java17"
+    run plugin_build_bin_path "${TEST_DIR}/java17"
     [[ -z "$output" ]]
     [[ $status -eq 0 ]]
 }
 
-# Test plugin_build_lib_path
+# Test plugin_build_lib_path with modern Java layout
 @test "plugin_build_lib_path returns lib paths if they exist" {
     mkdir -p "${TEST_DIR}/java17/lib/server"
     mkdir -p "${TEST_DIR}/java17/lib"
@@ -143,6 +170,26 @@ teardown() {
     run plugin_build_lib_path "${TEST_DIR}/java17"
     [[ "$output" == *"lib/server"* ]]
     [[ "$output" == *"/lib"* ]]
+    [[ $status -eq 0 ]]
+}
+
+# Test plugin_build_lib_path with legacy Java 8 layout
+@test "plugin_build_lib_path includes legacy JRE paths" {
+    mkdir -p "${TEST_DIR}/java8/jre/lib/amd64/server"
+    mkdir -p "${TEST_DIR}/java8/jre/lib/amd64"
+    
+    run plugin_build_lib_path "${TEST_DIR}/java8"
+    [[ "$output" == *"jre/lib/amd64/server"* ]]
+    [[ "$output" == *"jre/lib/amd64"* ]]
+    [[ $status -eq 0 ]]
+}
+
+# Test plugin_build_lib_path returns empty for missing lib dirs
+@test "plugin_build_lib_path returns empty for missing lib dirs" {
+    mkdir -p "${TEST_DIR}/java17"
+    
+    run plugin_build_lib_path "${TEST_DIR}/java17"
+    [[ -z "$output" ]]
     [[ $status -eq 0 ]]
 }
 
