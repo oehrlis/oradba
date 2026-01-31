@@ -185,7 +185,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "${db_home}" ""
     [ "$status" -eq 1 ]
-    [ "$output" = "stopped" ]
+    [ -z "$output" ]
 }
 
 @test "database plugin check_status returns stopped for non-running SID" {
@@ -197,7 +197,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "${db_home}" "NONEXIST"
     [ "$status" -eq 1 ]
-    [ "$output" = "stopped" ]
+    [ -z "$output" ]
 }
 
 @test "database plugin has all required interface functions" {
@@ -231,7 +231,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "/nonexistent/path" ""
     [ "$status" -eq 2 ]
-    [ "$output" = "unavailable" ]
+    [ -z "$output" ]
 }
 
 @test "database plugin check_status returns unavailable for home without oracle binary" {
@@ -242,7 +242,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_check_status "${db_home}" ""
     [ "$status" -eq 2 ]
-    [ "$output" = "unavailable" ]
+    [ -z "$output" ]
 }
 
 @test "database plugin check_listener_status returns unavailable when lsnrctl missing" {

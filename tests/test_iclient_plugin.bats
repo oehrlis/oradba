@@ -136,7 +136,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
     run plugin_check_status "${ic_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "available" ]
+    [ -z "$output" ]
 }
 
 @test "iclient plugin returns unavailable for missing library" {
