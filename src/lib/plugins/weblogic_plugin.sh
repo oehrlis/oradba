@@ -291,4 +291,6 @@ plugin_get_version() {
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-oradba_log DEBUG "WebLogic plugin loaded (stub v${plugin_version})"
+if declare -f oradba_log >/dev/null 2>&1; then
+    oradba_log DEBUG "WebLogic plugin loaded (stub v${plugin_version})"
+fi

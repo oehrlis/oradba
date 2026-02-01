@@ -477,4 +477,6 @@ plugin_get_required_binaries() {
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-oradba_log DEBUG "OUD plugin loaded (v${plugin_version})"
+if declare -f oradba_log >/dev/null 2>&1; then
+    oradba_log DEBUG "OUD plugin loaded (v${plugin_version})"
+fi
