@@ -64,12 +64,12 @@ plugin_adjust_environment() {
 # Purpose.: Check OMS status
 # Args....: $1 - Path to OMS home
 #           $2 - Ignored
-# Returns.: 0 on success
-# Output..: Status string
+# Returns.: 2 (unavailable - stub not implemented)
+# Output..: "unavailable"
 # ------------------------------------------------------------------------------
 plugin_check_status() {
-    echo "N/A"
-    return 0
+    echo "unavailable"
+    return 2
 }
 
 # ------------------------------------------------------------------------------
