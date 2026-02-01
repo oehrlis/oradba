@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin stub for Oracle Enterprise Manager OMS
 # Notes....: Minimal stub implementation - full support to be added later
-#            Version detection not applicable (returns "ERR")
+#            Version detection not applicable (returns exit 1)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
