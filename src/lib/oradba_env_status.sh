@@ -265,8 +265,10 @@ oradba_get_product_status() {
     plugin_exit_code=$?
     
     # Plugin exit code contract:
-    # 0 = running (with status text on stdout)
-    # 1 = stopped (with status text on stdout)
+    # 0 = running/success/available (with status text on stdout)
+    #     - For services: "running" indicates the service is active
+    #     - For software-only products (client/iclient): "N/A" indicates status not applicable
+    # 1 = stopped/not-applicable (with status text on stdout)
     # 2 = unavailable/cannot determine (with status text on stdout)
     # For all product types, if plugin returned output, use it with the exit code
     if [[ -n "${status_result}" ]]; then
