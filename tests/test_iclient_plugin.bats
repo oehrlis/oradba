@@ -21,9 +21,12 @@ setup() {
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
     
     # For version detection tests, we need the real detect_oracle_version function
-    # Extract just that function from the real common.sh to avoid side effects
-    # This is safer than sourcing the entire file which might override configs
+    # and its dependencies (execute_plugin_function_v2, detect_product_type, oradba_log)
+    # Extract these functions from the real common.sh to avoid side effects
     if ! declare -f detect_oracle_version >/dev/null 2>&1; then
+        eval "$(sed -n '/^oradba_log()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+        eval "$(sed -n '/^execute_plugin_function_v2()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
         eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
     fi
     
