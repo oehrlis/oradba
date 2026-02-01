@@ -38,6 +38,18 @@ oradba_log() {
 }
 EOF
     
+    # Add detect_oracle_version function to the stub
+    sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
+    
+    # Add execute_plugin_function_v2 stub (needed by detect_oracle_version)
+    cat >> "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
+
+# Stub for execute_plugin_function_v2 - returns failure for tests
+execute_plugin_function_v2() {
+    return 1
+}
+EOF
+    
     # Source common functions stub
     source "${TEST_DIR}/lib/oradba_common.sh"
     
@@ -146,8 +158,8 @@ teardown() {
     
     source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
     run plugin_check_status "${ic_home}" ""
-    [ "$status" -ne 0 ]
-    [ "$output" = "unavailable" ]
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
 }
 
 @test "iclient plugin does not show listener" {
