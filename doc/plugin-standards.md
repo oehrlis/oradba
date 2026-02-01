@@ -6,17 +6,19 @@
 
 ## Recent Changes
 
-### January 2026 - Phase 2.2 Refactoring (Issue #140)
+### January 2026 - Phase 2.4 Completion (Issue #141)
 
-All plugins have been standardized to conform to the exit code contract for `plugin_check_status()`:
+All 9 plugins have been audited for comprehensive return value standardization:
 
-- ✅ All status strings ("running", "stopped", "unavailable", "available") removed from plugin_check_status output
-- ✅ Exit codes standardized: 0=running/available, 1=stopped/N/A, 2=unavailable/error
-- ✅ All 9 plugins (6 production + 3 stubs) updated to new contract
-- ✅ Tests updated to validate exit codes only (no output string assertions)
-- ⚠️ **Breaking change**: Callers must use exit codes only, not parse stdout
+- ✅ All sentinel strings removed from all plugin functions
+- ✅ Stub plugins (weblogic, emagent, oms) fixed: `plugin_check_status()` now outputs "unavailable" with exit 2
+- ✅ All 9 plugins across 13+ core functions confirmed compliant with return value standards
+- ✅ Phase 2 (Return Value Standardization) complete and validated
+- ✅ No critical issues remain; codebase ready for Phase 3 (Subshell Isolation)
 
-### January 2026 - Phase 2.1 Refactoring (Issue #135, #139)
+See `.github/.scratch/phase-2-4-audit-report.md` for detailed audit findings.
+
+### January 2026 - Phase 2.1 Refactoring (Issue #135)
 
 All plugins have been standardized to conform to the exit code contract for `plugin_get_version()`:
 
