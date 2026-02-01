@@ -259,30 +259,36 @@ oradba_get_product_status() {
     esac
     
     # Try to use plugin for status check
-    local status_result=""
+    # Note: Plugins now return status via exit code only (no output)
+    # 0=running/available, 1=stopped/N/A, 2=unavailable/error
     local plugin_exit_code=0
-    execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "status_result" "${instance_name}" 2>/dev/null
+    execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "" "${instance_name}" 2>/dev/null
     plugin_exit_code=$?
     
-    # For certain product types, accept plugin output regardless of exit code
-    # (plugins may return non-zero for "stopped" status, which is valid)
-    case "${plugin_type}" in
-        datasafe|database)
-            if [[ -n "${status_result}" ]]; then
-                echo "${status_result}"
-                return ${plugin_exit_code}
-            fi
+    # Map exit codes to status strings for backward compatibility
+    case ${plugin_exit_code} in
+        0)
+            # Running/available
+            echo "running"
+            return 0
+            ;;
+        1)
+            # Stopped/N/A
+            echo "stopped"
+            return 1
+            ;;
+        2)
+            # Unavailable/error
+            echo "unavailable"
+            return 2
             ;;
         *)
-            # For other products, only use plugin output if exit code was 0
-            if [[ ${plugin_exit_code} -eq 0 ]] && [[ -n "${status_result}" ]]; then
-                echo "${status_result}"
-                return 0
-            fi
+            # Plugin not found or other error - fall through to legacy functions
+            oradba_log DEBUG "Plugin check_status returned unexpected code ${plugin_exit_code}, using fallback"
             ;;
     esac
     
-    # Fallback to legacy product-specific functions only if plugin had no output or failed
+    # Fallback to legacy product-specific functions only if plugin returned unexpected code
     oradba_log DEBUG "Using fallback status check for ${product_type}"
     case "${product_type^^}" in
         RDBMS|DATABASE)

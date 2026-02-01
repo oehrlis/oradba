@@ -41,12 +41,40 @@ EOF
     # Add detect_oracle_version function to the stub
     sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
     
-    # Add execute_plugin_function_v2 stub (needed by detect_oracle_version)
+    # Add execute_plugin_function_v2 implementation that actually loads and calls plugins
     cat >> "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
 
-# Stub for execute_plugin_function_v2 - returns failure for tests
+# Simplified execute_plugin_function_v2 for tests
 execute_plugin_function_v2() {
-    return 1
+    local plugin_name="$1"
+    local function_name="$2"
+    local home_path="$3"
+    local result_var="$4"
+    shift 4
+    local extra_args=("$@")
+    
+    # Load plugin if not already loaded
+    local plugin_file="${TEST_DIR}/lib/plugins/${plugin_name}_plugin.sh"
+    if [[ -f "${plugin_file}" ]]; then
+        source "${plugin_file}" 2>/dev/null || return 2
+        
+        # Call the plugin function
+        local plugin_function="plugin_${function_name}"
+        if declare -f "${plugin_function}" >/dev/null 2>&1; then
+            local output
+            output=$("${plugin_function}" "${home_path}" "${extra_args[@]}" 2>/dev/null)
+            local exit_code=$?
+            
+            # If result_var is provided and not empty, store the output
+            if [[ -n "${result_var}" ]]; then
+                eval "${result_var}='${output}'"
+            else
+                echo "${output}"
+            fi
+            return ${exit_code}
+        fi
+    fi
+    return 2
 }
 EOF
     
