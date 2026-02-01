@@ -11,7 +11,7 @@
 #            depending on product-specific implementations.
 # ------------------------------------------------------------------------------
 
-load 'test_helper' 2>/dev/null || true
+# load 'test_helper' 2>/dev/null || true  # Commented out - no test_helper exists
 
 # Helper: assert no sentinel strings
 assert_no_sentinel() {
