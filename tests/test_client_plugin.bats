@@ -109,7 +109,7 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "client plugin returns available status" {
+@test "client plugin returns N/A status" {
     # Create mock full client home
     local client_home="${TEST_DIR}/test_homes/client_19c"
     mkdir -p "${client_home}/bin"
@@ -119,7 +119,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/client_plugin.sh"
     run plugin_check_status "${client_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "available" ]
+    [ "$output" = "N/A" ]
 }
 
 @test "client plugin does not show listener" {

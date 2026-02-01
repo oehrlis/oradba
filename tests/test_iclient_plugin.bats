@@ -21,9 +21,12 @@ setup() {
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
     
     # For version detection tests, we need the real detect_oracle_version function
-    # Extract just that function from the real common.sh to avoid side effects
-    # This is safer than sourcing the entire file which might override configs
+    # and its dependencies (execute_plugin_function_v2, detect_product_type, oradba_log)
+    # Extract these functions from the real common.sh to avoid side effects
     if ! declare -f detect_oracle_version >/dev/null 2>&1; then
+        eval "$(sed -n '/^oradba_log()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+        eval "$(sed -n '/^execute_plugin_function_v2()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
         eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
     fi
     
@@ -126,7 +129,7 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "iclient plugin returns available status for readable library" {
+@test "iclient plugin returns N/A status" {
     # Create mock instant client home
     local ic_home="${TEST_DIR}/test_homes/instantclient_19_8"
     mkdir -p "${ic_home}"
@@ -136,18 +139,18 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
     run plugin_check_status "${ic_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "available" ]
+    [ "$output" = "N/A" ]
 }
 
-@test "iclient plugin returns unavailable for missing library" {
+@test "iclient plugin also returns N/A for missing library" {
     # Create mock instant client home without library
     local ic_home="${TEST_DIR}/test_homes/instantclient_empty"
     mkdir -p "${ic_home}"
     
     source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
     run plugin_check_status "${ic_home}" ""
-    [ "$status" -ne 0 ]
-    [ "$output" = "unavailable" ]
+    [ "$status" -eq 0 ]
+    [ "$output" = "N/A" ]
 }
 
 @test "iclient plugin does not show listener" {

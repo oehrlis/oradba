@@ -150,20 +150,10 @@ plugin_adjust_environment() {
 plugin_check_status() {
     local home_path="$1"
     
-    # Check if libclntsh.so is readable
-    if [[ -r "${home_path}/libclntsh.so" ]]; then
-        echo "available"
-        return 0
-    fi
-    # Check for readable versioned library
-    for lib in "${home_path}"/libclntsh.so.*; do
-        if [[ -r "$lib" ]]; then
-            echo "available"
-            return 0
-        fi
-    done
-    echo "unavailable"
-    return 1
+    # Instant clients don't have status in the traditional sense (no running services/instances)
+    # Return N/A with exit code 0 (successfully determined that status is not applicable)
+    echo "N/A"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -457,4 +447,6 @@ plugin_get_required_binaries() {
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-oradba_log DEBUG "Instant Client plugin loaded (v${plugin_version})"
+if declare -f oradba_log >/dev/null 2>&1; then
+    oradba_log DEBUG "Instant Client plugin loaded (v${plugin_version})"
+fi

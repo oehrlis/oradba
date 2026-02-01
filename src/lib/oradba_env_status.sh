@@ -264,23 +264,17 @@ oradba_get_product_status() {
     execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "status_result" "${instance_name}" 2>/dev/null
     plugin_exit_code=$?
     
-    # For certain product types, accept plugin output regardless of exit code
-    # (plugins may return non-zero for "stopped" status, which is valid)
-    case "${plugin_type}" in
-        datasafe|database)
-            if [[ -n "${status_result}" ]]; then
-                echo "${status_result}"
-                return ${plugin_exit_code}
-            fi
-            ;;
-        *)
-            # For other products, only use plugin output if exit code was 0
-            if [[ ${plugin_exit_code} -eq 0 ]] && [[ -n "${status_result}" ]]; then
-                echo "${status_result}"
-                return 0
-            fi
-            ;;
-    esac
+    # Plugin exit code contract:
+    # 0 = running/success/available (with status text on stdout)
+    #     - For services: "running" indicates the service is active
+    #     - For software-only products (client/iclient): "N/A" indicates status not applicable
+    # 1 = stopped/not-applicable (with status text on stdout)
+    # 2 = unavailable/cannot determine (with status text on stdout)
+    # For all product types, if plugin returned output, use it with the exit code
+    if [[ -n "${status_result}" ]]; then
+        echo "${status_result}"
+        return ${plugin_exit_code}
+    fi
     
     # Fallback to legacy product-specific functions only if plugin had no output or failed
     oradba_log DEBUG "Using fallback status check for ${product_type}"
