@@ -157,8 +157,8 @@ plugin_adjust_environment() {
 # Purpose.: Check OUD instance status
 # Args....: $1 - Path to OUD home
 #           $2 - Instance name (optional)
-# Returns.: 0 if running
-# Output..: Status string
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"
@@ -170,18 +170,14 @@ plugin_check_status() {
         # If instance name provided, check if it matches
         if [[ -n "$instance_name" ]]; then
             if pgrep -f "org.opends.server.core.DirectoryServer.*${instance_name}" >/dev/null 2>&1; then
-                echo "running"
                 return 0
             else
-                echo "stopped"
                 return 1
             fi
         else
-            echo "running"
             return 0
         fi
     else
-        echo "stopped"
         return 1
     fi
 }

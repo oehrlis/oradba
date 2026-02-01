@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: plugin_check_status() standardized with tri-state exit codes (Issue #140)**
+  - **All status strings removed from output**: No more "running", "stopped", "unavailable", "available" strings
+  - **Exit codes only**: 0=running/available, 1=stopped/N/A, 2=unavailable/error
+  - **All 9 plugins updated**: database, datasafe, client, iclient, java, oud, weblogic, emagent, oms
+  - **Tests updated**: Assert exit codes only, no output string assertions
+  - **Migration required**: Callers must check exit codes only (`if plugin_check_status; then ...`), not parse stdout
+  - See `doc/plugin-standards.md` for migration examples and updated templates
 - **Plugin Interface Enhancements (v1.0.0)**
   - **Function rename**: `plugin_build_path` split into `plugin_build_bin_path` (PATH) and
     `plugin_build_lib_path` (LD_LIBRARY_PATH)

@@ -41,21 +41,21 @@ assert_no_sentinel() {
     [ -z "$output" ]
 }
 
-@test "plugin_check_status: running/stopped/unavailable map to 0/1/2" {
-    plugin_check_status() { echo "running"; return 0; }
+@test "plugin_check_status: running/stopped/unavailable map to 0/1/2 with no output" {
+    plugin_check_status() { return 0; }
     run plugin_check_status "/fake/home"
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 
-    plugin_check_status() { echo "stopped"; return 1; }
+    plugin_check_status() { return 1; }
     run plugin_check_status "/fake/home"
     [ "$status" -eq 1 ]
-    [ "$output" = "stopped" ]
+    [ -z "$output" ]
 
-    plugin_check_status() { echo "unavailable"; return 2; }
+    plugin_check_status() { return 2; }
     run plugin_check_status "/fake/home"
     [ "$status" -eq 2 ]
-    [ "$output" = "unavailable" ]
+    [ -z "$output" ]
 }
 
 @test "plugin_build_bin_path: exit 0 and colon-separated path" {
