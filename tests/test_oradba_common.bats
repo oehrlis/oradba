@@ -681,9 +681,10 @@ EOF
     mkdir -p "${ORADBA_BASE}/src/lib/plugins"
     mv "${tmp_plugin_dir}/dummy_plugin.sh" "${ORADBA_BASE}/src/lib/plugins/dummy_plugin.sh"
 
-    local result
-    run execute_plugin_function_v2 "dummy" "echo_env" "/fake/home" "result"
-    assert_success
-    [[ "${result}" == *"oh=/fake/home"* ]]
-    [[ "${result}" == *"ll=/fake/home/lib"* ]]
+    # When using 'run', the output goes to $output, not to the result variable
+    # because the function runs in a subshell
+    run execute_plugin_function_v2 "dummy" "echo_env" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"oh=/fake/home"* ]]
+    [[ "${output}" == *"ll=/fake/home/lib"* ]]
 }

@@ -266,8 +266,10 @@ start_connector() {
     # Check if connector is already running
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Checking current status"
     local status
+    local status_exit_code=0
     if type -t plugin_check_status &>/dev/null; then
         status=$(plugin_check_status "${home}" "${name}")
+        status_exit_code=$?
     else
         # Fallback status check using cmctl
         local instance_name
@@ -276,14 +278,17 @@ start_connector() {
            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
            "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
             status="running"
+            status_exit_code=0
         else
             status="stopped"
+            status_exit_code=1
         fi
     fi
     
-    oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Current status: '${status}'"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Current status: '${status}' (exit: ${status_exit_code})"
 
-    if [[ "${status}" == "running" ]]; then
+    # Exit code 0 = running, 1 = stopped, 2 = unavailable
+    if [[ ${status_exit_code} -eq 0 ]]; then
         oradba_log INFO "Connector ${name} is already running"
         oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Connector already running, skipping startup"
         return 0
@@ -351,8 +356,10 @@ stop_connector() {
     # Check if connector is running
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
     local status
+    local status_exit_code=0
     if type -t plugin_check_status &>/dev/null; then
         status=$(plugin_check_status "${home}" "${name}")
+        status_exit_code=$?
     else
         # Fallback status check using cmctl
         local instance_name
@@ -361,14 +368,17 @@ stop_connector() {
            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
            "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
             status="running"
+            status_exit_code=0
         else
             status="stopped"
+            status_exit_code=1
         fi
     fi
     
-    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Current status: '${status}'"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Current status: '${status}' (exit: ${status_exit_code})"
 
-    if [[ "${status}" != "running" ]]; then
+    # Exit code 0 = running, 1 = stopped, 2 = unavailable
+    if [[ ${status_exit_code} -ne 0 ]]; then
         oradba_log INFO "Connector ${name} is not running"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Connector not running, skipping shutdown"
         return 0

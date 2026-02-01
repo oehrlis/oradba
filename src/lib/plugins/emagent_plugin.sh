@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin stub for Oracle Enterprise Manager Agent
 # Notes....: Minimal stub implementation - full support to be added later
-#            Version detection not applicable (returns "ERR")
+#            Version detection not applicable (returns exit 1)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
@@ -200,14 +200,6 @@ plugin_get_required_binaries() {
     return 0
 }
 
-# ------------------------------------------------------------------------------
-# Function: plugin_get_version
-# Purpose.: Get EM Agent version
-# Args....: $1 - Installation path
-# Returns.: 1 (version not applicable)
-# Output..: "ERR"
-# Notes...: EM Agent version detection not implemented in stub
-# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # Function: plugin_get_version
 # Purpose.: Get EM Agent version

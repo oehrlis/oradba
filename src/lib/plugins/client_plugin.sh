@@ -101,15 +101,10 @@ plugin_adjust_environment() {
 plugin_check_status() {
     local home_path="$1"
     
-    # Clients don't run like databases or services
-    # Just check if sqlplus is executable
-    if [[ -x "${home_path}/bin/sqlplus" ]]; then
-        echo "available"
-        return 0
-    else
-        echo "unavailable"
-        return 1
-    fi
+    # Clients don't have status in the traditional sense (no running services/instances)
+    # Return N/A with exit code 0 (successfully determined that status is not applicable)
+    echo "N/A"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
