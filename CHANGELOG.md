@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Phase 2.4: Stub plugin sentinel strings removed** (Issue #141)
+  - Fixed `plugin_check_status()` in weblogic_plugin.sh, emagent_plugin.sh, and oms_plugin.sh
+  - Changed from outputting "N/A" with exit 0 to "unavailable" with exit 2
+  - All plugins now comply with return value standards (0=running, 1=stopped, 2=unavailable)
+  - Completes Phase 2 (Return Value Standardization) - all sentinel strings eliminated
+  - Comprehensive audit of all 9 plugins across 13+ core functions confirmed compliance
+  - See `.github/.scratch/phase-2-4-audit-report.md` for detailed audit findings
+
 ### Removed
 
 ## [0.19.10] - 2026-01-24
