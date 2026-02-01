@@ -288,7 +288,8 @@ it with `ORACLE_BASE_HOME` when they differ.
 **Output Format:**
 
 - **No output to stdout** - Status is communicated via exit code only
-- Previous versions used status strings ("running", "stopped", "unavailable") but this has been deprecated in favor of exit codes only (Issue #140)
+- Previous versions used status strings ("running", "stopped", "unavailable") but this has been
+  deprecated in favor of exit codes only (Issue #140)
 
 **Notes:**
 
