@@ -34,6 +34,7 @@ run_test() {
     echo -n "Testing ${test_name}... "
     
     # Source the plugin
+    # shellcheck disable=SC1090
     if ! source "$plugin_file" 2>/dev/null; then
         echo "❌ FAIL (could not source plugin)"
         ((failed_tests++))
