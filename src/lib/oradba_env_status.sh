@@ -258,13 +258,23 @@ oradba_get_product_status() {
         wls) plugin_type="weblogic" ;;
     esac
     
-    # Special handling for CLIENT/ICLIENT - always return N/A (no service to check)
-    case "${product_type^^}" in
-        CLIENT|ICLIENT)
-            echo "N/A"
-            return 0
-            ;;
-    esac
+    # Try to use plugin for status check
+    local status_result=""
+    local plugin_exit_code=0
+    execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "status_result" "${instance_name}" 2>/dev/null
+    plugin_exit_code=$?
+    
+    # Plugin exit code contract:
+    # 0 = running/success/available (with status text on stdout)
+    #     - For services: "running" indicates the service is active
+    #     - For software-only products (client/iclient): "N/A" indicates status not applicable
+    # 1 = stopped/not-applicable (with status text on stdout)
+    # 2 = unavailable/cannot determine (with status text on stdout)
+    # For all product types, if plugin returned output, use it with the exit code
+    if [[ -n "${status_result}" ]]; then
+        echo "${status_result}"
+        return ${plugin_exit_code}
+    fi
     
     # Check if plugin exists before trying to call it
     local oradba_base="${ORADBA_BASE}"

@@ -498,5 +498,7 @@ plugin_get_adjusted_paths() {
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-oradba_log DEBUG "DataSafe plugin loaded (v${plugin_version})"
-oradba_log DEBUG "Consolidates oracle_cman_home logic (was in 8+ files)"
+if declare -f oradba_log >/dev/null 2>&1; then
+    oradba_log DEBUG "DataSafe plugin loaded (v${plugin_version})"
+    oradba_log DEBUG "Consolidates oracle_cman_home logic (was in 8+ files)"
+fi

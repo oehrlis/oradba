@@ -103,13 +103,10 @@ plugin_adjust_environment() {
 plugin_check_status() {
     local home_path="$1"
     
-    # Clients don't run like databases or services
-    # Just check if sqlplus is executable
-    if [[ -x "${home_path}/bin/sqlplus" ]]; then
-        return 0
-    else
-        return 2
-    fi
+    # Clients don't have status in the traditional sense (no running services/instances)
+    # Return N/A with exit code 0 (successfully determined that status is not applicable)
+    echo "N/A"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -311,4 +308,6 @@ plugin_get_required_binaries() {
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-oradba_log DEBUG "Client plugin loaded (v${plugin_version})"
+if declare -f oradba_log >/dev/null 2>&1; then
+    oradba_log DEBUG "Client plugin loaded (v${plugin_version})"
+fi
