@@ -104,9 +104,8 @@ plugin_check_status() {
     local home_path="$1"
     
     # Clients don't have status in the traditional sense (no running services/instances)
-    # Return N/A with exit code 0 (successfully determined that status is not applicable)
-    echo "N/A"
-    return 0
+    # Return exit code 1 (not applicable - software-only product)
+    return 1
 }
 
 # ------------------------------------------------------------------------------
