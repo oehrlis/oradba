@@ -276,7 +276,53 @@ oradba_get_product_status() {
         return ${plugin_exit_code}
     fi
     
-    # Fallback to legacy product-specific functions only if plugin had no output or failed
+    # Check if plugin exists before trying to call it
+    local oradba_base="${ORADBA_BASE}"
+    if [[ -z "${oradba_base}" ]]; then
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        oradba_base="$(cd "${script_dir}/../.." && pwd)"
+    fi
+    
+    local plugin_file="${oradba_base}/src/lib/plugins/${plugin_type}_plugin.sh"
+    if [[ ! -f "${plugin_file}" ]]; then
+        plugin_file="${oradba_base}/lib/plugins/${plugin_type}_plugin.sh"
+    fi
+    
+    # Only try plugin if it exists
+    if [[ -f "${plugin_file}" ]]; then
+        # Try to use plugin for status check
+        # Note: Plugins now return status via exit code only (no output)
+        # 0=running/available, 1=stopped/N/A, 2=unavailable/error
+        local plugin_exit_code=0
+        execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "" "${instance_name}" 2>/dev/null
+        plugin_exit_code=$?
+        
+        # Map exit codes to status strings for backward compatibility
+        case ${plugin_exit_code} in
+            0)
+                # Running/available
+                echo "running"
+                return 0
+                ;;
+            1)
+                # Stopped/N/A
+                echo "stopped"
+                return 1
+                ;;
+            2)
+                # Unavailable/error
+                echo "unavailable"
+                return 2
+                ;;
+            *)
+                # Unexpected exit code - fall through to legacy functions
+                oradba_log DEBUG "Plugin check_status returned unexpected code ${plugin_exit_code}, using fallback"
+                ;;
+        esac
+    fi
+    
+    # Fallback to legacy product-specific functions if plugin doesn't exist or returned unexpected code
     oradba_log DEBUG "Using fallback status check for ${product_type}"
     case "${product_type^^}" in
         RDBMS|DATABASE)
@@ -292,11 +338,6 @@ oradba_get_product_status() {
             else
                 oradba_check_db_status "$instance_name" "$home_path"
             fi
-            ;;
-        CLIENT|ICLIENT)
-            # Client installations don't have services
-            echo "N/A"
-            return 0
             ;;
         OUD)
             oradba_check_oud_status "$instance_name"

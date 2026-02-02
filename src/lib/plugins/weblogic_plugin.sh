@@ -63,13 +63,13 @@ plugin_adjust_environment() {
 # Function: plugin_check_status
 # Purpose.: Check WebLogic status
 # Args....: $1 - Path to WebLogic home
-#           $2 - Ignored
-# Returns.: 2 (unavailable - stub not implemented)
-# Output..: "unavailable"
+#           $2 - Domain name (optional)
+# Returns.: 0 if running, 1 if stopped/N/A, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
+# Notes...: Stub implementation - returns 1 (not applicable)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
-    echo "unavailable"
-    return 2
+    return 1
 }
 
 # ------------------------------------------------------------------------------

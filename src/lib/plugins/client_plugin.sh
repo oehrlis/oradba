@@ -94,9 +94,11 @@ plugin_adjust_environment() {
 # Purpose.: Check client availability
 # Args....: $1 - ORACLE_HOME path
 #           $2 - Ignored (clients don't have instances)
-# Returns.: 0 always (clients don't "run")
-# Output..: Status string
-# Notes...: Clients are always "available" (not "running" or "stopped")
+# Returns.: 0 if available (software exists and functional)
+#           1 if not applicable
+#           2 if unavailable (missing or non-functional)
+# Output..: None - status communicated via exit code only
+# Notes...: Clients are software-only installations without running services
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"

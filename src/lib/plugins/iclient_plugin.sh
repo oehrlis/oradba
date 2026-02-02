@@ -144,8 +144,11 @@ plugin_adjust_environment() {
 # Purpose.: Check instant client availability
 # Args....: $1 - Path to instant client
 #           $2 - Ignored (instant clients don't have instances)
-# Returns.: 0 if libraries available
-# Output..: Status string
+# Returns.: 0 if available (library exists and readable)
+#           1 if not applicable
+#           2 if unavailable (missing or non-functional)
+# Output..: None - status communicated via exit code only
+# Notes...: Instant client is software-only, no running service
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local home_path="$1"

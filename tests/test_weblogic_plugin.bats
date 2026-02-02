@@ -328,7 +328,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/weblogic_plugin.sh"
     run plugin_check_status "${wls_home}"
     
-    # Stub returns exit 0 with N/A
-    [ "$status" -eq 0 ]
-    [ "$output" = "N/A" ]
+    # Stub returns exit 1 (N/A) with no output
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
 }

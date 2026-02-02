@@ -107,8 +107,8 @@ plugin_adjust_environment() {
 # Purpose.: Check Data Safe connector status
 # Args....: $1 - Base path or oracle_cman_home path
 #           $2 - Connector name (optional)
-# Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string (running|stopped|unavailable)
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
 # Notes...: Multi-layered detection with fallback:
 #           1. cmctl show services -c <instance> (most accurate)
 #           2. Process-based detection (reliable fallback)
@@ -146,14 +146,12 @@ plugin_check_status() {
         # Check for explicit stopped/not running messages FIRST (more specific)
         # Use word boundaries to avoid matching "running" in "not running"
         if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
-            echo "stopped"
             return 1
         fi
         
         # Then check for service information in output (running state)
         # Check for positive indicators: Services Summary, READY, started, or "is running"
         if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|is running"; then
-            echo "running"
             return 0
         fi
     fi
@@ -162,38 +160,32 @@ plugin_check_status() {
     # Check for running cmadmin or cmgw processes
     # shellcheck disable=SC2009
     if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
-        echo "running"
         return 0
     fi
     
     # shellcheck disable=SC2009
     if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
-        echo "running"
         return 0
     fi
     
     # Tertiary Method: Python setup.py (last resort)
     if [[ -f "${base_path}/setup.py" ]]; then
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
-            echo "running"
             return 0
         fi
         
         # Check for stopped status
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
-            echo "stopped"
             return 1
         fi
     fi
     
     # If no detection method worked, check if it's unavailable
     if [[ ! -x "${cmctl}" ]]; then
-        echo "unavailable"
         return 2
     fi
     
     # Default to stopped if cmctl exists but we can't determine status
-    echo "stopped"
     return 1
 }
 

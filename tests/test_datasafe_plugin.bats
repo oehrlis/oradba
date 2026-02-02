@@ -138,7 +138,7 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 2 ]
-    [ "$output" = "unavailable" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin does not show listener" {
@@ -269,7 +269,7 @@ MOCK_PS_SCRIPT
     rm -f "${TEST_DIR}/ps"
     
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin detects running connector via cmgw process" {
@@ -303,7 +303,7 @@ MOCK_PS_SCRIPT
     rm -f "${TEST_DIR}/ps"
     
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin uses setup.py when processes not found" {
@@ -325,7 +325,7 @@ SETUP_PY
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin detects stopped connector via setup.py" {
@@ -347,7 +347,7 @@ SETUP_PY
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 1 ]
-    [ "$output" = "stopped" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin uses correct cmctl show services command" {
@@ -383,7 +383,7 @@ CMCTL_MOCK
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin parses instance name from cman.ora" {
@@ -413,7 +413,7 @@ CMCTL_MOCK
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin uses default instance name when cman.ora missing" {
@@ -437,7 +437,7 @@ CMCTL_MOCK
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_check_status "${ds_home}" ""
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin gets version from cmctl" {
@@ -587,7 +587,7 @@ CMCTL_MOCK
     # Test with instance name
     run plugin_check_status "${ds_home}" "test_instance"
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 @test "datasafe plugin extracts instance name from cman.ora" {
@@ -627,7 +627,7 @@ CMCTL_MOCK
     # Plugin should extract instance name from cman.ora
     run plugin_check_status "${ds_home}"
     [ "$status" -eq 0 ]
-    [ "$output" = "running" ]
+    [ -z "$output" ]
 }
 
 # ==============================================================================

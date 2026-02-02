@@ -92,9 +92,9 @@ plugin_adjust_environment() {
 # Purpose.: Check if database instance is running
 # Args....: $1 - ORACLE_HOME path
 #           $2 - SID (optional)
-# Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string (running|stopped|unavailable)
-# Notes...: Returns unavailable if oracle binary is missing
+# Returns.: 0 if running, 1 if stopped, 2 if unavailable/error
+# Output..: None - status communicated via exit code only
+# Notes...: Returns 2 if oracle binary is missing
 #           Can return metadata for mounted/nomount states in future enhancement
 # ------------------------------------------------------------------------------
 plugin_check_status() {
@@ -103,7 +103,6 @@ plugin_check_status() {
     
     # Validate ORACLE_HOME exists and has oracle binary
     if [[ ! -d "${home_path}" ]] || [[ ! -f "${home_path}/bin/oracle" ]]; then
-        echo "unavailable"
         return 2
     fi
     
@@ -116,20 +115,16 @@ plugin_check_status() {
                 local proc_home
                 proc_home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
                 if [[ "${proc_home}" == "${home_path}" ]]; then
-                    echo "running"
                     return 0
                 fi
             fi
         done < <(ps -ef | grep "[p]mon_")
-        echo "stopped"
         return 1
     else
         # Specific SID requested
         if ps -ef | grep -q "[p]mon_${sid}$"; then
-            echo "running"
             return 0
         else
-            echo "stopped"
             return 1
         fi
     fi
