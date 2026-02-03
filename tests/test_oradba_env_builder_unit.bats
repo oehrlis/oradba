@@ -82,11 +82,11 @@ teardown() {
     MOCK_LOG_CALLS=0
     
     # Call a function that logs
-    result=$(oradba_dedupe_path "/bin:/usr/bin:/bin")
+    oradba_dedupe_path "/bin:/usr/bin:/bin" >/dev/null
     
     # Mock logger should have been called (via _oradba_builder_log if any logging happens)
     # dedupe_path doesn't log, but we verify the mechanism works
-    [ "$status" -eq 0 ]
+    [ "$?" -eq 0 ]
 }
 
 # ==============================================================================
