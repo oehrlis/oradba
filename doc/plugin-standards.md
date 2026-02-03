@@ -19,6 +19,17 @@ Comprehensive review and documentation refinement of plugin interface convention
 
 See `.github/.scratch/plugin-interface-analysis.md` for detailed review findings.
 
+### January 2026 - Phase 2.5 Complete Sentinel String Removal (Issue #142)
+
+All plugins updated to fully remove sentinel strings from ALL output functions:
+
+- ✅ All sentinel strings ("ERR", "unknown", "N/A") removed from plugin_get_metadata output
+- ✅ When version is unavailable, the version key-value pair is omitted entirely
+- ✅ Exit codes remain the definitive status indicator (0=success, 1=N/A, 2=error)
+- ✅ All 9 plugins (6 production + 3 stubs) updated to new standard
+- ✅ Experimental plugin exclusion: plugins with `plugin_status="EXPERIMENTAL"` are automatically skipped
+- ✅ Test infrastructure updated: experimental tests skipped by default, run with `ORADBA_TEST_EXPERIMENTAL=true`
+
 ### January 2026 - Phase 2.4 Completion (Issue #141)
 
 All 9 plugins have been audited for comprehensive return value standardization:
@@ -39,7 +50,6 @@ All plugins have been standardized to conform to the exit code contract for `plu
 - ✅ Exit codes standardized: 0=success with clean version, 1=N/A, 2=error
 - ✅ All 9 plugins (6 production + 3 stubs) updated to new contract
 - ✅ Tests updated to validate exit codes instead of sentinel strings
-- ✅ Backward compatibility maintained in plugin_get_metadata (can still output "version=N/A")
 
 See [Migration from Non-Compliant Code](#migration-from-non-compliant-code) for before/after examples.
 
@@ -88,6 +98,25 @@ and "how" of each function.
 - **Code review**: Verify plugin implementations follow standards
 - **Debugging**: Understand expected behavior and return values
 - **Proposing interface changes**: Breaking changes require version bump
+
+### Experimental Plugins
+
+Plugins marked with `plugin_status="EXPERIMENTAL"` are excluded from production use:
+
+- **Automatic Exclusion**: Plugin loader functions (`execute_plugin_function_v2` and
+  `oradba_apply_oracle_plugin`) automatically skip experimental plugins with a warning
+- **Testing**: Experimental plugin tests are skipped by default; enable with
+  `ORADBA_TEST_EXPERIMENTAL=true` environment variable
+- **Use Cases**: Stub implementations, beta features, or incomplete plugins under development
+- **Current Experimental Plugins**: `weblogic`, `emagent`, `oms`
+- **Production Plugins**: `database`, `datasafe`, `client`, `iclient`, `oud`, `java`
+
+**When developing experimental plugins:**
+
+1. Set `export plugin_status="EXPERIMENTAL"` in plugin metadata
+2. Mark purpose as stub/beta in description: `"Product Name (EXPERIMENTAL STUB)"`
+3. Tests will be skipped in CI/CD unless explicitly enabled
+4. Plugin functions will not execute in production environments
 
 ## Product Types and Categories
 
@@ -442,6 +471,8 @@ patchlevel=221018
 - Call `plugin_get_version()` if available
 - Return minimal metadata if full extraction fails
 - Don't error on missing optional metadata
+- **No sentinel strings**: Omit key-value pairs entirely if data unavailable (don't output "version=N/A")
+- Clean data only: Output should contain valid data or nothing
 
 #### plugin_discover_instances
 
@@ -2567,7 +2598,61 @@ fi
 
 ```
 
-#### Anti-Pattern 4: Assuming Dependencies
+#### Anti-Pattern 4: Sentinel Values in plugin_get_metadata
+
+**Before (non-compliant, deprecated in v0.20.0):**
+
+```bash
+plugin_get_metadata() {
+    local home_path="$1"
+    local version
+    
+    # ❌ WRONG: Outputs sentinel string for unavailable data
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
+    else
+        echo "version=N/A"  # Sentinel string
+    fi
+    
+    echo "edition=Enterprise"
+    return 0
+}
+
+# Caller must check for sentinels
+metadata=$(plugin_get_metadata "${home}")
+version=$(echo "$metadata" | grep version= | cut -d= -f2)
+if [[ "${version}" != "N/A" ]]; then
+    echo "Version: ${version}"
+fi
+```
+
+**After (compliant, v0.20.0+):**
+
+```bash
+plugin_get_metadata() {
+    local home_path="$1"
+    local version
+    
+    # ✅ CORRECT: Omit key-value pair if data unavailable
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
+    fi
+    # No output if version not available - cleaner than sentinel
+    
+    echo "edition=Enterprise"
+    return 0
+}
+
+# Caller handles missing keys gracefully
+metadata=$(plugin_get_metadata "${home}")
+if version=$(echo "$metadata" | grep "^version=" | cut -d= -f2); then
+    echo "Version: ${version}"
+else
+    echo "Version: Not available"
+fi
+```
+
+#### Anti-Pattern 5: Assuming Dependencies
 
 **Before (non-compliant):**
 
@@ -2609,7 +2694,8 @@ plugin_get_info() {
 
 When updating a plugin to comply with standards:
 
-- [ ] Remove all sentinel strings ("ERR", "unknown", "N/A")
+- [ ] Remove all sentinel strings ("ERR", "unknown", "N/A") from ALL functions
+- [ ] In `plugin_get_metadata`, omit key-value pairs when data unavailable (don't output "key=N/A")
 - [ ] Update exit codes to standard conventions (0/1/2)
 - [ ] Separate stdout (data) from stderr (logging)
 - [ ] Add function headers for all universal core (and category-specific) functions
@@ -2618,6 +2704,8 @@ When updating a plugin to comply with standards:
 - [ ] Add error handling for missing binaries
 - [ ] Update tests to check exit codes, not output strings
 - [ ] Run shellcheck and fix warnings
+- [ ] For experimental/stub plugins, set `plugin_status="EXPERIMENTAL"`
+- [ ] Test with experimental plugin exclusion (should be skipped by default)
 - [ ] Test with real Oracle installations
 
 ### Testing Migration

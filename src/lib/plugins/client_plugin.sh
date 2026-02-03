@@ -121,10 +121,9 @@ plugin_get_metadata() {
     local version
     
     # Get version using plugin_get_version
+    # Only output version if available (no sentinel strings)
     if version=$(plugin_get_version "${home_path}"); then
         echo "version=${version}"
-    else
-        echo "version=N/A"
     fi
     
     # Client type

@@ -168,29 +168,14 @@ plugin_check_status() {
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     local home_path="$1"
+    local version
     
-    # Try to get version from library
-    local version="unknown"
-    local lib_file="${home_path}/libclntsh.so"
-    
-    # Check for versioned library
-    if [[ -f "${lib_file}" ]]; then
-        # Try to extract version from symlink or filename
-        if [[ -L "${lib_file}" ]]; then
-            local target
-            target=$(readlink "${lib_file}")
-            version=$(echo "$target" | grep -oP 'libclntsh\.so\.\K[\d.]+' || echo "unknown")
-        fi
-    else
-        # Look for versioned file
-        local versioned
-        versioned=$(ls "${home_path}"/libclntsh.so.* 2>/dev/null | head -1)
-        if [[ -n "$versioned" ]]; then
-            version=$(basename "$versioned" | grep -oP 'libclntsh\.so\.\K[\d.]+' || echo "unknown")
-        fi
+    # Get version using plugin_get_version
+    # Only output version if available (no sentinel strings)
+    if version=$(plugin_get_version "${home_path}"); then
+        echo "version=${version}"
     fi
     
-    echo "version=${version}"
     echo "type=instant_client"
     
     # Check for sqlplus (some instant client packages include it)

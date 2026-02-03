@@ -2725,8 +2725,11 @@ auto_discover_oracle_homes() {
 # Output..: Plugin function output (or stored in result variable)
 # Notes...: Dynamically loads plugins if not already loaded
 #           Used by oradba_env_status.sh and other components
+#           **DEPRECATED**: Use execute_plugin_function_v2() instead for subshell isolation
 # ------------------------------------------------------------------------------
 oradba_apply_oracle_plugin() {
+    # Emit deprecation warning
+    oradba_log WARN "oradba_apply_oracle_plugin is deprecated - use execute_plugin_function_v2 instead"
     local function_name="$1"
     local product_type="$2"
     local oracle_home="$3"
@@ -2766,6 +2769,11 @@ oradba_apply_oracle_plugin() {
             oradba_log DEBUG "Failed to load plugin: ${plugin_file}"
             return 1
         }
+        # Check if plugin is experimental and should be skipped
+        if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
+            oradba_log WARN "Skipping experimental plugin: ${product_type} (marked as ${plugin_status})"
+            return 1
+        fi
     fi
     
     # Verify function exists after sourcing
@@ -2870,6 +2878,12 @@ execute_plugin_function_v2() {
             set -euo pipefail
             # shellcheck disable=SC1090
             source "${plugin_file}"
+            # Check if plugin is experimental
+            if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
+                # Log to stderr so it doesn't pollute stdout
+                echo "WARNING: Skipping experimental plugin: ${product_type}" >&2
+                exit 1
+            fi
             if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
                 exit 1
             fi
@@ -2887,6 +2901,12 @@ execute_plugin_function_v2() {
             set -euo pipefail
             # shellcheck disable=SC1090
             source "${plugin_file}"
+            # Check if plugin is experimental
+            if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
+                # Log to stderr so it doesn't pollute stdout
+                echo "WARNING: Skipping experimental plugin: ${product_type}" >&2
+                exit 1
+            fi
             if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
                 exit 1
             fi
