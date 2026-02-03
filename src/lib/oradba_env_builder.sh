@@ -137,27 +137,12 @@ oradba_add_oracle_path() {
         wls|weblogic) product_type="weblogic" ;;
     esac
     
-    # Try to load and use plugin (check installed path first, then dev path)
-    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
-    if [[ ! -f "${plugin_file}" ]]; then
-        plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
-    fi
-    
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}" 2>/dev/null
-        
-        # Call plugin function if exists and capture exit code
-        if declare -f plugin_build_bin_path >/dev/null 2>&1; then
-            if new_path=$(plugin_build_bin_path "${oracle_home}"); then
-                oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
-            else
-                oradba_log DEBUG "Plugin ${product_type}: plugin_build_bin_path failed, using fallback"
-                new_path=""
-            fi
-        fi
+    # Use v2 wrapper for isolated plugin execution (Phase 3)
+    if execute_plugin_function_v2 "${product_type}" "build_bin_path" "${oracle_home}" "new_path"; then
+        oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
     else
-        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
+        oradba_log DEBUG "Plugin ${product_type}: plugin_build_bin_path failed or N/A, using fallback"
+        new_path=""
     fi
     
     # Fallback if plugin not found or failed
@@ -225,27 +210,12 @@ oradba_set_lib_path() {
         wls|weblogic) product_type="weblogic" ;;
     esac
     
-    # Try to load and use plugin (check installed path first, then dev path)
-    local plugin_file="${ORADBA_BASE}/lib/plugins/${product_type}_plugin.sh"
-    if [[ ! -f "${plugin_file}" ]]; then
-        plugin_file="${ORADBA_BASE}/src/lib/plugins/${product_type}_plugin.sh"
-    fi
-    
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}" 2>/dev/null
-        
-        # Call plugin function if it exists and capture exit code
-        if declare -f plugin_build_lib_path >/dev/null 2>&1; then
-            if lib_path=$(plugin_build_lib_path "${oracle_home}"); then
-                oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
-            else
-                oradba_log DEBUG "Plugin ${product_type}: plugin_build_lib_path failed, using fallback"
-                lib_path=""
-            fi
-        fi
+    # Use v2 wrapper for isolated plugin execution (Phase 3)
+    if execute_plugin_function_v2 "${product_type}" "build_lib_path" "${oracle_home}" "lib_path"; then
+        oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
     else
-        oradba_log DEBUG "Plugin file not found: ${plugin_file}"
+        oradba_log DEBUG "Plugin ${product_type}: plugin_build_lib_path failed or N/A, using fallback"
+        lib_path=""
     fi
     
     # Fallback if plugin not found or failed
@@ -380,12 +350,9 @@ oradba_set_oracle_vars() {
     local adjusted_home="${oracle_home}"
     
     if [[ "$product_type" == "DATASAFE" ]]; then
-        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
-        if [[ -f "${plugin_file}" ]]; then
-            # shellcheck source=/dev/null
-            source "${plugin_file}"
+        # Use v2 wrapper for isolated plugin execution (Phase 3)
+        if execute_plugin_function_v2 "datasafe" "adjust_environment" "${oracle_home}" "adjusted_home"; then
             datasafe_parent="${oracle_home}"
-            adjusted_home=$(plugin_adjust_environment "${oracle_home}")
         elif [[ -d "${oracle_home}/oracle_cman_home" ]]; then
             # Fallback
             datasafe_parent="${oracle_home}"
