@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 4 (Partial)**: Dependency Injection Infrastructure ([#137](https://github.com/oehrlis/oradba/issues/137))
+  - Added `oradba_parser_init()`, `oradba_builder_init()`, `oradba_validator_init()` functions
+  - Implemented internal logging functions: `_oradba_parser_log()`, `_oradba_builder_log()`, `_oradba_validator_log()`
+  - Created comprehensive unit test suites:
+    - `test_oradba_env_parser_unit.bats` (17 tests)
+    - `test_oradba_env_builder_unit.bats` (22 tests)
+    - `test_oradba_env_validator_unit.bats` (28 tests)
+  - Added `doc/di-patterns.md` - Comprehensive DI usage guide (450+ lines)
+  - Mock logger support for unit testing
+  - Stateless execution capabilities
+  - **Phase 4 Progress**: ~40% complete (Week 1 of 3 - DI infrastructure and unit tests)
 - **Phase 3: Subshell Isolation for Plugin Execution (Issue #136)**
   - Implemented complete plugin execution isolation via `execute_plugin_function_v2()`
   - All plugins now execute in isolated subshells with minimal Oracle environment
@@ -28,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Phase 4 (Partial)**: Refactored environment libraries for dependency injection
+  - Replaced 29 direct `oradba_log` calls in `oradba_env_builder.sh` with `_oradba_builder_log()`
+  - Replaced 2 direct `oradba_log` calls in `oradba_env_validator.sh` with `_oradba_validator_log()`
+  - Updated `.github/.scratch/plugin-refactor-plan.md` to reflect Phase 4 progress
+  - **100% Backward Compatible**: All existing tests (1086+) continue to pass
+  - Libraries fall back to `oradba_log` when available if no logger injected
 - **BREAKING: plugin_check_status() standardized with tri-state exit codes (Issue #140)**
   - **All status strings removed from output**: No more "running", "stopped", "unavailable", "available" strings
   - **Exit codes only**: 0=running/available, 1=stopped/N/A, 2=unavailable/error

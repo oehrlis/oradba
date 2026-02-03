@@ -20,6 +20,50 @@
 readonly ORADBA_ENV_PARSER_LOADED=1
 
 # ------------------------------------------------------------------------------
+# Dependency Injection Infrastructure (Phase 4)
+# ------------------------------------------------------------------------------
+
+# Associative array for storing dependencies (logger function reference)
+# Note: Bash 3.x doesn't support associative arrays, so we use global variables
+declare ORADBA_PARSER_LOGGER="${ORADBA_PARSER_LOGGER:-}"
+
+# ------------------------------------------------------------------------------
+# Function: oradba_parser_init
+# Purpose.: Initialize parser library with optional dependency injection
+# Args....: $1 - Logger function name (optional, defaults to "oradba_log")
+# Returns.: 0 on success
+# Output..: None
+# Notes...: Call this function before using parser functions if you want to inject
+#           a custom logger. If not called, parser works standalone without logging.
+# ------------------------------------------------------------------------------
+oradba_parser_init() {
+    local logger="${1:-}"
+    
+    # Store logger function reference
+    ORADBA_PARSER_LOGGER="$logger"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oradba_parser_log
+# Purpose.: Internal logging function that uses injected logger or no-op
+# Args....: $1 - Log level (DEBUG, INFO, WARN, ERROR)
+#          $@ - Log message
+# Returns.: 0 on success
+# Output..: None (delegates to injected logger)
+# Notes...: Internal use only. Prefix with underscore to indicate private.
+# ------------------------------------------------------------------------------
+_oradba_parser_log() {
+    # If no logger is configured, no-op (silent)
+    [[ -z "$ORADBA_PARSER_LOGGER" ]] && return 0
+    
+    # Call injected logger function
+    "$ORADBA_PARSER_LOGGER" "$@"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_parse_oratab
 # Purpose.: Parse /etc/oratab file and find SID entry
 # Args....: $1 - SID to find (optional, if empty returns all)

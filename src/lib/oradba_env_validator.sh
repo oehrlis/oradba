@@ -20,6 +20,57 @@
 readonly ORADBA_ENV_VALIDATOR_LOADED=1
 
 # ------------------------------------------------------------------------------
+# Dependency Injection Infrastructure (Phase 4)
+# ------------------------------------------------------------------------------
+
+# Global variable for storing logger dependency
+declare ORADBA_VALIDATOR_LOGGER="${ORADBA_VALIDATOR_LOGGER:-}"
+
+# ------------------------------------------------------------------------------
+# Function: oradba_validator_init
+# Purpose.: Initialize validator library with optional dependency injection
+# Args....: $1 - Logger function name (optional, defaults to "oradba_log")
+# Returns.: 0 on success
+# Output..: None
+# Notes...: Call this function before using validator functions if you want to inject
+#           a custom logger. If not called, falls back to oradba_log if available.
+# ------------------------------------------------------------------------------
+oradba_validator_init() {
+    local logger="${1:-}"
+    
+    # Store logger function reference
+    ORADBA_VALIDATOR_LOGGER="$logger"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oradba_validator_log
+# Purpose.: Internal logging function that uses injected logger or fallback
+# Args....: $1 - Log level (DEBUG, INFO, WARN, ERROR)
+#          $@ - Log message
+# Returns.: 0 on success
+# Output..: None (delegates to injected logger)
+# Notes...: Internal use only. Falls back to oradba_log if available, or no-op.
+# ------------------------------------------------------------------------------
+_oradba_validator_log() {
+    # Priority 1: Use injected logger if configured
+    if [[ -n "$ORADBA_VALIDATOR_LOGGER" ]]; then
+        "$ORADBA_VALIDATOR_LOGGER" "$@"
+        return 0
+    fi
+    
+    # Priority 2: Fall back to oradba_log if available (backward compatibility)
+    if declare -f oradba_log &>/dev/null; then
+        oradba_log "$@"
+        return 0
+    fi
+    
+    # Priority 3: No-op (silent)
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_validate_oracle_home
 # Purpose.: Check if ORACLE_HOME exists and is valid
 # Args....: $1 - ORACLE_HOME (optional, uses $ORACLE_HOME if not provided)
@@ -87,12 +138,12 @@ oradba_check_oracle_binaries() {
     if execute_plugin_function_v2 "${plugin_type}" "get_required_binaries" "NOARGS" "binary_list"; then
         # Convert space-separated string to array
         read -ra binaries <<< "$binary_list"
-        oradba_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
+        _oradba_validator_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
     fi
     
     # Fallback to basic checks if plugin not available
     if [[ ${#binaries[@]} -eq 0 ]]; then
-        oradba_log DEBUG "Using fallback binary checks for ${product_type}"
+        _oradba_validator_log DEBUG "Using fallback binary checks for ${product_type}"
         case "${product_type^^}" in
             RDBMS|DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
             CLIENT) binaries=("sqlplus" "tnsping") ;;
