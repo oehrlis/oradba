@@ -81,19 +81,13 @@ oradba_check_oracle_binaries() {
         wls) plugin_type="weblogic" ;;
     esac
     
-    # Try to get required binaries from plugin
-    local plugin_file="${ORADBA_BASE}/src/lib/plugins/${plugin_type}_plugin.sh"
-    if [[ -f "${plugin_file}" ]]; then
-        # shellcheck source=/dev/null
-        source "${plugin_file}" 2>/dev/null
-        
-        if declare -f plugin_get_required_binaries >/dev/null 2>&1; then
-            local binary_list
-            binary_list=$(plugin_get_required_binaries)
-            # Convert space-separated string to array
-            read -ra binaries <<< "$binary_list"
-            oradba_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
-        fi
+    # Use v2 wrapper for isolated plugin execution (Phase 3)
+    # Note: plugin_get_required_binaries takes no arguments, so use NOARGS
+    local binary_list
+    if execute_plugin_function_v2 "${plugin_type}" "get_required_binaries" "NOARGS" "binary_list"; then
+        # Convert space-separated string to array
+        read -ra binaries <<< "$binary_list"
+        oradba_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
     fi
     
     # Fallback to basic checks if plugin not available

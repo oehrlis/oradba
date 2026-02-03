@@ -2825,12 +2825,13 @@ oradba_apply_oracle_plugin() {
 # Purpose.: Execute a plugin function in an isolated subshell with minimal env
 # Args....: $1 - product type (plugin name, e.g., database, datasafe)
 #           $2 - function name (without plugin_ prefix)
-#           $3 - ORACLE_HOME / base path
+#           $3 - ORACLE_HOME / base path (use "NOARGS" for no-arg functions)
 #           $4 - result variable name (optional)
 #           $5 - extra argument (optional)
 # Returns.: Exit code from plugin function
 # Output..: Stdout from plugin function (or stored in result variable)
 # Notes...: Adds subshell isolation (Phase 3) and minimal ORACLE_HOME/LD_LIBRARY_PATH
+#           For no-arg functions (e.g., plugin_get_config_section), pass "NOARGS" as oracle_home
 # ------------------------------------------------------------------------------
 execute_plugin_function_v2() {
     local product_type="$1"
@@ -2858,25 +2859,44 @@ execute_plugin_function_v2() {
 
     local plugin_function="plugin_${function_name}"
     local output
-    output=$(
-        ORACLE_HOME="${oracle_home}"
-        export ORACLE_HOME
-        if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
-            LD_LIBRARY_PATH="${oracle_home}/lib"
-            export LD_LIBRARY_PATH
-        fi
-        set -euo pipefail
-        # shellcheck disable=SC1090
-        source "${plugin_file}"
-        if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
-            exit 1
-        fi
-        if [[ -n "${extra_arg}" ]]; then
-            "${plugin_function}" "${oracle_home}" "${extra_arg}"
-        else
-            "${plugin_function}" "${oracle_home}"
-        fi
-    )
+    
+    # Handle no-arg functions vs functions that take oracle_home
+    if [[ "${oracle_home}" == "NOARGS" ]]; then
+        # No-arg function (e.g., plugin_get_config_section)
+        output=$(
+            # Set minimal Oracle environment from current context
+            export ORACLE_HOME="${ORACLE_HOME:-}"
+            export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+            set -euo pipefail
+            # shellcheck disable=SC1090
+            source "${plugin_file}"
+            if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+                exit 1
+            fi
+            "${plugin_function}"
+        )
+    else
+        # Function takes oracle_home as argument
+        output=$(
+            ORACLE_HOME="${oracle_home}"
+            export ORACLE_HOME
+            if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
+                LD_LIBRARY_PATH="${oracle_home}/lib"
+                export LD_LIBRARY_PATH
+            fi
+            set -euo pipefail
+            # shellcheck disable=SC1090
+            source "${plugin_file}"
+            if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+                exit 1
+            fi
+            if [[ -n "${extra_arg}" ]]; then
+                "${plugin_function}" "${oracle_home}" "${extra_arg}"
+            else
+                "${plugin_function}" "${oracle_home}"
+            fi
+        )
+    fi
     local exit_code=$?
 
     if [[ -n "${result_var_name}" ]]; then
