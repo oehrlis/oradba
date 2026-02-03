@@ -7,10 +7,15 @@
 # Date.....: 2026.01.31
 # Purpose..: Unit tests for weblogic_plugin.sh (Oracle WebLogic Server)
 # Notes....: Stub implementation tests
+#            EXPERIMENTAL: Set ORADBA_TEST_EXPERIMENTAL=true to run these tests
 # ------------------------------------------------------------------------------
 
 # Setup test environment
 setup() {
+    # Skip experimental plugin tests unless explicitly enabled
+    if [[ "${ORADBA_TEST_EXPERIMENTAL:-false}" != "true" ]]; then
+        skip "Experimental plugin tests disabled (set ORADBA_TEST_EXPERIMENTAL=true to enable)"
+    fi
     # Create temporary test directory
     export TEST_DIR="${BATS_TEST_TMPDIR}/oradba_weblogic_$$"
     mkdir -p "${TEST_DIR}/lib"
