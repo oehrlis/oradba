@@ -1,0 +1,125 @@
+#################################################################################
+# OraDBA DBCA Response File Template
+# Oracle Database 26ai Free - Free Edition
+# 
+# This template creates an Oracle 26ai Free database with the free edition
+# limitations and features suitable for development, learning, and testing.
+#
+# Usage:
+#   dbca -silent -createDatabase -responseFile dbca_26ai_free.rsp
+#
+# Variables to customize (replace {{VARIABLE}} with actual values):
+#   {{ORACLE_SID}}       - Database SID/Name
+#   {{ORACLE_HOME}}      - Oracle Home directory
+#   {{ORACLE_BASE}}      - Oracle Base directory
+#   {{DATA_DIR}}         - Database files directory
+#   {{FRA_DIR}}          - Fast Recovery Area directory
+#   {{DOMAIN}}           - Database domain
+#   {{SYS_PASSWORD}}     - SYS password
+#   {{SYSTEM_PASSWORD}}  - SYSTEM password
+#   {{PDB_NAME}}         - Pluggable database name
+#   {{MEMORY_MB}}        - Total SGA+PGA memory in MB (max 2GB for Free)
+#   {{CHARSET}}          - Character set (AL32UTF8 recommended)
+#   {{NCHARSET}}         - National character set (AL16UTF16)
+#
+# Note: Oracle 26ai Free has limitations:
+#       - Maximum 2 GB of RAM
+#       - Maximum 2 CPU threads
+#       - Maximum 12 GB of user data
+#################################################################################
+
+[GENERAL]
+RESPONSEFILE_VERSION = "26.0.0"
+OPERATION_TYPE = "createDatabase"
+
+[CREATEDATABASE]
+#-----------------------------------------------------------------------------
+# Database Identification
+#-----------------------------------------------------------------------------
+GDBNAME = "{{ORACLE_SID}}.{{DOMAIN}}"
+SID = "{{ORACLE_SID}}"
+DATABASECONFTYPE = "SI"
+TEMPLATENAME = "General_Purpose.dbc"
+SYSPASSWORD = "{{SYS_PASSWORD}}"
+SYSTEMPASSWORD = "{{SYSTEM_PASSWORD}}"
+
+#-----------------------------------------------------------------------------
+# Container/Pluggable Database Settings
+#-----------------------------------------------------------------------------
+CREATEASCONTAINERDATABASE = true
+NUMBEROFPDBS = 1
+PDBNAME = "{{PDB_NAME}}"
+PDBADMINPASSWORD = "{{SYSTEM_PASSWORD}}"
+USELOCKUNDOFORTEMPFILE = true
+
+#-----------------------------------------------------------------------------
+# Storage Configuration
+#-----------------------------------------------------------------------------
+STORAGETYPE = FS
+DATAFILEDESTINATION = "{{DATA_DIR}}"
+RECOVERYAREADESTINATION = "{{FRA_DIR}}"
+RECOVERYSIZEINGB = 10
+
+#-----------------------------------------------------------------------------
+# File Locations
+#-----------------------------------------------------------------------------
+DATAFILEJARLOCATION = "{{ORACLE_HOME}}/assistants/dbca/templates/"
+
+#-----------------------------------------------------------------------------
+# Memory Configuration (Free Edition: Max 2GB)
+#-----------------------------------------------------------------------------
+TOTALMEMORY = "{{MEMORY_MB}}"
+MEMORYPERCENTAGE = ""
+
+#-----------------------------------------------------------------------------
+# Character Sets
+#-----------------------------------------------------------------------------
+CHARACTERSET = "{{CHARSET}}"
+NATIONALCHARACTERSET = "{{NCHARSET}}"
+
+#-----------------------------------------------------------------------------
+# Network Configuration
+#-----------------------------------------------------------------------------
+LISTENERS = "LISTENER"
+REGISTERWITHDIRSERVICE = false
+
+#-----------------------------------------------------------------------------
+# Database Options
+#-----------------------------------------------------------------------------
+SAMPLESCHEMA = true
+DATABASETYPE = "MULTIPURPOSE"
+
+#-----------------------------------------------------------------------------
+# Initialization Parameters (Free Edition optimized)
+#-----------------------------------------------------------------------------
+INITPARAMS = "db_name={{ORACLE_SID}}","db_domain={{DOMAIN}}","audit_trail=DB","control_files=(\"{{DATA_DIR}}/control01.ctl\")","diagnostic_dest={{ORACLE_BASE}}","dispatchers=(PROTOCOL=TCP) (SERVICE={{ORACLE_SID}}XDB)","open_cursors=300","processes=200","remote_login_passwordfile=EXCLUSIVE","undo_tablespace=UNDOTBS1","cpu_count=2"
+
+#-----------------------------------------------------------------------------
+# Oracle Managed Files (OMF)
+#-----------------------------------------------------------------------------
+USEDATABASEFILEINI_PARAMETERS = true
+
+#-----------------------------------------------------------------------------
+# Database Vault & Label Security (Not available in Free Edition)
+#-----------------------------------------------------------------------------
+DVOWNERNAME = ""
+DVOWNERPASSWORD = ""
+DVACCOUNTMANAGERNAME = ""
+DVACCOUNTMANAGERPASSWORD = ""
+OLSOWNERNAME = ""
+OLSOWNERPASSWORD = ""
+
+#-----------------------------------------------------------------------------
+# Automatic Maintenance Tasks
+#-----------------------------------------------------------------------------
+ENABLEARCHIVE = false
+ARCHIVELOGDESTINATION = ""
+ARCHIVELOGMODE = false
+
+#-----------------------------------------------------------------------------
+# Additional Options
+#-----------------------------------------------------------------------------
+EMCONFIGURATION = "NONE"
+EMEXPRESSPORT = 5500
+RUNMVUPDATESCRIPTS = false
+ENABLEAUTOMATICMAINTENANCE = true

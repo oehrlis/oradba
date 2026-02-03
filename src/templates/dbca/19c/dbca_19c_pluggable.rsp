@@ -1,0 +1,50 @@
+#################################################################################
+# OraDBA DBCA Response File Template
+# Oracle Database 19c - Pluggable Database (PDB)
+# 
+# This template creates a new pluggable database within an existing container
+# database (CDB).
+#
+# Usage:
+#   dbca -silent -createPluggableDatabase -responseFile dbca_19c_pluggable.rsp
+#
+# Variables to customize (replace {{VARIABLE}} with actual values):
+#   {{ORACLE_SID}}       - Container Database (CDB) SID
+#   {{PDB_NAME}}         - New Pluggable Database name
+#   {{PDBADMIN}}         - PDB Admin username (default: PDBADMIN)
+#   {{SYSTEM_PASSWORD}}  - SYSTEM/PDBADMIN password
+#   {{DATA_DIR}}         - PDB data files directory
+#
+# Note: You must be connected to the CDB to create a PDB
+#################################################################################
+
+[GENERAL]
+RESPONSEFILE_VERSION = "19.0.0"
+OPERATION_TYPE = "createPluggableDatabase"
+
+[CREATEPLUGABLEDATABASE]
+#-----------------------------------------------------------------------------
+# Source Database
+#-----------------------------------------------------------------------------
+SOURCEDB = "{{ORACLE_SID}}"
+PDBNAME = "{{PDB_NAME}}"
+CREATEASCLONE = "false"
+
+#-----------------------------------------------------------------------------
+# PDB Admin User
+#-----------------------------------------------------------------------------
+PDBADMINUSERNAME = "PDBADMIN"
+PDBADMINPASSWORD = "{{SYSTEM_PASSWORD}}"
+
+#-----------------------------------------------------------------------------
+# Storage Configuration
+#-----------------------------------------------------------------------------
+DFILESORAGE = "{{DATA_DIR}}/{{PDB_NAME}}"
+CREATEUSERTABLESPACE = true
+
+#-----------------------------------------------------------------------------
+# Additional Options
+#-----------------------------------------------------------------------------
+PDBDATAFILESIZE = 250
+PDBTEMPDATAFILESIZE = 100
+PDBUNLIMITEDSTRG = true
