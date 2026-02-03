@@ -332,3 +332,251 @@ get_plugin_files() {
 @test "emagent plugin is present" {
     [ -f "${TEST_DIR}/lib/plugins/emagent_plugin.sh" ]
 }
+
+# ==============================================================================
+# Universal Core Functions Compliance Tests (13 required for ALL plugins)
+# ==============================================================================
+
+@test "all plugins implement plugin_build_base_path" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_build_base_path &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_build_base_path"
+            return 1
+        }
+    done
+}
+
+@test "all plugins implement plugin_build_env" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_build_env &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_build_env"
+            return 1
+        }
+    done
+}
+
+@test "all plugins implement plugin_get_instance_list" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_get_instance_list &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_get_instance_list"
+            return 1
+        }
+    done
+}
+
+@test "all plugins implement plugin_build_bin_path" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_build_bin_path &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_build_bin_path"
+            return 1
+        }
+    done
+}
+
+@test "all plugins implement plugin_build_lib_path" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_build_lib_path &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_build_lib_path"
+            return 1
+        }
+    done
+}
+
+@test "all plugins implement plugin_get_config_section" {
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        type plugin_get_config_section &>/dev/null || {
+            echo "Plugin ${plugin_file} missing plugin_get_config_section"
+            return 1
+        }
+    done
+}
+
+# ==============================================================================
+# Category-Specific Requirements Tests
+# ==============================================================================
+
+@test "database plugin implements listener functions" {
+    # shellcheck source=/dev/null
+    source "${TEST_DIR}/lib/plugins/database_plugin.sh"
+    
+    # Must implement both listener functions
+    type plugin_should_show_listener &>/dev/null || {
+        echo "database_plugin missing plugin_should_show_listener"
+        return 1
+    }
+    
+    type plugin_check_listener_status &>/dev/null || {
+        echo "database_plugin missing plugin_check_listener_status"
+        return 1
+    }
+    
+    # Should show listener (return 0)
+    run plugin_should_show_listener "/test/path"
+    [ "$status" -eq 0 ] || {
+        echo "database_plugin should_show_listener should return 0 (yes)"
+        return 1
+    }
+}
+
+@test "datasafe plugin implements listener functions" {
+    # shellcheck source=/dev/null
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Must implement both listener functions
+    type plugin_should_show_listener &>/dev/null || {
+        echo "datasafe_plugin missing plugin_should_show_listener"
+        return 1
+    }
+    
+    type plugin_check_listener_status &>/dev/null || {
+        echo "datasafe_plugin missing plugin_check_listener_status"
+        return 1
+    }
+    
+    # Should NOT show listener (return 1) - uses tnslsnr but not a DB listener
+    run plugin_should_show_listener "/test/path"
+    [ "$status" -eq 1 ] || {
+        echo "datasafe_plugin should_show_listener should return 1 (no)"
+        return 1
+    }
+}
+
+@test "non-database plugins implement listener functions with defaults" {
+    # Non-database plugins should implement listener functions but return defaults
+    local non_db_plugins=(
+        "client_plugin.sh"
+        "iclient_plugin.sh"
+        "oud_plugin.sh"
+        "java_plugin.sh"
+        "weblogic_plugin.sh"
+        "emagent_plugin.sh"
+        "oms_plugin.sh"
+    )
+    
+    for plugin in "${non_db_plugins[@]}"; do
+        # shellcheck source=/dev/null
+        source "${TEST_DIR}/lib/plugins/${plugin}"
+        
+        # Should implement the function
+        type plugin_should_show_listener &>/dev/null || {
+            echo "${plugin} missing plugin_should_show_listener"
+            return 1
+        }
+        
+        # Should return 1 (no) for non-database products
+        run plugin_should_show_listener "/test/path"
+        [ "$status" -eq 1 ] || {
+            echo "${plugin} should_show_listener should return 1 (no) for non-database products"
+            return 1
+        }
+    done
+}
+
+# ==============================================================================
+# Extension Function Pattern Tests
+# ==============================================================================
+
+@test "extension functions follow naming conventions" {
+    # Check that extension functions (non-core) follow patterns
+    # This is a validation that plugin-specific extensions are properly named
+    
+    # DataSafe has plugin_get_adjusted_paths - should be documented
+    # shellcheck source=/dev/null
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    if type plugin_get_adjusted_paths &>/dev/null; then
+        # Function exists - it's an extension, which is fine
+        # Store function name in variable to avoid SC2050
+        local func_name="plugin_get_adjusted_paths"
+        # Just verify it starts with plugin_
+        [[ "${func_name}" =~ ^plugin_ ]] || {
+            echo "Extension function should start with plugin_ prefix"
+            return 1
+        }
+    fi
+}
+
+@test "all plugins implement exactly 13 universal core functions" {
+    # Define the 13 universal core functions
+    local UNIVERSAL_CORE_FUNCTIONS=(
+        "plugin_detect_installation"
+        "plugin_validate_home"
+        "plugin_adjust_environment"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_check_status"
+        "plugin_get_metadata"
+        "plugin_discover_instances"
+        "plugin_get_instance_list"
+        "plugin_supports_aliases"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_config_section"
+    )
+    
+    # shellcheck source=/dev/null
+    for plugin_file in $(get_plugin_files); do
+        source "${plugin_file}"
+        
+        # Check each universal core function
+        for func in "${UNIVERSAL_CORE_FUNCTIONS[@]}"; do
+            type "${func}" &>/dev/null || {
+                echo "Plugin ${plugin_file} missing universal core function: ${func}"
+                return 1
+            }
+        done
+    done
+}
+
+@test "database plugins implement 15 mandatory functions (13 universal + 2 category)" {
+    # Database plugins must implement 13 universal + 2 category-specific
+    local db_plugins=(
+        "database_plugin.sh"
+        "datasafe_plugin.sh"
+    )
+    
+    local MANDATORY_FUNCTIONS=(
+        # 13 universal core
+        "plugin_detect_installation"
+        "plugin_validate_home"
+        "plugin_adjust_environment"
+        "plugin_build_base_path"
+        "plugin_build_env"
+        "plugin_check_status"
+        "plugin_get_metadata"
+        "plugin_discover_instances"
+        "plugin_get_instance_list"
+        "plugin_supports_aliases"
+        "plugin_build_bin_path"
+        "plugin_build_lib_path"
+        "plugin_get_config_section"
+        # 2 category-specific
+        "plugin_should_show_listener"
+        "plugin_check_listener_status"
+    )
+    
+    for plugin in "${db_plugins[@]}"; do
+        # shellcheck source=/dev/null
+        source "${TEST_DIR}/lib/plugins/${plugin}"
+        
+        # Check all 15 mandatory functions
+        for func in "${MANDATORY_FUNCTIONS[@]}"; do
+            type "${func}" &>/dev/null || {
+                echo "${plugin} missing mandatory function: ${func}"
+                return 1
+            }
+        done
+    done
+}

@@ -6,6 +6,19 @@
 
 ## Recent Changes
 
+### January 2026 - Phase 2.5 Interface Documentation Refinement (Issue #142)
+
+Comprehensive review and documentation refinement of plugin interface conventions:
+
+- ✅ Clarified function count structure: 13 universal + 2 category-specific = 15 mandatory for database products
+- ✅ Enhanced extension function naming conventions and patterns
+- ✅ Updated category-specific function documentation for clarity
+- ✅ Added interface versioning and evolution guidelines
+- ✅ Improved test coverage for category-specific requirements
+- ✅ 100% backward compatible - no breaking changes
+
+See `.github/.scratch/plugin-interface-analysis.md` for detailed review findings.
+
 ### January 2026 - Phase 2.4 Completion (Issue #141)
 
 All 9 plugins have been audited for comprehensive return value standardization:
@@ -128,39 +141,77 @@ discovery, environment building, and status logic remain accurate.
 
 ## Core Plugin Functions
 
-Every plugin MUST implement the universal core functions. Category-specific
-functions are mandatory for the product types that require them. All functions
-must follow the return value standards defined in this document.
+Every plugin MUST implement the **13 universal core functions**. Plugins for specific
+product categories MUST also implement **category-specific mandatory functions**.
+All functions must follow the return value standards defined in this document.
 
-### Universal Core Functions
+### Function Count Summary
 
-| #  | Function Name                | Purpose                                              | Exit Codes                          | Required                     |
-|----|------------------------------|------------------------------------------------------|-------------------------------------|------------------------------|
-| 1  | `plugin_detect_installation` | Auto-discover installations                          | 0=success                           | ✅                           |
-| 2  | `plugin_validate_home`       | Validate installation path                           | 0=valid, 1=invalid                  | ✅                           |
-| 3  | `plugin_adjust_environment`  | Adjust ORACLE_HOME if needed                         | 0=success                           | ✅                           |
-| 4  | `plugin_build_base_path`     | Resolve actual installation/ORACLE_BASE_HOME         | 0=success                           | ✅                           |
-| 5  | `plugin_build_env`           | Build environment variables for the product/instance | 0=success                           | ✅                           |
-| 6  | `plugin_check_status`        | Check service/instance status                        | 0=running, 1=stopped, 2=unavailable | ✅                           |
-| 7  | `plugin_get_metadata`        | Get installation metadata                            | 0=success                           | ✅                           |
-| 8  | `plugin_discover_instances`  | Discover instances/domains for this home             | 0=success                           | ✅                           |
-| 9  | `plugin_get_instance_list`   | Enumerate instances/domains for this home            | 0=success                           | ✅ (multi-instance products) |
-| 10 | `plugin_supports_aliases`    | Supports SID-like aliases?                           | 0=yes, 1=no                         | ✅                           |
-| 11 | `plugin_build_bin_path`      | Get PATH components                                  | 0=success                           | ✅                           |
-| 12 | `plugin_build_lib_path`      | Get LD_LIBRARY_PATH components                       | 0=success                           | ✅                           |
-| 13 | `plugin_get_config_section`  | Get config file section name                         | 0=success                           | ✅                           |
+The plugin interface uses a tiered structure:
 
-### Category-Specific Mandatory Functions
+- **13 Universal Core Functions** - Required for ALL plugins (database, client, datasafe, oud, java, etc.)
+- **2 Category-Specific Mandatory Functions** - Required for database/listener-based products
+- **N Optional/Extension Functions** - Added as needed for product-specific features
 
-| Function Name                                  | Applies To                                             | Purpose                                   | Exit Codes                          |
-|------------------------------------------------|--------------------------------------------------------|-------------------------------------------|-------------------------------------|
-| `plugin_should_show_listener`                  | Database and any product exposing a listener component | Decide whether to render listener entries | 0=yes, 1=no                         |
-| `plugin_check_listener_status` (or equivalent) | Database (and products with dedicated listener)        | Report listener status per Oracle Home    | 0=running, 1=stopped, 2=unavailable |
+**Total mandatory functions per plugin:**
 
-`plugin_get_instance_list` is universal but mandatory only for multi-instance
-products (database, middleware, etc.). Define additional product-specific helpers
-when needed (for example, listener extensions or category-only environment helpers).
-Document any product-specific environment variables or aliases when they are introduced.
+- Non-database products (client, iclient, java, oud): **13 functions**
+- Database/listener products (database, datasafe): **15 functions** (13 + 2 category-specific)
+- Plus any optional/extension functions as needed
+
+### Universal Core Functions (13 Required for ALL Plugins)
+
+These functions MUST be implemented by every plugin, regardless of product type:
+
+| #  | Function Name                | Purpose                                              | Exit Codes                          | Required |
+|----|------------------------------|------------------------------------------------------|-------------------------------------|----------|
+| 1  | `plugin_detect_installation` | Auto-discover installations                          | 0=success                           | ✅       |
+| 2  | `plugin_validate_home`       | Validate installation path                           | 0=valid, 1=invalid                  | ✅       |
+| 3  | `plugin_adjust_environment`  | Adjust ORACLE_HOME if needed                         | 0=success                           | ✅       |
+| 4  | `plugin_build_base_path`     | Resolve actual installation/ORACLE_BASE_HOME         | 0=success                           | ✅       |
+| 5  | `plugin_build_env`           | Build environment variables for the product/instance | 0=success, 1=n/a, 2=unavailable     | ✅       |
+| 6  | `plugin_check_status`        | Check service/instance status                        | 0=running, 1=stopped, 2=unavailable | ✅       |
+| 7  | `plugin_get_metadata`        | Get installation metadata                            | 0=success                           | ✅       |
+| 8  | `plugin_discover_instances`  | Discover instances/domains for this home             | 0=success                           | ✅       |
+| 9  | `plugin_get_instance_list`   | Enumerate instances/domains (multi-instance only)    | 0=success                           | ✅       |
+| 10 | `plugin_supports_aliases`    | Supports SID-like aliases?                           | 0=yes, 1=no                         | ✅       |
+| 11 | `plugin_build_bin_path`      | Get PATH components                                  | 0=success                           | ✅       |
+| 12 | `plugin_build_lib_path`      | Get LD_LIBRARY_PATH components                       | 0=success                           | ✅       |
+| 13 | `plugin_get_config_section`  | Get config file section name                         | 0=success                           | ✅       |
+
+**Notes:**
+
+- `plugin_get_instance_list` is universal but only returns data for multi-instance products (database, RAC, WebLogic, OUD)
+- Single-instance products (client, iclient, java) should implement it but return empty output
+
+### Category-Specific Mandatory Functions (2 for Database/Listener Products)
+
+These functions MUST be implemented by plugins that manage listener components:
+
+| Function Name                  | Applies To                                      | Purpose                                   | Exit Codes                          |
+|--------------------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------|
+| `plugin_should_show_listener`  | Database, DataSafe, and listener-based products | Decide whether to render listener entries | 0=yes, 1=no                         |
+| `plugin_check_listener_status` | Database, DataSafe, and listener-based products | Report listener status per Oracle Home    | 0=running, 1=stopped, 2=unavailable |
+
+**Category-Specific Requirements by Product Type:**
+
+| Product Type | Universal Core | Category-Specific | Total Mandatory |
+|--------------|----------------|-------------------|-----------------|
+| database     | 13             | 2 (listener)      | 15              |
+| datasafe     | 13             | 2 (listener)      | 15              |
+| client       | 13             | 0                 | 13              |
+| iclient      | 13             | 0                 | 13              |
+| oud          | 13             | 0                 | 13              |
+| java         | 13             | 0                 | 13              |
+| weblogic     | 13             | TBD               | 13+             |
+| emagent      | 13             | TBD               | 13+             |
+| oms          | 13             | TBD               | 13+             |
+
+**Notes:**
+
+- Listener functions are **mandatory** for database and datasafe plugins
+- Non-listener products should still implement these functions but return appropriate defaults (see templates)
+- Future product categories may introduce additional category-specific requirements
 
 ### Detailed Function Descriptions
 
@@ -869,17 +920,88 @@ This is acceptable for interactive and automation use cases.
 
 ## Optional Functions and Extension Patterns
 
+Beyond the mandatory functions (13 universal + category-specific), plugins MAY
+implement optional functions for product-specific features.
+
+### Types of Optional Functions
+
+#### 1. Common Optional Functions
+
+Functions that multiple plugins may implement, with standardized naming and behavior:
+
+| Function                        | Purpose                           | Usage                       | Exit Codes              | Plugins Using   |
+|---------------------------------|-----------------------------------|-----------------------------|-------------------------|-----------------|
+| `plugin_get_version`            | Extract product version           | Called by get_metadata      | 0=success, 1=N/A, 2=err | All 9 plugins   |
+| `plugin_get_required_binaries`  | List required binaries            | Used by validators          | 0=success               | All 9 plugins   |
+| `plugin_get_display_name`       | Custom display name for instance  | Override default naming     | 0=success               | 1 (oud)         |
+
+**Characteristics:**
+
+- Standardized function names (no product prefix)
+- May have default implementations in plugin_interface.sh
+- Should be documented in this specification
+- Testable with generic tests
+
+#### 2. Product-Specific Extension Functions
+
+Functions unique to a single product or product family, with product-prefixed naming:
+
+| Function                         | Plugin   | Purpose                            |
+|----------------------------------|----------|------------------------------------|
+| `plugin_get_adjusted_paths`      | datasafe | DataSafe-specific path logic       |
+| `plugin_oud_get_domain_config`   | oud      | OUD domain configuration (example) |
+| `plugin_database_get_pdb_status` | database | PDB status checking (example)      |
+| `plugin_weblogic_list_domains`   | weblogic | WebLogic domain discovery (example)|
+
+**Naming Convention:** `plugin_<descriptive_name>` OR `plugin_<product>_<action>` when product-specific scope is clear
+
+**Note:** Current implementations use descriptive names without product prefix (`plugin_get_adjusted_paths`).
+For future extensions with ambiguous scope, consider adding product prefix for clarity.
+
+**Characteristics:**
+
+- Product-specific logic not applicable to other plugins
+- May not follow standard return value patterns (document deviations)
+- Should be documented in plugin source code
+- Testable with product-specific tests
+
+### Extension Function Naming Conventions
+
+#### Decision Tree: When to Use What Pattern
+
+```text
+Is the function applicable to multiple product types?
+├─ YES → Use Common Optional Function
+│        - Standardized name: plugin_<action>
+│        - Example: plugin_get_version
+│        - Document in plugin-standards.md
+│        
+└─ NO → Use Product-Specific Extension
+         - Descriptive name: plugin_<descriptive_name>
+         - OR prefixed name: plugin_<product>_<action> (when scope needs clarity)
+         - Example: plugin_get_adjusted_paths (datasafe)
+         - Example: plugin_database_get_pdb_status
+         - Document in plugin source file
+```
+
+#### Naming Guidelines
+
+**DO:**
+
+- ✅ Use `plugin_` prefix for all plugin functions
+- ✅ Use descriptive names that indicate purpose
+- ✅ Document the function's purpose, arguments, returns, and output
+- ✅ Follow return value standards (exit codes + stdout)
+- ✅ Keep function names concise but clear
+
+**DON'T:**
+
+- ❌ Use generic names that could conflict with core functions
+- ❌ Skip the `plugin_` prefix
+- ❌ Use abbreviations that aren't obvious
+- ❌ Create extensions when a core function could be enhanced instead
+
 ### Optional Functions
-
-Plugins MAY implement additional functions beyond the universal core functions for product-specific features.
-
-#### Common Optional Functions
-
-| Function | Purpose | Usage | Exit Codes |
-| ---------- | --------- | ------- | ------------ |
-| `plugin_get_version` | Extract product version | Called by `plugin_get_metadata` | 0=success, 1=N/A, 2=failed |
-| `plugin_get_required_binaries` | List required binaries | Used by validators | 0=success |
-| `plugin_get_display_name` | Custom display name | Override default naming | 0=success |
 
 #### Example plugin_get_version
 
@@ -921,16 +1043,52 @@ plugin_get_version() {
 
 ### Product-Specific Extensions
 
-For features unique to a product, use descriptive function names.
+Product-specific extension functions implement features unique to a single product.
+These are documented in the plugin source file rather than this specification.
 
-**Naming Convention:** `plugin_<product>_<function_name>`
+**Current Product-Specific Extensions in Use:**
 
-#### Examples
+- **datasafe_plugin.sh**: `plugin_get_adjusted_paths` - Returns adjusted oracle_cman_home paths
+- **oud_plugin.sh**: `plugin_get_display_name` - Custom display names for OUD instances (also a common optional function)
 
-- `plugin_database_get_pdb_status` - Database-specific: PDB status
-- `plugin_database_check_rac` - Database-specific: RAC configuration
-- `plugin_datasafe_get_connector_config` - DataSafe-specific: connector config
-- `plugin_weblogic_list_domains` - WebLogic-specific: domain discovery
+**Example Product-Specific Extensions (for future development):**
+
+```bash
+# Database plugin - PDB status checking
+plugin_database_get_pdb_status() {
+    local home_path="$1"
+    local pdb_name="$2"
+    # Check PDB status
+    echo "OPEN"
+    return 0
+}
+
+# WebLogic plugin - Domain discovery
+plugin_weblogic_list_domains() {
+    local home_path="$1"
+    # Discover WebLogic domains
+    echo "/u01/domains/prod_domain"
+    echo "/u01/domains/test_domain"
+    return 0
+}
+
+# DataSafe plugin - Connector configuration
+plugin_datasafe_get_connector_config() {
+    local home_path="$1"
+    # Get connector configuration
+    echo "connector_id=DS-CONN-001"
+    echo "region=us-ashburn-1"
+    return 0
+}
+```
+
+**Guidelines for Product-Specific Extensions:**
+
+1. **Naming**: Use `plugin_<descriptive_name>` or `plugin_<product>_<action>` for clarity
+2. **Documentation**: Add complete function header in plugin source file
+3. **Return Values**: Follow standard exit codes (0/1/2) and stdout conventions
+4. **Testing**: Add product-specific tests in `tests/test_<product>_plugin.bats`
+5. **Backward Compatibility**: Don't break existing behavior when adding extensions
 
 ### Extension Implementation Patterns
 
@@ -1674,45 +1832,166 @@ plugin_get_required_binaries() {
 
 ### Current Version: v1.0.0
 
+**Interface established:** January 2026  
+**Status:** Production-ready, stable  
+**Current plugins:** 9 (6 production + 3 stubs)
+
 **All plugins MUST declare:**
 
 ```bash
-
 export plugin_interface_version="1.0.0"
-
 ```
 
 **Note:** Some plugin files may reference "v2.0.0" in comments. This was an accidental internal
 reference and should be **ignored**. The official interface version is **v1.0.0**
 (established January 2026).
 
+### Version History
+
+| Version | Date     | Changes                                                        | Status      |
+|---------|----------|----------------------------------------------------------------|-------------|
+| 1.0.0   | Jan 2026 | Initial stable release (13 universal + category-specific)      | **Current** |
+| 2.0.0   | TBD      | Reserved for future breaking changes (if needed)               | Planned     |
+
 ### Version Policy
 
 - **Current version:** v1.0.0 (January 2026)
-- **Stability:** Interface is stable, no breaking changes planned
+- **Stability:** Interface is stable, no breaking changes planned for v1.x series
+- **Backward Compatibility:** All v1.x releases will maintain full backward compatibility
 - **Breaking changes require:**
   1. Formal decision and announcement
   2. Migration guide for plugin developers
-  3. Compatibility layer during transition period
-  4. Deprecation warnings (2-3 release cycles minimum)
+  3. Compatibility layer during transition period (minimum 2-3 release cycles)
+  4. Deprecation warnings with clear timeline
+  5. Version bump to v2.0.0 (next major version)
 
 ### What Constitutes a Breaking Change
 
-Breaking changes that require version bump:
+**Breaking changes** that require major version bump (v1.0 → v2.0):
 
-- ❌ Removing a core function
-- ❌ Changing function signature (adding/removing parameters)
-- ❌ Changing exit code semantics
-- ❌ Changing output format for structured data
-- ❌ Renaming functions
+- ❌ Removing a universal core function
+- ❌ Removing a category-specific mandatory function
+- ❌ Changing function signature (adding/removing required parameters)
+- ❌ Changing exit code semantics for existing codes
+- ❌ Changing output format for structured data (breaking parsers)
+- ❌ Renaming functions without compatibility layer
 
-Non-breaking changes (no version bump needed):
+**Non-breaking changes** (allowed in v1.x):
 
-- ✅ Adding new optional functions
-- ✅ Adding new parameters with defaults
-- ✅ Improving documentation
-- ✅ Bug fixes that don't change behavior
-- ✅ Performance improvements
+- ✅ Adding new optional functions (common or product-specific)
+- ✅ Adding new category-specific requirements for NEW product categories
+- ✅ Adding new optional parameters with defaults (backward compatible)
+- ✅ Improving documentation without changing behavior
+- ✅ Bug fixes that restore documented behavior
+- ✅ Performance improvements that maintain behavior
+- ✅ Adding new exit codes (e.g., exit 3 for new state)
+
+### Proposing Interface Changes
+
+#### Minor Enhancements (No Version Bump)
+
+For adding optional functions or documentation improvements:
+
+1. **Open GitHub Issue**
+   - Template: Feature Request
+   - Label: `enhancement`, `plugin-interface`
+   - Describe: Use case, proposed function signature, return values
+
+2. **Discuss Design**
+   - Review against existing patterns
+   - Ensure no conflicts with core functions
+   - Validate return value standards compliance
+
+3. **Implement & Test**
+   - Add function to relevant plugin(s)
+   - Create tests in plugin-specific test file
+   - Update plugin source documentation
+
+4. **Submit Pull Request**
+   - Include tests and documentation
+   - Pass full test suite
+   - Get maintainer review
+
+#### Major Changes (Version Bump Required)
+
+For changes that break compatibility:
+
+1. **Create Proposal Document**
+   - File: `.github/.scratch/proposal-<feature>.md`
+   - Include:
+     - Problem statement
+     - Proposed solution
+     - Breaking changes analysis
+     - Migration path
+     - Timeline
+     - Backward compatibility strategy
+
+2. **Community Discussion**
+   - Open discussion issue
+   - Solicit feedback from plugin developers
+   - Allow minimum 2-week comment period
+
+3. **Formal Approval**
+   - Maintainer sign-off required
+   - Document decision and rationale
+   - Create migration guide
+
+4. **Implementation Plan**
+   - Deprecation warnings in v1.x release
+   - Compatibility layer development
+   - New version implementation
+   - Migration tooling (if needed)
+
+5. **Phased Rollout**
+   - v1.x: Add deprecation warnings
+   - v1.x+1: Compatibility layer with new interface
+   - v2.0: Remove old interface, new interface only
+
+### Adding New Product Categories
+
+When adding support for a new product category (e.g., Grid Infrastructure, Exadata):
+
+1. **Analyze Requirements**
+   - Do universal core functions cover the product?
+   - Are new category-specific functions needed?
+   - Document product-specific considerations
+
+2. **Propose Category-Specific Functions**
+   - If new mandatory functions needed, follow Major Changes process
+   - Document which product types require these functions
+   - Update category requirements table
+
+3. **Implementation**
+   - Create new plugin file
+   - Implement all 13 universal functions
+   - Implement category-specific functions if applicable
+   - Add comprehensive tests
+
+4. **Documentation**
+   - Update plugin-standards.md category table
+   - Add product type to supported types list
+   - Document any unique characteristics
+
+### Deprecation Process
+
+When deprecating functions or changing behavior:
+
+1. **Announce Deprecation** (v1.x)
+   - Add deprecation notice to function documentation
+   - Log warning when function is called
+   - Document migration path in release notes
+
+2. **Provide Compatibility** (v1.x+1 to v1.x+n)
+   - Maintain old behavior as default
+   - Provide new behavior via opt-in flag
+   - Continue deprecation warnings
+   - Minimum 2-3 release cycles
+
+3. **Remove Old Behavior** (v2.0)
+   - Remove deprecated function/behavior
+   - Update all documentation
+   - Provide migration guide
+   - Automated migration tooling if possible
 
 ### Version Declaration
 
@@ -1732,11 +2011,27 @@ Include in every plugin file:
 
 # Plugin Metadata
 export plugin_name="product"
-export plugin_version="1.0.0"  # Plugin version
+export plugin_version="1.0.0"  # Plugin version (semantic versioning)
 export plugin_interface_version="1.0.0"  # Interface version (optional but recommended)
 export plugin_description="Product plugin"
-
 ```
+
+### Interface Evolution Best Practices
+
+**For Plugin Developers:**
+
+- ✅ Always test against latest plugin-standards.md
+- ✅ Subscribe to interface change notifications
+- ✅ Plan for deprecations during maintenance windows
+- ✅ Use interface_version declaration to track compatibility
+
+**For Core Maintainers:**
+
+- ✅ Minimize breaking changes
+- ✅ Long deprecation timelines (2-3 releases minimum)
+- ✅ Clear migration documentation
+- ✅ Maintain backward compatibility in v1.x series
+- ✅ Batch breaking changes for major versions
 
 ## Testing Requirements
 

@@ -62,9 +62,9 @@ Product Plugins
 
 ## Plugin Interface v1.0.0
 
-Each plugin must implement the **universal core functions** and
-**3 metadata variables**, and add **category-specific functions** when required
-(e.g., listener handling for database-like products).
+Each plugin must implement the **13 universal core functions** and
+**3 metadata variables**. Plugins for specific product categories must also implement
+**category-specific mandatory functions** (e.g., 2 listener functions for database products).
 
 > **📖 Complete Specification:** See [plugin-standards.md](plugin-standards.md) for:
 >
@@ -74,18 +74,32 @@ Each plugin must implement the **universal core functions** and
 > - Function templates for all core and category-specific functions
 > - Extension patterns for optional functions
 
+### Function Count Structure
+
+The plugin interface uses a tiered structure:
+
+- **13 Universal Core Functions** - Required for ALL plugins
+- **2 Category-Specific Functions** - Required for database/listener-based products
+- **N Optional Functions** - Added as needed (common optional + product-specific extensions)
+
+**Total mandatory functions:**
+
+- Non-database products (client, iclient, java, oud): **13 functions**
+- Database/listener products (database, datasafe): **15 functions** (13 + 2)
+
 ### Required Metadata
 
 ```bash
 # Plugin metadata (REQUIRED)
 export plugin_name="myproduct"              # Product type identifier
 export plugin_version="1.0.0"               # Plugin version (semantic versioning)
+export plugin_interface_version="1.0.0"     # Interface version (optional but recommended)
 export plugin_description="My Oracle Product plugin"  # Human-readable description
 ```
 
-### Required Functions
+### Universal Core Functions (13 Required for ALL Plugins)
 
-**Summary:** Universal core functions all plugins must implement; add category-specific functions when relevant.
+These functions MUST be implemented by every plugin:
 
 | #  | Function                     | Purpose                                                   | Exit Codes                          |
 |----|------------------------------|-----------------------------------------------------------|-------------------------------------|
@@ -97,16 +111,25 @@ export plugin_description="My Oracle Product plugin"  # Human-readable descripti
 | 6  | `plugin_check_status`        | Check service/instance status                             | 0=running, 1=stopped, 2=unavailable |
 | 7  | `plugin_get_metadata`        | Get installation metadata                                 | 0=success                           |
 | 8  | `plugin_discover_instances`  | Discover instances/domains for this home                  | 0=success                           |
-| 9  | `plugin_get_instance_list`   | Enumerate instances/domains (multi-instance products)     | 0=success                           |
+| 9  | `plugin_get_instance_list`   | Enumerate instances/domains (multi-instance only)         | 0=success                           |
 | 10 | `plugin_supports_aliases`    | Supports SID-like aliases?                                | 0=yes, 1=no                         |
 | 11 | `plugin_build_bin_path`      | Get PATH components                                       | 0=success                           |
 | 12 | `plugin_build_lib_path`      | Get LD_LIBRARY_PATH components                            | 0=success                           |
 | 13 | `plugin_get_config_section`  | Get config section name                                   | 0=success                           |
 
-**Category-Specific (mandatory when applicable):**
+### Category-Specific Mandatory Functions (2 for Database/Listener Products)
 
-- `plugin_should_show_listener` — Whether to render listener entries (database, listener-based products)
-- `plugin_check_listener_status` — Listener lifecycle per Oracle Home (database and listener-based products)
+These functions MUST be implemented by database and listener-based products:
+
+| Function                       | Applies To           | Purpose                                   | Exit Codes                          |
+|--------------------------------|----------------------|-------------------------------------------|-------------------------------------|
+| `plugin_should_show_listener`  | database, datasafe   | Whether to render listener entries        | 0=yes, 1=no                         |
+| `plugin_check_listener_status` | database, datasafe   | Listener status per Oracle Home           | 0=running, 1=stopped, 2=unavailable |
+
+**Notes:**
+
+- These are **mandatory** for database and datasafe plugins
+- Other plugins should implement them but return appropriate defaults (see templates below)
 
 > **📖 Detailed Documentation:** See [plugin-standards.md](plugin-standards.md) for:
 >
@@ -456,26 +479,64 @@ plugin_get_required_binaries() {
 
 ### Optional Functions
 
-These functions have default implementations but can be overridden:
+Beyond the 13 universal core functions (and 2 category-specific for database products),
+plugins may implement optional functions for product-specific features.
+
+#### Common Optional Functions
+
+Functions that multiple plugins may implement, with standardized naming:
 
 ```bash
+# Get product version (has default implementation in plugin_interface.sh)
+plugin_get_version() {
+    local home_path="$1"
+    # Extract version from installation
+    echo "19.21.0.0.0"
+    return 0
+}
+
+# Get required binaries for validation
+plugin_get_required_binaries() {
+    echo "myproduct_binary myctl"
+    return 0
+}
+
 # Custom display name for instance (defaults to installation name)
 plugin_get_display_name() {
     local name="$1"
     echo "${name}"
-}
-
-# Whether this product supports SID-like aliases (default: no)
-plugin_supports_aliases() {
-    return 1  # 0 = yes, 1 = no
-}
-
-# Get product version from ORACLE_HOME (has default implementation)
-plugin_get_version() {
-    local home_path="$1"
-    # Default implementation provided in plugin_interface.sh
+    return 0
 }
 ```
+
+#### Product-Specific Extensions
+
+For features unique to a product, use descriptive function names:
+
+```bash
+# DataSafe example - get adjusted paths for oracle_cman_home
+plugin_get_adjusted_paths() {
+    local home_path="$1"
+    echo "${home_path}/oracle_cman_home"
+    return 0
+}
+
+# Database example - PDB status checking (illustrative)
+plugin_database_get_pdb_status() {
+    local home_path="$1"
+    local pdb_name="$2"
+    # Check PDB status
+    echo "OPEN"
+    return 0
+}
+```
+
+**Naming Guidelines:**
+
+- Use `plugin_<descriptive_name>` for generic extensions
+- Use `plugin_<product>_<action>` when product-specific scope needs clarity
+- Follow return value standards (exit codes + stdout conventions)
+- Document thoroughly in plugin source file
 
 > **📖 Extension Patterns:** See
 > [plugin-standards.md - Optional Functions](plugin-standards.md#optional-functions-and-extension-patterns)
@@ -972,17 +1033,40 @@ ls -la "${BATS_TEST_TMPDIR}"
 
 Before submitting plugin:
 
+**Mandatory Requirements:**
+
 - [ ] All 13 universal core functions implemented
-- [ ] Category-specific functions added if applicable (listener handling, etc.)
-- [ ] Plugin metadata set (name, version, description)
-- [ ] Tests created and passing
+- [ ] Category-specific functions added if applicable:
+  - [ ] `plugin_should_show_listener` (database/listener products)
+  - [ ] `plugin_check_listener_status` (database/listener products)
+- [ ] Plugin metadata set (name, version, interface_version, description)
+- [ ] Tests created and passing (see plugin-standards.md for test requirements)
+- [ ] All tests pass: `bats tests/test_myproduct_plugin.bats`
+- [ ] Return value contract followed (exit codes 0/1/2, no sentinel strings)
+
+**Integration and Validation:**
+
 - [ ] Integration tested with OraDBA core
-- [ ] Documentation updated
-- [ ] Code passes shellcheck
-- [ ] Function headers complete
-- [ ] Product type added to detect_product_type()
-- [ ] Product type added to registry validation
-- [ ] Configuration section added (if needed)
+- [ ] Product type added to `detect_product_type()` in oradba_common.sh
+- [ ] Product type added to registry validation in oradba_registry.sh
+- [ ] Configuration section added (if needed) in oradba_standard.conf
+- [ ] Code passes shellcheck: `shellcheck src/lib/plugins/myproduct_plugin.sh`
+
+**Documentation:**
+
+- [ ] All function headers complete (Purpose, Args, Returns, Output)
+- [ ] Plugin metadata documented in source file header
+- [ ] Optional/extension functions documented (if added)
+- [ ] Product-specific notes added to plugin-standards.md (if new category)
+- [ ] README updated with new product type
+- [ ] CHANGELOG.md updated
+
+**Recommended:**
+
+- [ ] Plugin interface version declared: `export plugin_interface_version="1.0.0"`
+- [ ] Follow naming conventions for extension functions
+- [ ] Add examples to plugin source documentation
+- [ ] Test edge cases and error conditions
 
 ## References
 

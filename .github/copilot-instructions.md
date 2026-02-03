@@ -128,25 +128,37 @@ NAME|TYPE|ORACLE_HOME|VERSION|EDITION|AUTOSTART|DESCRIPTION
 
 ### Plugin System (Interface v1.0.0)
 
-Each plugin implements the universal core functions defined in `src/lib/plugins/plugin_interface.sh`, plus category-specific listener functions where applicable.
+Each plugin implements the universal core functions defined in `src/lib/plugins/plugin_interface.sh`, plus category-specific functions where applicable.
+
+**Function Count Structure:**
+- **13 Universal Core Functions** - Required for ALL plugins
+- **2 Category-Specific Functions** - Required for database/listener products
+- **N Optional Functions** - Added as needed for product-specific features
+
+**Total mandatory functions:**
+- Non-database products: 13 functions
+- Database/listener products: 15 functions (13 + 2 category-specific)
 
 > **📖 Complete Specification**: See [doc/plugin-standards.md](../doc/plugin-standards.md) for:
 >
 > - Official plugin interface v1.0.0 specification
 > - Exit code standards and return value conventions  
 > - Function templates for all 13 universal core functions
+> - Category-specific requirements by product type
+> - Extension function naming conventions
 > - Subshell execution model and Oracle environment requirements
 > - Testing requirements and best practices
 
 **Required Metadata**:
 
 ```bash
-export plugin_name="database"          # Product identifier
-export plugin_version="1.0.0"          # Plugin version
-export plugin_description="Description" # Human-readable description
+export plugin_name="database"              # Product identifier
+export plugin_version="1.0.0"              # Plugin version
+export plugin_interface_version="1.0.0"    # Interface version (recommended)
+export plugin_description="Description"     # Human-readable description
 ```
 
-**Core Functions** (universal):
+**Universal Core Functions** (13 required for ALL plugins):
 
 1. `plugin_detect_installation()` - Auto-detect product installations  
 2. `plugin_validate_home()` - Validate ORACLE_HOME/ORACLE_BASE_HOME  
@@ -162,20 +174,22 @@ export plugin_description="Description" # Human-readable description
 12. `plugin_build_lib_path()` - Build LD_LIBRARY_PATH components  
 13. `plugin_get_config_section()` - Get config section name  
 
-**Category-Specific (when applicable):**
+**Category-Specific Mandatory Functions** (2 for database/listener products):
 
 - `plugin_should_show_listener()` - Whether to display listener status  
 - `plugin_check_listener_status()` - Listener lifecycle per Oracle Home  
 
-**Current Plugins** (6 + planned):
+**Current Plugins** (9 total: 6 production + 3 stubs):
 
-- `database_plugin.sh` - Oracle Database (CDB/PDB support)
-- `datasafe_plugin.sh` - Data Safe On-Premises Connector
-- `client_plugin.sh` - Full Oracle Client
-- `iclient_plugin.sh` - Instant Client
-- `oud_plugin.sh` - Oracle Unified Directory
-- `java_plugin.sh` - Oracle Java (JDK/JRE detection)
-- `weblogic_plugin.sh` - WebLogic Server (planned)
+- `database_plugin.sh` - Oracle Database (production, CDB/PDB support)
+- `datasafe_plugin.sh` - Data Safe On-Premises Connector (production)
+- `client_plugin.sh` - Full Oracle Client (production)
+- `iclient_plugin.sh` - Instant Client (production)
+- `oud_plugin.sh` - Oracle Unified Directory (production)
+- `java_plugin.sh` - Oracle Java / JDK (production)
+- `weblogic_plugin.sh` - WebLogic Server (stub)
+- `emagent_plugin.sh` - Enterprise Manager Agent (stub)
+- `oms_plugin.sh` - Oracle Management Server (stub)
 
 ### Plugin Standards Compliance
 
