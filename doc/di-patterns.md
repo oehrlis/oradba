@@ -6,7 +6,8 @@
 
 ## Overview
 
-OraDBA environment management libraries now support dependency injection (DI), enabling unit testing, stateless execution, and decoupled architecture. This guide explains how to use DI patterns in your code and tests.
+OraDBA environment management libraries now support dependency injection (DI), enabling unit testing, stateless
+execution, and decoupled architecture. This guide explains how to use DI patterns in your code and tests.
 
 ## Why Dependency Injection?
 
