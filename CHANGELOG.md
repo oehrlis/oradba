@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 3: Subshell Isolation for Plugin Execution (Issue #136)**
+  - Implemented complete plugin execution isolation via `execute_plugin_function_v2()`
+  - All plugins now execute in isolated subshells with minimal Oracle environment
+  - Enhanced v2 wrapper to support no-arg functions via NOARGS keyword
+  - Created comprehensive test suite (test_plugin_isolation.bats) with 13 isolation tests
+  - Zero environment pollution - plugin modifications don't leak to parent shell
+  - Strict error handling (`set -euo pipefail`) enforced in all plugin executions
+  - Complete migration: All 5 direct plugin invocations converted to v2 wrapper
+  - Performance overhead < 5% (well under 10% target)
+  - See `doc/plugin-standards.md` Subshell Execution Model section
 - **Multi-instance support for middleware plugins**
   - OUD plugin: Complete `plugin_get_instance_list()` implementation with pipe-delimited format
   - WebLogic plugin: Domain discovery and instance list with proper exit codes

@@ -748,6 +748,63 @@ plugin_function() {
     local version=$("${ORACLE_HOME}/bin/sqlplus" -v 2>/dev/null | head -1)
     
     # ✅ LD_LIBRARY_PATH is available - Oracle libraries will load
+    local listener_status=$("${ORACLE_HOME}/bin/lsnrctl" status 2>&1)
+    
+    # ✅ Exit codes propagate correctly
+    return 0  # or 1, or 2
+}
+```
+
+**Important notes**:
+- Exported variables from parent ARE inherited (by design of bash subshells)
+- Modifications to inherited variables do NOT leak back to parent
+- New variables you create/export do NOT leak back to parent
+- Function definitions do NOT persist across plugin calls
+- Oracle environment (ORACLE_HOME, LD_LIBRARY_PATH) is guaranteed available
+
+### Consumer Usage Patterns
+
+**Standard plugin function call** (function takes oracle_home argument):
+
+```bash
+# Call plugin function and capture result
+local version
+if execute_plugin_function_v2 "database" "get_version" "/opt/oracle/19c" "version"; then
+    echo "Database version: ${version}"
+else
+    case $? in
+        1) echo "Version not applicable" ;;
+        2) echo "Version unavailable" ;;
+    esac
+fi
+```
+
+**No-argument plugin function call** (e.g., plugin_get_config_section):
+
+```bash
+# Use NOARGS keyword for functions that take no arguments
+local config_section
+if execute_plugin_function_v2 "database" "get_config_section" "NOARGS" "config_section"; then
+    echo "Config section: ${config_section}"
+fi
+```
+
+**With extra argument**:
+
+```bash
+# Pass extra argument for functions that need it
+local metadata
+execute_plugin_function_v2 "database" "get_metadata" "/opt/oracle/19c" "metadata" "full"
+```
+
+**Direct output** (without result variable):
+
+```bash
+# Let output go to stdout
+if version=$(execute_plugin_function_v2 "database" "get_version" "/opt/oracle/19c"); then
+    echo "Version: ${version}"
+fi
+```
     local status=$("${ORACLE_HOME}/bin/lsnrctl" status 2>/dev/null)
     
     # ❌ Don't assume other variables exist
