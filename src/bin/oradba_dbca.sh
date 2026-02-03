@@ -22,9 +22,9 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 ORADBA_BASE="$(dirname "$(dirname "${SCRIPT_DIR}")")"
 
 # Source common library
-if [[ -f "${ORADBA_BASE}/src/lib/oradba_common.sh" ]]; then
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=/dev/null
-    source "${ORADBA_BASE}/src/lib/oradba_common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
     echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 3
@@ -32,7 +32,7 @@ fi
 
 # Script variables
 VERSION="1.0.0"
-readonly DBCA_TEMPLATE_DIR="${ORADBA_BASE}/src/templates/dbca"
+readonly DBCA_TEMPLATE_DIR="${ORADBA_BASE}/templates/dbca"
 
 # Default values
 DEFAULT_CHARSET="AL32UTF8"
