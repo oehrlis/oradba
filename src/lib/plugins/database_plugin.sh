@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin for Oracle Database homes (RDBMS)
 # Notes....: Handles database detection, status checking, and environment
-#            Version 2.0.0: Added 4 new required functions for environment building
+#            Implements plugin interface v1.0.0
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 export plugin_name="database"
 export plugin_version="1.0.0"
+export plugin_interface_version="1.0.0"
 export plugin_description="Oracle Database (RDBMS) plugin"
 
 # ------------------------------------------------------------------------------

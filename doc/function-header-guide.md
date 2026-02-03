@@ -431,7 +431,7 @@ Add these snippets to your VSCode settings (`.vscode/oradba.code-snippets`) for 
       "# Args....: $$1 - ${3:First argument description}",
       "# Returns.: ${4:0 on success, 1 on error}",
       "# Output..: ${5:Description of output}",
-      "# Notes...: ${6:Part of plugin interface v2.0.0}",
+      "# Notes...: ${6:Part of plugin interface v1.0.0}",
       "# ------------------------------------------------------------------------------",
       "plugin_${1:function_name}() {",
       "    local arg1=\"$$1\"",

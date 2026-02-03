@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 export plugin_name="java"
 export plugin_version="1.0.0"
+export plugin_interface_version="1.0.0"
 export plugin_description="Oracle Java plugin"
 
 # ------------------------------------------------------------------------------

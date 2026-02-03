@@ -564,7 +564,7 @@ cat > src/lib/plugins/myproduct_plugin.sh << 'EOF'
 # Date.....: $(date +%Y.%m.%d)
 # Version..: 1.0.0
 # Purpose..: Plugin for My Oracle Product
-# Notes....: Implements plugin interface v2.0.0
+# Notes....: Implements plugin interface v1.0.0
 # ------------------------------------------------------------------------------
 
 # Plugin Metadata (REQUIRED)

@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin for Oracle Full Client
 # Notes....: Handles Oracle Full Client (not Instant Client)
-#            Version 2.0.0: Added 4 new required functions for environment building
+#            Implements plugin interface v1.0.0
 # Reference: Architecture Review & Refactoring Plan (Phase 2.1)
 #            Questions.md - Client Plugin Decision
 # License..: Apache License Version 2.0, January 2004 as shown
@@ -20,6 +20,7 @@
 # ------------------------------------------------------------------------------
 export plugin_name="client"
 export plugin_version="1.0.0"
+export plugin_interface_version="1.0.0"
 export plugin_description="Oracle Full Client plugin"
 
 # ------------------------------------------------------------------------------

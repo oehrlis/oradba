@@ -24,7 +24,11 @@ plugin_name=""              # Product type identifier (database, datasafe, etc.)
 # shellcheck disable=SC2034
 plugin_version=""           # Plugin version (semantic versioning)
 # shellcheck disable=SC2034
+plugin_interface_version="1.0.0"  # Plugin interface version (recommended)
+# shellcheck disable=SC2034
 plugin_description=""       # Human-readable description
+# shellcheck disable=SC2034
+plugin_status=""            # Optional: "EXPERIMENTAL" for stub/beta plugins
 
 # ------------------------------------------------------------------------------
 # Universal Core Functions (REQUIRED)

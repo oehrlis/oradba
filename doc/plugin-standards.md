@@ -139,6 +139,63 @@ discovery, environment building, and status logic remain accurate.
 - Examples: Grid Infrastructure, Oracle Enterprise Manager Agent/Cloud Control, future products.
 - Document open questions for category-specific environment variables and aliases before adding plugins.
 
+### Stub/Experimental Plugins
+
+**Status Classification:**
+
+Plugins can be in different stages of maturity:
+
+1. **Production Plugins** - Fully implemented and tested
+   - Examples: database, datasafe, client, iclient, oud, java
+   - Complete implementation of all mandatory functions
+   - Comprehensive test coverage
+   - Production-ready status checks and operations
+
+2. **Experimental/Stub Plugins** - Limited or placeholder implementation
+   - Examples: weblogic, emagent, oms
+   - Minimal viable implementation
+   - Basic validation and structure only
+   - Not recommended for production use
+   - Marked with `plugin_status="EXPERIMENTAL"`
+
+**Experimental Plugin Requirements:**
+
+All experimental/stub plugins MUST:
+
+- Include `plugin_status="EXPERIMENTAL"` in metadata
+- Clearly indicate experimental status in plugin_description
+- Implement all 13 universal core functions (even if minimal/stub)
+- Return appropriate exit codes (typically 1 for N/A features)
+- Document limitations in plugin header comments
+
+**Testing Experimental Plugins:**
+
+Test files for experimental plugins should use skip patterns to avoid false failures:
+
+```bash
+@test "experimental plugin - basic loading" {
+    # Test basic functionality that works
+    source "${plugin_file}"
+    [ "$status" -eq 0 ]
+}
+
+@test "experimental plugin - advanced feature" {
+    skip "EXPERIMENTAL: Feature not yet implemented"
+    # Test code here
+}
+```
+
+**Migration Path:**
+
+When an experimental plugin is fully implemented:
+
+1. Remove `plugin_status="EXPERIMENTAL"` from metadata
+2. Update plugin_description to remove "EXPERIMENTAL STUB" text
+3. Implement all required functionality
+4. Add comprehensive test coverage
+5. Update documentation to reflect production status
+6. Remove test skip patterns
+
 ## Core Plugin Functions
 
 Every plugin MUST implement the **13 universal core functions**. Plugins for specific
@@ -1842,16 +1899,21 @@ plugin_get_required_binaries() {
 export plugin_interface_version="1.0.0"
 ```
 
-**Note:** Some plugin files may reference "v2.0.0" in comments. This was an accidental internal
-reference and should be **ignored**. The official interface version is **v1.0.0**
-(established January 2026).
+**Experimental/Stub Plugins:**
+
+Plugins in development or with limited functionality should also include:
+
+```bash
+export plugin_status="EXPERIMENTAL"
+```
+
+This clearly marks the plugin as not production-ready and helps users understand its maturity level.
 
 ### Version History
 
 | Version | Date     | Changes                                                        | Status      |
 |---------|----------|----------------------------------------------------------------|-------------|
 | 1.0.0   | Jan 2026 | Initial stable release (13 universal + category-specific)      | **Current** |
-| 2.0.0   | TBD      | Reserved for future breaking changes (if needed)               | Planned     |
 
 ### Version Policy
 
@@ -1863,7 +1925,7 @@ reference and should be **ignored**. The official interface version is **v1.0.0*
   2. Migration guide for plugin developers
   3. Compatibility layer during transition period (minimum 2-3 release cycles)
   4. Deprecation warnings with clear timeline
-  5. Version bump to v2.0.0 (next major version)
+  5. Version bump to next major version (e.g., v2.0.0)
 
 ### What Constitutes a Breaking Change
 
