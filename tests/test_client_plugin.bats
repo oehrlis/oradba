@@ -118,8 +118,8 @@ teardown() {
     
     source "${TEST_DIR}/lib/plugins/client_plugin.sh"
     run plugin_check_status "${client_home}" ""
-    [ "$status" -eq 0 ]
-    [ "$output" = "N/A" ]
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
 }
 
 @test "client plugin does not show listener" {

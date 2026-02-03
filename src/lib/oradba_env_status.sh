@@ -306,9 +306,19 @@ oradba_get_product_status() {
                 return 0
                 ;;
             1)
-                # Stopped/N/A
-                echo "stopped"
-                return 1
+                # Stopped/N/A - differentiate by product type
+                # Software-only products (client, iclient, java) return N/A with success exit code
+                # Service products (database, datasafe, oud, weblogic) return stopped with exit 1
+                case "${plugin_type}" in
+                    client|iclient|java)
+                        echo "N/A"
+                        return 0
+                        ;;
+                    *)
+                        echo "stopped"
+                        return 1
+                        ;;
+                esac
                 ;;
             2)
                 # Unavailable/error

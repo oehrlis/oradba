@@ -353,14 +353,23 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
             # Test plugin_check_status
             echo ""
             echo "Testing: plugin_check_status '${DATASAFE_BASE}' '${INSTANCE_NAME}'"
-            if status_output=$(plugin_check_status "${DATASAFE_BASE}" "${INSTANCE_NAME}" 2>&1); then
-                print_success "plugin_check_status returned: ${status_output}"
-                echo "Return code: $?"
-            else
-                exit_code=$?
-                print_error "plugin_check_status failed with return code: ${exit_code}"
-                echo "Output: ${status_output}"
-            fi
+            plugin_check_status "${DATASAFE_BASE}" "${INSTANCE_NAME}" >/dev/null 2>&1
+            exit_code=$?
+            case ${exit_code} in
+                0)
+                    print_success "plugin_check_status returned: 0 (running/available)"
+                    ;;
+                1)
+                    print_success "plugin_check_status returned: 1 (stopped/N/A)"
+                    ;;
+                2)
+                    print_error "plugin_check_status returned: 2 (unavailable/error)"
+                    ;;
+                *)
+                    print_error "plugin_check_status returned unexpected code: ${exit_code}"
+                    ;;
+            esac
+            echo "Note: plugin_check_status communicates status via exit code only (no output)"
             
             # Test plugin_validate_home
             echo ""
@@ -448,13 +457,14 @@ echo "     - Verify ORACLE_HOME points to oracle_cman_home"
 echo "     - Check LD_LIBRARY_PATH includes oracle_cman_home/lib"
 echo "     - Ensure instance name in cman.ora is correct"
 echo ""
-echo "  3. Status shows 'unknown' or 'n/a':"
+echo "  3. Status detection issues:"
+echo "     - plugin_check_status returns exit codes: 0=running, 1=stopped, 2=unavailable"
 echo "     - Check that instance_name parameter is being passed"
 echo "     - Verify cmctl can connect to the service"
 echo "     - Check for TNS errors in cmctl output"
 echo ""
 echo "  4. Plugin functions fail:"
-echo "     - Review plugin_check_status logic for status detection"
+echo "     - Review plugin_check_status exit code handling"
 echo "     - Ensure regex patterns match actual cmctl output"
 echo "     - Check process-based detection fallback"
 echo ""

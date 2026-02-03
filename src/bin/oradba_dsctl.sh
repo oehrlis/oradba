@@ -265,10 +265,9 @@ start_connector() {
 
     # Check if connector is already running
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Checking current status"
-    local status
     local status_exit_code=0
     if type -t plugin_check_status &>/dev/null; then
-        status=$(plugin_check_status "${home}" "${name}")
+        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
         status_exit_code=$?
     else
         # Fallback status check using cmctl
@@ -277,14 +276,20 @@ start_connector() {
         if ORACLE_HOME="${cman_home}" \
            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
            "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
-            status="running"
             status_exit_code=0
         else
-            status="stopped"
             status_exit_code=1
         fi
     fi
     
+    # Convert exit code to status string for logging
+    local status
+    case ${status_exit_code} in
+        0) status="running" ;;
+        1) status="stopped" ;;
+        2) status="unavailable" ;;
+        *) status="unknown" ;;
+    esac
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Current status: '${status}' (exit: ${status_exit_code})"
 
     # Exit code 0 = running, 1 = stopped, 2 = unavailable
@@ -355,10 +360,9 @@ stop_connector() {
 
     # Check if connector is running
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
-    local status
     local status_exit_code=0
     if type -t plugin_check_status &>/dev/null; then
-        status=$(plugin_check_status "${home}" "${name}")
+        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
         status_exit_code=$?
     else
         # Fallback status check using cmctl
@@ -367,14 +371,20 @@ stop_connector() {
         if ORACLE_HOME="${cman_home}" \
            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
            "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
-            status="running"
             status_exit_code=0
         else
-            status="stopped"
             status_exit_code=1
         fi
     fi
     
+    # Convert exit code to status string for logging
+    local status
+    case ${status_exit_code} in
+        0) status="running" ;;
+        1) status="stopped" ;;
+        2) status="unavailable" ;;
+        *) status="unknown" ;;
+    esac
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Current status: '${status}' (exit: ${status_exit_code})"
 
     # Exit code 0 = running, 1 = stopped, 2 = unavailable
@@ -456,10 +466,11 @@ show_status() {
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Checking status for connector '${name}'"
 
-    # Get connector status
-    local status
+    # Get connector status via exit code
+    local status_exit_code
     if type -t plugin_check_status &>/dev/null; then
-        status=$(plugin_check_status "${home}" "${name}" 2>/dev/null)
+        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
+        status_exit_code=$?
     else
         # Fallback status check using cmctl
         local cman_home
@@ -467,21 +478,30 @@ show_status() {
         local cmctl="${cman_home}/bin/cmctl"
         
         if [[ ! -x "${cmctl}" ]]; then
-            status="unavailable"
+            status_exit_code=2
         else
             local instance_name
             instance_name=$(get_cman_instance_name "${home}")
             if ORACLE_HOME="${cman_home}" \
                LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
                "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
-                status="running"
+                status_exit_code=0
             else
-                status="stopped"
+                status_exit_code=1
             fi
         fi
     fi
     
-    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Status: '${status}'"
+    # Convert exit code to status string: 0=running, 1=stopped, 2=unavailable
+    local status
+    case ${status_exit_code} in
+        0) status="running" ;;
+        1) status="stopped" ;;
+        2) status="unavailable" ;;
+        *) status="unknown" ;;
+    esac
+    
+    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Status: '${status}' (exit: ${status_exit_code})"
 
     # Format status for output
     local status_upper
