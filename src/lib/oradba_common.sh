@@ -2725,8 +2725,11 @@ auto_discover_oracle_homes() {
 # Output..: Plugin function output (or stored in result variable)
 # Notes...: Dynamically loads plugins if not already loaded
 #           Used by oradba_env_status.sh and other components
+#           **DEPRECATED**: Use execute_plugin_function_v2() instead for subshell isolation
 # ------------------------------------------------------------------------------
 oradba_apply_oracle_plugin() {
+    # Emit deprecation warning
+    oradba_log WARN "oradba_apply_oracle_plugin is deprecated - use execute_plugin_function_v2 instead"
     local function_name="$1"
     local product_type="$2"
     local oracle_home="$3"
