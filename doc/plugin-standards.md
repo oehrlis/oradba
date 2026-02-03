@@ -154,6 +154,7 @@ The plugin interface uses a tiered structure:
 - **N Optional/Extension Functions** - Added as needed for product-specific features
 
 **Total mandatory functions per plugin:**
+
 - Non-database products (client, iclient, java, oud): **13 functions**
 - Database/listener products (database, datasafe): **15 functions** (13 + 2 category-specific)
 - Plus any optional/extension functions as needed
@@ -179,6 +180,7 @@ These functions MUST be implemented by every plugin, regardless of product type:
 | 13 | `plugin_get_config_section`  | Get config file section name                         | 0=success                           | ✅       |
 
 **Notes:**
+
 - `plugin_get_instance_list` is universal but only returns data for multi-instance products (database, RAC, WebLogic, OUD)
 - Single-instance products (client, iclient, java) should implement it but return empty output
 
@@ -206,6 +208,7 @@ These functions MUST be implemented by plugins that manage listener components:
 | oms          | 13             | TBD               | 13+             |
 
 **Notes:**
+
 - Listener functions are **mandatory** for database and datasafe plugins
 - Non-listener products should still implement these functions but return appropriate defaults (see templates)
 - Future product categories may introduce additional category-specific requirements
@@ -917,7 +920,8 @@ This is acceptable for interactive and automation use cases.
 
 ## Optional Functions and Extension Patterns
 
-Beyond the mandatory functions (13 universal + category-specific), plugins MAY implement optional functions for product-specific features.
+Beyond the mandatory functions (13 universal + category-specific), plugins MAY
+implement optional functions for product-specific features.
 
 ### Types of Optional Functions
 
@@ -932,6 +936,7 @@ Functions that multiple plugins may implement, with standardized naming and beha
 | `plugin_get_display_name`       | Custom display name for instance  | Override default naming     | 0=success               | 1 (oud)         |
 
 **Characteristics:**
+
 - Standardized function names (no product prefix)
 - May have default implementations in plugin_interface.sh
 - Should be documented in this specification
@@ -941,12 +946,12 @@ Functions that multiple plugins may implement, with standardized naming and beha
 
 Functions unique to a single product or product family, with product-prefixed naming:
 
-| Function                           | Plugin    | Purpose                          |
-|------------------------------------|-----------|----------------------------------|
-| `plugin_get_adjusted_paths`        | datasafe  | DataSafe-specific path logic     |
-| `plugin_oud_get_domain_config`     | oud       | OUD domain configuration (example) |
-| `plugin_database_get_pdb_status`   | database  | PDB status checking (example)    |
-| `plugin_weblogic_list_domains`     | weblogic  | WebLogic domain discovery (example) |
+| Function                         | Plugin   | Purpose                            |
+|----------------------------------|----------|------------------------------------|
+| `plugin_get_adjusted_paths`      | datasafe | DataSafe-specific path logic       |
+| `plugin_oud_get_domain_config`   | oud      | OUD domain configuration (example) |
+| `plugin_database_get_pdb_status` | database | PDB status checking (example)      |
+| `plugin_weblogic_list_domains`   | weblogic | WebLogic domain discovery (example)|
 
 **Naming Convention:** `plugin_<descriptive_name>` OR `plugin_<product>_<action>` when product-specific scope is clear
 
@@ -954,6 +959,7 @@ Functions unique to a single product or product family, with product-prefixed na
 For future extensions with ambiguous scope, consider adding product prefix for clarity.
 
 **Characteristics:**
+
 - Product-specific logic not applicable to other plugins
 - May not follow standard return value patterns (document deviations)
 - Should be documented in plugin source code
@@ -963,7 +969,7 @@ For future extensions with ambiguous scope, consider adding product prefix for c
 
 #### Decision Tree: When to Use What Pattern
 
-```
+```text
 Is the function applicable to multiple product types?
 ├─ YES → Use Common Optional Function
 │        - Standardized name: plugin_<action>
@@ -981,6 +987,7 @@ Is the function applicable to multiple product types?
 #### Naming Guidelines
 
 **DO:**
+
 - ✅ Use `plugin_` prefix for all plugin functions
 - ✅ Use descriptive names that indicate purpose
 - ✅ Document the function's purpose, arguments, returns, and output
@@ -988,6 +995,7 @@ Is the function applicable to multiple product types?
 - ✅ Keep function names concise but clear
 
 **DON'T:**
+
 - ❌ Use generic names that could conflict with core functions
 - ❌ Skip the `plugin_` prefix
 - ❌ Use abbreviations that aren't obvious
@@ -1840,10 +1848,10 @@ reference and should be **ignored**. The official interface version is **v1.0.0*
 
 ### Version History
 
-| Version | Date       | Changes                                           | Status     |
-|---------|------------|---------------------------------------------------|------------|
-| 1.0.0   | Jan 2026   | Initial stable release with 13 universal + category-specific functions | **Current** |
-| 2.0.0   | TBD        | Reserved for future breaking changes (if needed) | Planned    |
+| Version | Date     | Changes                                                        | Status      |
+|---------|----------|----------------------------------------------------------------|-------------|
+| 1.0.0   | Jan 2026 | Initial stable release (13 universal + category-specific)      | **Current** |
+| 2.0.0   | TBD      | Reserved for future breaking changes (if needed)               | Planned     |
 
 ### Version Policy
 
@@ -2011,12 +2019,14 @@ export plugin_description="Product plugin"
 ### Interface Evolution Best Practices
 
 **For Plugin Developers:**
+
 - ✅ Always test against latest plugin-standards.md
 - ✅ Subscribe to interface change notifications
 - ✅ Plan for deprecations during maintenance windows
 - ✅ Use interface_version declaration to track compatibility
 
 **For Core Maintainers:**
+
 - ✅ Minimize breaking changes
 - ✅ Long deprecation timelines (2-3 releases minimum)
 - ✅ Clear migration documentation

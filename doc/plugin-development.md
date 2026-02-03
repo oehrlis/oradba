@@ -83,6 +83,7 @@ The plugin interface uses a tiered structure:
 - **N Optional Functions** - Added as needed (common optional + product-specific extensions)
 
 **Total mandatory functions:**
+
 - Non-database products (client, iclient, java, oud): **13 functions**
 - Database/listener products (database, datasafe): **15 functions** (13 + 2)
 
@@ -126,6 +127,7 @@ These functions MUST be implemented by database and listener-based products:
 | `plugin_check_listener_status` | database, datasafe   | Listener status per Oracle Home           | 0=running, 1=stopped, 2=unavailable |
 
 **Notes:**
+
 - These are **mandatory** for database and datasafe plugins
 - Other plugins should implement them but return appropriate defaults (see templates below)
 
@@ -530,6 +532,7 @@ plugin_database_get_pdb_status() {
 ```
 
 **Naming Guidelines:**
+
 - Use `plugin_<descriptive_name>` for generic extensions
 - Use `plugin_<product>_<action>` when product-specific scope needs clarity
 - Follow return value standards (exit codes + stdout conventions)
@@ -1031,6 +1034,7 @@ ls -la "${BATS_TEST_TMPDIR}"
 Before submitting plugin:
 
 **Mandatory Requirements:**
+
 - [ ] All 13 universal core functions implemented
 - [ ] Category-specific functions added if applicable:
   - [ ] `plugin_should_show_listener` (database/listener products)
@@ -1041,6 +1045,7 @@ Before submitting plugin:
 - [ ] Return value contract followed (exit codes 0/1/2, no sentinel strings)
 
 **Integration and Validation:**
+
 - [ ] Integration tested with OraDBA core
 - [ ] Product type added to `detect_product_type()` in oradba_common.sh
 - [ ] Product type added to registry validation in oradba_registry.sh
@@ -1048,6 +1053,7 @@ Before submitting plugin:
 - [ ] Code passes shellcheck: `shellcheck src/lib/plugins/myproduct_plugin.sh`
 
 **Documentation:**
+
 - [ ] All function headers complete (Purpose, Args, Returns, Output)
 - [ ] Plugin metadata documented in source file header
 - [ ] Optional/extension functions documented (if added)
@@ -1056,6 +1062,7 @@ Before submitting plugin:
 - [ ] CHANGELOG.md updated
 
 **Recommended:**
+
 - [ ] Plugin interface version declared: `export plugin_interface_version="1.0.0"`
 - [ ] Follow naming conventions for extension functions
 - [ ] Add examples to plugin source documentation
