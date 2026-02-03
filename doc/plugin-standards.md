@@ -756,6 +756,7 @@ plugin_function() {
 ```
 
 **Important notes**:
+
 - Exported variables from parent ARE inherited (by design of bash subshells)
 - Modifications to inherited variables do NOT leak back to parent
 - New variables you create/export do NOT leak back to parent
@@ -804,14 +805,6 @@ execute_plugin_function_v2 "database" "get_metadata" "/opt/oracle/19c" "metadata
 if version=$(execute_plugin_function_v2 "database" "get_version" "/opt/oracle/19c"); then
     echo "Version: ${version}"
 fi
-```
-    local status=$("${ORACLE_HOME}/bin/lsnrctl" status 2>/dev/null)
-    
-    # ❌ Don't assume other variables exist
-    # [[ -n "${CUSTOM_VAR}" ]] - May not exist in subshell
-    
-    return 0
-}
 ```
 
 ### Testing Subshell Isolation
