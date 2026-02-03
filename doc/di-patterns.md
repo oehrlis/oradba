@@ -35,6 +35,7 @@ OraDBA environment management libraries now support dependency injection (DI), e
 ### DI Components
 
 Each library provides:
+
 - `oradba_*_init()` - Initialize library with optional logger
 - `_oradba_*_log()` - Internal logging function (private)
 - Global variable: `ORADBA_*_LOGGER` - Stores logger reference
@@ -44,6 +45,7 @@ Each library provides:
 ### 1. Production Use (Backward Compatible)
 
 **Without DI** (legacy mode):
+
 ```bash
 # Source library - works exactly as before
 source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
@@ -53,6 +55,7 @@ result=$(oradba_parse_oratab "ORCL")
 ```
 
 **With DI** (explicit logger):
+
 ```bash
 # Source library
 source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
@@ -169,16 +172,19 @@ oradba_builder_init "debug_logger"
 Initialize parser library with optional logger.
 
 **Signature**:
+
 ```bash
 oradba_parser_init [logger_function]
 ```
 
 **Parameters**:
+
 - `logger_function` (optional): Name of logger function to use
 
 **Returns**: 0 on success
 
 **Example**:
+
 ```bash
 oradba_parser_init "oradba_log"
 oradba_parser_init "my_custom_logger"
@@ -190,11 +196,13 @@ oradba_parser_init ""  # Silent mode
 Initialize builder library with optional logger.
 
 **Signature**:
+
 ```bash
 oradba_builder_init [logger_function]
 ```
 
 **Parameters**:
+
 - `logger_function` (optional): Name of logger function to use
 
 **Returns**: 0 on success
@@ -202,6 +210,7 @@ oradba_builder_init [logger_function]
 **Fallback**: Falls back to `oradba_log` if available when no logger configured
 
 **Example**:
+
 ```bash
 oradba_builder_init "oradba_log"
 ```
@@ -211,11 +220,13 @@ oradba_builder_init "oradba_log"
 Initialize validator library with optional logger.
 
 **Signature**:
+
 ```bash
 oradba_validator_init [logger_function]
 ```
 
 **Parameters**:
+
 - `logger_function` (optional): Name of logger function to use
 
 **Returns**: 0 on success
@@ -223,6 +234,7 @@ oradba_validator_init [logger_function]
 **Fallback**: Falls back to `oradba_log` if available when no logger configured
 
 **Example**:
+
 ```bash
 oradba_validator_init "oradba_log"
 ```
@@ -244,12 +256,14 @@ my_logger() {
 ```
 
 **Parameters**:
+
 1. `level`: Log level (DEBUG, INFO, WARN, ERROR)
 2. `message`: Log message (all remaining arguments)
 
 **Example Loggers**:
 
 **File Logger**:
+
 ```bash
 file_logger() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$1] ${*:2}" >> /var/log/oradba.log
@@ -257,6 +271,7 @@ file_logger() {
 ```
 
 **Syslog Logger**:
+
 ```bash
 syslog_logger() {
     logger -t oradba -p "user.${1,,}" "${*:2}"
@@ -264,6 +279,7 @@ syslog_logger() {
 ```
 
 **Structured Logger (JSON)**:
+
 ```bash
 json_logger() {
     jq -n --arg level "$1" --arg msg "${*:2}" \
@@ -276,12 +292,14 @@ json_logger() {
 ### From Legacy Code
 
 **Before** (legacy, implicit oradba_log dependency):
+
 ```bash
 source "${ORADBA_BASE}/lib/oradba_env_builder.sh"
 oradba_add_oracle_path "${ORACLE_HOME}/bin"
 ```
 
 **After** (explicit DI, same behavior):
+
 ```bash
 source "${ORADBA_BASE}/lib/oradba_env_builder.sh"
 oradba_builder_init "oradba_log"  # Optional: makes dependency explicit
@@ -289,6 +307,7 @@ oradba_add_oracle_path "${ORACLE_HOME}/bin"
 ```
 
 **Migration Steps**:
+
 1. No changes required - backward compatible
 2. Optionally add `*_init()` calls to make dependencies explicit
 3. For new code, always use `*_init()` to document dependencies
@@ -379,11 +398,13 @@ result=$(oradba_parse_oratab)
 **Problem**: Logger function not being invoked.
 
 **Causes**:
+
 1. Logger function not exported: `export -f my_logger`
 2. Wrong logger name passed to init
 3. Log level below threshold (if using oradba_log)
 
 **Solution**:
+
 ```bash
 # Verify logger is defined
 declare -f my_logger
@@ -402,6 +423,7 @@ echo "$ORADBA_PARSER_LOGGER"
 **Cause**: Library not sourced properly.
 
 **Solution**:
+
 ```bash
 # Correct ORADBA_BASE path
 ORADBA_BASE="/path/to/oradba/src"
@@ -415,6 +437,7 @@ source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
 **Cause**: Logger global variable not reset.
 
 **Solution**:
+
 ```bash
 teardown() {
     unset ORADBA_PARSER_LOGGER
@@ -431,6 +454,7 @@ teardown() {
 - **Silent mode**: Zero logging overhead
 
 **Recommendation**: Use silent mode for performance-critical code:
+
 ```bash
 oradba_parser_init ""  # Silent, fastest
 ```

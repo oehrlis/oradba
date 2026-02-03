@@ -107,6 +107,7 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 #### Remaining Work 🔄
 
 **1. Standardize plugin_check_status()** (#140 - HIGH PRIORITY)
+
 - Implement tri-state exit codes:
   - 0 = running
   - 1 = stopped
@@ -116,6 +117,7 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 - Update tests
 
 **2. Update All Plugin Callers** (#142 - HIGH PRIORITY)
+
 - Remove sentinel string parsing:
   - No more `if [[ "$output" != "ERR" ]]` patterns
   - Use exit codes only: `if plugin_func; then ... fi`
@@ -127,6 +129,7 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
   - Any other scripts calling plugins
 
 **3. Comprehensive Function Audit** (#141 - MEDIUM PRIORITY)
+
 - Audit ALL plugin functions (beyond get_version/check_status)
 - Check for remaining sentinel strings
 - Verify exit code consistency
@@ -134,6 +137,7 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 - Fix critical issues found
 
 **4. Function Naming Review** (#134 - LOW PRIORITY)
+
 - Validate naming conventions consistent across plugins
 - Document extension/optional function patterns
 - May be largely complete after Phase 1 interface work
@@ -450,11 +454,13 @@ run oradba_parse_oratab "ORCL"
 ### Remaining (Prioritized)
 
 **HIGH PRIORITY** (Complete Phase 2):
+
 1. #140: Standardize plugin_check_status() - 1 week
 2. #142: Update plugin callers to use exit codes only - 1 week
 3. #141: Comprehensive function audit - 1 week
 
 **MEDIUM PRIORITY** (Complete Phase 4):
+
 4. #137: Config precedence implementation - 1 week
 5. #137: Config precedence documentation - 0.5 weeks
 6. #137: Integration validation and CHANGELOG - 0.5 weeks
