@@ -84,7 +84,7 @@ plugin_check_status() {
 # ------------------------------------------------------------------------------
 plugin_get_metadata() {
     echo "product=oms"
-    echo "version=N/A"
+    # No version available for experimental stub plugin
     return 0
 }
 
