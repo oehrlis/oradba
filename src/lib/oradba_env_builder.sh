@@ -20,6 +20,57 @@
 readonly ORADBA_ENV_BUILDER_LOADED=1
 
 # ------------------------------------------------------------------------------
+# Dependency Injection Infrastructure (Phase 4)
+# ------------------------------------------------------------------------------
+
+# Global variable for storing logger dependency
+declare ORADBA_BUILDER_LOGGER="${ORADBA_BUILDER_LOGGER:-}"
+
+# ------------------------------------------------------------------------------
+# Function: oradba_builder_init
+# Purpose.: Initialize builder library with optional dependency injection
+# Args....: $1 - Logger function name (optional, defaults to "oradba_log")
+# Returns.: 0 on success
+# Output..: None
+# Notes...: Call this function before using builder functions if you want to inject
+#           a custom logger. If not called, falls back to oradba_log if available.
+# ------------------------------------------------------------------------------
+oradba_builder_init() {
+    local logger="${1:-}"
+    
+    # Store logger function reference
+    ORADBA_BUILDER_LOGGER="$logger"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oradba_builder_log
+# Purpose.: Internal logging function that uses injected logger or fallback
+# Args....: $1 - Log level (DEBUG, INFO, WARN, ERROR)
+#          $@ - Log message
+# Returns.: 0 on success
+# Output..: None (delegates to injected logger)
+# Notes...: Internal use only. Falls back to oradba_log if available, or no-op.
+# ------------------------------------------------------------------------------
+_oradba_builder_log() {
+    # Priority 1: Use injected logger if configured
+    if [[ -n "$ORADBA_BUILDER_LOGGER" ]]; then
+        "$ORADBA_BUILDER_LOGGER" "$@"
+        return 0
+    fi
+    
+    # Priority 2: Fall back to oradba_log if available (backward compatibility)
+    if declare -f oradba_log &>/dev/null; then
+        oradba_log "$@"
+        return 0
+    fi
+    
+    # Priority 3: No-op (silent)
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: oradba_dedupe_path
 # Purpose.: Remove duplicate entries from PATH-like variables
 # Args....: $1 - Path string (colon-separated)
@@ -139,15 +190,15 @@ oradba_add_oracle_path() {
     
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     if execute_plugin_function_v2 "${product_type}" "build_bin_path" "${oracle_home}" "new_path"; then
-        oradba_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
+        _oradba_builder_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
     else
-        oradba_log DEBUG "Plugin ${product_type}: plugin_build_bin_path failed or N/A, using fallback"
+        _oradba_builder_log DEBUG "Plugin ${product_type}: plugin_build_bin_path failed or N/A, using fallback"
         new_path=""
     fi
     
     # Fallback if plugin not found or failed
     if [[ -z "$new_path" ]]; then
-        oradba_log DEBUG "Using fallback PATH for ${product_type}"
+        _oradba_builder_log DEBUG "Using fallback PATH for ${product_type}"
         if [[ -d "${oracle_home}/bin" ]]; then
             new_path="${oracle_home}/bin"
         elif [[ -d "$oracle_home" ]]; then
@@ -212,15 +263,15 @@ oradba_set_lib_path() {
     
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     if execute_plugin_function_v2 "${product_type}" "build_lib_path" "${oracle_home}" "lib_path"; then
-        oradba_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
+        _oradba_builder_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
     else
-        oradba_log DEBUG "Plugin ${product_type}: plugin_build_lib_path failed or N/A, using fallback"
+        _oradba_builder_log DEBUG "Plugin ${product_type}: plugin_build_lib_path failed or N/A, using fallback"
         lib_path=""
     fi
     
     # Fallback if plugin not found or failed
     if [[ -z "$lib_path" ]]; then
-        oradba_log DEBUG "Using fallback LIB_PATH for ${product_type}"
+        _oradba_builder_log DEBUG "Using fallback LIB_PATH for ${product_type}"
         if [[ -d "${oracle_home}/lib64" ]]; then
             lib_path="${oracle_home}/lib64"
         fi
@@ -236,20 +287,20 @@ oradba_set_lib_path() {
     # Clean existing Oracle library paths from the environment
     eval "local existing=\"\${${lib_var}}\""
     if [[ -n "$existing" ]]; then
-        oradba_log DEBUG "Cleaning ${lib_var}: ${existing}"
+        _oradba_builder_log DEBUG "Cleaning ${lib_var}: ${existing}"
         local cleaned_path=""
         local IFS=":"
         for dir in $existing; do
             # Skip Oracle-related directories
             if [[ "$dir" =~ /oracle/ ]] || [[ "$dir" =~ /grid/ ]] || [[ "$dir" =~ instantclient ]]; then
-                oradba_log DEBUG "Removing old Oracle path: ${dir}"
+                _oradba_builder_log DEBUG "Removing old Oracle path: ${dir}"
                 continue
             fi
             
             # Add to cleaned path
             cleaned_path="${cleaned_path:+${cleaned_path}:}${dir}"
         done
-        oradba_log DEBUG "Cleaned ${lib_var}: ${cleaned_path}"
+        _oradba_builder_log DEBUG "Cleaned ${lib_var}: ${cleaned_path}"
         
         # Append cleaned non-Oracle paths to new Oracle paths
         if [[ -n "$cleaned_path" ]]; then
@@ -260,7 +311,7 @@ oradba_set_lib_path() {
     # Deduplicate library path
     lib_path="$(oradba_dedupe_path "$lib_path")"
     
-    oradba_log DEBUG "Final ${lib_var} to be exported: ${lib_path}"
+    _oradba_builder_log DEBUG "Final ${lib_var} to be exported: ${lib_path}"
     
     # Export library path variable (always export, even if empty)
     # This ensures we clear old values from previous environments
@@ -580,17 +631,17 @@ oradba_add_client_path() {
     
     # Check if product needs client tools
     if ! oradba_product_needs_client "${product_type}"; then
-        oradba_log DEBUG "Product ${product_type} has built-in client, skipping client path"
+        _oradba_builder_log DEBUG "Product ${product_type} has built-in client, skipping client path"
         return 0
     fi
     
     # Resolve client home
     client_home=$(oradba_resolve_client_home) || {
-        oradba_log DEBUG "No client home configured or found for ${product_type}"
+        _oradba_builder_log DEBUG "No client home configured or found for ${product_type}"
         return 0
     }
     
-    oradba_log DEBUG "Resolved client home: ${client_home}"
+    _oradba_builder_log DEBUG "Resolved client home: ${client_home}"
     
     # Determine bin directory based on client type
     # Check if it's instant client (no bin subdirectory)
@@ -615,23 +666,23 @@ oradba_add_client_path() {
     
     # Validate bin directory exists
     if [[ ! -d "${client_bin}" ]]; then
-        oradba_log WARN "Client bin directory not found: ${client_bin}"
+        _oradba_builder_log WARN "Client bin directory not found: ${client_bin}"
         return 1
     fi
     
     # Export ORACLE_CLIENT_HOME
     export ORACLE_CLIENT_HOME="${client_home}"
-    oradba_log DEBUG "Exported ORACLE_CLIENT_HOME=${ORACLE_CLIENT_HOME}"
+    _oradba_builder_log DEBUG "Exported ORACLE_CLIENT_HOME=${ORACLE_CLIENT_HOME}"
     
     # Check if already in PATH
     if [[ ":${PATH}:" == *":${client_bin}:"* ]]; then
-        oradba_log DEBUG "Client path already in PATH: ${client_bin}"
+        _oradba_builder_log DEBUG "Client path already in PATH: ${client_bin}"
         return 0
     fi
     
     # Append to PATH (after current entries)
     export PATH="${PATH}:${client_bin}"
-    oradba_log DEBUG "Added client path for ${product_type}: ${client_bin}"
+    _oradba_builder_log DEBUG "Added client path for ${product_type}: ${client_bin}"
     
     return 0
 }
@@ -682,7 +733,7 @@ oradba_resolve_java_home() {
         if [[ -n "${current_oracle_home}" ]] && [[ -d "${current_oracle_home}/java" ]]; then
             local java_in_home="${current_oracle_home}/java"
             if [[ -x "${java_in_home}/bin/java" ]]; then
-                oradba_log DEBUG "Found Java in ORACLE_HOME: ${java_in_home}"
+                _oradba_builder_log DEBUG "Found Java in ORACLE_HOME: ${java_in_home}"
                 echo "${java_in_home}"
                 return 0
             fi
@@ -712,7 +763,7 @@ oradba_resolve_java_home() {
                 # Validate directory exists and has java binary
                 if [[ -d "${path}" ]] && [[ -x "${path}/bin/java" ]]; then
                     java_home="${path}"
-                    oradba_log DEBUG "Found Java in oradba_homes.conf: ${java_home}"
+                    _oradba_builder_log DEBUG "Found Java in oradba_homes.conf: ${java_home}"
                     break
                 fi
             fi
@@ -744,7 +795,7 @@ oradba_resolve_java_home() {
                     # Validate directory exists and has java binary
                     if [[ -d "${path}" ]] && [[ -x "${path}/bin/java" ]]; then
                         java_home="${path}"
-                        oradba_log DEBUG "Resolved Java home by name '${setting}': ${java_home}"
+                        _oradba_builder_log DEBUG "Resolved Java home by name '${setting}': ${java_home}"
                         break
                     fi
                 fi
@@ -783,40 +834,40 @@ oradba_add_java_path() {
     if [[ "${setting}" == "none" ]]; then
         # Only auto-detect for products that need Java
         if ! oradba_product_needs_java "${product_type}"; then
-            oradba_log DEBUG "Product ${product_type} has built-in Java or doesn't need it, skipping"
+            _oradba_builder_log DEBUG "Product ${product_type} has built-in Java or doesn't need it, skipping"
             return 0
         fi
     fi
     
     # Resolve Java home
     java_home=$(oradba_resolve_java_home "${current_oracle_home}") || {
-        oradba_log DEBUG "No Java home configured or found for ${product_type}"
+        _oradba_builder_log DEBUG "No Java home configured or found for ${product_type}"
         return 0
     }
     
-    oradba_log DEBUG "Resolved Java home: ${java_home}"
+    _oradba_builder_log DEBUG "Resolved Java home: ${java_home}"
     
     # Set Java bin directory
     if [[ -d "${java_home}/bin" ]]; then
         java_bin="${java_home}/bin"
     else
-        oradba_log WARN "Java bin directory not found: ${java_home}/bin"
+        _oradba_builder_log WARN "Java bin directory not found: ${java_home}/bin"
         return 1
     fi
     
     # Export JAVA_HOME
     export JAVA_HOME="${java_home}"
-    oradba_log DEBUG "Exported JAVA_HOME=${JAVA_HOME}"
+    _oradba_builder_log DEBUG "Exported JAVA_HOME=${JAVA_HOME}"
     
     # Check if already in PATH
     if [[ ":${PATH}:" == *":${java_bin}:"* ]]; then
-        oradba_log DEBUG "Java path already in PATH: ${java_bin}"
+        _oradba_builder_log DEBUG "Java path already in PATH: ${java_bin}"
         return 0
     fi
     
     # Prepend to PATH (before current entries so it takes precedence)
     export PATH="${java_bin}:${PATH}"
-    oradba_log DEBUG "Added Java path for ${product_type}: ${java_bin}"
+    _oradba_builder_log DEBUG "Added Java path for ${product_type}: ${java_bin}"
     
     return 0
 }
