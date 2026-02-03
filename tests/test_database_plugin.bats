@@ -157,7 +157,9 @@ teardown() {
     source "${TEST_DIR}/lib/plugins/database_plugin.sh"
     run plugin_get_metadata "${db_home}"
     [ "$status" -eq 0 ]
-    [[ "$output" == *"version="* ]]
+    # Version may be omitted if not available (no sentinel strings)
+    # Just verify metadata returns successfully with edition info
+    [[ "$output" == *"edition="* ]]
 }
 
 @test "database plugin discovers no instances when none running" {
