@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 5: Cleanup, Documentation, and v1.0.0 Baseline ([#158](https://github.com/oehrlis/oradba/issues/158))**
+  - Established v1.0.0 as official plugin interface baseline (no v2.0.0 references)
+  - Added `plugin_interface_version="1.0.0"` to all 9 plugins (6 production + 3 stubs)
+  - Marked stub plugins (weblogic, emagent, oms) as EXPERIMENTAL
+    - Added `plugin_status="EXPERIMENTAL"` metadata field
+    - Updated descriptions to indicate "EXPERIMENTAL STUB" status
+    - Documented stub/experimental plugin policy in plugin-standards.md
+  - Updated plugin_interface.sh template with interface version and status fields
+  - Comprehensive documentation updates:
+    - Removed all v2.0.0 references from plugin-standards.md
+    - Added stub/experimental plugin section with migration path
+    - Updated plugin-development.md examples to v1.0.0
+    - Updated function-header-guide.md VSCode snippets to v1.0.0
+  - Updated .github/.scratch/plugin-refactor-plan.md to reflect Phase 5 progress
+  - **100% Backward Compatible**: No breaking changes, purely cleanup and documentation
 - **Plugin Interface Documentation Refinement ([#142](https://github.com/oehrlis/oradba/issues/142))**
   - Comprehensive review and documentation of plugin interface conventions (Phase 2.5)
   - Clarified function count structure: 13 universal + 2 category-specific = 15 for database products
