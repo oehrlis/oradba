@@ -103,15 +103,16 @@ and "how" of each function.
 
 Plugins marked with `plugin_status="EXPERIMENTAL"` are excluded from production use:
 
-- **Automatic Exclusion**: Plugin loader functions (`execute_plugin_function_v2` and 
+- **Automatic Exclusion**: Plugin loader functions (`execute_plugin_function_v2` and
   `oradba_apply_oracle_plugin`) automatically skip experimental plugins with a warning
-- **Testing**: Experimental plugin tests are skipped by default; enable with 
+- **Testing**: Experimental plugin tests are skipped by default; enable with
   `ORADBA_TEST_EXPERIMENTAL=true` environment variable
 - **Use Cases**: Stub implementations, beta features, or incomplete plugins under development
 - **Current Experimental Plugins**: `weblogic`, `emagent`, `oms`
 - **Production Plugins**: `database`, `datasafe`, `client`, `iclient`, `oud`, `java`
 
 **When developing experimental plugins:**
+
 1. Set `export plugin_status="EXPERIMENTAL"` in plugin metadata
 2. Mark purpose as stub/beta in description: `"Product Name (EXPERIMENTAL STUB)"`
 3. Tests will be skipped in CI/CD unless explicitly enabled
