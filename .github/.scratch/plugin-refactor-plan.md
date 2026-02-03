@@ -1,8 +1,8 @@
 # Plugin System Refactoring - Master Plan
 
 **Parent Issue**: #128  
-**Status**: Phase 2 Partially Complete  
-**Last Updated**: 2026-01-31
+**Status**: Phase 5 In Progress  
+**Last Updated**: 2026-02-03
 
 ---
 
@@ -433,6 +433,97 @@ run oradba_parse_oratab "ORCL"
 
 ---
 
+### ✅ Phase 5: Cleanup, Documentation, and v1.0.0 Baseline (IN PROGRESS)
+
+**Status**: In Progress  
+**Parent Issue**: #158  
+**Dependencies**: Phases 1-4 substantially complete  
+**Started**: February 2026
+
+#### Goals
+
+Final codebase and documentation cleanup following refactor Phases 1-4. Establish v1.0.0 as the official plugin interface baseline. Mark stub plugins clearly as experimental with appropriate metadata and documentation. Update all user and contributor documentation for new architecture. Ensure consistency between code, tests, and documentation before release.
+
+#### Tasks
+
+**1. Version Cleanup** 🔄 IN PROGRESS
+
+- [ ] Remove all "Version 2.0.0" comments from plugin files:
+  - database_plugin.sh, client_plugin.sh, oud_plugin.sh, datasafe_plugin.sh, iclient_plugin.sh
+- [ ] Add `plugin_interface_version="1.0.0"` to all 9 plugins metadata
+- [ ] Update documentation references from v2.0.0 to v1.0.0:
+  - plugin-standards.md (remove "Reserved for v2.0.0" references)
+  - plugin-development.md (update examples to v1.0.0)
+  - function-header-guide.md (update snippet examples)
+- [ ] Update .github/.scratch/plugin-refactor-plan.md to reflect Phase 5 status
+
+**2. Stub Plugin Marking** ⏳ PLANNED
+
+- [ ] Add EXPERIMENTAL status metadata to stub plugins:
+  - weblogic_plugin.sh
+  - emagent_plugin.sh
+  - oms_plugin.sh
+- [ ] Update plugin descriptions to clearly indicate stub/experimental status
+- [ ] Document stub plugin policy in plugin-standards.md:
+  - Definition of stub vs production plugins
+  - When to use stubs
+  - Test skip patterns for experimental plugins
+  - Migration path from stub to production
+
+**3. Documentation Updates** ⏳ PLANNED
+
+- [ ] Update plugin-standards.md:
+  - Remove v2.0.0 references
+  - Add stub/experimental plugin policy section
+  - Update interface versioning table
+  - Add test skip pattern examples
+- [ ] Update plugin-development.md:
+  - Change all v2.0.0 examples to v1.0.0
+  - Add section on creating stub plugins
+  - Document experimental plugin lifecycle
+- [ ] Update CHANGELOG.md:
+  - Add Phase 5 completion entry
+  - Document v1.0.0 baseline establishment
+  - Note stub plugin experimental status
+
+**4. Test Coverage** ⏳ PLANNED
+
+- [ ] Verify test skip patterns work for stub plugins
+- [ ] Ensure CI correctly handles experimental plugin tests
+- [ ] Run full test suite to validate no breakage
+- [ ] Performance validation (no regression)
+
+**5. Final Validation** ⏳ PLANNED
+
+- [ ] Comprehensive grep for remaining v2.0.0 references
+- [ ] Verify all plugins export plugin_interface_version
+- [ ] Documentation consistency check
+- [ ] Full test suite pass (1086+ tests)
+- [ ] Shellcheck validation pass
+- [ ] Manual smoke testing
+
+#### Timeline
+
+**Duration**: 1 week
+
+- Days 1-2: Version cleanup and plugin_interface_version additions ✅ IN PROGRESS
+- Day 3: Stub plugin marking and metadata updates
+- Days 4-5: Documentation updates across all docs
+- Day 6: Test validation and CI verification
+- Day 7: Final validation and CHANGELOG update
+
+#### Success Criteria
+
+- ✅ Zero v2.0.0 references in code or documentation
+- ✅ All 9 plugins export plugin_interface_version="1.0.0"
+- ✅ Stub plugins clearly marked as EXPERIMENTAL
+- ✅ Documentation reflects v1.0.0 baseline
+- ✅ Test suite passes (1086+ tests, 100% pass rate)
+- ✅ Stub plugin policy documented
+- ✅ CHANGELOG.md updated with Phase 5 completion
+
+---
+
 ## Summary
 
 ### Completed
@@ -441,8 +532,12 @@ run oradba_parse_oratab "ORCL"
 - ✅ **Phase 1**: All 9 plugins updated with new interface
 - ✅ **Phase 1**: All core callers updated  
 - ✅ **Phase 1**: Documentation and configuration updated
-- ✅ **Phase 2 (Partial)**: Test framework created
-- ✅ **Phase 2 (Partial)**: plugin_get_version() standardized
+- ✅ **Phase 2**: Return value standardization complete
+  - ✅ Test framework created
+  - ✅ plugin_get_version() standardized
+  - ✅ plugin_check_status() standardized
+  - ✅ All plugin callers updated to use exit codes
+  - ✅ Comprehensive function audit complete
 - ✅ **Phase 3**: Subshell isolation fully implemented
 - ✅ **Phase 3**: All plugin invocations migrated to v2 wrapper
 - ✅ **Phase 3**: Comprehensive isolation tests (13 tests)
@@ -450,34 +545,46 @@ run oradba_parse_oratab "ORCL"
 - ✅ **Phase 4 (Partial)**: DI infrastructure implemented in all 3 libraries
 - ✅ **Phase 4 (Partial)**: 67 comprehensive unit tests created and passing
 - ✅ **Phase 4 (Partial)**: Mock logging support for testing
+- 🔄 **Phase 5 (In Progress)**: Cleanup and v1.0.0 baseline
+  - 🔄 Version cleanup (v2.0.0 → v1.0.0)
+  - ⏳ Stub plugin marking as EXPERIMENTAL
+  - ⏳ Documentation updates
+  - ⏳ Final validation
 
 ### Remaining (Prioritized)
 
-**HIGH PRIORITY** (Complete Phase 2):
+**HIGH PRIORITY** (Complete Phase 5):
 
-1. #140: Standardize plugin_check_status() - 1 week
-2. #142: Update plugin callers to use exit codes only - 1 week
-3. #141: Comprehensive function audit - 1 week
+1. #158: Cleanup, documentation, and v1.0.0 baseline - 1 week 🔄 IN PROGRESS
+   - Version cleanup and plugin_interface_version additions
+   - Stub plugin experimental marking
+   - Documentation consistency updates
+   - Final validation and testing
 
 **MEDIUM PRIORITY** (Complete Phase 4):
 
-4. #137: Config precedence implementation - 1 week
-5. #137: Config precedence documentation - 0.5 weeks
-6. #137: Integration validation and CHANGELOG - 0.5 weeks
+2. #137: Config precedence implementation - 1 week ⏳ PLANNED
+3. #137: Config precedence documentation - 0.5 weeks ⏳ PLANNED
+4. #137: Integration validation and CHANGELOG - 0.5 weeks ⏳ PLANNED
 
 **LOWER PRIORITY**:
-7. #134: Function naming review - 0.5 weeks (may be complete)
+
+5. #134: Function naming review - 0.5 weeks (may be complete)
 
 ### Total Timeline
 
-- **Phase 2 completion**: 3 weeks
+- **Phase 1**: ✅ Complete (January 2026)
+- **Phase 2**: ✅ Complete (January-February 2026)
 - **Phase 3**: ✅ Complete (February 2026)
 - **Phase 4**: ~40% Complete (Week 1 of 3 done - Feb 2026)
   - Week 1: ✅ DI refactor and unit tests
-  - Week 2: 🔜 Config precedence
+  - Week 2: ⏳ Config precedence
   - Week 3: ⏳ Documentation and validation
+- **Phase 5**: 🔄 In Progress (February 2026)
+  - Days 1-2: 🔄 Version cleanup
+  - Days 3-7: ⏳ Stub marking, docs, validation
 
-**Total remaining**: ~5 weeks
+**Total remaining**: ~2.5 weeks (Phase 5: 1 week, Phase 4: 1.5 weeks)
 
 ---
 

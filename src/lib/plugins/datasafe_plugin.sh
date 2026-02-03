@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin for Oracle Data Safe On-Premises Connector
 # Notes....: Consolidates oracle_cman_home logic (was in 8+ files)
-#            Version 2.0.0: Added 4 new required functions for environment building
+#            Implements plugin interface v1.0.0
 # Reference: Architecture Review & Refactoring Plan (Phase 1.2)
 #            Fixes Bug #83 (explicit environment)
 #            Fixes Bug #84 (listener visibility)
@@ -21,6 +21,7 @@
 # ------------------------------------------------------------------------------
 export plugin_name="datasafe"
 export plugin_version="1.0.0"
+export plugin_interface_version="1.0.0"
 export plugin_description="Oracle Data Safe On-Premises Connector plugin"
 
 # ------------------------------------------------------------------------------

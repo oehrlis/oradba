@@ -8,7 +8,7 @@
 # Version..: 1.0.0
 # Purpose..: Plugin for Oracle Instant Client
 # Notes....: Handles Oracle Instant Client (libclntsh.so based, no bin/)
-#            Version 2.0.0: Added 4 new required functions for environment building
+#            Implements plugin interface v1.0.0
 # Reference: Architecture Review & Refactoring Plan (Phase 2.1)
 # License..: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 export plugin_name="iclient"
 export plugin_version="1.0.0"
+export plugin_interface_version="1.0.0"
 export plugin_description="Oracle Instant Client plugin"
 
 # ------------------------------------------------------------------------------
