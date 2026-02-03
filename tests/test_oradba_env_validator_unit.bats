@@ -62,8 +62,7 @@ teardown() {
 }
 
 @test "validator: init with custom logger stores logger reference" {
-    run oradba_validator_init "mock_logger"
-    [ "$status" -eq 0 ]
+    oradba_validator_init "mock_logger"
     [ "$ORADBA_VALIDATOR_LOGGER" = "mock_logger" ]
 }
 
