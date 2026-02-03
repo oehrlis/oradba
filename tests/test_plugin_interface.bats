@@ -498,8 +498,10 @@ get_plugin_files() {
     
     if type plugin_get_adjusted_paths &>/dev/null; then
         # Function exists - it's an extension, which is fine
+        # Store function name in variable to avoid SC2050
+        local func_name="plugin_get_adjusted_paths"
         # Just verify it starts with plugin_
-        [[ "plugin_get_adjusted_paths" =~ ^plugin_ ]] || {
+        [[ "${func_name}" =~ ^plugin_ ]] || {
             echo "Extension function should start with plugin_ prefix"
             return 1
         }
