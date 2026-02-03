@@ -4,11 +4,12 @@ Oracle Database Configuration Assistant (DBCA) response file templates for autom
 
 ## Overview
 
-This directory contains DBCA response file templates that enable automated, standardized Oracle database creation with consistent configurations across development, test, and production environments.
+This directory contains DBCA response file templates that enable automated, standardized Oracle database creation
+with consistent configurations across development, test, and production environments.
 
 ## Directory Structure
 
-```
+```text
 src/templates/dbca/
 ├── README.md                           # This file
 ├── common/
@@ -34,24 +35,24 @@ src/templates/dbca/
 
 ### Oracle 19c
 
-| Template | File | Description |
-|----------|------|-------------|
-| **general** | `dbca_19c_general.rsp` | General purpose database for most production workloads |
-| **container** | `dbca_19c_container.rsp` | Container database (CDB) optimized for multiple PDBs |
-| **pluggable** | `dbca_19c_pluggable.rsp` | Create new pluggable database (PDB) in existing CDB |
-| **dev** | `dbca_19c_dev.rsp` | Development database with relaxed settings |
-| **rac** | `dbca_19c_rac.rsp` | RAC database for clustered environments |
-| **dataguard** | `dbca_19c_dataguard.rsp` | Data Guard ready configuration |
+| Template      | File                     | Description                                              |
+| ------------- | ------------------------ | -------------------------------------------------------- |
+| **general**   | `dbca_19c_general.rsp`   | General purpose database for most production workloads   |
+| **container** | `dbca_19c_container.rsp` | Container database (CDB) optimized for multiple PDBs     |
+| **pluggable** | `dbca_19c_pluggable.rsp` | Create new pluggable database (PDB) in existing CDB      |
+| **dev**       | `dbca_19c_dev.rsp`       | Development database with relaxed settings               |
+| **rac**       | `dbca_19c_rac.rsp`       | RAC database for clustered environments                  |
+| **dataguard** | `dbca_19c_dataguard.rsp` | Data Guard ready configuration                           |
 
 ### Oracle 26ai
 
-| Template | File | Description |
-|----------|------|-------------|
-| **general** | `dbca_26ai_general.rsp` | General purpose database with AI-enhanced features |
-| **container** | `dbca_26ai_container.rsp` | Container database (CDB) optimized for multiple PDBs |
-| **pluggable** | `dbca_26ai_pluggable.rsp` | Create new pluggable database (PDB) in existing CDB |
-| **dev** | `dbca_26ai_dev.rsp` | Development database with relaxed settings |
-| **free** | `dbca_26ai_free.rsp` | Oracle 26ai Free edition (2GB RAM, 12GB data limits) |
+| Template      | File                      | Description                                              |
+| ------------- | ------------------------- | -------------------------------------------------------- |
+| **general**   | `dbca_26ai_general.rsp`   | General purpose database with AI-enhanced features       |
+| **container** | `dbca_26ai_container.rsp` | Container database (CDB) optimized for multiple PDBs     |
+| **pluggable** | `dbca_26ai_pluggable.rsp` | Create new pluggable database (PDB) in existing CDB      |
+| **dev**       | `dbca_26ai_dev.rsp`       | Development database with relaxed settings               |
+| **free**      | `dbca_26ai_free.rsp`      | Oracle 26ai Free edition (2GB RAM, 12GB data limits)     |
 
 ## Usage
 
@@ -103,7 +104,7 @@ oradba_dbca.sh --sid CUSTOM --version 19c \
 
 #### Command-Line Options
 
-```
+```text
 -s, --sid SID              Database SID (required)
 -h, --oracle-home PATH     Oracle Home (default: $ORACLE_HOME)
 -b, --oracle-base PATH     Oracle Base (default: $ORACLE_BASE)
@@ -150,24 +151,24 @@ $ORACLE_HOME/bin/dbca -silent -createDatabase -responseFile /tmp/my_db.rsp
 
 All templates use the following variable placeholders that must be replaced with actual values:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `{{ORACLE_SID}}` | Database SID | ORCL, DEV01, PROD |
-| `{{ORACLE_HOME}}` | Oracle Home path | /u01/app/oracle/product/19.0.0/dbhome_1 |
-| `{{ORACLE_BASE}}` | Oracle Base path | /u01/app/oracle |
-| `{{DATA_DIR}}` | Database files directory | /u01/app/oracle/oradata/ORCL |
-| `{{FRA_DIR}}` | Fast Recovery Area | /u01/app/oracle/fast_recovery_area/ORCL |
-| `{{DOMAIN}}` | Database domain | example.com, localdomain |
-| `{{SYS_PASSWORD}}` | SYS user password | (secure password) |
-| `{{SYSTEM_PASSWORD}}` | SYSTEM user password | (secure password) |
-| `{{PDB_NAME}}` | Pluggable DB name | PDB1, DEVPDB, PRODPDB |
-| `{{MEMORY_MB}}` | Total memory (MB) | 2048, 4096, 8192 |
-| `{{CHARSET}}` | Character set | AL32UTF8, WE8ISO8859P1 |
-| `{{NCHARSET}}` | National character set | AL16UTF16, UTF8 |
-| `{{DB_UNIQUE_NAME}}` | Database unique name (Data Guard) | PRIMARY_SITE1 |
-| `{{ASM_DISKGROUP}}` | ASM disk group for data (RAC) | DATA |
-| `{{ASM_FRA_DISKGROUP}}` | ASM disk group for FRA (RAC) | FRA |
-| `{{NODELIST}}` | Comma-separated node list (RAC) | node1,node2 |
+| Variable                | Description                       | Example                                 |
+| ----------------------- | --------------------------------- | --------------------------------------- |
+| `{{ORACLE_SID}}`        | Database SID                      | ORCL, DEV01, PROD                       |
+| `{{ORACLE_HOME}}`       | Oracle Home path                  | /u01/app/oracle/product/19.0.0/dbhome_1 |
+| `{{ORACLE_BASE}}`       | Oracle Base path                  | /u01/app/oracle                         |
+| `{{DATA_DIR}}`          | Database files directory          | /u01/app/oracle/oradata/ORCL            |
+| `{{FRA_DIR}}`           | Fast Recovery Area                | /u01/app/oracle/fast_recovery_area/ORCL |
+| `{{DOMAIN}}`            | Database domain                   | example.com, localdomain                |
+| `{{SYS_PASSWORD}}`      | SYS user password                 | (secure password)                       |
+| `{{SYSTEM_PASSWORD}}`   | SYSTEM user password              | (secure password)                       |
+| `{{PDB_NAME}}`          | Pluggable DB name                 | PDB1, DEVPDB, PRODPDB                   |
+| `{{MEMORY_MB}}`         | Total memory (MB)                 | 2048, 4096, 8192                        |
+| `{{CHARSET}}`           | Character set                     | AL32UTF8, WE8ISO8859P1                  |
+| `{{NCHARSET}}`          | National character set            | AL16UTF16, UTF8                         |
+| `{{DB_UNIQUE_NAME}}`    | Database unique name (Data Guard) | PRIMARY_SITE1                           |
+| `{{ASM_DISKGROUP}}`     | ASM disk group for data (RAC)     | DATA                                    |
+| `{{ASM_FRA_DISKGROUP}}` | ASM disk group for FRA (RAC)      | FRA                                     |
+| `{{NODELIST}}`          | Comma-separated node list (RAC)   | node1,node2                             |
 
 ## Custom Templates
 
@@ -176,12 +177,14 @@ You can create custom templates tailored to your specific requirements:
 ### Creating Custom Templates
 
 1. **Copy an existing template** as starting point:
+
    ```bash
    cp src/templates/dbca/19c/dbca_19c_general.rsp \
       src/templates/dbca/custom/my_custom.rsp
    ```
 
 2. **Modify parameters** as needed:
+
    - Adjust memory settings
    - Change character sets
    - Modify initialization parameters
@@ -189,6 +192,7 @@ You can create custom templates tailored to your specific requirements:
    - Enable/disable features
 
 3. **Use with oradba_dbca.sh**:
+
    ```bash
    oradba_dbca.sh --sid MYCDB --version 19c \
                   --custom-template src/templates/dbca/custom/my_custom.rsp
@@ -206,6 +210,7 @@ You can create custom templates tailored to your specific requirements:
 ## Template Features
 
 ### General Purpose Template
+
 - Balanced OLTP/OLAP settings
 - Container database with 1 PDB
 - Suitable for most production workloads
@@ -213,6 +218,7 @@ You can create custom templates tailored to your specific requirements:
 - Archive log mode disabled by default
 
 ### Container Template
+
 - Optimized for multiple PDBs (3 by default)
 - Higher process limits (500)
 - Larger FRA (40GB)
@@ -220,6 +226,7 @@ You can create custom templates tailored to your specific requirements:
 - Production-ready configuration
 
 ### Development Template
+
 - Relaxed settings for development
 - Lower memory footprint (1-2GB)
 - Sample schemas included
@@ -228,6 +235,7 @@ You can create custom templates tailored to your specific requirements:
 - Single control file
 
 ### RAC Template
+
 - ASM storage (not file system)
 - Cluster-aware settings
 - Archive log mode enabled
@@ -235,6 +243,7 @@ You can create custom templates tailored to your specific requirements:
 - Per-node memory allocation
 
 ### Data Guard Template
+
 - Archive log mode enabled
 - Multiple control files (3)
 - Standby redo logs configured
@@ -242,6 +251,7 @@ You can create custom templates tailored to your specific requirements:
 - FAL server/client settings
 
 ### Free Edition Template (26ai)
+
 - Maximum 2GB RAM
 - Maximum 12GB user data
 - CPU limited to 2 threads
@@ -252,22 +262,22 @@ You can create custom templates tailored to your specific requirements:
 
 ### Memory Recommendations
 
-| Environment | Recommended Memory |
-|-------------|-------------------|
-| Development | 1024-2048 MB |
-| Test | 2048-4096 MB |
-| Production (small) | 4096-8192 MB |
-| Production (medium) | 8192-16384 MB |
-| Production (large) | 16384+ MB |
-| RAC (per node) | 8192+ MB |
+| Environment            | Recommended Memory |
+| ---------------------- | ------------------ |
+| Development            | 1024-2048 MB       |
+| Test                   | 2048-4096 MB       |
+| Production (small)     | 4096-8192 MB       |
+| Production (medium)    | 8192-16384 MB      |
+| Production (large)     | 16384+ MB          |
+| RAC (per node)         | 8192+ MB           |
 
 ### Storage Recommendations
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| Database files | 10 GB | 20+ GB |
-| Fast Recovery Area | 20 GB | 2-3x database size |
-| Total disk space | 30 GB | 60+ GB |
+| Component              | Minimum | Recommended          |
+| ---------------------- | ------- | -------------------- |
+| Database files         | 10 GB   | 20+ GB               |
+| Fast Recovery Area     | 20 GB   | 2-3x database size   |
+| Total disk space       | 30 GB   | 60+ GB               |
 
 ### Character Set Guidelines
 
@@ -281,6 +291,7 @@ You can create custom templates tailored to your specific requirements:
 ## Best Practices
 
 ### Database Creation
+
 1. Always validate prerequisites before creation
 2. Ensure sufficient disk space (30GB+ minimum)
 3. Use appropriate memory settings for environment
@@ -289,6 +300,7 @@ You can create custom templates tailored to your specific requirements:
 6. Use version control for custom templates
 
 ### Security
+
 1. Never commit passwords to version control
 2. Use strong passwords for SYS/SYSTEM
 3. Change default passwords immediately after creation
@@ -297,6 +309,7 @@ You can create custom templates tailored to your specific requirements:
 6. Consider Database Vault for sensitive data
 
 ### Production Databases
+
 1. Enable archive log mode
 2. Configure Fast Recovery Area
 3. Create multiple control files in different locations
@@ -306,6 +319,7 @@ You can create custom templates tailored to your specific requirements:
 7. Configure Enterprise Manager (if licensed)
 
 ### Development Databases
+
 1. Use smaller memory footprint
 2. Disable archive log mode
 3. Include sample schemas for testing
@@ -317,32 +331,37 @@ You can create custom templates tailored to your specific requirements:
 ### Common Issues
 
 **Issue**: DBCA fails with "Insufficient memory"
-```
+
+```text
 Solution: Increase memory allocation with --memory option
 Example: --memory 4096
 ```
 
 **Issue**: Database already exists
-```
+
+```text
 Solution: Choose different SID or clean up existing database
 Check: $ORACLE_HOME/dbs/init${ORACLE_SID}.ora
 Check: /etc/oratab for existing entries
 ```
 
 **Issue**: Disk space insufficient
-```
+
+```text
 Solution: Free up disk space or use different directories
 Check: df -h /u01/app/oracle/oradata
 ```
 
 **Issue**: Template not found
-```
+
+```text
 Solution: List available templates with --show-templates
 Verify version and template combination is valid
 ```
 
 **Issue**: Permission denied creating directories
-```
+
+```text
 Solution: Ensure proper permissions on parent directories
 Run as oracle user (not root)
 ```
@@ -356,6 +375,7 @@ Run as oracle user (not root)
 ## Version-Specific Notes
 
 ### Oracle 19c
+
 - Long-term support release
 - All templates tested and validated
 - CDB/PDB architecture standard
@@ -363,6 +383,7 @@ Run as oracle user (not root)
 - RAC template requires Oracle Clusterware
 
 ### Oracle 26ai
+
 - Latest release with AI-enhanced features
 - Free edition available with 2GB RAM limit
 - Enhanced container database capabilities
@@ -379,6 +400,7 @@ Run as oracle user (not root)
 ## Support
 
 For issues or questions:
+
 - GitHub Issues: [oehrlis/oradba/issues](https://github.com/oehrlis/oradba/issues)
 - Documentation: [OraDBA Documentation](https://oehrlis.github.io/oradba/)
 
