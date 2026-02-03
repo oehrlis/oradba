@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **DBCA Templates for Automated Database Creation**
+  - Added comprehensive DBCA response file templates for Oracle 19c and 26ai
+  - Created `src/templates/dbca/` directory structure with templates for:
+    - Oracle 19c: general, container, pluggable, dev, rac, dataguard
+    - Oracle 26ai: general, container, pluggable, dev, free
+  - Implemented `oradba_dbca.sh` helper script for automated database creation
+    - Command-line interface with argument parsing
+    - Template variable substitution
+    - Prerequisites validation
+    - Dry-run mode for testing
+    - Template discovery with `--show-templates`
+    - Secure password prompting
+  - Created comprehensive documentation in `src/templates/dbca/README.md`
+    - Usage examples and best practices
+    - Template variables reference
+    - Configuration guidelines
+    - Troubleshooting section
+  - Added BATS test suite (`test_oradba_dbca.bats`) with 18 test cases
+  - All templates follow Oracle best practices and use standardized variable placeholders
+
 - **Phase 5: Cleanup, Documentation, and v1.0.0 Baseline ([#158](https://github.com/oehrlis/oradba/issues/158))**
   - Established v1.0.0 as official plugin interface baseline (no v2.0.0 references)
   - Added `plugin_interface_version="1.0.0"` to all 9 plugins (6 production + 3 stubs)
