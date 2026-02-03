@@ -1,0 +1,123 @@
+#################################################################################
+# OraDBA DBCA Response File Template
+# Oracle Database 19c - Data Guard Ready
+# 
+# This template creates a primary database configured for Oracle Data Guard
+# with appropriate settings for high availability and disaster recovery.
+#
+# Usage:
+#   dbca -silent -createDatabase -responseFile dbca_19c_dataguard.rsp
+#
+# Variables to customize (replace {{VARIABLE}} with actual values):
+#   {{ORACLE_SID}}       - Database SID/Name
+#   {{ORACLE_HOME}}      - Oracle Home directory
+#   {{ORACLE_BASE}}      - Oracle Base directory
+#   {{DATA_DIR}}         - Database files directory
+#   {{FRA_DIR}}          - Fast Recovery Area directory
+#   {{DOMAIN}}           - Database domain
+#   {{SYS_PASSWORD}}     - SYS password
+#   {{SYSTEM_PASSWORD}}  - SYSTEM password
+#   {{PDB_NAME}}         - Pluggable database name (if CDB)
+#   {{MEMORY_MB}}        - Total SGA+PGA memory in MB
+#   {{CHARSET}}          - Character set (AL32UTF8 recommended)
+#   {{NCHARSET}}         - National character set (AL16UTF16)
+#   {{DB_UNIQUE_NAME}}   - Unique database name for Data Guard
+#
+# Note: After creation, configure standby database and Data Guard broker
+#################################################################################
+
+[GENERAL]
+RESPONSEFILE_VERSION = "19.0.0"
+OPERATION_TYPE = "createDatabase"
+
+[CREATEDATABASE]
+#-----------------------------------------------------------------------------
+# Database Identification
+#-----------------------------------------------------------------------------
+GDBNAME = "{{ORACLE_SID}}.{{DOMAIN}}"
+SID = "{{ORACLE_SID}}"
+DATABASECONFTYPE = "SI"
+TEMPLATENAME = "General_Purpose.dbc"
+SYSPASSWORD = "{{SYS_PASSWORD}}"
+SYSTEMPASSWORD = "{{SYSTEM_PASSWORD}}"
+
+#-----------------------------------------------------------------------------
+# Container/Pluggable Database Settings
+#-----------------------------------------------------------------------------
+CREATEASCONTAINERDATABASE = true
+NUMBEROFPDBS = 1
+PDBNAME = "{{PDB_NAME}}"
+PDBADMINPASSWORD = "{{SYSTEM_PASSWORD}}"
+USELOCKUNDOFORTEMPFILE = true
+
+#-----------------------------------------------------------------------------
+# Storage Configuration
+#-----------------------------------------------------------------------------
+STORAGETYPE = FS
+DATAFILEDESTINATION = "{{DATA_DIR}}"
+RECOVERYAREADESTINATION = "{{FRA_DIR}}"
+RECOVERYSIZEINGB = 50
+
+#-----------------------------------------------------------------------------
+# File Locations
+#-----------------------------------------------------------------------------
+DATAFILEJARLOCATION = "{{ORACLE_HOME}}/assistants/dbca/templates/"
+
+#-----------------------------------------------------------------------------
+# Memory Configuration
+#-----------------------------------------------------------------------------
+TOTALMEMORY = "{{MEMORY_MB}}"
+MEMORYPERCENTAGE = ""
+
+#-----------------------------------------------------------------------------
+# Character Sets
+#-----------------------------------------------------------------------------
+CHARACTERSET = "{{CHARSET}}"
+NATIONALCHARACTERSET = "{{NCHARSET}}"
+
+#-----------------------------------------------------------------------------
+# Network Configuration
+#-----------------------------------------------------------------------------
+LISTENERS = "LISTENER"
+REGISTERWITHDIRSERVICE = false
+
+#-----------------------------------------------------------------------------
+# Database Options
+#-----------------------------------------------------------------------------
+SAMPLESCHEMA = false
+DATABASETYPE = "MULTIPURPOSE"
+
+#-----------------------------------------------------------------------------
+# Initialization Parameters (Data Guard optimized)
+#-----------------------------------------------------------------------------
+INITPARAMS = "db_name={{ORACLE_SID}}","db_unique_name={{DB_UNIQUE_NAME}}","db_domain={{DOMAIN}}","audit_trail=DB,EXTENDED","control_files=(\"{{DATA_DIR}}/control01.ctl\",\"{{DATA_DIR}}/control02.ctl\",\"{{FRA_DIR}}/control03.ctl\")","diagnostic_dest={{ORACLE_BASE}}","dispatchers=(PROTOCOL=TCP) (SERVICE={{ORACLE_SID}}XDB)","open_cursors=300","processes=300","remote_login_passwordfile=EXCLUSIVE","undo_tablespace=UNDOTBS1","log_archive_config='DG_CONFIG=({{DB_UNIQUE_NAME}})'","log_archive_dest_1='LOCATION={{FRA_DIR}}/arch VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{DB_UNIQUE_NAME}}'","log_archive_dest_state_1=ENABLE","log_archive_format=%t_%s_%r.arc","log_archive_max_processes=4","standby_file_management=AUTO","db_file_name_convert='','","log_file_name_convert='',''","fal_server=''","fal_client=''"
+
+#-----------------------------------------------------------------------------
+# Oracle Managed Files (OMF)
+#-----------------------------------------------------------------------------
+USEDATABASEFILEINI_PARAMETERS = true
+
+#-----------------------------------------------------------------------------
+# Database Vault & Label Security (Enterprise Edition)
+#-----------------------------------------------------------------------------
+DVOWNERNAME = ""
+DVOWNERPASSWORD = ""
+DVACCOUNTMANAGERNAME = ""
+DVACCOUNTMANAGERPASSWORD = ""
+OLSOWNERNAME = ""
+OLSOWNERPASSWORD = ""
+
+#-----------------------------------------------------------------------------
+# Automatic Maintenance Tasks
+#-----------------------------------------------------------------------------
+ENABLEARCHIVE = true
+ARCHIVELOGDESTINATION = "{{FRA_DIR}}/arch"
+ARCHIVELOGMODE = true
+
+#-----------------------------------------------------------------------------
+# Additional Options
+#-----------------------------------------------------------------------------
+EMCONFIGURATION = "NONE"
+EMEXPRESSPORT = 5500
+RUNMVUPDATESCRIPTS = true
+ENABLEAUTOMATICMAINTENANCE = true

@@ -1,0 +1,111 @@
+#################################################################################
+# OraDBA DBCA Common Response File Parameters
+# 
+# This file contains common parameters and comments that can be referenced
+# when creating custom DBCA response files.
+#
+# Reference: Oracle Database Configuration Assistant (DBCA) Silent Mode
+# Usage: These parameters are used in version-specific templates
+#################################################################################
+
+#-----------------------------------------------------------------------------
+# Common Variables for Substitution
+#-----------------------------------------------------------------------------
+# {{ORACLE_SID}}       - Database SID/Name (e.g., ORCL, DEV01)
+# {{ORACLE_HOME}}      - Oracle Home directory path
+# {{ORACLE_BASE}}      - Oracle Base directory path
+# {{DATA_DIR}}         - Database files directory
+# {{FRA_DIR}}          - Fast Recovery Area directory
+# {{DOMAIN}}           - Database domain (e.g., localdomain, example.com)
+# {{SYS_PASSWORD}}     - SYS user password
+# {{SYSTEM_PASSWORD}}  - SYSTEM user password
+# {{PDB_NAME}}         - Pluggable database name (for CDB)
+# {{MEMORY_MB}}        - Total SGA+PGA memory in MB
+# {{CHARSET}}          - Character set (AL32UTF8, WE8ISO8859P1, etc.)
+# {{NCHARSET}}         - National character set (AL16UTF16, UTF8)
+
+#-----------------------------------------------------------------------------
+# Common Parameter Descriptions
+#-----------------------------------------------------------------------------
+
+# RESPONSEFILE_VERSION
+# Specifies the version of the response file format
+# Format: "XX.0.0" where XX is the major version (19, 21, 23, 26)
+
+# OPERATION_TYPE
+# Type of operation to perform
+# Values: createDatabase, createTemplateFromDB, createCloneTemplate, deleteDatabase
+
+# GDBNAME
+# Global database name (SID.DOMAIN)
+# Format: "SID.DOMAIN" (e.g., "ORCL.localdomain")
+
+# SID
+# System identifier (SID) for the database
+# Note: Must be unique on the host
+
+# DATABASECONFTYPE
+# Database configuration type
+# Values: SI (Single Instance), RAC (Real Application Clusters), RACONENODE
+
+# TEMPLATENAME
+# DBCA template to use
+# Common values:
+#   - General_Purpose.dbc (balanced OLTP/OLAP)
+#   - Data_Warehouse.dbc (optimized for OLAP)
+#   - New_Database.dbt (custom configuration)
+
+# STORAGETYPE
+# Storage type for database files
+# Values: FS (File System), ASM (Automatic Storage Management)
+
+# CREATEASCONTAINERDATABASE
+# Create as container database (CDB)
+# Values: true, false
+# Note: Oracle 12c+ feature, required for PDBs
+
+# CHARACTERSET
+# Database character set
+# Common values:
+#   - AL32UTF8 (Unicode, recommended for new databases)
+#   - WE8ISO8859P1 (Western European)
+#   - WE8MSWIN1252 (Windows Western European)
+# Note: Cannot be changed after database creation
+
+# NATIONALCHARACTERSET
+# National character set (for NCHAR, NVARCHAR2, NCLOB)
+# Common values:
+#   - AL16UTF16 (default, recommended)
+#   - UTF8
+# Note: Cannot be changed after database creation
+
+# TOTALMEMORY
+# Total memory for SGA and PGA (in MB)
+# Recommendations:
+#   - Development: 1024-2048 MB
+#   - Test: 2048-4096 MB
+#   - Production: 4096+ MB (based on workload)
+
+# EMCONFIGURATION
+# Enterprise Manager configuration
+# Values:
+#   - NONE (no EM, recommended for most cases)
+#   - DBEXPRESS (EM Express, lightweight web interface)
+#   - CENTRAL (EM Cloud Control, requires EM repository)
+
+# ENABLEARCHIVE
+# Enable archive log mode
+# Values: true, false
+# Note: Required for production databases, Data Guard, and point-in-time recovery
+
+#-----------------------------------------------------------------------------
+# Best Practices
+#-----------------------------------------------------------------------------
+# 1. Always use AL32UTF8 character set for new databases (maximum compatibility)
+# 2. Enable archive log mode for production databases
+# 3. Set appropriate memory based on available system resources
+# 4. Use Fast Recovery Area for automated backup management
+# 5. Create at least 2 control files in different locations
+# 6. For production: Use ASM storage type if available
+# 7. For CDB: Create at least one PDB for application data
+# 8. Review and customize initialization parameters (INITPARAMS)

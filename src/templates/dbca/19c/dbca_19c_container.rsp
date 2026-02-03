@@ -1,0 +1,121 @@
+#################################################################################
+# OraDBA DBCA Response File Template
+# Oracle Database 19c - Container Database (CDB)
+# 
+# This template creates a container database optimized for hosting multiple
+# pluggable databases with appropriate resource allocation.
+#
+# Usage:
+#   dbca -silent -createDatabase -responseFile dbca_19c_container.rsp
+#
+# Variables to customize (replace {{VARIABLE}} with actual values):
+#   {{ORACLE_SID}}       - Database SID/Name
+#   {{ORACLE_HOME}}      - Oracle Home directory
+#   {{ORACLE_BASE}}      - Oracle Base directory
+#   {{DATA_DIR}}         - Database files directory
+#   {{FRA_DIR}}          - Fast Recovery Area directory
+#   {{DOMAIN}}           - Database domain
+#   {{SYS_PASSWORD}}     - SYS password
+#   {{SYSTEM_PASSWORD}}  - SYSTEM password
+#   {{PDB_NAME}}         - Pluggable database name
+#   {{MEMORY_MB}}        - Total SGA+PGA memory in MB
+#   {{CHARSET}}          - Character set (AL32UTF8, WE8ISO8859P1, etc.)
+#   {{NCHARSET}}         - National character set (AL16UTF16, UTF8)
+#################################################################################
+
+[GENERAL]
+RESPONSEFILE_VERSION = "19.0.0"
+OPERATION_TYPE = "createDatabase"
+
+[CREATEDATABASE]
+#-----------------------------------------------------------------------------
+# Database Identification
+#-----------------------------------------------------------------------------
+GDBNAME = "{{ORACLE_SID}}.{{DOMAIN}}"
+SID = "{{ORACLE_SID}}"
+DATABASECONFTYPE = "SI"
+TEMPLATENAME = "General_Purpose.dbc"
+SYSPASSWORD = "{{SYS_PASSWORD}}"
+SYSTEMPASSWORD = "{{SYSTEM_PASSWORD}}"
+
+#-----------------------------------------------------------------------------
+# Container/Pluggable Database Settings
+#-----------------------------------------------------------------------------
+CREATEASCONTAINERDATABASE = true
+NUMBEROFPDBS = 3
+PDBNAME = "{{PDB_NAME}}"
+PDBADMINPASSWORD = "{{SYSTEM_PASSWORD}}"
+USELOCKUNDOFORTEMPFILE = true
+PDBSTORAGEMAXIMB = 10240
+
+#-----------------------------------------------------------------------------
+# Storage Configuration
+#-----------------------------------------------------------------------------
+STORAGETYPE = FS
+DATAFILEDESTINATION = "{{DATA_DIR}}"
+RECOVERYAREADESTINATION = "{{FRA_DIR}}"
+RECOVERYSIZEINGB = 40
+
+#-----------------------------------------------------------------------------
+# File Locations
+#-----------------------------------------------------------------------------
+DATAFILEJARLOCATION = "{{ORACLE_HOME}}/assistants/dbca/templates/"
+
+#-----------------------------------------------------------------------------
+# Memory Configuration
+#-----------------------------------------------------------------------------
+TOTALMEMORY = "{{MEMORY_MB}}"
+MEMORYPERCENTAGE = ""
+
+#-----------------------------------------------------------------------------
+# Character Sets
+#-----------------------------------------------------------------------------
+CHARACTERSET = "{{CHARSET}}"
+NATIONALCHARACTERSET = "{{NCHARSET}}"
+
+#-----------------------------------------------------------------------------
+# Network Configuration
+#-----------------------------------------------------------------------------
+LISTENERS = "LISTENER"
+REGISTERWITHDIRSERVICE = false
+
+#-----------------------------------------------------------------------------
+# Database Options
+#-----------------------------------------------------------------------------
+SAMPLESCHEMA = false
+DATABASETYPE = "MULTIPURPOSE"
+
+#-----------------------------------------------------------------------------
+# Initialization Parameters (CDB-optimized)
+#-----------------------------------------------------------------------------
+INITPARAMS = "db_name={{ORACLE_SID}}","db_domain={{DOMAIN}}","audit_trail=DB,EXTENDED","control_files=(\"{{DATA_DIR}}/control01.ctl\",\"{{DATA_DIR}}/control02.ctl\")","diagnostic_dest={{ORACLE_BASE}}","dispatchers=(PROTOCOL=TCP) (SERVICE={{ORACLE_SID}}XDB)","open_cursors=300","processes=500","sessions=600","remote_login_passwordfile=EXCLUSIVE","undo_tablespace=UNDOTBS1","db_create_file_dest={{DATA_DIR}}","db_recovery_file_dest={{FRA_DIR}}"
+
+#-----------------------------------------------------------------------------
+# Oracle Managed Files (OMF)
+#-----------------------------------------------------------------------------
+USEDATABASEFILEINI_PARAMETERS = true
+
+#-----------------------------------------------------------------------------
+# Database Vault & Label Security (Enterprise Edition)
+#-----------------------------------------------------------------------------
+DVOWNERNAME = ""
+DVOWNERPASSWORD = ""
+DVACCOUNTMANAGERNAME = ""
+DVACCOUNTMANAGERPASSWORD = ""
+OLSOWNERNAME = ""
+OLSOWNERPASSWORD = ""
+
+#-----------------------------------------------------------------------------
+# Automatic Maintenance Tasks
+#-----------------------------------------------------------------------------
+ENABLEARCHIVE = false
+ARCHIVELOGDESTINATION = "{{FRA_DIR}}"
+ARCHIVELOGMODE = false
+
+#-----------------------------------------------------------------------------
+# Additional Options
+#-----------------------------------------------------------------------------
+EMCONFIGURATION = "NONE"
+EMEXPRESSPORT = 5500
+RUNMVUPDATESCRIPTS = true
+ENABLEAUTOMATICMAINTENANCE = true
