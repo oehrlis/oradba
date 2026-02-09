@@ -540,10 +540,16 @@ show_oracle_status_registry() {
             else
                 # Use modern plugin architecture (same as oradba_env.sh)
                 if type -t oradba_get_product_status &>/dev/null; then
-                    status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>/dev/null | tr '[:upper:]' '[:lower:]')
-                    [[ -z "$status" ]] && status="unknown"
+                    status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]')
+                    local exit_code=$?
+                    
+                    if [[ -z "$status" ]]; then
+                        status="unknown"
+                        oradba_log WARN "oraup.sh: Failed to get status for DataSafe connector $name (exit code: $exit_code)"
+                    fi
                 else
                     status="unknown"
+                    oradba_log ERROR "oraup.sh: oradba_get_product_status function not available"
                 fi
                 
                 # Try to get port from configuration (future enhancement)

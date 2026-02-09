@@ -2980,9 +2980,9 @@ execute_plugin_function_v2() {
             # Set minimal Oracle environment from current context
             export ORACLE_HOME="${ORACLE_HOME:-}"
             export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
-            set -euo pipefail
+            # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}"
+            source "${plugin_file}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout
@@ -3003,9 +3003,9 @@ execute_plugin_function_v2() {
                 LD_LIBRARY_PATH="${oracle_home}/lib"
                 export LD_LIBRARY_PATH
             fi
-            set -euo pipefail
+            # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}"
+            source "${plugin_file}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout

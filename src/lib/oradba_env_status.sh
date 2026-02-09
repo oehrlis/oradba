@@ -13,6 +13,19 @@
 [[ -n "${ORADBA_ENV_STATUS_LOADED:-}" ]] && return 0
 readonly ORADBA_ENV_STATUS_LOADED=1
 
+# Ensure oradba_common.sh is sourced (provides execute_plugin_function_v2)
+# This must be done outside any subshell to avoid set -euo pipefail issues
+if ! type -t execute_plugin_function_v2 >/dev/null 2>&1; then
+    # Try to source it if ORADBA_BASE is set
+    if [[ -n "${ORADBA_BASE:-}" ]] && [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+        # shellcheck source=oradba_common.sh
+        source "${ORADBA_BASE}/lib/oradba_common.sh" || {
+            # If sourcing fails, log error but don't fail the library load
+            echo "[ERROR] Failed to source oradba_common.sh" >&2
+        }
+    fi
+fi
+
 # ------------------------------------------------------------------------------
 # Function: oradba_check_db_status
 # Purpose.: Check if Oracle database instance is running
@@ -284,24 +297,48 @@ oradba_get_product_status() {
         oradba_base="$(cd "${script_dir}/../.." && pwd)"
     fi
     
+    oradba_log DEBUG "oradba_get_product_status: product_type=${product_type}, plugin_type=${plugin_type}, home=${home_path}"
+    oradba_log DEBUG "oradba_get_product_status: ORADBA_BASE=${oradba_base}"
+    
     local plugin_file="${oradba_base}/src/lib/plugins/${plugin_type}_plugin.sh"
     if [[ ! -f "${plugin_file}" ]]; then
+        oradba_log DEBUG "oradba_get_product_status: Plugin not found at ${plugin_file}, trying alternate path"
         plugin_file="${oradba_base}/lib/plugins/${plugin_type}_plugin.sh"
     fi
     
+    oradba_log DEBUG "oradba_get_product_status: Checking plugin file: ${plugin_file}"
+    
     # Only try plugin if it exists
     if [[ -f "${plugin_file}" ]]; then
+        oradba_log DEBUG "oradba_get_product_status: Plugin file found, executing check_status"
         # Try to use plugin for status check
         # Note: Plugins now return status via exit code only (no output)
         # 0=running/available, 1=stopped/N/A, 2=unavailable/error
         local plugin_exit_code=0
-        execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "" "${instance_name}" 2>/dev/null
+        
+        # Check if execute_plugin_function_v2 is available
+        if ! type -t execute_plugin_function_v2 >/dev/null 2>&1; then
+            oradba_log ERROR "oradba_get_product_status: execute_plugin_function_v2 not available!"
+            echo "unavailable"
+            return 2
+        fi
+        
+        # Execute plugin with error capture for debugging
+        local plugin_stderr
+        plugin_stderr=$(execute_plugin_function_v2 "${plugin_type}" "check_status" "${home_path}" "" "${instance_name}" 2>&1 >/dev/null)
         plugin_exit_code=$?
+        
+        if [[ -n "${plugin_stderr}" ]]; then
+            oradba_log DEBUG "oradba_get_product_status: Plugin stderr: ${plugin_stderr}"
+        fi
+        
+        oradba_log DEBUG "oradba_get_product_status: Plugin check_status exit code: ${plugin_exit_code}"
         
         # Map exit codes to status strings for backward compatibility
         case ${plugin_exit_code} in
             0)
                 # Running/available
+                oradba_log DEBUG "oradba_get_product_status: Plugin returned 0 (running)"
                 echo "running"
                 return 0
                 ;;
@@ -309,6 +346,7 @@ oradba_get_product_status() {
                 # Stopped/N/A - differentiate by product type
                 # Software-only products (client, iclient, java) return N/A with success exit code
                 # Service products (database, datasafe, oud, weblogic) return stopped with exit 1
+                oradba_log DEBUG "oradba_get_product_status: Plugin returned 1 (stopped/N/A)"
                 case "${plugin_type}" in
                     client|iclient|java)
                         echo "N/A"
@@ -322,18 +360,21 @@ oradba_get_product_status() {
                 ;;
             2)
                 # Unavailable/error
+                oradba_log DEBUG "oradba_get_product_status: Plugin returned 2 (unavailable)"
                 echo "unavailable"
                 return 2
                 ;;
             *)
                 # Unexpected exit code - fall through to legacy functions
-                oradba_log DEBUG "Plugin check_status returned unexpected code ${plugin_exit_code}, using fallback"
+                oradba_log WARN "oradba_get_product_status: Plugin check_status returned unexpected code ${plugin_exit_code}, using fallback"
                 ;;
         esac
+    else
+        oradba_log WARN "oradba_get_product_status: Plugin file not found: ${plugin_file}"
     fi
     
     # Fallback to legacy product-specific functions if plugin doesn't exist or returned unexpected code
-    oradba_log DEBUG "Using fallback status check for ${product_type}"
+    oradba_log WARN "oradba_get_product_status: Using fallback status check for ${product_type} (plugin system failed)"
     case "${product_type^^}" in
         RDBMS|DATABASE)
             oradba_check_db_status "$instance_name" "$home_path"
@@ -355,8 +396,15 @@ oradba_get_product_status() {
         WLS|WEBLOGIC)
             oradba_check_wls_status "$instance_name"
             ;;
+        DATASAFE)
+            # DataSafe has no legacy function - report unavailable
+            oradba_log ERROR "oradba_get_product_status: DataSafe plugin failed and no legacy function available"
+            echo "unavailable"
+            return 2
+            ;;
         *)
-            echo "UNKNOWN"
+            oradba_log ERROR "oradba_get_product_status: Unknown product type '${product_type}' - no plugin or legacy function"
+            echo "unknown"
             return 1
             ;;
     esac

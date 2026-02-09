@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Plugin System Execution Issues (Exit Code 133)**
+  - Removed strict error handling (`set -euo pipefail`) from plugin subshells in `execute_plugin_function_v2`
+  - Strict mode was causing plugins to fail with exit code 133 (signal termination) during normal operations
+  - Plugins now have flexibility to check conditions that might fail without terminating the subshell
+  - Added defensive sourcing of `oradba_common.sh` in `oradba_env_status.sh` to ensure `execute_plugin_function_v2` is available
+  - Fixed syntax error in `oraup.sh` DataSafe status detection (malformed string escape)
+  - DataSafe connector status now correctly returns "stopped" instead of "unknown"
+  - Improved error handling when plugins are unavailable or return unexpected exit codes
+  - Added comprehensive debug logging to trace plugin system execution flow
+
 ### Added
 
 ### Improved
