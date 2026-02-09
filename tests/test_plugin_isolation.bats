@@ -357,3 +357,184 @@ EOF
     result2=$(execute_plugin_function_v2 "state" "check_state" "/fake/home")
     [[ "${result2}" == "state=initial" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Test 14: plugin_status doesn't leak between plugins (Issue #1)
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status doesn't leak between plugins" {
+    # Create experimental plugin that exports plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/experimental_plugin.sh" <<'EOF'
+export plugin_status="EXPERIMENTAL"
+export plugin_name="experimental"
+export plugin_version="1.0.0"
+
+plugin_test_func() {
+    echo "experimental_plugin"
+    return 0
+}
+EOF
+    
+    # Create non-experimental plugin that doesn't set plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/normal_plugin.sh" <<'EOF'
+export plugin_name="normal"
+export plugin_version="1.0.0"
+# Note: plugin_status is NOT set here
+
+plugin_test_func() {
+    echo "normal_plugin"
+    return 0
+}
+EOF
+    
+    # First, call experimental plugin (this will export plugin_status="EXPERIMENTAL")
+    run execute_plugin_function_v2 "experimental" "test_func" "/fake/home"
+    # Should be skipped with exit code 1
+    [ "$status" -eq 1 ]
+    # The function itself should not execute (no "experimental_plugin" in output)
+    [[ "${output}" != *"experimental_plugin"* ]]
+    
+    # Now call normal plugin - it should NOT be skipped despite plugin_status in parent env
+    run execute_plugin_function_v2 "normal" "test_func" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "normal_plugin" ]]
+}
+
+# ------------------------------------------------------------------------------
+# Test 15: TNS_ADMIN doesn't leak between plugins (Issue #2)
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN doesn't leak to plugin subshell" {
+    # Create plugin that checks if TNS_ADMIN is set
+    cat > "${ORADBA_BASE}/src/lib/plugins/tns_check_plugin.sh" <<'EOF'
+plugin_check_tns() {
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "ERROR: TNS_ADMIN is set to: ${TNS_ADMIN}"
+        return 2
+    else
+        echo "SUCCESS: TNS_ADMIN is not set"
+        return 0
+    fi
+}
+EOF
+    
+    # Set TNS_ADMIN in parent environment (simulating multiple DataSafe connectors)
+    export TNS_ADMIN="/wrong/path/to/network/admin"
+    
+    # Call plugin - it should NOT inherit TNS_ADMIN
+    run execute_plugin_function_v2 "tns_check" "check_tns" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "SUCCESS: TNS_ADMIN is not set" ]]
+    
+    # Verify TNS_ADMIN is still set in parent (not affected by unset in subshell)
+    [[ "${TNS_ADMIN}" == "/wrong/path/to/network/admin" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+}
+
+# ------------------------------------------------------------------------------
+# Test 16: Multiple environment variables are unset in subshell
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: both TNS_ADMIN and plugin_status are unset" {
+    # Create plugin that checks both variables
+    cat > "${ORADBA_BASE}/src/lib/plugins/multi_check_plugin.sh" <<'EOF'
+plugin_check_both() {
+    local errors=0
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "ERROR: TNS_ADMIN is set"
+        errors=1
+    fi
+    if [[ -n "${plugin_status:-}" ]]; then
+        echo "ERROR: plugin_status is set"
+        errors=1
+    fi
+    if [[ $errors -eq 0 ]]; then
+        echo "SUCCESS: Both variables are unset"
+        return 0
+    else
+        return 2
+    fi
+}
+EOF
+    
+    # Set both variables in parent environment
+    export TNS_ADMIN="/some/path"
+    export plugin_status="EXPERIMENTAL"
+    
+    # Call plugin - it should see neither variable
+    run execute_plugin_function_v2 "multi_check" "check_both" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "SUCCESS: Both variables are unset" ]]
+    
+    # Verify variables are still set in parent
+    [[ "${TNS_ADMIN}" == "/some/path" ]]
+    [[ "${plugin_status}" == "EXPERIMENTAL" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+    unset plugin_status
+}
+
+# ------------------------------------------------------------------------------
+# Test 17: plugin_status isolation with NOARGS functions
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status isolation works with NOARGS" {
+    # Create experimental plugin with no-arg function
+    cat > "${ORADBA_BASE}/src/lib/plugins/exp_noargs_plugin.sh" <<'EOF'
+export plugin_status="EXPERIMENTAL"
+export plugin_name="exp_noargs"
+
+plugin_get_config() {
+    echo "CONFIG"
+    return 0
+}
+EOF
+    
+    # Create normal plugin with no-arg function
+    cat > "${ORADBA_BASE}/src/lib/plugins/normal_noargs_plugin.sh" <<'EOF'
+export plugin_name="normal_noargs"
+# plugin_status NOT set
+
+plugin_get_config() {
+    echo "NORMAL_CONFIG"
+    return 0
+}
+EOF
+    
+    # Call experimental plugin with NOARGS (should be skipped)
+    run execute_plugin_function_v2 "exp_noargs" "get_config" "NOARGS"
+    [ "$status" -eq 1 ]
+    
+    # Call normal plugin with NOARGS (should succeed)
+    run execute_plugin_function_v2 "normal_noargs" "get_config" "NOARGS"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "NORMAL_CONFIG" ]]
+}
+
+# ------------------------------------------------------------------------------
+# Test 18: TNS_ADMIN isolation with NOARGS functions
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN isolation works with NOARGS" {
+    # Create plugin with no-arg function that checks TNS_ADMIN
+    cat > "${ORADBA_BASE}/src/lib/plugins/tns_noargs_plugin.sh" <<'EOF'
+plugin_check_tns_noargs() {
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "ERROR: TNS_ADMIN leaked"
+        return 2
+    else
+        echo "SUCCESS: TNS_ADMIN not set"
+        return 0
+    fi
+}
+EOF
+    
+    # Set TNS_ADMIN in parent
+    export TNS_ADMIN="/some/network/admin"
+    
+    # Call no-arg plugin function
+    run execute_plugin_function_v2 "tns_noargs" "check_tns_noargs" "NOARGS"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "SUCCESS: TNS_ADMIN not set" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+}
