@@ -1,8 +1,2 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: https://github.com/oehrlis/oradba/blob/main/README.md
-    about: Check the documentation for help and guidance
-  - name: Discussions
-    url: https://github.com/oehrlis/oradba/discussions
-    about: Ask questions and discuss ideas with the community
+blank_issues_enabled: true
+contact_links: []

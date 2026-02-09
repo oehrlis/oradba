@@ -1,0 +1,12 @@
+name: Quick Task
+description: Short form for automation/bots
+title: "[TASK] "
+labels: ["task"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What needs to be done?
+    validations:
+      required: true
