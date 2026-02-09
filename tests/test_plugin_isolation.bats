@@ -357,3 +357,168 @@ EOF
     result2=$(execute_plugin_function_v2 "state" "check_state" "/fake/home")
     [[ "${result2}" == "state=initial" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Test 14: plugin_status isolation - experimental status doesn't leak
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status doesn't leak between plugins" {
+    # Create experimental plugin that exports plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/experimental_plugin.sh" <<'EOF'
+export plugin_status="EXPERIMENTAL"
+export plugin_name="experimental"
+export plugin_version="1.0.0"
+
+plugin_test_func() {
+    echo "experimental_output"
+    return 0
+}
+EOF
+
+    # Create normal plugin that doesn't set plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/normal_plugin.sh" <<'EOF'
+export plugin_name="normal"
+export plugin_version="1.0.0"
+# NOTE: This plugin does NOT set plugin_status
+
+plugin_test_func() {
+    echo "normal_output"
+    return 0
+}
+EOF
+
+    # First, load experimental plugin (this exports plugin_status="EXPERIMENTAL")
+    run execute_plugin_function_v2 "experimental" "test_func" "/fake/home"
+    [ "$status" -eq 1 ]  # Should be skipped due to EXPERIMENTAL status
+    [[ "${output}" == *"WARNING: Skipping experimental plugin: experimental"* ]]
+    
+    # Now load normal plugin - it should NOT inherit EXPERIMENTAL status
+    run execute_plugin_function_v2 "normal" "test_func" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "normal_output" ]]
+    [[ "${output}" != *"WARNING"* ]]
+    [[ "${output}" != *"Skipping"* ]]
+}
+
+# ------------------------------------------------------------------------------
+# Test 15: TNS_ADMIN isolation - each plugin uses its own configuration
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN doesn't leak between plugins" {
+    # Create plugin that checks TNS_ADMIN
+    cat > "${ORADBA_BASE}/src/lib/plugins/tns_plugin.sh" <<'EOF'
+export plugin_name="tns"
+export plugin_version="1.0.0"
+
+plugin_check_tns() {
+    local home="$1"
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "TNS_ADMIN=${TNS_ADMIN}"
+    else
+        echo "TNS_ADMIN=unset"
+    fi
+    return 0
+}
+EOF
+
+    # Set TNS_ADMIN in parent shell
+    export TNS_ADMIN="/wrong/path/network/admin"
+    
+    # Call plugin - it should NOT inherit TNS_ADMIN
+    run execute_plugin_function_v2 "tns" "check_tns" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "TNS_ADMIN=unset" ]]
+    
+    # Verify TNS_ADMIN is still set in parent
+    [[ "${TNS_ADMIN}" == "/wrong/path/network/admin" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+}
+
+# ------------------------------------------------------------------------------
+# Test 16: TNS_ADMIN isolation for NOARGS functions
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN doesn't leak to NOARGS functions" {
+    # Create plugin with NOARGS function
+    cat > "${ORADBA_BASE}/src/lib/plugins/tns_noargs_plugin.sh" <<'EOF'
+export plugin_name="tns_noargs"
+export plugin_version="1.0.0"
+
+plugin_check_tns() {
+    # No arguments function
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "TNS_ADMIN=${TNS_ADMIN}"
+    else
+        echo "TNS_ADMIN=unset"
+    fi
+    return 0
+}
+EOF
+
+    # Set TNS_ADMIN in parent shell
+    export TNS_ADMIN="/wrong/path/network/admin"
+    
+    # Call NOARGS function - it should NOT inherit TNS_ADMIN
+    run execute_plugin_function_v2 "tns_noargs" "check_tns" "NOARGS"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "TNS_ADMIN=unset" ]]
+    
+    # Verify TNS_ADMIN is still set in parent
+    [[ "${TNS_ADMIN}" == "/wrong/path/network/admin" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+}
+
+# ------------------------------------------------------------------------------
+# Test 17: Multiple sequential plugin calls with different states
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: sequential plugin calls are isolated" {
+    # Create three plugins with different characteristics
+    cat > "${ORADBA_BASE}/src/lib/plugins/plugin_a.sh" <<'EOF'
+export plugin_status="EXPERIMENTAL"
+export PLUGIN_VAR="A"
+export TNS_ADMIN="/path/a"
+
+plugin_output() {
+    echo "A:status=${plugin_status:-unset}:var=${PLUGIN_VAR:-unset}:tns=${TNS_ADMIN:-unset}"
+    return 0
+}
+EOF
+
+    cat > "${ORADBA_BASE}/src/lib/plugins/plugin_b.sh" <<'EOF'
+export PLUGIN_VAR="B"
+export TNS_ADMIN="/path/b"
+# NOTE: No plugin_status set
+
+plugin_output() {
+    echo "B:status=${plugin_status:-unset}:var=${PLUGIN_VAR:-unset}:tns=${TNS_ADMIN:-unset}"
+    return 0
+}
+EOF
+
+    cat > "${ORADBA_BASE}/src/lib/plugins/plugin_c.sh" <<'EOF'
+export PLUGIN_VAR="C"
+# NOTE: No plugin_status or TNS_ADMIN set
+
+plugin_output() {
+    echo "C:status=${plugin_status:-unset}:var=${PLUGIN_VAR:-unset}:tns=${TNS_ADMIN:-unset}"
+    return 0
+}
+EOF
+
+    # Call plugins in sequence
+    # Plugin A should be skipped (experimental)
+    run execute_plugin_function_v2 "plugin_a" "output" "/fake/home"
+    [ "$status" -eq 1 ]
+    [[ "${output}" == *"WARNING"* ]]
+    
+    # Plugin B should NOT inherit experimental status
+    run execute_plugin_function_v2 "plugin_b" "output" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "B:status=unset:var=B:tns=/path/b" ]]
+    
+    # Plugin C should NOT inherit anything from B
+    run execute_plugin_function_v2 "plugin_c" "output" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "C:status=unset:var=C:tns=unset" ]]
+}
