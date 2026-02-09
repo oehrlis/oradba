@@ -657,7 +657,7 @@ generate_home_name() {
     local ptype="$2"
     local home_name
     
-    # Special handling for java, iclient products - use lowercase
+    # Special handling for java, iclient, datasafe products - use lowercase
     case "$ptype" in
         java)
             # Normalize Java/JDK/JRE names to lowercase jdkNNN or jreNNN
@@ -687,6 +687,21 @@ generate_home_name() {
                 # Use lowercase of original
                 home_name=$(echo "$dir_name" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
             fi
+            ;;
+        datasafe)
+            # Sequential naming for DataSafe: dscon1, dscon2, etc.
+            local config_file
+            config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
+            local counter=1
+            
+            # Find next available dsconN number
+            if [[ -f "$config_file" ]]; then
+                while grep -q "^dscon${counter}:" "$config_file" 2>/dev/null; do
+                    ((counter++))
+                done
+            fi
+            
+            home_name="dscon${counter}"
             ;;
         *)
             # Other products: use uppercase (backward compatible)

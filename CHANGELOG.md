@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DataSafe Sequential Naming** (Regression from v0.19.4)
+  - Fixed `generate_home_name()` in `oradba_homes.sh` to implement sequential naming for DataSafe
+  - DataSafe installations now correctly use `dscon1`, `dscon2`, `dscon3` pattern as documented
+  - Previously fell through to default uppercase conversion (e.g., EXACC_WOB_VWG_TEST)
+  - Sequential counter finds next available number by checking existing config entries
+  - Consistent with documented behavior in v0.19.4 release notes
+
 ## [0.20.0] - 2026-02-09
 
 ### Major Highlights
