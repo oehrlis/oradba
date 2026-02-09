@@ -1,8 +1,8 @@
 # Plugin System Refactoring - Master Plan
 
 **Parent Issue**: #128  
-**Status**: Phase 5 In Progress  
-**Last Updated**: 2026-02-03
+**Status**: Phase 5 Complete / Phase 4 In Progress  
+**Last Updated**: 2026-02-09
 
 ---
 
@@ -27,7 +27,7 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 | **Plugin Interface** | Granular builders (base/env/bin/lib) | Better separation of concerns | ✅ Complete |
 | **Multi-Instance Support** | plugin_get_instance_list() | Support RAC, WebLogic domains | ✅ Complete |
 | **Listener Handling** | Category-specific functions | Product-specific lifecycle | ✅ Complete |
-| **Error Codes** | Extended (0, 1, 2+) | Semantic meaning improves error handling | 🔄 Partial |
+| **Error Codes** | Extended (0, 1, 2+) | Semantic meaning improves error handling | ✅ Complete |
 | **Plugin Execution** | Subshell isolation | Prevent state pollution | ⏳ Planned |
 | **Library Independence** | Dependency injection | Enable unit tests | ⏳ Planned |
 
@@ -82,11 +82,10 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 
 ---
 
-### 🔄 Phase 2: Return Value Standardization (PARTIAL)
+### ✅ Phase 2: Return Value Standardization (COMPLETE)
 
-**Status**: ~50% Complete  
-**Parent Issue**: #135  
-**Remaining**: #140, #141, #142, #134
+**Status**: Complete  
+**Parent Issue**: #135
 
 #### Completed ✅
 
@@ -104,51 +103,12 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
   - No sentinel strings ("ERR", "unknown", "N/A") in any output
   - Tests passing for all plugins
 
-#### Remaining Work 🔄
+#### Completion Notes
 
-**1. Standardize plugin_check_status()** (#140 - HIGH PRIORITY)
-
-- Implement tri-state exit codes:
-  - 0 = running
-  - 1 = stopped
-  - 2 = unavailable/cannot determine
-- Remove all status strings from output
-- Update all 9 plugins
-- Update tests
-
-**2. Update All Plugin Callers** (#142 - HIGH PRIORITY)
-
-- Remove sentinel string parsing:
-  - No more `if [[ "$output" != "ERR" ]]` patterns
-  - Use exit codes only: `if plugin_func; then ... fi`
-- Update error handling and logging
-- Files affected:
-  - oradba_common.sh (detect_oracle_version, get_oracle_version)
-  - oradba_env_builder.sh (all plugin invocations)
-  - oradba_env_validator.sh (validation logic)
-  - Any other scripts calling plugins
-
-**3. Comprehensive Function Audit** (#141 - MEDIUM PRIORITY)
-
-- Audit ALL plugin functions (beyond get_version/check_status)
-- Check for remaining sentinel strings
-- Verify exit code consistency
-- Document all function contracts
-- Fix critical issues found
-
-**4. Function Naming Review** (#134 - LOW PRIORITY)
-
-- Validate naming conventions consistent across plugins
-- Document extension/optional function patterns
-- May be largely complete after Phase 1 interface work
-
-#### Timeline
-
-- Week 1: #140 (check_status standardization)
-- Week 2: #142 (caller updates)  
-- Week 3: #141 (comprehensive audit), #134 (naming review)
-
-**Total**: 3 weeks
+- plugin_check_status() standardized across all plugins
+- Callers updated to use exit codes only
+- Comprehensive audit completed (sentinel strings removed)
+- Naming review completed as part of Phase 1/2 cleanup
 
 ---
 
@@ -282,7 +242,7 @@ fi
 **Status**: ~40% Complete  
 **Parent Issue**: #137  
 **Dependencies**: Phase 3 complete  
-**Completed**: February 2026
+**Completed**: February 2026 (Week 1)
 
 #### Goals
 
@@ -561,7 +521,7 @@ Final codebase and documentation cleanup following refactor Phases 1-4. Establis
 
 **LOWER PRIORITY**:
 
-4. #134: Function naming review - 0.5 weeks (may be complete)
+4. #134: Function naming review - likely complete (confirm/close)
 
 ### Total Timeline
 
