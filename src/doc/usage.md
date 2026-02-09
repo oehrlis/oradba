@@ -10,7 +10,7 @@
 - OraDBA installed and configured
 - Basic familiarity with OraDBA concepts (Registry API, Plugin System)
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA is a comprehensive Oracle Database Administration Toolset designed to simplify database operations in lab and engineering environments. It supports 8 Oracle product types through its Plugin System: databases, Data Safe connectors, Oracle clients, Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
 

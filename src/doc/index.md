@@ -8,7 +8,7 @@ Complete user guides and reference materials for the Oracle Database Administrat
     See [Developer Documentation](https://github.com/oehrlis/oradba/tree/main/doc)
     for contribution guides, API reference, and technical architecture.
 
-## 📖 Documentation Formats
+## Documentation Formats
 
 The complete OraDBA user documentation is available in multiple formats:
 
@@ -16,7 +16,7 @@ The complete OraDBA user documentation is available in multiple formats:
 - **[PDF User Guide](https://github.com/oehrlis/oradba/releases/latest/download/oradba-user-guide.pdf)** - Download for
   offline use
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ### Getting Started
 
@@ -63,7 +63,7 @@ The complete OraDBA user documentation is available in multiple formats:
 | [Troubleshooting](troubleshooting.md)   | Common issues and solutions          |
 | [Quick Reference](reference.md)         | Command quick reference card         |
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install
@@ -93,13 +93,13 @@ See [Quick Start Guide](quickstart.md) for detailed first steps.
 | Quick command lookup   | [Quick Reference](reference.md)               |
 | See practical examples | [Usage Guide](usage.md)                       |
 
-## 💬 Support
+## Support
 
 - **Issues & Bugs:** <https://github.com/oehrlis/oradba/issues>
 - **Discussions & Questions:** <https://github.com/oehrlis/oradba/discussions>
 - **Source Code:** <https://github.com/oehrlis/oradba>
 
-## 📄 License
+## License
 
 Copyright © 2026 Stefan Oehrli
 

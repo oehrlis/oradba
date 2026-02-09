@@ -107,7 +107,6 @@ nav:
     - Installation: installation.md
     - Docker Installation: installation-docker.md
     - Quick Start: quickstart.md
-    - Environment Management: environment.md
   
   - Configuration:
     - Configuration System: configuration.md
@@ -122,17 +121,18 @@ nav:
     - rlwrap Filter: rlwrap.md
   
   - Operations:
+    - Usage Guide: usage.md
     - Troubleshooting: troubleshooting.md
     - Quick Reference: reference.md
     - SQL*Net Configuration: sqlnet-config.md
     - Log Management: log-management.md
-    - Usage Guide: usage.md
     - Service Management: service-management.md
+    - Environment Management: environment.md
   
   - Extensions:
     - Extension System: extensions.md
     - Extensions Catalog: extensions-catalog.md
-  
+
   - Developer Reference:
     - API Reference:
       - Overview: api/index.md

@@ -4,7 +4,7 @@
 
 **Audience:** All users who want to streamline database administration tasks.
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically
 loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.

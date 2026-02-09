@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation Version Neutralization**
   - Removed hard-coded v0.20.0 references across user docs
   - Kept versioned sections only where release-specific context is required
+- **PDF User Guide Build**
+  - Consolidated PDF generation into `scripts/build_pdf.sh` and invoked from `make docs`
+  - PDF build now uses mkdocs navigation order and excludes API reference from the user guide
 
 ## [0.20.0] - 2026-02-09
 

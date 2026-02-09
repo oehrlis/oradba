@@ -5,7 +5,7 @@ solutions.
 
 **Audience:** All users encountering problems with OraDBA.
 
-## Introduction
+## Introduction {.unlisted}
 
 This guide provides structured solutions to common OraDBA issues. Each entry follows a consistent pattern:
 Symptom → Cause → Check → Fix → Related Chapters.

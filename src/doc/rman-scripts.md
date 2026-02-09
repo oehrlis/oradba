@@ -4,7 +4,7 @@
 
 **Audience:** DBAs implementing backup strategies.
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA includes RMAN (Recovery Manager) script templates for common backup and recovery operations. These
 templates provide a starting point for database backup strategies and work with the Plugin System to support different

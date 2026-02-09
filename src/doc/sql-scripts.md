@@ -5,7 +5,7 @@ audit, and encryption tasks.
 
 **Audience:** DBAs needing ready-to-use SQL scripts for common database tasks.
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA includes a comprehensive collection of SQL scripts for database administration, focusing on security,
 audit, encryption, and general DBA tasks. Scripts are organized by topic and follow consistent naming conventions for

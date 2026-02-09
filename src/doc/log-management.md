@@ -684,7 +684,7 @@ Each template includes:
 - [Configuration](configuration.md) - General configuration
 - [Troubleshooting](troubleshooting.md) - Common issues
 
-## Summary
+## Summary {.unlisted}
 
 OraDBA's log management system provides:
 

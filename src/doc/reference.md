@@ -5,7 +5,7 @@ operations.
 
 **Audience:** All users - especially useful for beginners and quick reference.
 
-## Introduction
+## Introduction {.unlisted}
 
 Essential commands and aliases for daily Oracle database administration with OraDBA. This reference covers
 database operations and can be adapted for other product types (Data Safe, Instant Client, Java, etc.) supported by the

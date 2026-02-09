@@ -381,53 +381,7 @@ docs-prepare: ## Prepare documentation images for distribution
 .PHONY: docs-pdf
 docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker)
 	@echo -e "$(COLOR_BLUE)Generating PDF documentation...$(COLOR_RESET)"
-	@mkdir -p $(DIST_DIR)
-	@# Create temp directory with fixed markdown files (exclude api directory)
-	@mkdir -p $(DIST_DIR)/.tmp_docs
-	@# Copy only user documentation files, exclude api/* developer documentation
-	@find $(USER_DOC_DIR) -maxdepth 1 -name "*.md" -exec cp {} $(DIST_DIR)/.tmp_docs/ \;
-	@# Fix .md links to proper section anchors and fix image paths
-	@for file in $(DIST_DIR)/.tmp_docs/*.md; do \
-		sed -i.bak -E 's|\]\(01-introduction\.md\)|](#introduction)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(02-installation\.md\)|](#installation)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(03-quickstart\.md\)|](#quick-start-guide)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(04-environment\.md\)|](#environment-management)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(05-configuration\.md\)|](#configuration-system)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(06-aliases\.md\)|](#alias-reference)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(07-pdb-aliases\.md\)|](#pdb-alias-reference)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(08-sql-scripts\.md\)|](#sql-scripts-reference)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(09-rman-scripts\.md\)|](#rman-script-templates)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(10-functions\.md\)|](#database-functions-library-oradba_db_functions.sh)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(11-rlwrap\.md\)|](#rlwrap-filter-configuration)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(12-troubleshooting\.md\)|](#troubleshooting-guide)|g' "$$file"; \
-		sed -i.bak -E 's|\]\(13-reference\.md\)|](#quick-reference)|g' "$$file"; \
-		sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "$$file"; \
-		rm "$$file.bak"; \
-	done
-	@cp -r $(SRC_DIR)/doc/images $(DIST_DIR)/.tmp_docs/ 2>/dev/null || true
-	@if command -v docker >/dev/null 2>&1; then \
-		cd $(DIST_DIR)/.tmp_docs && \
-		docker run --rm -v $$(pwd):/workdir -v $$(pwd)/../../$(DOC_DIR):/doc $(PANDOC_IMAGE) \
-			*.md -o oradba-user-guide.pdf \
-			--metadata-file=/doc/metadata.yml \
-			--toc --toc-depth=3 \
-			--pdf-engine=xelatex \
-			-N --listings 2>&1 | grep -v "Missing character" || true; \
-		mv oradba-user-guide.pdf ../ 2>/dev/null || true; \
-		cd - >/dev/null; \
-		if [ -f "$(DIST_DIR)/oradba-user-guide.pdf" ]; then \
-			echo -e "$(COLOR_GREEN)✓ PDF documentation generated: $(DIST_DIR)/oradba-user-guide.pdf$(COLOR_RESET)"; \
-			ls -lh $(DIST_DIR)/oradba-user-guide.pdf; \
-		else \
-			echo -e "$(COLOR_RED)✗ PDF generation failed$(COLOR_RESET)"; \
-			exit 1; \
-		fi; \
-		cd - >/dev/null; \
-	else \
-		echo -e "$(COLOR_YELLOW)⚠ Docker not available, skipping PDF generation$(COLOR_RESET)"; \
-		echo -e "$(COLOR_YELLOW)  Install Docker to generate PDF documentation$(COLOR_RESET)"; \
-	fi
-	@rm -rf $(DIST_DIR)/.tmp_docs
+	@bash $(SCRIPTS_DIR)/build_pdf.sh
 
 .PHONY: docs-check
 docs-check: ## Check if documentation source files exist

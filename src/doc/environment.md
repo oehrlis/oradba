@@ -5,7 +5,7 @@
 
 **Audience:** All users - essential for daily OraDBA use.
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA introduces a modern environment management system built on three key components:
 

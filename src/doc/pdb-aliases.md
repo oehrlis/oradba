@@ -11,7 +11,7 @@ reference for PDB-specific functionality.
 - Container Database (CDB) environment
 - SYSDBA privileges to query `v$pdbs`
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA automatically generates aliases for Pluggable Databases (PDBs) in Oracle
 Multitenant environments. These aliases provide quick access to connect to

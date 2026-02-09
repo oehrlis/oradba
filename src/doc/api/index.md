@@ -160,7 +160,7 @@ if plugin_validate_home "$ORACLE_HOME"; then
 fi
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Function Index](function-index.md) - Alphabetical function list
 

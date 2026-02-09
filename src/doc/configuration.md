@@ -5,7 +5,7 @@ configuration files, variables, and customization options.
 
 **Audience:** Users who need to customize OraDBA behavior, paths, or installation-specific settings.
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA uses a sophisticated library-based configuration system powered by Environment Management libraries
 (oradba_env_*) that provides flexible customization at multiple levels. The system parses, merges, and validates
@@ -917,7 +917,7 @@ ORADBA_INST_TYPE="java"
 JAVA_OPTS="-Xmx2g -XX:+UseG1GC"
 ```
 
-## See Also
+## See Also {.unlisted .unnumbered}
 
 - [Installation](installation.md) - Installation and setup
 - [Environment Management](environment.md) - How oraenv.sh loads configurations
@@ -925,7 +925,7 @@ JAVA_OPTS="-Xmx2g -XX:+UseG1GC"
 - [Registry API](quickstart.md#understand-the-registry) - Managing installations
 - [Troubleshooting](troubleshooting.md) - Configuration issues
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Environment Management](environment.md)  
 **Next:** [Installation](installation.md)

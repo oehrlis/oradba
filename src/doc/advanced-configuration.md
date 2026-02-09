@@ -6,7 +6,7 @@ Homes, Grid Infrastructure, Read-Only Oracle Homes, and product-specific configu
 **Audience:** System administrators and DBAs managing complex Oracle environments with multiple products, versions, or
 specialized configurations.
 
-## Introduction
+## Introduction {.unlisted}
 
 This guide covers advanced configuration scenarios that go beyond basic OraDBA setup. You'll learn how to manage
 multiple Oracle Home versions, configure Grid Infrastructure environments, work with Read-Only Oracle Homes, customize
@@ -1864,7 +1864,7 @@ echo "0 8 * * * /opt/dba_tools/bin/config_watch.sh" | crontab -
 - Quarterly OraDBA training sessions
 - Annual review of team standards
 
-## Summary
+## Summary {.unlisted}
 
 This advanced configuration guide covered:
 

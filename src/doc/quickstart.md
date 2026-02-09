@@ -595,7 +595,7 @@ If you encounter issues:
 6. **Use silent mode in scripts** - Add `--silent` for automation
 7. **Keep updated** - Stay on the latest release for bug fixes and features
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Installation](installation.md)  
 **Next:** [Environment Management](environment.md)

@@ -9,7 +9,7 @@
 - rlwrap installed
 - Perl with RlwrapFilter module
 
-## Introduction
+## Introduction {.unlisted}
 
 OraDBA supports optional password filtering for rlwrap-enabled aliases. When enabled, passwords are hidden from
 command history files, improving security when using interactive Oracle tools.
