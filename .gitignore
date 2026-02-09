@@ -93,3 +93,6 @@ src/etc/sid.TESTDB2.conf
 oradba.code-workspace
 doc/local-dev-notes.md
 # --- EOF ----------------------------------------------------------------------
+
+# Ignore lib directory created by test scripts
+/lib/
