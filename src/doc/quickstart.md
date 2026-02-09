@@ -1,10 +1,10 @@
 # Quick Start Guide
 
-**Purpose:** Get started with OraDBA v0.19.x in 5 minutes - learn environment setup, Registry API basics, and common tasks.
+**Purpose:** Get started with OraDBA in 5 minutes - learn environment setup, Registry API basics, and common tasks.
 
 **Prerequisites:**
 
-- OraDBA v0.19.x installed (see [Installation](installation.md))
+- OraDBA installed (see [Installation](installation.md))
 - Oracle Database or other Oracle products installed
 - Shell profile configured
 
@@ -23,14 +23,14 @@ oradba_validate.sh
 
 # Expected output:
 # ═══════════════════════════════════════════════════════════════
-# OraDBA Installation Validation - v0.19.x
+# OraDBA Installation Validation
 # ═══════════════════════════════════════════════════════════════
 # All checks passed
 ```
 
 ### Understand the Registry
 
-OraDBA v0.19.x uses a **Registry API** that automatically manages all Oracle installations:
+OraDBA uses a **Registry API** that automatically manages all Oracle installations:
 
 - **Databases**: Auto-synced from `/etc/oratab` on first login
 - **Non-Database Products**: Registered in `oradba_homes.conf`
@@ -387,7 +387,7 @@ oradba_homes.sh remove --name old-test-db
 
 ## Plugin System
 
-OraDBA v0.19.x uses plugins for product-specific operations:
+OraDBA uses plugins for product-specific operations:
 
 **Supported Product Types:**
 
@@ -483,7 +483,7 @@ See [Extension System](extensions.md) for details.
 
 ## Updating OraDBA
 
-Keep OraDBA updated to latest v0.19.x release:
+Keep OraDBA updated to the latest release:
 
 ```bash
 # Check current version
@@ -492,7 +492,7 @@ oradba_version.sh
 # Check for updates
 oradba_version.sh --update-check
 
-# Update to latest v0.19.x
+# Update to latest release
 oraup.sh --update
 
 # Or manually download and install
@@ -502,7 +502,7 @@ chmod +x oradba_install.sh
 ./oradba_install.sh --update
 ```
 
-## What's Different in v0.19.x
+## What's Different in v0.20.0
 
 If you're upgrading from older versions:
 
@@ -520,7 +520,7 @@ If you're upgrading from older versions:
 
 **No Basenv Coexistence:**
 
-- Basenv coexistence mode removed in v0.19.x
+- Basenv coexistence mode removed in v0.20.0
 - Clean architecture without legacy compatibility layer
 - May be re-engineered with plugin approach in future releases
 
@@ -593,7 +593,7 @@ If you encounter issues:
 4. **Learn the aliases** - Memorize common ones (sq, rman, cdh, taa, u)
 5. **Verify environment** - Check `$ORACLE_SID` when switching
 6. **Use silent mode in scripts** - Add `--silent` for automation
-7. **Keep updated** - Stay on latest v0.19.x for bug fixes and features
+7. **Keep updated** - Stay on the latest release for bug fixes and features
 
 ## Navigation
 

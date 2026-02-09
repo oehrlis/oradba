@@ -1,10 +1,10 @@
 # Extension System
 
-**Purpose:** Guide to OraDBA v0.19.x extension system for adding custom scripts and tools.
+**Purpose:** Guide to OraDBA extension system for adding custom scripts and tools.
 
 **Audience:** DBAs and developers extending OraDBA functionality.
 
-The OraDBA v0.19.x extension system allows you to add custom scripts and tools without modifying the core OraDBA
+The OraDBA extension system allows you to add custom scripts and tools without modifying the core OraDBA
 installation. Extensions are automatically discovered and integrated into your environment, working seamlessly with the
 Registry API and Plugin System.
 

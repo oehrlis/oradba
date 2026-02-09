@@ -1,6 +1,6 @@
 # Log Management and Rotation
 
-**Purpose:** Guide to automated log rotation for OraDBA v0.19.x system logs and Oracle Database logs using logrotate
+**Purpose:** Guide to automated log rotation for OraDBA system logs and Oracle Database logs using logrotate
 integration.
 
 **Audience:** System administrators and DBAs managing log files.
@@ -13,7 +13,7 @@ integration.
 
 ## Overview
 
-OraDBA v0.19.x provides comprehensive log management capabilities through logrotate integration. This chapter covers
+OraDBA provides comprehensive log management capabilities through logrotate integration. This chapter covers
 the configuration, deployment, and management of automated log rotation for both OraDBA system logs and Oracle Database
 logs.
 

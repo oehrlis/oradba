@@ -1,6 +1,6 @@
 # Introduction
 
-**Purpose:** Overview of OraDBA v0.19.x, its features, and benefits for Oracle database administration.
+**Purpose:** Overview of OraDBA, its features, and benefits for Oracle database administration.
 
 **Audience:** Database administrators, development teams, and anyone managing Oracle environments.
 
@@ -48,7 +48,7 @@ graph TB
 
 ### Unified Registry API
 
-OraDBA v0.19.x introduces a **Registry API** that provides a single, consistent interface for managing all Oracle installations:
+OraDBA introduces a **Registry API** that provides a single, consistent interface for managing all Oracle installations:
 
 - **Automatic Discovery**: Database homes auto-synced from `/etc/oratab`
 - **Unified Interface**: Consistent access to databases, clients, Data Safe connectors, OUD, and Java installations
@@ -219,7 +219,7 @@ Ready-to-use script libraries:
 - Listener management
 - Service registration and configuration
 
-## What's New in v0.19.x
+## What's New in v0.20.0
 
 ### Registry API
 
@@ -291,7 +291,7 @@ Stub plugins added for all supported types:
 
 ## Architecture Highlights
 
-OraDBA v0.19.x is built on three pillars:
+OraDBA is built on three pillars:
 
 1. **Registry API**: Unified metadata access layer
 2. **Plugin System**: Product-specific intelligence

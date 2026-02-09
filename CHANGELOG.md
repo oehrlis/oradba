@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Documentation Version Neutralization**
+  - Removed hard-coded v0.20.0 references across user docs
+  - Kept versioned sections only where release-specific context is required
+
 ## [0.20.0] - 2026-02-09
 
 ### Major Highlights

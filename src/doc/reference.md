@@ -1,13 +1,13 @@
 # Quick Reference
 
-**Purpose:** Condensed reference card for essential OraDBA v0.19.x commands and aliases - quick lookup for daily
+**Purpose:** Condensed reference card for essential OraDBA commands and aliases - quick lookup for daily
 operations.
 
 **Audience:** All users - especially useful for beginners and quick reference.
 
 ## Introduction
 
-Essential commands and aliases for daily Oracle database administration with OraDBA v0.19.x. This reference covers
+Essential commands and aliases for daily Oracle database administration with OraDBA. This reference covers
 database operations and can be adapted for other product types (Data Safe, Instant Client, Java, etc.) supported by the
 Plugin System.
 

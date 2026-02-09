@@ -1,18 +1,18 @@
 <!-- markdownlint-disable MD013 -->
 # Usage Guide
 
-**Purpose:** Practical usage guide for OraDBA v0.19.x covering common scenarios, best practices, and integration examples.
+**Purpose:** Practical usage guide for OraDBA covering common scenarios, best practices, and integration examples.
 
 **Audience:** All users - practical examples and workflows.
 
 **Prerequisites:**
 
-- OraDBA v0.19.x installed and configured
+- OraDBA installed and configured
 - Basic familiarity with OraDBA concepts (Registry API, Plugin System)
 
 ## Introduction
 
-OraDBA v0.19.x is a comprehensive Oracle Database Administration Toolset designed to simplify database operations in lab and engineering environments. It supports 8 Oracle product types through its Plugin System: databases, Data Safe connectors, Oracle clients, Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
+OraDBA is a comprehensive Oracle Database Administration Toolset designed to simplify database operations in lab and engineering environments. It supports 8 Oracle product types through its Plugin System: databases, Data Safe connectors, Oracle clients, Instant Client, OUD, Java, WebLogic, and Enterprise Manager components.
 
 ## Basic Usage
 

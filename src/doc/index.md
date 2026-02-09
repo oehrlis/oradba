@@ -1,4 +1,4 @@
-# OraDBA v0.19.x User Documentation
+# OraDBA User Documentation
 
 Complete user guides and reference materials for the Oracle Database Administration Toolset.
 

@@ -1,16 +1,16 @@
 # Troubleshooting Guide
 
-**Purpose:** Solutions to common OraDBA v0.19.x issues - the canonical location for troubleshooting patterns and
+**Purpose:** Solutions to common OraDBA issues - the canonical location for troubleshooting patterns and
 solutions.
 
 **Audience:** All users encountering problems with OraDBA.
 
 ## Introduction
 
-This guide provides structured solutions to common OraDBA v0.19.x issues. Each entry follows a consistent pattern:
+This guide provides structured solutions to common OraDBA issues. Each entry follows a consistent pattern:
 Symptom → Cause → Check → Fix → Related Chapters.
 
-The Registry API and Plugin System introduced in v0.19.x simplify many operations but have their own troubleshooting
+The Registry API and Plugin System simplify many operations but have their own troubleshooting
 patterns.
 
 ## Common Issues and Solutions
@@ -819,7 +819,7 @@ rm -rf /tmp/oradba-test /tmp/fake-oracle
 
 **Related Chapters:** [Installation](installation.md#pre-oracle-installation)
 
-### Issue: Auto-Discovery Not Finding Running Instances (v0.19.x) {#auto-discovery-issues}
+### Issue: Auto-Discovery Not Finding Running Instances {#auto-discovery-issues}
 
 **Symptom:** Oracle instances are running but auto-discovery doesn't detect them.
 
@@ -965,7 +965,7 @@ ls -l $ORACLE_HOME/bin/lsnrctl
 ls -l $ORACLE_HOME/bin/sqlplus
 ```
 
-**Behavior (v0.19.x):**
+**Behavior:**
 
 Listener status is shown when:
 

@@ -1,6 +1,6 @@
 # Installation
 
-**Purpose:** Complete installation guide for OraDBA v0.19.x, covering prerequisites,
+**Purpose:** Complete installation guide for OraDBA, covering prerequisites,
 installation methods, and post-installation verification.
 
 **Audience:** System administrators and DBAs setting up OraDBA for the first time.

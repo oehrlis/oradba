@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD013 -->
 # Database Functions Library (oradba_db_functions.sh)
 
-**Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views in OraDBA v0.19.x.
+**Purpose:** Reference for reusable shell functions that query Oracle database information from v$ views in OraDBA.
 
 **Audience:** Script developers and advanced users.
 

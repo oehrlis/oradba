@@ -1,13 +1,13 @@
 # Environment Management
 
-**Purpose:** Comprehensive guide to OraDBA v0.19.x environment management - Registry API, Plugin System, and the
+**Purpose:** Comprehensive guide to OraDBA environment management - Registry API, Plugin System, and the
 `oraenv.sh` command.
 
 **Audience:** All users - essential for daily OraDBA use.
 
 ## Introduction
 
-OraDBA v0.19.x introduces a modern environment management system built on three key components:
+OraDBA introduces a modern environment management system built on three key components:
 
 1. **Registry API**: Unified interface for all Oracle installations
 2. **Plugin System**: Product-specific intelligence for 8 Oracle product types
@@ -368,7 +368,7 @@ NLS_TIMESTAMP_TZ_FORMAT="YYYY-MM-DD HH24:MI:SS.FF TZH:TZM"
 
 ## Environment Libraries
 
-OraDBA v0.19.x uses modular environment libraries:
+OraDBA uses modular environment libraries:
 
 ### Parser Library (oradba_env_parser.sh)
 

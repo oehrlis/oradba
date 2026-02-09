@@ -1,6 +1,6 @@
 # rlwrap Filter Configuration
 
-**Purpose:** Guide to optional password filtering for rlwrap-enabled Oracle tool aliases in OraDBA v0.19.x.
+**Purpose:** Guide to optional password filtering for rlwrap-enabled Oracle tool aliases in OraDBA.
 
 **Audience:** Users concerned with command history security.
 
@@ -11,7 +11,7 @@
 
 ## Introduction
 
-OraDBA v0.19.x supports optional password filtering for rlwrap-enabled aliases. When enabled, passwords are hidden from
+OraDBA supports optional password filtering for rlwrap-enabled aliases. When enabled, passwords are hidden from
 command history files, improving security when using interactive Oracle tools.
 
 This security feature works with all Oracle product types supported by the Plugin System.

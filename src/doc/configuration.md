@@ -1,6 +1,6 @@
 # Configuration System
 
-**Purpose:** Comprehensive guide to OraDBA v0.19.x hierarchical configuration system - the canonical reference for all
+**Purpose:** Comprehensive guide to OraDBA hierarchical configuration system - the canonical reference for all
 configuration files, variables, and customization options.
 
 **Audience:** Users who need to customize OraDBA behavior, paths, or installation-specific settings.
@@ -539,7 +539,7 @@ vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 ## Common Configuration Scenarios
 
-### Scenario 1: Enable Oracle Homes Auto-Discovery (v0.20.0+)
+### Scenario 1: Enable Oracle Homes Auto-Discovery
 
 **Problem:** You want OraDBA to automatically discover and register Oracle installations
 

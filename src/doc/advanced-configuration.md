@@ -1,6 +1,6 @@
 # Advanced Configuration Guide
 
-**Purpose:** Comprehensive guide for advanced OraDBA v0.19.x configuration scenarios including multi-version Oracle
+**Purpose:** Comprehensive guide for advanced OraDBA configuration scenarios including multi-version Oracle
 Homes, Grid Infrastructure, Read-Only Oracle Homes, and product-specific configurations.
 
 **Audience:** System administrators and DBAs managing complex Oracle environments with multiple products, versions, or
@@ -13,12 +13,12 @@ multiple Oracle Home versions, configure Grid Infrastructure environments, work 
 PATH behavior, and configure product-specific settings for Data Safe, Oracle Unified Directory (OUD), Java, and
 WebLogic Server (WLS).
 
-OraDBA v0.19.x uses the Registry API and Plugin System to manage all 8 supported product types, making it easy to work
+OraDBA uses the Registry API and Plugin System to manage all 8 supported product types, making it easy to work
 with databases, clients, and other Oracle products in complex environments.
 
 **Prerequisites:**
 
-- OraDBA v0.19.x installed and basic configuration completed (see [Installation](installation.md))
+- OraDBA installed and basic configuration completed (see [Installation](installation.md))
 - Familiarity with basic OraDBA concepts (see [Configuration System](configuration.md))
 - Understanding of Registry API and Plugin System (see [Environment Management](environment.md))
 - Root or sudo access may be required for some configurations
@@ -45,7 +45,7 @@ products that don't use oratab (like OUD, WLS) alongside traditional databases.
 
 #### Automatic Discovery During Installation
 
-OraDBA v0.20.0+ supports automatic discovery during installation:
+OraDBA supports automatic discovery during installation:
 
 ```bash
 # Install with auto-discovery enabled
