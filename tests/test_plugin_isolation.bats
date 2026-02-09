@@ -357,3 +357,110 @@ EOF
     result2=$(execute_plugin_function_v2 "state" "check_state" "/fake/home")
     [[ "${result2}" == "state=initial" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Test 14: TNS_ADMIN variable is unset before plugin execution
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN is unset to prevent cross-contamination" {
+    cat > "${ORADBA_BASE}/src/lib/plugins/tns_check_plugin.sh" <<'EOF'
+plugin_check_tns() {
+    local home="$1"
+    # Check if TNS_ADMIN is set
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "ERROR: TNS_ADMIN is set to: ${TNS_ADMIN}"
+        return 2
+    fi
+    echo "TNS_ADMIN is unset"
+    return 0
+}
+EOF
+    
+    # Set TNS_ADMIN in parent environment (simulating multi-connector scenario)
+    export TNS_ADMIN="/some/other/connector/network/admin"
+    
+    # Call plugin - it should NOT see the parent's TNS_ADMIN
+    run execute_plugin_function_v2 "tns_check" "check_tns" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "TNS_ADMIN is unset" ]]
+    
+    # Verify parent's TNS_ADMIN is still set (not modified)
+    [[ "${TNS_ADMIN}" == "/some/other/connector/network/admin" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+}
+
+# ------------------------------------------------------------------------------
+# Test 15: plugin_status variable is unset to prevent experimental leakage
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status is unset to prevent experimental status leakage" {
+    # Create an experimental plugin
+    cat > "${ORADBA_BASE}/src/lib/plugins/experimental_plugin.sh" <<'EOF'
+export plugin_status="EXPERIMENTAL"
+plugin_test_func() {
+    echo "experimental_plugin_output"
+    return 0
+}
+EOF
+
+    # Create a non-experimental plugin
+    cat > "${ORADBA_BASE}/src/lib/plugins/normal_plugin.sh" <<'EOF'
+plugin_test_func() {
+    # Check if plugin_status leaked from experimental plugin
+    if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
+        echo "ERROR: plugin_status leaked from experimental plugin"
+        return 2
+    fi
+    echo "normal_plugin_output"
+    return 0
+}
+EOF
+    
+    # First call experimental plugin (should be skipped)
+    run execute_plugin_function_v2 "experimental" "test_func" "/fake/home"
+    [ "$status" -eq 1 ]
+    [[ "${output}" == *"WARNING: Skipping experimental plugin"* ]]
+    
+    # Second call normal plugin (should NOT be affected by experimental status)
+    run execute_plugin_function_v2 "normal" "test_func" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "normal_plugin_output" ]]
+}
+
+# ------------------------------------------------------------------------------
+# Test 16: TNS_ADMIN and plugin_status unset for NOARGS functions
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: TNS_ADMIN and plugin_status unset for NOARGS functions" {
+    cat > "${ORADBA_BASE}/src/lib/plugins/noargs_check_plugin.sh" <<'EOF'
+plugin_check_vars() {
+    # Check if inherited variables are unset
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
+        echo "ERROR: TNS_ADMIN leaked: ${TNS_ADMIN}"
+        return 2
+    fi
+    if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
+        echo "ERROR: plugin_status leaked: ${plugin_status}"
+        return 2
+    fi
+    echo "variables_clean"
+    return 0
+}
+EOF
+    
+    # Set variables in parent environment
+    export TNS_ADMIN="/parent/tns/admin"
+    export plugin_status="EXPERIMENTAL"
+    
+    # Call NOARGS function - should not see parent's TNS_ADMIN or plugin_status
+    run execute_plugin_function_v2 "noargs_check" "check_vars" "NOARGS"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "variables_clean" ]]
+    
+    # Verify parent variables unchanged
+    [[ "${TNS_ADMIN}" == "/parent/tns/admin" ]]
+    [[ "${plugin_status}" == "EXPERIMENTAL" ]]
+    
+    # Cleanup
+    unset TNS_ADMIN
+    unset plugin_status
+}
