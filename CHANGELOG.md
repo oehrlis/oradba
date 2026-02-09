@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Environment Variable Leakage in Plugin Execution**
+  - Fixed `plugin_status` variable leaking from experimental plugins to non-experimental plugins
+  - Fixed `TNS_ADMIN` variable leaking between DataSafe connectors causing wrong configuration usage
+  - Added `unset TNS_ADMIN` and `unset plugin_status` before sourcing plugins in `execute_plugin_function_v2`
+  - Prevents non-experimental plugins from being incorrectly skipped
+  - Ensures each DataSafe connector uses its own `cman.ora` configuration
+  - Applied to both NOARGS and regular branches of plugin execution
+
+- **Deprecated log_debug() Function Call**
+  - Replaced deprecated `log_debug()` with `oradba_log DEBUG` in `set_oracle_home_environment`
+  - Eliminates "command not found" errors when sourcing DataSafe environments
+  - Function was removed in v0.19.0 but one call remained
+
+- **DataSafe Instance Name Regex Bug**
+  - Fixed instance name extraction in DataSafe plugin to correctly identify `cust_cman` from `cman.ora`
+  - Previous regex incorrectly matched `WALLET_LOCATION=(` instead of `cust_cman=`
+  - Now excludes system variables (WALLET_LOCATION, SSL_VERSION, SSL_CLIENT_AUTHENTICATION)
+  - Handles both formats: `cust_cman=` and `cust_cman = ` (with/without spaces)
+  - Fixes TNS-04005 errors where cmctl tried to resolve WALLET_LOCATION as instance name
+  - DataSafe connector status now correctly reports "running" when processes are active
+
 ### Changed
 
 - **Documentation Version Neutralization**
