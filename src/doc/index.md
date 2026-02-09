@@ -2,7 +2,7 @@
 
 Complete user guides and reference materials for the Oracle Database Administration Toolset.
 
-**Version:** 0.19.x | **Audience:** Database administrators, operators, and users managing Oracle environments
+**Version:** 0.20.x | **Audience:** Database administrators, operators, and users managing Oracle environments
 
 !!! info "For Developers"
     See [Developer Documentation](https://github.com/oehrlis/oradba/tree/main/doc)
