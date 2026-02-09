@@ -280,6 +280,26 @@ sqlplus -S / as sysdba <<EOF
 EOF
 ```
 
+### Data Safe Environment Details
+
+When working with Data Safe connectors, `oradba_env.sh` now exposes the key
+connector paths so you can verify the effective environment quickly:
+
+```bash
+# Detailed info for a connector
+oradba_env.sh show dscon1
+
+# Status view with connector paths
+oradba_env.sh status dscon1
+```
+
+The output includes:
+
+- Install directory (connector base path)
+- `ORACLE_HOME` (resolved `oracle_cman_home`)
+- `TNS_ADMIN` (resolved from connector paths)
+- `JAVA_HOME` (resolved Java runtime if configured)
+
 ### Case-Insensitive Matching
 
 Installation names are case-insensitive:

@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation Version Neutralization**
   - Removed hard-coded v0.20.0 references across user docs
   - Kept versioned sections only where release-specific context is required
+- **Data Safe Status Documentation**
+  - Added user-doc guidance for Data Safe `oradba_env.sh show/status` outputs
 - **PDF User Guide Build**
   - Consolidated PDF generation into `scripts/build_pdf.sh` and invoked from `make docs`
   - PDF build now uses mkdocs navigation order and excludes API reference from the user guide
