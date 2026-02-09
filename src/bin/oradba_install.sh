@@ -344,17 +344,17 @@ Installation Location Options:
   Priority: --prefix > --user-level > --base > auto-detect
 
 Other Options:
-  --user USER         Run as specific user (requires sudo)
-  --version VERSION   Specify version for --github mode
-  --dummy-home PATH   Set dummy ORACLE_HOME for pre-Oracle installations
-  --silent            Silent mode (no interactive prompts, no profile update)
-  --force             Force update even if same version
-  --update-profile    Update shell profile for automatic environment loading
-  --no-update-profile Don't update shell profile (default: prompt user)
-  --enable-auto-discover Enable auto-discovery of Oracle Homes on login
-  --debug             Enable debug logging (shows detailed operation steps)
-  -h, --help          Display this help message
-  -v, --show-version  Display installer version information
+  --user USER             Run as specific user (requires sudo)
+  --version VERSION       Specify version for --github mode
+  --dummy-home PATH       Set dummy ORACLE_HOME for pre-Oracle installations
+  --silent                Silent mode (no interactive prompts, no profile update)
+  --force                 Force update even if same version
+  --update-profile        Update shell profile for automatic environment loading
+  --no-update-profile     Don't update shell profile (default: prompt user)
+  --enable-auto-discover  Enable auto-discovery of Oracle Homes on login
+  --debug                 Enable debug logging (shows detailed operation steps)
+  -h, --help              Display this help message
+  -v, --show-version      Display installer version information
 
 Examples:
   # Install from embedded payload (if available)
