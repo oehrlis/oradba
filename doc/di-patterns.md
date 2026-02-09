@@ -1,7 +1,10 @@
 ### Implementing Dependency Injection in Core Libraries
 
 #### 1. Modify Initialization Functions
-Create `*_init` functions for each core library, allowing optional dependency injection for external components like loggers, configuration handlers, or testing stubs. Example for `oradba_env_parser.sh`:
+
+Create `*_init` functions for each core library, allowing optional dependency
+injection for external components like loggers, configuration handlers, or testing
+stubs. Example for `oradba_env_parser.sh`:
 
 ```bash
 function oradba_parser_init {
@@ -11,6 +14,7 @@ function oradba_parser_init {
 ```
 
 #### 2. Internal Logging Using Injected Logger
+
 Replace direct logging calls with a private logging function that uses the injected logger:
 
 ```bash
@@ -24,7 +28,9 @@ function _oradba_log {
 ```
 
 #### 3. Testing with Mock Dependencies
-When testing libraries, inject mock logger functions to validate behavior without relying on the actual logger. For instance:
+
+When testing libraries, inject mock logger functions to validate behavior without
+relying on the actual logger. For instance:
 
 ```bash
 mock_logger() {
@@ -35,4 +41,6 @@ oradba_parser_init mock_logger
 ```
 
 #### 4. Backward Compatibility
-Ensure all changes maintain backward compatibility by falling back to default behavior if no dependencies are injected.
+
+Ensure all changes maintain backward compatibility by falling back to default
+behavior if no dependencies are injected.
