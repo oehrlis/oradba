@@ -19,7 +19,7 @@
 # Script directory and common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-ORADBA_BASE="$(dirname "$(dirname "${SCRIPT_DIR}")")"
+ORADBA_BASE="$(dirname "${SCRIPT_DIR}")"
 
 # Source common library
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then

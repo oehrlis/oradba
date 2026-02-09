@@ -5,7 +5,7 @@
 # Used by scripts/select_tests.sh for smart test selection.
 #
 # Architecture: Registry API + Plugin System + Environment Builder
-# Test Coverage: 1086 tests across 47 test files
+# Test Coverage: 1452 tests across 65 test files
 # ------------------------------------------------------------------------------
 
 # Tests that always run regardless of changes (core functionality)

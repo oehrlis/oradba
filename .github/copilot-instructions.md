@@ -6,7 +6,7 @@ OraDBA is a comprehensive Oracle Database administration toolkit for Unix/Linux 
 
 **Current Version**: v0.19.0  
 **Architecture**: Registry API + Plugin System + Environment Management Libraries  
-**Test Coverage**: 1086 tests (100% passing)  
+**Test Coverage**: 1452 tests (100% passing)  
 **Documentation**: 437 functions (100% documented)  
 **Plugin Interface**: v1.0.0 (universal core functions + category-specific listener handling)
 
@@ -394,7 +394,7 @@ Update validation/check scripts when project structure or requirements change:
 - **Installation checks**: `src/bin/oradba_check.sh` - Update when installation requirements change
 - **Installation validation**: `src/bin/oradba_validate.sh` - Update when scripts/libs change (Registry API, plugins, 437 functions)
 - **Project structure**: `scripts/validate_project.sh` - Update when project structure changes (src/, lib/plugins/, etc.)
-- **Test environment**: `scripts/validate_test_environment.sh` - Update when test structure changes (1086 tests, Docker setup)
+- **Test environment**: `scripts/validate_test_environment.sh` - Update when test structure changes (1452 tests, Docker setup)
 
 ## Autonomous Implementation Guidelines
 

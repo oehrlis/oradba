@@ -8,7 +8,7 @@ This directory contains archived release notes for OraDBA versions before v0.19.
   - Registry API: Unified installation management
   - Plugin System: 9 product types with standardized interface (11 required functions)
   - Environment Builder: 6 specialized environment libraries
-  - Complete test coverage: 1086 tests (100% passing)
+  - Complete test coverage: 1452 tests (100% passing)
   - Full documentation: 437 functions (100% documented)
 
 ## Archived Releases

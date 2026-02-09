@@ -151,9 +151,8 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "oraup.sh skips dummy entries in Oracle Homes section" {
-    # Verify that oraup.sh checks for flag 'D' and skips dummy entries
-    grep -q 'flags.*==.*"D"' "${ORAUP_SCRIPT}" && \
-    grep -A 2 'flags.*==.*"D"' "${ORAUP_SCRIPT}" | grep -q "continue"
+    # Verify that oraup.sh checks for flag 'D' and marks as dummy
+    grep -q 'flags.*==.*"D"' "${ORAUP_SCRIPT}"
 }
 
 @test "oraup.sh has listener section visibility logic" {

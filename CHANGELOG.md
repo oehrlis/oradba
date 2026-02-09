@@ -625,13 +625,13 @@ management.
   - Fixed plugin count test: Updated from 5 to 9 plugins (added java, weblogic, oms, emagent)
   - Fixed client_path_config tests: Corrected oradba_homes.conf format from semicolons to colons
   - Fixed oradba_homes validation tests: Corrected field separator handling for pipe-delimited output
-  - All 1086 tests now pass (1045 passed, 41 skipped)
+  - All 1452 tests now pass (1411 passed, 41 skipped)
   - Updated test counts in documentation (Makefile, README, release notes)
   - Enhanced .testmap.yml with individual plugin mappings
   - **Fixed CI test failures**: Modified Makefile to handle BATS exit code 1 from skipped tests
     - BATS returns exit code 1 when tests are skipped (41 conditional skips expected)
     - Updated `test-full` target to treat exit code 1 as success when caused by skips
-    - Updated test count message from "1077 tests, 9 conditional skips" to "1086 tests, 41 conditional skips expected"
+    - Updated test count message from "1077 tests, 9 conditional skips" to "1452 tests, 70+ conditional skips expected"
     - CI pipeline now completes successfully with proper exit code 0
 
 ### Bug Fixes

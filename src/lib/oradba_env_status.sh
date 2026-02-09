@@ -404,7 +404,7 @@ oradba_get_product_status() {
             ;;
         *)
             oradba_log ERROR "oradba_get_product_status: Unknown product type '${product_type}' - no plugin or legacy function"
-            echo "unknown"
+            echo "UNKNOWN"
             return 1
             ;;
     esac

@@ -134,7 +134,7 @@ test: ## Run smart test selection (only tests affected by changes)
 
 .PHONY: test-full
 test-full: ## Run all tests (no smart selection)
-	@echo -e "$(COLOR_BLUE)Running full test suite (1086 tests, 41 conditional skips expected)...$(COLOR_RESET)"
+	@echo -e "$(COLOR_BLUE)Running full test suite (1452 tests, 70+ conditional skips expected)...$(COLOR_RESET)"
 	@if [ -n "$(BATS)" ]; then \
 		$(BATS) $(TEST_DIR)/*.bats; test_exit=$$?; \
 		if [ $$test_exit -eq 0 ]; then \
