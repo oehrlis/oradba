@@ -315,7 +315,7 @@ oradba_validate_environment() {
     # Check ORACLE_SID format
     if [[ -n "$ORACLE_SID" ]]; then
         if oradba_validate_sid "$ORACLE_SID"; then
-            echo "✓ ORACLE_SID is valid: $ORACLE_SID"
+            echo "✓ ORACLE_SID is valid:  $ORACLE_SID"
         else
             echo "✗ ERROR: ORACLE_SID format is invalid" >&2
             ((errors++))
