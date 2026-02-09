@@ -131,10 +131,12 @@ plugin_check_status() {
         local cman_conf="${cman_home}/network/admin/cman.ora"
         
         if [[ -f "${cman_conf}" ]]; then
-            # Extract instance name from cman.ora (format: instance_name = (configuration...))
-            # Match identifier followed by = and opening paren
+            # Extract instance name from cman.ora - look for identifier= at start of line
+            # Exclude known system variables (WALLET_LOCATION, SSL_VERSION, etc.)
             local extracted_name
-            extracted_name=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+            extracted_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*[[:space:]]*=' "${cman_conf}" 2>/dev/null | \
+                             grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
+                             head -1 | sed 's/[[:space:]]*=.*//' | tr -d ' ')
             [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
         fi
         

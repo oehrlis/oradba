@@ -630,6 +630,54 @@ CMCTL_MOCK
     [ -z "$output" ]
 }
 
+@test "datasafe plugin correctly extracts instance name and ignores system variables like WALLET_LOCATION" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn_wallet"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with WALLET_LOCATION and other system variables before the instance name
+    # This tests that the regex correctly identifies cust_cman and ignores system variables
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+WALLET_LOCATION=(SOURCE=(METHOD=FILE)(METHOD_DATA=(DIRECTORY=/path/to/wallet)))
+SSL_VERSION = 0
+SSL_CLIENT_AUTHENTICATION = TRUE
+cust_cman=
+    (configuration=
+        (address=(protocol=tcp)(host=localhost)(port=1521))
+    )
+CMAN_ORA
+    
+    # Create mock cmctl that only responds to correct instance name
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    if [[ "$4" == "cust_cman" ]]; then
+        echo "Instance cust_cman: Status READY"
+        echo "Services Summary..."
+        exit 0
+    elif [[ "$4" == "WALLET_LOCATION" ]]; then
+        # Simulate error if WALLET_LOCATION is used as instance name
+        echo "TNS-04005: Unable to resolve address for WALLET_LOCATION."
+        exit 1
+    else
+        echo "TNS-12541: TNS:no listener"
+        exit 1
+    fi
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Plugin should extract "cust_cman" correctly, not "WALLET_LOCATION"
+    run plugin_check_status "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
 # ==============================================================================
 # Builder Functions Tests (Plugin Interface v1.0.0)
 # ==============================================================================

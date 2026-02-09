@@ -1662,7 +1662,7 @@ set_oracle_home_environment() {
             source "${plugin_file}"
             datasafe_install_dir="${oracle_home}"
             adjusted_home=$(plugin_adjust_environment "${oracle_home}")
-            log_debug "DataSafe detected: ORACLE_HOME adjusted via plugin (${adjusted_home})"
+            oradba_log DEBUG "DataSafe detected: ORACLE_HOME adjusted via plugin (${adjusted_home})"
         else
             # Fallback to old logic if plugin not available
             if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
@@ -3026,6 +3026,11 @@ execute_plugin_function_v2() {
             # Set minimal Oracle environment from current context
             export ORACLE_HOME="${ORACLE_HOME:-}"
             export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+            # Unset inherited environment variables to prevent cross-contamination
+            # TNS_ADMIN: Each product should use its own ORACLE_HOME/network/admin
+            # plugin_status: Prevent experimental status from leaking between plugins
+            unset TNS_ADMIN
+            unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
             source "${plugin_file}" || exit 1
@@ -3049,6 +3054,11 @@ execute_plugin_function_v2() {
                 LD_LIBRARY_PATH="${oracle_home}/lib"
                 export LD_LIBRARY_PATH
             fi
+            # Unset inherited environment variables to prevent cross-contamination
+            # TNS_ADMIN: Each product should use its own ORACLE_HOME/network/admin
+            # plugin_status: Prevent experimental status from leaking between plugins
+            unset TNS_ADMIN
+            unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
             source "${plugin_file}" || exit 1
