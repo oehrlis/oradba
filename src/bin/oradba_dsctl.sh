@@ -142,8 +142,9 @@ get_connectors() {
         oradba_log DEBUG "${SCRIPT_NAME}: get_connectors() - Found entry ${entry_count}: NAME=${name}, HOME=${home}, FLAGS=${flags}"
         
         # Convert flags format - look for Y flag for autostart
+        # oradba_homes.conf has no flags; treat all datasafe entries as enabled
         local autostart="N"
-        if [[ "${flags}" =~ Y ]]; then
+        if [[ -z "${flags}" ]] || [[ "${flags}" =~ Y ]]; then
             autostart="Y"
         fi
 
@@ -582,8 +583,8 @@ oradba_log INFO "User: $(whoami), Host: $(hostname)"
 
 # Determine which connectors to process
 if [[ ${#CONNECTORS[@]} -eq 0 ]]; then
-    # No connectors specified, get all with autostart flag
-    oradba_log INFO "No connectors specified, processing all connectors with autostart enabled"
+    # No connectors specified, get all connectors from registry
+    oradba_log INFO "No connectors specified, processing all connectors in registry"
     oradba_log DEBUG "${SCRIPT_NAME}: Reading connectors from registry"
 
     mapfile -t conn_list < <(get_connectors)
@@ -595,20 +596,18 @@ if [[ ${#CONNECTORS[@]} -eq 0 ]]; then
         exit 1
     fi
 
-    # Build arrays for processing
+    # Build arrays for processing (all datasafe entries)
     declare -A CONNECTOR_HOMES
     for entry in "${conn_list[@]}"; do
         IFS=: read -r name home autostart <<< "${entry}"
         oradba_log DEBUG "${SCRIPT_NAME}: Checking connector entry - NAME: ${name}, HOME: ${home}, AUTOSTART: ${autostart}"
-        if [[ "${autostart}" == "Y" ]]; then
-            CONNECTORS+=("${name}")
-            CONNECTOR_HOMES["${name}"]="${home}"
-            oradba_log DEBUG "${SCRIPT_NAME}: Added connector '${name}' to processing list (autostart enabled)"
-        fi
+        CONNECTORS+=("${name}")
+        CONNECTOR_HOMES["${name}"]="${home}"
+        oradba_log DEBUG "${SCRIPT_NAME}: Added connector '${name}' to processing list"
     done
 
     if [[ ${#CONNECTORS[@]} -eq 0 ]]; then
-        oradba_log ERROR "No connectors marked for autostart in registry"
+        oradba_log ERROR "No Data Safe connectors found in registry"
         exit 1
     fi
 

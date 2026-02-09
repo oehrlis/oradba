@@ -2605,6 +2605,37 @@ auto_discover_oracle_homes() {
     local config_dir
     config_dir=$(dirname "${config_file}")
     [[ ! -d "${config_dir}" ]] && mkdir -p "${config_dir}"
+
+    # Initialize config with header if missing or empty
+    if [[ ! -s "${config_file}" ]]; then
+        local template_file
+        template_file="${ORADBA_BASE}/templates/etc/oradba_homes.conf.template"
+        if [[ ! -f "${template_file}" ]]; then
+            template_file="${ORADBA_PREFIX}/templates/etc/oradba_homes.conf.template"
+        fi
+
+        if [[ -f "${template_file}" ]]; then
+            awk '
+                /^# Your Oracle Homes Configuration/ { print; exit }
+                /^#/ || /^$/ { print }
+            ' "${template_file}" > "${config_file}"
+            printf "\n" >> "${config_file}"
+        else
+            cat > "${config_file}" << 'EOF'
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security
+# ------------------------------------------------------------------------------
+# Name.......: oradba_homes.conf
+# Purpose....: Oracle Homes registry (auto-generated)
+# Notes......: One entry per line, colon-delimited
+# Format.....: NAME:ORACLE_HOME:TYPE:ORDER:ALIAS:DESCRIPTION:VERSION
+# ------------------------------------------------------------------------------
+
+# Your Oracle Homes Configuration
+
+EOF
+        fi
+    fi
     
     # Start discovery
     [[ "${silent}" != "true" ]] && {
