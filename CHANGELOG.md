@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed instance name extraction in DataSafe plugin to correctly identify `cust_cman` from `cman.ora`
   - Previous regex incorrectly matched `WALLET_LOCATION=(` instead of `cust_cman=`
   - Now excludes system variables (WALLET_LOCATION, SSL_VERSION, SSL_CLIENT_AUTHENTICATION)
-  - Handles both formats: `cust_cman=` and `cust_cman = ` (with/without spaces)
+  - Handles both formats: `cust_cman=` and `cust_cman =` (with/without spaces before equals)
   - Fixes TNS-04005 errors where cmctl tried to resolve WALLET_LOCATION as instance name
   - DataSafe connector status now correctly reports "running" when processes are active
 
