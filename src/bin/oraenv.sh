@@ -978,6 +978,14 @@ _oraenv_unset_old_env() {
         LD_LIBRARY_PATH=$(echo "${LD_LIBRARY_PATH:-}" | sed -e "s|${ORACLE_HOME}/lib:||g" -e "s|:${ORACLE_HOME}/lib||g")
     fi
 
+    # Clear product-specific environment from previous home
+    unset JAVA_HOME
+    unset ORACLE_CLIENT_HOME
+    unset DATASAFE_HOME
+    unset DATASAFE_INSTALL_DIR
+    unset ORADBA_CURRENT_HOME
+    unset ORADBA_CURRENT_HOME_TYPE
+
     export PATH
     export LD_LIBRARY_PATH
 }

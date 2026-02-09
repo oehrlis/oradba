@@ -531,7 +531,7 @@ teardown() {
 
 @test "installer code has --auto-discover-oratab flag" {
     [ -f "$STANDALONE_INSTALLER" ]
-    grep -q "--auto-discover-oratab" "$STANDALONE_INSTALLER"
+    grep -q -- "--auto-discover-oratab" "$STANDALONE_INSTALLER"
 }
 
 @test "installer has ENABLE_ORATAB_DISCOVERY variable" {
@@ -551,7 +551,7 @@ teardown() {
 
 @test "installer code has --auto-discover-products flag" {
     [ -f "$STANDALONE_INSTALLER" ]
-    grep -q "--auto-discover-products" "$STANDALONE_INSTALLER"
+    grep -q -- "--auto-discover-products" "$STANDALONE_INSTALLER"
 }
 
 @test "installer has ENABLE_PRODUCT_DISCOVERY variable" {
