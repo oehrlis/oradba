@@ -9,20 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Full Product Discovery Option** (New Feature)
-  - Added `--enable-full-discovery` installer option for comprehensive product discovery
+- **Product Discovery Options** (New Feature)
+  - Added `--auto-discover-oratab` installer option for database homes from oratab
+  - Added `--auto-discover-products` installer option for all Oracle products
   - Discovers all Oracle products (database, datasafe, java, iclient, oud) on first login
-  - Complements existing `--enable-auto-discover` (oratab integration only)
-  - Exports `ORADBA_FULL_DISCOVERY=true` to trigger discovery on login
   - Added `--silent` flag to `oradba_homes.sh discover` for quiet operation
 
 ### Changed
 
-- **Clarified Auto-Discovery Terminology**
-  - Updated `--enable-auto-discover` help text to specify "database homes from oratab"
-  - Distinguishes between oratab integration (databases only) and full discovery (all products)
-  - Updated installer examples to show both options
-  - More accurate documentation for discovery behavior
+- **BREAKING: Renamed Discovery Flags and Variables** (Consistency & Clarity)
+  - Installer flags:
+    - `--enable-auto-discover` → `--auto-discover-oratab` (database homes from /etc/oratab)
+    - `--enable-full-discovery` → `--auto-discover-products` (all Oracle products)
+  - Environment variables:
+    - `ORADBA_AUTO_DISCOVER_HOMES` → `ORADBA_AUTO_DISCOVER_ORATAB`
+    - `ORADBA_FULL_DISCOVERY` → `ORADBA_AUTO_DISCOVER_PRODUCTS`
+  - **Migration:** Update shell profiles to use new variable names
+  - **Rationale:** Consistent naming scheme with clear scope indication
 
 ### Fixed
 
@@ -32,6 +35,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Previously fell through to default uppercase conversion (e.g., EXACC_WOB_VWG_TEST)
   - Sequential counter finds next available number by checking existing config entries
   - Consistent with documented behavior in v0.19.4 release notes
+
+### Migration Guide (Breaking Changes)
+
+If you previously used discovery options, update your shell profile:
+
+**Old (deprecated):**
+```bash
+export ORADBA_AUTO_DISCOVER_HOMES="true"  # Old name
+export ORADBA_FULL_DISCOVERY="true"       # Old name
+```
+
+**New (current):**
+```bash
+export ORADBA_AUTO_DISCOVER_ORATAB="true"    # Database homes from oratab
+export ORADBA_AUTO_DISCOVER_PRODUCTS="true"  # All Oracle products
+```
+
+**Installer flag changes:**
+- `./oradba_install.sh --enable-auto-discover` → `./oradba_install.sh --auto-discover-oratab`
+- `./oradba_install.sh --enable-full-discovery` → `./oradba_install.sh --auto-discover-products`
 
 ## [0.20.0] - 2026-02-09
 

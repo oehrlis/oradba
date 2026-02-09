@@ -319,9 +319,9 @@ _oraenv_gather_available_entries() {
             fi
         fi
         
-        # Try auto-discovery for Oracle Homes (Issue #70)
-        if [[ "${ORADBA_AUTO_DISCOVER_HOMES:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
-            oradba_log INFO "Auto-discovering Oracle Homes from oratab..."
+        # Try oratab auto-discovery (database homes from /etc/oratab)
+        if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
+            oradba_log INFO "Auto-discovering database homes from oratab..."
             auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
             
             # Refresh homes list after discovery
@@ -338,14 +338,14 @@ _oraenv_gather_available_entries() {
             fi
         fi
         
-        # Try full product discovery (all Oracle products) (Issue #0)
-        if [[ "${ORADBA_FULL_DISCOVERY:-false}" == "true" ]] && [[ -x "${ORADBA_BASE}/bin/oradba_homes.sh" ]]; then
-            oradba_log INFO "Running full product discovery (all Oracle products)..."
+        # Try product discovery (all Oracle products: db, datasafe, java, iclient, oud)
+        if [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${ORADBA_BASE}/bin/oradba_homes.sh" ]]; then
+            oradba_log INFO "Auto-discovering all Oracle products (db, datasafe, java, iclient, oud)..."
             "${ORADBA_BASE}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
                 oradba_log INFO "  $line"
             done
             
-            # Refresh homes list after full discovery
+            # Refresh homes list after product discovery
             homes_ref=()
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries

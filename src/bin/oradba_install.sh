@@ -344,18 +344,18 @@ Installation Location Options:
   Priority: --prefix > --user-level > --base > auto-detect
 
 Other Options:
-  --user USER             Run as specific user (requires sudo)
-  --version VERSION       Specify version for --github mode
-  --dummy-home PATH       Set dummy ORACLE_HOME for pre-Oracle installations
-  --silent                Silent mode (no interactive prompts, no profile update)
-  --force                 Force update even if same version
-  --update-profile        Update shell profile for automatic environment loading
-  --no-update-profile     Don't update shell profile (default: prompt user)
-  --enable-auto-discover  Enable auto-discovery of database homes from oratab on login
-  --enable-full-discovery Enable full product discovery (all Oracle products) on login
-  --debug                 Enable debug logging (shows detailed operation steps)
-  -h, --help              Display this help message
-  -v, --show-version      Display installer version information
+  --user USER               Run as specific user (requires sudo)
+  --version VERSION         Specify version for --github mode
+  --dummy-home PATH         Set dummy ORACLE_HOME for pre-Oracle installations
+  --silent                  Silent mode (no interactive prompts, no profile update)
+  --force                   Force update even if same version
+  --update-profile          Update shell profile for automatic environment loading
+  --no-update-profile       Don't update shell profile (default: prompt user)
+  --auto-discover-oratab    Auto-discover database homes from oratab on login
+  --auto-discover-products  Auto-discover all Oracle products on login (db, datasafe, java, etc.)
+  --debug                   Enable debug logging (shows detailed operation steps)
+  -h, --help                Display this help message
+  -v, --show-version        Display installer version information
 
 Examples:
   # Install from embedded payload (if available)
@@ -395,10 +395,10 @@ Examples:
   sudo $0 --prefix /opt/oradba --user oracle
   
   # Install with oratab auto-discovery enabled
-  $0 --user-level --update-profile --enable-auto-discover
+  $0 --user-level --update-profile --auto-discover-oratab
   
   # Install with full product discovery enabled
-  $0 --user-level --update-profile --enable-full-discovery
+  $0 --user-level --update-profile --auto-discover-products
 
 Pre-Oracle Installation:
   When installing before Oracle, use --user-level, --prefix, or --base to
@@ -740,8 +740,8 @@ profile_has_oradba() {
 #           Creates backup of profile before modification
 #           Adds oraenv.sh sourcing and oraup.sh status display
 #           Respects UPDATE_PROFILE variable (yes/no/auto)
-#           Exports ORADBA_AUTO_DISCOVER_HOMES=true if ENABLE_AUTO_DISCOVER is set
-#           Exports ORADBA_FULL_DISCOVERY=true if ENABLE_FULL_DISCOVERY is set
+#           Exports ORADBA_AUTO_DISCOVER_ORATAB=true if ENABLE_ORATAB_DISCOVERY is set
+#           Exports ORADBA_AUTO_DISCOVER_PRODUCTS=true if ENABLE_PRODUCT_DISCOVERY is set
 # ------------------------------------------------------------------------------
 update_profile() {
     local install_prefix="$1"
@@ -790,12 +790,12 @@ update_profile() {
         echo "To manually add OraDBA to your profile, add these lines to $profile_file:"
         echo ""
         echo "  # OraDBA Environment Integration"
-        if [[ "$ENABLE_AUTO_DISCOVER" == "true" ]]; then
-            echo "  export ORADBA_AUTO_DISCOVER_HOMES=\"true\""
+        if [[ "$ENABLE_ORATAB_DISCOVERY" == "true" ]]; then
+            echo "  export ORADBA_AUTO_DISCOVER_ORATAB=\"true\""
             echo ""
         fi
-        if [[ "$ENABLE_FULL_DISCOVERY" == "true" ]]; then
-            echo "  export ORADBA_FULL_DISCOVERY=\"true\""
+        if [[ "$ENABLE_PRODUCT_DISCOVERY" == "true" ]]; then
+            echo "  export ORADBA_AUTO_DISCOVER_PRODUCTS=\"true\""
             echo ""
         fi
         echo "  if [ -f \"${install_prefix}/bin/oraenv.sh\" ]; then"
@@ -829,18 +829,18 @@ update_profile() {
 # OraDBA Environment Integration (added $(date '+%Y-%m-%d'))
 EOF
 
-    # Add auto-discovery export if enabled
-    if [[ "$ENABLE_AUTO_DISCOVER" == "true" ]]; then
+    # Add oratab discovery export if enabled
+    if [[ "$ENABLE_ORATAB_DISCOVERY" == "true" ]]; then
         cat >> "$profile_file" << 'EOF'
-export ORADBA_AUTO_DISCOVER_HOMES="true"
+export ORADBA_AUTO_DISCOVER_ORATAB="true"
 
 EOF
     fi
 
-    # Add full discovery export if enabled
-    if [[ "$ENABLE_FULL_DISCOVERY" == "true" ]]; then
+    # Add product discovery export if enabled
+    if [[ "$ENABLE_PRODUCT_DISCOVERY" == "true" ]]; then
         cat >> "$profile_file" << 'EOF'
-export ORADBA_FULL_DISCOVERY="true"
+export ORADBA_AUTO_DISCOVER_PRODUCTS="true"
 
 EOF
     fi
@@ -947,8 +947,8 @@ DUMMY_ORACLE_HOME="" # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto" # auto, yes, no
-ENABLE_AUTO_DISCOVER=false # Flag for --enable-auto-discover (oratab only)
-ENABLE_FULL_DISCOVERY=false # Flag for --enable-full-discovery (all products)
+ENABLE_ORATAB_DISCOVERY=false # Flag for --auto-discover-oratab (database homes only)
+ENABLE_PRODUCT_DISCOVERY=false # Flag for --auto-discover-products (all Oracle products)
 SILENT_MODE=false
 
 while [[ $# -gt 0 ]]; do
@@ -1003,12 +1003,12 @@ while [[ $# -gt 0 ]]; do
             UPDATE_PROFILE="no"
             shift
             ;;
-        --enable-auto-discover)
-            ENABLE_AUTO_DISCOVER=true
+        --auto-discover-oratab)
+            ENABLE_ORATAB_DISCOVERY=true
             shift
             ;;
-        --enable-full-discovery)
-            ENABLE_FULL_DISCOVERY=true
+        --auto-discover-products)
+            ENABLE_PRODUCT_DISCOVERY=true
             shift
             ;;
         --silent)
