@@ -18,27 +18,39 @@ Examples:
 - Copilot-generated summaries
 - Temporary queries or results
 
-## Current Documents
+## Current Documents (v0.20.0)
 
-### Architecture Review (2026-01-24)
+### Plugin Refactoring Plan (2026-01-29 - Updated 2026-02-09)
 
-Comprehensive architecture review of the Modular Library System (v0.19.x):
+Master plan for plugin system refactoring through v0.20.0:
 
-- **architecture-review-summary.md** (13KB) - Quick start guide and overview
-- **architecture-review-report.md** (36KB) - Detailed findings and analysis
-- **architecture-review-recommendations.md** (15KB) - Prioritized action plan
-- **architecture-review-questions.md** (18KB) - 32 clarifying questions
+- **plugin-refactor-plan.md** (21KB) - Complete refactoring plan and status tracking
+  - Phase 1: Interface Enhancement (✅ COMPLETE - v0.19.11)
+  - Phase 2: Return Value Standardization (✅ COMPLETE - v0.20.0)
+  - Phase 3: Subshell Isolation (✅ COMPLETE - v0.19.12)
+  - Phase 4: Library Independence (✅ COMPLETE - v0.20.0)
 
-These documents provide a complete review of the Registry API, Plugin System, Environment Management Libraries, configuration hierarchy, testing coverage, and integration points.
+Tracks parent issue #128 and all phases through v0.20.0 release.
 
-### Plugin Refactoring Plan (2026-01-29 - Updated 2026-01-31)
+### DI Implementation Plan (2026-02-09)
 
-Master plan for plugin system refactoring:
+Dependency Injection implementation tracking:
 
-- **plugin-refactor-plan.md** - Complete refactoring plan with current status
-  - Phase 1: Interface Enhancement (✅ COMPLETE - #146-153, #160)
-  - Phase 2: Return Value Standardization (🔄 PARTIAL - #139 done, #140-142 remaining)
-  - Phase 3: Subshell Isolation (⏳ PLANNED - #136)
-  - Phase 4: Library Independence (⏳ PLANNED - #137)
+- **di_implementation_plan.md** (521B) - Phase 4 DI patterns implementation status
 
-Tracks parent issue #128 and all related work.
+### Discovery False Positives Fix (2026-02-09)
+
+Oracle Home discovery improvements:
+
+- **discovery-false-positives-fix.md** (6.4KB) - Analysis and fix for false positive detections in Oracle Home discovery
+
+## Archived Documents
+
+Legacy files from v0.19.0 development moved to `archive/` subdirectory:
+
+- v0.19.0-release-readiness.md (Jan 21)
+- docker-test-analysis.md (Jan 21)
+- implementation-summary.md (Jan 21)
+- issue-sync-summary.md (Jan 21)
+- monitoring-usage.md (Jan 21)
+- debug_support_analysis.md (Jan 23)

@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD036 -->
 # Development Guide
 
-This guide provides comprehensive development information for OraDBA v0.19.0+ contributors.
+This guide provides comprehensive development information for OraDBA v0.20.0 contributors.
 
 ## Quick Start for Developers
 
@@ -25,10 +25,11 @@ make build
 
 ## Architecture Overview
 
-OraDBA v0.19.0+ uses a modular, library-based architecture:
+OraDBA v0.20.0 uses a modular, library-based architecture:
 
 - **Registry API**: Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
-- **Plugin System**: 6 product-specific plugins with 11-function interface
+- **Plugin System**: 9 product plugins (6 production + 3 stubs) with 13-function universal core interface
+- **Plugin Standards**: Exit code contract (0/1/2), subshell isolation, no sentinel strings
 - **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
 - **Oracle Homes Management**: Central registry with comprehensive metadata
 - **Hierarchical Configuration**: 6-level configuration system with override capabilities
@@ -37,7 +38,7 @@ See [architecture.md](architecture.md) for detailed system design.
 
 ## Registry API and Plugin System
 
-### Registry API (v0.19.0+)
+### Registry API (v0.20.0)
 
 The Registry API (oradba_registry.sh) provides unified access to Oracle installations:
 
@@ -64,9 +65,9 @@ oradba_registry_get_field "FREE" "home"
 type:name:home:version:flags:order:alias:desc
 ```
 
-### Plugin System (v0.19.0+)
+### Plugin System (v0.20.0)
 
-OraDBA supports 6 product types via plugins:
+OraDBA supports 9 product types via plugins:
 
 1. **database_plugin.sh** - Oracle Database (RDBMS)
 2. **datasafe_plugin.sh** - Data Safe On-Premises Connectors
@@ -74,6 +75,9 @@ OraDBA supports 6 product types via plugins:
 4. **iclient_plugin.sh** - Oracle Instant Client
 5. **oud_plugin.sh** - Oracle Unified Directory  
 6. **java_plugin.sh** - Oracle Java/JDK
+7. **weblogic_plugin.sh** - WebLogic Server (stub)
+8. **oms_plugin.sh** - Enterprise Manager OMS (stub)
+9. **emagent_plugin.sh** - Enterprise Manager Agent (stub)
 
 **Plugin Interface** (13 universal core functions):
 

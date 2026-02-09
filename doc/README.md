@@ -12,7 +12,7 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 | Category               | Document                                     | Status      | Description                                         |
 |------------------------|----------------------------------------------|-------------|-----------------------------------------------------|
 | **Getting Started**    | [development.md](development.md)             | ✅ Current  | Complete development guide - setup, workflow, CI/CD |
-| **Architecture**       | [architecture.md](architecture.md)           | ✅ Current  | Registry API, Plugin System, v0.19.0+ architecture  |
+| **Architecture**       | [architecture.md](architecture.md)           | ✅ Current  | Registry API, Plugin System, v0.20.0 architecture   |
 | **API Reference**      | [api.md](api.md)                             | ✅ Current  | Registry API, Plugin Interface, core libraries      |
 | **Extension System**   | [extension-system.md](extension-system.md)   | ⏳ Review   | Extension development guide and API                 |
 | **Testing**            | [automated_testing.md](automated_testing.md) | ⏳ Review   | Automated testing guide and framework               |
@@ -21,10 +21,11 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 | **Archive**            | [archive/](archive/)                         | 📚          | Historical docs, completed plans, legacy references |
 | **Diagrams**           | [images/](images/)                           | ✅          | Mermaid diagrams (Registry API, Plugin System)      |
 
-## Key Changes in v0.19.0+
+## Key Changes in v0.20.0
 
 **Registry API** - Unified interface for all Oracle installations (oratab + oradba_homes.conf)  
-**Plugin System** - 6 product-specific plugins (database, datasafe, client, iclient, oud, java)  
+**Plugin System** - 9 product plugins (6 production + 3 stubs): database, datasafe, client, iclient, oud, java, weblogic, oms, emagent  
+**Plugin Standards** - Exit code contract (0/1/2), subshell isolation, no sentinel strings  
 **Environment Libraries** - Parser, Builder, Validator, Config, Status, Changes  
 **No Backward Compatibility** - Clean architecture without legacy basenv coexistence
 
@@ -37,9 +38,9 @@ New to OraDBA development? Start here:
 1. **[development.md](development.md)** - Read the complete development guide
 
    - Quick start for developers
-   - v0.19.0+ architecture overview (Registry API, Plugin System, Environment Libraries)
-   - Plugin development guide with 11-function template
-   - Project structure with all 6 plugins
+   - v0.20.0 architecture overview (Registry API, Plugin System, Environment Libraries)
+   - Plugin development guide with 13-function universal core interface
+   - Project structure with all 9 plugins (6 production + 3 stubs)
    - Testing framework (108+ plugin tests, 900+ core tests)
    - CI/CD pipeline and workflows
    - Code quality standards
@@ -64,9 +65,9 @@ New to OraDBA development? Start here:
 
 **[development.md](development.md)** - Complete development guide
 
-- **Architecture**: Registry API, Plugin System (6 plugins), Environment Libraries
-- **Plugin Development**: 13-function interface, detection, validation, metadata extraction
-- **Project Structure**: All 6 plugins (database, datasafe, client, iclient, oud, java)
+- **Architecture**: Registry API, Plugin System (9 plugins), Environment Libraries
+- **Plugin Development**: 13-function universal core interface, detection, validation, metadata extraction
+- **Project Structure**: 9 plugins - 6 production (database, datasafe, client, iclient, oud, java) + 3 stubs (weblogic, oms, emagent)
 - **Testing**: 108+ plugin tests, 900+ core tests, 68 Docker integration tests
 - **Smart Test Selection**: ~1-3 min during development, ~8-10 min full suite
 - **CI/CD Pipeline**: GitHub Actions with automated testing and release

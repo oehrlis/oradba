@@ -6,7 +6,7 @@
 oradba is a professional Oracle Database administration toolset built on a modular, library-based architecture. The current architecture (v0.19.0+) features:
 
 - **Registry API** (v0.19.0+): Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
-- **Plugin System** (v0.19.0+): Product-specific plugins with 11-function interface for 6 Oracle product types
+- **Plugin System** (v0.20.0): Product-specific plugins with 13-function universal core interface for 9 Oracle product types
 - **Environment Management Libraries** (v0.19.0+): Modular libraries for parsing, building, and validating Oracle environments
 - **Oracle Homes Management**: Central registry (oradba_homes.conf) with comprehensive metadata
 - **Hierarchical Configuration**: 6-level configuration system with override capabilities
@@ -192,14 +192,17 @@ java:jdk17:/opt/oracle/product/jdk-17.0.17:17.0.0::4::Oracle Java 17
 
 **Purpose**: Product-specific behavior encapsulation with consistent interface.
 
-**Supported Products** (6 plugins):
+**Supported Products** (9 plugins):
 
 1. **database_plugin.sh** - Oracle Database (RDBMS)
 2. **datasafe_plugin.sh** - Data Safe On-Premises Connectors
 3. **client_plugin.sh** - Oracle Full Client
-4. **iclient_plugin.sh** - Oracle Instant Client  
+4. **iclient_plugin.sh** - Oracle Instant Client
 5. **oud_plugin.sh** - Oracle Unified Directory
-6. **java_plugin.sh** - Oracle Java/JDK (v0.19.0+)
+6. **java_plugin.sh** - Oracle Java/JDK
+7. **weblogic_plugin.sh** - WebLogic Server (stub)
+8. **oms_plugin.sh** - Enterprise Manager OMS (stub)
+9. **emagent_plugin.sh** - Enterprise Manager Agent (stub)
 
 **Plugin Interface** (13 universal core functions):
 
