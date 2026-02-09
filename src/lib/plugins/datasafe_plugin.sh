@@ -569,6 +569,104 @@ plugin_get_port() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_stop
+# Purpose.: Stop DataSafe connector instance
+# Args....: $1 - Base path
+#           $2 - Connector name (optional)
+#           $3 - Timeout in seconds (optional, default: 180)
+# Returns.: 0 on success, 1 on error
+# Output..: None (logs to oradba_log)
+# Notes...: Uses cmctl shutdown with -c instance_name parameter
+#           Falls back to pkill if cmctl fails or processes remain
+#           Verifies processes are actually stopped
+# ------------------------------------------------------------------------------
+plugin_stop() {
+    local base_path="$1"
+    local connector_name="${2:-}"
+    local timeout="${3:-180}"
+    
+    local cman_home cman_conf instance_name
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    cman_conf="${cman_home}/network/admin/cman.ora"
+    
+    # Extract instance name from cman.ora
+    # Format: instance_name = (configuration...)
+    instance_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*=' "${cman_conf}" 2>/dev/null | \
+                    grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
+                    head -1 | cut -d'=' -f1 | tr -d ' ')
+    
+    if [[ -z "${instance_name}" ]]; then
+        if declare -f oradba_log >/dev/null 2>&1; then
+            oradba_log ERROR "Cannot determine instance name from ${cman_conf}"
+        fi
+        return 1
+    fi
+    
+    # Set TNS_ADMIN to correct location
+    export TNS_ADMIN="${cman_home}/network/admin"
+    
+    if declare -f oradba_log >/dev/null 2>&1; then
+        oradba_log DEBUG "DataSafe plugin_stop: Executing cmctl shutdown -c ${instance_name}"
+    fi
+    
+    # Try cmctl shutdown with -c parameter
+    local shutdown_output exit_code
+    shutdown_output=$(cd "${cman_home}" && \
+                      ORACLE_HOME="${cman_home}" \
+                      LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                      timeout "${timeout}" ./bin/cmctl shutdown -c "${instance_name}" 2>&1)
+    exit_code=$?
+    
+    if declare -f oradba_log >/dev/null 2>&1; then
+        oradba_log DEBUG "DataSafe plugin_stop: cmctl exit code: ${exit_code}"
+        oradba_log DEBUG "DataSafe plugin_stop: cmctl output: ${shutdown_output}"
+    fi
+    
+    # Wait a moment for shutdown to complete
+    sleep 2
+    
+    # Verify processes are actually stopped
+    local cmadmin_pid
+    cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
+    
+    if [[ -n "${cmadmin_pid}" ]]; then
+        if declare -f oradba_log >/dev/null 2>&1; then
+            oradba_log WARN "DataSafe plugin_stop: cmctl completed but processes still running, forcing kill"
+        fi
+        
+        # Force kill cmadmin (this will terminate child cmgw processes)
+        pkill -TERM -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true
+        sleep 2
+        
+        # Check again
+        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
+        if [[ -n "${cmadmin_pid}" ]]; then
+            # Still running, use SIGKILL
+            if declare -f oradba_log >/dev/null 2>&1; then
+                oradba_log WARN "DataSafe plugin_stop: SIGTERM didn't work, using SIGKILL"
+            fi
+            pkill -KILL -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true
+            sleep 1
+        fi
+        
+        # Final verification
+        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
+        if [[ -n "${cmadmin_pid}" ]]; then
+            if declare -f oradba_log >/dev/null 2>&1; then
+                oradba_log ERROR "DataSafe plugin_stop: Failed to stop connector processes"
+            fi
+            return 1
+        fi
+    fi
+    
+    if declare -f oradba_log >/dev/null 2>&1; then
+        oradba_log DEBUG "DataSafe plugin_stop: Connector stopped successfully"
+    fi
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
 if declare -f oradba_log >/dev/null 2>&1; then

@@ -347,27 +347,7 @@ stop_connector() {
 
     oradba_log INFO "Stopping connector ${name}..."
 
-    # Adjust to oracle_cman_home if needed
-    local cman_home
-    if type -t plugin_adjust_environment &>/dev/null; then
-        cman_home=$(plugin_adjust_environment "${home}")
-    else
-        cman_home="${home}/oracle_cman_home"
-    fi
-    
-    # Set TNS_ADMIN for this specific connector before any plugin operations
-    export TNS_ADMIN="${cman_home}/network/admin"
-    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
-    
-    local cmctl="${cman_home}/bin/cmctl"
-    
-    # Validate cmctl exists
-    if [[ ! -x "${cmctl}" ]]; then
-        oradba_log ERROR "cmctl not found or not executable: ${cmctl}"
-        return 1
-    fi
-
-    # Check if connector is running
+    # Check if connector is running first
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
     local status_exit_code=0
     if type -t plugin_check_status &>/dev/null; then
@@ -375,11 +355,18 @@ stop_connector() {
         status_exit_code=$?
     else
         # Fallback status check using cmctl
+        local cman_home
+        if type -t plugin_adjust_environment &>/dev/null; then
+            cman_home=$(plugin_adjust_environment "${home}")
+        else
+            cman_home="${home}/oracle_cman_home"
+        fi
+        
         local instance_name
         instance_name=$(get_cman_instance_name "${home}")
         if ORACLE_HOME="${cman_home}" \
            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-           "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+           "${cman_home}/bin/cmctl" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
             status_exit_code=0
         else
             status_exit_code=1
@@ -403,62 +390,69 @@ stop_connector() {
         return 0
     fi
 
-    # Get CMAN instance name
-    local instance_name
-    instance_name=$(get_cman_instance_name "${home}")
-    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Using instance name: ${instance_name}"
-
-    # Try shutdown with timeout
-    oradba_log INFO "Attempting shutdown for ${name} (timeout: ${SHUTDOWN_TIMEOUT}s)"
-    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Executing cmctl shutdown with ${SHUTDOWN_TIMEOUT}s timeout"
-
-    local output
-    output=$(timeout "${SHUTDOWN_TIMEOUT}" \
-             bash -c "ORACLE_HOME='${cman_home}' LD_LIBRARY_PATH='${cman_home}/lib:${LD_LIBRARY_PATH:-}' '${cmctl}' shutdown -c '${instance_name}'" 2>&1)
-
-    local rc=$?
-    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl shutdown completed with exit code: ${rc}"
-
-    # Log output to logfile
-    echo "${output}" >> "${LOGFILE}" 2>&1
-
-    if [[ ${rc} -eq 0 ]]; then
-        oradba_log INFO "Connector ${name} stopped successfully"
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Shutdown completed successfully"
-        return 0
-    elif [[ ${rc} -eq 124 ]]; then
-        # Timeout occurred - try to kill processes
-        oradba_log WARN "Shutdown timed out for ${name}, attempting to kill processes"
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Timeout occurred, attempting process kill"
-
-        # Try to kill cmadmin and cmgw processes
-        # Try to kill cmadmin and cmgw processes
-        # shellcheck disable=SC2009
-        local pids
-        pids=$(ps -ef | grep "[c]madmin.*${name}" | awk '{print $2}' || echo "")
-        if [[ -n "${pids}" ]]; then
-            for pid in ${pids}; do
-                oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Killing cmadmin process: ${pid}"
-                kill -9 "${pid}" 2>/dev/null || true
-            done
+    # Use plugin_stop if available for proper shutdown
+    if type -t plugin_stop &>/dev/null; then
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Using plugin_stop with timeout ${SHUTDOWN_TIMEOUT}s"
+        
+        if plugin_stop "${home}" "${name}" "${SHUTDOWN_TIMEOUT}"; then
+            oradba_log INFO "Connector ${name} stopped successfully"
+            return 0
+        else
+            oradba_log ERROR "Failed to stop connector ${name}"
+            return 1
+        fi
+    else
+        # Fallback to old method if plugin_stop not available
+        oradba_log WARN "${SCRIPT_NAME}: stop_connector() - plugin_stop not available, using fallback method"
+        
+        # Adjust to oracle_cman_home if needed
+        local cman_home
+        if type -t plugin_adjust_environment &>/dev/null; then
+            cman_home=$(plugin_adjust_environment "${home}")
+        else
+            cman_home="${home}/oracle_cman_home"
         fi
         
-        # shellcheck disable=SC2009
-        pids=$(ps -ef | grep "[c]mgw.*${name}" | awk '{print $2}' || echo "")
-        if [[ -n "${pids}" ]]; then
-            for pid in ${pids}; do
-                oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Killing cmgw process: ${pid}"
-                kill -9 "${pid}" 2>/dev/null || true
-            done
+        # Set TNS_ADMIN for this specific connector
+        export TNS_ADMIN="${cman_home}/network/admin"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
+        
+        local cmctl="${cman_home}/bin/cmctl"
+        
+        # Validate cmctl exists
+        if [[ ! -x "${cmctl}" ]]; then
+            oradba_log ERROR "cmctl not found or not executable: ${cmctl}"
+            return 1
         fi
 
-        oradba_log INFO "Connector ${name} stopped with force kill"
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Force kill completed"
-        return 0
-    else
-        oradba_log ERROR "Failed to stop connector ${name} (exit code: ${rc})"
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl output: ${output}"
-        return 1
+        # Get CMAN instance name
+        local instance_name
+        instance_name=$(get_cman_instance_name "${home}")
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Using instance name: ${instance_name}"
+
+        # Try shutdown with timeout
+        oradba_log INFO "Attempting shutdown for ${name} (timeout: ${SHUTDOWN_TIMEOUT}s)"
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Executing cmctl shutdown with ${SHUTDOWN_TIMEOUT}s timeout"
+
+        local output
+        output=$(timeout "${SHUTDOWN_TIMEOUT}" \
+                 bash -c "ORACLE_HOME='${cman_home}' LD_LIBRARY_PATH='${cman_home}/lib:${LD_LIBRARY_PATH:-}' '${cmctl}' shutdown -c '${instance_name}'" 2>&1)
+
+        local rc=$?
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl shutdown completed with exit code: ${rc}"
+
+        # Log output to logfile
+        echo "${output}" >> "${LOGFILE}" 2>&1
+
+        if [[ ${rc} -eq 0 ]]; then
+            oradba_log INFO "Connector ${name} stopped successfully"
+            oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Shutdown completed successfully"
+            return 0
+        else
+            oradba_log ERROR "Failed to stop connector ${name} (exit code: ${rc})"
+            oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl output: ${output}"
+            return 1
+        fi
     fi
 }
 
