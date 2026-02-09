@@ -112,6 +112,65 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
+# Function: resolve_datasafe_env
+# Purpose.: Resolve Data Safe environment paths for display
+# Args....: $1 - Data Safe base install path
+# Output..: install_dir|oracle_home|tns_admin|java_home
+# ------------------------------------------------------------------------------
+resolve_datasafe_env() {
+    local base_path="$1"
+    local install_dir="$1"
+    local oracle_home=""
+    local tns_admin=""
+    local java_home=""
+
+    if [[ -f "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh" ]]; then
+        # shellcheck source=/dev/null
+        source "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+        if command -v plugin_adjust_environment &>/dev/null; then
+            oracle_home=$(plugin_adjust_environment "${base_path}")
+        fi
+    fi
+
+    if [[ -z "${oracle_home}" ]]; then
+        if [[ -d "${base_path}/oracle_cman_home" ]]; then
+            oracle_home="${base_path}/oracle_cman_home"
+        else
+            oracle_home="${base_path}"
+        fi
+    fi
+
+    if [[ -d "${oracle_home}/network/admin" ]]; then
+        tns_admin="${oracle_home}/network/admin"
+    elif [[ -d "${base_path}/network/admin" ]]; then
+        tns_admin="${base_path}/network/admin"
+    fi
+
+    if [[ -f "${ORADBA_BASE}/lib/oradba_env_builder.sh" ]]; then
+        if ! command -v oradba_resolve_java_home &>/dev/null; then
+            # shellcheck source=/dev/null
+            source "${ORADBA_BASE}/lib/oradba_env_builder.sh" 2>/dev/null || true
+        fi
+        if command -v oradba_resolve_java_home &>/dev/null; then
+            java_home=$(oradba_resolve_java_home "${oracle_home}" 2>/dev/null || true)
+        fi
+    fi
+
+    if [[ -z "${java_home}" ]]; then
+        local candidate
+        for candidate in "${oracle_home}/java" "${oracle_home}/jre" "${oracle_home}/jdk" \
+                         "${base_path}/java" "${base_path}/jre" "${base_path}/jdk"; do
+            if [[ -x "${candidate}/bin/java" ]]; then
+                java_home="${candidate}"
+                break
+            fi
+        done
+    fi
+
+    echo "${install_dir}|${oracle_home}|${tns_admin}|${java_home}"
+}
+
+# ------------------------------------------------------------------------------
 # Function: cmd_list
 # Purpose.: List available SIDs and/or Homes
 # ------------------------------------------------------------------------------
@@ -239,6 +298,15 @@ cmd_show() {
         printf "%-13s %s\n" "Product Type:" "$ptype"
         [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
         [[ -n "$desc" ]] && printf "%-13s %s\n" "Description:" "$desc"
+
+        if [[ "${ptype}" == "datasafe" ]]; then
+            local ds_install ds_home ds_tns ds_java
+            IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${path}")"
+            printf "%-13s %s\n" "Install Dir:" "${ds_install}"
+            printf "%-13s %s\n" "ORACLE_HOME:" "${ds_home}"
+            [[ -n "${ds_tns}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${ds_tns}"
+            [[ -n "${ds_java}" ]] && printf "%-13s %s\n" "JAVA_HOME:" "${ds_java}"
+        fi
         
         # Check if home exists
         if [[ ! -d "$path" ]]; then
@@ -495,6 +563,15 @@ cmd_status() {
     echo "HOME:         $oracle_home"
     echo "Product Type: $product_type"
     echo "Status:       $(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")"
+
+    if [[ "${product_type}" == "datasafe" ]]; then
+        local ds_install ds_home ds_tns ds_java
+        IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${oracle_home}")"
+        echo "Install Dir:  ${ds_install}"
+        echo "ORACLE_HOME:  ${ds_home}"
+        [[ -n "${ds_tns}" ]] && echo "TNS_ADMIN:   ${ds_tns}"
+        [[ -n "${ds_java}" ]] && echo "JAVA_HOME:   ${ds_java}"
+    fi
     
     # Check listener if RDBMS
     if [[ "$product_type" == "RDBMS" || "$product_type" == "GRID" ]]; then

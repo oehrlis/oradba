@@ -437,6 +437,12 @@ oradba_set_oracle_vars() {
         elif [[ -d "${ORACLE_BASE}/network/admin" ]]; then
             export TNS_ADMIN="${ORACLE_BASE}/network/admin"
         fi
+    elif [[ "$product_type" == "DATASAFE" ]]; then
+        if [[ -d "${oracle_home}/network/admin" ]]; then
+            export TNS_ADMIN="${oracle_home}/network/admin"
+        elif [[ -n "${DATASAFE_INSTALL_DIR:-}" ]] && [[ -d "${DATASAFE_INSTALL_DIR}/network/admin" ]]; then
+            export TNS_ADMIN="${DATASAFE_INSTALL_DIR}/network/admin"
+        fi
     elif [[ "$product_type" == "ICLIENT" ]]; then
         # Instant Client: TNS_ADMIN usually in separate location
         export TNS_ADMIN="${TNS_ADMIN:-${ORADBA_BASE}/network/admin}"

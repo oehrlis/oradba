@@ -689,7 +689,7 @@ See [Troubleshooting Guide](troubleshooting.md) for more solutions.
 - **[Aliases](aliases.md)** - Learn 50+ pre-configured aliases
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
-## Navigation
+## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Quick Start](quickstart.md)  
 **Next:** [Configuration System](configuration.md)

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-02-09
+
 ### Fixed
 
 - **Environment Variable Leakage in Plugin Execution**
@@ -29,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Handles both formats: `cust_cman=` and `cust_cman =` (with/without spaces before equals)
   - Fixes TNS-04005 errors where cmctl tried to resolve WALLET_LOCATION as instance name
   - DataSafe connector status now correctly reports "running" when processes are active
+
+- **DataSafe Environment Display and TNS_ADMIN**
+  - `oradba_env.sh show/status` now displays Data Safe install dir, ORACLE_HOME, TNS_ADMIN, and JAVA_HOME
+  - Ensures TNS_ADMIN resolves for Data Safe based on connector paths
 
 ### Changed
 
