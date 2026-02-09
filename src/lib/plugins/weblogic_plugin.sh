@@ -69,10 +69,10 @@ plugin_adjust_environment() {
 #           $2 - Domain name (optional)
 # Returns.: 0 if running, 1 if stopped/N/A, 2 if unavailable/error
 # Output..: None - status communicated via exit code only
-# Notes...: Stub implementation - returns 1 (not applicable)
+# Notes...: Stub implementation - returns 2 (unavailable)
 # ------------------------------------------------------------------------------
 plugin_check_status() {
-    return 1
+    return 2
 }
 
 # ------------------------------------------------------------------------------

@@ -26,8 +26,7 @@ failed_tests=0
 run_test() {
     local test_name="$1"
     local plugin_file="$2"
-    local expected_output="$3"
-    local expected_exit="$4"
+    local expected_exit="$3"
     
     ((total_tests++))
     
@@ -41,29 +40,35 @@ run_test() {
         return 1
     fi
     
-    # Call plugin_check_status
+    # Call plugin_check_status - should produce NO output (v0.20.0+)
     local output exit_code
     output=$(plugin_check_status "/fake/home" 2>/dev/null)
     exit_code=$?
     
-    # Validate
-    if [[ "$output" == "$expected_output" ]] && [[ $exit_code -eq $expected_exit ]]; then
-        echo "✅ PASS"
+    # Validate - v0.20.0+ uses exit codes only, NO output strings
+    if [[ -z "$output" ]] && [[ $exit_code -eq $expected_exit ]]; then
+        echo "✅ PASS (exit $exit_code, no output)"
         ((passed_tests++))
         return 0
     else
-        echo "❌ FAIL (expected '$expected_output' exit $expected_exit, got '$output' exit $exit_code)"
+        if [[ -n "$output" ]]; then
+            echo "❌ FAIL (exit $exit_code but had output: '$output' - should be silent)"
+        else
+            echo "❌ FAIL (expected exit $expected_exit, got exit $exit_code)"
+        fi
         ((failed_tests++))
         return 1
     fi
 }
 
 # Test all three fixed stub plugins
-echo "1. Testing stub plugin fixes"
-echo "----------------------------"
-run_test "weblogic_plugin" "src/lib/plugins/weblogic_plugin.sh" "unavailable" 2
-run_test "emagent_plugin" "src/lib/plugins/emagent_plugin.sh" "unavailable" 2
-run_test "oms_plugin" "src/lib/plugins/oms_plugin.sh" "unavailable" 2
+echo "1. Testing stub plugin fixes (v0.20.0+ exit codes)"
+echo "----------------------------------------------------"
+echo "   Note: v0.20.0+ plugins use exit codes ONLY, no output strings"
+echo ""
+run_test "weblogic_plugin" "src/lib/plugins/weblogic_plugin.sh" 2
+run_test "emagent_plugin" "src/lib/plugins/emagent_plugin.sh" 2
+run_test "oms_plugin" "src/lib/plugins/oms_plugin.sh" 2
 echo ""
 
 # Test for sentinel strings

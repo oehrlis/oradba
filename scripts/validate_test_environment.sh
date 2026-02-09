@@ -2,13 +2,32 @@
 # ============================================================================
 # Script:       validate_test_environment.sh
 # Author:       Stefan Oehrli (oes) stefan.oehrli@oradba.com
-# Date:         2026.01.20
-# Revision:     v0.19.x
-# Purpose:      Validate testing environment for OraDBA v0.19.x
+# Date:         2026.02.09
+# Revision:     v0.20.0
+# Purpose:      Validate testing environment for OraDBA v0.20.0
 # Notes:        Run this script before executing the test suite
+#               Works in both development (src/) and installed (no src/) modes
 # Reference:    doc/automated_testing.md, doc/manual_testing.md
 # License:      Apache-2.0 (see LICENSE file)
 # ============================================================================
+
+# Detect project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
+
+# Detect if we're in dev mode (src/) or installed mode (no src/)
+if [[ -d "$PROJECT_ROOT/src" ]]; then
+    # Development mode
+    LIB_DIR="src/lib"
+    BIN_DIR="src/bin"
+    MODE="development"
+else
+    # Installed mode
+    LIB_DIR="lib"
+    BIN_DIR="bin"
+    MODE="installed"
+fi
 
 # Color codes for output
 RED='\033[0;31m'
@@ -29,7 +48,8 @@ CHECKS_WARNED=0
 
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}  OraDBA v0.19.x - Test Environment Validator${NC}"
+    echo -e "${BLUE}  OraDBA v0.20.0 - Test Environment Validator${NC}"
+    echo -e "${BLUE}  Mode: $MODE${NC}"
     echo -e "${BLUE}  Architecture: Registry API, Plugin System, Environment Libraries${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo
@@ -177,7 +197,7 @@ validate_source_structure() {
     print_section "Source Structure"
     
     # Check core directories
-    for dir in src/bin src/lib src/etc src/sql src/rcv src/templates; do
+    for dir in ${BIN_DIR} ${LIB_DIR} ${ETC_DIR} src/sql src/rcv src/templates; do
         if [ -d "$dir" ]; then
             check_pass "$dir/ exists"
         else
@@ -186,14 +206,14 @@ validate_source_structure() {
     done
     
     # Check plugin directory (v0.19.0+)
-    if [ -d "src/lib/plugins" ]; then
-        check_pass "src/lib/plugins/ exists (Plugin System v0.19.0+)"
+    if [ -d "${LIB_DIR}/plugins" ]; then
+        check_pass "${LIB_DIR}/plugins/ exists (Plugin System v0.19.0+)"
     else
-        check_fail "src/lib/plugins/ directory missing"
+        check_fail "${LIB_DIR}/plugins/ directory missing"
     fi
     
     # Check Registry API (v0.19.0+)
-    if [ -f "src/lib/oradba_registry.sh" ]; then
+    if [ -f "${LIB_DIR}/oradba_registry.sh" ]; then
         check_pass "Registry API exists (oradba_registry.sh)"
     else
         check_fail "Registry API missing (oradba_registry.sh)"
@@ -201,12 +221,12 @@ validate_source_structure() {
     
     # Check environment libraries
     ENV_LIBS=(
-        "src/lib/oradba_env_parser.sh"
-        "src/lib/oradba_env_builder.sh"
-        "src/lib/oradba_env_validator.sh"
-        "src/lib/oradba_env_config.sh"
-        "src/lib/oradba_env_status.sh"
-        "src/lib/oradba_env_changes.sh"
+        "${LIB_DIR}/oradba_env_parser.sh"
+        "${LIB_DIR}/oradba_env_builder.sh"
+        "${LIB_DIR}/oradba_env_validator.sh"
+        "${LIB_DIR}/oradba_env_config.sh"
+        "${LIB_DIR}/oradba_env_status.sh"
+        "${LIB_DIR}/oradba_env_changes.sh"
     )
     
     ENV_COUNT=0
@@ -224,9 +244,9 @@ validate_source_structure() {
     
     # Check core libraries
     CORE_LIBS=(
-        "src/lib/oradba_common.sh"
-        "src/lib/oradba_db_functions.sh"
-        "src/lib/oradba_aliases.sh"
+        "${LIB_DIR}/oradba_common.sh"
+        "${LIB_DIR}/oradba_db_functions.sh"
+        "${LIB_DIR}/oradba_aliases.sh"
     )
     
     CORE_COUNT=0
@@ -243,7 +263,7 @@ validate_source_structure() {
     fi
     
     # Check plugin files (v0.19.0+)
-    PLUGIN_COUNT=$(find src/lib/plugins -name "*_plugin.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
+    PLUGIN_COUNT=$(find ${LIB_DIR}/plugins -name "*_plugin.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
     if [ "$PLUGIN_COUNT" -ge 6 ]; then
         check_pass "$PLUGIN_COUNT product plugins found (6+ expected)"
     else
@@ -251,7 +271,7 @@ validate_source_structure() {
     fi
     
     # Check plugin interface (v0.19.0+)
-    if [ -f "src/lib/plugins/plugin_interface.sh" ]; then
+    if [ -f "${LIB_DIR}/plugins/plugin_interface.sh" ]; then
         check_pass "Plugin interface exists (plugin_interface.sh)"
     else
         check_fail "Plugin interface missing (plugin_interface.sh)"
