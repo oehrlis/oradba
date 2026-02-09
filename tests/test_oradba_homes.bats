@@ -343,14 +343,19 @@ EOF
 }
 
 @test "oradba_homes.sh discover finds Oracle Homes" {
-    # Create mock Oracle installations
+    # Create complete mock OUD installation (passes both detect_product_type and plugin validation)
     mkdir -p "${ORACLE_BASE}/product/oud12/oud/lib"
-    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"
+    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"  # For detect_product_type
+    touch "${ORACLE_BASE}/product/oud12/setup"                # For plugin validation
+    chmod +x "${ORACLE_BASE}/product/oud12/setup"
     
+    # Create complete mock client installation (passes both checks)
     mkdir -p "${ORACLE_BASE}/product/client19/bin"
-    touch "${ORACLE_BASE}/product/client19/bin/sqlplus"
+    mkdir -p "${ORACLE_BASE}/product/client19/network/admin"
+    touch "${ORACLE_BASE}/product/client19/bin/sqlplus"       # For both checks
+    chmod +x "${ORACLE_BASE}/product/client19/bin/sqlplus"
     
-    run "$HOMES_SCRIPT" discover < /dev/null
+    run "$HOMES_SCRIPT" discover
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[FOUND\] ]]
     [[ "$output" =~ "oud" ]]
@@ -371,9 +376,11 @@ EOF
 }
 
 @test "oradba_homes.sh discover --auto-add adds discovered homes" {
-    # Create mock installation
+    # Create complete mock OUD installation (passes both detect_product_type and plugin validation)
     mkdir -p "${ORACLE_BASE}/product/oud12/oud/lib"
-    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"
+    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"  # For detect_product_type
+    touch "${ORACLE_BASE}/product/oud12/setup"                # For plugin validation
+    chmod +x "${ORACLE_BASE}/product/oud12/setup"
     
     run "$HOMES_SCRIPT" discover --auto-add < /dev/null
     [ "$status" -eq 0 ]
@@ -390,11 +397,13 @@ EOF
 OUD12:${ORACLE_BASE}/product/oud12:oud:10:Already registered
 EOF
     
-    # Create the actual directory
+    # Create complete mock OUD installation (passes both detect_product_type and plugin validation)
     mkdir -p "${ORACLE_BASE}/product/oud12/oud/lib"
-    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"
+    touch "${ORACLE_BASE}/product/oud12/oud/lib/ldapjdk.jar"  # For detect_product_type
+    touch "${ORACLE_BASE}/product/oud12/setup"                # For plugin validation
+    chmod +x "${ORACLE_BASE}/product/oud12/setup"
     
-    run "$HOMES_SCRIPT" discover < /dev/null
+    run "$HOMES_SCRIPT" discover
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[EXISTS\] ]]
 }
@@ -745,10 +754,10 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     [ "$status" -eq 0 ]
     [ "$output" = "OUD12C" ]
     
-    # Data Safe should use uppercase
+    # Data Safe should use sequential naming (dscon1, dscon2)
     run generate_home_name "datasafe-wob-ha1" "datasafe"
     [ "$status" -eq 0 ]
-    [ "$output" = "DATASAFE_WOB_HA1" ]
+    [ "$output" = "dscon1" ]
 }
 
 # ------------------------------------------------------------------------------

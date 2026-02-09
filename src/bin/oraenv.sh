@@ -339,9 +339,9 @@ _oraenv_gather_available_entries() {
         fi
         
         # Try product discovery (all Oracle products: db, datasafe, java, iclient, oud)
-        if [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${ORADBA_BASE}/bin/oradba_homes.sh" ]]; then
+        if [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" ]]; then
             oradba_log INFO "Auto-discovering all Oracle products (db, datasafe, java, iclient, oud)..."
-            "${ORADBA_BASE}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
+            "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
                 oradba_log INFO "  $line"
             done
             

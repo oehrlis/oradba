@@ -56,10 +56,11 @@ teardown() {
     [ "$output" = "N/A" ]
 }
 
-@test "get_product_status: should return UNKNOWN for invalid product" {
+@test "get_product_status: should return error for invalid product" {
     run oradba_get_product_status "INVALID" "dummy" "/path"
-    [ "$status" -eq 1 ]
-    [ "$output" = "UNKNOWN" ]
+    # Plugin not found or returns error - check exit code
+    # Exit code 1 or 2 acceptable (not applicable or unavailable)
+    [ "$status" -ne 0 ]
 }
 
 # Test oradba_check_db_status

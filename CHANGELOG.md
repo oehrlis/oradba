@@ -29,6 +29,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Product Auto-Discovery Not Running** (Bug Fix)
+  - Fixed `oraenv.sh` using incorrect variable `${ORADBA_BASE}` instead of `${_ORAENV_BASE_DIR}`
+  - Product discovery (`--auto-discover-products`) now correctly finds and adds Oracle products on first login
+  - Resolves issue where ORADBA_AUTO_DISCOVER_PRODUCTS=true was set but discovery was not executing
+  - Script path now correctly resolves to `${_ORAENV_BASE_DIR}/bin/oradba_homes.sh`
+
+- **Discovery Tests Mock Installation Validation** (Test Infrastructure)
+  - Fixed discover test mocks to pass both `detect_product_type()` and `plugin_validate_home()`
+  - OUD mocks now include `oud/lib/ldapjdk.jar` (for detection) and `setup` (for validation)
+  - Client mocks now include `bin/sqlplus` and `network/admin` directory structure
+  - All discovery tests now pass with realistic mock installations
+  - Resolves false test failures where valid mocks were rejected by plugin validation
+
 - **DataSafe Sequential Naming** (Regression from v0.19.4)
   - Fixed `generate_home_name()` in `oradba_homes.sh` to implement sequential naming for DataSafe
   - DataSafe installations now correctly use `dscon1`, `dscon2`, `dscon3` pattern as documented
@@ -41,18 +54,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 If you previously used discovery options, update your shell profile:
 
 **Old (deprecated):**
+
 ```bash
 export ORADBA_AUTO_DISCOVER_HOMES="true"  # Old name
 export ORADBA_FULL_DISCOVERY="true"       # Old name
 ```
 
 **New (current):**
+
 ```bash
 export ORADBA_AUTO_DISCOVER_ORATAB="true"    # Database homes from oratab
 export ORADBA_AUTO_DISCOVER_PRODUCTS="true"  # All Oracle products
 ```
 
 **Installer flag changes:**
+
 - `./oradba_install.sh --enable-auto-discover` → `./oradba_install.sh --auto-discover-oratab`
 - `./oradba_install.sh --enable-full-discovery` → `./oradba_install.sh --auto-discover-products`
 
