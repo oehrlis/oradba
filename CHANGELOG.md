@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Fixed
+
+## [0.20.0] - 2026-02-09
+
+### Major Highlights
+
+This major release consolidates three enhancement phases (v0.19.11, v0.19.12, and critical bug fixes) into a stable production release with comprehensive plugin system improvements, Oracle Home discovery enhancements, and improved environment management.
+
 ### Fixed
 
 - **Plugin System Execution Issues (Exit Code 133)**
@@ -18,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - DataSafe connector status now correctly returns "stopped" instead of "unknown"
   - Improved error handling when plugins are unavailable or return unexpected exit codes
   - Added comprehensive debug logging to trace plugin system execution flow
-
-### Added
 
 ### Improved
 
