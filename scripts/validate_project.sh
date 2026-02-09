@@ -24,13 +24,17 @@ cd "$PROJECT_ROOT"
 if [[ -d "$PROJECT_ROOT/src" ]]; then
     # Development mode
     LIB_DIR="$PROJECT_ROOT/src/lib"
+    # shellcheck disable=SC2034  # Variables reserved for future use
     BIN_DIR="$PROJECT_ROOT/src/bin"
+    # shellcheck disable=SC2034  # Variables reserved for future use
     ETC_DIR="$PROJECT_ROOT/src/etc"
     MODE="development"
 else
     # Installed mode
     LIB_DIR="$PROJECT_ROOT/lib"
+    # shellcheck disable=SC2034  # Variables reserved for future use
     BIN_DIR="$PROJECT_ROOT/bin"
+    # shellcheck disable=SC2034  # Variables reserved for future use
     ETC_DIR="$PROJECT_ROOT/etc"
     MODE="installed"
 fi

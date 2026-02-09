@@ -352,7 +352,7 @@ EOF
     
     run "$HOMES_SCRIPT" discover < /dev/null
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[FOUND]" ]]
+    [[ "$output" =~ \[FOUND\] ]]
     [[ "$output" =~ "oud" ]]
     [[ "$output" =~ "client" ]]
 }
@@ -396,7 +396,7 @@ EOF
     
     run "$HOMES_SCRIPT" discover < /dev/null
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "[EXISTS]" ]]
+    [[ "$output" =~ \[EXISTS\] ]]
 }
 
 # ------------------------------------------------------------------------------
