@@ -45,19 +45,20 @@ products that don't use oratab (like OUD, WLS) alongside traditional databases.
 
 #### Automatic Discovery During Installation
 
-OraDBA v0.19.8+ supports automatic discovery during installation:
+OraDBA v0.20.0+ supports automatic discovery during installation:
 
 ```bash
 # Install with auto-discovery enabled
-bash oradba_install.sh --enable-auto-discover --update-profile
+bash oradba_install.sh --auto-discover-oratab --auto-discover-products --update-profile
 
 # Manual activation after installation
-echo 'export ORADBA_AUTO_DISCOVER_HOMES="true"' >> ~/.bash_profile
+echo 'export ORADBA_AUTO_DISCOVER_ORATAB="true"' >> ~/.bash_profile
+echo 'export ORADBA_AUTO_DISCOVER_PRODUCTS="true"' >> ~/.bash_profile
 ```
 
-When `--enable-auto-discover` is used during installation, OraDBA will:
+When `--auto-discover-oratab` or `--auto-discover-products` are used during installation, OraDBA will:
 
-- Add `export ORADBA_AUTO_DISCOVER_HOMES="true"` to your shell profile
+- Add `export ORADBA_AUTO_DISCOVER_ORATAB="true"` and/or `export ORADBA_AUTO_DISCOVER_PRODUCTS="true"` to your shell profile
 - Automatically discover Oracle Homes on first login
 - Register new Oracle products in `oradba_homes.conf`
 

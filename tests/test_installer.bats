@@ -524,24 +524,39 @@ teardown() {
     grep -q "update_profile()" "$STANDALONE_INSTALLER"
 }
 
-@test "installer help shows --enable-auto-discover flag" {
+@test "installer help shows --auto-discover-oratab flag" {
     [ -f "$STANDALONE_INSTALLER" ]
-    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "enable-auto-discover"
+    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "auto-discover-oratab"
 }
 
-@test "installer code has --enable-auto-discover flag" {
+@test "installer code has --auto-discover-oratab flag" {
     [ -f "$STANDALONE_INSTALLER" ]
-    grep -q "\-\-enable-auto-discover" "$STANDALONE_INSTALLER"
+    grep -q "--auto-discover-oratab" "$STANDALONE_INSTALLER"
 }
 
-@test "installer has ENABLE_AUTO_DISCOVER variable" {
+@test "installer has ENABLE_ORATAB_DISCOVERY variable" {
     [ -f "$STANDALONE_INSTALLER" ]
-    grep -q 'ENABLE_AUTO_DISCOVER=' "$STANDALONE_INSTALLER"
+    grep -q 'ENABLE_ORATAB_DISCOVERY=' "$STANDALONE_INSTALLER"
 }
 
-@test "installer help shows --enable-auto-discover usage example" {
+@test "installer help shows --auto-discover-oratab usage example" {
     [ -f "$STANDALONE_INSTALLER" ]
-    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "enable-auto-discover"
+    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "auto-discover-oratab"
+}
+
+@test "installer help shows --auto-discover-products flag" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "auto-discover-products"
+}
+
+@test "installer code has --auto-discover-products flag" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    grep -q "--auto-discover-products" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has ENABLE_PRODUCT_DISCOVERY variable" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    grep -q 'ENABLE_PRODUCT_DISCOVERY=' "$STANDALONE_INSTALLER"
 }
 
 @test "profile file detection supports multiple shells" {

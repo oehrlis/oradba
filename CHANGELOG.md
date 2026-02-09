@@ -7,25 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [0.20.0] - 2026-02-09
 
-- **Product Discovery Options** (New Feature)
-  - Added `--auto-discover-oratab` installer option for database homes from oratab
-  - Added `--auto-discover-products` installer option for all Oracle products
-  - Discovers all Oracle products (database, datasafe, java, iclient, oud) on first login
-  - Added `--silent` flag to `oradba_homes.sh discover` for quiet operation
+### Major Highlights
 
-### Changed
-
-- **BREAKING: Renamed Discovery Flags and Variables** (Consistency & Clarity)
-  - Installer flags:
-    - `--enable-auto-discover` → `--auto-discover-oratab` (database homes from /etc/oratab)
-    - `--enable-full-discovery` → `--auto-discover-products` (all Oracle products)
-  - Environment variables:
-    - `ORADBA_AUTO_DISCOVER_HOMES` → `ORADBA_AUTO_DISCOVER_ORATAB`
-    - `ORADBA_FULL_DISCOVERY` → `ORADBA_AUTO_DISCOVER_PRODUCTS`
-  - **Migration:** Update shell profiles to use new variable names
-  - **Rationale:** Consistent naming scheme with clear scope indication
+This major release consolidates three enhancement phases (v0.19.11, v0.19.12, and
+critical bug fixes) into a stable production release with comprehensive plugin
+system improvements, Oracle Home discovery enhancements, and improved environment
+management.
 
 ### Fixed
 
@@ -42,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolves issue where ORADBA_AUTO_DISCOVER_PRODUCTS=true was set but discovery was not executing
   - Script path now correctly resolves to `${_ORAENV_BASE_DIR}/bin/oradba_homes.sh`
 
+- **Product Auto-Discovery Missing Non-Database Homes** (Bug Fix)
+  - Ensured product discovery runs when non-database homes are empty, even if database entries exist
+  - Fixes missing auto-registration of DataSafe, Java, Instant Client, and OUD homes
+
 - **Discovery Tests Mock Installation Validation** (Test Infrastructure)
   - Fixed discover test mocks to pass both `detect_product_type()` and `plugin_validate_home()`
   - OUD mocks now include `oud/lib/ldapjdk.jar` (for detection) and `setup` (for validation)
@@ -56,39 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sequential counter finds next available number by checking existing config entries
   - Consistent with documented behavior in v0.19.4 release notes
 
-### Migration Guide (Breaking Changes)
-
-If you previously used discovery options, update your shell profile:
-
-**Old (deprecated):**
-
-```bash
-export ORADBA_AUTO_DISCOVER_HOMES="true"  # Old name
-export ORADBA_FULL_DISCOVERY="true"       # Old name
-```
-
-**New (current):**
-
-```bash
-export ORADBA_AUTO_DISCOVER_ORATAB="true"    # Database homes from oratab
-export ORADBA_AUTO_DISCOVER_PRODUCTS="true"  # All Oracle products
-```
-
-**Installer flag changes:**
-
-- `./oradba_install.sh --enable-auto-discover` → `./oradba_install.sh --auto-discover-oratab`
-- `./oradba_install.sh --enable-full-discovery` → `./oradba_install.sh --auto-discover-products`
-
-## [0.20.0] - 2026-02-09
-
-### Major Highlights
-
-This major release consolidates three enhancement phases (v0.19.11, v0.19.12, and
-critical bug fixes) into a stable production release with comprehensive plugin
-system improvements, Oracle Home discovery enhancements, and improved environment
-management.
-
-### Fixed
+- **DataSafe Auto-Discovery Naming Migration** (Bug Fix)
+  - Auto-discovery now migrates legacy DataSafe names to sequential `dsconN` identifiers
+  - Prevents DataSafe connectors from keeping path-derived names after auto-registration
 
 - **Plugin System Execution Issues (Exit Code 133)**
   - Removed strict error handling (`set -euo pipefail`) from plugin subshells in `execute_plugin_function_v2`
@@ -135,6 +98,12 @@ management.
   - Improves clarity when using multiple aliases for the same Oracle Home
 
 ### Added
+
+- **Product Discovery Options** (New Feature)
+  - Added `--auto-discover-oratab` installer option for database homes from oratab
+  - Added `--auto-discover-products` installer option for all Oracle products
+  - Discovers all Oracle products (database, datasafe, java, iclient, oud) on first login
+  - Added `--silent` flag to `oradba_homes.sh discover` for quiet operation
 
 - **DBCA Templates for Automated Database Creation**
   - Added comprehensive DBCA response file templates for Oracle 19c and 26ai
@@ -210,6 +179,39 @@ management.
   - Comprehensive test coverage (26 OUD tests, 24 WebLogic tests)
 
 ### Changed
+
+- **BREAKING: Renamed Discovery Flags and Variables** (Consistency & Clarity)
+  - Installer flags:
+    - `--enable-auto-discover` → `--auto-discover-oratab` (database homes from /etc/oratab)
+    - `--enable-full-discovery` → `--auto-discover-products` (all Oracle products)
+  - Environment variables:
+    - `ORADBA_AUTO_DISCOVER_HOMES` → `ORADBA_AUTO_DISCOVER_ORATAB`
+    - `ORADBA_FULL_DISCOVERY` → `ORADBA_AUTO_DISCOVER_PRODUCTS`
+  - **Migration:** Update shell profiles to use new variable names
+  - **Rationale:** Consistent naming scheme with clear scope indication
+
+### Migration Guide (Breaking Changes)
+
+If you previously used discovery options, update your shell profile:
+
+**Old (deprecated):**
+
+```bash
+export ORADBA_AUTO_DISCOVER_HOMES="true"  # Old name
+export ORADBA_FULL_DISCOVERY="true"       # Old name
+```
+
+**New (current):**
+
+```bash
+export ORADBA_AUTO_DISCOVER_ORATAB="true"    # Database homes from oratab
+export ORADBA_AUTO_DISCOVER_PRODUCTS="true"  # All Oracle products
+```
+
+**Installer flag changes:**
+
+- `./oradba_install.sh --enable-auto-discover` → `./oradba_install.sh --auto-discover-oratab`
+- `./oradba_install.sh --enable-full-discovery` → `./oradba_install.sh --auto-discover-products`
 
 - **Phase 4 (Partial)**: Refactored environment libraries for dependency injection
   - Replaced 29 direct `oradba_log` calls in `oradba_env_builder.sh` with `_oradba_builder_log()`

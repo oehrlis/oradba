@@ -121,6 +121,16 @@
 # alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'
 
 # ------------------------------------------------------------------------------
+# Example: Auto-Discovery Configuration
+# ------------------------------------------------------------------------------
+
+# Enable auto-discovery of database homes from oratab
+# ORADBA_AUTO_DISCOVER_ORATAB="true"
+
+# Enable auto-discovery of all Oracle products (database, datasafe, java, client, iclient, oud)
+# ORADBA_AUTO_DISCOVER_PRODUCTS="true"
+
+# ------------------------------------------------------------------------------
 # Example: Extension System Configuration
 # ------------------------------------------------------------------------------
 

@@ -2707,12 +2707,14 @@ auto_discover_oracle_homes() {
                     fi
                     ;;
                 datasafe)
-                    # DataSafe connectors: normalize to dsconNN
-                    if [[ "${dir_name}" =~ ([Dd][Ss]|[Cc][Mm][Aa][Nn]|[Cc]onnector)[-_]?([0-9]+) ]]; then
-                        home_name="dscon${BASH_REMATCH[2]}"
-                    else
-                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                    # DataSafe connectors: sequential naming dscon1, dscon2, ...
+                    local counter=1
+                    if [[ -f "${config_file}" ]]; then
+                        while grep -q "^dscon${counter}:" "${config_file}" 2>/dev/null; do
+                            ((counter++))
+                        done
                     fi
+                    home_name="dscon${counter}"
                     ;;
                 oud)
                     # OUD instances: normalize to oudNNN
@@ -2771,6 +2773,19 @@ auto_discover_oracle_homes() {
                     local existing_name
                     existing_name=$(grep ":${dir}:" "${config_file}" | head -1 | cut -d':' -f1)
                     already_exists=true
+
+                    # Migrate legacy DataSafe names to sequential dsconN
+                    if [[ "${ptype}" == "datasafe" ]] && [[ "${existing_name}" != "${home_name}" ]] && [[ ! "${existing_name}" =~ ^dscon[0-9]+$ ]]; then
+                        local tmp_file
+                        tmp_file="${config_file}.tmp"
+                        if awk -F: -v OFS=: -v path="${dir}" -v new_name="${home_name}" '$2 == path { $1 = new_name } { print }' "${config_file}" > "${tmp_file}"; then
+                            mv "${tmp_file}" "${config_file}"
+                            existing_name="${home_name}"
+                        else
+                            rm -f "${tmp_file}"
+                        fi
+                    fi
+
                     [[ "${silent}" != "true" ]] && echo "  [SKIP] ${home_name} (${ptype}) - path registered as '${existing_name}'"
                 fi
             fi

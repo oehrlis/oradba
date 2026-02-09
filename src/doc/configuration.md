@@ -539,7 +539,7 @@ vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 
 ## Common Configuration Scenarios
 
-### Scenario 1: Enable Oracle Homes Auto-Discovery (v0.19.2+)
+### Scenario 1: Enable Oracle Homes Auto-Discovery (v0.20.0+)
 
 **Problem:** You want OraDBA to automatically discover and register Oracle installations
 
@@ -549,7 +549,10 @@ vi ${ORADBA_PREFIX}/etc/sid.MYDB.conf
 # oradba_customer.conf
 
 # Enable auto-discovery on environment load
-export ORADBA_AUTO_DISCOVER_HOMES="true"
+# - Database homes from oratab
+export ORADBA_AUTO_DISCOVER_ORATAB="true"
+# - All Oracle products (database, datasafe, java, client, iclient, oud)
+export ORADBA_AUTO_DISCOVER_PRODUCTS="true"
 
 # Customize discovery paths (optional, default: ${ORACLE_BASE}/product)
 export ORADBA_DISCOVERY_PATHS="${ORACLE_BASE}/product /opt/oracle /u01/oracle"

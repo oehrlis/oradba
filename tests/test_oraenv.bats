@@ -405,14 +405,14 @@ EOF
         grep -q "grep.*ORACLE_SID\\|awk.*sid" || true
 }
 
-@test "oraenv.sh supports ORADBA_AUTO_DISCOVER_HOMES flag" {
-    # Check that ORADBA_AUTO_DISCOVER_HOMES is referenced in the script
-    grep -q "ORADBA_AUTO_DISCOVER_HOMES" "$ORAENV_SCRIPT"
+@test "oraenv.sh supports ORADBA_AUTO_DISCOVER_ORATAB flag" {
+    # Check that ORADBA_AUTO_DISCOVER_ORATAB is referenced in the script
+    grep -q "ORADBA_AUTO_DISCOVER_ORATAB" "$ORAENV_SCRIPT"
 }
 
 @test "oraenv.sh calls auto_discover_oracle_homes when enabled" {
     # Check that auto_discover_oracle_homes is called when flag is true
-    grep -A 5 "ORADBA_AUTO_DISCOVER_HOMES" "$ORAENV_SCRIPT" | grep -q "auto_discover_oracle_homes"
+    grep -A 5 "ORADBA_AUTO_DISCOVER_ORATAB" "$ORAENV_SCRIPT" | grep -q "auto_discover_oracle_homes"
 }
 
 @test "oraenv.sh auto-discovers homes before returning error" {

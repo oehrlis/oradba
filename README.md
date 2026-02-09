@@ -48,10 +48,10 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
   - Automatically detects running Oracle instances when oratab is empty
   - Persists discovered instances to oratab (or local oratab if permission denied)
   - Supports database instances (db_smon_*, ora_pmon_*) and ASM (+ASM)
-  - Discovers Oracle Homes for all product types via `ORADBA_AUTO_DISCOVER_HOMES`
+  - Discovers Oracle Homes for all product types via `ORADBA_AUTO_DISCOVER_PRODUCTS`
   - Current user filtering for security
   - Duplicate prevention for idempotent operations
-  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES` and `ORADBA_AUTO_DISCOVER_HOMES`
+  - Configurable via `ORADBA_AUTO_DISCOVER_INSTANCES` and `ORADBA_AUTO_DISCOVER_PRODUCTS`
 
 ### Core Capabilities
 

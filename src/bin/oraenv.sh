@@ -304,6 +304,29 @@ _oraenv_gather_available_entries() {
 
     local total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
 
+    # If no non-database homes are registered, try product discovery
+    if [[ ${#homes_ref[@]} -eq 0 ]] && [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" ]]; then
+        oradba_log INFO "Auto-discovering all Oracle products (db, datasafe, java, iclient, oud)..."
+        "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
+            oradba_log INFO "  $line"
+        done
+
+        # Refresh homes list after product discovery
+        homes_ref=()
+        if command -v oradba_registry_get_all &> /dev/null; then
+            local all_entries
+            all_entries=$(oradba_registry_get_all 2>/dev/null)
+            if [[ -n "${all_entries}" ]]; then
+                while IFS='|' read -r ptype name home version flags order alias desc; do
+                    [[ "${ptype}" == "database" ]] && continue  # Skip database types
+                    homes_ref+=("${name}")
+                done <<< "${all_entries}"
+            fi
+        fi
+
+        total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
+    fi
+
     # If no entries found, try auto-discovery
     if [[ $total_entries -eq 0 ]]; then
         # Try auto-discovery for running instances
