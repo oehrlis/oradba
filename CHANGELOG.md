@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Product Auto-Discovery Configuration Variables Missing** (Critical Bug)
+  - Fixed `oradba_standard.conf` still exporting deprecated `ORADBA_AUTO_DISCOVER_HOMES` variable
+  - Added missing `ORADBA_AUTO_DISCOVER_ORATAB` and `ORADBA_AUTO_DISCOVER_PRODUCTS` exports
+  - Updated `oradba_validate.sh` to check for new variable names (v0.20.0+)
+  - Resolves product discovery not executing despite correct installer flags
+  - **Critical**: Without these exports, the renamed variables were never set, preventing auto-discovery
+
 - **Product Auto-Discovery Not Running** (Bug Fix)
   - Fixed `oraenv.sh` using incorrect variable `${ORADBA_BASE}` instead of `${_ORAENV_BASE_DIR}`
   - Product discovery (`--auto-discover-products`) now correctly finds and adds Oracle products on first login

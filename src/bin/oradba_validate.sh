@@ -279,8 +279,9 @@ fi
 test_item "oradba_core.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_core.conf' ]]"
 test_item "oradba_standard.conf exists" "[[ -f '${ORADBA_BASE}/etc/oradba_standard.conf' ]]"
 
-# Check for auto-discovery configuration variables (v0.19.2+)
-test_item "ORADBA_AUTO_DISCOVER_HOMES defined in oradba_standard.conf" "grep -q 'ORADBA_AUTO_DISCOVER_HOMES' '${ORADBA_BASE}/etc/oradba_standard.conf'"
+# Check for auto-discovery configuration variables (v0.20.0+)
+test_item "ORADBA_AUTO_DISCOVER_ORATAB defined in oradba_standard.conf" "grep -q 'ORADBA_AUTO_DISCOVER_ORATAB' '${ORADBA_BASE}/etc/oradba_standard.conf'"
+test_item "ORADBA_AUTO_DISCOVER_PRODUCTS defined in oradba_standard.conf" "grep -q 'ORADBA_AUTO_DISCOVER_PRODUCTS' '${ORADBA_BASE}/etc/oradba_standard.conf'"
 test_item "ORADBA_DISCOVERY_PATHS defined in oradba_standard.conf" "grep -q 'ORADBA_DISCOVERY_PATHS' '${ORADBA_BASE}/etc/oradba_standard.conf'"
 
 test_item "sid._DEFAULT_.conf exists" "[[ -f '${ORADBA_BASE}/etc/sid._DEFAULT_.conf' ]]"
