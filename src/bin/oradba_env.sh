@@ -569,8 +569,8 @@ cmd_status() {
         IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${oracle_home}")"
         echo "Install Dir:  ${ds_install}"
         echo "ORACLE_HOME:  ${ds_home}"
-        [[ -n "${ds_tns}" ]] && echo "TNS_ADMIN:   ${ds_tns}"
-        [[ -n "${ds_java}" ]] && echo "JAVA_HOME:   ${ds_java}"
+        [[ -n "${ds_tns}" ]] && echo "TNS_ADMIN:    ${ds_tns}"
+        [[ -n "${ds_java}" ]] && echo "JAVA_HOME:    ${ds_java}"
     fi
     
     # Check listener if RDBMS

@@ -824,3 +824,183 @@ CMCTL_MOCK
     [ -z "$output" ]
     ! echo "$output" | grep -qiE "ERR|unknown|N/A"
 }
+
+# ==============================================================================
+# plugin_set_environment Tests
+# ==============================================================================
+
+@test "datasafe plugin_set_environment sets TNS_ADMIN correctly" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_tns1"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Call plugin_set_environment (not via run, since we need exports)
+    plugin_set_environment "${ds_home}"
+    local exit_code=$?
+    
+    # Verify exit code
+    [ "$exit_code" -eq 0 ]
+    
+    # Verify TNS_ADMIN is set to connector-specific path
+    [ "${TNS_ADMIN}" = "${ds_home}/oracle_cman_home/network/admin" ]
+}
+
+@test "datasafe plugin_set_environment overrides inherited TNS_ADMIN" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_tns2"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Set TNS_ADMIN to a different value (simulating inheritance)
+    export TNS_ADMIN="/some/other/path"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Call plugin_set_environment - should override (not via run)
+    plugin_set_environment "${ds_home}"
+    local exit_code=$?
+    
+    # Verify exit code
+    [ "$exit_code" -eq 0 ]
+    
+    # Verify TNS_ADMIN was overridden
+    [ "${TNS_ADMIN}" = "${ds_home}/oracle_cman_home/network/admin" ]
+    [ "${TNS_ADMIN}" != "/some/other/path" ]
+}
+
+@test "datasafe plugin_set_environment sets DATASAFE_HOME" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_tns3"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Call plugin_set_environment (not via run)
+    plugin_set_environment "${ds_home}"
+    local exit_code=$?
+    
+    # Verify exit code
+    [ "$exit_code" -eq 0 ]
+    
+    # Verify DATASAFE_HOME is set to base path
+    [ "${DATASAFE_HOME}" = "${ds_home}" ]
+}
+
+@test "datasafe plugin_set_environment handles oracle_cman_home path correctly" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_tns4"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    # Call with oracle_cman_home path (should still work)
+    plugin_set_environment "${ds_home}/oracle_cman_home"
+    local exit_code=$?
+    
+    # Verify exit code
+    [ "$exit_code" -eq 0 ]
+    
+    # TNS_ADMIN should point to network/admin under oracle_cman_home
+    [[ "${TNS_ADMIN}" == *"/oracle_cman_home/network/admin" ]]
+}
+
+# ==============================================================================
+# plugin_get_port Tests
+# ==============================================================================
+
+@test "datasafe plugin_get_port extracts port from cman.ora" {
+    # Create mock DataSafe connector home with cman.ora
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port1"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with port configuration
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'EOF'
+cust_cman =
+  (configuration=
+    (address=(protocol=TCPS)(host=localhost)(port=1561))
+    (parameter_list=
+      (max_freelist_buffers=256)
+    )
+  )
+EOF
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    run plugin_get_port "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "1561" ]
+}
+
+@test "datasafe plugin_get_port extracts different port number" {
+    # Create mock DataSafe connector home with cman.ora
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port2"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with different port
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'EOF'
+cust_cman =
+  (configuration=
+    (address=(protocol=TCPS)(host=localhost)(port=1562))
+  )
+EOF
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    run plugin_get_port "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "1562" ]
+}
+
+@test "datasafe plugin_get_port returns 1 when cman.ora missing" {
+    # Create mock DataSafe connector home WITHOUT cman.ora
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port_missing"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    run plugin_get_port "${ds_home}"
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_get_port returns 1 when port not in cman.ora" {
+    # Create mock DataSafe connector home with cman.ora without port
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port_noport"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora without port
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'EOF'
+cust_cman =
+  (configuration=
+    (address=(protocol=TCPS)(host=localhost))
+  )
+EOF
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    run plugin_get_port "${ds_home}"
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin_get_port extracts first port when multiple addresses" {
+    # Create mock DataSafe connector home with multiple addresses
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port_multi"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with multiple addresses
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'EOF'
+cust_cman =
+  (configuration=
+    (address=(protocol=TCPS)(host=localhost)(port=1561))
+    (address=(protocol=TCP)(host=localhost)(port=1562))
+  )
+EOF
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    
+    run plugin_get_port "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "1561" ]
+}

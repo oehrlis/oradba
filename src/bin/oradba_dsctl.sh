@@ -256,6 +256,10 @@ start_connector() {
         cman_home="${home}/oracle_cman_home"
     fi
     
+    # Set TNS_ADMIN for this specific connector before any plugin operations
+    export TNS_ADMIN="${cman_home}/network/admin"
+    oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
+    
     local cmctl="${cman_home}/bin/cmctl"
     
     # Validate cmctl exists
@@ -350,6 +354,10 @@ stop_connector() {
     else
         cman_home="${home}/oracle_cman_home"
     fi
+    
+    # Set TNS_ADMIN for this specific connector before any plugin operations
+    export TNS_ADMIN="${cman_home}/network/admin"
+    oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
     
     local cmctl="${cman_home}/bin/cmctl"
     
@@ -467,6 +475,16 @@ show_status() {
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Checking status for connector '${name}'"
 
+    # Adjust to oracle_cman_home and set TNS_ADMIN for this specific connector
+    local cman_home
+    if type -t plugin_adjust_environment &>/dev/null; then
+        cman_home=$(plugin_adjust_environment "${home}")
+    else
+        cman_home="${home}/oracle_cman_home"
+    fi
+    export TNS_ADMIN="${cman_home}/network/admin"
+    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Set TNS_ADMIN=${TNS_ADMIN}"
+
     # Get connector status via exit code
     local status_exit_code
     if type -t plugin_check_status &>/dev/null; then
@@ -474,8 +492,6 @@ show_status() {
         status_exit_code=$?
     else
         # Fallback status check using cmctl
-        local cman_home
-        cman_home="${home}/oracle_cman_home"
         local cmctl="${cman_home}/bin/cmctl"
         
         if [[ ! -x "${cmctl}" ]]; then

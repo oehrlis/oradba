@@ -498,6 +498,77 @@ plugin_get_adjusted_paths() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_set_environment
+# Purpose.: Set DataSafe-specific environment variables (not part of standard interface)
+# Args....: $1 - Base path (will be adjusted to oracle_cman_home)
+# Returns.: 0 on success
+# Output..: None (modifies environment directly)
+# Notes...: DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
+#           This function sets connector-specific environment variables that must
+#           override any inherited values. Always call after setting ORACLE_HOME.
+# ------------------------------------------------------------------------------
+plugin_set_environment() {
+    local base_path="$1"
+    local cman_home
+    
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
+    # Always override any inherited TNS_ADMIN to ensure correct cman.ora is read
+    export TNS_ADMIN="${cman_home}/network/admin"
+    
+    if declare -f oradba_log >/dev/null 2>&1; then
+        oradba_log DEBUG "DataSafe plugin_set_environment: TNS_ADMIN=${TNS_ADMIN}"
+    fi
+    
+    # Set DATASAFE_HOME for compatibility (base path without oracle_cman_home)
+    export DATASAFE_HOME="${base_path}"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_port
+# Purpose.: Extract port number from cman.ora configuration
+# Args....: $1 - Base path
+# Returns.: 0 on success with port number, 1 if not found/applicable
+# Output..: Port number (e.g., "1561") or nothing
+# Notes...: Extracts port from cman.ora address configuration
+#           Format: (address=(protocol=TCPS)(host=localhost)(port=1562))
+# ------------------------------------------------------------------------------
+plugin_get_port() {
+    local base_path="$1"
+    local cman_home cman_conf
+    
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    cman_conf="${cman_home}/network/admin/cman.ora"
+    
+    if [[ ! -f "${cman_conf}" ]]; then
+        return 1
+    fi
+    
+    # Extract port from (address=(protocol=TCPS)(host=localhost)(port=1562))
+    # Use grep with Perl regex for extraction, or awk as fallback
+    local port
+    if command -v grep >/dev/null 2>&1; then
+        # Try Perl regex first
+        port=$(grep -oP '\(port=\K[0-9]+' "${cman_conf}" 2>/dev/null | head -1)
+        
+        # Fallback to basic regex if Perl regex not available
+        if [[ -z "${port}" ]]; then
+            port=$(grep -o 'port=[0-9]*' "${cman_conf}" 2>/dev/null | head -1 | cut -d= -f2)
+        fi
+    fi
+    
+    if [[ -n "${port}" ]]; then
+        echo "${port}"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
 if declare -f oradba_log >/dev/null 2>&1; then
