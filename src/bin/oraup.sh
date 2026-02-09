@@ -552,8 +552,36 @@ show_oracle_status_registry() {
                     oradba_log ERROR "oraup.sh: oradba_get_product_status function not available"
                 fi
                 
-                # Try to get port from configuration (future enhancement)
-                # For now, show n/a
+                # Get port from DataSafe configuration using plugin
+                if type -t plugin_get_port &>/dev/null; then
+                    # Adjust to oracle_cman_home if needed
+                    local cman_home="${home}"
+                    if type -t plugin_adjust_environment &>/dev/null; then
+                        cman_home=$(plugin_adjust_environment "${home}")
+                    elif [[ -d "${home}/oracle_cman_home" ]]; then
+                        cman_home="${home}/oracle_cman_home"
+                    fi
+                    
+                    # Set TNS_ADMIN before calling plugin_get_port
+                    local saved_tns_admin="${TNS_ADMIN:-}"
+                    export TNS_ADMIN="${cman_home}/network/admin"
+                    
+                    # Call plugin_get_port to retrieve actual port
+                    local port
+                    if port=$(plugin_get_port "${home}" 2>/dev/null) && [[ -n "${port}" ]]; then
+                        port_display="${port}"
+                        oradba_log DEBUG "oraup.sh: Got port ${port} for connector ${name}"
+                    else
+                        oradba_log DEBUG "oraup.sh: Could not retrieve port for connector ${name}"
+                    fi
+                    
+                    # Restore TNS_ADMIN
+                    if [[ -n "${saved_tns_admin}" ]]; then
+                        export TNS_ADMIN="${saved_tns_admin}"
+                    else
+                        unset TNS_ADMIN
+                    fi
+                fi
             fi
             
             printf "%-20s %-16s %-13s %s\n" "$name" "$port_display" "$status" "$home"
