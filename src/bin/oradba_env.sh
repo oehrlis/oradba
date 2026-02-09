@@ -124,8 +124,17 @@ cmd_list() {
             echo "=== Oracle Database SIDs (from oratab) ==="
             echo ""
             if [[ -f "$ORATAB_FILE" ]]; then
+                printf "%-20s %-16s %s\n" "SID" "FLAG" "ORACLE_HOME"
+                echo "--------------------------------------------------------------------------------"
                 oradba_parse_oratab | while IFS='|' read -r sid home flag; do
-                    printf "  %-15s %s\n" "$sid" "$home"
+                    # Translate flag to human-readable format
+                    local flag_display="$flag"
+                    case "$flag" in
+                        D) flag_display="DUMMY" ;;
+                        Y) flag_display="AUTO-START" ;;
+                        N) flag_display="MANUAL" ;;
+                    esac
+                    printf "%-20s %-16s %s\n" "$sid" "$flag_display" "$home"
                 done
             else
                 echo "  No oratab file found at: $ORATAB_FILE"
@@ -195,11 +204,11 @@ cmd_list() {
 # Purpose.: Show detailed information about SID or Home
 # ------------------------------------------------------------------------------
 cmd_show() {
-    local target="$1"
+    local target="${1:-${ORACLE_SID}}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
     
     if [[ -z "$target" ]]; then
-        echo "ERROR: No SID or Oracle Home specified" >&2
+        echo "ERROR: No SID or Oracle Home specified and ORACLE_SID not set" >&2
         return 1
     fi
     
@@ -485,13 +494,7 @@ cmd_status() {
     echo "SID:          $oracle_sid"
     echo "HOME:         $oracle_home"
     echo "Product Type: $product_type"
-    echo ""
-    
-    # Get status
-    local status
-    status=$(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")
-    
-    echo "Status:       $status"
+    echo "Status:       $(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")"
     
     # Check listener if RDBMS
     if [[ "$product_type" == "RDBMS" || "$product_type" == "GRID" ]]; then

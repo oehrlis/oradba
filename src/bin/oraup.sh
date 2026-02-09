@@ -283,16 +283,27 @@ show_oracle_status_registry() {
             ptype=$(oradba_registry_get_field "$home_obj" "type")
             flags=$(oradba_registry_get_field "$home_obj" "flags")
             
-            # Skip dummy entries (Issue #99)
-            if [[ "$flags" == "D" ]]; then
-                continue
-            fi
-            
             # Check if directory exists
             if [[ ! -d "$home" ]]; then
                 status="missing"
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
                 status="empty"
+            elif [[ "$flags" == "D" ]]; then
+                # Dummy entry - find the real SID it aliases
+                local real_sid=""
+                for db_obj in "${database_sids[@]}"; do
+                    local db_home
+                    db_home=$(oradba_registry_get_field "$db_obj" "home")
+                    if [[ "$db_home" == "$home" ]]; then
+                        real_sid=$(oradba_registry_get_field "$db_obj" "name")
+                        break
+                    fi
+                done
+                if [[ -n "$real_sid" ]]; then
+                    status="dummy (→$real_sid)"
+                else
+                    status="dummy"
+                fi
             else
                 status="available"
             fi

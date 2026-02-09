@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Improved
+
+- **Enhanced Dummy Entry Handling in Oracle Environment Tools**
+  - `oradba_env.sh list sids` now displays flag column showing entry type:
+    - `DUMMY` for alias entries (flag 'D' in oratab)
+    - `AUTO-START` for auto-starting databases (flag 'Y')
+    - `MANUAL` for manually-started databases (flag 'N')
+  - `oradba_env.sh show` now defaults to current `$ORACLE_SID` if no target specified
+  - `oradba_env.sh status` removed unnecessary blank line in output for cleaner display
+  - `oraup.sh` Oracle Homes section now clearly marks dummy entries:
+    - Shows `dummy (→REAL_SID)` to indicate alias relationship
+    - Dummy entries remain visible in Oracle Homes section for transparency
+    - Real database instances only shown in Database Instances section
+  - Improves clarity when using multiple aliases for the same Oracle Home
+
+### Added
+
 - **DBCA Templates for Automated Database Creation**
   - Added comprehensive DBCA response file templates for Oracle 19c and 26ai
   - Created `src/templates/dbca/` directory structure with templates for:

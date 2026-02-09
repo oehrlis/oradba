@@ -1232,8 +1232,9 @@ oradba_env.sh status dscontest        # Status of DataSafe connector (v1.2.0+)
 
 # Oracle environment information
 oradba_env.sh list                     # List all SIDs and Oracle Homes
-oradba_env.sh list sids               # List only database SIDs
+oradba_env.sh list sids               # List only database SIDs (with flags: DUMMY/AUTO-START/MANUAL)
 oradba_env.sh list homes              # List only Oracle Homes
+oradba_env.sh show                    # Show current SID details (defaults to $ORACLE_SID)
 oradba_env.sh show PRODDB             # Show database details
 oradba_env.sh show dscontest          # Show Oracle Home details (v1.2.0+)
 

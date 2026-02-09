@@ -435,26 +435,30 @@ The `oraup.sh` command shows complete environment information:
 oraup.sh
 
 # Shows:
-# ═══════════════════════════════════════════════════════════════
-# OraDBA Environment Status - v0.19.x
-# ═══════════════════════════════════════════════════════════════
-# Current Environment:
-#   ORACLE_SID: FREE
-#   Product Type: database
-#   Version: 23.4.0.24.05
-#   ORACLE_HOME: /u01/app/oracle/product/23ai/dbhomeFree
+# Oracle Environment Status
+# ==========================================================================================
 #
-# Database Status:
-#   Instance: OPEN (since 2026-01-15 10:23:45)
-#   Database: FREE (Container Database)
-#   Memory: SGA 2048M, PGA 512M
+# Oracle Homes
+# ------------------------------------------------------------------------------------------
+# NAME                 TYPE             STATUS        ORACLE_HOME
+# ------------------------------------------------------------------------------------------
+# dbhomeFree           database         available     /u01/app/oracle/product/23ai/dbhomeFree
+# rdbms26              database         dummy (→FREE) /u01/app/oracle/product/23ai/dbhomeFree
+# datasafe-conn1       datasafe         available     /u01/app/oracle/datasafe-conn1
+# ic23c                iclient          available     /usr/lib/oracle/23/client64
 #
-# Registered Installations:
-#   1. FREE (database) - /u01/app/oracle/product/23ai/dbhomeFree
-#   2. TESTDB (database) - /u01/app/oracle/product/19c/dbhome_1
-#   3. datasafe-conn1 (datasafe) - /u01/app/oracle/datasafe-conn1
-#   4. ic23c (iclient) - /usr/lib/oracle/23/client64
-# ═══════════════════════════════════════════════════════════════
+# Database Instances
+# ------------------------------------------------------------------------------------------
+# SID                  FLAG             STATUS        ORACLE_HOME
+# ------------------------------------------------------------------------------------------
+# FREE                 AUTO-START       open          /u01/app/oracle/product/23ai/dbhomeFree
+#
+# ------------------------------------------------------------------------------------------
+# NAME                 PORT (tcp/tcps)  STATUS        ORACLE_HOME
+# ------------------------------------------------------------------------------------------
+# LISTENER             1521             up            /u01/app/oracle/product/23ai/dbhomeFree
+#
+# ==========================================================================================
 ```
 
 ## Extension System
