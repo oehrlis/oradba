@@ -770,11 +770,28 @@ discover_homes() {
     fi
 
     local found_count=0
+    local -a validated_homes=()  # Track validated Oracle Homes to avoid subdirectory detection
 
     # Find directories that look like Oracle Homes
     while IFS= read -r -d '' dir; do
         # Skip if too deep or symbolic links
         [[ -L "$dir" ]] && continue
+        
+        # Skip if this is a subdirectory of an already-validated Oracle Home
+        if type -t is_subdirectory_of_oracle_home >/dev/null 2>&1; then
+            if is_subdirectory_of_oracle_home "$dir" "${validated_homes[@]}"; then
+                continue
+            fi
+        fi
+        
+        # Skip common bundled components
+        local dir_name
+        dir_name=$(basename "$dir")
+        if type -t is_bundled_component >/dev/null 2>&1; then
+            if is_bundled_component "$dir_name"; then
+                continue
+            fi
+        fi
 
         # Detect product type
         local ptype
@@ -782,12 +799,40 @@ discover_homes() {
 
         # Skip unknown types
         [[ "$ptype" == "unknown" ]] && continue
+        
+        # Validate using plugin system before counting as found
+        local plugin_file="${ORADBA_PREFIX}/lib/plugins/${ptype}_plugin.sh"
+        local is_valid_home=false
+        
+        if [[ -f "$plugin_file" ]]; then
+            # Source plugin and validate
+            # shellcheck source=/dev/null
+            source "$plugin_file" 2>/dev/null || true
+            
+            if declare -f plugin_validate_home >/dev/null 2>&1; then
+                if plugin_validate_home "$dir" 2>/dev/null; then
+                    is_valid_home=true
+                    # Add to validated homes list to exclude its subdirectories
+                    validated_homes+=("$dir")
+                else
+                    continue  # Validation failed
+                fi
+            else
+                # No validation function - accept based on detect_product_type
+                is_valid_home=true
+                validated_homes+=("$dir")
+            fi
+        else
+            # No plugin - accept based on detect_product_type (backward compatible)
+            is_valid_home=true
+            validated_homes+=("$dir")
+        fi
+        
+        [[ "$is_valid_home" == "false" ]] && continue
 
         ((found_count++))
 
         # Generate name from path and product type
-        local dir_name
-        dir_name=$(basename "$dir")
         local home_name
         home_name=$(generate_home_name "$dir_name" "$ptype")
 

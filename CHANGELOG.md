@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 
+- **Fixed False Positives in Oracle Home Discovery**
+  - Implemented plugin-based validation with parent directory exclusion
+  - Discovery now validates each path using `plugin_validate_home()` before accepting
+  - Automatically skips subdirectories of already-validated Oracle Homes
+  - Excludes common bundled components (jdk, jre, lib, inventory, OPatch, etc.)
+  - Prevents false detections like:
+    - `/opt/oracle/product/26ai/dbhomeFree/jdk` (bundled JDK)
+    - `/opt/oracle/product/26ai/dbhomeFree/lib` (Oracle libraries)
+  - Ensures only genuine standalone Oracle Homes are discovered
+  - Benefits both `oradba_homes.sh discover` and automatic discovery during initialization
+  - Added helper functions: `is_subdirectory_of_oracle_home()`, `is_bundled_component()`
+
 - **Enhanced Dummy Entry Handling in Oracle Environment Tools**
   - `oradba_env.sh list sids` now displays flag column showing entry type:
     - `DUMMY` for alias entries (flag 'D' in oratab)

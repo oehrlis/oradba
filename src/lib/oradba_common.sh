@@ -2505,6 +2505,64 @@ add_to_sqlpath() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: is_subdirectory_of_oracle_home
+# Purpose.: Check if path is a subdirectory of a valid Oracle Home
+# Args....: $1 - Path to check
+#           $2 - Array of already-validated Oracle Home paths (passed by reference)
+# Returns.: 0 if is subdirectory, 1 if not
+# Output..: None
+# Notes...: Used to avoid false positives in discovery (e.g., dbhomeFree/jdk)
+#           Checks if path is beneath any Oracle Home in the validated list
+# ------------------------------------------------------------------------------
+is_subdirectory_of_oracle_home() {
+    local check_path="$1"
+    shift
+    local -a validated_homes=("$@")
+    
+    # Check if this path is a subdirectory of any validated Oracle Home
+    for oracle_home in "${validated_homes[@]}"; do
+        # Compare canonical paths (resolve symlinks)
+        local canonical_home canonical_check
+        canonical_home=$(cd "${oracle_home}" 2>/dev/null && pwd -P) || continue
+        canonical_check=$(cd "${check_path}" 2>/dev/null && pwd -P) || continue
+        
+        # Check if check_path starts with oracle_home path
+        if [[ "${canonical_check}" == "${canonical_home}"/* ]]; then
+            return 0  # Is a subdirectory
+        fi
+    done
+    
+    return 1  # Not a subdirectory
+}
+
+# ------------------------------------------------------------------------------
+# Function: is_bundled_component
+# Purpose.: Check if directory is a common bundled component of Oracle Home
+# Args....: $1 - Directory basename
+# Returns.: 0 if bundled component, 1 if not
+# Output..: None
+# Notes...: Excludes common subdirectories found in Oracle Homes
+#           Examples: jdk, jre, lib, inventory, OPatch, etc.
+# ------------------------------------------------------------------------------
+is_bundled_component() {
+    local dir_name="$1"
+    
+    # Common bundled directories that should not be detected as separate homes
+    case "${dir_name}" in
+        jdk|jre|lib|lib64|inventory|OPatch|oraInst.loc|oui|\
+        network|rdbms|bin|sqlplus|sqldeveloper|odbc|jdbc|\
+        assistants|clone|ctx|cv|dbjava|demo|has|hs|install|\
+        md|nls|oc4j|olap|oml|oracore|oraolap|oui|owb|\
+        precomp|racg|slax|srvm|sysman|ucp|wwg|xdk)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
 # Function: auto_discover_oracle_homes
 # Purpose.: Auto-discover Oracle Homes and add to oradba_homes.conf
 # Args....: $1 - Discovery paths (optional, defaults to ORADBA_DISCOVERY_PATHS)
@@ -2514,7 +2572,8 @@ add_to_sqlpath() {
 # Notes...: Issue #70 - Unified auto-discovery function
 #           Used by both oraenv.sh initialization and oradba_homes.sh discover
 #           Silently skips already registered homes (no duplicates)
-#           Uses existing plugin system's detect_product_type()
+#           Uses plugin system's detect_product_type() and plugin_validate_home()
+#           Excludes subdirectories of validated Oracle Homes (fixes false positives)
 #           Generates home names using generate_home_name() logic
 #           Only adds homes if not already in oradba_homes.conf
 # ------------------------------------------------------------------------------
@@ -2524,6 +2583,7 @@ auto_discover_oracle_homes() {
     local found_count=0
     local added_count=0
     local skipped_count=0
+    local -a validated_homes=()  # Track validated Oracle Homes to avoid subdirectory detection
     
     # Check if ORACLE_BASE is set and use it as default discovery path
     if [[ -z "${discovery_paths}" ]]; then
@@ -2564,12 +2624,57 @@ auto_discover_oracle_homes() {
             # Skip symbolic links
             [[ -L "${dir}" ]] && continue
             
+            # Skip if this is a subdirectory of an already-validated Oracle Home
+            if is_subdirectory_of_oracle_home "${dir}" "${validated_homes[@]}"; then
+                [[ "${silent}" != "true" ]] && oradba_log DEBUG "Skipping subdirectory of Oracle Home: ${dir}"
+                continue
+            fi
+            
+            # Skip common bundled components
+            local dir_name
+            dir_name=$(basename "${dir}")
+            if is_bundled_component "${dir_name}"; then
+                [[ "${silent}" != "true" ]] && oradba_log DEBUG "Skipping bundled component: ${dir}"
+                continue
+            fi
+            
             # Detect product type using common function
             local ptype
             ptype=$(detect_product_type "${dir}")
             
             # Skip unknown types
             [[ "${ptype}" == "unknown" ]] && continue
+            
+            # Validate using plugin system before counting as found
+            local plugin_file="${ORADBA_BASE}/lib/plugins/${ptype}_plugin.sh"
+            local is_valid_home=false
+            
+            if [[ -f "${plugin_file}" ]]; then
+                # Source plugin and validate
+                # shellcheck source=/dev/null
+                source "${plugin_file}" 2>/dev/null || true
+                
+                if declare -f plugin_validate_home >/dev/null 2>&1; then
+                    if plugin_validate_home "${dir}" 2>/dev/null; then
+                        is_valid_home=true
+                        # Add to validated homes list to exclude its subdirectories
+                        validated_homes+=("${dir}")
+                    else
+                        [[ "${silent}" != "true" ]] && oradba_log DEBUG "Plugin validation failed: ${dir} (${ptype})"
+                        continue
+                    fi
+                else
+                    # No validation function - accept based on detect_product_type
+                    is_valid_home=true
+                    validated_homes+=("${dir}")
+                fi
+            else
+                # No plugin - accept based on detect_product_type (backward compatible)
+                is_valid_home=true
+                validated_homes+=("${dir}")
+            fi
+            
+            [[ "${is_valid_home}" == "false" ]] && continue
             
             ((found_count++))
             
