@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.2] - 2026-02-09
+
+### Fixed
+
+- **Data Safe TNS_ADMIN Isolation**
+  - `oraenv.sh` now enforces connector-specific `TNS_ADMIN` via Data Safe plugin
+  - `oradba_dsctl.sh` sets per-connector `TNS_ADMIN` before cmctl operations
+  - Prevents connectors from sharing `cman.ora` across environments
+
+### Added
+
+- **Data Safe Plugin Environment Helper**
+  - Added `plugin_set_environment()` to enforce connector-specific variables
+- **Data Safe Plugin Tests**
+  - Added coverage for `TNS_ADMIN` handling and connector isolation
+
+### Changed
+
+- **User Documentation**
+  - Documented Data Safe connector-specific `TNS_ADMIN` behavior
+
 ## [0.20.1] - 2026-02-09
 
 ### Fixed

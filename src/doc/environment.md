@@ -300,6 +300,10 @@ The output includes:
 - `TNS_ADMIN` (resolved from connector paths)
 - `JAVA_HOME` (resolved Java runtime if configured)
 
+Data Safe connectors **always** use a connector-specific `TNS_ADMIN` so each
+connector reads its own `cman.ora`. This is enforced by `oraenv.sh` and
+`oradba_dsctl.sh` to avoid cross-connector configuration leakage.
+
 ### Case-Insensitive Matching
 
 Installation names are case-insensitive:
