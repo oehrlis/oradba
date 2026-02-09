@@ -3026,6 +3026,8 @@ execute_plugin_function_v2() {
             # Set minimal Oracle environment from current context
             export ORACLE_HOME="${ORACLE_HOME:-}"
             export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+            # Unset plugin_status to prevent leakage from parent environment
+            unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
             source "${plugin_file}" || exit 1
@@ -3049,6 +3051,8 @@ execute_plugin_function_v2() {
                 LD_LIBRARY_PATH="${oracle_home}/lib"
                 export LD_LIBRARY_PATH
             fi
+            # Unset plugin_status to prevent leakage from parent environment
+            unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
             source "${plugin_file}" || exit 1

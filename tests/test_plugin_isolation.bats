@@ -357,3 +357,73 @@ EOF
     result2=$(execute_plugin_function_v2 "state" "check_state" "/fake/home")
     [[ "${result2}" == "state=initial" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Test 14: plugin_status isolation - exported status doesn't leak between plugins
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status doesn't leak between plugins" {
+    # Create experimental plugin that exports plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/experimental_plugin.sh" <<'EOF'
+export plugin_name="experimental"
+export plugin_version="1.0.0"
+export plugin_status="EXPERIMENTAL"
+
+plugin_test_func() {
+    echo "experimental_output"
+    return 0
+}
+EOF
+
+    # Create normal plugin that doesn't set plugin_status
+    cat > "${ORADBA_BASE}/src/lib/plugins/normal_plugin.sh" <<'EOF'
+export plugin_name="normal"
+export plugin_version="1.0.0"
+
+plugin_test_func() {
+    # Should execute successfully without being skipped
+    echo "normal_output"
+    return 0
+}
+EOF
+
+    # Simulate the bug: export plugin_status in parent environment
+    # (as if an experimental plugin was sourced earlier)
+    export plugin_status="EXPERIMENTAL"
+    
+    # Now call the normal plugin (should NOT be skipped)
+    # Without the fix, this would fail because plugin_status leaks into subshell
+    run execute_plugin_function_v2 "normal" "test_func" "/fake/home"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "normal_output" ]]
+    
+    # Cleanup
+    unset plugin_status
+}
+
+# ------------------------------------------------------------------------------
+# Test 15: plugin_status isolation for NOARGS functions
+# ------------------------------------------------------------------------------
+@test "execute_plugin_function_v2: plugin_status doesn't leak for NOARGS functions" {
+    # Create normal plugin with NOARGS function
+    cat > "${ORADBA_BASE}/src/lib/plugins/norm_noargs_plugin.sh" <<'EOF'
+export plugin_name="norm_noargs"
+export plugin_version="1.0.0"
+
+plugin_get_config() {
+    echo "CONFIG_SECTION=NORMAL"
+    return 0
+}
+EOF
+
+    # Simulate the bug: export plugin_status in parent environment
+    export plugin_status="EXPERIMENTAL"
+    
+    # Call normal plugin (should execute successfully)
+    # Without the fix, this would fail because plugin_status leaks into subshell
+    run execute_plugin_function_v2 "norm_noargs" "get_config" "NOARGS"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == "CONFIG_SECTION=NORMAL" ]]
+    
+    # Cleanup
+    unset plugin_status
+}
