@@ -1,11 +1,11 @@
 # ------------------------------------------------------------------------------
-# OraDBA Test Mapping Configuration (v0.19.0)
+# OraDBA Test Mapping Configuration (v0.20.0)
 # ------------------------------------------------------------------------------
 # Defines which test files should run when specific source files change.
 # Used by scripts/select_tests.sh for smart test selection.
 #
 # Architecture: Registry API + Plugin System + Environment Builder
-# Test Coverage: 1077 tests across 37 test files
+# Test Coverage: 1086 tests across 47 test files
 # ------------------------------------------------------------------------------
 
 # Tests that always run regardless of changes (core functionality)
@@ -14,6 +14,8 @@ always_run:
   - test_oradba_version.bats
   - test_oraenv.bats
   - test_registry.bats
+  - test_plugin_interface.bats
+  - test_plugin_return_values.bats
 
 # Mapping: source file/pattern -> test files
 # When a source file changes, run the associated tests
@@ -94,15 +96,23 @@ mappings:
     - test_oracle_homes.bats
     - test_registry.bats
   
+  src/bin/oradba_dbca.sh:
+    - test_oradba_dbca.bats
+  
+  src/bin/oradba_dsctl.sh:
+    - test_oradba_dsctl.bats
+  
   # Environment Management Libraries (v0.19.0 architecture)
   src/lib/oradba_env_parser.sh:
     - test_oradba_env_parser.bats
+    - test_oradba_env_parser_unit.bats
     - test_registry.bats
     - test_oracle_homes.bats
   
   src/lib/oradba_env_builder.sh:
     - test_client_path_config.bats
     - test_oradba_env_status.bats
+    - test_oradba_env_builder_unit.bats
   
   src/lib/oradba_env_config.sh:
     - test_oradba_env_config.bats
@@ -111,6 +121,7 @@ mappings:
   src/lib/oradba_env_validator.sh:
     - test_oradba_check.bats
     - test_oracle_homes.bats
+    - test_oradba_env_validator_unit.bats
   
   src/lib/oradba_env_status.sh:
     - test_oradba_env_status.bats
@@ -121,6 +132,9 @@ mappings:
   # Plugin system (9 plugins) - affects status checks and environment building
   src/lib/plugins/plugin_interface.sh:
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_database_plugin.bats
     - test_client_plugin.bats
     - test_iclient_plugin.bats
@@ -132,33 +146,52 @@ mappings:
   src/lib/plugins/database_plugin.sh:
     - test_database_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/datasafe_plugin.sh:
     - test_datasafe_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/client_plugin.sh:
     - test_client_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_client_path_config.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/iclient_plugin.sh:
     - test_iclient_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_client_path_config.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/oud_plugin.sh:
     - test_oud_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/java_plugin.sh:
     - test_java_plugin.bats
     - test_plugin_interface.bats
+    - test_plugin_isolation.bats
+    - test_plugin_return_values.bats
+    - test_plugin_return_values_real.bats
+    - test_java_path_config.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/weblogic_plugin.sh:
