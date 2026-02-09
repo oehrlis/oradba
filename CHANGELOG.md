@@ -17,7 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Major Highlights
 
-This major release consolidates three enhancement phases (v0.19.11, v0.19.12, and critical bug fixes) into a stable production release with comprehensive plugin system improvements, Oracle Home discovery enhancements, and improved environment management.
+This major release consolidates three enhancement phases (v0.19.11, v0.19.12, and
+critical bug fixes) into a stable production release with comprehensive plugin
+system improvements, Oracle Home discovery enhancements, and improved environment
+management.
 
 ### Fixed
 
@@ -30,7 +33,14 @@ This major release consolidates three enhancement phases (v0.19.11, v0.19.12, an
   - DataSafe connector status now correctly returns "stopped" instead of "unknown"
   - Improved error handling when plugins are unavailable or return unexpected exit codes
   - Added comprehensive debug logging to trace plugin system execution flow
-
+- **Phase 2.4: Stub plugin sentinel strings removed** (Issue #141)
+  - Fixed `plugin_check_status()` in weblogic_plugin.sh, emagent_plugin.sh, and oms_plugin.sh
+  - Changed from outputting "N/A" with exit 0 to "unavailable" with exit 2
+  - All plugins now comply with return value standards (0=running, 1=stopped, 2=unavailable)
+  - Completes Phase 2 (Return Value Standardization) - all sentinel strings eliminated
+  - Comprehensive audit of all 9 plugins across 13+ core functions confirmed compliance
+  - See `.github/.scratch/phase-2-4-audit-report.md` for detailed audit findings
+  
 ### Improved
 
 - **Fixed False Positives in Oracle Home Discovery**
@@ -164,16 +174,6 @@ This major release consolidates three enhancement phases (v0.19.11, v0.19.12, an
   - Updated: copilot-instructions.md, README.md, architecture.md, development.md, plugin-development.md,
     plugin-standards.md, function-header-guide.md
   - All mermaid diagrams verified to match actual code implementation
-
-### Fixed
-
-- **Phase 2.4: Stub plugin sentinel strings removed** (Issue #141)
-  - Fixed `plugin_check_status()` in weblogic_plugin.sh, emagent_plugin.sh, and oms_plugin.sh
-  - Changed from outputting "N/A" with exit 0 to "unavailable" with exit 2
-  - All plugins now comply with return value standards (0=running, 1=stopped, 2=unavailable)
-  - Completes Phase 2 (Return Value Standardization) - all sentinel strings eliminated
-  - Comprehensive audit of all 9 plugins across 13+ core functions confirmed compliance
-  - See `.github/.scratch/phase-2-4-audit-report.md` for detailed audit findings
 
 ### Removed
 

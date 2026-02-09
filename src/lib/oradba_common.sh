@@ -2552,7 +2552,7 @@ is_bundled_component() {
         jdk|jre|lib|lib64|inventory|OPatch|oraInst.loc|oui|\
         network|rdbms|bin|sqlplus|sqldeveloper|odbc|jdbc|\
         assistants|clone|ctx|cv|dbjava|demo|has|hs|install|\
-        md|nls|oc4j|olap|oml|oracore|oraolap|oui|owb|\
+        md|nls|oc4j|olap|oml|oracore|oraolap|owb|\
         precomp|racg|slax|srvm|sysman|ucp|wwg|xdk)
             return 0
             ;;
