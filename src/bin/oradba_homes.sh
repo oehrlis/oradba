@@ -723,6 +723,7 @@ discover_homes() {
     local base_dir="${ORACLE_BASE:-}"
     local auto_add=false
     local dry_run=false
+    local silent=false
 
     # Parse options
     while [[ $# -gt 0 ]]; do
@@ -737,6 +738,10 @@ discover_homes() {
                 ;;
             --dry-run)
                 dry_run=true
+                shift
+                ;;
+            --silent)
+                silent=true
                 shift
                 ;;
             *)
@@ -766,7 +771,12 @@ discover_homes() {
     # If auto-add is enabled, just call the common function
     if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
         # Use common auto_discover_oracle_homes() function
-        auto_discover_oracle_homes "${base_dir}/product"
+        # Pass silent mode to suppress verbose output
+        if [[ "$silent" == "true" ]]; then
+            auto_discover_oracle_homes "${base_dir}/product" "true"
+        else
+            auto_discover_oracle_homes "${base_dir}/product"
+        fi
         return $?
     fi
     

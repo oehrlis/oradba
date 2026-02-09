@@ -321,10 +321,31 @@ _oraenv_gather_available_entries() {
         
         # Try auto-discovery for Oracle Homes (Issue #70)
         if [[ "${ORADBA_AUTO_DISCOVER_HOMES:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
-            oradba_log INFO "Auto-discovering Oracle Homes..."
+            oradba_log INFO "Auto-discovering Oracle Homes from oratab..."
             auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
             
             # Refresh homes list after discovery
+            homes_ref=()
+            if command -v oradba_registry_get_all &> /dev/null; then
+                local all_entries
+                all_entries=$(oradba_registry_get_all 2>/dev/null)
+                if [[ -n "${all_entries}" ]]; then
+                    while IFS='|' read -r ptype name home version flags order alias desc; do
+                        [[ "${ptype}" == "database" ]] && continue  # Skip database types
+                        homes_ref+=("${name}")
+                    done <<< "${all_entries}"
+                fi
+            fi
+        fi
+        
+        # Try full product discovery (all Oracle products) (Issue #0)
+        if [[ "${ORADBA_FULL_DISCOVERY:-false}" == "true" ]] && [[ -x "${ORADBA_BASE}/bin/oradba_homes.sh" ]]; then
+            oradba_log INFO "Running full product discovery (all Oracle products)..."
+            "${ORADBA_BASE}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
+                oradba_log INFO "  $line"
+            done
+            
+            # Refresh homes list after full discovery
             homes_ref=()
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries

@@ -351,7 +351,8 @@ Other Options:
   --force                 Force update even if same version
   --update-profile        Update shell profile for automatic environment loading
   --no-update-profile     Don't update shell profile (default: prompt user)
-  --enable-auto-discover  Enable auto-discovery of Oracle Homes on login
+  --enable-auto-discover  Enable auto-discovery of database homes from oratab on login
+  --enable-full-discovery Enable full product discovery (all Oracle products) on login
   --debug                 Enable debug logging (shows detailed operation steps)
   -h, --help              Display this help message
   -v, --show-version      Display installer version information
@@ -393,8 +394,11 @@ Examples:
   # Install as different user
   sudo $0 --prefix /opt/oradba --user oracle
   
-  # Install with auto-discovery enabled
+  # Install with oratab auto-discovery enabled
   $0 --user-level --update-profile --enable-auto-discover
+  
+  # Install with full product discovery enabled
+  $0 --user-level --update-profile --enable-full-discovery
 
 Pre-Oracle Installation:
   When installing before Oracle, use --user-level, --prefix, or --base to
@@ -737,6 +741,7 @@ profile_has_oradba() {
 #           Adds oraenv.sh sourcing and oraup.sh status display
 #           Respects UPDATE_PROFILE variable (yes/no/auto)
 #           Exports ORADBA_AUTO_DISCOVER_HOMES=true if ENABLE_AUTO_DISCOVER is set
+#           Exports ORADBA_FULL_DISCOVERY=true if ENABLE_FULL_DISCOVERY is set
 # ------------------------------------------------------------------------------
 update_profile() {
     local install_prefix="$1"
@@ -789,6 +794,10 @@ update_profile() {
             echo "  export ORADBA_AUTO_DISCOVER_HOMES=\"true\""
             echo ""
         fi
+        if [[ "$ENABLE_FULL_DISCOVERY" == "true" ]]; then
+            echo "  export ORADBA_FULL_DISCOVERY=\"true\""
+            echo ""
+        fi
         echo "  if [ -f \"${install_prefix}/bin/oraenv.sh\" ]; then"
         echo "      # Load first Oracle SID from oratab (silent mode)"
         echo "      source \"${install_prefix}/bin/oraenv.sh\" --silent"
@@ -824,6 +833,14 @@ EOF
     if [[ "$ENABLE_AUTO_DISCOVER" == "true" ]]; then
         cat >> "$profile_file" << 'EOF'
 export ORADBA_AUTO_DISCOVER_HOMES="true"
+
+EOF
+    fi
+
+    # Add full discovery export if enabled
+    if [[ "$ENABLE_FULL_DISCOVERY" == "true" ]]; then
+        cat >> "$profile_file" << 'EOF'
+export ORADBA_FULL_DISCOVERY="true"
 
 EOF
     fi
@@ -930,7 +947,8 @@ DUMMY_ORACLE_HOME="" # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto" # auto, yes, no
-ENABLE_AUTO_DISCOVER=false # Flag for --enable-auto-discover
+ENABLE_AUTO_DISCOVER=false # Flag for --enable-auto-discover (oratab only)
+ENABLE_FULL_DISCOVERY=false # Flag for --enable-full-discovery (all products)
 SILENT_MODE=false
 
 while [[ $# -gt 0 ]]; do
@@ -987,6 +1005,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --enable-auto-discover)
             ENABLE_AUTO_DISCOVER=true
+            shift
+            ;;
+        --enable-full-discovery)
+            ENABLE_FULL_DISCOVERY=true
             shift
             ;;
         --silent)

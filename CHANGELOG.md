@@ -9,7 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Full Product Discovery Option** (New Feature)
+  - Added `--enable-full-discovery` installer option for comprehensive product discovery
+  - Discovers all Oracle products (database, datasafe, java, iclient, oud) on first login
+  - Complements existing `--enable-auto-discover` (oratab integration only)
+  - Exports `ORADBA_FULL_DISCOVERY=true` to trigger discovery on login
+  - Added `--silent` flag to `oradba_homes.sh discover` for quiet operation
+
 ### Changed
+
+- **Clarified Auto-Discovery Terminology**
+  - Updated `--enable-auto-discover` help text to specify "database homes from oratab"
+  - Distinguishes between oratab integration (databases only) and full discovery (all products)
+  - Updated installer examples to show both options
+  - More accurate documentation for discovery behavior
 
 ### Fixed
 
