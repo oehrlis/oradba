@@ -351,7 +351,7 @@ show_oracle_home_status() {
         printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
         printf "%-14s : %s\n" "STATUS" "${status}"
         printf "%-14s : %s\n" "SERVICE" "${meta_service}"
-        printf "%-14s : %s\n" "PORT" "${meta_port}"
+        printf "%-14s : %s\n" "CMAN_PORT" "${meta_port}"
         echo "-------------------------------------------------------------------------------"
         printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
         echo "-------------------------------------------------------------------------------"
