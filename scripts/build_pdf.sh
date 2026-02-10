@@ -26,7 +26,7 @@ readonly DOCS_DIR="${PROJECT_ROOT}/src/doc"
 readonly DIST_DIR="${PROJECT_ROOT}/dist"
 readonly OUTPUT_PDF="${DIST_DIR}/oradba-user-guide.pdf"
 readonly DOC_METADATA="${PROJECT_ROOT}/doc/metadata.yml"
-readonly PANDOC_IMAGE="oehrlis/pandoc:latest"
+readonly PANDOC_IMAGE="${PANDOC_IMAGE:-oehrlis/pandoc:latest}"
 readonly TMP_DOCS_DIR="${DIST_DIR}/.tmp_docs"
 readonly MKDOCS_CONFIG="${PROJECT_ROOT}/mkdocs.yml"
 
