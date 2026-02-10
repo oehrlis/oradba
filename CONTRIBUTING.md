@@ -269,7 +269,7 @@ OraDBA has two complementary test frameworks:
 
 ```bash
 make test        # Smart selection (fast, ~1-3 min)
-make test-full   # All 1452 tests (~10 min)
+make test-full   # All 1516 tests (~10 min)
 bats tests/test_file.bats  # Specific file
 ```
 

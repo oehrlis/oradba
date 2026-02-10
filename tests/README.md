@@ -22,7 +22,7 @@ OraDBA has comprehensive test coverage with two complementary test frameworks:
 # Smart test selection (runs only affected tests, ~1-3 min)
 make test
 
-# Full test suite (all 1452 tests, ~10 min)
+# Full test suite (all 1516 tests, ~10 min)
 make test-full
 
 # Specific test file

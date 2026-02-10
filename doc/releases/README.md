@@ -6,7 +6,7 @@ This directory contains release notes for OraDBA versions.
 ### v0.19.0 - Plugin Architecture Release (2026-01-19)
 
 - [v0.19.0](v0.19.0.md) - **Latest**: Plugin architecture adoption with v1.0.0 plugins,
-  complete function documentation (437 functions), comprehensive testing (1452 tests across 65 test files),
+  complete function documentation (437 functions), comprehensive testing (1516 tests across 65 test files),
   and code cleanup
 
 ## Archived Releases
