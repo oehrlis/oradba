@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- N/A
+
+### Fixed
+
+- N/A
+
+## [0.20.5] - 2026-02-10
+
+### Added
+
 - **Performance: Parallel Status Checks & Batch Process Detection**
   - Implemented parallel status checks for DataSafe connectors (background jobs with result collection)
   - Added batch process detection: single `ps -ef` call at start, reused for all checks
