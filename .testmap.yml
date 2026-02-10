@@ -262,9 +262,6 @@ mappings:
     - test_oradba_homes.bats
     - test_registry.bats
   
-  src/etc/oradba_services.conf:
-    - test_service_management.bats
-  
   src/etc/sid.ORCL.conf.example:
     - test_sid_config.bats
     - manual/test_sid_variable_isolation.sh
