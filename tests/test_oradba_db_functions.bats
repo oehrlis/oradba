@@ -209,9 +209,24 @@ setup() {
 
 # Test: show_oracle_home_status preserves running status for datasafe
 @test "show_oracle_home_status shows running status for datasafe" {
-    # This test verifies the fix - status should be preserved, not mapped to "open"
-    # We check that the case statement in show_oracle_home_status doesn't map "running" to "open"
-    grep -A 5 'case "${status}"' "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh" | grep -q 'running)'
-    # Verify it sets status="running" not status="open"
-    grep -A 6 'case "${status}"' "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh" | grep -A 1 'running)' | grep -q 'status="running"'
+    # Create a temporary mock to return 'running'
+    oradba_get_product_status() {
+        echo "running"
+        return 0
+    }
+    export -f oradba_get_product_status
+    
+    export ORADBA_CURRENT_HOME_TYPE="datasafe"
+    export ORACLE_HOME="/test/oracle_cman_home"
+    export DATASAFE_HOME="/test"
+    
+    # Call show_oracle_home_status and verify it outputs 'running', not 'open'
+    run show_oracle_home_status
+    [ "$status" -eq 0 ]
+    # Should contain "STATUS" line with "running" value
+    echo "$output" | grep -E "^STATUS[[:space:]]+:" | grep -q "running"
+    # Should NOT contain "open" (which was the bug)
+    ! echo "$output" | grep -E "^STATUS[[:space:]]+:" | grep -q "open"
+    
+    unset -f oradba_get_product_status
 }
