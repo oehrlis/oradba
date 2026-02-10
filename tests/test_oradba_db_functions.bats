@@ -181,3 +181,52 @@ setup() {
     # Check that the function uses printf for formatting
     grep -q "printf" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }
+
+# Test: oradba_env_status.sh is sourced for product status functions
+@test "oradba_db_functions.sh sources oradba_env_status.sh" {
+    # Verify that oradba_get_product_status function is available
+    type -t oradba_get_product_status | grep -q "function"
+}
+
+# Test: show_oracle_home_status exists and can be called
+@test "show_oracle_home_status function is defined" {
+    type -t show_oracle_home_status | grep -q "function"
+}
+
+# Test: show_oracle_home_status handles datasafe product type
+@test "show_oracle_home_status handles datasafe product type" {
+    export ORADBA_CURRENT_HOME_TYPE="datasafe"
+    export ORACLE_HOME="/test/oracle_cman_home"
+    export DATASAFE_HOME="/test"
+    
+    run show_oracle_home_status
+    [ "$status" -eq 0 ]
+    # Should contain datasafe-specific fields
+    [[ "$output" =~ "DATASAFE_HOME" ]]
+    [[ "$output" =~ "SERVICE" ]]
+    [[ "$output" =~ "CMAN_PORT" ]]
+}
+
+# Test: show_oracle_home_status preserves running status for datasafe
+@test "show_oracle_home_status shows running status for datasafe" {
+    # Create a temporary mock to return 'running'
+    oradba_get_product_status() {
+        echo "running"
+        return 0
+    }
+    export -f oradba_get_product_status
+    
+    export ORADBA_CURRENT_HOME_TYPE="datasafe"
+    export ORACLE_HOME="/test/oracle_cman_home"
+    export DATASAFE_HOME="/test"
+    
+    # Call show_oracle_home_status and verify it outputs 'running', not 'open'
+    run show_oracle_home_status
+    [ "$status" -eq 0 ]
+    # Should contain "STATUS" line with "running" value
+    echo "$output" | grep -E "^STATUS[[:space:]]+:" | grep -q "running"
+    # Should NOT contain "open" (which was the bug)
+    ! echo "$output" | grep -E "^STATUS[[:space:]]+:" | grep -q "open"
+    
+    unset -f oradba_get_product_status
+}

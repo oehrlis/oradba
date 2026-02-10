@@ -22,6 +22,22 @@ if ! command -v oradba_log &> /dev/null; then
     return 1
 fi
 
+# Source oradba_env_status.sh for product status functions
+if ! command -v oradba_get_product_status &> /dev/null; then
+    # Try ORADBA_BASE first, then ORADBA_SRC_BASE (for tests)
+    _oradba_db_base_dir="${ORADBA_BASE:-${ORADBA_SRC_BASE:-}}"
+    if [[ -z "${_oradba_db_base_dir}" ]]; then
+        # Fallback: calculate from script location
+        _oradba_db_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        _oradba_db_base_dir="$(cd "${_oradba_db_script_dir}/.." && pwd)"
+    fi
+    if [[ -f "${_oradba_db_base_dir}/lib/oradba_env_status.sh" ]]; then
+        # shellcheck source=oradba_env_status.sh
+        source "${_oradba_db_base_dir}/lib/oradba_env_status.sh"
+    fi
+    unset _oradba_db_base_dir _oradba_db_script_dir
+fi
+
 # ------------------------------------------------------------------------------
 # Function: check_database_connection
 # Purpose.: Check if database is accessible and return connection status
@@ -321,7 +337,7 @@ show_oracle_home_status() {
 
         case "${status}" in
             running)
-                status="open"
+                status="running"
                 ;;
             stopped)
                 status="stopped"
