@@ -139,6 +139,7 @@ if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
 
     if [[ -t 2 ]] && [[ "${ORADBA_NO_COLOR:-0}" != "1" ]]; then
         # Colors enabled for TTY stderr
+        readonly LOG_COLOR_TRACE="\033[0;35m"   # Magenta
         readonly LOG_COLOR_DEBUG="\033[0;36m"   # Cyan
         readonly LOG_COLOR_INFO="\033[0;34m"    # Blue
         readonly LOG_COLOR_WARN="\033[0;33m"    # Yellow
@@ -149,6 +150,7 @@ if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
         readonly LOG_COLOR_RESET="\033[0m"      # Reset
     else
         # No colors for non-TTY or when disabled
+        readonly LOG_COLOR_TRACE=""
         readonly LOG_COLOR_DEBUG=""
         readonly LOG_COLOR_INFO=""
         readonly LOG_COLOR_WARN=""
@@ -165,7 +167,7 @@ fi # End of readonly variables guard
 # ------------------------------------------------------------------------------
 # Function: oradba_log
 # Purpose.: Modern unified logging function with level filtering and color support
-# Args....: $1 - Log level (DEBUG|INFO|WARN|ERROR|SUCCESS|FAILURE|SECTION)
+# Args....: $1 - Log level (TRACE|DEBUG|INFO|WARN|ERROR|SUCCESS|FAILURE|SECTION)
 #           $@ - Log message (remaining arguments)
 # Returns.: 0 - Always successful
 # Output..: Formatted log message to stderr (and optional log files)
@@ -173,6 +175,7 @@ fi # End of readonly variables guard
 #           Supports color output (disable with ORADBA_NO_COLOR=1)
 #           Dual logging to ORADBA_LOG_FILE and ORADBA_SESSION_LOG
 #           Legacy DEBUG=1 support for backward compatibility
+#           TRACE level is finer than DEBUG for very detailed diagnostics
 #           Replaces deprecated log_info/log_warn/log_error/log_debug functions
 # ------------------------------------------------------------------------------
 oradba_log() {
@@ -184,7 +187,12 @@ oradba_log() {
     local min_level="${ORADBA_LOG_LEVEL:-INFO}"
 
     # Legacy DEBUG=1 support - if DEBUG is set, enable DEBUG level
-    if [[ "${DEBUG:-0}" == "1" ]] && [[ "${min_level}" != "DEBUG" ]]; then
+    if [[ "${DEBUG:-0}" == "1" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
+        min_level="DEBUG"
+    fi
+    
+    # ORADBA_PLUGIN_DEBUG support - enable DEBUG level for plugin diagnostics
+    if [[ "${ORADBA_PLUGIN_DEBUG:-false}" == "true" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
         min_level="DEBUG"
     fi
 
@@ -193,6 +201,7 @@ oradba_log() {
     local min_level_value=0
 
     case "${level^^}" in
+        TRACE) level_value=-1 ;;
         DEBUG) level_value=0 ;;
         INFO) level_value=1 ;;
         WARN) level_value=2 ;;
@@ -204,6 +213,7 @@ oradba_log() {
     esac
 
     case "${min_level^^}" in
+        TRACE) min_level_value=-1 ;;
         DEBUG) min_level_value=0 ;;
         INFO) min_level_value=1 ;;
         WARN) min_level_value=2 ;;
@@ -216,6 +226,7 @@ oradba_log() {
         # Select color based on level
         local color=""
         case "${level^^}" in
+            TRACE) color="${LOG_COLOR_TRACE}" ;;
             DEBUG) color="${LOG_COLOR_DEBUG}" ;;
             INFO) color="${LOG_COLOR_INFO}" ;;
             WARN) color="${LOG_COLOR_WARN}" ;;
@@ -2980,6 +2991,74 @@ oradba_apply_oracle_plugin() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: is_plugin_debug_enabled
+# Purpose.: Check if plugin debug mode is enabled
+# Args....: None
+# Returns.: 0 if plugin debug enabled, 1 otherwise
+# Output..: None
+# Notes...: Plugin debug enabled when ORADBA_PLUGIN_DEBUG=true OR ORADBA_LOG_LEVEL=DEBUG/TRACE
+# ------------------------------------------------------------------------------
+is_plugin_debug_enabled() {
+    # Check if ORADBA_PLUGIN_DEBUG is explicitly set to true
+    if [[ "${ORADBA_PLUGIN_DEBUG:-false}" == "true" ]]; then
+        return 0
+    fi
+    
+    # Check if ORADBA_LOG_LEVEL is DEBUG or TRACE
+    local log_level="${ORADBA_LOG_LEVEL:-INFO}"
+    if [[ "${log_level^^}" == "DEBUG" ]] || [[ "${log_level^^}" == "TRACE" ]]; then
+        return 0
+    fi
+    
+    # Legacy DEBUG=1 support
+    if [[ "${DEBUG:-0}" == "1" ]]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: is_plugin_trace_enabled
+# Purpose.: Check if plugin trace mode is enabled (more verbose than debug)
+# Args....: None
+# Returns.: 0 if plugin trace enabled, 1 otherwise
+# Output..: None
+# Notes...: Plugin trace enabled only when ORADBA_LOG_LEVEL=TRACE
+# ------------------------------------------------------------------------------
+is_plugin_trace_enabled() {
+    local log_level="${ORADBA_LOG_LEVEL:-INFO}"
+    if [[ "${log_level^^}" == "TRACE" ]]; then
+        return 0
+    fi
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: sanitize_sensitive_data
+# Purpose.: Sanitize sensitive data from log output (passwords, connection strings)
+# Args....: $1 - Text to sanitize
+# Returns.: 0 - Always successful
+# Output..: Sanitized text to stdout
+# Notes...: Masks passwords in common formats (sqlplus, rman, connection strings)
+#           Pattern examples:
+#             - sqlplus user/pass@db -> sqlplus user/***@db
+#             - rman target user/pass -> rman target user/***
+#             - PASSWORD=secret -> PASSWORD=***
+#             - pwd=secret -> pwd=***
+# ------------------------------------------------------------------------------
+sanitize_sensitive_data() {
+    local text="$1"
+    
+    # Apply all sanitization patterns in a single sed command for efficiency
+    echo "$text" | sed -E \
+        -e 's/(PASSWORD|PWD|PASSWD)="[^"]*"/\1="***"/g' \
+        -e "s/(PASSWORD|PWD|PASSWD)='[^']*'/\1='***'/g" \
+        -e 's|([^[:space:]]+)/[^@[:space:]]+(@[^[:space:]]*)?|\1/***\2|g' \
+        -e 's/(password|pwd|passwd)=([^[:space:]&;|"'\''=]+)/\1=***/gi'
+}
+
+# ------------------------------------------------------------------------------
 # Function: execute_plugin_function_v2
 # Purpose.: Execute a plugin function in an isolated subshell with minimal env
 # Args....: $1 - product type (plugin name, e.g., database, datasafe)
@@ -3017,11 +3096,45 @@ execute_plugin_function_v2() {
     fi
 
     local plugin_function="plugin_${function_name}"
+    
+    # Debug logging: Log plugin call details
+    if is_plugin_debug_enabled; then
+        local sanitized_args="plugin=${product_type}, function=${function_name}"
+        if [[ "${oracle_home}" != "NOARGS" ]]; then
+            sanitized_args="${sanitized_args}, oracle_home=${oracle_home}"
+        fi
+        if [[ -n "${extra_arg}" ]]; then
+            sanitized_args="${sanitized_args}, extra_arg=$(sanitize_sensitive_data "${extra_arg}")"
+        fi
+        oradba_log DEBUG "Plugin call: ${sanitized_args}"
+    fi
+    
     local output
+    local stderr_output
+    
+    # Create temp files for capturing stderr
+    local temp_stderr
+    temp_stderr=$(mktemp 2>/dev/null)
+    
+    # Verify mktemp succeeded - fail safely if not
+    if [[ -z "${temp_stderr}" ]] || [[ ! -f "${temp_stderr}" ]]; then
+        oradba_log ERROR "Failed to create temporary file for plugin stderr capture"
+        return 2
+    fi
+    
+    # Set up trap to ensure cleanup happens (use single quotes to defer expansion)
+    # shellcheck disable=SC2064
+    trap "rm -f '${temp_stderr}' 2>/dev/null" RETURN
     
     # Handle no-arg functions vs functions that take oracle_home
     if [[ "${oracle_home}" == "NOARGS" ]]; then
         # No-arg function (e.g., plugin_get_config_section)
+        
+        # Debug logging: Log environment snapshot
+        if is_plugin_debug_enabled; then
+            oradba_log DEBUG "Plugin env (no-arg): ORACLE_HOME=${ORACLE_HOME:-<unset>}, LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<unset>}"
+        fi
+        
         output=$(
             # Set minimal Oracle environment from current context
             export ORACLE_HOME="${ORACLE_HOME:-}"
@@ -3033,7 +3146,7 @@ execute_plugin_function_v2() {
             unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}" || exit 1
+            source "${plugin_file}" 2>"${temp_stderr}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout
@@ -3043,10 +3156,17 @@ execute_plugin_function_v2() {
             if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
                 exit 1
             fi
-            "${plugin_function}"
+            "${plugin_function}" 2>>"${temp_stderr}"
         )
     else
         # Function takes oracle_home as argument
+        
+        # Debug logging: Log environment snapshot
+        if is_plugin_debug_enabled; then
+            local lib_path="${LD_LIBRARY_PATH:-${oracle_home}/lib}"
+            oradba_log DEBUG "Plugin env: ORACLE_HOME=${oracle_home}, LD_LIBRARY_PATH=${lib_path}, TNS_ADMIN=<unset>, PATH=${PATH:-<unset>}"
+        fi
+        
         output=$(
             ORACLE_HOME="${oracle_home}"
             export ORACLE_HOME
@@ -3061,7 +3181,7 @@ execute_plugin_function_v2() {
             unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}" || exit 1
+            source "${plugin_file}" 2>"${temp_stderr}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout
@@ -3072,13 +3192,33 @@ execute_plugin_function_v2() {
                 exit 1
             fi
             if [[ -n "${extra_arg}" ]]; then
-                "${plugin_function}" "${oracle_home}" "${extra_arg}"
+                "${plugin_function}" "${oracle_home}" "${extra_arg}" 2>>"${temp_stderr}"
             else
-                "${plugin_function}" "${oracle_home}"
+                "${plugin_function}" "${oracle_home}" 2>>"${temp_stderr}"
             fi
         )
     fi
     local exit_code=$?
+    
+    # Read stderr output if available (trap will clean up)
+    if [[ -f "${temp_stderr}" ]]; then
+        stderr_output=$(<"${temp_stderr}")
+    fi
+    
+    # Trace logging: Log raw stdout/stderr
+    if is_plugin_trace_enabled; then
+        if [[ -n "${output}" ]]; then
+            oradba_log TRACE "Plugin stdout: $(sanitize_sensitive_data "${output}")"
+        fi
+        if [[ -n "${stderr_output}" ]]; then
+            oradba_log TRACE "Plugin stderr: $(sanitize_sensitive_data "${stderr_output}")"
+        fi
+    fi
+    
+    # Debug logging: Log exit code
+    if is_plugin_debug_enabled; then
+        oradba_log DEBUG "Plugin exit: code=${exit_code}, plugin=${product_type}, function=${function_name}"
+    fi
 
     if [[ -n "${result_var_name}" ]]; then
         eval "${result_var_name}=\"\${output}\""

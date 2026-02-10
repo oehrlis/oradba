@@ -968,6 +968,112 @@ plugin_discover_instances() {
 
 ## Troubleshooting
 
+### Plugin Debug Facilities (v0.19.0+)
+
+OraDBA provides comprehensive debug facilities for troubleshooting plugin execution issues.
+
+#### Enabling Plugin Debug Mode
+
+Plugin debug is automatically enabled when **any** of these conditions are met:
+
+- `export ORADBA_PLUGIN_DEBUG=true` - Dedicated plugin debug flag
+- `export ORADBA_LOG_LEVEL=DEBUG` - General debug level
+- `export ORADBA_LOG_LEVEL=TRACE` - Detailed trace level (includes raw output)
+- `export DEBUG=1` - Legacy debug flag (backward compatible)
+
+```bash
+# Method 1: Use dedicated plugin debug flag
+export ORADBA_PLUGIN_DEBUG=true
+source oraenv
+
+# Method 2: Use general debug level
+export ORADBA_LOG_LEVEL=DEBUG
+source oraenv
+
+# Method 3: Use trace level for maximum verbosity
+export ORADBA_LOG_LEVEL=TRACE
+source oraenv
+```
+
+#### Debug Output Levels
+
+**DEBUG Level** - Shows plugin call details and environment snapshot:
+```
+[DEBUG] Plugin call: plugin=database, function=check_status, oracle_home=/u01/app/oracle/product/19c
+[DEBUG] Plugin env: ORACLE_HOME=/u01/app/oracle/product/19c, LD_LIBRARY_PATH=/u01/app/oracle/product/19c/lib, TNS_ADMIN=<unset>, PATH=...
+[DEBUG] Plugin exit: code=0, plugin=database, function=check_status
+```
+
+**TRACE Level** - Includes raw stdout/stderr from plugin functions:
+```
+[DEBUG] Plugin call: plugin=datasafe, function=check_status, oracle_home=/u01/app/oracle/cman01
+[DEBUG] Plugin env: ORACLE_HOME=/u01/app/oracle/cman01, LD_LIBRARY_PATH=/u01/app/oracle/cman01/lib, TNS_ADMIN=<unset>, PATH=...
+[TRACE] Plugin stdout: cmctl status
+[TRACE] Plugin stderr: <any error messages>
+[DEBUG] Plugin exit: code=0, plugin=datasafe, function=check_status
+```
+
+#### Security: Automatic Sanitization
+
+All debug output automatically masks sensitive data:
+
+- **Passwords**: `user/password@db` → `user/***@db`
+- **Connection strings**: `sqlplus sys/pass@db` → `sqlplus sys/***@db`
+- **Environment variables**: `PASSWORD="secret"` → `PASSWORD="***"`
+- **Parameter patterns**: `password=secret` → `password=***`
+
+```bash
+# Example: Sensitive data is automatically masked
+export ORADBA_LOG_LEVEL=DEBUG
+execute_plugin_function_v2 "database" "check_status" "/u01/app/oracle/product/19c" "result" "sys/password@db"
+# Output: [DEBUG] Plugin call: plugin=database, function=check_status, oracle_home=/u01/app/oracle/product/19c, extra_arg=sys/***@db
+```
+
+#### Troubleshooting Common Issues
+
+**Issue: Plugin function returns error but no details visible**
+
+```bash
+# Enable debug to see environment and call details
+export ORADBA_LOG_LEVEL=DEBUG
+source oraenv
+```
+
+**Issue: Command-line tool (sqlplus/cmctl/lsnrctl) failing inside plugin**
+
+```bash
+# Enable trace to see raw stdout/stderr
+export ORADBA_LOG_LEVEL=TRACE
+source oraenv
+```
+
+**Issue: Environment variables not set correctly**
+
+```bash
+# Debug shows exact environment passed to plugin
+export ORADBA_PLUGIN_DEBUG=true
+source oraenv
+# Look for "Plugin env:" lines showing ORACLE_HOME, LD_LIBRARY_PATH, PATH
+```
+
+**Issue: Need to debug plugin without affecting all logging**
+
+```bash
+# Use dedicated plugin debug flag (doesn't enable DEBUG for everything else)
+export ORADBA_PLUGIN_DEBUG=true
+source oraenv
+```
+
+#### Best Practices for Plugin Debugging
+
+✅ **Start with DEBUG level**: Shows most relevant information  
+✅ **Use TRACE only when needed**: Generates verbose output  
+✅ **Check sanitization**: Verify no credentials in logs before sharing  
+✅ **Disable after debugging**: Reset `ORADBA_LOG_LEVEL` to INFO or unset  
+
+❌ **Don't leave TRACE enabled**: Performance impact and log bloat  
+❌ **Don't share unsanitized logs**: Even with sanitization, review before sharing  
+
 ### Plugin Not Loading
 
 ```bash
