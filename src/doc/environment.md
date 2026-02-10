@@ -301,7 +301,7 @@ The output includes:
 - `JAVA_HOME` (resolved Java runtime if configured)
 - `STATUS` (connector status)
 - `SERVICE` (connector service name from `cman.ora`)
-- `PORT` (connector port from `cman.ora` when available)
+- `PORT` or `PORTS` (connector port(s) when available)
 
 Data Safe connectors **always** use a connector-specific `TNS_ADMIN` so each
 connector reads its own `cman.ora`. This is enforced by `oraenv.sh` and
@@ -317,12 +317,13 @@ ORACLE_HOME    : /opt/oracle/product/exacc-wob-vwg-test/oracle_cman_home
 TNS_ADMIN      : /opt/oracle/product/exacc-wob-vwg-test/oracle_cman_home/network/admin
 JAVA_HOME      : /opt/oracle/product/jdk-17.0.17
 ORACLE_VERSION : 21.0.0.0
-STATUS         : open
+PRODUCT_TYPE   : datasafe
+-------------------------------------------------------------------------------
+STATUS         : running
 SERVICE        : cust_cman
 PORT           : 1521
 -------------------------------------------------------------------------------
-PRODUCT_TYPE   : datasafe
--------------------------------------------------------------------------------
+
 ```
 
 ### Case-Insensitive Matching
@@ -474,6 +475,18 @@ oradba_env_show_status()          # Show current environment
 oradba_env_show_installation()    # Show installation details
 oradba_env_list_installations()   # List all registrations
 oradba_env_show_plugin_info()     # Show plugin information
+```
+
+### Output Library (oradba_env_output.sh)
+
+Shared formatter used by `oraenv.sh` and `oradba_env.sh` to keep status and
+home output consistent across products:
+
+```bash
+# Functions:
+oradba_env_output_divider()        # Divider line
+oradba_env_output_kv()             # Aligned label/value output
+show_oracle_home_status()          # Non-database status formatter
 ```
 
 ### Changes Library (oradba_env_changes.sh)

@@ -108,6 +108,6 @@ Display comprehensive database status based on open mode
 
 Display Oracle Home environment info for non-database homes
 
-**Source:** `oradba_db_functions.sh`
+**Source:** `oradba_env_output.sh`
 
 ---

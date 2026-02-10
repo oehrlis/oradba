@@ -38,6 +38,20 @@ if ! command -v oradba_get_product_status &> /dev/null; then
     unset _oradba_db_base_dir _oradba_db_script_dir
 fi
 
+# Source shared output formatter (non-db and common sections)
+if ! command -v oradba_env_output_print_home_section &> /dev/null; then
+    _oradba_output_base_dir="${ORADBA_BASE:-${ORADBA_SRC_BASE:-}}"
+    if [[ -z "${_oradba_output_base_dir}" ]]; then
+        _oradba_output_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        _oradba_output_base_dir="$(cd "${_oradba_output_script_dir}/.." && pwd)"
+    fi
+    if [[ -f "${_oradba_output_base_dir}/lib/oradba_env_output.sh" ]]; then
+        # shellcheck source=oradba_env_output.sh
+        source "${_oradba_output_base_dir}/lib/oradba_env_output.sh"
+    fi
+    unset _oradba_output_base_dir _oradba_output_script_dir
+fi
+
 # ------------------------------------------------------------------------------
 # Function: check_database_connection
 # Purpose.: Check if database is accessible and return connection status
@@ -265,129 +279,6 @@ format_uptime() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: show_oracle_home_status
-# Purpose.: Display Oracle Home environment info for non-database homes
-# Parameters: None (uses current ORACLE_HOME environment)
-# ------------------------------------------------------------------------------
-show_oracle_home_status() {
-    local product_type
-    local product_version
-    local status=""
-    
-    # Get product type from ORADBA_CURRENT_HOME_TYPE if available
-    if [[ -n "${ORADBA_CURRENT_HOME_TYPE}" ]]; then
-        product_type="${ORADBA_CURRENT_HOME_TYPE}"
-    else
-        product_type="Oracle Home"
-    fi
-    
-    # Get Oracle version only for products that have sqlplus
-    case "${product_type}" in
-        database|client|iclient|RDBMS|CLIENT|ICLIENT)
-            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
-            ;;
-        datasafe|DATASAFE|oud|OUD|weblogic|WLS|oms|OMS|emagent)
-            # These products don't have sqlplus - use plugin-based detection
-            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
-            ;;
-        *)
-            # Try to get version, but don't show errors
-            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
-            ;;
-    esac
-    
-    if [[ "${product_type}" == "datasafe" || "${product_type}" == "DATASAFE" ]]; then
-        local datasafe_home
-        local metadata=""
-        local meta_version=""
-        local meta_port=""
-        local meta_service=""
-
-        datasafe_home="${DATASAFE_INSTALL_DIR:-${DATASAFE_HOME:-}}"
-        if [[ -z "${datasafe_home}" ]] && [[ "${ORACLE_HOME}" == */oracle_cman_home ]]; then
-            datasafe_home="${ORACLE_HOME%/oracle_cman_home}"
-        fi
-        if [[ -z "${datasafe_home}" ]]; then
-            datasafe_home="${ORACLE_HOME}"
-        fi
-
-        if command -v execute_plugin_function_v2 &>/dev/null; then
-            execute_plugin_function_v2 "datasafe" "get_metadata" "${datasafe_home}" "metadata" "" 2>/dev/null || true
-        fi
-
-        if [[ -n "${metadata}" ]]; then
-            while IFS='=' read -r key value; do
-                case "${key}" in
-                    version)
-                        meta_version="${value}"
-                        ;;
-                    port)
-                        meta_port="${value}"
-                        ;;
-                    service_name)
-                        meta_service="${value}"
-                        ;;
-                esac
-            done <<< "${metadata}"
-        fi
-
-        if command -v oradba_get_product_status &>/dev/null; then
-            status=$(oradba_get_product_status "datasafe" "${ORACLE_SID:-}" "${ORACLE_HOME:-}" 2>/dev/null || true)
-        fi
-
-        case "${status}" in
-            running)
-                status="running"
-                ;;
-            stopped)
-                status="stopped"
-                ;;
-            unavailable|"" )
-                status="unknown"
-                ;;
-        esac
-
-        if [[ -n "${meta_version}" ]]; then
-            product_version="${meta_version}"
-        fi
-        if [[ -z "${meta_port}" ]]; then
-            meta_port="n/a"
-        fi
-        if [[ -z "${meta_service}" ]]; then
-            meta_service="n/a"
-        fi
-
-        echo ""
-        echo "-------------------------------------------------------------------------------"
-        printf "%-14s : %s\n" "ORACLE_BASE" "${ORACLE_BASE:-Not set}"
-        printf "%-14s : %s\n" "DATASAFE_HOME" "${datasafe_home:-Not set}"
-        printf "%-14s : %s\n" "ORACLE_HOME" "${ORACLE_HOME:-Not set}"
-        printf "%-14s : %s\n" "TNS_ADMIN" "${TNS_ADMIN:-Not set}"
-        printf "%-14s : %s\n" "JAVA_HOME" "${JAVA_HOME:-Not set}"
-        printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
-        printf "%-14s : %s\n" "STATUS" "${status}"
-        printf "%-14s : %s\n" "SERVICE" "${meta_service}"
-        printf "%-14s : %s\n" "CMAN_PORT" "${meta_port}"
-        echo "-------------------------------------------------------------------------------"
-        printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
-        echo "-------------------------------------------------------------------------------"
-        echo ""
-        return 0
-    fi
-
-    echo ""
-    echo "-------------------------------------------------------------------------------"
-    printf "%-14s : %s\n" "ORACLE_BASE" "${ORACLE_BASE:-Not set}"
-    printf "%-14s : %s\n" "ORACLE_HOME" "${ORACLE_HOME:-Not set}"
-    printf "%-14s : %s\n" "TNS_ADMIN" "${TNS_ADMIN:-Not set}"
-    printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
-    echo "-------------------------------------------------------------------------------"
-    printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
-    echo "-------------------------------------------------------------------------------"
-    echo ""
-}
-
-# ------------------------------------------------------------------------------
 # Function: show_database_status
 # Purpose.: Display comprehensive database status based on open mode
 # Parameters: None (uses current ORACLE_SID environment)
@@ -398,25 +289,24 @@ show_database_status() {
         show_oracle_home_status
         return 0
     fi
+
+    local oracle_base
+    oracle_base=$(oradba_env_output_resolve_oracle_base "${ORACLE_HOME}")
+    local product_type="database"
     
     # Check if this is a dummy SID BEFORE attempting connection
     if is_dummy_sid; then
         # Dummy database - show environment only, no SQL queries
         echo ""
-        echo "-------------------------------------------------------------------------------"
-        printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
-        printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
-        printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
 
         # Try to get version from Oracle Home
         local version=""
         if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
             version=$("${ORACLE_HOME}/bin/sqlplus" -version 2> /dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
         fi
-        printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
-        echo "-------------------------------------------------------------------------------"
-        printf "%-15s: %s\n" "STATUS" "Dummy Database (environment only)"
-        echo "-------------------------------------------------------------------------------"
+        oradba_env_output_print_home_section "${oracle_base}" "${ORACLE_HOME}" "${TNS_ADMIN}" "" "" "${version:-Unknown}" "${product_type}"
+        oradba_env_output_kv "STATUS" "Dummy Database (environment only)" true
+        oradba_env_output_divider
         echo ""
         return 0
     fi
@@ -425,20 +315,15 @@ show_database_status() {
     if ! check_database_connection; then
         # Database not accessible - show environment status
         echo ""
-        echo "-------------------------------------------------------------------------------"
-        printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
-        printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
-        printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
 
         # Try to get version from Oracle Home
         local version=""
         if [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
             version=$("${ORACLE_HOME}/bin/sqlplus" -version 2> /dev/null | grep -E 'Release [0-9]+' | sed -n 's/.*Release \([0-9][0-9.]*\).*/\1/p' | head -1)
         fi
-        printf "%-15s: %s\n" "ORACLE_VERSION" "${version:-Unknown}"
-        echo "-------------------------------------------------------------------------------"
-        printf "%-15s: %s\n" "STATUS" "NOT STARTED"
-        echo "-------------------------------------------------------------------------------"
+        oradba_env_output_print_home_section "${oracle_base}" "${ORACLE_HOME}" "${TNS_ADMIN}" "" "" "${version:-Unknown}" "${product_type}"
+        oradba_env_output_kv "STATUS" "NOT STARTED" true
+        oradba_env_output_divider
         echo ""
         return 0
     fi
@@ -467,14 +352,9 @@ show_database_status() {
 
     # Start output
     echo ""
-    echo "-------------------------------------------------------------------------------"
-    # Oracle Environment (show first)
-    printf "%-15s: %s\n" "ORACLE_BASE" "${ORACLE_BASE:-not set}"
-    printf "%-15s: %s\n" "ORACLE_HOME" "${ORACLE_HOME:-not set}"
-    printf "%-15s: %s\n" "TNS_ADMIN" "${TNS_ADMIN:-not set}"
-    printf "%-15s: %s\n" "ORACLE_VERSION" "$version"
-    printf "%-15s: %s\n" "DB_STATUS" "$db_status"
-    echo "-------------------------------------------------------------------------------"
+    oradba_env_output_print_home_section "${oracle_base}" "${ORACLE_HOME}" "${TNS_ADMIN}" "" "" "${version}" "${product_type}"
+
+    oradba_env_output_kv "DB_STATUS" "$db_status"
 
     # Query database info if MOUNTED or OPEN
     local db_info=""
@@ -487,10 +367,10 @@ show_database_status() {
             # Database identity (compact: one or two lines)
             # Show DB_NAME(DBID) and DB_UNIQUE_NAME on one line if they differ
             if [[ "$db_name" == "$db_unique_name" ]]; then
-                printf "%-15s: %s (Instance: %s, DBID: %s)\n" "DATABASE" "$db_name" "$instance_name" "$dbid"
+                oradba_env_output_kv "DATABASE" "$db_name (Instance: $instance_name, DBID: $dbid)"
             else
-                printf "%-15s: %s (DBID: %s)\n" "DB_NAME" "$db_name" "$dbid"
-                printf "%-15s: %s (Instance: %s)\n" "DB_UNIQUE_NAME" "$db_unique_name" "$instance_name"
+                oradba_env_output_kv "DB_NAME" "$db_name (DBID: $dbid)"
+                oradba_env_output_kv "DB_UNIQUE_NAME" "$db_unique_name (Instance: $instance_name)"
             fi
         else
             oradba_log DEBUG "query_database_info returned empty for open_mode: $open_mode"
@@ -502,13 +382,13 @@ show_database_status() {
     mem_usage=$(query_memory_usage "$open_mode")
     if [[ -n "$mem_usage" ]]; then
         IFS='|' read -r current_sga current_pga <<< "$mem_usage"
-        printf "%-15s: %sG SGA / %sG PGA (%sG pga_aggregate_target)\n" "MEMORY_SIZE" "$current_sga" "$current_pga" "$pga_target"
+        oradba_env_output_kv "MEMORY_SIZE" "${current_sga}G SGA / ${current_pga}G PGA (${pga_target}G pga_aggregate_target)"
     else
-        printf "%-15s: %sG SGA / 0G PGA (%sG pga_aggregate_target)\n" "MEMORY_SIZE" "$sga_target" "$pga_target"
+        oradba_env_output_kv "MEMORY_SIZE" "${sga_target}G SGA / 0G PGA (${pga_target}G pga_aggregate_target)"
     fi
 
     # FRA size
-    printf "%-15s: %sG\n" "FRA_SIZE" "${fra_size:-0}"
+    oradba_env_output_kv "FRA_SIZE" "${fra_size:-0}G"
 
     # Datafile size (for MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" ]]; then
@@ -517,23 +397,23 @@ show_database_status() {
         if [[ -n "$df_size" ]]; then
             # Trim any leading/trailing whitespace
             df_size=$(echo "$df_size" | xargs)
-            printf "%-15s: %sG\n" "DATAFILE_SIZE" "$df_size"
+            oradba_env_output_kv "DATAFILE_SIZE" "${df_size}G"
         fi
     fi
 
     # Uptime
-    printf "%-15s: %s\n" "UPTIME" "$(format_uptime "$startup_time")"
+    oradba_env_output_kv "UPTIME" "$(format_uptime "$startup_time")"
 
     # Status display - format depends on open_mode
     if [[ "$open_mode" == "STARTED" ]]; then
         # For NOMOUNT: show single status
-        printf "%-15s: %s\n" "STATUS" "$open_mode"
+        oradba_env_output_kv "STATUS" "$open_mode"
     else
         # For MOUNTED and OPEN: show status with database role
         if [[ -n "$db_role" ]]; then
-            printf "%-15s: %s / %s\n" "STATUS" "$open_mode" "$db_role"
+            oradba_env_output_kv "STATUS" "$open_mode / $db_role"
         else
-            printf "%-15s: %s\n" "STATUS" "$open_mode"
+            oradba_env_output_kv "STATUS" "$open_mode"
         fi
     fi
 
@@ -543,15 +423,14 @@ show_database_status() {
         session_info=$(query_sessions_info "$open_mode")
         if [[ -n "$session_info" ]]; then
             IFS='|' read -r non_oracle_users non_oracle_sessions oracle_users oracle_sessions <<< "$session_info"
-            printf "%-15s: Non-Oracle: %s/%s , Oracle: %s/%s\n" "USERS/SESSIONS" \
-                "$non_oracle_users" "$non_oracle_sessions" "$oracle_users" "$oracle_sessions"
+            oradba_env_output_kv "USERS/SESSIONS" "Non-Oracle: ${non_oracle_users}/${non_oracle_sessions} , Oracle: ${oracle_users}/${oracle_sessions}"
         fi
     fi
 
     # Database details (MOUNT and OPEN)
     if [[ "$open_mode" != "STARTED" && -n "$log_mode" ]]; then
-        printf "%-15s: %s\n" "LOG_MODE" "$log_mode"
-        printf "%-15s: %s\n" "CHARACTERSET" "${charset:-N/A}"
+        oradba_env_output_kv "LOG_MODE" "$log_mode"
+        oradba_env_output_kv "CHARACTERSET" "${charset:-N/A}"
     fi
 
     # PDB info (for MOUNT and OPEN)
@@ -559,10 +438,10 @@ show_database_status() {
         local pdb_info
         pdb_info=$(query_pdb_info "$open_mode" | tr -d '[:space:]')
         if [[ -n "$pdb_info" ]]; then
-            printf "%-15s: %s\n" "PDB" "$pdb_info"
+            oradba_env_output_kv "PDB" "$pdb_info"
         fi
     fi
 
-    echo "-------------------------------------------------------------------------------"
+    oradba_env_output_divider
     echo ""
 }

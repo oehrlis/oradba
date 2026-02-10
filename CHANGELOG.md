@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- N/A
+- **Output Consolidation Helper**
+  - Added `oradba_env_output.sh` shared formatter for environment/status output
+  - Unified label alignment and divider layout across `oraenv.sh` and `oradba_env.sh`
+  - Added support for PORT/PORTS metadata display when available
 
 ### Fixed
 
-- N/A
+- **Environment Status Consistency**
+  - Consolidated non-database output for `oradba_env.sh show/status`
+  - Ensured `oraenv.sh` non-database output matches shared formatter
 
 ## [0.20.5] - 2026-02-10
 

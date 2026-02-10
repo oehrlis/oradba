@@ -211,7 +211,7 @@ Display comprehensive database status information. Automatically adjusts output 
 **Output includes:**
 
 - **Environment (all states):**
-  - ORACLE_BASE, ORACLE_HOME, TNS_ADMIN
+  - ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, PRODUCT_TYPE
   - Oracle version
 - **Instance information (NOMOUNT+):**
   - Instance name and startup time
@@ -236,6 +236,22 @@ Display comprehensive database status information. Automatically adjusts output 
 
 ```bash
 show_database_status
+```
+
+#### show_oracle_home_status()
+
+Display consolidated environment and status output for non-database products.
+This formatter is shared by `oraenv.sh` and `oradba_env.sh` for consistent
+labels and alignment.
+
+**Output includes:**
+
+- **Home section:** ORACLE_BASE, ORACLE_HOME, TNS_ADMIN, ORACLE_VERSION,
+  PRODUCT_TYPE, plus optional DATASAFE_HOME or JAVA_HOME
+- **Instance section (when metadata exists):** STATUS, SERVICE, PORT/PORTS
+
+```bash
+show_oracle_home_status
 ```
 
 ## State-Dependent Behavior

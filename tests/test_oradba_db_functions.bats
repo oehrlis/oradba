@@ -202,9 +202,9 @@ setup() {
     run show_oracle_home_status
     [ "$status" -eq 0 ]
     # Should contain datasafe-specific fields
+    [[ "$output" =~ "ORACLE_BASE" ]]
     [[ "$output" =~ "DATASAFE_HOME" ]]
-    [[ "$output" =~ "SERVICE" ]]
-    [[ "$output" =~ "CMAN_PORT" ]]
+    [[ "$output" =~ "PRODUCT_TYPE" ]]
 }
 
 # Test: show_oracle_home_status preserves running status for datasafe

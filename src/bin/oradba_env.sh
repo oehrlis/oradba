@@ -64,6 +64,11 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_env_status.sh"
 fi
 
+if [[ -f "${ORADBA_BASE}/lib/oradba_env_output.sh" ]]; then
+    # shellcheck source=../lib/oradba_env_output.sh
+    source "${ORADBA_BASE}/lib/oradba_env_output.sh"
+fi
+
 if [[ -f "${ORADBA_BASE}/lib/oradba_env_changes.sh" ]]; then
     # shellcheck source=../lib/oradba_env_changes.sh
     source "${ORADBA_BASE}/lib/oradba_env_changes.sh"
@@ -279,8 +284,6 @@ cmd_list() {
             fi
             ;;
     esac
-    
-    echo ""
 }
 
 # ------------------------------------------------------------------------------
@@ -317,43 +320,32 @@ cmd_show() {
     if [[ -n "$home_entry" ]]; then
         # Found in oradba_homes.conf - extract details
         IFS=':' read -r name path ptype _order alias_name desc version <<< "$home_entry"
-        echo "=== Oracle Home Information ==="
-        printf "%-13s %s\n" "Name:" "${alias_name:-$name}"
-        printf "%-13s %s\n" "HOME:" "$path"
-        printf "%-13s %s\n" "Product Type:" "$ptype"
-        [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
-        [[ -n "$desc" ]] && printf "%-13s %s\n" "Description:" "$desc"
+        local oracle_base=""
+        local tns_admin=""
+        local datasafe_home=""
+
+        oracle_base="$(derive_oracle_base "${path}" 2>/dev/null || true)"
 
         if [[ "${ptype}" == "datasafe" ]]; then
-            local ds_install ds_home ds_tns ds_java
-            IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${path}")"
-            printf "%-13s %s\n" "Install Dir:" "${ds_install}"
-            printf "%-13s %s\n" "ORACLE_HOME:" "${ds_home}"
-            [[ -n "${ds_tns}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${ds_tns}"
-            [[ -n "${ds_java}" ]] && printf "%-13s %s\n" "JAVA_HOME:" "${ds_java}"
+            datasafe_home="${path}"
         else
-            local saved_sid="${ORACLE_SID:-}"
             local saved_base="${ORACLE_BASE:-}"
-            local tns_admin=""
-
-            if [[ -z "${ORACLE_BASE}" ]]; then
-                ORACLE_BASE="$(derive_oracle_base "${path}")"
-            fi
+            ORACLE_BASE="${oracle_base}"
             if command -v load_config &>/dev/null; then
                 load_config "${name}" >/dev/null 2>&1 || true
             fi
             tns_admin="$(resolve_default_tns_admin "${path}")"
-            [[ -n "${tns_admin}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${tns_admin}"
-
-            ORACLE_SID="${saved_sid}"
             ORACLE_BASE="${saved_base}"
         fi
         
-        # Check if home exists
         if [[ ! -d "$path" ]]; then
             echo "Warning: Oracle Home does not exist"
         fi
-        echo ""
+
+        ORACLE_BASE="${oracle_base}" \
+        TNS_ADMIN="${tns_admin}" \
+        DATASAFE_HOME="${datasafe_home}" \
+        show_oracle_home_status "${ptype}" "${path}" "" "false"
         return 0
     # Check if it's a SID in oratab
     elif type -t parse_oratab &>/dev/null; then
@@ -362,45 +354,30 @@ cmd_show() {
         if [[ -n "$oratab_entry" ]]; then
             # Found in oratab - parse SID:HOME:FLAG format
             IFS=':' read -r sid path flag <<< "$oratab_entry"
-            echo "=== Oracle Database Instance ==="
-            printf "%-13s %s\n" "SID:" "$sid"
-            printf "%-13s %s\n" "HOME:" "$path"
-            printf "%-13s %s\n" "Auto-Start:" "$flag"
-            
-            # Get product type if home exists
+            local oracle_base=""
+            local tns_admin=""
+            local detected_type="database"
+
+            if type -t detect_product_type &>/dev/null; then
+                detected_type=$(detect_product_type "$path")
+            fi
+
+            oracle_base="$(derive_oracle_base "${path}" 2>/dev/null || true)"
             if [[ -d "$path" ]]; then
-                if type -t detect_product_type &>/dev/null; then
-                    local ptype
-                    ptype=$(detect_product_type "$path")
-                    printf "%-13s %s\n" "Product Type:" "$ptype"
-                fi
-                
-                # Get version if available
-                if type -t get_oracle_version &>/dev/null; then
-                    local version
-                    version=$(get_oracle_version "$path")
-                    [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
-                fi
-
-                local saved_sid="${ORACLE_SID:-}"
                 local saved_base="${ORACLE_BASE:-}"
-                local tns_admin=""
-
-                if [[ -z "${ORACLE_BASE}" ]]; then
-                    ORACLE_BASE="$(derive_oracle_base "${path}")"
-                fi
+                ORACLE_BASE="${oracle_base}"
                 if command -v load_config &>/dev/null; then
                     load_config "${sid}" >/dev/null 2>&1 || true
                 fi
                 tns_admin="$(resolve_default_tns_admin "${path}")"
-                [[ -n "${tns_admin}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${tns_admin}"
-
-                ORACLE_SID="${saved_sid}"
                 ORACLE_BASE="${saved_base}"
             else
                 echo "Warning: Oracle Home does not exist"
             fi
-            echo ""
+
+            ORACLE_BASE="${oracle_base}" \
+            TNS_ADMIN="${tns_admin}" \
+            show_oracle_home_status "${detected_type}" "${path}" "${sid}" "false"
             return 0
         fi
     fi
@@ -408,23 +385,32 @@ cmd_show() {
     # Check if it's a path (Oracle Home)
     if [[ -d "$target" ]]; then
         # It's an Oracle Home path
-        echo "=== Oracle Home Information ==="
-        printf "%-13s %s\n" "HOME:" "$target"
-        
-        # Get metadata from oradba_homes.conf
-        local product version edition
+        local product=""
+        local oracle_base=""
+        local tns_admin=""
+
         product=$(oradba_get_home_metadata "$target" "Product" 2>/dev/null)
-        if [[ -n "$product" ]] && [[ "$product" != "N/A" ]]; then
-            version=$(oradba_get_home_metadata "$target" "Version")
-            edition=$(oradba_get_home_metadata "$target" "Edition")
-            printf "%-13s %s\n" "Product Type:" "$product"
-            printf "%-13s %s\n" "Version:" "$version"
-            printf "%-13s %s\n" "Edition:" "$edition"
-        else
-            # Auto-detect
+        if [[ -z "$product" ]] || [[ "$product" == "N/A" ]]; then
             product=$(oradba_get_product_type "$target")
-            printf "%-13s %s\n" "Product Type:" "$product (auto-detected)"
         fi
+
+        oracle_base="$(derive_oracle_base "${target}" 2>/dev/null || true)"
+        if [[ -n "${product}" ]] && [[ "${product}" != "datasafe" ]]; then
+            local saved_base="${ORACLE_BASE:-}"
+            ORACLE_BASE="${oracle_base}"
+            tns_admin="$(resolve_default_tns_admin "${target}")"
+            ORACLE_BASE="${saved_base}"
+        fi
+
+        local datasafe_home=""
+        if [[ "${product}" == "datasafe" ]]; then
+            datasafe_home="${target}"
+        fi
+
+        ORACLE_BASE="${oracle_base}" \
+        TNS_ADMIN="${tns_admin}" \
+        DATASAFE_HOME="${datasafe_home}" \
+        show_oracle_home_status "${product}" "${target}" "" "false"
     else
         # Not found anywhere
         echo "ERROR: Target '$target' not found in oradba_homes.conf or oratab" >&2
@@ -615,54 +601,55 @@ cmd_status() {
         return 1
     fi
     
-    echo "=== Oracle Instance/Service Status ==="
-    echo "SID:          $oracle_sid"
-    echo "HOME:         $oracle_home"
-    echo "Product Type: $product_type"
-    echo "Status:       $(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")"
+    local product_type_lower="${product_type,,}"
 
-    if [[ "${product_type}" == "datasafe" ]]; then
-        # Retrieve service name and port from DataSafe plugin
-        local meta_service="n/a"
-        local meta_port="n/a"
-        
-        if command -v execute_plugin_function_v2 &>/dev/null; then
-            local metadata=""
-            if execute_plugin_function_v2 "datasafe" "get_metadata" "${oracle_home}" "metadata" "" 2>/dev/null; then
-                # Parse metadata output (key=value pairs)
-                while IFS='=' read -r key value; do
-                    case "${key}" in
-                        service_name)
-                            meta_service="${value}"
-                            ;;
-                        port)
-                            meta_port="${value}"
-                            ;;
-                    esac
-                done <<< "${metadata}"
-            fi
+    if [[ "${product_type_lower}" == "database" || "${product_type_lower}" == "rdbms" || "${product_type_lower}" == "grid" || "${product_type_lower}" == "asm" ]]; then
+        local saved_home="${ORACLE_HOME:-}"
+        local saved_sid="${ORACLE_SID:-}"
+        local saved_type="${ORADBA_CURRENT_HOME_TYPE:-}"
+        local saved_base="${ORACLE_BASE:-}"
+        local saved_tns="${TNS_ADMIN:-}"
+
+        ORACLE_HOME="${oracle_home}"
+        ORACLE_SID="${oracle_sid}"
+        ORADBA_CURRENT_HOME_TYPE="database"
+        ORACLE_BASE="$(derive_oracle_base "${oracle_home}" 2>/dev/null || true)"
+        if command -v load_config &>/dev/null; then
+            load_config "${oracle_sid}" >/dev/null 2>&1 || true
         fi
-        
-        # Display service and port after status
-        echo "Service:      ${meta_service}"
-        echo "CMAN_PORT:    ${meta_port}"
-        
-        # Display environment details
-        local ds_install ds_home ds_tns ds_java
-        IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${oracle_home}")"
-        echo "Install Dir:  ${ds_install}"
-        echo "ORACLE_HOME:  ${ds_home}"
-        [[ -n "${ds_tns}" ]] && echo "TNS_ADMIN:    ${ds_tns}"
-        [[ -n "${ds_java}" ]] && echo "JAVA_HOME:    ${ds_java}"
+        TNS_ADMIN="$(resolve_default_tns_admin "${oracle_home}")"
+
+        show_database_status
+
+        ORACLE_HOME="${saved_home}"
+        ORACLE_SID="${saved_sid}"
+        ORADBA_CURRENT_HOME_TYPE="${saved_type}"
+        ORACLE_BASE="${saved_base}"
+        TNS_ADMIN="${saved_tns}"
+        return 0
     fi
-    
-    # Check listener if RDBMS
-    if [[ "$product_type" == "RDBMS" || "$product_type" == "GRID" ]]; then
-        local listener_status
-        listener_status=$(oradba_check_listener_status "LISTENER" "$oracle_home" 2>/dev/null || echo "UNKNOWN")
-        echo "Listener:     $listener_status"
+
+    local oracle_base=""
+    local tns_admin=""
+    local datasafe_home=""
+
+    oracle_base="$(derive_oracle_base "${oracle_home}" 2>/dev/null || true)"
+    if [[ "${product_type_lower}" == "datasafe" ]]; then
+        datasafe_home="${oracle_home}"
+    else
+        local saved_base="${ORACLE_BASE:-}"
+        ORACLE_BASE="${oracle_base}"
+        if command -v load_config &>/dev/null; then
+            load_config "${oracle_sid}" >/dev/null 2>&1 || true
+        fi
+        tns_admin="$(resolve_default_tns_admin "${oracle_home}")"
+        ORACLE_BASE="${saved_base}"
     fi
-    
+
+    ORACLE_BASE="${oracle_base}" \
+    TNS_ADMIN="${tns_admin}" \
+    DATASAFE_HOME="${datasafe_home}" \
+    show_oracle_home_status "${product_type}" "${oracle_home}" "${oracle_sid}" "true"
     return 0
 }
 
