@@ -234,6 +234,48 @@ get_cman_instance_name() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: setup_connector_environment
+# Purpose.: Set up environment variables for a specific connector
+# Args....: $1 - Connector name, $2 - Connector home path
+# Returns.: 0 on success, 1 on failure
+# Output..: Exports ORACLE_HOME, LD_LIBRARY_PATH, TNS_ADMIN, DATASAFE_HOME
+# Notes...: Must be called before any plugin operations for the connector.
+#           Sets up the complete Oracle environment including library paths.
+# ------------------------------------------------------------------------------
+setup_connector_environment() {
+    local name="$1"
+    local home="$2"
+    
+    oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Setting up environment for '${name}'"
+    
+    # Adjust to oracle_cman_home if needed
+    local cman_home
+    if type -t plugin_adjust_environment &>/dev/null; then
+        cman_home=$(plugin_adjust_environment "${home}")
+    else
+        cman_home="${home}/oracle_cman_home"
+    fi
+    
+    # Set ORACLE_HOME
+    export ORACLE_HOME="${cman_home}"
+    oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set ORACLE_HOME=${ORACLE_HOME}"
+    
+    # Set LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}"
+    oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+    
+    # Set TNS_ADMIN (DataSafe MUST use its own TNS_ADMIN)
+    export TNS_ADMIN="${cman_home}/network/admin"
+    oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set TNS_ADMIN=${TNS_ADMIN}"
+    
+    # Set DATASAFE_HOME (base path without oracle_cman_home)
+    export DATASAFE_HOME="${home}"
+    oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set DATASAFE_HOME=${DATASAFE_HOME}"
+    
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: start_connector
 # Purpose.: Start a Data Safe connector instance
 # Args....: $1 - Connector name, $2 - Connector home path
@@ -245,22 +287,14 @@ start_connector() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Starting connector '${name}'"
+    
+    # Set up environment for this connector
+    setup_connector_environment "${name}" "${home}" || return 1
 
     oradba_log INFO "Starting connector ${name}..."
-
-    # Adjust to oracle_cman_home if needed
-    local cman_home
-    if type -t plugin_adjust_environment &>/dev/null; then
-        cman_home=$(plugin_adjust_environment "${home}")
-    else
-        cman_home="${home}/oracle_cman_home"
-    fi
     
-    # Set TNS_ADMIN for this specific connector before any plugin operations
-    export TNS_ADMIN="${cman_home}/network/admin"
-    oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
-    
-    local cmctl="${cman_home}/bin/cmctl"
+    # Use ORACLE_HOME from environment (set by setup_connector_environment)
+    local cmctl="${ORACLE_HOME}/bin/cmctl"
     
     # Validate cmctl exists
     if [[ ! -x "${cmctl}" ]]; then
@@ -275,12 +309,10 @@ start_connector() {
         plugin_check_status "${home}" "${name}" >/dev/null 2>&1
         status_exit_code=$?
     else
-        # Fallback status check using cmctl
+        # Fallback status check using cmctl (environment already set)
         local instance_name
         instance_name=$(get_cman_instance_name "${home}")
-        if ORACLE_HOME="${cman_home}" \
-           LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-           "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+        if "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
             status_exit_code=0
         else
             status_exit_code=1
@@ -309,12 +341,10 @@ start_connector() {
     instance_name=$(get_cman_instance_name "${home}")
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Using instance name: ${instance_name}"
 
-    # Start the connector
+    # Start the connector (environment already set)
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Executing cmctl startup command"
     local output
-    output=$(ORACLE_HOME="${cman_home}" \
-             LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-             "${cmctl}" startup -c "${instance_name}" 2>&1)
+    output=$("${cmctl}" startup -c "${instance_name}" 2>&1)
     
     local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - cmctl startup completed with exit code: ${rc}"
@@ -344,6 +374,9 @@ stop_connector() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Stopping connector '${name}'"
+    
+    # Set up environment for this connector
+    setup_connector_environment "${name}" "${home}" || return 1
 
     oradba_log INFO "Stopping connector ${name}..."
 
@@ -354,19 +387,10 @@ stop_connector() {
         plugin_check_status "${home}" "${name}" >/dev/null 2>&1
         status_exit_code=$?
     else
-        # Fallback status check using cmctl
-        local cman_home
-        if type -t plugin_adjust_environment &>/dev/null; then
-            cman_home=$(plugin_adjust_environment "${home}")
-        else
-            cman_home="${home}/oracle_cman_home"
-        fi
-        
+        # Fallback status check using cmctl (environment already set)
         local instance_name
         instance_name=$(get_cman_instance_name "${home}")
-        if ORACLE_HOME="${cman_home}" \
-           LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-           "${cman_home}/bin/cmctl" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+        if "${ORACLE_HOME}/bin/cmctl" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
             status_exit_code=0
         else
             status_exit_code=1
@@ -405,19 +429,8 @@ stop_connector() {
         # Fallback to old method if plugin_stop not available
         oradba_log WARN "${SCRIPT_NAME}: stop_connector() - plugin_stop not available, using fallback method"
         
-        # Adjust to oracle_cman_home if needed
-        local cman_home
-        if type -t plugin_adjust_environment &>/dev/null; then
-            cman_home=$(plugin_adjust_environment "${home}")
-        else
-            cman_home="${home}/oracle_cman_home"
-        fi
-        
-        # Set TNS_ADMIN for this specific connector
-        export TNS_ADMIN="${cman_home}/network/admin"
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Set TNS_ADMIN=${TNS_ADMIN}"
-        
-        local cmctl="${cman_home}/bin/cmctl"
+        # Use ORACLE_HOME from environment (set by setup_connector_environment)
+        local cmctl="${ORACLE_HOME}/bin/cmctl"
         
         # Validate cmctl exists
         if [[ ! -x "${cmctl}" ]]; then
@@ -430,13 +443,12 @@ stop_connector() {
         instance_name=$(get_cman_instance_name "${home}")
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Using instance name: ${instance_name}"
 
-        # Try shutdown with timeout
+        # Try shutdown with timeout (environment already set)
         oradba_log INFO "Attempting shutdown for ${name} (timeout: ${SHUTDOWN_TIMEOUT}s)"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Executing cmctl shutdown with ${SHUTDOWN_TIMEOUT}s timeout"
 
         local output
-        output=$(timeout "${SHUTDOWN_TIMEOUT}" \
-                 bash -c "ORACLE_HOME='${cman_home}' LD_LIBRARY_PATH='${cman_home}/lib:${LD_LIBRARY_PATH:-}' '${cmctl}' shutdown -c '${instance_name}'" 2>&1)
+        output=$(timeout "${SHUTDOWN_TIMEOUT}" "${cmctl}" shutdown -c "${instance_name}" 2>&1)
 
         local rc=$?
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl shutdown completed with exit code: ${rc}"
@@ -468,16 +480,9 @@ show_status() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Checking status for connector '${name}'"
-
-    # Adjust to oracle_cman_home and set TNS_ADMIN for this specific connector
-    local cman_home
-    if type -t plugin_adjust_environment &>/dev/null; then
-        cman_home=$(plugin_adjust_environment "${home}")
-    else
-        cman_home="${home}/oracle_cman_home"
-    fi
-    export TNS_ADMIN="${cman_home}/network/admin"
-    oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Set TNS_ADMIN=${TNS_ADMIN}"
+    
+    # Set up environment for this connector
+    setup_connector_environment "${name}" "${home}" || return 1
 
     # Get connector status via exit code
     local status_exit_code
@@ -485,17 +490,15 @@ show_status() {
         plugin_check_status "${home}" "${name}" >/dev/null 2>&1
         status_exit_code=$?
     else
-        # Fallback status check using cmctl
-        local cmctl="${cman_home}/bin/cmctl"
+        # Fallback status check using cmctl (environment already set)
+        local cmctl="${ORACLE_HOME}/bin/cmctl"
         
         if [[ ! -x "${cmctl}" ]]; then
             status_exit_code=2
         else
             local instance_name
             instance_name=$(get_cman_instance_name "${home}")
-            if ORACLE_HOME="${cman_home}" \
-               LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-               "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+            if "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
                 status_exit_code=0
             else
                 status_exit_code=1
