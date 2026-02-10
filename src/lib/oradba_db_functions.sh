@@ -281,35 +281,64 @@ show_oracle_home_status() {
     esac
     
     if [[ "${product_type}" == "datasafe" || "${product_type}" == "DATASAFE" ]]; then
+        local datasafe_home
+        local metadata=""
+        local meta_version=""
+        local meta_port=""
+        local meta_service=""
+
+        datasafe_home="${DATASAFE_INSTALL_DIR:-${DATASAFE_HOME:-}}"
+        if [[ -z "${datasafe_home}" ]] && [[ "${ORACLE_HOME}" == */oracle_cman_home ]]; then
+            datasafe_home="${ORACLE_HOME%/oracle_cman_home}"
+        fi
+        if [[ -z "${datasafe_home}" ]]; then
+            datasafe_home="${ORACLE_HOME}"
+        fi
+
+        if command -v execute_plugin_function_v2 &>/dev/null; then
+            execute_plugin_function_v2 "datasafe" "get_metadata" "${datasafe_home}" "metadata" "" 2>/dev/null || true
+        fi
+
+        if [[ -n "${metadata}" ]]; then
+            while IFS='=' read -r key value; do
+                case "${key}" in
+                    version)
+                        meta_version="${value}"
+                        ;;
+                    port)
+                        meta_port="${value}"
+                        ;;
+                    service_name)
+                        meta_service="${value}"
+                        ;;
+                esac
+            done <<< "${metadata}"
+        fi
+
         if command -v oradba_get_product_status &>/dev/null; then
             status=$(oradba_get_product_status "datasafe" "${ORACLE_SID:-}" "${ORACLE_HOME:-}" 2>/dev/null || true)
         fi
 
         case "${status}" in
             running)
-                status="OPEN"
+                status="open"
                 ;;
             stopped)
-                status="STOPPED"
+                status="stopped"
                 ;;
             unavailable|"" )
-                status="UNKNOWN"
+                status="unknown"
                 ;;
         esac
 
-        local datasafe_home
-        local cman_port=""
-        datasafe_home="${DATASAFE_INSTALL_DIR:-${DATASAFE_HOME:-}}"
-
-        local cman_conf=""
-        if [[ -n "${TNS_ADMIN}" ]]; then
-            cman_conf="${TNS_ADMIN}/cman.ora"
-        elif [[ -n "${ORACLE_HOME}" ]]; then
-            cman_conf="${ORACLE_HOME}/network/admin/cman.ora"
+        if [[ -n "${meta_version}" ]]; then
+            product_version="${meta_version}"
         fi
-
-        if [[ -n "${cman_conf}" ]] && [[ -f "${cman_conf}" ]]; then
-            cman_port=$(grep -Eo 'PORT[[:space:]]*=[[:space:]]*[0-9]+' "${cman_conf}" | head -1 | tr -d '[:space:]' | cut -d= -f2)
+        if [[ -z "${meta_port}" ]]; then
+            meta_port="n/a"
+        fi
+        if [[ -z "${meta_service}" ]]; then
+            meta_service="n/a"
         fi
 
         echo ""
@@ -321,7 +350,8 @@ show_oracle_home_status() {
         printf "%-14s : %s\n" "JAVA_HOME" "${JAVA_HOME:-Not set}"
         printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
         printf "%-14s : %s\n" "STATUS" "${status}"
-        [[ -n "${cman_port}" ]] && printf "%-14s : %s\n" "CMAN_PORT" "${cman_port}"
+        printf "%-14s : %s\n" "SERVICE" "${meta_service}"
+        printf "%-14s : %s\n" "PORT" "${meta_port}"
         echo "-------------------------------------------------------------------------------"
         printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
         echo "-------------------------------------------------------------------------------"

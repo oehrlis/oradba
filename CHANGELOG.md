@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Data Safe Status Output**
+  - Status values now use lowercase (running->open, stopped, unknown)
+  - Always displays PORT with `n/a` fallback when CMAN port is missing
+  - Uses Data Safe plugin metadata for version, service name, and port
+
 ## [0.20.3] - 2026-02-10
 
 ### Fixed

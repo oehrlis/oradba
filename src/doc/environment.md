@@ -300,7 +300,8 @@ The output includes:
 - `TNS_ADMIN` (resolved from connector paths)
 - `JAVA_HOME` (resolved Java runtime if configured)
 - `STATUS` (connector status)
-- `CMAN_PORT` (parsed from `cman.ora` when available)
+- `SERVICE` (connector service name from `cman.ora`)
+- `PORT` (connector port from `cman.ora` when available)
 
 Data Safe connectors **always** use a connector-specific `TNS_ADMIN` so each
 connector reads its own `cman.ora`. This is enforced by `oraenv.sh` and
@@ -316,8 +317,9 @@ ORACLE_HOME    : /opt/oracle/product/exacc-wob-vwg-test/oracle_cman_home
 TNS_ADMIN      : /opt/oracle/product/exacc-wob-vwg-test/oracle_cman_home/network/admin
 JAVA_HOME      : /opt/oracle/product/jdk-17.0.17
 ORACLE_VERSION : 21.0.0.0
-STATUS         : OPEN
-CMAN_PORT      : 1521
+STATUS         : open
+SERVICE        : cust_cman
+PORT           : 1521
 -------------------------------------------------------------------------------
 PRODUCT_TYPE   : datasafe
 -------------------------------------------------------------------------------

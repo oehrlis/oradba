@@ -104,6 +104,35 @@ plugin_adjust_environment() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_get_service_name
+# Purpose.: Extract CMAN service name from cman.ora configuration
+# Args....: $1 - Base path
+# Returns.: 0 on success
+# Output..: Service name (defaults to "cust_cman")
+# Notes...: Excludes system variables (WALLET_LOCATION, SSL_VERSION, etc.)
+# ------------------------------------------------------------------------------
+plugin_get_service_name() {
+    local base_path="$1"
+    local cman_home
+    local cman_conf
+    local instance_name="cust_cman"
+
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    cman_conf="${cman_home}/network/admin/cman.ora"
+
+    if [[ -f "${cman_conf}" ]]; then
+        local extracted_name
+        extracted_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*[[:space:]]*=' "${cman_conf}" 2>/dev/null | \
+                         grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
+                         head -1 | sed 's/[[:space:]]*=.*//' | tr -d ' ')
+        [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
+    fi
+
+    echo "${instance_name}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_check_status
 # Purpose.: Check Data Safe connector status
 # Args....: $1 - Base path or oracle_cman_home path
@@ -126,19 +155,8 @@ plugin_check_status() {
     # Primary Method: cmctl show services command (most accurate)
     local cmctl="${cman_home}/bin/cmctl"
     if [[ -x "${cmctl}" ]]; then
-        # Extract instance name from cman.ora
-        local instance_name="cust_cman"  # Default for DataSafe
-        local cman_conf="${cman_home}/network/admin/cman.ora"
-        
-        if [[ -f "${cman_conf}" ]]; then
-            # Extract instance name from cman.ora - look for identifier= at start of line
-            # Exclude known system variables (WALLET_LOCATION, SSL_VERSION, etc.)
-            local extracted_name
-            extracted_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*[[:space:]]*=' "${cman_conf}" 2>/dev/null | \
-                             grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
-                             head -1 | sed 's/[[:space:]]*=.*//' | tr -d ' ')
-            [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
-        fi
+        local instance_name
+        instance_name=$(plugin_get_service_name "${base_path}")
         
         # Use correct command: "show services -c <instance_name>"
         local status
@@ -217,17 +235,8 @@ plugin_get_version() {
     local cmctl="${cman_home}/bin/cmctl"
     [[ ! -x "${cmctl}" ]] && return 2
     
-    # Extract instance name from cman.ora
-    local instance_name="cust_cman"  # Default
-    local cman_conf="${cman_home}/network/admin/cman.ora"
-    
-    if [[ -f "${cman_conf}" ]]; then
-        # Extract instance name from cman.ora (format: instance_name = (configuration...))
-        # Match identifier followed by = and opening paren
-        local extracted_name
-        extracted_name=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
-        [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
-    fi
+    local instance_name
+    instance_name=$(plugin_get_service_name "${base_path}")
     
     # Get version using cmctl show version -c <instance>
     local version_output
@@ -269,12 +278,23 @@ plugin_get_metadata() {
     local base_path="$1"
     local cman_home
     local version
+    local service_name
+    local port
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Get version using plugin_get_version
     # Only output version if available (no sentinel strings)
     if version=$(plugin_get_version "${base_path}"); then
         echo "version=${version}"
+    fi
+
+    service_name=$(plugin_get_service_name "${base_path}")
+    if [[ -n "${service_name}" ]]; then
+        echo "service_name=${service_name}"
+    fi
+
+    if port=$(plugin_get_port "${base_path}"); then
+        echo "port=${port}"
     fi
     
     echo "type=datasafe_connector"
