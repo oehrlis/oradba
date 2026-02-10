@@ -25,6 +25,9 @@
 # NLS_LANG="GERMAN_GERMANY.AL32UTF8"
 # NLS_DATE_FORMAT="DD.MM.YYYY HH24:MI:SS"
 
+# Override default TNS_ADMIN (non-Data Safe products)
+# ORADBA_TNS_ADMIN="/opt/oracle/network/admin"
+
 # ------------------------------------------------------------------------------
 # Example: Customize PATH
 # ------------------------------------------------------------------------------

@@ -631,23 +631,7 @@ _oraenv_handle_oracle_home() {
                 fi
             fi
         else
-            # Non-DataSafe products: Use configured or default TNS_ADMIN
-            # Priority: 1) Already set, 2) ORADBA_TNS_ADMIN from config, 3) ORACLE_BASE/network/admin, 4) ORACLE_HOME/network/admin
-            if [[ -z "${TNS_ADMIN}" ]]; then
-                if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
-                    # Use configured TNS_ADMIN from config files
-                    export TNS_ADMIN="${ORADBA_TNS_ADMIN}"
-                    oradba_log DEBUG "Using configured TNS_ADMIN: ${TNS_ADMIN}"
-                elif [[ -n "${ORACLE_BASE}" ]] && [[ -d "${ORACLE_BASE}/network/admin" ]]; then
-                    # Use default TNS_ADMIN under ORACLE_BASE
-                    export TNS_ADMIN="${ORACLE_BASE}/network/admin"
-                    oradba_log DEBUG "Using ORACLE_BASE TNS_ADMIN: ${TNS_ADMIN}"
-                elif [[ -d "${ORACLE_HOME}/network/admin" ]]; then
-                    # Use default TNS_ADMIN under ORACLE_HOME if ORACLE_BASE not available
-                    export TNS_ADMIN="${ORACLE_HOME}/network/admin"
-                    oradba_log DEBUG "Using ORACLE_HOME TNS_ADMIN: ${TNS_ADMIN}"
-                fi
-            fi
+            _oraenv_apply_tns_admin "${product_type}"
         fi
         
         # Set NLS_LANG if not set
@@ -807,6 +791,36 @@ _oraenv_apply_product_adjustments() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: _oraenv_apply_tns_admin
+# Purpose.: Set TNS_ADMIN for non-DataSafe products
+# Args....: $1 - Product type
+# Returns.: 0 on success
+# Output..: None (exports TNS_ADMIN)
+# Notes...: Uses ORADBA_TNS_ADMIN if configured, otherwise defaults to
+#           ORACLE_BASE/network/admin or ORACLE_HOME/network/admin.
+# ------------------------------------------------------------------------------
+_oraenv_apply_tns_admin() {
+    local product_type="$1"
+
+    if [[ "${product_type}" == "datasafe" ]]; then
+        return 0
+    fi
+
+    unset TNS_ADMIN
+
+    if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
+        export TNS_ADMIN="${ORADBA_TNS_ADMIN}"
+        oradba_log DEBUG "Using configured TNS_ADMIN: ${TNS_ADMIN}"
+    elif [[ -n "${ORACLE_BASE}" ]]; then
+        export TNS_ADMIN="${ORACLE_BASE}/network/admin"
+        oradba_log DEBUG "Using ORACLE_BASE TNS_ADMIN: ${TNS_ADMIN}"
+    elif [[ -n "${ORACLE_HOME}" ]]; then
+        export TNS_ADMIN="${ORACLE_HOME}/network/admin"
+        oradba_log DEBUG "Using ORACLE_HOME TNS_ADMIN: ${TNS_ADMIN}"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Function: _oraenv_setup_environment_variables
 # Purpose.: Setup Oracle environment variables for database instance
 # Args....: $1 - Actual SID from oratab (preserves case)
@@ -881,24 +895,6 @@ _oraenv_setup_environment_variables() {
                 # Pass the base path (before adjustment), plugin will handle oracle_cman_home
                 plugin_set_environment "${datasafe_install_dir:-${ORACLE_HOME}}"
                 oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
-            fi
-        fi
-    else
-        # Non-DataSafe products: Use configured or default TNS_ADMIN
-        # Priority: 1) Already set, 2) ORADBA_TNS_ADMIN from config, 3) ORACLE_BASE/network/admin, 4) ORACLE_HOME/network/admin
-        if [[ -z "${TNS_ADMIN}" ]]; then
-            if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
-                # Use configured TNS_ADMIN from config files
-                export TNS_ADMIN="${ORADBA_TNS_ADMIN}"
-                oradba_log DEBUG "Using configured TNS_ADMIN: ${TNS_ADMIN}"
-            elif [[ -n "${ORACLE_BASE}" ]] && [[ -d "${ORACLE_BASE}/network/admin" ]]; then
-                # Use default TNS_ADMIN under ORACLE_BASE
-                export TNS_ADMIN="${ORACLE_BASE}/network/admin"
-                oradba_log DEBUG "Using ORACLE_BASE TNS_ADMIN: ${TNS_ADMIN}"
-            elif [[ -d "${ORACLE_HOME}/network/admin" ]]; then
-                # Use default TNS_ADMIN under ORACLE_HOME if ORACLE_BASE not available
-                export TNS_ADMIN="${ORACLE_HOME}/network/admin"
-                oradba_log DEBUG "Using ORACLE_HOME TNS_ADMIN: ${TNS_ADMIN}"
             fi
         fi
     fi
@@ -1020,8 +1016,13 @@ _oraenv_set_environment() {
     # Load configurations and extensions
     _oraenv_load_configurations "$actual_sid"
 
-    # Apply Java and client path configurations after configs are loaded
+    # Apply TNS_ADMIN after configs are loaded (non-DataSafe products)
     local product_type="${ORADBA_CURRENT_HOME_TYPE:-database}"
+    if [[ "${product_type}" != "datasafe" ]]; then
+        _oraenv_apply_tns_admin "${product_type}"
+    fi
+
+    # Apply Java and client path configurations after configs are loaded
     _oraenv_apply_path_configs "${product_type}" "${ORACLE_HOME}"
 
     oradba_log DEBUG "Oracle environment set for SID: $ORACLE_SID"
@@ -1051,6 +1052,7 @@ _oraenv_unset_old_env() {
     fi
 
     # Clear product-specific environment from previous home
+    unset TNS_ADMIN
     unset JAVA_HOME
     unset ORACLE_CLIENT_HOME
     unset DATASAFE_HOME

@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Library Path Resolution**
   - Normalized runtime plugin/library sourcing to `${ORADBA_BASE}/lib/...` across scripts and helpers
   - Ensures repo and installed layouts both resolve libraries consistently
+- **TNS_ADMIN Reset on Env Switch**
+  - Non-Data Safe environments now reapply config/default `TNS_ADMIN` after loading configs
+  - Prevents Data Safe connector paths from persisting when switching to DB/client/java homes
 
 ### Changed
 
@@ -21,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs and Debug Utilities**
   - Documented library path rule in Copilot instructions and Data Safe workflow
   - Updated Data Safe debug script to use `lib/` only
+  - oradba_env show output now resolves and displays non-Data Safe `TNS_ADMIN` from config/default
+  - Added `ORADBA_TNS_ADMIN` override example to customer config template
 
 ## [0.20.2] - 2026-02-09
 

@@ -26,6 +26,10 @@ readonly SCRIPT_VERSION="1.0.0"
 ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
 export ORADBA_BASE
 
+# Set ORADBA_PREFIX and config dir for config loading
+export ORADBA_PREFIX="${ORADBA_BASE}"
+export ORADBA_CONFIG_DIR="${ORADBA_BASE}/etc"
+
 # Source required libraries
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=../lib/oradba_common.sh
@@ -171,6 +175,27 @@ resolve_datasafe_env() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: resolve_default_tns_admin
+# Purpose.: Resolve non-DataSafe TNS_ADMIN for display
+# Args....: $1 - Oracle Home path
+# Output..: TNS_ADMIN path (may be empty)
+# ------------------------------------------------------------------------------
+resolve_default_tns_admin() {
+    local oracle_home="$1"
+    local tns_admin=""
+
+    if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
+        tns_admin="${ORADBA_TNS_ADMIN}"
+    elif [[ -n "${ORACLE_BASE}" ]]; then
+        tns_admin="${ORACLE_BASE}/network/admin"
+    elif [[ -n "${oracle_home}" ]]; then
+        tns_admin="${oracle_home}/network/admin"
+    fi
+
+    echo "${tns_admin}"
+}
+
+# ------------------------------------------------------------------------------
 # Function: cmd_list
 # Purpose.: List available SIDs and/or Homes
 # ------------------------------------------------------------------------------
@@ -306,6 +331,22 @@ cmd_show() {
             printf "%-13s %s\n" "ORACLE_HOME:" "${ds_home}"
             [[ -n "${ds_tns}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${ds_tns}"
             [[ -n "${ds_java}" ]] && printf "%-13s %s\n" "JAVA_HOME:" "${ds_java}"
+        else
+            local saved_sid="${ORACLE_SID:-}"
+            local saved_base="${ORACLE_BASE:-}"
+            local tns_admin=""
+
+            if [[ -z "${ORACLE_BASE}" ]]; then
+                ORACLE_BASE="$(derive_oracle_base "${path}")"
+            fi
+            if command -v load_config &>/dev/null; then
+                load_config "${name}" >/dev/null 2>&1 || true
+            fi
+            tns_admin="$(resolve_default_tns_admin "${path}")"
+            [[ -n "${tns_admin}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${tns_admin}"
+
+            ORACLE_SID="${saved_sid}"
+            ORACLE_BASE="${saved_base}"
         fi
         
         # Check if home exists
@@ -340,6 +381,22 @@ cmd_show() {
                     version=$(get_oracle_version "$path")
                     [[ -n "$version" ]] && printf "%-13s %s\n" "Version:" "$version"
                 fi
+
+                local saved_sid="${ORACLE_SID:-}"
+                local saved_base="${ORACLE_BASE:-}"
+                local tns_admin=""
+
+                if [[ -z "${ORACLE_BASE}" ]]; then
+                    ORACLE_BASE="$(derive_oracle_base "${path}")"
+                fi
+                if command -v load_config &>/dev/null; then
+                    load_config "${sid}" >/dev/null 2>&1 || true
+                fi
+                tns_admin="$(resolve_default_tns_admin "${path}")"
+                [[ -n "${tns_admin}" ]] && printf "%-13s %s\n" "TNS_ADMIN:" "${tns_admin}"
+
+                ORACLE_SID="${saved_sid}"
+                ORACLE_BASE="${saved_base}"
             else
                 echo "Warning: Oracle Home does not exist"
             fi
