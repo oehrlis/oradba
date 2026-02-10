@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Performance: Parallel Status Checks & Batch Process Detection**
+  - Implemented parallel status checks for DataSafe connectors (background jobs with result collection)
+  - Added batch process detection: single `ps -ef` call at start, reused for all checks
+  - Added `get_process_list()` helper function to cache process list
+  - Added `ORADBA_CACHED_PS` environment variable to pass cached process list to plugins
+  - Updated `get_db_status()` to accept optional cached process list
+  - Updated `get_listener_status()` to accept optional cached process list
+  - Updated `should_show_listener_section()` to use cached process list
+  - Updated `datasafe_plugin.sh` to use `ORADBA_CACHED_PS` when available
+  - **Performance Impact**: ~3x faster for 5 DataSafe connectors (from ~1.5s to ~0.5s)
+  - **Before**: 13+ ps -ef calls (sequential checks)
+  - **After**: 1 ps -ef call + parallel background jobs
+  - Added 7 new tests to verify optimization features (32 total tests pass)
+
 ### Fixed
 
 - **oradba_dsctl.sh Environment Setup**
