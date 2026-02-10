@@ -9,16 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Output Consolidation Helper**
-  - Added `oradba_env_output.sh` shared formatter for environment/status output
-  - Unified label alignment and divider layout across `oraenv.sh` and `oradba_env.sh`
-  - Added support for PORT/PORTS metadata display when available
+- N/A
 
 ### Fixed
 
-- **Environment Status Consistency**
-  - Consolidated non-database output for `oradba_env.sh show/status`
-  - Ensured `oraenv.sh` non-database output matches shared formatter
+- N/A
 
 ## [0.20.5] - 2026-02-10
 
@@ -38,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **After**: 1 ps -ef call + parallel background jobs
   - Added 7 new tests to verify optimization features (32 total tests pass)
 
+- **Output Consolidation Helper**
+  - Added `oradba_env_output.sh` shared formatter for environment/status output
+  - Unified label alignment and divider layout across `oraenv.sh` and `oradba_env.sh`
+  - Added support for PORT/PORTS metadata display when available
+
 ### Fixed
 
 - **oradba_dsctl.sh Environment Setup**
@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed batch operations where only first connector was handled correctly
   - All connector operations (start/stop/restart/status) now work regardless of current shell environment
   - Resolves issues #187 and #185 patterns for multi-connector operations
+
+- **Environment Status Consistency**
+  - Consolidated non-database output for `oradba_env.sh show/status`
+  - Ensured `oraenv.sh` non-database output matches shared formatter
 
 ## [0.20.4] - 2026-02-10
 

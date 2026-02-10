@@ -187,10 +187,17 @@ show_oracle_home_status() {
     fi
 
     if [[ "${include_instance}" == "true" ]] && command -v oradba_get_product_status &>/dev/null; then
-        status=$(oradba_get_product_status "${product_type}" "${instance_name}" "${oracle_home}" 2>/dev/null || true)
-        if [[ "${status}" == "N/A" ]]; then
-            status=""
-        fi
+        case "${product_type_lower}" in
+            client|iclient|java)
+                status=""
+                ;;
+            *)
+                status=$(oradba_get_product_status "${product_type}" "${instance_name}" "${oracle_home}" 2>/dev/null || true)
+                if [[ "${status}" == "N/A" ]]; then
+                    status=""
+                fi
+                ;;
+        esac
     fi
 
     local oracle_base
