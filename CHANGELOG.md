@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TNS_ADMIN Reset on Env Switch**
   - Non-Data Safe environments now reapply config/default `TNS_ADMIN` after loading configs
   - Prevents Data Safe connector paths from persisting when switching to DB/client/java homes
+- **Data Safe Status Output**
+  - oraenv status now includes Data Safe install dir, Java home, and status
+  - Maps running connector status to `OPEN` for consistency with output examples
+  - Adds CMAN port extraction from cman.ora to status display
 
 ### Changed
 

@@ -256,6 +256,7 @@ format_uptime() {
 show_oracle_home_status() {
     local product_type
     local product_version
+    local status=""
     
     # Get product type from ORADBA_CURRENT_HOME_TYPE if available
     if [[ -n "${ORADBA_CURRENT_HOME_TYPE}" ]]; then
@@ -279,6 +280,55 @@ show_oracle_home_status() {
             ;;
     esac
     
+    if [[ "${product_type}" == "datasafe" || "${product_type}" == "DATASAFE" ]]; then
+        if command -v oradba_get_product_status &>/dev/null; then
+            status=$(oradba_get_product_status "datasafe" "${ORACLE_SID:-}" "${ORACLE_HOME:-}" 2>/dev/null || true)
+        fi
+
+        case "${status}" in
+            running)
+                status="OPEN"
+                ;;
+            stopped)
+                status="STOPPED"
+                ;;
+            unavailable|"" )
+                status="UNKNOWN"
+                ;;
+        esac
+
+        local datasafe_home
+        local cman_port=""
+        datasafe_home="${DATASAFE_INSTALL_DIR:-${DATASAFE_HOME:-}}"
+
+        local cman_conf=""
+        if [[ -n "${TNS_ADMIN}" ]]; then
+            cman_conf="${TNS_ADMIN}/cman.ora"
+        elif [[ -n "${ORACLE_HOME}" ]]; then
+            cman_conf="${ORACLE_HOME}/network/admin/cman.ora"
+        fi
+
+        if [[ -n "${cman_conf}" ]] && [[ -f "${cman_conf}" ]]; then
+            cman_port=$(grep -Eo 'PORT[[:space:]]*=[[:space:]]*[0-9]+' "${cman_conf}" | head -1 | tr -d '[:space:]' | cut -d= -f2)
+        fi
+
+        echo ""
+        echo "-------------------------------------------------------------------------------"
+        printf "%-14s : %s\n" "ORACLE_BASE" "${ORACLE_BASE:-Not set}"
+        printf "%-14s : %s\n" "DATASAFE_HOME" "${datasafe_home:-Not set}"
+        printf "%-14s : %s\n" "ORACLE_HOME" "${ORACLE_HOME:-Not set}"
+        printf "%-14s : %s\n" "TNS_ADMIN" "${TNS_ADMIN:-Not set}"
+        printf "%-14s : %s\n" "JAVA_HOME" "${JAVA_HOME:-Not set}"
+        printf "%-14s : %s\n" "ORACLE_VERSION" "${product_version:-Unknown}"
+        printf "%-14s : %s\n" "STATUS" "${status}"
+        [[ -n "${cman_port}" ]] && printf "%-14s : %s\n" "CMAN_PORT" "${cman_port}"
+        echo "-------------------------------------------------------------------------------"
+        printf "%-14s : %s\n" "PRODUCT_TYPE" "${product_type}"
+        echo "-------------------------------------------------------------------------------"
+        echo ""
+        return 0
+    fi
+
     echo ""
     echo "-------------------------------------------------------------------------------"
     printf "%-14s : %s\n" "ORACLE_BASE" "${ORACLE_BASE:-Not set}"
