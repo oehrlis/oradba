@@ -157,7 +157,7 @@ plugin_get_metadata() {
         elif strings "${home_path}/bin/oracle" 2>/dev/null | grep -q "Express Edition"; then
             echo "edition=Express"
         else
-            echo "edition=Unknown"
+            echo "edition=unknown"
         fi
     fi
     

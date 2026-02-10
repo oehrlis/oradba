@@ -228,7 +228,7 @@ format_uptime() {
     local startup_time="$1"
 
     if [[ -z "$startup_time" ]]; then
-        echo "Unknown"
+        echo "unknown"
         return
     fi
 
@@ -268,15 +268,15 @@ show_oracle_home_status() {
     # Get Oracle version only for products that have sqlplus
     case "${product_type}" in
         database|client|iclient|RDBMS|CLIENT|ICLIENT)
-            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
             ;;
         datasafe|DATASAFE|oud|OUD|weblogic|WLS|oms|OMS|emagent)
             # These products don't have sqlplus - use plugin-based detection
-            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
             ;;
         *)
             # Try to get version, but don't show errors
-            product_version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+            product_version=$(get_oracle_version 2>/dev/null || echo "unknown")
             ;;
     esac
     

@@ -38,17 +38,8 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_registry.sh" ]]; then
     oradba_log DEBUG "oraup.sh: Sourced oradba_registry.sh"
 fi
 
-# Load plugins if available
-if [[ -d "${ORADBA_BASE}/lib/plugins" ]]; then
-    oradba_log DEBUG "oraup.sh: Loading plugins from ${ORADBA_BASE}/lib/plugins"
-    for plugin in "${ORADBA_BASE}/lib/plugins/"*.sh; do
-        # shellcheck source=/dev/null
-        if [[ -f "$plugin" ]] && [[ "$plugin" != */plugin_interface.sh ]]; then
-            source "$plugin"
-            oradba_log DEBUG "oraup.sh: Loaded plugin $(basename "$plugin")"
-        fi
-    done
-fi
+# Avoid bulk plugin sourcing to prevent experimental status leakage
+oradba_log DEBUG "oraup.sh: Skipping bulk plugin load (using execute_plugin_function_v2)"
 
 # Get oratab file path using centralized function
 if type get_oratab_path &> /dev/null; then
@@ -527,7 +518,7 @@ show_oracle_status_registry() {
         echo "------------------------------------------------------------------------------------------"
         
         for ds_obj in "${datasafe_homes[@]}"; do
-            local name home status port_display
+            local name home status port_display metadata port
             name=$(oradba_registry_get_field "$ds_obj" "name")
             home=$(oradba_registry_get_field "$ds_obj" "home")
             port_display="n/a"
@@ -552,34 +543,17 @@ show_oracle_status_registry() {
                     oradba_log ERROR "oraup.sh: oradba_get_product_status function not available"
                 fi
                 
-                # Get port from DataSafe configuration using plugin
-                if type -t plugin_get_port &>/dev/null; then
-                    # Adjust to oracle_cman_home if needed
-                    local cman_home="${home}"
-                    if type -t plugin_adjust_environment &>/dev/null; then
-                        cman_home=$(plugin_adjust_environment "${home}")
-                    elif [[ -d "${home}/oracle_cman_home" ]]; then
-                        cman_home="${home}/oracle_cman_home"
-                    fi
-                    
-                    # Set TNS_ADMIN before calling plugin_get_port
-                    local saved_tns_admin="${TNS_ADMIN:-}"
-                    export TNS_ADMIN="${cman_home}/network/admin"
-                    
-                    # Call plugin_get_port to retrieve actual port
-                    local port
-                    if port=$(plugin_get_port "${home}" 2>/dev/null) && [[ -n "${port}" ]]; then
-                        port_display="${port}"
-                        oradba_log DEBUG "oraup.sh: Got port ${port} for connector ${name}"
-                    else
-                        oradba_log DEBUG "oraup.sh: Could not retrieve port for connector ${name}"
-                    fi
-                    
-                    # Restore TNS_ADMIN
-                    if [[ -n "${saved_tns_admin}" ]]; then
-                        export TNS_ADMIN="${saved_tns_admin}"
-                    else
-                        unset TNS_ADMIN
+                # Get port from Data Safe metadata via plugin system
+                if type -t execute_plugin_function_v2 &>/dev/null; then
+                    execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2>/dev/null || true
+                    if [[ -n "${metadata}" ]]; then
+                        port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
+                        if [[ -n "${port}" ]]; then
+                            port_display="${port}"
+                            oradba_log DEBUG "oraup.sh: Got port ${port} for connector ${name}"
+                        else
+                            oradba_log DEBUG "oraup.sh: Port not available in metadata for connector ${name}"
+                        fi
                     fi
                 fi
             fi
