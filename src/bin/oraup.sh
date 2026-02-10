@@ -123,8 +123,8 @@ get_db_status() {
     # - Oracle 23ai+: db_pmon_<SID> (uppercase)
     # - Oracle <23ai: ora_pmon_<sid> (lowercase)
     if [[ -n "$process_list" ]]; then
-        # Use cached process list
-        if echo "$process_list" | grep -v grep | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
+        # Use cached process list (safer with here-string)
+        if grep -v grep <<< "$process_list" | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
             echo "up"
         else
             echo "down"
@@ -208,8 +208,8 @@ get_listener_status() {
 
     # Check if listener process is running
     if [[ -n "$process_list" ]]; then
-        # Use cached process list
-        if echo "$process_list" | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
+        # Use cached process list (safer with here-string)
+        if grep -v grep <<< "$process_list" | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
             echo "up"
         else
             echo "down"
@@ -243,7 +243,7 @@ should_show_listener_section() {
     fi
     
     # Check for running listeners using cached process list
-    if echo "$process_list" | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+    if grep "[t]nslsnr" <<< "$process_list" | grep -qv "datasafe\|oracle_cman_home"; then
         return 0
     fi
     
@@ -392,7 +392,7 @@ show_oracle_status_registry() {
     local has_database_listeners=false
     
     # Check if any database listeners are actually running (using cached process list)
-    if echo "$process_list" | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+    if grep "[t]nslsnr" <<< "$process_list" | grep -qv "datasafe\|oracle_cman_home"; then
         has_database_listeners=true
     fi
     
@@ -547,7 +547,7 @@ show_oracle_status_registry() {
             # Use full path for listener home (not [SID] notation)
             printf "%-20s %-16s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
             ((listener_count++))
-        done < <(echo "$process_list" | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
+        done < <(grep "[t]nslsnr" <<< "$process_list" | grep -v "datasafe\|oracle_cman_home")
         
         if [[ $listener_count -eq 0 ]]; then
             echo "  No database listeners running"

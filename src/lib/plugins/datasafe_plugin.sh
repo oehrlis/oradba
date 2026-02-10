@@ -183,12 +183,12 @@ plugin_check_status() {
     # Use cached process list if available (ORADBA_CACHED_PS environment variable)
     # shellcheck disable=SC2009
     if [[ -n "${ORADBA_CACHED_PS:-}" ]]; then
-        # Use cached process list for batch detection
-        if echo "${ORADBA_CACHED_PS}" | grep -q "${base_path}.*[c]madmin"; then
+        # Use cached process list for batch detection (safer with here-string)
+        if grep -q "${base_path}.*[c]madmin" <<< "${ORADBA_CACHED_PS}"; then
             return 0
         fi
         
-        if echo "${ORADBA_CACHED_PS}" | grep -q "${base_path}.*[c]mgw"; then
+        if grep -q "${base_path}.*[c]mgw" <<< "${ORADBA_CACHED_PS}"; then
             return 0
         fi
     else
