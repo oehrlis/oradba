@@ -143,6 +143,7 @@ plugin_get_service_name() {
 #           1. cmctl show services -c <instance> (most accurate)
 #           2. Process-based detection (reliable fallback)
 #           3. Python setup.py (last resort)
+#           Supports ORADBA_CACHED_PS environment variable for batch detection
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local base_path="$1"
@@ -179,14 +180,26 @@ plugin_check_status() {
     
     # Secondary Method: Process-based detection (reliable fallback)
     # Check for running cmadmin or cmgw processes
+    # Use cached process list if available (ORADBA_CACHED_PS environment variable)
     # shellcheck disable=SC2009
-    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
-        return 0
-    fi
-    
-    # shellcheck disable=SC2009
-    if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
-        return 0
+    if [[ -n "${ORADBA_CACHED_PS:-}" ]]; then
+        # Use cached process list for batch detection
+        if echo "${ORADBA_CACHED_PS}" | grep -q "${base_path}.*[c]madmin"; then
+            return 0
+        fi
+        
+        if echo "${ORADBA_CACHED_PS}" | grep -q "${base_path}.*[c]mgw"; then
+            return 0
+        fi
+    else
+        # Fall back to calling ps -ef directly
+        if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
+            return 0
+        fi
+        
+        if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
+            return 0
+        fi
     fi
     
     # Tertiary Method: Python setup.py (last resort)

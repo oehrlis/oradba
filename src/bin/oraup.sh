@@ -96,21 +96,46 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
+# Function: get_process_list
+# Purpose.: Get cached process list (for batch process detection)
+# Returns.: Full process list from ps -ef
+# Output..: Process list to stdout
+# Notes...: Call once at start, reuse results to avoid repeated ps -ef calls
+# ------------------------------------------------------------------------------
+get_process_list() {
+    ps -ef 2>/dev/null || true
+}
+
+# ------------------------------------------------------------------------------
 # Function: get_db_status
 # Purpose.: Get database instance status by checking pmon process
+# Args....: $1 - SID name
+#           $2 - Optional: cached process list (from get_process_list)
 # Returns.: "up" or "down"
+# Notes...: If process list is provided, uses it instead of calling ps -ef
 # ------------------------------------------------------------------------------
 get_db_status() {
     local sid="$1"
+    local process_list="${2:-}"
     local sid_lower="${sid,,}"
 
     # Check for both naming conventions:
     # - Oracle 23ai+: db_pmon_<SID> (uppercase)
     # - Oracle <23ai: ora_pmon_<sid> (lowercase)
-    if ps -ef | grep -v grep | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
-        echo "up"
+    if [[ -n "$process_list" ]]; then
+        # Use cached process list
+        if echo "$process_list" | grep -v grep | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
+            echo "up"
+        else
+            echo "down"
+        fi
     else
-        echo "down"
+        # Fall back to calling ps -ef directly
+        if ps -ef | grep -v grep | grep -E "(db_pmon_${sid}|ora_pmon_${sid_lower})" > /dev/null 2>&1; then
+            echo "up"
+        else
+            echo "down"
+        fi
     fi
 }
 
@@ -169,29 +194,47 @@ EOF
 # ------------------------------------------------------------------------------
 # Function: get_listener_status
 # Purpose.: Get listener status (legacy, kept for backward compatibility)
+# Args....: $1 - Listener name (default: LISTENER)
+#           $2 - Oracle Home
+#           $3 - Optional: cached process list (from get_process_list)
 # Returns.: "up" or "down"
 # Notes...: Consider using plugin_check_listener_status() for new code
+#           If process list is provided, uses it instead of calling ps -ef
 # ------------------------------------------------------------------------------
 get_listener_status() {
     local listener_name="${1:-LISTENER}"
     local oracle_home="$2"
+    local process_list="${3:-}"
 
     # Check if listener process is running
-    if ps -ef | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
-        echo "up"
+    if [[ -n "$process_list" ]]; then
+        # Use cached process list
+        if echo "$process_list" | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
+            echo "up"
+        else
+            echo "down"
+        fi
     else
-        echo "down"
+        # Fall back to calling ps -ef directly
+        if ps -ef | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
+            echo "up"
+        else
+            echo "down"
+        fi
     fi
 }
 
 # ------------------------------------------------------------------------------
 # Function: should_show_listener_section
 # Purpose.: Check if listener section should be displayed using plugin system
-# Args....: $1 - Array of database homes
+# Args....: $1 - Process list (from get_process_list)
+#           $2+ - Array of database homes
 # Returns.: 0 if section should be shown, 1 otherwise
 # Notes...: Uses plugin_should_show_listener() from database plugin
 # ------------------------------------------------------------------------------
 should_show_listener_section() {
+    local process_list="$1"
+    shift
     local -a db_homes=("$@")
     
     # If we have database SIDs, always show (backward compatible)
@@ -199,8 +242,8 @@ should_show_listener_section() {
         return 0
     fi
     
-    # Check for running listeners
-    if ps -ef 2>/dev/null | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+    # Check for running listeners using cached process list
+    if echo "$process_list" | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
         return 0
     fi
     
@@ -212,11 +255,17 @@ should_show_listener_section() {
 # Purpose.: Display Oracle status using registry API (Phase 1)
 # Args....: Array of installation objects from registry
 # Notes...: Uses plugin system for product-specific behavior
+#           Implements batch process detection and parallel status checks
 # ------------------------------------------------------------------------------
 show_oracle_status_registry() {
     local -a installations=("$@")
     
     oradba_log DEBUG "oraup.sh: show_oracle_status_registry called with ${#installations[@]} installations"
+    
+    # OPTIMIZATION: Get process list once for batch process detection
+    local process_list
+    process_list=$(get_process_list)
+    oradba_log DEBUG "oraup.sh: Captured process list for batch detection ($(echo "$process_list" | wc -l) lines)"
     
     # Separate by type and source
     local -a database_sids=()      # Real SIDs from oratab (with flags)
@@ -319,9 +368,9 @@ show_oracle_status_registry() {
             home=$(oradba_registry_get_field "$db_obj" "home")
             flags=$(oradba_registry_get_field "$db_obj" "flags")
             
-            # Get status
+            # Get status using cached process list
             local status
-            status=$(get_db_status "$sid")
+            status=$(get_db_status "$sid" "$process_list")
             
             # Get open mode if instance is up
             if [[ "$status" == "up" ]]; then
@@ -342,8 +391,8 @@ show_oracle_status_registry() {
     local total_databases=$((${#database_sids[@]}))
     local has_database_listeners=false
     
-    # Check if any database listeners are actually running
-    if ps -ef 2>/dev/null | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
+    # Check if any database listeners are actually running (using cached process list)
+    if echo "$process_list" | grep "[t]nslsnr" | grep -qv "datasafe\|oracle_cman_home"; then
         has_database_listeners=true
     fi
     
@@ -356,7 +405,7 @@ show_oracle_status_registry() {
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
         echo "------------------------------------------------------------------------------------------"
         
-        # Check for running listeners
+        # Check for running listeners (using cached process list)
         local listener_count=0
         while read -r listener_line; do
             local listener_name listener_home
@@ -498,7 +547,7 @@ show_oracle_status_registry() {
             # Use full path for listener home (not [SID] notation)
             printf "%-20s %-16s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
             ((listener_count++))
-        done < <(ps -ef | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
+        done < <(echo "$process_list" | grep "[t]nslsnr" | grep -v "datasafe\|oracle_cman_home")
         
         if [[ $listener_count -eq 0 ]]; then
             echo "  No database listeners running"
@@ -517,48 +566,111 @@ show_oracle_status_registry() {
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "DATASAFE_BASE_HOME"
         echo "------------------------------------------------------------------------------------------"
         
+        # OPTIMIZATION: Parallel status checks for multiple connectors
+        # Use arrays to store results in order
+        local -a ds_names=()
+        local -a ds_homes=()
+        local -a ds_statuses=()
+        local -a ds_ports=()
+        local -a ds_pids=()
+        local -a ds_temp_files=()
+        
+        # Launch all status checks in parallel
+        local idx=0
         for ds_obj in "${datasafe_homes[@]}"; do
-            local name home status port_display metadata port
+            local name home
             name=$(oradba_registry_get_field "$ds_obj" "name")
             home=$(oradba_registry_get_field "$ds_obj" "home")
-            port_display="n/a"
             
-            # Check if directory exists first
+            ds_names+=("$name")
+            ds_homes+=("$home")
+            
+            # Check basic conditions first (synchronously for quick failures)
             if [[ ! -d "$home" ]]; then
-                status="unavailable"
+                ds_statuses+=("unavailable")
+                ds_ports+=("n/a")
+                ds_pids+=("")
+                ds_temp_files+=("")
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
-                status="empty"
+                ds_statuses+=("empty")
+                ds_ports+=("n/a")
+                ds_pids+=("")
+                ds_temp_files+=("")
             else
-                # Use modern plugin architecture (same as oradba_env.sh)
-                if type -t oradba_get_product_status &>/dev/null; then
-                    status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]')
-                    local exit_code=$?
-                    
-                    if [[ -z "$status" ]]; then
-                        status="unknown"
-                        oradba_log WARN "oraup.sh: Failed to get status for DataSafe connector $name (exit code: $exit_code)"
-                    fi
-                else
-                    status="unknown"
-                    oradba_log ERROR "oraup.sh: oradba_get_product_status function not available"
-                fi
+                # Launch status check in background with temp file for result
+                local temp_file
+                temp_file=$(mktemp)
+                ds_temp_files+=("$temp_file")
                 
-                # Get port from Data Safe metadata via plugin system
-                if type -t execute_plugin_function_v2 &>/dev/null; then
-                    execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2>/dev/null || true
-                    if [[ -n "${metadata}" ]]; then
-                        port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
-                        if [[ -n "${port}" ]]; then
-                            port_display="${port}"
-                            oradba_log DEBUG "oraup.sh: Got port ${port} for connector ${name}"
-                        else
-                            oradba_log DEBUG "oraup.sh: Port not available in metadata for connector ${name}"
+                # Background job to get status and port
+                (
+                    local status="unknown"
+                    local port_display="n/a"
+                    
+                    # Export cached process list for plugin to use
+                    export ORADBA_CACHED_PS="$process_list"
+                    
+                    # Get status using plugin system
+                    if type -t oradba_get_product_status &>/dev/null; then
+                        status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]')
+                        if [[ -z "$status" ]]; then
+                            status="unknown"
                         fi
                     fi
-                fi
+                    
+                    # Get port from metadata
+                    if type -t execute_plugin_function_v2 &>/dev/null; then
+                        local metadata
+                        execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2>/dev/null || true
+                        if [[ -n "${metadata}" ]]; then
+                            local port
+                            port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
+                            if [[ -n "${port}" ]]; then
+                                port_display="${port}"
+                            fi
+                        fi
+                    fi
+                    
+                    # Write results to temp file
+                    echo "${status}|${port_display}" > "$temp_file"
+                ) &
+                
+                ds_pids+=("$!")
+                ds_statuses+=("")  # Placeholder
+                ds_ports+=("")     # Placeholder
             fi
             
-            printf "%-20s %-16s %-13s %s\n" "$name" "$port_display" "$status" "$home"
+            ((idx++))
+        done
+        
+        # Wait for all background jobs and collect results
+        for idx in "${!ds_pids[@]}"; do
+            local pid="${ds_pids[$idx]}"
+            if [[ -n "$pid" ]]; then
+                wait "$pid" 2>/dev/null || true
+                
+                # Read results from temp file
+                local temp_file="${ds_temp_files[$idx]}"
+                if [[ -f "$temp_file" ]]; then
+                    local result
+                    result=$(cat "$temp_file")
+                    ds_statuses[idx]="${result%%|*}"
+                    ds_ports[idx]="${result#*|}"
+                    rm -f "$temp_file"
+                else
+                    ds_statuses[idx]="unknown"
+                    ds_ports[idx]="n/a"
+                fi
+            fi
+        done
+        
+        # Display results in original order
+        for idx in "${!ds_names[@]}"; do
+            printf "%-20s %-16s %-13s %s\n" \
+                "${ds_names[$idx]}" \
+                "${ds_ports[$idx]}" \
+                "${ds_statuses[$idx]}" \
+                "${ds_homes[$idx]}"
         done
     fi
     
