@@ -998,14 +998,16 @@ source oraenv
 #### Debug Output Levels
 
 **DEBUG Level** - Shows plugin call details and environment snapshot:
-```
+
+```text
 [DEBUG] Plugin call: plugin=database, function=check_status, oracle_home=/u01/app/oracle/product/19c
 [DEBUG] Plugin env: ORACLE_HOME=/u01/app/oracle/product/19c, LD_LIBRARY_PATH=/u01/app/oracle/product/19c/lib, TNS_ADMIN=<unset>, PATH=...
 [DEBUG] Plugin exit: code=0, plugin=database, function=check_status
 ```
 
 **TRACE Level** - Includes raw stdout/stderr from plugin functions:
-```
+
+```text
 [DEBUG] Plugin call: plugin=datasafe, function=check_status, oracle_home=/u01/app/oracle/cman01
 [DEBUG] Plugin env: ORACLE_HOME=/u01/app/oracle/cman01, LD_LIBRARY_PATH=/u01/app/oracle/cman01/lib, TNS_ADMIN=<unset>, PATH=...
 [TRACE] Plugin stdout: cmctl status
@@ -1031,7 +1033,7 @@ execute_plugin_function_v2 "database" "check_status" "/u01/app/oracle/product/19
 
 #### Troubleshooting Common Issues
 
-**Issue: Plugin function returns error but no details visible**
+**Issue**: Plugin function returns error but no details visible
 
 ```bash
 # Enable debug to see environment and call details
@@ -1039,7 +1041,7 @@ export ORADBA_LOG_LEVEL=DEBUG
 source oraenv
 ```
 
-**Issue: Command-line tool (sqlplus/cmctl/lsnrctl) failing inside plugin**
+**Issue**: Command-line tool (sqlplus/cmctl/lsnrctl) failing inside plugin
 
 ```bash
 # Enable trace to see raw stdout/stderr
@@ -1047,7 +1049,7 @@ export ORADBA_LOG_LEVEL=TRACE
 source oraenv
 ```
 
-**Issue: Environment variables not set correctly**
+**Issue**: Environment variables not set correctly
 
 ```bash
 # Debug shows exact environment passed to plugin
@@ -1056,7 +1058,7 @@ source oraenv
 # Look for "Plugin env:" lines showing ORACLE_HOME, LD_LIBRARY_PATH, PATH
 ```
 
-**Issue: Need to debug plugin without affecting all logging**
+**Issue**: Need to debug plugin without affecting all logging
 
 ```bash
 # Use dedicated plugin debug flag (doesn't enable DEBUG for everything else)
