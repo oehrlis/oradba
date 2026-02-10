@@ -3050,18 +3050,12 @@ is_plugin_trace_enabled() {
 sanitize_sensitive_data() {
     local text="$1"
     
-    # Mask PASSWORD environment variable assignments first (with quotes)
-    text=$(echo "$text" | sed -E 's/(PASSWORD|PWD|PASSWD)="[^"]*"/\1="***"/g')
-    text=$(echo "$text" | sed -E "s/(PASSWORD|PWD|PASSWD)='[^']*'/\1='***'/g")
-    
-    # Mask sqlplus/rman passwords: user/password@db -> user/***@db
-    text=$(echo "$text" | sed -E 's|([^[:space:]]+)/[^@[:space:]]+(@[^[:space:]]*)?|\1/***\2|g')
-    
-    # Mask password= patterns (case insensitive) - only unquoted values
-    # Use negative lookahead-like pattern by excluding quotes and equals from the value
-    text=$(echo "$text" | sed -E 's/(password|pwd|passwd)=([^[:space:]&;|"'\''=]+)/\1=***/gi')
-    
-    echo "$text"
+    # Apply all sanitization patterns in a single sed command for efficiency
+    echo "$text" | sed -E \
+        -e 's/(PASSWORD|PWD|PASSWD)="[^"]*"/\1="***"/g' \
+        -e "s/(PASSWORD|PWD|PASSWD)='[^']*'/\1='***'/g" \
+        -e 's|([^[:space:]]+)/[^@[:space:]]+(@[^[:space:]]*)?|\1/***\2|g' \
+        -e 's/(password|pwd|passwd)=([^[:space:]&;|"'\''=]+)/\1=***/gi'
 }
 
 # ------------------------------------------------------------------------------
@@ -3120,7 +3114,17 @@ execute_plugin_function_v2() {
     
     # Create temp files for capturing stderr
     local temp_stderr
-    temp_stderr=$(mktemp 2>/dev/null || echo "/tmp/oradba_plugin_stderr_$$")
+    temp_stderr=$(mktemp 2>/dev/null)
+    
+    # Verify mktemp succeeded - fail safely if not
+    if [[ -z "${temp_stderr}" ]] || [[ ! -f "${temp_stderr}" ]]; then
+        oradba_log ERROR "Failed to create temporary file for plugin stderr capture"
+        return 2
+    fi
+    
+    # Set up trap to ensure cleanup happens (use single quotes to defer expansion)
+    # shellcheck disable=SC2064
+    trap "rm -f '${temp_stderr}' 2>/dev/null" RETURN
     
     # Handle no-arg functions vs functions that take oracle_home
     if [[ "${oracle_home}" == "NOARGS" ]]; then
@@ -3196,10 +3200,9 @@ execute_plugin_function_v2() {
     fi
     local exit_code=$?
     
-    # Read stderr output if available
+    # Read stderr output if available (trap will clean up)
     if [[ -f "${temp_stderr}" ]]; then
         stderr_output=$(<"${temp_stderr}")
-        rm -f "${temp_stderr}" 2>/dev/null
     fi
     
     # Trace logging: Log raw stdout/stderr
