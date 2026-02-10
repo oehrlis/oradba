@@ -823,6 +823,15 @@ cmctl show service
 lsnrctl status CMAN_LISTENER
 ```
 
+You can also inspect connector status and resolved paths via:
+
+```bash
+oradba_env.sh status datasafe1
+```
+
+The status output includes `DATASAFE_HOME`, `JAVA_HOME`, `STATUS`, and the
+`CMAN_PORT` extracted from `cman.ora` when available.
+
 **Configuration file:**
 
 ```bash
