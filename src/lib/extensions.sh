@@ -38,6 +38,11 @@ discover_extensions() {
     local base_dir="${ORADBA_LOCAL_BASE}"
     local extensions=()
 
+    if [[ -z "${base_dir}" ]]; then
+        oradba_log DEBUG "Extension base directory not configured (ORADBA_LOCAL_BASE is empty)"
+        return 0
+    fi
+
     if [[ ! -d "${base_dir}" ]]; then
         oradba_log DEBUG "Extension base directory not found: ${base_dir}"
         return 0
