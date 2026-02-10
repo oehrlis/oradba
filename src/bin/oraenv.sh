@@ -603,10 +603,10 @@ _oraenv_handle_oracle_home() {
             export ORACLE_BASE="${derived_base}"
         fi
 
-        # Load hierarchical configuration for this Oracle Home first
+        # Load hierarchical configuration and extensions for this Oracle Home
         # This allows ORADBA_TNS_ADMIN to be set from config files
         oradba_log DEBUG "LD_LIBRARY_PATH before load_config: ${LD_LIBRARY_PATH:-<empty>}"
-        load_config "$requested_sid"
+        _oraenv_load_configurations "$requested_sid"
         oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
 
         # Get product type for TNS_ADMIN and path configurations

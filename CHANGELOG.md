@@ -9,11 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- N/A
+- _None_
 
 ### Fixed
 
-- N/A
+- _None_
+
+## [0.20.6] - 2026-02-10
+
+### Added
+
+- **Ignore Runtime Config Artifacts**
+  - Added `src/etc/oradba_homes.conf`, `src/etc/oratab`, and `src/etc/sid.dummy.conf` to `.gitignore`
+  - Treats runtime-generated config files as local artifacts
+
+### Fixed
+
+- **Oracle Home Extension Paths**
+  - Ensure extensions are loaded for Oracle Home environments (non-database homes)
+  - Keeps extension bin directories in PATH for Data Safe, Java, and similar homes
+- **Documentation Build Compatibility**
+  - Replaced Python YAML tags in `mkdocs.yml` with plain string references
+  - Prevents unresolved tag errors during MkDocs builds
+- **Repository Hygiene**
+  - Removed runtime-generated config files from `src/etc/`
 
 ## [0.20.5] - 2026-02-10
 
