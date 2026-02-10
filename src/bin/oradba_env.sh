@@ -622,6 +622,32 @@ cmd_status() {
     echo "Status:       $(oradba_get_product_status "$product_type" "$oracle_sid" "$oracle_home")"
 
     if [[ "${product_type}" == "datasafe" ]]; then
+        # Retrieve service name and port from DataSafe plugin
+        local meta_service="n/a"
+        local meta_port="n/a"
+        
+        if command -v execute_plugin_function_v2 &>/dev/null; then
+            local metadata=""
+            if execute_plugin_function_v2 "datasafe" "get_metadata" "${oracle_home}" "metadata" "" 2>/dev/null; then
+                # Parse metadata output (key=value pairs)
+                while IFS='=' read -r key value; do
+                    case "${key}" in
+                        service_name)
+                            meta_service="${value}"
+                            ;;
+                        port)
+                            meta_port="${value}"
+                            ;;
+                    esac
+                done <<< "${metadata}"
+            fi
+        fi
+        
+        # Display service and port after status
+        echo "Service:      ${meta_service}"
+        echo "CMAN_PORT:    ${meta_port}"
+        
+        # Display environment details
         local ds_install ds_home ds_tns ds_java
         IFS='|' read -r ds_install ds_home ds_tns ds_java <<< "$(resolve_datasafe_env "${oracle_home}")"
         echo "Install Dir:  ${ds_install}"
