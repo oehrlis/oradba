@@ -177,3 +177,47 @@ setup() {
     grep -q "total_databases\|has_database_listeners\|show.*listener" "${ORAUP_SCRIPT}"
 }
 
+# ------------------------------------------------------------------------------
+# Optimization Tests (Issue: Parallel status checks & batch process detection)
+# ------------------------------------------------------------------------------
+
+@test "oraup.sh has get_process_list function for batch detection" {
+    # Verify that batch process detection helper exists
+    grep -q "get_process_list()" "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh get_db_status accepts cached process list" {
+    # Verify that get_db_status can use cached process list as second argument
+    grep -A 10 "get_db_status()" "${ORAUP_SCRIPT}" | grep -q "process_list"
+}
+
+@test "oraup.sh implements parallel DataSafe status checks" {
+    # Verify parallel execution for DataSafe connectors (background jobs with &)
+    # Check for background job comment
+    grep -q "Background job to get status and port" "${ORAUP_SCRIPT}"
+    # Check for subshell backgrounding
+    sed -n '/SECTION 4: Data Safe Connectors/,/SECTION/p' "${ORAUP_SCRIPT}" | grep -q ") &"
+}
+
+@test "oraup.sh collects parallel results with wait" {
+    # Verify that parallel jobs are collected with wait
+    grep -q "wait.*pid" "${ORAUP_SCRIPT}"
+}
+
+@test "oraup.sh uses cached process list for listeners" {
+    # Verify that listener checks use cached process list instead of ps -ef
+    grep -A 5 "Check if any database listeners" "${ORAUP_SCRIPT}" | grep -q "process_list"
+}
+
+@test "datasafe_plugin.sh supports ORADBA_CACHED_PS environment variable" {
+    # Verify that DataSafe plugin can use cached process list
+    local DATASAFE_PLUGIN="${PROJECT_ROOT}/src/lib/plugins/datasafe_plugin.sh"
+    grep -q "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}"
+}
+
+@test "datasafe_plugin.sh falls back to ps -ef when no cache" {
+    # Verify that plugin maintains backward compatibility
+    local DATASAFE_PLUGIN="${PROJECT_ROOT}/src/lib/plugins/datasafe_plugin.sh"
+    grep -A 5 "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}" | grep -q "ps -ef"
+}
+
