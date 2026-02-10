@@ -1004,3 +1004,44 @@ EOF
     [ "$status" -eq 0 ]
     [ "$output" = "1561" ]
 }
+
+@test "datasafe plugin_get_metadata includes service_name and port" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_metadata_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with service name and port
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+test_service = (
+  configuration = (
+    address = (protocol=TCPS)(host=localhost)(port=1999)
+  )
+)
+CMAN_ORA
+    
+    # Create mock cmctl
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 21.9.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify output includes service_name
+    [[ "$output" == *"service_name=test_service"* ]]
+    
+    # Verify output includes port
+    [[ "$output" == *"port=1999"* ]]
+    
+    # Verify output includes type
+    [[ "$output" == *"type=datasafe_connector"* ]]
+}
