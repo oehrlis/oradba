@@ -45,7 +45,7 @@ discover_extensions() {
 
     oradba_log DEBUG "Scanning for extensions in: ${base_dir}"
 
-    # Find directories with .extension marker
+    # Find directories with .extension marker or content directories
     for dir in "${base_dir}"/*; do
         # Skip if not a directory
         [[ ! -d "${dir}" ]] && continue
@@ -59,10 +59,13 @@ discover_extensions() {
             continue
         fi
 
-        # Check for .extension marker file
+        # Check for .extension marker file or content directories (bin/, sql/, rcv/)
         if [[ -f "${dir}/.extension" ]]; then
             extensions+=("${dir}")
             oradba_log DEBUG "Found extension with metadata: ${dir_name}"
+        elif [[ -d "${dir}/bin" ]] || [[ -d "${dir}/sql" ]] || [[ -d "${dir}/rcv" ]]; then
+            extensions+=("${dir}")
+            oradba_log DEBUG "Found extension with content directories: ${dir_name}"
         fi
     done
 

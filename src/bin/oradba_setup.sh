@@ -292,21 +292,55 @@ cmd_check() {
     echo ""
 
     # Check extensions
-    if [[ -d "${ORADBA_BASE}/extensions" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
         echo "Extensions:"
-        local ext_count
-        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2> /dev/null | wc -l | tr -d ' ')
+        local ext_count=0
+        local ext_dir
+        # Count directories with .extension or content directories (excluding oradba itself)
+        for ext_dir in "${ORADBA_LOCAL_BASE}"/*; do
+            [[ ! -d "${ext_dir}" ]] && continue
+            local ext_name
+            ext_name="$(basename "${ext_dir}")"
+            # Skip oradba itself
+            if [[ "${ext_name}" == "oradba" ]] || [[ "${ext_dir}" == "${ORADBA_BASE}" ]]; then
+                continue
+            fi
+            # Check for .extension or content directories
+            if [[ -f "${ext_dir}/.extension" ]] || [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || [[ -d "${ext_dir}/rcv" ]]; then
+                ((ext_count++))
+            fi
+        done
+        
         if [[ $ext_count -gt 0 ]]; then
-            echo "  ✓ Installed extensions: $ext_count"
-            find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | while read -r ext; do
-                if [[ -f "${ORADBA_BASE}/extensions/${ext}/.extension" ]]; then
-                    local enabled
-                    enabled=$(grep -q "^enabled=true" "${ORADBA_BASE}/extensions/${ext}/.extension" 2> /dev/null && echo "enabled" || echo "disabled")
-                    echo "    - ${ext} (${enabled})"
+            echo "  ✓ Discovered extensions: $ext_count"
+            for ext_dir in "${ORADBA_LOCAL_BASE}"/*; do
+                [[ ! -d "${ext_dir}" ]] && continue
+                local ext_name
+                ext_name="$(basename "${ext_dir}")"
+                # Skip oradba itself
+                if [[ "${ext_name}" == "oradba" ]] || [[ "${ext_dir}" == "${ORADBA_BASE}" ]]; then
+                    continue
+                fi
+                # Check for .extension or content directories
+                if [[ -f "${ext_dir}/.extension" ]] || [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || [[ -d "${ext_dir}/rcv" ]]; then
+                    local enabled="enabled"
+                    # Check if disabled via metadata or config
+                    if [[ -f "${ext_dir}/.extension" ]]; then
+                        if grep -q "^enabled:[[:space:]]*false" "${ext_dir}/.extension" 2> /dev/null; then
+                            enabled="disabled"
+                        fi
+                    fi
+                    # Check config override
+                    local safe_ext_name="${ext_name//-/_}"
+                    local config_var="ORADBA_EXT_${safe_ext_name^^}_ENABLED"
+                    if [[ "${!config_var}" == "false" ]]; then
+                        enabled="disabled"
+                    fi
+                    echo "    - ${ext_name} (${enabled})"
                 fi
             done
         else
-            echo "  ℹ No extensions installed"
+            echo "  ℹ No extensions found"
         fi
         echo ""
     fi
@@ -377,10 +411,25 @@ cmd_show_config() {
 
     echo "Extensions:"
     echo "  Auto-discover:     ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-false}"
-    if [[ -d "${ORADBA_BASE}/extensions" ]]; then
-        local ext_count
-        ext_count=$(find "${ORADBA_BASE}/extensions" -mindepth 1 -maxdepth 1 -type d 2> /dev/null | wc -l | tr -d ' ')
-        echo "  Installed:         $ext_count"
+    echo "  Base directory:    ${ORADBA_LOCAL_BASE:-<not set>}"
+    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
+        local ext_count=0
+        local ext_dir
+        # Count directories with .extension or content directories (excluding oradba itself)
+        for ext_dir in "${ORADBA_LOCAL_BASE}"/*; do
+            [[ ! -d "${ext_dir}" ]] && continue
+            local ext_name
+            ext_name="$(basename "${ext_dir}")"
+            # Skip oradba itself
+            if [[ "${ext_name}" == "oradba" ]] || [[ "${ext_dir}" == "${ORADBA_BASE}" ]]; then
+                continue
+            fi
+            # Check for .extension or content directories
+            if [[ -f "${ext_dir}/.extension" ]] || [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || [[ -d "${ext_dir}/rcv" ]]; then
+                ((ext_count++))
+            fi
+        done
+        echo "  Discovered:        $ext_count"
     fi
     echo ""
 
