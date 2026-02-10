@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **oradba_dsctl.sh Environment Setup**
+  - Added `setup_connector_environment()` function to automatically set connector-specific environment
+  - Each connector now gets proper ORACLE_HOME, LD_LIBRARY_PATH, TNS_ADMIN, and DATASAFE_HOME before operations
+  - Fixed issue where operations failed unless user manually ran `. oraenv.sh <connector>` first
+  - Fixed batch operations where only first connector was handled correctly
+  - All connector operations (start/stop/restart/status) now work regardless of current shell environment
+  - Resolves issues #187 and #185 patterns for multi-connector operations
+
 ## [0.20.4] - 2026-02-10
 
 ### Added

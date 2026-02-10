@@ -222,6 +222,10 @@ teardown() {
     grep -q "^ask_justification()" "${ORADBA_BIN}/oradba_dsctl.sh"
 }
 
+@test "oradba_dsctl.sh defines setup_connector_environment function" {
+    grep -q "^setup_connector_environment()" "${ORADBA_BIN}/oradba_dsctl.sh"
+}
+
 # ------------------------------------------------------------------------------
 # Library Sourcing Tests
 # ------------------------------------------------------------------------------
@@ -274,6 +278,34 @@ teardown() {
 
 @test "oradba_dsctl.sh checks for datasafe type installations" {
     grep -q "datasafe" "${ORADBA_BIN}/oradba_dsctl.sh"
+}
+
+@test "setup_connector_environment sets ORACLE_HOME" {
+    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export ORACLE_HOME"
+}
+
+@test "setup_connector_environment sets LD_LIBRARY_PATH" {
+    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export LD_LIBRARY_PATH"
+}
+
+@test "setup_connector_environment sets TNS_ADMIN" {
+    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export TNS_ADMIN"
+}
+
+@test "setup_connector_environment sets DATASAFE_HOME" {
+    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export DATASAFE_HOME"
+}
+
+@test "start_connector calls setup_connector_environment" {
+    grep "^start_connector()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
+}
+
+@test "stop_connector calls setup_connector_environment" {
+    grep "^stop_connector()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
+}
+
+@test "show_status calls setup_connector_environment" {
+    grep "^show_status()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
 }
 
 # ------------------------------------------------------------------------------
