@@ -771,8 +771,8 @@ oradba_validate.sh
 # Check extension status
 oradba_extension.sh list
 
-# Review extension requirements
-cat $ORADBA_BASE/extensions/*/metadata.json
+# Review extension metadata
+cat ${ORADBA_LOCAL_BASE}/*/. extension 2>/dev/null
 ```
 
 **Fix:**

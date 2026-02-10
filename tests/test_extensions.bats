@@ -83,7 +83,7 @@ teardown() {
     [[ "${result}" == *"test_ext1"* ]]
 }
 
-@test "discover_extensions requires .extension marker file" {
+@test "discover_extensions finds extension with content directories (no .extension marker)" {
     # Create directory without .extension marker but with bin/
     mkdir -p "${TEST_TEMP_DIR}/test_ext2/bin"
     
@@ -91,8 +91,45 @@ teardown() {
     local result
     result=$(discover_extensions)
     
-    # Should NOT find the extension without .extension marker
-    [[ "${result}" != *"test_ext2"* ]]
+    # Should find the extension (with bin/ directory)
+    [[ "${result}" == *"test_ext2"* ]]
+}
+
+@test "discover_extensions finds extension with sql directory only" {
+    # Create directory with only sql/ directory (no .extension)
+    mkdir -p "${TEST_TEMP_DIR}/test_sql_ext/sql"
+    
+    # Discover
+    local result
+    result=$(discover_extensions)
+    
+    # Should find the extension with sql/ directory
+    [[ "${result}" == *"test_sql_ext"* ]]
+}
+
+@test "discover_extensions finds extension with rcv directory only" {
+    # Create directory with only rcv/ directory (no .extension)
+    mkdir -p "${TEST_TEMP_DIR}/test_rcv_ext/rcv"
+    
+    # Discover
+    local result
+    result=$(discover_extensions)
+    
+    # Should find the extension with rcv/ directory
+    [[ "${result}" == *"test_rcv_ext"* ]]
+}
+
+@test "discover_extensions skips directory with no .extension and no content dirs" {
+    # Create directory without .extension and without content directories
+    mkdir -p "${TEST_TEMP_DIR}/test_empty_ext/doc"
+    mkdir -p "${TEST_TEMP_DIR}/test_empty_ext/templates"
+    
+    # Discover
+    local result
+    result=$(discover_extensions)
+    
+    # Should NOT find this extension (no .extension, no bin/sql/rcv)
+    [[ "${result}" != *"test_empty_ext"* ]]
 }
 
 @test "discover_extensions skips oradba directory" {
