@@ -181,3 +181,37 @@ setup() {
     # Check that the function uses printf for formatting
     grep -q "printf" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }
+
+# Test: oradba_env_status.sh is sourced for product status functions
+@test "oradba_db_functions.sh sources oradba_env_status.sh" {
+    # Verify that oradba_get_product_status function is available
+    type -t oradba_get_product_status | grep -q "function"
+}
+
+# Test: show_oracle_home_status exists and can be called
+@test "show_oracle_home_status function is defined" {
+    type -t show_oracle_home_status | grep -q "function"
+}
+
+# Test: show_oracle_home_status handles datasafe product type
+@test "show_oracle_home_status handles datasafe product type" {
+    export ORADBA_CURRENT_HOME_TYPE="datasafe"
+    export ORACLE_HOME="/test/oracle_cman_home"
+    export DATASAFE_HOME="/test"
+    
+    run show_oracle_home_status
+    [ "$status" -eq 0 ]
+    # Should contain datasafe-specific fields
+    [[ "$output" =~ "DATASAFE_HOME" ]]
+    [[ "$output" =~ "SERVICE" ]]
+    [[ "$output" =~ "CMAN_PORT" ]]
+}
+
+# Test: show_oracle_home_status preserves running status for datasafe
+@test "show_oracle_home_status shows running status for datasafe" {
+    # This test verifies the fix - status should be preserved, not mapped to "open"
+    # We check that the case statement in show_oracle_home_status doesn't map "running" to "open"
+    grep -A 5 'case "${status}"' "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh" | grep -q 'running)'
+    # Verify it sets status="running" not status="open"
+    grep -A 6 'case "${status}"' "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh" | grep -A 1 'running)' | grep -q 'status="running"'
+}
