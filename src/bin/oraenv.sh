@@ -69,6 +69,11 @@ fi
 # Source extension system library (optional, only if enabled)
 if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && [[ -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/extensions.sh"
+    oradba_log DEBUG "Extension system library loaded (extensions.sh sourced)"
+elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" != "true" ]]; then
+    oradba_log DEBUG "Extension discovery disabled (ORADBA_AUTO_DISCOVER_EXTENSIONS=${ORADBA_AUTO_DISCOVER_EXTENSIONS})"
+elif [[ ! -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
+    oradba_log DEBUG "Extension system library not found: ${_ORAENV_BASE_DIR}/lib/extensions.sh"
 fi
 
 # Source new environment management libraries (Phase 1 - v0.19.0)
@@ -934,10 +939,18 @@ _oraenv_load_configurations() {
     fi
 
     # Load extensions (skip in coexistence mode unless forced) (#15)
+    oradba_log DEBUG "Checking extension loading conditions..."
     if [[ "${ORADBA_COEXIST_MODE}" != "basenv" ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
         if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &> /dev/null; then
+            oradba_log DEBUG "Loading enabled extension bin directories into PATH"
             load_extensions
+        elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" != "true" ]]; then
+            oradba_log DEBUG "Extension loading skipped: ORADBA_AUTO_DISCOVER_EXTENSIONS=${ORADBA_AUTO_DISCOVER_EXTENSIONS}"
+        elif ! command -v load_extensions &> /dev/null; then
+            oradba_log DEBUG "Extension loading skipped: load_extensions function not available (extensions.sh not sourced)"
         fi
+    else
+        oradba_log DEBUG "Extension loading skipped: Coexistence mode (ORADBA_COEXIST_MODE=${ORADBA_COEXIST_MODE}, ORADBA_EXTENSIONS_IN_COEXIST=${ORADBA_EXTENSIONS_IN_COEXIST:-false})"
     fi
 }
 

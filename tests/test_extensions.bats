@@ -1517,4 +1517,88 @@ EOF
     unset TEST_INTEGRATION_BASE
 }
 
+# ==============================================================================
+# Extension Diagnostic Logging Tests (#194)
+# ==============================================================================
+
+@test "discover_extensions logs when ORADBA_LOCAL_BASE is empty" {
+    # Set DEBUG logging
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # Unset ORADBA_LOCAL_BASE
+    unset ORADBA_LOCAL_BASE
+    
+    # Run discover_extensions and capture output
+    local result
+    result=$(discover_extensions 2>&1)
+    
+    # Should log that base directory is not configured
+    [[ "${result}" == *"Extension base directory not configured"* ]] || \
+    [[ "${result}" == *"ORADBA_LOCAL_BASE is empty"* ]]
+}
+
+@test "discover_extensions logs when ORADBA_LOCAL_BASE does not exist" {
+    # Set DEBUG logging
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # Set ORADBA_LOCAL_BASE to non-existent directory
+    export ORADBA_LOCAL_BASE="/nonexistent/directory/path"
+    
+    # Run discover_extensions and capture output
+    local result
+    result=$(discover_extensions 2>&1)
+    
+    # Should log that base directory was not found
+    [[ "${result}" == *"Extension base directory not found"* ]] || \
+    [[ "${result}" == *"/nonexistent/directory/path"* ]]
+}
+
+@test "discover_extensions logs scanning message when directory exists" {
+    # Set DEBUG logging
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # ORADBA_LOCAL_BASE is already set to TEST_TEMP_DIR in setup()
+    
+    # Run discover_extensions and capture output
+    local result
+    result=$(discover_extensions 2>&1)
+    
+    # Should log that it's scanning for extensions
+    [[ "${result}" == *"Scanning for extensions"* ]] || \
+    [[ "${result}" == *"${TEST_TEMP_DIR}"* ]]
+}
+
+@test "load_extensions logs when no extensions found" {
+    # Set DEBUG logging
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # Empty directory (no extensions)
+    # TEST_TEMP_DIR is already empty from setup()
+    
+    # Run load_extensions and capture output
+    local result
+    result=$(load_extensions 2>&1)
+    
+    # Should log that no extensions were found
+    [[ "${result}" == *"No extensions found"* ]]
+}
+
+@test "load_extensions logs when extensions are found" {
+    # Set DEBUG logging
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # Create test extension
+    mkdir -p "${TEST_TEMP_DIR}/test_ext/bin"
+    echo "name: test_ext" > "${TEST_TEMP_DIR}/test_ext/.extension"
+    
+    # Run load_extensions and capture output
+    local result
+    result=$(load_extensions 2>&1)
+    
+    # Should log discovery and loading
+    [[ "${result}" == *"Starting extension discovery and loading"* ]] && \
+    [[ "${result}" == *"Found 1 extension"* ]] && \
+    [[ "${result}" == *"Loading extension: test_ext"* ]]
+}
+
 # EOF
