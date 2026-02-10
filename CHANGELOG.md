@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Plugin Debug Facilities**
+  - Added TRACE log level for fine-grained debugging (finer than DEBUG)
+  - Added `ORADBA_PLUGIN_DEBUG` environment variable to enable plugin-specific debugging
+  - Added `is_plugin_debug_enabled()` helper function to check debug enablement
+  - Added `is_plugin_trace_enabled()` helper function to check trace enablement
+  - Added `sanitize_sensitive_data()` function to mask passwords and connection strings in logs
+  - Plugin debug shows:
+    - DEBUG level: Plugin call details (function, args) and environment snapshot (ORACLE_HOME, LD_LIBRARY_PATH, PATH, TNS_ADMIN)
+    - DEBUG level: Plugin exit codes
+    - TRACE level: Raw stdout/stderr from plugin functions (sanitized)
+  - Automatic sanitization of sensitive data (passwords, connection strings) in all debug output
+  - Plugin debug enabled when: `ORADBA_PLUGIN_DEBUG=true` OR `ORADBA_LOG_LEVEL=DEBUG` OR `ORADBA_LOG_LEVEL=TRACE` OR `DEBUG=1`
+  - Comprehensive test suite with 25 tests covering all debug functionality
+  - Updated plugin-development.md with troubleshooting guide using debug facilities
+
 ### Fixed
 
 - **Data Safe Status Output**
