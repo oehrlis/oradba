@@ -141,7 +141,6 @@ plugin_get_binaries() {
 EOF
     
     # Test no-arg function with NOARGS
-    local result
     run execute_plugin_function_v2 "noargs" "get_config" "NOARGS"
     [ "$status" -eq 0 ]
     [[ "${output}" == "CONFIG_SECTION=RDBMS" ]]
