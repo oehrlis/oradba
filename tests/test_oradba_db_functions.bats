@@ -76,7 +76,7 @@ setup() {
 # Test: format_uptime handles empty input
 @test "format_uptime handles empty input" {
     result=$(format_uptime "")
-    [[ "$result" == "Unknown" ]]
+    [[ "$result" == "unknown" ]]
 }
 
 # Test: format_uptime formats valid timestamp

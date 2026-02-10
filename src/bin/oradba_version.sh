@@ -62,7 +62,7 @@ check_version() {
     if [[ -f "${version_file}" ]]; then
         cat "${version_file}"
     else
-        echo "Unknown"
+        echo "unknown"
         return 1
     fi
 }

@@ -228,7 +228,7 @@ format_uptime() {
     local startup_time="$1"
 
     if [[ -z "$startup_time" ]]; then
-        echo "Unknown"
+        echo "unknown"
         return
     fi
 

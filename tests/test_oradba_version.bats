@@ -87,7 +87,7 @@ teardown() {
 @test "oradba_version.sh --check fails without VERSION file" {
     run "$ORADBA_VERSION" --check
     [[ "$status" -eq 1 ]]
-    [[ "$output" == "Unknown" ]]
+    [[ "$output" == "unknown" ]]
 }
 
 # ------------------------------------------------------------------------------
