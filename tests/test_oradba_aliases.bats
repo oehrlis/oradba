@@ -22,20 +22,21 @@ setup() {
     # Get the directory containing the script
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Source the common library first (provides log functions)
-    export ORADBA_PREFIX="${PROJECT_ROOT}/src"
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    export ORADBA_PREFIX="${ORADBA_SRC_BASE}"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     
     # Source the aliases library
     # Note: This cleans up internal helper functions after sourcing (v0.19.1)
     # Only oradba_tnsping remains as it's needed by the tnsping alias
-    source "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_aliases.sh"
     
     # Re-define internal functions for testing
     # These are normally cleaned up but we need them for unit tests
     # shellcheck disable=SC1090  # Dynamic source for test setup only
-    source <(sed -n '/^has_rlwrap()/,/^}/p; /^create_dynamic_alias()/,/^}/p; /^get_diagnostic_dest()/,/^}/p; /^generate_base_aliases()/,/^}/p; /^generate_sid_aliases()/,/^}/p' "${PROJECT_ROOT}/src/lib/oradba_aliases.sh")
+    source <(sed -n '/^has_rlwrap()/,/^}/p; /^create_dynamic_alias()/,/^}/p; /^get_diagnostic_dest()/,/^}/p; /^generate_base_aliases()/,/^}/p; /^generate_sid_aliases()/,/^}/p' "${ORADBA_SRC_BASE}/lib/oradba_aliases.sh")
     
     # Create temp directory for tests
     TEMP_TEST_DIR="${BATS_TMPDIR}/oradba_aliases_test_$$"
@@ -62,7 +63,7 @@ teardown() {
 # ------------------------------------------------------------------------------
 
 @test "oradba_aliases.sh can be sourced" {
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'; echo 'OK'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_aliases.sh'; echo 'OK'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
 }
@@ -489,8 +490,8 @@ teardown() {
         export ORACLE_SID='AUTOTEST'
         export ORACLE_BASE='${TEMP_TEST_DIR}/oracle'
         export ORADBA_PREFIX='${PROJECT_ROOT}/src'
-        source '${PROJECT_ROOT}/src/lib/oradba_common.sh'
-        source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'
+        source '${ORADBA_SRC_BASE}/lib/oradba_common.sh'
+        source '${ORADBA_SRC_BASE}/lib/oradba_aliases.sh'
         echo OK
     "
     [ "$status" -eq 0 ]
@@ -501,7 +502,7 @@ teardown() {
     unset ORACLE_SID
     
     # Should not fail to source
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_aliases.sh'; echo 'OK'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_aliases.sh'; echo 'OK'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
 }
@@ -545,26 +546,26 @@ teardown() {
 
 @test "internal helper functions are cleaned up after sourcing" {
     # Start fresh bash and source oradba_aliases.sh
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type has_rlwrap 2>&1"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type has_rlwrap 2>&1"
     # Should not exist
     [ "$status" -ne 0 ]
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type create_dynamic_alias 2>&1"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type create_dynamic_alias 2>&1"
     [ "$status" -ne 0 ]
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type get_diagnostic_dest 2>&1"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type get_diagnostic_dest 2>&1"
     [ "$status" -ne 0 ]
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type generate_base_aliases 2>&1"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type generate_base_aliases 2>&1"
     [ "$status" -ne 0 ]
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type generate_sid_aliases 2>&1"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type generate_sid_aliases 2>&1"
     [ "$status" -ne 0 ]
 }
 
 @test "oradba_tnsping function remains after sourcing" {
     # oradba_tnsping must remain as it's used by the tnsping alias
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && source ${PROJECT_ROOT}/src/lib/oradba_aliases.sh && type oradba_tnsping"
+    run bash -c "source ${ORADBA_SRC_BASE}/lib/oradba_common.sh && source ${ORADBA_SRC_BASE}/lib/oradba_aliases.sh && type oradba_tnsping"
     [ "$status" -eq 0 ]
 }
 # ------------------------------------------------------------------------------

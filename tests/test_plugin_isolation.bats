@@ -16,14 +16,14 @@
 setup() {
     # Source common library
     SCRIPT_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd)"
-    export ORADBA_BASE="${SCRIPT_DIR}/.."
-    source "${ORADBA_BASE}/src/lib/oradba_common.sh"
+    export ORADBA_BASE="${SCRIPT_DIR}/../src"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     
     # Create temp directory for test plugins
     export TEST_TEMP_DIR="${BATS_TEST_TMPDIR}/oradba_test_$$"
     mkdir -p "${TEST_TEMP_DIR}/plugins"
     export ORADBA_BASE="${TEST_TEMP_DIR}"
-    mkdir -p "${ORADBA_BASE}/src/lib/plugins"
+    mkdir -p "${ORADBA_BASE}/lib/plugins"
 }
 
 # Cleanup
@@ -36,7 +36,7 @@ teardown() {
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: plugin cannot modify parent variables" {
     # Create test plugin that tries to modify environment
-    cat > "${ORADBA_BASE}/src/lib/plugins/test_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/test_plugin.sh" <<'EOF'
 plugin_modify_env() {
     export TEST_VAR="modified_value"
     export NEW_VAR="new_value"
@@ -63,7 +63,7 @@ EOF
 # Test 2: ORACLE_HOME and LD_LIBRARY_PATH are passed to plugin
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: minimal Oracle environment available in plugin" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/oracle_env_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/oracle_env_plugin.sh" <<'EOF'
 plugin_check_env() {
     local home="$1"
     # Verify ORACLE_HOME is set
@@ -97,7 +97,7 @@ EOF
 # Test 3: Exit code propagation
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: exit codes propagate correctly" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/exitcode_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/exitcode_plugin.sh" <<'EOF'
 plugin_exit_success() {
     echo "success"
     return 0
@@ -127,7 +127,7 @@ EOF
 # Test 4: No-args function support (NOARGS)
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: NOARGS support for no-arg functions" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/noargs_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/noargs_plugin.sh" <<'EOF'
 plugin_get_config() {
     # This function takes no arguments
     echo "CONFIG_SECTION=RDBMS"
@@ -156,7 +156,7 @@ EOF
 # Test 5: Result variable capture
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: result variable capture works" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/result_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/result_plugin.sh" <<'EOF'
 plugin_get_data() {
     echo "result_data"
     return 0
@@ -178,7 +178,7 @@ EOF
 # Test 6: Plugin function not found
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: returns error for missing function" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/missing_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/missing_plugin.sh" <<'EOF'
 plugin_existing_func() {
     echo "exists"
     return 0
@@ -203,7 +203,7 @@ EOF
 # Test 8: Function definitions don't leak to parent
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: function definitions isolated" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/funcdef_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/funcdef_plugin.sh" <<'EOF'
 plugin_define_funcs() {
     # Define some functions in plugin
     test_function_one() {
@@ -232,7 +232,7 @@ EOF
 # Test 9: Plugin modifications don't leak back to parent
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: plugin modifications don't leak to parent" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/varcheck_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/varcheck_plugin.sh" <<'EOF'
 plugin_check_vars() {
     # Exported variables are inherited (expected), but modifications don't leak back
     # Verify ORACLE_HOME is available
@@ -269,7 +269,7 @@ EOF
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: strict error handling active" {
     skip "Unreliable test - bash -u behavior varies across environments"
-    cat > "${ORADBA_BASE}/src/lib/plugins/strict_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/strict_plugin.sh" <<'EOF'
 plugin_test_strict() {
     # Try to use undefined variable (should fail with set -u)
     local result="${UNDEFINED_VAR}"
@@ -287,7 +287,7 @@ EOF
 # Test 11: Extra argument support
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: extra argument passed correctly" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/extraarg_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/extraarg_plugin.sh" <<'EOF'
 plugin_with_extra() {
     local home="$1"
     local extra="$2"
@@ -308,7 +308,7 @@ EOF
 # Test 12: LD_LIBRARY_PATH inheritance when already set
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: LD_LIBRARY_PATH inherited when set" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/ldlib_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/ldlib_plugin.sh" <<'EOF'
 plugin_check_ldlib() {
     echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
     return 0
@@ -331,7 +331,7 @@ EOF
 # Test 13: Verify state changes don't persist after plugin execution
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: state changes don't persist" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/state_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/state_plugin.sh" <<'EOF'
 # Global variable in plugin
 PLUGIN_STATE="initial"
 
@@ -362,7 +362,7 @@ EOF
 # Test 14: TNS_ADMIN variable is unset before plugin execution
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: TNS_ADMIN is unset to prevent cross-contamination" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/tns_check_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/tns_check_plugin.sh" <<'EOF'
 plugin_check_tns() {
     local home="$1"
     # Check if TNS_ADMIN is set
@@ -395,7 +395,7 @@ EOF
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: plugin_status is unset to prevent experimental status leakage" {
     # Create an experimental plugin
-    cat > "${ORADBA_BASE}/src/lib/plugins/experimental_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/experimental_plugin.sh" <<'EOF'
 export plugin_status="EXPERIMENTAL"
 plugin_test_func() {
     echo "experimental_plugin_output"
@@ -404,7 +404,7 @@ plugin_test_func() {
 EOF
 
     # Create a non-experimental plugin
-    cat > "${ORADBA_BASE}/src/lib/plugins/normal_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/normal_plugin.sh" <<'EOF'
 plugin_test_func() {
     # Check if plugin_status leaked from experimental plugin
     if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
@@ -431,7 +431,7 @@ EOF
 # Test 16: TNS_ADMIN and plugin_status unset for NOARGS functions
 # ------------------------------------------------------------------------------
 @test "execute_plugin_function_v2: TNS_ADMIN and plugin_status unset for NOARGS functions" {
-    cat > "${ORADBA_BASE}/src/lib/plugins/noargs_check_plugin.sh" <<'EOF'
+    cat > "${ORADBA_BASE}/lib/plugins/noargs_check_plugin.sh" <<'EOF'
 plugin_check_vars() {
     # Check if inherited variables are unset
     if [[ -n "${TNS_ADMIN:-}" ]]; then

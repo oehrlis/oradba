@@ -16,8 +16,8 @@
 
 # Test setup
 setup() {
-    # Set ORADBA_BASE to project root
-    ORADBA_BASE="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
+    # Set ORADBA_BASE to repo src directory
+    ORADBA_BASE="$(cd "$(dirname "$BATS_TEST_FILENAME")/../src" && pwd)"
     export ORADBA_BASE
     
     # Create temporary test files
@@ -27,7 +27,7 @@ setup() {
     export ORATAB_FILE="$TEST_ORATAB"
     
     # Source the parser
-    source "${ORADBA_BASE}/src/lib/oradba_env_parser.sh"
+    source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
     
     # Create test oratab
     cat > "$TEST_ORATAB" <<EOF

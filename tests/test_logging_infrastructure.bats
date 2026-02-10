@@ -19,9 +19,10 @@ setup() {
     # Get the directory containing the script
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(cd "$TEST_DIR/.." && pwd)"
+    export ORADBA_BASE="${PROJECT_ROOT}/src"
     
     # Source common library
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     
     # Reset environment for each test
     unset ORADBA_LOG_DIR
@@ -60,7 +61,7 @@ teardown() {
         skip "Requires write access to /var/log"
     fi
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_DIR}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_DIR}"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "/var/log/oradba" ]]
 }
@@ -69,7 +70,7 @@ teardown() {
     # Simulate non-writable /var/log by using custom directory
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_DIR}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_DIR}"
     [ "$status" -eq 0 ]
     [[ "$output" == "${TEST_LOG_DIR}" ]]
     [ -d "${TEST_LOG_DIR}" ]
@@ -78,7 +79,7 @@ teardown() {
 @test "init_logging() creates log directory if it doesn't exist" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}/new_subdir"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging"
     [ "$status" -eq 0 ]
     [ -d "${TEST_LOG_DIR}/new_subdir" ]
 }
@@ -86,7 +87,7 @@ teardown() {
 @test "init_logging() sets ORADBA_LOG_FILE to oradba.log" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_FILE}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_FILE}"
     [ "$status" -eq 0 ]
     [[ "$output" =~ oradba\.log ]]
 }
@@ -95,7 +96,7 @@ teardown() {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/custom.log"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_FILE}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging && echo \${ORADBA_LOG_FILE}"
     [ "$status" -eq 0 ]
     [[ "$output" == "${TEST_LOG_DIR}/custom.log" ]]
 }
@@ -103,14 +104,14 @@ teardown() {
 @test "init_logging() returns 0 on success" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging"
     [ "$status" -eq 0 ]
 }
 
 @test "init_logging() can be called multiple times safely" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_logging && init_logging && echo OK"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_logging && init_logging && echo OK"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OK" ]]
 }
@@ -128,7 +129,7 @@ teardown() {
 @test "init_session_log() does nothing if ORADBA_SESSION_LOGGING not enabled" {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log && echo \${ORADBA_SESSION_LOG:-NOTSET}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log && echo \${ORADBA_SESSION_LOG:-NOTSET}"
     [ "$status" -eq 0 ]
     [[ "$output" == "NOTSET" ]]
 }
@@ -137,7 +138,7 @@ teardown() {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_SESSION_LOGGING="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log && ls -1 \${ORADBA_LOG_DIR}/session_*.log | head -1"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log && ls -1 \${ORADBA_LOG_DIR}/session_*.log | head -1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "session_" ]]
     [[ "$output" =~ \.log ]]
@@ -147,7 +148,7 @@ teardown() {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_SESSION_LOGGING="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log"
     [ "$status" -eq 0 ]
     [ -d "${TEST_LOG_DIR}" ]
 }
@@ -156,7 +157,7 @@ teardown() {
     export ORADBA_LOG_DIR="${TEST_LOG_DIR}"
     export ORADBA_SESSION_LOGGING="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log && cat \${ORADBA_SESSION_LOG}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log && cat \${ORADBA_SESSION_LOG}"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "OraDBA Session Log" ]]
     [[ "$output" =~ "Started" ]]
@@ -170,7 +171,7 @@ teardown() {
     export ORADBA_SESSION_LOGGING="true"
     export ORACLE_SID="TESTDB"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log && cat \${ORADBA_SESSION_LOG}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log && cat \${ORADBA_SESSION_LOG}"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "ORACLE_SID" ]]
     [[ "$output" =~ "TESTDB" ]]
@@ -181,7 +182,7 @@ teardown() {
     export ORADBA_SESSION_LOGGING="true"
     export ORADBA_SESSION_LOG_ONLY="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && init_session_log && echo \${ORADBA_LOG_FILE}"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && init_session_log && echo \${ORADBA_LOG_FILE}"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "session_" ]]
 }
@@ -195,7 +196,7 @@ teardown() {
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'Test message' 2>&1"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
     # Should contain caller information in format [file:line]
     [[ "$output" =~ \[.*:[0-9]*\] ]] || [[ "$output" =~ \[\:\:\] ]]
@@ -206,7 +207,7 @@ teardown() {
     export ORADBA_LOG_FILE="${TEST_LOG_DIR}/test.log"
     export ORADBA_LOG_SHOW_CALLER="false"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'Test message' 2>&1"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'Test message' 2>&1"
     [ "$status" -eq 0 ]
     [[ ! "$output" =~ \[bash: ]]
     [[ "$output" =~ \[INFO\] ]]
@@ -216,7 +217,7 @@ teardown() {
 @test "oradba_log() caller info shows correct file and line format" {
     export ORADBA_LOG_SHOW_CALLER="true"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'Test' 2>&1"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'Test' 2>&1"
     [ "$status" -eq 0 ]
     # Should contain caller bracket notation even if empty in bash -c context
     [[ "$output" =~ \[.*\] ]]
@@ -238,7 +239,7 @@ teardown() {
     touch "${TEST_LOG_DIR}/main.log"
     touch "${TEST_LOG_DIR}/session.log"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'Dual log test'"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'Dual log test'"
     [ "$status" -eq 0 ]
     
     # Check main log
@@ -257,7 +258,7 @@ teardown() {
     
     touch "${TEST_LOG_DIR}/same.log"
     
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'Single entry'"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'Single entry'"
     [ "$status" -eq 0 ]
     
     # Should appear only once
@@ -275,7 +276,7 @@ teardown() {
     export ORADBA_LOG_SHOW_CALLER="true"
     
     run bash -c "
-        source ${PROJECT_ROOT}/src/lib/oradba_common.sh
+        source ${ORADBA_BASE}/lib/oradba_common.sh
         init_logging
         init_session_log
         oradba_log INFO 'Integration test message'
@@ -296,7 +297,7 @@ teardown() {
 
 @test "Logging works without initialization (backward compatible)" {
     # Don't call init_logging, just use log directly
-    run bash -c "source ${PROJECT_ROOT}/src/lib/oradba_common.sh && oradba_log INFO 'No init test' 2>&1"
+    run bash -c "source ${ORADBA_BASE}/lib/oradba_common.sh && oradba_log INFO 'No init test' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" =~ \[INFO\] ]]
     [[ "$output" =~ "No init test" ]]
@@ -309,7 +310,7 @@ teardown() {
     # Modern scripts must use oradba_log INFO/WARN/ERROR/DEBUG instead
     # Test that oradba_log works after init_logging
     run bash -c "
-        source ${PROJECT_ROOT}/src/lib/oradba_common.sh
+        source ${ORADBA_BASE}/lib/oradba_common.sh
         init_logging
         oradba_log INFO 'Modern logging test' 2>&1
     "

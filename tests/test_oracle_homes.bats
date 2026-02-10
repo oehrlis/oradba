@@ -20,9 +20,10 @@ setup() {
     # Get the directory containing the test script
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Source the common library
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"
@@ -335,7 +336,7 @@ teardown() {
     echo "dstest:${parent_dir}:datasafe:50:DataSafe Test" >> "${ORADBA_BASE}/etc/oradba_homes.conf"
     
     # Source necessary functions for product detection
-    source "${PROJECT_ROOT}/src/lib/oradba_env_parser.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_env_parser.sh"
     
     # Call function - it should read type from config
     set_oracle_home_environment "dstest" "${parent_dir}"

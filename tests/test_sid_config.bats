@@ -19,6 +19,7 @@ setup() {
     local root_dir
     root_dir="$(cd "$(dirname "${BATS_TEST_DIRNAME}")" && pwd)"
     export PROJECT_ROOT="${root_dir}"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Create etc directory structure
     mkdir -p "${TEST_DIR}/etc"
@@ -30,7 +31,7 @@ setup() {
     cp "${PROJECT_ROOT}/src/templates/etc/sid.ORACLE_SID.conf.example" "${TEST_DIR}/templates/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
-    cp "${PROJECT_ROOT}/src/lib/oradba_common.sh" "${TEST_DIR}/lib/"
+    cp "${ORADBA_SRC_BASE}/lib/oradba_common.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
     export ORADBA_PREFIX="${TEST_DIR}"

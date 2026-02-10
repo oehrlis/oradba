@@ -18,7 +18,7 @@ setup() {
     mkdir -p "${TEST_DIR}/lib/plugins"
     
     # Set ORADBA_BASE for plugins
-    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
     
     # Create minimal oradba_common.sh stub for logging
     cat > "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
@@ -35,7 +35,7 @@ EOF
     source "${TEST_DIR}/lib/oradba_common.sh"
     
     # Copy all plugins to test directory
-    cp "${BATS_TEST_DIRNAME}/../src/lib/plugins/"*.sh "${TEST_DIR}/lib/plugins/"
+    cp "${ORADBA_BASE}/lib/plugins/"*.sh "${TEST_DIR}/lib/plugins/"
 }
 
 teardown() {
@@ -64,7 +64,7 @@ get_plugin_files() {
 }
 
 @test "plugin_interface.sh exists" {
-    [ -f "${BATS_TEST_DIRNAME}/../src/lib/plugins/plugin_interface.sh" ]
+    [ -f "${ORADBA_BASE}/lib/plugins/plugin_interface.sh" ]
 }
 
 @test "all plugins have required metadata variables" {

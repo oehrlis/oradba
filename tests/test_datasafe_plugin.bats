@@ -18,7 +18,7 @@ setup() {
     mkdir -p "${TEST_DIR}/test_homes"
     
     # Set ORADBA_BASE for plugins
-    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
     
     # Create minimal oradba_common.sh stub for logging
     cat > "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
@@ -35,7 +35,7 @@ EOF
     source "${TEST_DIR}/lib/oradba_common.sh"
     
     # Copy plugin to test directory
-    cp "${BATS_TEST_DIRNAME}/../src/lib/plugins/datasafe_plugin.sh" "${TEST_DIR}/lib/plugins/"
+    cp "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh" "${TEST_DIR}/lib/plugins/"
 }
 
 teardown() {

@@ -343,8 +343,8 @@ load test_helper
 
 setup() {
     # Setup test environment
-    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
-    source "${ORADBA_BASE}/src/lib/oradba_common.sh"
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 }
 
 @test "function returns expected value" {

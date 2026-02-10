@@ -18,16 +18,16 @@ setup() {
     mkdir -p "${TEST_DIR}/test_homes"
     
     # Set ORADBA_BASE for plugins
-    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
     
     # For version detection tests, we need the real detect_oracle_version function
     # and its dependencies (execute_plugin_function_v2, detect_product_type, oradba_log)
     # Extract these functions from the real common.sh to avoid side effects
     if ! declare -f detect_oracle_version >/dev/null 2>&1; then
-        eval "$(sed -n '/^oradba_log()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
-        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
-        eval "$(sed -n '/^execute_plugin_function_v2()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
-        eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh")"
+        eval "$(sed -n '/^oradba_log()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
+        eval "$(sed -n '/^execute_plugin_function_v2()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
     fi
     
     # Create minimal oradba_common.sh stub for logging (used by plugins)
@@ -42,7 +42,7 @@ oradba_log() {
 EOF
     
     # Add detect_oracle_version function to the stub
-    sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/src/lib/oradba_common.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
+    sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
     
     # Add execute_plugin_function_v2 implementation that actually loads and calls plugins
     cat >> "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
@@ -85,7 +85,7 @@ EOF
     source "${TEST_DIR}/lib/oradba_common.sh"
     
     # Copy plugin to test directory
-    cp "${BATS_TEST_DIRNAME}/../src/lib/plugins/iclient_plugin.sh" "${TEST_DIR}/lib/plugins/"
+    cp "${ORADBA_BASE}/lib/plugins/iclient_plugin.sh" "${TEST_DIR}/lib/plugins/"
 }
 
 teardown() {

@@ -18,8 +18,9 @@
 setup() {
     # Load the common library first
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
-    source "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }
 
 # Test: check_database_connection function exists
@@ -164,19 +165,19 @@ setup() {
 @test "query functions should use pipe separator" {
     # This is a structure test - functions should output pipe-delimited data
     # We verify this by checking the function code contains the pipe character
-    grep -q "||" "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
+    grep -q "||" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }
 
 # Test: All query functions handle SET commands for sqlplus
 @test "query functions use proper sqlplus SET commands" {
     # Verify functions use proper sqlplus formatting commands (on same line or separate)
-    grep -q "HEADING OFF" "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
-    grep -q "FEEDBACK OFF" "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
-    grep -q "VERIFY OFF" "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
+    grep -q "HEADING OFF" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
+    grep -q "FEEDBACK OFF" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
+    grep -q "VERIFY OFF" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }
 
 # Test: show_database_status outputs formatted display
 @test "show_database_status uses formatted output" {
     # Check that the function uses printf for formatting
-    grep -q "printf" "${PROJECT_ROOT}/src/lib/oradba_db_functions.sh"
+    grep -q "printf" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }

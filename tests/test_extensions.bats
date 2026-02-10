@@ -20,6 +20,7 @@ setup() {
     # Load test helpers
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Save original PATH and SQLPATH to restore in teardown
     ORIGINAL_TEST_PATH="${PATH}"
@@ -27,16 +28,16 @@ setup() {
     
     # Source common library
     # shellcheck source=../src/lib/oradba_common.sh
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     
     # Source extensions library
     # shellcheck source=../src/lib/extensions.sh
-    source "${PROJECT_ROOT}/src/lib/extensions.sh"
+    source "${ORADBA_SRC_BASE}/lib/extensions.sh"
     
     # Source helper functions from oradba_extension.sh for validation tests
     # Extract only the validate_extension_structure function
     # shellcheck disable=SC1090
-    source <(sed -n '/^validate_extension_structure()/,/^}/p' "${PROJECT_ROOT}/src/bin/oradba_extension.sh")
+    source <(sed -n '/^validate_extension_structure()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
     
     # Create temporary test directory
     TEST_TEMP_DIR="${BATS_TEST_TMPDIR}/oradba_ext_test"
@@ -494,15 +495,15 @@ EOF
 
 @test "migrated functions use get_extension_property internally" {
     # Verify by checking the functions call get_extension_property
-    run grep -A 5 "^get_extension_name()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    run grep -A 5 "^get_extension_name()" "${ORADBA_SRC_BASE}/lib/extensions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "get_extension_property" ]]
     
-    run grep -A 5 "^get_extension_version()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    run grep -A 5 "^get_extension_version()" "${ORADBA_SRC_BASE}/lib/extensions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "get_extension_property" ]]
     
-    run grep -A 5 "^get_extension_priority()" "${PROJECT_ROOT}/src/lib/extensions.sh"
+    run grep -A 5 "^get_extension_priority()" "${ORADBA_SRC_BASE}/lib/extensions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "get_extension_property" ]]
 }

@@ -300,7 +300,7 @@ oradba_get_product_status() {
     oradba_log DEBUG "oradba_get_product_status: product_type=${product_type}, plugin_type=${plugin_type}, home=${home_path}"
     oradba_log DEBUG "oradba_get_product_status: ORADBA_BASE=${oradba_base}"
     
-    local plugin_file="${oradba_base}/src/lib/plugins/${plugin_type}_plugin.sh"
+    local plugin_file="${oradba_base}/lib/plugins/${plugin_type}_plugin.sh"
     if [[ ! -f "${plugin_file}" ]]; then
         oradba_log DEBUG "oradba_get_product_status: Plugin not found at ${plugin_file}, trying alternate path"
         plugin_file="${oradba_base}/lib/plugins/${plugin_type}_plugin.sh"

@@ -20,7 +20,7 @@
 setup() {
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     export ORADBA_BASE="${PROJECT_ROOT}/src"
-    export ORADBA_BIN="${PROJECT_ROOT}/src/bin"
+    export ORADBA_BIN="${ORADBA_BASE}/bin"
 }
 
 # ------------------------------------------------------------------------------
@@ -218,27 +218,27 @@ setup() {
 # ------------------------------------------------------------------------------
 
 @test "oradba_aliases.sh contains dbctl alias" {
-    grep -q "create_dynamic_alias dbctl" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias dbctl" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 @test "oradba_aliases.sh contains dbstart alias" {
-    grep -q "create_dynamic_alias dbstart" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias dbstart" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 @test "oradba_aliases.sh contains dbstop alias" {
-    grep -q "create_dynamic_alias dbstop" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias dbstop" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 @test "oradba_aliases.sh contains lsnrctl alias" {
-    grep -q "create_dynamic_alias listener" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias listener" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 @test "oradba_aliases.sh contains orastart alias" {
-    grep -q "create_dynamic_alias orastart" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias orastart" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 @test "oradba_aliases.sh contains orastop alias" {
-    grep -q "create_dynamic_alias orastop" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"
+    grep -q "create_dynamic_alias orastop" "${ORADBA_BASE}/lib/oradba_aliases.sh"
 }
 
 # ------------------------------------------------------------------------------

@@ -17,10 +17,10 @@
 
 # Source the common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ORADBA_BASE="${SCRIPT_DIR}"
+ORADBA_BASE="${SCRIPT_DIR}/src"
 
 # shellcheck source=../src/lib/oradba_common.sh
-source "${SCRIPT_DIR}/src/lib/oradba_common.sh"
+source "${ORADBA_BASE}/lib/oradba_common.sh"
 
 echo "Testing OraDBA Version Management Functions"
 echo "=============================================="

@@ -35,7 +35,6 @@ mappings:
     - test_logging_infrastructure.bats
     - test_execute_db_query.bats
     - test_registry.bats
-    - manual/test_sid_variable_isolation.sh
   
   src/lib/oradba_aliases.sh:
     - test_oradba_aliases.bats

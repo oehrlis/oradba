@@ -23,21 +23,19 @@ cd "$PROJECT_ROOT"
 # Detect if we're in dev mode (src/) or installed mode (no src/)
 if [[ -d "$PROJECT_ROOT/src" ]]; then
     # Development mode
-    LIB_DIR="$PROJECT_ROOT/src/lib"
-    # shellcheck disable=SC2034  # Variables reserved for future use
-    BIN_DIR="$PROJECT_ROOT/src/bin"
-    # shellcheck disable=SC2034  # Variables reserved for future use
-    ETC_DIR="$PROJECT_ROOT/src/etc"
+    ORADBA_BASE="$PROJECT_ROOT/src"
     MODE="development"
 else
     # Installed mode
-    LIB_DIR="$PROJECT_ROOT/lib"
-    # shellcheck disable=SC2034  # Variables reserved for future use
-    BIN_DIR="$PROJECT_ROOT/bin"
-    # shellcheck disable=SC2034  # Variables reserved for future use
-    ETC_DIR="$PROJECT_ROOT/etc"
+    ORADBA_BASE="$PROJECT_ROOT"
     MODE="installed"
 fi
+
+LIB_DIR="$ORADBA_BASE/lib"
+# shellcheck disable=SC2034  # Variables reserved for future use
+BIN_DIR="$ORADBA_BASE/bin"
+# shellcheck disable=SC2034  # Variables reserved for future use
+ETC_DIR="$ORADBA_BASE/etc"
 
 echo "========================================="
 echo "Validating oradba Project Structure"

@@ -18,6 +18,7 @@ setup() {
     
     # Set ORADBA_PREFIX for tests
     export ORADBA_PREFIX="${TEST_DIR}"
+    ORADBA_SRC_BASE="${BATS_TEST_DIRNAME}/../src"
     
     # Create minimal oradba_common.sh stub for logging
     cat > "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'
@@ -48,7 +49,7 @@ EOF
     source "${TEST_DIR}/lib/oradba_common.sh"
     
     # Copy registry to test directory
-    cp "${BATS_TEST_DIRNAME}/../src/lib/oradba_registry.sh" "${TEST_DIR}/lib/"
+    cp "${ORADBA_SRC_BASE}/lib/oradba_registry.sh" "${TEST_DIR}/lib/"
     
     # Source registry module
     source "${TEST_DIR}/lib/oradba_registry.sh"

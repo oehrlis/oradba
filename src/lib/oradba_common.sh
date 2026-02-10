@@ -641,7 +641,7 @@ generate_sid_lists() {
     # Source registry module if not already loaded
     if ! type -t oradba_registry_sync_oratab &>/dev/null; then
         local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/src/lib/oradba_registry.sh"
+        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
         if [[ -f "${registry_lib}" ]]; then
             # shellcheck source=/dev/null
             source "${registry_lib}" 2>/dev/null
@@ -706,7 +706,7 @@ generate_oracle_home_aliases() {
     # Source registry module if not already loaded
     if ! type -t oradba_registry_sync_oratab &>/dev/null; then
         local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/src/lib/oradba_registry.sh"
+        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
         if [[ -f "${registry_lib}" ]]; then
             # shellcheck source=/dev/null
             source "${registry_lib}" 2>/dev/null
@@ -2902,7 +2902,7 @@ oradba_apply_oracle_plugin() {
     fi
     
     # Construct plugin file path
-    local plugin_file="${oradba_base}/src/lib/plugins/${product_type}_plugin.sh"
+    local plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
     if [[ ! -f "${plugin_file}" ]]; then
         # Try alternate path without src/
         plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
@@ -3010,7 +3010,7 @@ execute_plugin_function_v2() {
         oradba_base="$(cd "${script_dir}/../.." && pwd)"
     fi
 
-    local plugin_file="${oradba_base}/src/lib/plugins/${product_type}_plugin.sh"
+    local plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
     if [[ ! -f "${plugin_file}" ]]; then
         plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
         [[ ! -f "${plugin_file}" ]] && { oradba_log DEBUG "Plugin not found: ${product_type}_plugin.sh"; return 1; }

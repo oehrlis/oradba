@@ -20,6 +20,7 @@ set -e
 # Find test directory and source common functions
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "${TEST_DIR}")"
+ORADBA_BASE="${PROJECT_ROOT}/src"
 
 # Color output
 GREEN='\033[0;32m'
@@ -179,19 +180,19 @@ test_aliases() {
     print_header "Testing Aliases in oradba_aliases.sh"
     
     print_test "Check if service management aliases are defined"
-    if grep -q "alias dbctl=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
+    if grep -q "alias dbctl=" "${ORADBA_BASE}/lib/oradba_aliases.sh"; then
         print_pass "Database control aliases found"
     else
         print_fail "Database control aliases missing"
     fi
     
-    if grep -q "alias listener=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
+    if grep -q "alias listener=" "${ORADBA_BASE}/lib/oradba_aliases.sh"; then
         print_pass "Listener control aliases found"
     else
         print_fail "Listener control aliases missing"
     fi
     
-    if grep -q "alias orastart=" "${PROJECT_ROOT}/src/lib/oradba_aliases.sh"; then
+    if grep -q "alias orastart=" "${ORADBA_BASE}/lib/oradba_aliases.sh"; then
         print_pass "Combined service aliases found"
     else
         print_fail "Combined service aliases missing"

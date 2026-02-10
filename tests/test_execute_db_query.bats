@@ -20,9 +20,10 @@ setup() {
     # Get the directory of the test file
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     REPO_ROOT="$(dirname "$TEST_DIR")"
+    ORADBA_SRC_BASE="${REPO_ROOT}/src"
     
     # Source oradba_common.sh
-    source "$REPO_ROOT/src/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
 }
 
 # =======================================================================
@@ -81,37 +82,37 @@ setup() {
 
 @test "query_instance_info uses execute_db_query" {
     # Check that query_instance_info function calls execute_db_query
-    run grep -A 25 "^query_instance_info" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 25 "^query_instance_info" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
 
 @test "query_database_info uses execute_db_query" {
-    run grep -A 30 "^query_database_info" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 30 "^query_database_info" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
 
 @test "query_datafile_size uses execute_db_query" {
-    run grep -A 15 "^query_datafile_size" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 15 "^query_datafile_size" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
 
 @test "query_memory_usage uses execute_db_query" {
-    run grep -A 20 "^query_memory_usage" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 20 "^query_memory_usage" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
 
 @test "query_sessions_info uses execute_db_query" {
-    run grep -A 18 "^query_sessions_info" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 18 "^query_sessions_info" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
 
 @test "query_pdb_info uses execute_db_query" {
-    run grep -A 35 "^query_pdb_info" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 35 "^query_pdb_info" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }
@@ -122,21 +123,21 @@ setup() {
 
 @test "execute_db_query has proper error logging" {
     # Check that function uses oradba_log ERROR for errors
-    run grep -A 50 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -A 50 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "oradba_log ERROR" ]] || [[ "$output" =~ "oradba_log DEBUG" ]]
 }
 
 @test "execute_db_query has parameter validation" {
     # Check that function validates required parameters
-    run grep -A 20 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -A 20 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "-z" ]] && [[ "$output" =~ "query" ]]
 }
 
 @test "execute_db_query uses standardized SQL*Plus settings" {
     # Check that function uses consistent SET commands
-    run grep -A 50 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -A 50 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "SET PAGESIZE" ]]
     [[ "$output" =~ "HEADING OFF" ]]
@@ -145,14 +146,14 @@ setup() {
 
 @test "execute_db_query filters SQL*Plus errors" {
     # Check that function filters out SP2-, ORA- error messages
-    run grep -A 50 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -A 50 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "grep -v" ]] && [[ "$output" =~ "SP2-" ]] && [[ "$output" =~ "ORA-" ]]
 }
 
 @test "execute_db_query has format-specific processing" {
     # Check that function has case statement for format processing
-    run grep -A 50 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -A 50 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "case" ]] && [[ "$output" =~ "format" ]]
     [[ "$output" =~ "raw" ]] && [[ "$output" =~ "delimited" ]]
@@ -164,7 +165,7 @@ setup() {
 
 @test "execute_db_query is documented in oradba_common.sh" {
     # Check for function comments/documentation
-    run grep -B 10 "^execute_db_query" "$REPO_ROOT/src/lib/oradba_common.sh"
+    run grep -B 10 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
     # Should have at least some comments near the function
     [[ "$output" =~ "#" ]]
@@ -173,7 +174,7 @@ setup() {
 @test "execute_db_query eliminates SQL*Plus boilerplate duplication" {
     # Verify that migrated functions are significantly shorter
     # Count lines in query_instance_info (should be ~27 lines vs old ~50+)
-    run bash -c "sed -n '/^query_instance_info/,/^}/p' '$REPO_ROOT/src/lib/oradba_db_functions.sh' | wc -l"
+    run bash -c "sed -n '/^query_instance_info/,/^}/p' '${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh' | wc -l"
     [ "$status" -eq 0 ]
     line_count=$(echo "$output" | tr -d ' ')
     # Should be less than 35 lines (old was ~50+ with boilerplate)
@@ -187,14 +188,14 @@ setup() {
 @test "migrated query functions maintain same signatures" {
     # All query functions should still accept the same parameters
     # Check that query_database_info still takes mode parameter
-    run bash -c "grep -A 10 '^query_database_info' '$REPO_ROOT/src/lib/oradba_db_functions.sh'"
+    run bash -c "grep -A 10 '^query_database_info' '${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "mode" ]]
 }
 
 @test "migrated query functions preserve return codes" {
     # Check that functions still return 0/1 appropriately
-    run grep -A 20 "^query_instance_info" "$REPO_ROOT/src/lib/oradba_db_functions.sh"
+    run grep -A 20 "^query_instance_info" "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "execute_db_query" ]]
 }

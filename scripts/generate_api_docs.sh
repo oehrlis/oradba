@@ -23,9 +23,16 @@ set -o pipefail
 # ------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-SRC_LIB_DIR="${PROJECT_ROOT}/src/lib"
-SRC_BIN_DIR="${PROJECT_ROOT}/src/bin"
-OUTPUT_DIR="${PROJECT_ROOT}/src/doc/api"
+
+if [[ -d "${PROJECT_ROOT}/src" ]]; then
+    ORADBA_BASE="${PROJECT_ROOT}/src"
+else
+    ORADBA_BASE="${PROJECT_ROOT}"
+fi
+
+SRC_LIB_DIR="${ORADBA_BASE}/lib"
+SRC_BIN_DIR="${ORADBA_BASE}/bin"
+OUTPUT_DIR="${ORADBA_BASE}/doc/api"
 TEMP_DIR="/tmp/oradba_api_docs_$$"
 
 # Category mappings

@@ -612,7 +612,7 @@ _oraenv_handle_oracle_home() {
         if [[ "${product_type}" == "datasafe" ]]; then
             # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
             # Load and call plugin_set_environment
-            local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
             if [[ -f "${plugin_file}" ]]; then
                 if ! type -t plugin_set_environment &>/dev/null; then
                     # shellcheck source=/dev/null
@@ -792,7 +792,7 @@ _oraenv_apply_product_adjustments() {
     
     # Check if this is a DataSafe installation using plugin
     if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
             # shellcheck source=/dev/null
             source "${plugin_file}"
@@ -870,7 +870,7 @@ _oraenv_setup_environment_variables() {
     if [[ "${product_type}" == "datasafe" ]]; then
         # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
         # Call plugin_set_environment to set connector-specific TNS_ADMIN
-        local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
             # Plugin already sourced in _oraenv_apply_product_adjustments, but ensure it's loaded
             if ! type -t plugin_set_environment &>/dev/null; then

@@ -424,7 +424,7 @@ cmd_validate() {
             
             # Apply DataSafe adjustment via plugin if needed
             if [[ "$product_type" == "datasafe" ]]; then
-                local plugin_file="${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+                local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
                 if [[ -f "${plugin_file}" ]]; then
                     # shellcheck source=/dev/null
                     source "${plugin_file}"

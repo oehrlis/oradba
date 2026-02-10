@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Library Path Resolution**
+  - Normalized runtime plugin/library sourcing to `${ORADBA_BASE}/lib/...` across scripts and helpers
+  - Ensures repo and installed layouts both resolve libraries consistently
+
+### Changed
+
+- **Tooling and Tests**
+  - Updated smart test selection to skip manual-only scripts
+  - Adjusted tests to use repo `src` as `ORADBA_BASE` and source libraries via `lib/`
+- **Docs and Debug Utilities**
+  - Documented library path rule in Copilot instructions and Data Safe workflow
+  - Updated Data Safe debug script to use `lib/` only
+
 ## [0.20.2] - 2026-02-09
 
 ### Fixed

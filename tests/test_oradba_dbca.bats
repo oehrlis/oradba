@@ -20,15 +20,16 @@ setup() {
     # Get the directory containing the test script
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Source the common library
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"
     
     # Set test variables
-    export ORADBA_BASE="${PROJECT_ROOT}"
+    export ORADBA_BASE="${ORADBA_SRC_BASE}"
     export ORACLE_HOME="${TEST_TEMP_DIR}/oracle_home"
     export ORACLE_BASE="${TEST_TEMP_DIR}/oracle_base"
     
@@ -37,7 +38,7 @@ setup() {
     mkdir -p "${ORACLE_BASE}/oradata"
     
     # Script path
-    DBCA_SCRIPT="${PROJECT_ROOT}/src/bin/oradba_dbca.sh"
+    DBCA_SCRIPT="${ORADBA_SRC_BASE}/bin/oradba_dbca.sh"
 }
 
 # Cleanup test environment

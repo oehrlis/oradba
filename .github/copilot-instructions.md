@@ -60,6 +60,12 @@ oradba/
 
 ```
 
+## Library Path Resolution
+
+- Runtime scripts must source libraries via `${ORADBA_BASE}/lib/...` only.
+- In the git repo, set `ORADBA_BASE` to `<repo>/src` so `${ORADBA_BASE}/lib` resolves to `src/lib`.
+- Only tests may reference `src/lib` directly.
+
 ## Key Architectural Patterns
 
 ### Product Type Detection

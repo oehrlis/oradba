@@ -20,6 +20,7 @@ setup() {
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
     HOMES_SCRIPT="${PROJECT_ROOT}/src/bin/oradba_homes.sh"
+    ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"
@@ -31,7 +32,7 @@ setup() {
     mkdir -p "${ORACLE_BASE}/product"
     
     # Source common library for tests
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
 }
 
 # Cleanup after tests
@@ -515,7 +516,7 @@ EOF
     "$HOMES_SCRIPT" add --name OUD12 --path "${TEST_TEMP_DIR}/oud_home" --type oud < /dev/null >/dev/null 2>&1
     
     # Verify is_oracle_home recognizes it
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && is_oracle_home OUD12"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && is_oracle_home OUD12"
     [ "$status" -eq 0 ]
 }
 # ------------------------------------------------------------------------------
@@ -830,7 +831,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 # ------------------------------------------------------------------------------
 
 @test "auto_discover_oracle_homes function exists" {
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && type auto_discover_oracle_homes"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && type auto_discover_oracle_homes"
     [ "$status" -eq 0 ]
 }
 
@@ -840,7 +841,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     touch "${ORACLE_BASE}/product/dbhome_19_18/bin/sqlplus"
     chmod +x "${ORACLE_BASE}/product/dbhome_19_18/bin/sqlplus"
     
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
     # Should find database type
     [[ "$output" =~ "Found:" ]] || [[ "$output" =~ "database" ]] || [[ "$output" =~ "dbhome" ]]
@@ -854,7 +855,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
     chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/java"
     
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "jdk17" ]] || [[ "$output" =~ "java" ]]
 }
@@ -864,7 +865,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     mkdir -p "${ORACLE_BASE}/product/instantclient_21_10"
     touch "${ORACLE_BASE}/product/instantclient_21_10/libclntsh.so.21.1"
     
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "iclient21" ]] || [[ "$output" =~ "iclient" ]]
 }
@@ -875,7 +876,7 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
     touch "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
     chmod +x "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
     
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "dsconn" ]] || [[ "$output" =~ "datasafe" ]]
 }
@@ -892,7 +893,7 @@ jdk17:java:${ORACLE_BASE}/product/jdk-17.0.1:17.0.1:JDK:Java Development Kit
 EOF
     
     # Run discovery - should skip the duplicate
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "already registered" ]] || [[ "$output" =~ "Skipped: 1" ]]
 }
@@ -904,7 +905,7 @@ EOF
     chmod +x "${ORACLE_BASE}/product/jdk-17.0.1/bin/javac"
     
     # Run in silent mode
-    run bash -c "source '${PROJECT_ROOT}/src/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'true'"
+    run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'true'"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }

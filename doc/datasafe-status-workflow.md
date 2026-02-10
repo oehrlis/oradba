@@ -363,8 +363,8 @@ source ${ORADBA_BASE}/lib/oradba_common.sh
 source ${ORADBA_BASE}/lib/oradba_env_status.sh
 
 # For development/GitHub version:
-# source ${ORADBA_BASE}/src/lib/oradba_common.sh
-# source ${ORADBA_BASE}/src/lib/oradba_env_status.sh
+# source ${ORADBA_BASE}/lib/oradba_common.sh
+# source ${ORADBA_BASE}/lib/oradba_env_status.sh
 
 # Check status
 oradba_get_product_status "datasafe" "dscon1" "/appl/oracle/product/exacc-wob-vwg-ha1"

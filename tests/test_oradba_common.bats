@@ -20,9 +20,10 @@ setup() {
     # Get the directory containing the test script
     TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
     PROJECT_ROOT="$(dirname "$TEST_DIR")"
+    export ORADBA_BASE="${PROJECT_ROOT}/src"
     
     # Source the common library
-    source "${PROJECT_ROOT}/src/lib/oradba_common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
     
     # Create temporary test directory
     TEST_TEMP_DIR="$(mktemp -d)"
@@ -678,8 +679,8 @@ plugin_echo_env() {
 }
 EOF
     export ORADBA_BASE="${tmp_plugin_dir}/.."
-    mkdir -p "${ORADBA_BASE}/src/lib/plugins"
-    mv "${tmp_plugin_dir}/dummy_plugin.sh" "${ORADBA_BASE}/src/lib/plugins/dummy_plugin.sh"
+    mkdir -p "${ORADBA_BASE}/lib/plugins"
+    mv "${tmp_plugin_dir}/dummy_plugin.sh" "${ORADBA_BASE}/lib/plugins/dummy_plugin.sh"
 
     # When using 'run', the output goes to $output, not to the result variable
     # because the function runs in a subshell

@@ -17,8 +17,8 @@
 
 # Test setup
 setup() {
-    # Set ORADBA_BASE to project root
-    ORADBA_BASE="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
+    # Set ORADBA_BASE to repo src
+    ORADBA_BASE="$(cd "$(dirname "$BATS_TEST_FILENAME")/../src" && pwd)"
     export ORADBA_BASE
     
     # Create temporary test directories
@@ -39,7 +39,6 @@ setup() {
     export -f mock_logger
     
     # Source the validator
-    ORADBA_BASE="${ORADBA_BASE}/src"
     source "${ORADBA_BASE}/lib/oradba_env_validator.sh"
 }
 
@@ -305,9 +304,9 @@ teardown() {
 @test "validator: can initialize all three libraries with same logger" {
     # Source all three libraries (use original ORADBA_BASE for direct sourcing)
     local orig_base
-    orig_base="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-    source "${orig_base}/src/lib/oradba_env_parser.sh"
-    source "${orig_base}/src/lib/oradba_env_builder.sh"
+    orig_base="$(cd "$(dirname "$BATS_TEST_FILENAME")/../src" && pwd)"
+    source "${orig_base}/lib/oradba_env_parser.sh"
+    source "${orig_base}/lib/oradba_env_builder.sh"
     
     # Initialize all with same logger
     oradba_parser_init "mock_logger"
@@ -322,9 +321,9 @@ teardown() {
 @test "validator: libraries work independently when initialized separately" {
     # Source all three libraries (use original ORADBA_BASE for direct sourcing)
     local orig_base
-    orig_base="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-    source "${orig_base}/src/lib/oradba_env_parser.sh"
-    source "${orig_base}/src/lib/oradba_env_builder.sh"
+    orig_base="$(cd "$(dirname "$BATS_TEST_FILENAME")/../src" && pwd)"
+    source "${orig_base}/lib/oradba_env_parser.sh"
+    source "${orig_base}/lib/oradba_env_builder.sh"
     
     # Initialize with different loggers
     oradba_parser_init "mock_logger"

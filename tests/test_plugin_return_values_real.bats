@@ -11,7 +11,7 @@ setup() {
     export TEST_ROOT="${BATS_TEST_TMPDIR}/plugin_rv_real_$$"
     mkdir -p "${TEST_ROOT}"
     # Use BATS_TEST_DIRNAME to get the directory of the test file
-    export ORADBA_BASE="${BATS_TEST_DIRNAME}/.."
+    export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
 }
 
 teardown() {
@@ -83,7 +83,7 @@ make_oud_home() {
 @test "database plugin: validate home and paths obey contract" {
     local home
     home=$(make_db_home)
-    source "${ORADBA_BASE}/src/lib/plugins/database_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/database_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
@@ -108,7 +108,7 @@ make_oud_home() {
 @test "datasafe plugin: validate home and paths obey contract" {
     local home
     home=$(make_datasafe_home)
-    source "${ORADBA_BASE}/src/lib/plugins/datasafe_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
@@ -133,7 +133,7 @@ make_oud_home() {
 @test "client plugin: validate home and paths obey contract" {
     local home
     home=$(make_client_home)
-    source "${ORADBA_BASE}/src/lib/plugins/client_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/client_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
@@ -154,7 +154,7 @@ make_oud_home() {
 @test "iclient plugin: validate home and paths obey contract" {
     local home
     home=$(make_iclient_home)
-    source "${ORADBA_BASE}/src/lib/plugins/iclient_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/iclient_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
@@ -175,7 +175,7 @@ make_oud_home() {
 @test "java plugin: validate home and paths obey contract" {
     local home
     home=$(make_java_home)
-    source "${ORADBA_BASE}/src/lib/plugins/java_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/java_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
@@ -196,7 +196,7 @@ make_oud_home() {
 @test "oud plugin: validate home and paths obey contract" {
     local home
     home=$(make_oud_home)
-    source "${ORADBA_BASE}/src/lib/plugins/oud_plugin.sh"
+    source "${ORADBA_BASE}/lib/plugins/oud_plugin.sh"
 
     run plugin_validate_home "${home}"
     [ "$status" -eq 0 ]
