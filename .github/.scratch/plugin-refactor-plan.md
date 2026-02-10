@@ -8,7 +8,9 @@
 
 ## Overview
 
-This document tracks the comprehensive refactoring of the OraDBA plugin system and environment management libraries. The refactoring addresses architectural issues identified in #114 and architecture review (#127).
+This document tracks the comprehensive refactoring of the OraDBA plugin system
+and environment management libraries. The refactoring addresses architectural
+issues identified in #114 and architecture review (#127).
 
 ### Goals
 
@@ -22,14 +24,14 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 
 ## Architecture Decisions
 
-| Decision Area | Decision | Rationale | Status |
-|--------------|----------|-----------|--------|
-| **Plugin Interface** | Granular builders (base/env/bin/lib) | Better separation of concerns | ✅ Complete |
-| **Multi-Instance Support** | plugin_get_instance_list() | Support RAC, WebLogic domains | ✅ Complete |
-| **Listener Handling** | Category-specific functions | Product-specific lifecycle | ✅ Complete |
-| **Error Codes** | Extended (0, 1, 2+) | Semantic meaning improves error handling | ✅ Complete |
-| **Plugin Execution** | Subshell isolation | Prevent state pollution | ⏳ Planned |
-| **Library Independence** | Dependency injection | Enable unit tests | ⏳ Planned |
+| Decision Area              | Decision                             | Rationale                                | Status      |
+|----------------------------|--------------------------------------|------------------------------------------|-------------|
+| **Plugin Interface**       | Granular builders (base/env/bin/lib) | Better separation of concerns            | ✅ Complete |
+| **Multi-Instance Support** | plugin_get_instance_list()           | Support RAC, WebLogic domains            | ✅ Complete |
+| **Listener Handling**      | Category-specific functions          | Product-specific lifecycle               | ✅ Complete |
+| **Error Codes**            | Extended (0, 1, 2+)                  | Semantic meaning improves error handling | ✅ Complete |
+| **Plugin Execution**       | Subshell isolation                   | Prevent state pollution                  | ⏳ Planned  |
+| **Library Independence**   | Dependency injection                 | Enable unit tests                        | ⏳ Planned  |
 
 ---
 
@@ -120,7 +122,8 @@ This document tracks the comprehensive refactoring of the OraDBA plugin system a
 
 #### Goals ✅
 
-Implemented process isolation for all plugin executions to prevent environment pollution and state leakage. All Oracle functionality preserved (ORACLE_HOME, LD_LIBRARY_PATH).
+Implemented process isolation for all plugin executions to prevent environment
+pollution and state leakage. All Oracle functionality preserved (ORACLE_HOME, LD_LIBRARY_PATH).
 
 #### Deliverables ✅
 
@@ -246,13 +249,14 @@ fi
 
 #### Goals
 
-Refactor environment management libraries to support dependency injection, unit testing, and stateless execution. Implement multi-level config precedence.
+Refactor environment management libraries to support dependency injection, unit
+testing, and stateless execution. Implement multi-level config precedence.
 
 #### Completed ✅
 
 **1. Dependency Injection Refactor** (Week 1) ✅
 
-- [x] Created *_init() functions for all oradba_env_* libraries:
+- [x] Created *_init() functions for all oradba_env\_* libraries:
   - `oradba_parser_init()` in oradba_env_parser.sh
   - `oradba_builder_init()` in oradba_env_builder.sh
   - `oradba_validator_init()` in oradba_env_validator.sh
@@ -402,7 +406,11 @@ run oradba_parse_oratab "ORCL"
 
 #### Goals
 
-Final codebase and documentation cleanup following refactor Phases 1-4. Establish v1.0.0 as the official plugin interface baseline. Mark stub plugins clearly as experimental with appropriate metadata and documentation. Update all user and contributor documentation for new architecture. Ensure consistency between code, tests, and documentation before release.
+Final codebase and documentation cleanup following refactor Phases 1-4. Establish
+v1.0.0 as the official plugin interface baseline. Mark stub plugins clearly as
+experimental with appropriate metadata and documentation. Update all user and
+contributor documentation for new architecture. Ensure consistency between code,
+tests, and documentation before release.
 
 #### Tasks
 
@@ -521,7 +529,7 @@ Final codebase and documentation cleanup following refactor Phases 1-4. Establis
 
 **LOWER PRIORITY**:
 
-4. #134: Function naming review - likely complete (confirm/close)
+1. #134: Function naming review - likely complete (confirm/close)
 
 ### Total Timeline
 
