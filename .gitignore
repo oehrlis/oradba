@@ -88,6 +88,11 @@ src/etc/sid.CDB1.conf
 src/etc/sid.TESTDB.conf
 src/etc/sid.TESTDB1.conf
 src/etc/sid.TESTDB2.conf
+src/etc/sid.dummy.conf
+
+# Runtime-generated configuration files (created at installation time, not in repo)
+src/etc/oradba_homes.conf
+src/etc/oratab
 
 # Local workspace settings
 oradba.code-workspace
