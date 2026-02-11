@@ -1601,4 +1601,209 @@ EOF
     [[ "${result}" == *"Loading extension: test_ext"* ]]
 }
 
+# ==============================================================================
+# Extension Update Tests
+# ==============================================================================
+
+@test "update_extension creates backup directory with correct naming" {
+    # Source the update_extension function from oradba_extension.sh
+    # shellcheck disable=SC1090
+    source <(sed -n '/^update_extension()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+    
+    # Create initial extension
+    local ext_path="${TEST_TEMP_DIR}/test_ext"
+    mkdir -p "${ext_path}/bin"
+    echo "name: test_ext" > "${ext_path}/.extension"
+    echo "version: 1.0.0" >> "${ext_path}/.extension"
+    echo "#!/bin/bash" > "${ext_path}/bin/test.sh"
+    
+    # Create new version directory
+    local new_content="${TEST_TEMP_DIR}/new_version"
+    mkdir -p "${new_content}/bin"
+    echo "name: test_ext" > "${new_content}/.extension"
+    echo "version: 2.0.0" >> "${new_content}/.extension"
+    echo "#!/bin/bash" > "${new_content}/bin/test.sh"
+    
+    # Perform update
+    update_extension "${ext_path}" "${new_content}"
+    
+    # Verify backup directory exists with _backup_ naming (not .backup.)
+    local backup_count
+    backup_count=$(find "${TEST_TEMP_DIR}" -maxdepth 1 -type d -name "test_ext_backup_*" | wc -l)
+    [[ ${backup_count} -eq 1 ]]
+    
+    # Verify no old-style .backup. directories
+    local old_backup_count
+    old_backup_count=$(find "${TEST_TEMP_DIR}" -maxdepth 1 -type d -name "test_ext.backup.*" | wc -l)
+    [[ ${old_backup_count} -eq 0 ]]
+}
+
+@test "update_extension copies dot files correctly" {
+    # Source the update_extension function
+    # shellcheck disable=SC1090
+    source <(sed -n '/^update_extension()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+    
+    # Create initial extension
+    local ext_path="${TEST_TEMP_DIR}/test_ext"
+    mkdir -p "${ext_path}/bin"
+    echo "name: test_ext" > "${ext_path}/.extension"
+    echo "version: 1.0.0" >> "${ext_path}/.extension"
+    
+    # Create new version with dot files
+    local new_content="${TEST_TEMP_DIR}/new_version"
+    mkdir -p "${new_content}/bin"
+    echo "name: test_ext" > "${new_content}/.extension"
+    echo "version: 2.0.0" >> "${new_content}/.extension"
+    echo "abc123 bin/test.sh" > "${new_content}/.extension.checksum"
+    echo "*.log" > "${new_content}/.checksumignore"
+    echo "#!/bin/bash" > "${new_content}/bin/test.sh"
+    
+    # Perform update
+    update_extension "${ext_path}" "${new_content}"
+    
+    # Verify all dot files are present
+    [[ -f "${ext_path}/.extension" ]]
+    [[ -f "${ext_path}/.extension.checksum" ]]
+    [[ -f "${ext_path}/.checksumignore" ]]
+    
+    # Verify content is correct
+    grep -q "version: 2.0.0" "${ext_path}/.extension"
+    grep -q "abc123" "${ext_path}/.extension.checksum"
+    grep -qF "*.log" "${ext_path}/.checksumignore"
+}
+
+@test "update_extension preserves modified config files" {
+    # Source the update_extension function
+    # shellcheck disable=SC1090
+    source <(sed -n '/^update_extension()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+    
+    # Create initial extension with config file
+    local ext_path="${TEST_TEMP_DIR}/test_ext"
+    mkdir -p "${ext_path}/bin" "${ext_path}/etc"
+    echo "name: test_ext" > "${ext_path}/.extension"
+    echo "original_config=true" > "${ext_path}/etc/config.conf"
+    
+    # Create checksum file
+    local checksum
+    checksum=$(sha256sum "${ext_path}/etc/config.conf" | awk '{print $1}')
+    echo "${checksum} etc/config.conf" > "${ext_path}/.extension.checksum"
+    
+    # Modify the config file
+    echo "modified_config=true" > "${ext_path}/etc/config.conf"
+    
+    # Create new version
+    local new_content="${TEST_TEMP_DIR}/new_version"
+    mkdir -p "${new_content}/bin" "${new_content}/etc"
+    echo "name: test_ext" > "${new_content}/.extension"
+    echo "new_config=true" > "${new_content}/etc/config.conf"
+    echo "${checksum} etc/config.conf" > "${new_content}/.extension.checksum"
+    
+    # Perform update
+    update_extension "${ext_path}" "${new_content}"
+    
+    # Verify .save file was created for modified config
+    [[ -f "${ext_path}/etc/config.conf.save" ]]
+    grep -q "modified_config=true" "${ext_path}/etc/config.conf.save"
+    
+    # Verify new config is in place
+    grep -q "new_config=true" "${ext_path}/etc/config.conf"
+}
+
+@test "discover_extensions skips backup directories" {
+    # Create normal extension
+    mkdir -p "${TEST_TEMP_DIR}/test_ext/bin"
+    echo "name: test_ext" > "${TEST_TEMP_DIR}/test_ext/.extension"
+    
+    # Create backup directory (should be skipped)
+    mkdir -p "${TEST_TEMP_DIR}/test_ext_backup_20260211_170150/bin"
+    echo "name: test_ext" > "${TEST_TEMP_DIR}/test_ext_backup_20260211_170150/.extension"
+    
+    # Discover extensions
+    local result
+    result=$(discover_extensions)
+    
+    # Should find the normal extension but not the backup
+    [[ "${result}" == *"test_ext"* ]]
+    [[ "${result}" != *"test_ext_backup_"* ]]
+    
+    # Verify only one extension found
+    local count
+    count=$(echo "${result}" | wc -l)
+    [[ ${count} -eq 1 ]]
+}
+
+@test "get_extension_property sanitizes directory names with dots" {
+    # Create extension with problematic name (contains dot)
+    local ext_path="${TEST_TEMP_DIR}/test.ext"
+    mkdir -p "${ext_path}/bin"
+    echo "name: test.ext" > "${ext_path}/.extension"
+    echo "priority: 10" >> "${ext_path}/.extension"
+    
+    # Try to get property - should not fail with "invalid variable name"
+    local priority
+    priority=$(get_extension_property "${ext_path}" "priority" "50" "true")
+    
+    # Should return the value without errors
+    [[ "${priority}" == "10" ]]
+}
+
+@test "load_extension sanitizes extension names with special characters" {
+    # Set DEBUG logging to capture any errors
+    export ORADBA_LOG_LEVEL="DEBUG"
+    
+    # Create extension with problematic directory name (contains dot and hyphen)
+    local ext_dir="test-ext.v1"
+    mkdir -p "${TEST_TEMP_DIR}/${ext_dir}/bin"
+    # Use a clean name in metadata, but directory has special chars
+    echo "name: test_extension" > "${TEST_TEMP_DIR}/${ext_dir}/.extension"
+    echo "priority: 10" >> "${TEST_TEMP_DIR}/${ext_dir}/.extension"
+    
+    # Try to load - should not fail with "invalid variable name"
+    local result
+    result=$(load_extension "${TEST_TEMP_DIR}/${ext_dir}" 2>&1)
+    local exit_code=$?
+    
+    # Should succeed without errors
+    [[ ${exit_code} -eq 0 ]]
+    
+    # Should not contain error messages
+    [[ "${result}" != *"invalid variable name"* ]]
+    
+    # Should log loading message
+    [[ "${result}" == *"Loading extension"* ]] || [[ "${result}" == *"Loaded extension"* ]]
+}
+
+@test "update_extension updates version in .extension file" {
+    # Source the update_extension function
+    # shellcheck disable=SC1090
+    source <(sed -n '/^update_extension()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+    
+    # Create initial extension
+    local ext_path="${TEST_TEMP_DIR}/test_ext"
+    mkdir -p "${ext_path}/bin"
+    echo "name: test_ext" > "${ext_path}/.extension"
+    echo "version: 1.0.0" >> "${ext_path}/.extension"
+    echo "description: Old version" >> "${ext_path}/.extension"
+    
+    # Create new version
+    local new_content="${TEST_TEMP_DIR}/new_version"
+    mkdir -p "${new_content}/bin"
+    echo "name: test_ext" > "${new_content}/.extension"
+    echo "version: 2.0.0" >> "${new_content}/.extension"
+    echo "description: New version" >> "${new_content}/.extension"
+    
+    # Perform update
+    update_extension "${ext_path}" "${new_content}"
+    
+    # Verify version was updated
+    local version
+    version=$(parse_extension_metadata "${ext_path}/.extension" "version")
+    [[ "${version}" == "2.0.0" ]]
+    
+    # Verify description was updated
+    local desc
+    desc=$(parse_extension_metadata "${ext_path}/.extension" "description")
+    [[ "${desc}" == "New version" ]]
+}
+
 # EOF

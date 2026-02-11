@@ -554,9 +554,9 @@ update_extension() {
     local ext_path="$1"
     local new_content_dir="$2"
 
-    # Create backup directory
+    # Create backup directory (use underscore naming to avoid dots in variable names)
     local backup_dir
-    backup_dir="${ext_path}.backup.$(date +%Y%m%d_%H%M%S)"
+    backup_dir="${ext_path}_backup_$(date +%Y%m%d_%H%M%S)"
     echo "Creating backup: ${backup_dir}"
 
     if ! cp -R "${ext_path}" "${backup_dir}"; then
@@ -616,22 +616,12 @@ update_extension() {
     # Remove metadata files (new ones will be copied)
     rm -f .extension .extension.checksum .checksumignore
 
-    # Copy new content
+    # Copy new content (using tar to preserve all files including dot files)
     echo "Installing new version..."
-    if [[ "${new_content_dir}" == *"/${ext_path##*/}" ]]; then
-        # Source dir has same name, copy contents
-        if ! cp -R "${new_content_dir}"/* "${ext_path}"/; then
-            echo "ERROR: Failed to copy new content" >&2
-            echo "Backup available at: ${backup_dir}" >&2
-            return 1
-        fi
-    else
-        # Copy from temp extraction dir
-        if ! cp -R "${new_content_dir}"/* "${ext_path}"/; then
-            echo "ERROR: Failed to copy new content" >&2
-            echo "Backup available at: ${backup_dir}" >&2
-            return 1
-        fi
+    if ! (cd "${new_content_dir}" && tar cf - .) | (cd "${ext_path}" && tar xf -); then
+        echo "ERROR: Failed to copy new content" >&2
+        echo "Backup available at: ${backup_dir}" >&2
+        return 1
     fi
 
     # Restore .save files
