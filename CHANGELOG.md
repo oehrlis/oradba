@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Data Safe Dual Version Display**
-  - Added `plugin_get_connector_version()` function to retrieve on-premises connector software version from `python3 setup.py version`
-  - Updated `plugin_get_metadata()` to output both `cman_version` (Oracle CMAN version) and `connector_version` (connector software version)
+  - Added `plugin_get_connector_version()` function to retrieve on-premises
+    connector software version from `python3 setup.py version`
+  - Updated `plugin_get_metadata()` to output both `cman_version`
+    (Oracle CMAN version) and `connector_version` (connector software version)
   - Maintains backward compatibility with `version` field (maps to cman_version)
   - Updated `oraup.sh` Data Safe section to display both CMAN VERSION and CONNECTOR VER columns
   - Added 6 comprehensive tests for connector version detection and dual version display
