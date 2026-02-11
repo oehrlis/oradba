@@ -285,12 +285,12 @@ plugin_get_version() {
 # Purpose.: Get Data Safe on-premises connector software version
 # Args....: $1 - Base path
 # Returns.: 0 on success with clean version string to stdout
-#           1 when version not applicable (no output)
 #           2 on error or unavailable (no output)
 # Output..: Version string (e.g., "220517.00")
 # Notes...: Uses python3 setup.py version command
 #           Expected output: "On-premises connector software version : 220517.00"
 #           No sentinel strings (ERR, unknown, N/A) in output
+#           Returns 2 when setup.py missing or python3 unavailable
 # ------------------------------------------------------------------------------
 plugin_get_connector_version() {
     local base_path="$1"
