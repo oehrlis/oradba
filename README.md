@@ -9,11 +9,13 @@ A comprehensive toolset for Oracle Database administration and operations,
 designed for lab and engineering environments such as Oracle AI Database Free
 Docker containers, Oracle databases in VM environments, and OCI-based lab infrastructures.
 
+Current Version: v0.21.1
+
 ## Features
 
-### v0.19.0+ Registry API and Plugin System
+### v0.21.0+ Registry API and Plugin System
 
-- **Registry API** (v0.19.0+): Unified interface for Oracle installation metadata
+- **Registry API** (v0.21.0+): Unified interface for Oracle installation metadata
   - Single API for oratab and oradba_homes.conf access
   - Consistent pipe-delimited format: `type|name|home|version|flags|order|alias|desc`
   - Efficient querying by name, type, or all entries
@@ -25,16 +27,16 @@ Docker containers, Oracle databases in VM environments, and OCI-based lab infras
   - Consolidates product-specific logic into dedicated plugins
   - Extensible architecture for new product types
 
-### v0.19.0+ Architecture
+### v0.21.0+ Architecture
 
-- **Modular Library System** (v0.19.0+): Clean separation of concerns with 6 specialized libraries
+- **Modular Library System** (v0.21.0+): Clean separation of concerns with 6 specialized libraries
   - Environment Parser - Extract and parse Oracle environment metadata
   - Environment Builder - Construct complete Oracle environment variables
   - Environment Validator - Multi-level validation (basic/standard/full)
   - Configuration Manager - Section-based hierarchical configuration
   - Status Checker - Real-time service and database status monitoring
   - Change Detector - Configuration change tracking and auto-reload
-- **Hierarchical Configuration** (v0.19.0+): 6-level INI-style configuration system
+- **Hierarchical Configuration** (v0.21.0+): 6-level INI-style configuration system
   - Product sections: [RDBMS], [CLIENT], [ICLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
   - Variable expansion: ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE}
   - Override hierarchy: core → standard → local → customer → services → SID
