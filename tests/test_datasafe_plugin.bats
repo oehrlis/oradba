@@ -558,6 +558,130 @@ CMCTL_MOCK
     [ "$output" = "19.3.0.0.0" ]
 }
 
+@test "datasafe plugin gets connector version from setup.py" {
+    # Create mock DataSafe home with setup.py
+    local ds_home="${TEST_DIR}/test_homes/datasafe_connector_version"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock setup.py that returns connector version
+    cat > "${ds_home}/setup.py" <<'SETUP_PY'
+#!/usr/bin/env python3
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "version":
+    print("On-premises connector software version : 220517.00")
+    sys.exit(0)
+sys.exit(1)
+SETUP_PY
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connector_version "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "220517.00" ]
+}
+
+@test "datasafe plugin connector version returns exit 2 when setup.py missing" {
+    # Create mock DataSafe home without setup.py
+    local ds_home="${TEST_DIR}/test_homes/datasafe_no_setup"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connector_version "${ds_home}"
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin connector version handles different version formats" {
+    # Create mock DataSafe home with different version format
+    local ds_home="${TEST_DIR}/test_homes/datasafe_connector_version_alt"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock setup.py with different format
+    cat > "${ds_home}/setup.py" <<'SETUP_PY'
+#!/usr/bin/env python3
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "version":
+    print("Data Safe Configuration")
+    print("On-premises connector software version : 230815.12")
+    print("Additional info")
+    sys.exit(0)
+sys.exit(1)
+SETUP_PY
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connector_version "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "230815.12" ]
+}
+
+@test "datasafe plugin metadata includes both cman_version and connector_version" {
+    # Create mock DataSafe home with both versions
+    local ds_home="${TEST_DIR}/test_homes/datasafe_dual_version"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cmctl for CMAN version
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 21.0.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    # Create mock setup.py for connector version
+    cat > "${ds_home}/setup.py" <<'SETUP_PY'
+#!/usr/bin/env python3
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "version":
+    print("On-premises connector software version : 220517.00")
+    sys.exit(0)
+sys.exit(1)
+SETUP_PY
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cman_version=21.0.0.0.0"* ]]
+    [[ "$output" == *"connector_version=220517.00"* ]]
+    # Backward compatibility: version field should still be present
+    [[ "$output" == *"version=21.0.0.0.0"* ]]
+    [[ "$output" == *"type=datasafe_connector"* ]]
+}
+
+@test "datasafe plugin metadata handles missing connector version gracefully" {
+    # Create mock DataSafe home with only CMAN version (no setup.py)
+    local ds_home="${TEST_DIR}/test_homes/datasafe_cman_only"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock cmctl for CMAN version only
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 19.21.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cman_version=19.21.0.0.0"* ]]
+    # Should NOT contain connector_version if setup.py doesn't exist
+    [[ "$output" != *"connector_version="* ]]
+}
+
 @test "datasafe plugin accepts instance name parameter in check_status" {
     # Create mock DataSafe home with cmctl
     local ds_home="${TEST_DIR}/test_homes/datasafe_conn1"
