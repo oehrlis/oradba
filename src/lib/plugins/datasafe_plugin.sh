@@ -315,6 +315,9 @@ plugin_get_connector_version() {
     # Parse version from output using sed for portability
     # Expected format: "On-premises connector software version : 220517.00"
     connector_version=$(echo "${version_output}" | sed -n 's/.*connector software version[[:space:]]*:[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    if [[ -z "${connector_version}" ]] && [[ "${version_output}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+        connector_version="${version_output}"
+    fi
     
     if [[ -n "${connector_version}" ]]; then
         echo "${connector_version}"

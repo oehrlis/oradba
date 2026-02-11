@@ -124,6 +124,7 @@ show_oracle_home_status() {
     local meta_cman_start_date=""
     local meta_cman_uptime=""
     local meta_cman_gateways=""
+    local meta_cman_version=""
     local metadata=""
     local product_type_lower="${product_type,,}"
     local tns_admin="${TNS_ADMIN:-}"
@@ -161,6 +162,9 @@ show_oracle_home_status() {
                 version)
                     meta_version="${value}"
                     ;;
+                cman_version)
+                    meta_cman_version="${value}"
+                    ;;
                 port)
                     meta_port="${value}"
                     ;;
@@ -191,6 +195,8 @@ show_oracle_home_status() {
 
     if [[ -n "${meta_version}" ]]; then
         product_version="${meta_version}"
+    elif [[ -n "${meta_cman_version}" ]]; then
+        product_version="${meta_cman_version}"
     else
         product_version=$(get_oracle_version 2>/dev/null || echo "")
     fi

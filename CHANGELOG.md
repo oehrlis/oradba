@@ -15,10 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Data Safe Version Display Location**
   - Removed CMAN VERSION and CONNECTOR VER columns from `oraup.sh` Data Safe Connectors section
-  - Data Safe version information (ORACLE_VERSION) is now only shown in detailed environment display via `oraenv.sh` and `oradba_env.sh status/show` commands
+  - Data Safe version information (ORACLE_VERSION) is now only shown in detailed
+    environment display via `oraenv.sh` and `oradba_env.sh status/show` commands
   - `oraup.sh` now displays simplified 4-column format: NAME, PORT, STATUS, DATASAFE_BASE_HOME
   - Aligns with design principle: summary view in `oraup.sh`, detailed view in `oraenv.sh`/`oradba_env.sh`
   - Added tests to verify correct column format and metadata extraction
+- **Data Safe Metadata Version Fallbacks**
+  - Use `cman_version` metadata when `version` is missing to populate ORACLE_VERSION in env output
+  - Accept plain version strings from `setup.py version` to emit `connector_version`
 
 ### Changed
 
