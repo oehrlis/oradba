@@ -23,6 +23,10 @@
 [[ -n "${ORADBA_EXTENSIONS_LOADED}" ]] && return 0
 readonly ORADBA_EXTENSIONS_LOADED=1
 
+# Backup directory pattern for extension updates
+# Format: <extension_name>_backup_YYYYMMDD_HHMMSS
+readonly BACKUP_DIR_PATTERN='_backup_[0-9]{8}_[0-9]{6}$'
+
 # ------------------------------------------------------------------------------
 # Extension Discovery Functions
 # ------------------------------------------------------------------------------
@@ -65,7 +69,7 @@ discover_extensions() {
         fi
 
         # Skip backup directories (created by update operations)
-        if [[ "${dir_name}" =~ _backup_[0-9]{8}_[0-9]{6}$ ]]; then
+        if [[ "${dir_name}" =~ ${BACKUP_DIR_PATTERN} ]]; then
             oradba_log DEBUG "Skipping backup directory: ${dir_name}"
             continue
         fi
