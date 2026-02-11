@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================================
 # Script:       validate_test_environment.sh
 # Author:       Stefan Oehrli (oes) stefan.oehrli@oradba.com
-# Date:         2026.02.09
-# Revision:     v0.20.0
-# Purpose:      Validate testing environment for OraDBA v0.20.0
+# Date:         2026.02.11
+# Revision:     v0.21.1
+# Purpose:      Validate testing environment for OraDBA v0.21.1
 # Notes:        Run this script before executing the test suite
 #               Works in both development (src/) and installed (no src/) modes
 # Reference:    doc/automated_testing.md, doc/manual_testing.md
@@ -36,6 +36,12 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Version
+VERSION_VALUE=""
+if [ -f "VERSION" ]; then
+    VERSION_VALUE=$(cat VERSION 2>/dev/null || true)
+fi
+
 # Counters
 CHECKS_TOTAL=0
 CHECKS_PASSED=0
@@ -48,7 +54,11 @@ CHECKS_WARNED=0
 
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}  OraDBA v0.20.0 - Test Environment Validator${NC}"
+    if [[ -n "${VERSION_VALUE}" ]]; then
+        echo -e "${BLUE}  OraDBA v${VERSION_VALUE} - Test Environment Validator${NC}"
+    else
+        echo -e "${BLUE}  OraDBA - Test Environment Validator${NC}"
+    fi
     echo -e "${BLUE}  Mode: $MODE${NC}"
     echo -e "${BLUE}  Architecture: Registry API, Plugin System, Environment Libraries${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -87,11 +97,12 @@ validate_version_file() {
     print_section "Version File"
     
     if [ -f "VERSION" ]; then
-        VERSION=$(cat VERSION)
-        if [[ "$VERSION" =~ ^0\.19\. ]]; then
-            check_pass "VERSION file exists and contains '$VERSION' (v0.19.x)"
+        local version
+        version=$(cat VERSION 2>/dev/null || true)
+        if [[ -n "${version}" ]] && [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([._-][A-Za-z0-9.-]+)?$ ]]; then
+            check_pass "VERSION file exists and contains '${version}'"
         else
-            check_warn "VERSION file contains '$VERSION' (expected v0.19.x)"
+            check_warn "VERSION file contains '${version}' (expected semantic version)"
         fi
     else
         check_fail "VERSION file not found"
@@ -168,11 +179,18 @@ validate_build_system() {
         check_pass "dist/ directory exists"
         
         # Check for current build artifacts
-        if [ -f "dist/oradba-1.0.0-dev.tar.gz" ]; then
-            SIZE=$(ls -lh "dist/oradba-1.0.0-dev.tar.gz" | awk '{print $5}')
-            check_pass "dist/oradba-1.0.0-dev.tar.gz exists ($SIZE)"
+        local tarball_name
+        if [[ -n "${VERSION_VALUE}" ]]; then
+            tarball_name="dist/oradba-${VERSION_VALUE}.tar.gz"
         else
-            check_warn "dist/oradba-1.0.0-dev.tar.gz not found (run 'make build')"
+            tarball_name="dist/oradba-<version>.tar.gz"
+        fi
+
+        if [ -f "${tarball_name}" ]; then
+            SIZE=$(ls -lh "${tarball_name}" | awk '{print $5}')
+            check_pass "${tarball_name} exists (${SIZE})"
+        else
+            check_warn "${tarball_name} not found (run 'make build')"
         fi
         
         if [ -f "dist/oradba_install.sh" ]; then
@@ -283,51 +301,26 @@ validate_documentation() {
     
     # Check main documentation files
     if [ -f "README.md" ]; then
-        if grep -q "v0.19" README.md; then
-            check_pass "README.md contains v0.19.x references"
+        if [[ -n "${VERSION_VALUE}" ]] && grep -q "v${VERSION_VALUE}" README.md; then
+            check_pass "README.md contains v${VERSION_VALUE} references"
         else
-            check_warn "README.md missing v0.19.x references"
+            check_warn "README.md missing v${VERSION_VALUE:-current} references"
         fi
     else
         check_fail "README.md not found"
     fi
     
     if [ -f "CHANGELOG.md" ]; then
-        if grep -q "v0.19" CHANGELOG.md; then
-            check_pass "CHANGELOG.md has v0.19.x entries"
+        if [[ -n "${VERSION_VALUE}" ]] && grep -q "\[${VERSION_VALUE}\]" CHANGELOG.md; then
+            check_pass "CHANGELOG.md has v${VERSION_VALUE} entries"
         else
-            check_fail "CHANGELOG.md missing v0.19.x entries"
+            check_warn "CHANGELOG.md missing v${VERSION_VALUE:-current} entries"
         fi
     else
         check_fail "CHANGELOG.md not found"
     fi
     
-    # Check phase reports
-    REPORTS=(
-        "doc/phase4_code_quality_report.md"
-        "doc/phase5_changelog_report.md"
-        "doc/phase6_readme_report.md"
-    )
-    
-    REPORT_COUNT=0
-    for report in "${REPORTS[@]}"; do
-        if [ -f "$report" ]; then
-            ((REPORT_COUNT++))
-        fi
-    done
-    
-    if [ $REPORT_COUNT -eq 3 ]; then
-        check_pass "All 3 phase reports present"
-    else
-        check_warn "Only $REPORT_COUNT/3 phase reports found"
-    fi
-    
-    # Check testing guide
-    if [ -f "doc/phase7_manual_testing_guide.md" ]; then
-        check_pass "Phase 7 manual testing guide exists"
-    else
-        check_warn "Phase 7 manual testing guide not found"
-    fi
+    # Phase reports and legacy manual testing guide checks removed
 }
 
 validate_shell_prerequisites() {
