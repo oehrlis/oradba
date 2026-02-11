@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- _None_
+
+### Changed
+
+- _None_
+
+## [0.21.1] - 2026-02-11
+
+### Fixed
+
 - **Data Safe Version Display Location**
   - Removed CMAN VERSION and CONNECTOR VER columns from `oraup.sh` Data Safe Connectors section
   - Data Safe version information (ORACLE_VERSION) is now only shown in detailed
@@ -23,10 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Data Safe Metadata Version Fallbacks**
   - Use `cman_version` metadata when `version` is missing to populate ORACLE_VERSION in env output
   - Accept plain version strings from `setup.py version` to emit `connector_version`
-
-### Changed
-
-- _None_
+- **Extension Update Config Preservation**
+  - Fix `oradba_extension.sh --update` creating incomplete extensions and breaking config preservation (issue #202)
 
 ## [0.21.0] - 2026-02-11
 
