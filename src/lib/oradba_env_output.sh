@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security Automation
-# Name......: oradba_env_output.sh
-# Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date......: 2026-02-10
-# Version...: 0.20.5
-# Purpose...: Shared output formatting for environment/status display
-# Notes.....: Used by oraenv.sh and oradba_env.sh for consistent formatting
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_env_output.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.02.10
+# Revision...: 0.20.5
+# Purpose....: Shared output formatting for environment/status display
+# Notes......: Used by oraenv.sh and oradba_env.sh for consistent formatting
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 [[ -n "${ORADBA_ENV_OUTPUT_LOADED:-}" ]] && return 0
 readonly ORADBA_ENV_OUTPUT_LOADED=1

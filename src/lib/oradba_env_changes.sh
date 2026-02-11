@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security Automation
-# Name......: oradba_env_changes.sh
-# Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date......: 2026-01-14
-# Version...: 0.20.0
-# Purpose...: Configuration change detection for Oracle environments
-# Notes.....: Part of Phase 3 implementation
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_env_changes.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.14
+# Revision...: 0.20.0
+# Purpose....: Configuration change detection for Oracle environments
+# Notes......: Part of Phase 3 implementation
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
 
 # Prevent multiple sourcing
 [[ -n "${ORADBA_ENV_CHANGES_LOADED:-}" ]] && return 0

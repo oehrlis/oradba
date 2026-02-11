@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Oracle Home Extension Paths**
   - Ensure extensions are loaded for Oracle Home environments (non-database homes)
   - Keeps extension bin directories in PATH for Data Safe, Java, and similar homes
+- **Env Library Header Standardization**
+  - Aligned env library headers with the standard template format
 - **Documentation Build Compatibility**
   - Replaced Python YAML tags in `mkdocs.yml` with plain string references
   - Prevents unresolved tag errors during MkDocs builds
