@@ -294,6 +294,7 @@ plugin_get_metadata() {
     local service_name
     local port
     local connection_count
+    local cman_status
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Get version using plugin_get_version
@@ -315,6 +316,12 @@ plugin_get_metadata() {
     # Only output if successfully retrieved (no sentinel strings)
     if connection_count=$(plugin_get_connection_count "${base_path}" 2>/dev/null); then
         echo "connections=${connection_count}"
+    fi
+    
+    # Get CMAN status details if connector is running
+    # Only output if successfully retrieved (no sentinel strings)
+    if cman_status=$(plugin_get_cman_status "${base_path}" 2>/dev/null); then
+        echo "${cman_status}"
     fi
     
     echo "type=datasafe_connector"
@@ -662,6 +669,87 @@ plugin_get_connection_count() {
     # Return 0 with count of 0 (valid state)
     echo "0"
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_cman_status
+# Purpose.: Get detailed Connection Manager status information
+# Args....: $1 - Base path
+# Returns.: 0 on success with status details
+#           1 if not applicable (connector not running)
+#           2 on error or unavailable (cmctl not found/failed)
+# Output..: Key=value pairs (start_date, uptime, gateways)
+# Notes...: Uses cmctl show status -c <instance> command
+#           Expected output format:
+#             Start date                10-FEB-2026 15:20:38
+#             Uptime                    0 days 20 hr. 7 min. 6 sec
+#             Num of gateways started   12
+#           Per plugin standards: no sentinel strings (ERR, unknown, N/A)
+# ------------------------------------------------------------------------------
+plugin_get_cman_status() {
+    local base_path="$1"
+    local cman_home
+    
+    # Validate base path exists
+    [[ ! -d "${base_path}" ]] && return 2
+    
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    # Check if cmctl is available
+    local cmctl="${cman_home}/bin/cmctl"
+    [[ ! -x "${cmctl}" ]] && return 2
+    
+    # Check if connector is running first
+    if ! plugin_check_status "${base_path}" "" &>/dev/null; then
+        # Connector not running - return N/A (exit code 1)
+        return 1
+    fi
+    
+    local instance_name
+    instance_name=$(plugin_get_service_name "${base_path}")
+    
+    # Get status information using cmctl show status -c <instance>
+    local status_output
+    status_output=$(ORACLE_HOME="${cman_home}" \
+                    LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                    "${cmctl}" show status -c "${instance_name}" 2>/dev/null)
+    
+    # Parse status information from output
+    # Expected format:
+    #   Start date                10-FEB-2026 15:20:38
+    #   Uptime                    0 days 20 hr. 7 min. 6 sec
+    #   Num of gateways started   12
+    
+    local start_date uptime gateways
+    
+    # Extract start date
+    start_date=$(echo "${status_output}" | grep -i "^Start date" | sed -n 's/^Start date[[:space:]]*\(.*\)$/\1/p' | head -1)
+    
+    # Extract uptime
+    uptime=$(echo "${status_output}" | grep -i "^Uptime" | sed -n 's/^Uptime[[:space:]]*\(.*\)$/\1/p' | head -1)
+    
+    # Extract number of gateways
+    gateways=$(echo "${status_output}" | grep -i "^Num of gateways started" | sed -n 's/^Num of gateways started[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)
+    
+    # Output key=value pairs (only if values found)
+    if [[ -n "${start_date}" ]]; then
+        echo "cman_start_date=${start_date}"
+    fi
+    
+    if [[ -n "${uptime}" ]]; then
+        echo "cman_uptime=${uptime}"
+    fi
+    
+    if [[ -n "${gateways}" ]]; then
+        echo "cman_gateways=${gateways}"
+    fi
+    
+    # Return success if at least one value was found, otherwise error
+    if [[ -n "${start_date}" || -n "${uptime}" || -n "${gateways}" ]]; then
+        return 0
+    else
+        return 2
+    fi
 }
 
 # ------------------------------------------------------------------------------

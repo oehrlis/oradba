@@ -1251,3 +1251,243 @@ CMCTL_MOCK
     [[ "$output" == *"version=23.4.0.0.0"* ]]
     [[ "$output" == *"service_name=test_service"* ]]
 }
+
+# ==============================================================================
+# CMAN Status Tests
+# ==============================================================================
+
+@test "plugin_get_cman_status returns status when connector is running" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn1"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<EOF
+test_service = (configuration...)
+EOF
+    
+    # Create mock cmctl that returns successful show services AND show status
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "Services Summary..."
+    echo "Instance test_service is running"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "status" ]]; then
+    cat <<EOF
+CMCTL for Linux: Version 21.0.0.0.0 - Production on 11-FEB-2026 11:30:45
+
+Copyright (c) 1996, 2021, Oracle.  All rights reserved.
+
+Status of the Instance
+----------------------
+Instance name             test_service
+Version                   CMAN for Linux: Version 21.0.0.0.0 - Production
+Start date                10-FEB-2026 15:20:38
+Uptime                    0 days 20 hr. 10 min. 7 sec
+Num of gateways started   12
+Average Load level        0
+Log Level                 SUPPORT
+The command completed successfully.
+EOF
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify all three fields are present
+    [[ "$output" == *"cman_start_date=10-FEB-2026 15:20:38"* ]]
+    [[ "$output" == *"cman_uptime=0 days 20 hr. 10 min. 7 sec"* ]]
+    [[ "$output" == *"cman_gateways=12"* ]]
+}
+
+@test "plugin_get_cman_status returns 1 when connector is not running" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn2"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<EOF
+test_service = (configuration...)
+EOF
+    
+    # Create mock cmctl that returns stopped status
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "TNS-01189: The listener could not authenticate the user"
+    echo "Instance test_service is not running"
+    exit 1
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "${ds_home}"
+    [ "$status" -eq 1 ]
+    
+    # No output expected when connector is not running
+    [[ -z "$output" ]]
+}
+
+@test "plugin_get_cman_status returns 2 when cmctl is not available" {
+    # Create mock DataSafe connector home without cmctl
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn3"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "${ds_home}"
+    [ "$status" -eq 2 ]
+    
+    # No output expected when cmctl is not available
+    [[ -z "$output" ]]
+}
+
+@test "plugin_get_cman_status returns 2 when base path does not exist" {
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "/nonexistent/path"
+    [ "$status" -eq 2 ]
+    
+    # No output expected when path doesn't exist
+    [[ -z "$output" ]]
+}
+
+@test "plugin_get_cman_status handles partial output gracefully" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn4"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<EOF
+test_service = (configuration...)
+EOF
+    
+    # Create mock cmctl that returns partial status (only some fields)
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "Services Summary..."
+    echo "Instance test_service is running"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "status" ]]; then
+    cat <<EOF
+Status of the Instance
+----------------------
+Start date                10-FEB-2026 15:20:38
+Uptime                    0 days 20 hr. 10 min. 7 sec
+EOF
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify partial fields are present
+    [[ "$output" == *"cman_start_date=10-FEB-2026 15:20:38"* ]]
+    [[ "$output" == *"cman_uptime=0 days 20 hr. 10 min. 7 sec"* ]]
+    # Gateway count not present in output
+    [[ "$output" != *"cman_gateways="* ]]
+}
+
+@test "plugin_get_cman_status returns 2 when status output is completely empty" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn5"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<EOF
+test_service = (configuration...)
+EOF
+    
+    # Create mock cmctl that returns running for services but empty status
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "Services Summary..."
+    echo "Instance test_service is running"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "status" ]]; then
+    # Return empty status output (error condition)
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_cman_status "${ds_home}"
+    [ "$status" -eq 2 ]
+    
+    # No output expected when status is empty
+    [[ -z "$output" ]]
+}
+
+@test "plugin_get_metadata includes cman_status when connector is running" {
+    # Create mock DataSafe connector home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_conn6"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create mock cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<EOF
+test_service = (configuration...)
+EOF
+    
+    # Create comprehensive mock cmctl
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 23.4.0.0.0"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "Services Summary..."
+    echo "Instance test_service is running"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "tunnels" ]]; then
+    echo "Number of connections: 5."
+    exit 0
+elif [[ "$1" == "show" && "$2" == "status" ]]; then
+    cat <<EOF
+Start date                10-FEB-2026 15:20:38
+Uptime                    0 days 20 hr. 10 min. 7 sec
+Num of gateways started   12
+EOF
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify all metadata fields including cman_status
+    [[ "$output" == *"version=23.4.0.0.0"* ]]
+    [[ "$output" == *"service_name=test_service"* ]]
+    [[ "$output" == *"connections=5"* ]]
+    [[ "$output" == *"cman_start_date=10-FEB-2026 15:20:38"* ]]
+    [[ "$output" == *"cman_uptime=0 days 20 hr. 10 min. 7 sec"* ]]
+    [[ "$output" == *"cman_gateways=12"* ]]
+}
