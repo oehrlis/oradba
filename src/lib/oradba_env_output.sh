@@ -115,6 +115,7 @@ show_oracle_home_status() {
     local meta_ports=""
     local meta_service=""
     local meta_java_home=""
+    local meta_connections=""
     local metadata=""
     local product_type_lower="${product_type,,}"
     local tns_admin="${TNS_ADMIN:-}"
@@ -163,6 +164,9 @@ show_oracle_home_status() {
                     ;;
                 java_home)
                     meta_java_home="${value}"
+                    ;;
+                connections)
+                    meta_connections="${value}"
                     ;;
             esac
         done <<< "${metadata}"
@@ -225,6 +229,10 @@ show_oracle_home_status() {
         has_instance=true
     elif [[ -n "${meta_port}" ]]; then
         oradba_env_output_kv "PORT" "${meta_port}"
+        has_instance=true
+    fi
+    if [[ -n "${meta_connections}" ]]; then
+        oradba_env_output_kv "CONNECTIONS" "${meta_connections}"
         has_instance=true
     fi
 

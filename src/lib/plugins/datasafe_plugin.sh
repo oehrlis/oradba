@@ -293,6 +293,7 @@ plugin_get_metadata() {
     local version
     local service_name
     local port
+    local connection_count
     cman_home=$(plugin_adjust_environment "${base_path}")
     
     # Get version using plugin_get_version
@@ -308,6 +309,12 @@ plugin_get_metadata() {
 
     if port=$(plugin_get_port "${base_path}"); then
         echo "port=${port}"
+    fi
+    
+    # Get connection count if connector is running
+    # Only output if successfully retrieved (no sentinel strings)
+    if connection_count=$(plugin_get_connection_count "${base_path}" 2>/dev/null); then
+        echo "connections=${connection_count}"
     fi
     
     echo "type=datasafe_connector"
@@ -599,6 +606,62 @@ plugin_get_port() {
     else
         return 1
     fi
+}
+
+# ------------------------------------------------------------------------------
+# Function: plugin_get_connection_count
+# Purpose.: Get the number of active connections/tunnels
+# Args....: $1 - Base path
+# Returns.: 0 on success with connection count
+#           1 if not applicable (connector not running)
+#           2 on error or unavailable (cmctl not found/failed)
+# Output..: Connection count (e.g., "12")
+# Notes...: Uses cmctl show tunnels command
+#           Format: "Number of connections: 12."
+#           Per plugin standards: no sentinel strings (ERR, unknown, N/A)
+# ------------------------------------------------------------------------------
+plugin_get_connection_count() {
+    local base_path="$1"
+    local cman_home
+    
+    # Validate base path exists
+    [[ ! -d "${base_path}" ]] && return 2
+    
+    cman_home=$(plugin_adjust_environment "${base_path}")
+    
+    # Check if cmctl is available
+    local cmctl="${cman_home}/bin/cmctl"
+    [[ ! -x "${cmctl}" ]] && return 2
+    
+    # Check if connector is running first
+    if ! plugin_check_status "${base_path}" "" &>/dev/null; then
+        # Connector not running - return N/A (exit code 1)
+        return 1
+    fi
+    
+    local instance_name
+    instance_name=$(plugin_get_service_name "${base_path}")
+    
+    # Get tunnel information using cmctl show tunnels -c <instance>
+    local tunnel_output
+    tunnel_output=$(ORACLE_HOME="${cman_home}" \
+                    LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                    "${cmctl}" show tunnels -c "${instance_name}" 2>/dev/null)
+    
+    # Parse connection count from output
+    # Expected format: "Number of connections: 12."
+    local connection_count
+    connection_count=$(echo "${tunnel_output}" | grep -i "Number of connections:" | sed -n 's/.*Number of connections:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)
+    
+    if [[ -n "${connection_count}" ]]; then
+        echo "${connection_count}"
+        return 0
+    fi
+    
+    # No connection count found - could be connector running but no tunnels yet
+    # Return 0 with count of 0 (valid state)
+    echo "0"
+    return 0
 }
 
 # ------------------------------------------------------------------------------
