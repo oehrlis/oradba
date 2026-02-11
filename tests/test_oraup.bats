@@ -224,26 +224,29 @@ setup() {
 @test "oraup.sh Data Safe section displays only 4 columns" {
     # Verify Data Safe Connectors section displays: NAME, PORT, STATUS, DATASAFE_BASE_HOME
     # Not CMAN VERSION or CONNECTOR VER (those should be in oraenv.sh/oradba_env.sh)
+    # NOTE: Pattern extracts from "Data Safe Connectors" to next empty line
     local datasafe_section
     datasafe_section=$(sed -n '/Data Safe Connectors/,/^$/p' "${ORAUP_SCRIPT}")
     
-    # Check for correct column headers
+    # Check for correct column headers (4 columns)
     echo "$datasafe_section" | grep -q "NAME.*PORT.*STATUS.*DATASAFE_BASE_HOME"
     
-    # Verify version columns are NOT present
+    # Verify version columns are NOT present (issue #XXX fix verification)
     ! echo "$datasafe_section" | grep -q "CMAN VERSION"
     ! echo "$datasafe_section" | grep -q "CONNECTOR VER"
 }
 
 @test "oraup.sh Data Safe metadata extraction skips version fields" {
     # Verify that metadata extraction only gets port, not versions
+    # NOTE: This test relies on specific comment markers in the source
+    # If comments change, this test may need adjustment
     local metadata_section
     metadata_section=$(sed -n '/Get metadata.*port/,/Write results to temp file/p' "${ORAUP_SCRIPT}")
     
-    # Should extract port
+    # Should extract port field from metadata
     echo "$metadata_section" | grep -q 'port='
     
-    # Should NOT extract versions
+    # Should NOT extract version fields (issue #XXX fix verification)
     ! echo "$metadata_section" | grep -q 'cman_version='
     ! echo "$metadata_section" | grep -q 'connector_version='
 }

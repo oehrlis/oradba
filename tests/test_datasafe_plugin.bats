@@ -1625,7 +1625,7 @@ CMCTL_MOCK
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
     
-    # Create mock cmctl that returns version
+    # Create mock cmctl that returns CMAN version
     cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
 #!/usr/bin/env bash
 if [[ "$1" == "show" && "$2" == "version" ]]; then
@@ -1636,14 +1636,25 @@ exit 1
 CMCTL_MOCK
     chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
     
+    # Create mock setup.py that returns connector version
+    cat > "${ds_home}/setup.py" <<'SETUP_MOCK'
+#!/usr/bin/env python3
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "version":
+    print("1.5.2")
+    sys.exit(0)
+sys.exit(1)
+SETUP_MOCK
+    chmod +x "${ds_home}/setup.py"
+    
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_get_metadata "${ds_home}"
     [ "$status" -eq 0 ]
     
-    # Verify version is in output as both 'version=' and 'cman_version='
+    # Verify CMAN version is in output as both 'version=' and 'cman_version='
     [[ "$output" == *"version=19.21.0.0.0"* ]]
     [[ "$output" == *"cman_version=19.21.0.0.0"* ]]
     
-    # Ensure connector_version is also output if available
-    # (In this test it won't be since we don't have a setup.py mock)
+    # Verify connector version is also output when available
+    [[ "$output" == *"connector_version=1.5.2"* ]]
 }
