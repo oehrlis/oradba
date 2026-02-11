@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- _None_
+- **Data Safe Connection Count Display**
+  - Added `plugin_get_connection_count()` function to Data Safe plugin
+  - Retrieves active tunnel/connection count via `cmctl show tunnels -c <instance>`
+  - Updates `plugin_get_metadata()` to include connection count
+  - Displays `CONNECTIONS` field in status output when connector is running
+  - Added 6 comprehensive tests for connection count functionality
+  - Follows plugin standards (exit codes 0/1/2, no sentinel strings)
 
 ### Fixed
 
