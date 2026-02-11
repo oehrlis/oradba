@@ -231,7 +231,7 @@ setup() {
     # Check for correct column headers (4 columns)
     echo "$datasafe_section" | grep -q "NAME.*PORT.*STATUS.*DATASAFE_BASE_HOME"
     
-    # Verify version columns are NOT present (issue #XXX fix verification)
+    # Verify version columns are NOT present (fix verification)
     ! echo "$datasafe_section" | grep -q "CMAN VERSION"
     ! echo "$datasafe_section" | grep -q "CONNECTOR VER"
 }
@@ -246,7 +246,7 @@ setup() {
     # Should extract port field from metadata
     echo "$metadata_section" | grep -q 'port='
     
-    # Should NOT extract version fields (issue #XXX fix verification)
+    # Should NOT extract version fields (fix verification)
     ! echo "$metadata_section" | grep -q 'cman_version='
     ! echo "$metadata_section" | grep -q 'connector_version='
 }
