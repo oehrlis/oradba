@@ -1045,3 +1045,209 @@ CMCTL_MOCK
     # Verify output includes type
     [[ "$output" == *"type=datasafe_connector"* ]]
 }
+
+# ==============================================================================
+# Connection Count Tests (Issue #1)
+# ==============================================================================
+
+@test "datasafe plugin gets connection count from cmctl show tunnels" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_connections"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with instance name
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl that returns tunnel information
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "tunnels" ]] && [[ "$3" == "-c" ]]; then
+    cat <<'TUNNELS'
+CMCTL for Linux: Version 20.0.0.0.0 - Production on 09-OCT-2021
+    10:45:34 
+Copyright (c) 1996, 2020, Oracle. All rights reserved. 
+Current instance cust_cman is already started
+Connecting to (address_list=(address=(protocol=TCPS)(host=localhost)(port=1520))) 
+Number of connections: 12. 
+The command completed successfully.
+TUNNELS
+    exit 0
+elif [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    echo "Instance: $4"
+    echo "Services Summary..."
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connection_count "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "12" ]
+}
+
+@test "datasafe plugin connection count returns 0 when no tunnels active" {
+    # Create mock DataSafe home
+    local ds_home="${TEST_DIR}/test_homes/datasafe_no_connections"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl with no connections
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "tunnels" ]] && [[ "$3" == "-c" ]]; then
+    echo "Current instance is running"
+    echo "No active tunnels."
+    exit 0
+elif [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    echo "Services Summary..."
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connection_count "${ds_home}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+@test "datasafe plugin connection count returns N/A when connector not running" {
+    # Create mock DataSafe home where connector is not running
+    local ds_home="${TEST_DIR}/test_homes/datasafe_stopped"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl that indicates stopped status
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" ]] && [[ "$2" == "services" ]] && [[ "$3" == "-c" ]]; then
+    echo "Instance is not running"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connection_count "${ds_home}"
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin connection count returns error when cmctl unavailable" {
+    # Create mock DataSafe home without cmctl
+    local ds_home="${TEST_DIR}/test_homes/datasafe_no_cmctl_conn"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_connection_count "${ds_home}"
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
+}
+
+@test "datasafe plugin metadata includes connection count" {
+    # Create mock DataSafe home with connections
+    local ds_home="${TEST_DIR}/test_homes/datasafe_meta_conn"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+test_service = (configuration=(address=(protocol=tcp)(host=localhost)(port=1999)))
+CMAN_ORA
+    
+    # Create mock cmctl supporting all commands
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+case "$1 $2 $3" in
+    "show version -c")
+        echo "Oracle Connection Manager Version 23.4.0.0.0"
+        exit 0
+        ;;
+    "show services -c")
+        echo "Services Summary..."
+        exit 0
+        ;;
+    "show tunnels -c")
+        echo "Number of connections: 42."
+        exit 0
+        ;;
+esac
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify output includes connections
+    [[ "$output" == *"connections=42"* ]]
+    
+    # Verify other metadata still present
+    [[ "$output" == *"version=23.4.0.0.0"* ]]
+    [[ "$output" == *"service_name=test_service"* ]]
+    [[ "$output" == *"port=1999"* ]]
+}
+
+@test "datasafe plugin metadata excludes connection count when connector stopped" {
+    # Create mock DataSafe home where connector is stopped
+    local ds_home="${TEST_DIR}/test_homes/datasafe_meta_stopped"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+test_service = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+    
+    # Create mock cmctl where service check indicates stopped
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+case "$1 $2 $3" in
+    "show version -c")
+        echo "Oracle Connection Manager Version 23.4.0.0.0"
+        exit 0
+        ;;
+    "show services -c")
+        echo "Instance is not running"
+        exit 0
+        ;;
+esac
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify output does NOT include connections (since connector is stopped)
+    [[ "$output" != *"connections="* ]]
+    
+    # Verify other metadata still present
+    [[ "$output" == *"version=23.4.0.0.0"* ]]
+    [[ "$output" == *"service_name=test_service"* ]]
+}
