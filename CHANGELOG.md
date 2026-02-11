@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- _None_
+
+### Fixed
+
+- _None_
+
+## [0.21.0] - 2026-02-11
+
+### Added
+
+- **Header Standardization**
+  - Standardized all env library headers to match the official template format
+  - Updated 3 files: `oradba_env_output.sh`, `oradba_env_status.sh`, `oradba_env_changes.sh`
+  - All headers now include proper Author, Date, Revision, Purpose, Notes, Reference, License fields
+
 - **Data Safe Dual Version Display**
   - Added `plugin_get_connector_version()` function to retrieve on-premises
     connector software version from `python3 setup.py version`
@@ -36,19 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Displays `CONNECTIONS` field in status output when connector is running
   - Added 6 comprehensive tests for connection count functionality
   - Follows plugin standards (exit codes 0/1/2, no sentinel strings)
-
-### Fixed
-
-- _None_
-
-## [0.21.0] - 2026-02-11
-
-### Added
-
-- **Header Standardization**
-  - Standardized all env library headers to match the official template format
-  - Updated 3 files: `oradba_env_output.sh`, `oradba_env_status.sh`, `oradba_env_changes.sh`
-  - All headers now include proper Author, Date, Revision, Purpose, Notes, Reference, License fields
 
 ### Fixed
 
