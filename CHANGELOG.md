@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Data Safe Connection Manager Status Display**
+  - Added `plugin_get_cman_status()` function to Data Safe plugin
+  - Parses `cmctl show status -c <instance>` output for start date, uptime, and gateway count
+  - Updates `show_oracle_home_status()` to display CMAN status fields when available
+  - Displays START DATE, UPTIME, and GATEWAYS in status output for running connectors
+  - Added 7 comprehensive tests for CMAN status functionality (67 total tests now pass)
+  - Follows plugin standards (exit codes 0/1/2, no sentinel strings)
+  - Integrates seamlessly with existing status display features
+
 - **Data Safe Connection Count Display**
   - Added `plugin_get_connection_count()` function to Data Safe plugin
   - Retrieves active tunnel/connection count via `cmctl show tunnels -c <instance>`
