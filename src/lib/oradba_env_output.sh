@@ -121,6 +121,9 @@ show_oracle_home_status() {
     local meta_service=""
     local meta_java_home=""
     local meta_connections=""
+    local meta_cman_start_date=""
+    local meta_cman_uptime=""
+    local meta_cman_gateways=""
     local metadata=""
     local product_type_lower="${product_type,,}"
     local tns_admin="${TNS_ADMIN:-}"
@@ -172,6 +175,15 @@ show_oracle_home_status() {
                     ;;
                 connections)
                     meta_connections="${value}"
+                    ;;
+                cman_start_date)
+                    meta_cman_start_date="${value}"
+                    ;;
+                cman_uptime)
+                    meta_cman_uptime="${value}"
+                    ;;
+                cman_gateways)
+                    meta_cman_gateways="${value}"
                     ;;
             esac
         done <<< "${metadata}"
@@ -238,6 +250,20 @@ show_oracle_home_status() {
     fi
     if [[ -n "${meta_connections}" ]]; then
         oradba_env_output_kv "CONNECTIONS" "${meta_connections}"
+        has_instance=true
+    fi
+    
+    # Display CMAN status details for Data Safe
+    if [[ -n "${meta_cman_start_date}" ]]; then
+        oradba_env_output_kv "START DATE" "${meta_cman_start_date}"
+        has_instance=true
+    fi
+    if [[ -n "${meta_cman_uptime}" ]]; then
+        oradba_env_output_kv "UPTIME" "${meta_cman_uptime}"
+        has_instance=true
+    fi
+    if [[ -n "${meta_cman_gateways}" ]]; then
+        oradba_env_output_kv "GATEWAYS" "${meta_cman_gateways}"
         has_instance=true
     fi
 
