@@ -21,6 +21,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - _None_
 
+## [0.21.0] - 2026-02-10
+
+### Added
+
+- **Header Standardization**
+  - Standardized all env library headers to match the official template format
+  - Updated 3 files: `oradba_env_output.sh`, `oradba_env_status.sh`, `oradba_env_changes.sh`
+  - All headers now include proper Author, Date, Revision, Purpose, Notes, Reference, License fields
+
+### Fixed
+
+- **Oracle Home Extension Paths** (v0.20.6)
+  - Ensure extensions are loaded for Oracle Home environments (non-database homes)
+  - Keeps extension bin directories in PATH for Data Safe, Java, and similar homes
+- **Repository Hygiene** (v0.20.6)
+  - Runtime config artifacts now properly ignored in `.gitignore`
+- **Documentation Build Compatibility** (v0.20.6)
+  - Replaced Python YAML tags in `mkdocs.yml` with plain string references
+
 ## [0.20.6] - 2026-02-10
 
 ### Added
