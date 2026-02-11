@@ -5,8 +5,8 @@
 # Name.......: oradba_env_changes.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.14
-# Revision...: 0.20.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Configuration change detection for Oracle environments
 # Notes......: Part of Phase 3 implementation
 # Reference..: https://github.com/oehrlis/oradba

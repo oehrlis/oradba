@@ -5,8 +5,8 @@
 # Name.......: oradba_env_output.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.10
-# Revision...: 0.20.5
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Shared output formatting for environment/status display
 # Notes......: Used by oraenv.sh and oradba_env.sh for consistent formatting
 # Reference..: https://github.com/oehrlis/oradba
