@@ -5,7 +5,7 @@
 # Name.......: test_sid_variable_isolation.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.14
+# Date.......: 2026.02.11
 # Purpose....: Manual test for SID-specific variable isolation
 # Notes......: Tests that custom variables in sid.<SID>.conf are cleaned up
 #              when switching to a different SID environment

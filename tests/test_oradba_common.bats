@@ -6,7 +6,7 @@
 # Name.......: test_oradba_common.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.15
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: BATS tests for common library functions
 # Notes......: Tests logging, validation, and Oracle-specific functions.

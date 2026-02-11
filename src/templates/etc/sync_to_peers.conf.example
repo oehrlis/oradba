@@ -4,8 +4,8 @@
 # Name.......: sync_to_peers.conf.example
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Example configuration for sync_to_peers.sh
 # Notes......: Copy to ${ORADBA_BASE}/etc/sync_to_peers.conf and customize
 #              Configuration can also be set via environment variables

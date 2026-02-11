@@ -5,7 +5,7 @@
 # Name.......: archive_github_releases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.15
+# Date.......: 2026.02.11
 # Revision...: 1.0.0
 # Purpose....: Add archive notices to old GitHub releases
 # Notes......: Updates release descriptions with archive notices for outdated versions

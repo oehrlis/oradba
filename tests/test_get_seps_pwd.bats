@@ -6,7 +6,7 @@
 # Name.......: test_get_seps_pwd.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.19
+# Date.......: 2026.02.11
 # Revision...: 0.8.1
 # Purpose....: BATS tests for get_seps_pwd.sh wallet utility
 # Notes......: Tests wallet password extraction and argument parsing

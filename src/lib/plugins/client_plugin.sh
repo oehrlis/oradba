@@ -5,7 +5,7 @@
 # Name.......: client_plugin.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.19
+# Date.......: 2026.02.11
 # Version....: 1.0.0
 # Purpose....: Plugin for Oracle Full Client
 # Notes......: Handles Oracle Full Client (not Instant Client)

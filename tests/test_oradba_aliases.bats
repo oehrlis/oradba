@@ -6,7 +6,7 @@
 # Name.......: test_oradba_aliases.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
+# Date.......: 2026.02.11
 # Revision...: 0.6.0
 # Purpose....: BATS tests for oradba_aliases.sh - dynamic alias generation
 # Notes......: Run with: bats test_oradba_aliases.bats

@@ -5,7 +5,7 @@
 # Name.......: test_plugin_isolation.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.03
+# Date.......: 2026.02.11
 # Purpose....: Test plugin execution isolation (Phase 3)
 # Notes......: Tests subshell isolation, environment propagation, and state immutability
 # Reference..: https://github.com/oehrlis/oradba

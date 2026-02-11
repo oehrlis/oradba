@@ -6,7 +6,7 @@
 # Name.......: test_oradba_dbca.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.03
+# Date.......: 2026.02.11
 # Revision...: 1.0.0
 # Purpose....: BATS tests for oradba_dbca.sh script
 # Notes......: Tests argument parsing, template discovery, and variable substitution.

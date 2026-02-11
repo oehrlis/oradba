@@ -5,7 +5,7 @@
 # Name.......: plugin_interface.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.19
+# Date.......: 2026.02.11
 # Version....: 1.0.0
 # Purpose....: Plugin interface template for product-specific behavior
 # Notes......: All product plugins must implement these functions

@@ -5,7 +5,7 @@
 # Name.......: run_docker_tests.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.15
+# Date.......: 2026.02.11
 # Revision...: 1.0.0
 # Purpose....: Wrapper to run OraDBA automated tests in Docker container
 # Notes......: Starts Oracle 26ai Free container and runs tests

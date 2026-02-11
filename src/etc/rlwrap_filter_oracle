@@ -5,7 +5,7 @@
 # Name.......: rlwrap_filter_oracle
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
+# Date.......: 2026.02.11
 # Revision...: 
 # Purpose....: rlwrap filter to hide passwords from history
 # Notes......: Filters out password inputs for Oracle tools (SQL*Plus, RMAN)

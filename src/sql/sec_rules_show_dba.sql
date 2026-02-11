@@ -4,8 +4,8 @@
 -- Name......: sec_rules_show_dba.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Usage.....: @sec_rules_show_dba
 -- Purpose...: Displays information about lockdown rules in the current container
 -- Notes.....: 

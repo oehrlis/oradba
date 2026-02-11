@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_plugin_return_values.bats
 # Author.....: ChatGPT (Codex)
-# Date.......: 2026.01.31
+# Date.......: 2026.02.11
 # Purpose....: Verify plugin return value contract (exit codes + stdout hygiene)
 # Reference..: #132 (consolidated return-value compliance suite)
 # Notes......: Uses minimal fake plugins to validate contract rules without

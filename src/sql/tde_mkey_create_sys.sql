@@ -4,8 +4,8 @@
 -- Name......: tde_mkey_create_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Create master encryption key for TDE configured keystore must be
 --              set before hand. Works for CDB as well PDB.
 -- Notes.....:  

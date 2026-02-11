@@ -4,8 +4,8 @@
 -- Name......: __SCRIPT_NAME__
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: __PURPOSE__
 -- Notes.....: __NOTES__
 -- Reference.: https://github.com/oehrlis/oradba

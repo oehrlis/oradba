@@ -5,8 +5,8 @@
 # Name.......: build_installer.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Build self-contained installer with base64 payload and version management
 # Notes......: Creates a single executable installer with embedded tarball.
 #              Packages src/ directory and creates distribution installer.

@@ -6,7 +6,7 @@
 # Name.......: test_oradba_version.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
+# Date.......: 2026.02.11
 # Revision...: 0.4.0
 # Purpose....: BATS tests for oradba_version.sh utility
 # Notes......: Tests version checking, integrity verification, and update checking

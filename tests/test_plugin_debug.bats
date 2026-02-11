@@ -6,8 +6,8 @@
 # Name.......: test_plugin_debug.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.10
-# Revision...: 0.19.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: BATS tests for plugin debug facilities
 # Notes......: Tests TRACE log level, ORADBA_PLUGIN_DEBUG, sanitization
 # Reference..: https://github.com/oehrlis/oradba

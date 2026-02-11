@@ -5,7 +5,7 @@
 # Name.......: test_java_plugin.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.20
+# Date.......: 2026.02.11
 # Purpose....: BATS tests for Java plugin
 # Notes......: Tests Java plugin functionality
 # ------------------------------------------------------------------------------

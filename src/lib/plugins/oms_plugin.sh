@@ -5,7 +5,7 @@
 # Name.......: oms_plugin.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.20
+# Date.......: 2026.02.11
 # Version....: 1.0.0
 # Purpose....: Plugin stub for Oracle Enterprise Manager OMS
 # Notes......: EXPERIMENTAL - Minimal stub implementation

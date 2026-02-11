@@ -4,8 +4,8 @@
 # Name.......: ldap.ora.template
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: LDAP configuration template for centralized naming
 # Notes......: Copy to $TNS_ADMIN/ldap.ora or $ORACLE_HOME/network/admin/ldap.ora
 #              Configure for Oracle Internet Directory (OID) or Active Directory

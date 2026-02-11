@@ -4,8 +4,8 @@
 -- Name......: ssec_usrinf.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Show session information of current user based on sys_context
 -- Usage.....: @ssec_usrinf.sql
 -- Notes.....: 

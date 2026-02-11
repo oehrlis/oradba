@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_weblogic_plugin.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.31
+# Date.......: 2026.02.11
 # Purpose....: Unit tests for weblogic_plugin.sh (Oracle WebLogic Server)
 # Notes......: Stub implementation tests
 #            EXPERIMENTAL: Set ORADBA_TEST_EXPERIMENTAL=true to run these tests

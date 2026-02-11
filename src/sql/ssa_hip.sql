@@ -4,8 +4,8 @@
 -- Name......: ssa_hip.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Show all (hidden and regular) initialization parameters
 -- Notes.....: Requires DBA role or access to x$ksppi, x$ksppcv, x$ksppsv, v$parameter
 -- Usage.....: @ssa_hip <PARAMETER> or % for all

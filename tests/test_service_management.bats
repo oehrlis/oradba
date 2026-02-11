@@ -6,7 +6,7 @@
 # Name.......: test_service_management.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: BATS tests for service management scripts
 # Notes......: Tests oradba_dbctl, oradba_lsnrctl, oradba_services functionality

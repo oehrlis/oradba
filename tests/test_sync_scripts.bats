@@ -6,7 +6,7 @@
 # Name.......: test_sync_scripts.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.19
+# Date.......: 2026.02.11
 # Revision...: 0.8.1
 # Purpose....: BATS tests for sync_from_peers.sh and sync_to_peers.sh
 # Notes......: Tests file synchronization utilities and argument parsing

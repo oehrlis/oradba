@@ -6,7 +6,7 @@
 # Name.......: test_version.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.15
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: Test script for version management functions
 # Notes......: Tests get_oradba_version and related functions

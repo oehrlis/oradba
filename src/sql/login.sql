@@ -4,8 +4,8 @@
 -- Name......: login.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: SQL*Plus login and environment configuration script
 -- Notes.....: Automatically executed when SQL*Plus starts if in SQLPATH.
 --              Sets formatting, timing, and column display options.

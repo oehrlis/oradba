@@ -4,8 +4,8 @@
 -- Name......: create_password_hash.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Calculate Oracle 10g Password Hash from Username and Password
 -- Notes.....: Requires execute on DBMS_CRYPTO
 -- Usage.....: @create_password_hash username password

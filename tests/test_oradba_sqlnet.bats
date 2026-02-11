@@ -6,7 +6,7 @@
 # Name.......: test_oradba_sqlnet.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.19
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: BATS tests for oradba_sqlnet.sh script
 # Notes......: Tests SQL*Net configuration management functionality

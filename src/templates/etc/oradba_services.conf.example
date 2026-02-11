@@ -5,7 +5,7 @@
 # Name.......: oradba_services.conf
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
+# Date.......: 2026.02.11
 # Revision...: 
 # Purpose....: Configuration file for Oracle service management
 # Notes......: Sourced by oradba_services.sh to configure service behavior

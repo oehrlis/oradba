@@ -4,8 +4,8 @@
 # Name.......: bck_ctl.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.13.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: RMAN control file (and SPFILE) backup script with template support
 # Notes......: Template tags: <ALLOCATE_CHANNELS>, <FORMAT>, <TAG>, <COMPRESSION>
 #              Run as: rman target / @bck_ctl.rcv

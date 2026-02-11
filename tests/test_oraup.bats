@@ -6,7 +6,7 @@
 # Name.......: test_oraup.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
+# Date.......: 2026.02.11
 # Revision...: 0.6.1
 # Purpose....: BATS tests for oraup.sh
 # Notes......: Tests database status detection and Oracle version support

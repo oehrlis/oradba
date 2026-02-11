@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_plugin_interface.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.16
+# Date.......: 2026.02.11
 # Purpose....: Generic plugin interface compliance tests for all plugins
 # Reference..: Architecture Review & Refactoring Plan (Phase 2)
 # Notes......: Validates that all plugins implement the required interface

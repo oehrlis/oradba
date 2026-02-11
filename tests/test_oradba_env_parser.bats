@@ -5,8 +5,8 @@
 # Name.......: test_oradba_env_parser.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-14
-# Revision...: 0.19.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Unit tests for oradba_env_parser.sh
 # Notes......: Run with: bats tests/test_oradba_env_parser.bats
 # Reference..: https://github.com/oehrlis/oradba

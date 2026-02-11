@@ -6,7 +6,7 @@
 # Name.......: test_oraenv.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
+# Date.......: 2026.02.11
 # Revision...: 0.3.1
 # Purpose....: BATS tests for oraenv.sh environment script
 # Notes......: Tests environment setup and oratab parsing functionality.

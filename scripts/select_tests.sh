@@ -5,8 +5,8 @@
 # Name.......: select_tests.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Smart test selection based on changed files
 # Notes......: Reads .testmap.yml to determine which tests to run
 #              Uses git diff for local changes, supports CI integration

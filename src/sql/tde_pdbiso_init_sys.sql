@@ -4,8 +4,8 @@
 -- Name......: tde_init_full_sys_pdbiso.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Initialize TDE in a PDB in isolation mode i.e., with a dedicated
 --              wallet in WALLET_ROOT for this pdb. The CDB must be configured for
 --              TDE beforehand. This scripts does use several other scripts to

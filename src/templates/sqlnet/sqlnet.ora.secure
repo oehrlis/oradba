@@ -4,8 +4,8 @@
 # Name.......: sqlnet.ora.secure
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Secure SQL*Net configuration template with encryption and checksums
 # Notes......: Enterprise security configuration for production environments
 #              Requires Oracle Advanced Security license for encryption features

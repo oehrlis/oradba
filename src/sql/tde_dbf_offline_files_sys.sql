@@ -4,8 +4,8 @@
 -- Name......: tde_dbf_offline_files_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: This PL/SQL script is designed to create shell scripts to encrypt
 --              or decrypt datafiles in offline mode. Files can be easially executed
 --              with nohup

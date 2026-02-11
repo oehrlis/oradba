@@ -7,8 +7,8 @@
 # Name.......: test_execute_db_query.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@trivadis.com
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.04
-# Revision...: 0.13.2
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Bats tests for execute_db_query function in oradba_common.sh
 # Notes......: Tests the unified SQL*Plus query executor
 # Reference..: https://github.com/oehrlis/oradba

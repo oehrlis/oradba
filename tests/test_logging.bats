@@ -6,8 +6,8 @@
 # Name.......: test_logging.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.04
-# Revision...: 0.13.1
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: BATS tests for unified logging system
 # Notes......: Run with: bats test_logging.bats
 # Reference..: https://github.com/oehrlis/oradba

@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_oradba_dsctl.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.23
+# Date.......: 2026.02.11
 # Purpose....: BATS tests for oradba_dsctl.sh (Data Safe Connector Control)
 # Usage......: bats test_oradba_dsctl.bats
 # Reference..: https://github.com/oehrlis/oradba

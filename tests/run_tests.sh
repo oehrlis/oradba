@@ -5,7 +5,7 @@
 # Name.......: run_tests.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.15
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: Execute all BATS test suites and report results
 # Notes......: Runs all .bats files in the tests directory.

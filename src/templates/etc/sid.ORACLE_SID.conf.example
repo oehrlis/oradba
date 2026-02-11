@@ -5,8 +5,8 @@
 # Name.......: sid.ORACLE_SID.conf.example
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.2
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Example SID-specific configuration for ORCL database
 # Notes......: Auto-created on first environment switch to ORACLE_SID=ORCL
 #              Copy this file to sid.<YOUR_SID>.conf and customize as needed

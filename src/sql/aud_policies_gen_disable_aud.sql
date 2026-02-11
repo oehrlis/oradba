@@ -4,8 +4,8 @@
 -- Name......: aud_policies_gen_disable_aud.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Generate statements to disable all audit policies as currently
 --              set in AUDIT_UNIFIED_ENABLED_POLICIES.
 -- Notes.....:  

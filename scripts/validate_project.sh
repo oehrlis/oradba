@@ -5,7 +5,7 @@
 # Name.......: validate_project.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.20
+# Date.......: 2026.02.11
 # Revision...: v0.19.x
 # Purpose....: Validate OraDBA v0.19.x project structure and required files
 # Notes......: Verifies Registry API, Plugin System, and Environment Libraries structure.

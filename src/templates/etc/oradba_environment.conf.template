@@ -4,8 +4,8 @@
 # Name.......: oradba_environment.conf.template
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-14
-# Revision...: 0.19.1
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Section-based environment configuration template
 # Notes......: Copy this file to one of the following locations:
 #              - oradba_local.conf (site/host-specific settings)

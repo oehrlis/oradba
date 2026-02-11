@@ -6,7 +6,7 @@
 # Name.......: test_sid_config.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
+# Date.......: 2026.02.11
 # Revision...: 0.7.2
 # Purpose....: Test SID configuration auto-creation from template
 # ------------------------------------------------------------------------------

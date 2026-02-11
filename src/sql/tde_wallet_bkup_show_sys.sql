@@ -4,8 +4,8 @@
 -- Name......: tde_wallet_bkup_show_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Displays the configuration and status of the TDE software keystore backup 
 --              components created in the Oracle database.
 -- Notes.....: This script queries the DBMS Scheduler objects related to TDE keystore backup, 

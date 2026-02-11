@@ -6,8 +6,8 @@
 # Name.......: test_oracle_homes.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.01.09
-# Revision...: 0.18.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: BATS tests for Oracle Homes management functions
 # Notes......: Tests parsing, listing, and detection of Oracle Homes
 # Reference..: https://github.com/oehrlis/oradba

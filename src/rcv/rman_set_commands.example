@@ -4,8 +4,8 @@
 # Name.......: rman_set_commands.example
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Example RMAN SET commands file (external file option)
 # Notes......: This file demonstrates how to use external SET commands file
 #              instead of inline RMAN_SET_COMMANDS_INLINE parameter.

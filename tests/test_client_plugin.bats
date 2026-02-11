@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_client_plugin.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.16
+# Date.......: 2026.02.11
 # Purpose....: Unit tests for client_plugin.sh (Oracle Full Client)
 # Reference..: Architecture Review & Refactoring Plan (Phase 2)
 # ------------------------------------------------------------------------------

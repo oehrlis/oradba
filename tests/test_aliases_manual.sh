@@ -5,7 +5,7 @@
 # Name.......: test_aliases_manual.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.16
+# Date.......: 2026.02.11
 # Revision...: 0.5.0
 # Purpose....: Manual test script for OraDBA aliases and variables
 # Notes......: Run this after sourcing oraenv.sh to verify aliases work

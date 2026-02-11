@@ -4,7 +4,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_java_path_config.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.21
+# Date.......: 2026.02.11
 # Purpose....: Unit tests for Java path configuration feature
 # Reference..: Feature - Add autonomous JAVA_HOME detection and export
 # ------------------------------------------------------------------------------

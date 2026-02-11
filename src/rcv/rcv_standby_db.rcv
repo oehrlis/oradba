@@ -4,8 +4,8 @@
 # Name.......: rcv_standby_db.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Template for creating a standby database on remote host
 # Notes......: Assumes same directory structure on primary and standby.
 #              Requires prior copy of RMAN backup files (backups, standby ctl, archivelogs).

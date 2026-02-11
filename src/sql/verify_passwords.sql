@@ -4,8 +4,8 @@
 -- Name......: verify_passwords.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Check if user in sys.user$ has a weak password
 -- Usage.....: @verify_passwords SHOW USER TIMEOUT
 --              SHOW     TRUE or FALSE depending if passwords should be displayed

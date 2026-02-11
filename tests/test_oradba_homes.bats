@@ -6,8 +6,8 @@
 # Name.......: test_oradba_homes.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.12
-# Revision...: 0.18.1
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: BATS tests for oradba_homes.sh management tool
 # Notes......: Tests CLI commands, validation, and discovery
 # Reference..: https://github.com/oehrlis/oradba

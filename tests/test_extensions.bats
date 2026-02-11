@@ -5,8 +5,8 @@
 # Name.......: test_extensions.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Revision...: 0.12.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: BATS tests for extension system (lib/extensions.sh)
 # Notes......: Tests extension discovery, loading, metadata parsing, and priority
 # Reference..: https://github.com/oehrlis/oradba

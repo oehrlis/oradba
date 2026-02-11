@@ -4,8 +4,8 @@
 # Name.......: rcv_db.rcv
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 0.18.3
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Template for complete database recovery
 # Notes......: Assumes controlfiles are still in place and valid.
 #              For read-only tablespaces: add CHECK READONLY to restore command.

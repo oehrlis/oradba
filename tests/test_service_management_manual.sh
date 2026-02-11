@@ -5,7 +5,7 @@
 # Name.......: test_service_management_manual.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.01
+# Date.......: 2026.02.11
 # Revision...: 0.1.0
 # Purpose....: Manual test script for service management functionality
 # Notes......: Interactive testing of oradba_dbctl, oradba_lsnrctl, oradba_services

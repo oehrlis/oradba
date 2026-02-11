@@ -5,7 +5,7 @@
 # Name.......: build_pdf.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
+# Date.......: 2026.02.11
 # Revision...: 
 # Purpose....: Build PDF documentation from markdown files using pandoc
 # Notes......: Reads order from mkdocs.yml navigation structure

@@ -5,8 +5,8 @@
 # Name.......: test_oradba_env_parser_unit.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-02-03
-# Revision...: 0.19.11
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Unit tests for oradba_env_parser.sh with dependency injection
 # Notes......: Tests DI infrastructure, mocked logging, and stateless execution
 #              Run with: bats tests/test_oradba_env_parser_unit.bats

@@ -4,8 +4,8 @@
 -- Name......: apol.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Alias for aud_policies_show_aud.sql
 -- Notes.....: Simple wrapper script for audit policies
 -- Usage.....: @apol

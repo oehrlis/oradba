@@ -4,7 +4,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_registry.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.16
+# Date.......: 2026.02.11
 # Purpose....: Unit tests for oradba_registry.sh
 # Reference..: Architecture Review & Refactoring Plan (Phase 1.1)
 # ------------------------------------------------------------------------------

@@ -4,8 +4,8 @@
 -- Name......: init.sql
 -- Author....: Tanel Poder (original TPT scripts)
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Initialize SQL*Plus variables for 156+ character terminal
 -- Notes.....: Third-party script from Tanel Poder's TPT scripts collection
 --              Original copyright: (c) http://www.tanelpoder.com

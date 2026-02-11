@@ -4,7 +4,7 @@
 # Name.......: rlwrap_sqlplus_completions
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
+# Date.......: 2026.02.11
 # Revision...: 
 # Purpose....: rlwrap completion file for SQL*Plus commands
 # Notes......: Used by rlwrap for tab completion in SQL*Plus sessions

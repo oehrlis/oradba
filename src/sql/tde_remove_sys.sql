@@ -4,8 +4,8 @@
 -- Name......: tde_remove_sys.sql
 -- Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 -- Editor....: Stefan Oehrli
--- Date......: 2026.01.13
--- Revision..: 0.18.3
+-- Date......: 2026.02.11
+-- Revision..: 0.21.0
 -- Purpose...: Remove TDE and software keystore configuration in a single tenant
 --              or container database. This scripts does use several other scripts
 --              to remove TDE and it also includes restart of the database. 

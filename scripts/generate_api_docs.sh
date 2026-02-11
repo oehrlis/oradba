@@ -5,8 +5,8 @@
 # Name.......: generate_api_docs.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.21
-# Revision...: 0.19.1
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Generate API reference documentation from function headers
 # Notes......: Extracts function headers from source files and generates
 #              organized markdown documentation with categories and index.

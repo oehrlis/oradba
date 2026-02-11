@@ -6,7 +6,7 @@
 # Name.......: test_oradba_check.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.17
+# Date.......: 2026.02.11
 # Revision...: 0.7.1
 # Purpose....: BATS tests for oradba_check.sh system prerequisites script
 # Notes......: Tests system checks, Oracle environment detection, and validation

@@ -5,7 +5,7 @@
 # Name.......: weblogic_plugin.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.20
+# Date.......: 2026.02.11
 # Version....: 1.0.0
 # Purpose....: Plugin stub for Oracle WebLogic Server
 # Notes......: EXPERIMENTAL - Minimal stub implementation

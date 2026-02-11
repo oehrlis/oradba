@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Name.......: test_iclient_plugin.bats
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.......: 2026.01.16
+# Date.......: 2026.02.11
 # Purpose....: Unit tests for iclient_plugin.sh (Oracle Instant Client)
 # Reference..: Architecture Review & Refactoring Plan (Phase 2)
 # ------------------------------------------------------------------------------
