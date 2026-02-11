@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Data Safe Version Display Location**
+  - Removed CMAN VERSION and CONNECTOR VER columns from `oraup.sh` Data Safe Connectors section
+  - Data Safe version information (ORACLE_VERSION) is now only shown in detailed environment display via `oraenv.sh` and `oradba_env.sh status/show` commands
+  - `oraup.sh` now displays simplified 4-column format: NAME, PORT, STATUS, DATASAFE_BASE_HOME
+  - Aligns with design principle: summary view in `oraup.sh`, detailed view in `oraenv.sh`/`oradba_env.sh`
+  - Added tests to verify correct column format and metadata extraction
+
+### Changed
+
 - _None_
 
 ## [0.21.0] - 2026-02-11

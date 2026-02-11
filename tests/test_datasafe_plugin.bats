@@ -1616,3 +1616,45 @@ CMCTL_MOCK
     [[ "$output" == *"cman_uptime=0 days 20 hr. 10 min. 7 sec"* ]]
     [[ "$output" == *"cman_gateways=12"* ]]
 }
+
+@test "datasafe version metadata is output for env display (not just oraup)" {
+    # Verify that version metadata is available for oraenv.sh/oradba_env.sh display
+    # Version should be in metadata output as 'version=' field (used by ORACLE_VERSION)
+    
+    local ds_home="${TEST_DIR}/test_homes/datasafe_version_test"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    
+    # Create mock cmctl that returns CMAN version
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 19.21.0.0.0"
+    exit 0
+fi
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+    
+    # Create mock setup.py that returns connector version
+    cat > "${ds_home}/setup.py" <<'SETUP_MOCK'
+#!/usr/bin/env python3
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "version":
+    print("1.5.2")
+    sys.exit(0)
+sys.exit(1)
+SETUP_MOCK
+    chmod +x "${ds_home}/setup.py"
+    
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    run plugin_get_metadata "${ds_home}"
+    [ "$status" -eq 0 ]
+    
+    # Verify CMAN version is in output as both 'version=' and 'cman_version='
+    [[ "$output" == *"version=19.21.0.0.0"* ]]
+    [[ "$output" == *"cman_version=19.21.0.0.0"* ]]
+    
+    # Verify connector version is also output when available
+    [[ "$output" == *"connector_version=1.5.2"* ]]
+}
