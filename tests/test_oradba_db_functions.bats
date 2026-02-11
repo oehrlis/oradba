@@ -230,3 +230,77 @@ setup() {
     
     unset -f oradba_get_product_status
 }
+
+@test "show_oracle_home_status displays complete datasafe metadata" {
+    # Test that all datasafe metadata fields are displayed when available
+    # This verifies the fix for: version, port, connections, uptime etc should be shown
+    
+    # Create temp directory for mock
+    local temp_dir="${BATS_TMPDIR}/datasafe_meta_test"
+    rm -rf "${temp_dir}"
+    mkdir -p "${temp_dir}/oracle_cman_home/bin"
+    mkdir -p "${temp_dir}/oracle_cman_home/lib"
+    mkdir -p "${temp_dir}/oracle_cman_home/network/admin"
+    
+    # Create cman.ora with port
+    cat > "${temp_dir}/oracle_cman_home/network/admin/cman.ora" << 'CMAN_ORA'
+test_service = (configuration = (
+  (address=(protocol=tcps)(host=localhost)(port=1521))
+))
+CMAN_ORA
+    
+    # Create mock cmctl that returns full metadata
+    cat > "${temp_dir}/oracle_cman_home/bin/cmctl" << 'CMCTL'
+#!/usr/bin/env bash
+if [[ "$1" == "show" && "$2" == "version" ]]; then
+    echo "Oracle Connection Manager Version 23.4.0.0.0"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "services" ]]; then
+    echo "Instance test_service is READY"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "tunnels" ]]; then
+    echo "Number of connections: 5"
+    exit 0
+elif [[ "$1" == "show" && "$2" == "status" ]]; then
+    cat << 'STATUS'
+Start date                10-FEB-2026 15:20:38
+Uptime                    0 days 20 hr. 10 min. 7 sec
+Num of gateways started   12
+STATUS
+    exit 0
+fi
+exit 1
+CMCTL
+    chmod +x "${temp_dir}/oracle_cman_home/bin/cmctl"
+    
+    # Set environment
+    export ORADBA_CURRENT_HOME_TYPE="datasafe"
+    export ORACLE_HOME="${temp_dir}/oracle_cman_home"
+    export DATASAFE_HOME="${temp_dir}"
+    export ORACLE_SID="test_service"
+    
+    # Call show_oracle_home_status
+    run show_oracle_home_status "datasafe" "${temp_dir}" "test_service" "true"
+    [ "$status" -eq 0 ]
+    
+    # Verify all metadata fields are displayed
+    [[ "$output" =~ ORACLE_VERSION ]]
+    [[ "$output" =~ 23\.4\.0\.0\.0 ]]
+    [[ "$output" =~ STATUS ]]
+    [[ "$output" =~ running ]]
+    [[ "$output" =~ SERVICE ]]
+    [[ "$output" =~ test_service ]]
+    [[ "$output" =~ PORT ]]
+    [[ "$output" =~ 1521 ]]
+    [[ "$output" =~ CONNECTIONS ]]
+    [[ "$output" =~ 5 ]]
+    [[ "$output" =~ "START DATE" ]]
+    [[ "$output" =~ "10-FEB-2026 15:20:38" ]]
+    [[ "$output" =~ UPTIME ]]
+    echo "$output" | grep -q "0 days 20 hr. 10 min. 7 sec"
+    [[ "$output" =~ GATEWAYS ]]
+    [[ "$output" =~ 12 ]]
+    
+    # Cleanup
+    rm -rf "${temp_dir}"
+}
