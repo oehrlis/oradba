@@ -5,8 +5,8 @@
 # Name.......: oradba_dbca.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.03
-# Revision...: 1.0.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Automated DBCA database creation using response file templates
 # Notes......: Provides command-line interface for creating Oracle databases
 #              using DBCA response file templates with variable substitution.

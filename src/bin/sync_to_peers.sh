@@ -5,8 +5,8 @@
 # Name.......: sync_to_peers.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Sync files/folders from current host to peer hosts
 # Notes......: Uses rsync over ssh to synchronize files across peer hosts.
 #              Configuration can be loaded from environment, etc/ folder or CLI.

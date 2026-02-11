@@ -5,8 +5,8 @@
 # Name.......: get_seps_pwd.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Extract password for a given connect string from Oracle Wallet
 # Notes......: Uses mkstore to retrieve passwords from Oracle Wallet.
 #              Password must be entered only once.

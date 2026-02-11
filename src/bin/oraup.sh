@@ -5,8 +5,8 @@
 # Name.......: oraup.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Display comprehensive Oracle environment status overview
 # Notes......: Shows all Oracle databases, listeners, and processes on the system
 # Reference..: https://github.com/oehrlis/oradba

@@ -5,8 +5,8 @@
 # Name.......: oradba_env.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-15
-# Revision...: 1.0.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Oracle environment management utility
 # Notes......: Provides commands to list, validate, and manage Oracle environments
 #              Part of Phase 1 implementation

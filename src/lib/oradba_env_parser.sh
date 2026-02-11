@@ -5,8 +5,8 @@
 # Name.......: oradba_env_parser.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-14
-# Revision...: 0.19.0
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Parse configuration files (oratab, oradba_homes.conf)
 # Notes......: Part of Phase 1 implementation for oradba environment management
 #              Implements parsing functions for Oracle environment discovery

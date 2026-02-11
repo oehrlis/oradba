@@ -5,8 +5,8 @@
 # Name.......: oradba_logrotate.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2025.12.22
-# Version....: v0.9.0
+# Date.......: 2026.02.11
+# Version....: 0.21.0
 # Purpose....: Manage logrotate configurations for OraDBA and Oracle Database
 # Notes......: Installs, tests, and manages logrotate templates
 # Reference..: https://github.com/oehrlis/oradba

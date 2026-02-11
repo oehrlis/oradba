@@ -5,8 +5,8 @@
 # Name.......: oradba_env_config.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026-01-14
-# Revision...: 0.19.1
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Configuration file processing for Oracle environment management
 # Notes......: Part of Phase 2 implementation - section-based config processing
 #              Handles DEFAULT, RDBMS, CLIENT, ICLIENT, GRID, ASM, DATASAFE, OUD, WLS sections

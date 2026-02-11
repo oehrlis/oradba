@@ -5,8 +5,8 @@
 # Name.......: sync_from_peers.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Sync a file or folder from a remote peer to local, then to other peers
 # Notes......: Uses rsync over ssh to synchronize files from source peer to local,
 #              then distributes to other peer hosts. Configuration can be loaded

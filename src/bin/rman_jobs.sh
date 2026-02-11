@@ -5,8 +5,8 @@
 # Name.......: rman_jobs.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Monitor RMAN operations in v$session_longops (wrapper for longops.sh)
 # Notes......: Simple wrapper script for monitoring RMAN backup/restore operations
 # Reference..: https://github.com/oehrlis/oradba

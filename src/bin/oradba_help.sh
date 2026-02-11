@@ -5,8 +5,8 @@
 # Name.......: oradba_help.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.02
-# Version....: v0.10.4
+# Date.......: 2026.02.11
+# Version....: 0.21.0
 # Purpose....: Quick help system showing available help resources
 # Notes......: Routes to existing help commands and documentation
 # Reference..: https://github.com/oehrlis/oradba

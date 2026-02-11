@@ -5,8 +5,8 @@
 # Name.......: oradba_lsnrctl.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Oracle listener start/stop control script
 # Notes......: Can be used interactively or in runlevel/systemd scripts
 #              Supports multiple listeners across different Oracle homes

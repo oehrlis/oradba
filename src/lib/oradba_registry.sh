@@ -4,8 +4,8 @@
 # Name.....: oradba_registry.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor...: Stefan Oehrli
-# Date.....: 2026.01.16
-# Version..: 0.1.0
+# Date.....: 2026.02.11
+# Version..: 0.21.0
 # Purpose..: Unified registry API for Oracle installations
 # Notes....: Provides abstraction layer over oratab and oradba_homes.conf
 # Reference: Architecture Review & Refactoring Plan (Phase 1.1)

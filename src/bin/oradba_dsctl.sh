@@ -5,8 +5,8 @@
 # Name.......: oradba_dsctl.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.23
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Data Safe connector start/stop control script
 # Notes......: Can be used interactively or in runlevel/systemd scripts
 #              Honors oradba_homes.conf autostart flag, supports explicit connector override

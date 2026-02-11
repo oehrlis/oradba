@@ -5,8 +5,8 @@
 # Name.......: oradba_setup.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.01.13
-# Revision...: 
+# Date.......: 2026.02.11
+# Revision...: 0.21.0
 # Purpose....: Setup helper for post-installation configuration tasks
 # Notes......: Provides utilities for linking oratab, checking installation,
 #              and displaying configuration after Oracle is installed

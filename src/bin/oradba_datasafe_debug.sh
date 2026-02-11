@@ -3,8 +3,8 @@
 # OraDBA - Oracle Database Infrastructure and Security
 # Name.....: oradba_datasafe_debug.sh
 # Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.23
-# Version..: 1.0.0
+# Date.....: 2026.02.11
+# Version..: 0.21.0
 # Purpose..: Debug script for DataSafe status reporting issues
 # Notes....: Generates comprehensive debug information for troubleshooting
 # Usage....: ./oradba_datasafe_debug.sh [datasafe_base_path] [instance_name]
