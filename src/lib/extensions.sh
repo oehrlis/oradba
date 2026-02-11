@@ -64,6 +64,12 @@ discover_extensions() {
             continue
         fi
 
+        # Skip backup directories (created by update operations)
+        if [[ "${dir_name}" =~ _backup_[0-9]{8}_[0-9]{6}$ ]]; then
+            oradba_log DEBUG "Skipping backup directory: ${dir_name}"
+            continue
+        fi
+
         # Check for .extension marker file or content directories (bin/, sql/, rcv/)
         if [[ -f "${dir}/.extension" ]]; then
             extensions+=("${dir}")
@@ -138,8 +144,10 @@ get_extension_property() {
     if [[ "${check_config}" == "true" ]]; then
         local ext_name
         ext_name="$(basename "${ext_path}")"
-        # Sanitize extension name for use in variable names (replace hyphens with underscores)
+        # Sanitize extension name for use in variable names
+        # Replace hyphens with underscores and remove dots and other special characters
         local safe_ext_name="${ext_name//-/_}"
+        safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
         local config_var="ORADBA_EXT_${safe_ext_name^^}_${property^^}"
         value="${!config_var}"
     fi
@@ -522,8 +530,10 @@ load_extension() {
     # Create navigation alias (cd<extname> or cde<extname>)
     create_extension_alias "${ext_name}" "${ext_path}"
 
-    # Sanitize extension name for use in variable names (replace hyphens with underscores)
+    # Sanitize extension name for use in variable names
+    # Replace hyphens with underscores and remove dots and other special characters
     local safe_ext_name="${ext_name//-/_}"
+    safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
 
     # Export extension path variables for reference
     local var_name="ORADBA_EXT_${safe_ext_name^^}_PATH"
