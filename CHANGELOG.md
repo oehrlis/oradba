@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated 3 files: `oradba_env_output.sh`, `oradba_env_status.sh`, `oradba_env_changes.sh`
   - All headers now include proper Author, Date, Revision, Purpose, Notes, Reference, License fields
 
+- **Version/Date Refresh Across Files**
+  - Updated version and date headers in `*.sh`, library, `rcv`, `sql`, and configuration files
+  - Ensures consistent release metadata across scripts, libraries, and configs
+
 - **Data Safe Dual Version Display**
   - Added `plugin_get_connector_version()` function to retrieve on-premises
     connector software version from `python3 setup.py version`
