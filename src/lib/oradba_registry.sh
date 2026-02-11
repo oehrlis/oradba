@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: oradba_registry.sh
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.02.11
-# Version..: 0.21.0
-# Purpose..: Unified registry API for Oracle installations
-# Notes....: Provides abstraction layer over oratab and oradba_homes.conf
-# Reference: Architecture Review & Refactoring Plan (Phase 1.1)
-# License..: Apache License Version 2.0, January 2004 as shown
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_registry.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.02.11
+# Version....: 0.21.0
+# Purpose....: Unified registry API for Oracle installations
+# Notes......: Provides abstraction layer over oratab and oradba_homes.conf
+# Reference..: Architecture Review & Refactoring Plan (Phase 1.1)
+# License....: Apache License Version 2.0, January 2004 as shown
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 

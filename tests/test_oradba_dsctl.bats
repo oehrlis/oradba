@@ -1,15 +1,16 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC1091,SC2030,SC2031,SC2314,SC2315
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_oradba_dsctl.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.23
-# Purpose..: BATS tests for oradba_dsctl.sh (Data Safe Connector Control)
-# Usage....: bats test_oradba_dsctl.bats
-# Reference: https://github.com/oehrlis/oradba
-# License..: Apache License Version 2.0, January 2004 as shown
-#            at http://www.apache.org/licenses/
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_oradba_dsctl.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.23
+# Purpose....: BATS tests for oradba_dsctl.sh (Data Safe Connector Control)
+# Usage......: bats test_oradba_dsctl.bats
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 # Setup test environment

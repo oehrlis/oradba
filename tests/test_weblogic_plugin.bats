@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC1091,SC2030,SC2031
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_weblogic_plugin.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.31
-# Purpose..: Unit tests for weblogic_plugin.sh (Oracle WebLogic Server)
-# Notes....: Stub implementation tests
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_weblogic_plugin.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.31
+# Purpose....: Unit tests for weblogic_plugin.sh (Oracle WebLogic Server)
+# Notes......: Stub implementation tests
 #            EXPERIMENTAL: Set ORADBA_TEST_EXPERIMENTAL=true to run these tests
 # ------------------------------------------------------------------------------
 

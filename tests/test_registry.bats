@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_registry.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.16
-# Purpose..: Unit tests for oradba_registry.sh
-# Reference: Architecture Review & Refactoring Plan (Phase 1.1)
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_registry.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.16
+# Purpose....: Unit tests for oradba_registry.sh
+# Reference..: Architecture Review & Refactoring Plan (Phase 1.1)
 # ------------------------------------------------------------------------------
 
 # Setup test environment

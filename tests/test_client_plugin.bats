@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC1091,SC2030,SC2031
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_client_plugin.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.16
-# Purpose..: Unit tests for client_plugin.sh (Oracle Full Client)
-# Reference: Architecture Review & Refactoring Plan (Phase 2)
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_client_plugin.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.16
+# Purpose....: Unit tests for client_plugin.sh (Oracle Full Client)
+# Reference..: Architecture Review & Refactoring Plan (Phase 2)
 # ------------------------------------------------------------------------------
 
 # Setup test environment

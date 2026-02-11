@@ -1,13 +1,14 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC1091,SC2030,SC2031
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_plugin_interface.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.16
-# Purpose..: Generic plugin interface compliance tests for all plugins
-# Reference: Architecture Review & Refactoring Plan (Phase 2)
-# Notes....: Validates that all plugins implement the required interface
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_plugin_interface.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.16
+# Purpose....: Generic plugin interface compliance tests for all plugins
+# Reference..: Architecture Review & Refactoring Plan (Phase 2)
+# Notes......: Validates that all plugins implement the required interface
 # ------------------------------------------------------------------------------
 
 # Setup test environment

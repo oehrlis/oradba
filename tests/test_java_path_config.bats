@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_java_path_config.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.21
-# Purpose..: Unit tests for Java path configuration feature
-# Reference: Feature - Add autonomous JAVA_HOME detection and export
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_java_path_config.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.21
+# Purpose....: Unit tests for Java path configuration feature
+# Reference..: Feature - Add autonomous JAVA_HOME detection and export
 # ------------------------------------------------------------------------------
 
 # Setup test environment

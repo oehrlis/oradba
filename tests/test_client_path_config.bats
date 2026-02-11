@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_client_path_config.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Date.....: 2026.01.20
-# Purpose..: Unit tests for client path configuration feature
-# Reference: Issue - Add client path config for non-client homes
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_client_path_config.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.01.20
+# Purpose....: Unit tests for client path configuration feature
+# Reference..: Issue - Add client path config for non-client homes
 # ------------------------------------------------------------------------------
 
 # Setup test environment

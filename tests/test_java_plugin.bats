@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_java_plugin.bats
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.01.20
-# Purpose..: BATS tests for Java plugin
-# Notes....: Tests Java plugin functionality
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_java_plugin.bats
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.20
+# Purpose....: BATS tests for Java plugin
+# Notes......: Tests Java plugin functionality
 # ------------------------------------------------------------------------------
 
 # Setup and teardown

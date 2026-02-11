@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: plugin_interface.sh
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.01.19
-# Version..: 1.0.0
-# Purpose..: Plugin interface template for product-specific behavior
-# Notes....: All product plugins must implement these functions
-#            See doc/plugin-standards.md for complete interface specification
-#            Interface version: v1.0.0 (January 2026)
-# Reference: Architecture Review & Refactoring Plan (Phase 1.2)
-#            doc/plugin-standards.md - Plugin interface specification
-# License..: Apache License Version 2.0, January 2004 as shown
-#            at http://www.apache.org/licenses/
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: plugin_interface.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.19
+# Version....: 1.0.0
+# Purpose....: Plugin interface template for product-specific behavior
+# Notes......: All product plugins must implement these functions
+#              See doc/plugin-standards.md for complete interface specification
+#              Interface version: v1.0.0 (January 2026)
+# Reference..: Architecture Review & Refactoring Plan (Phase 1.2)
+#              doc/plugin-standards.md - Plugin interface specification
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

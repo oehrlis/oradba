@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: oud_plugin.sh
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.01.19
-# Version..: 1.0.0
-# Purpose..: Plugin for Oracle Unified Directory (OUD)
-# Notes....: Handles OUD installations with instance management
-#            Implements plugin interface v1.0.0
-# Reference: Architecture Review & Refactoring Plan (Phase 2.1)
-# License..: Apache License Version 2.0, January 2004 as shown
-#            at http://www.apache.org/licenses/
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oud_plugin.sh
+# Author....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.19
+# Version....: 1.0.0
+# Purpose....: Plugin for Oracle Unified Directory (OUD)
+# Notes......: Handles OUD installations with instance management
+#              Implements plugin interface v1.0.0
+# Reference..: Architecture Review & Refactoring Plan (Phase 2.1)
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

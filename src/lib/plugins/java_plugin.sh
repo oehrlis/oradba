@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: java_plugin.sh
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.01.20
-# Version..: 1.0.0
-# Purpose..: Plugin for Oracle Java installations
-# Notes....: Manages Java installations under $ORACLE_BASE/product
-#            Supports version detection from java -version
-# License..: Apache License Version 2.0, January 2004 as shown
-#            at http://www.apache.org/licenses/
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: java_plugin.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.20
+# Version....: 1.0.0
+# Purpose....: Plugin for Oracle Java installations
+# Notes......: Manages Java installations under $ORACLE_BASE/product
+#              Supports version detection from java -version
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

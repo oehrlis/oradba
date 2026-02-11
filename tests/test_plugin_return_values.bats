@@ -1,14 +1,15 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2030,SC2031
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: test_plugin_return_values.bats
-# Author...: ChatGPT (Codex)
-# Date.....: 2026.01.31
-# Purpose..: Verify plugin return value contract (exit codes + stdout hygiene)
-# Reference: #132 (consolidated return-value compliance suite)
-# Notes....: Uses minimal fake plugins to validate contract rules without
-#            depending on product-specific implementations.
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: test_plugin_return_values.bats
+# Author.....: ChatGPT (Codex)
+# Date.......: 2026.01.31
+# Purpose....: Verify plugin return value contract (exit codes + stdout hygiene)
+# Reference..: #132 (consolidated return-value compliance suite)
+# Notes......: Uses minimal fake plugins to validate contract rules without
+#              depending on product-specific implementations.
 # ------------------------------------------------------------------------------
 
 # load 'test_helper' 2>/dev/null || true  # Commented out - no test_helper exists

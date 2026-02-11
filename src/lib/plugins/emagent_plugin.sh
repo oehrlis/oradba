@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# OraDBA - Oracle Database Infrastructure and Security
-# Name.....: emagent_plugin.sh
-# Author...: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor...: Stefan Oehrli
-# Date.....: 2026.01.20
-# Version..: 1.0.0
-# Purpose..: Plugin stub for Oracle Enterprise Manager Agent
-# Notes....: EXPERIMENTAL - Minimal stub implementation
-#            Full support to be added later
-#            Version detection not applicable (returns exit 1)
-# License..: Apache License Version 2.0, January 2004 as shown
-#            at http://www.apache.org/licenses/
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: emagent_plugin.sh
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.01.20
+# Version....: 1.0.0
+# Purpose....: Plugin stub for Oracle Enterprise Manager Agent
+# Notes......: EXPERIMENTAL - Minimal stub implementation
+#              Full support to be added later
+#              Version detection not applicable (returns exit 1)
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
