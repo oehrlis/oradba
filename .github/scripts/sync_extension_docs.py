@@ -126,14 +126,14 @@ def sync_extension_docs(extension: Dict, work_dir: Path, docs_dir: Path) -> bool
         print(f"  ✓ Renamed README.md to index.md")
     
     # Clean up broken links in synced documentation
-    cleanup_broken_links(target_docs)
+    cleanup_broken_links(target_docs, repo)
     
     # Create or update navigation metadata
     create_extension_nav(extension, target_docs)
     
     return True
 
-def cleanup_broken_links(docs_dir: Path) -> None:
+def cleanup_broken_links(docs_dir: Path, repo: str) -> None:
     """Remove or fix broken links that point outside the doc directory."""
     # Patterns for links that will be broken (point to source code, not docs)
     broken_link_patterns = [
@@ -163,6 +163,14 @@ def cleanup_broken_links(docs_dir: Path) -> None:
         for pattern in broken_link_patterns:
             content = re.sub(pattern, r'\1', content)
         
+        # Fix common relative links that break after sync
+        content = re.sub(r'\]\(\.\)', r'](index.md)', content)
+        content = re.sub(
+            r'\]\(\.\./tests/README\.md\)',
+            rf'](https://github.com/{repo}/blob/main/tests/README.md)',
+            content,
+        )
+
         # Write back if changes were made
         if content != original_content:
             md_file.write_text(content, encoding='utf-8')
