@@ -563,7 +563,7 @@ show_oracle_status_registry() {
         echo ""
         echo "Data Safe Connectors"
         echo "------------------------------------------------------------------------------------------"
-        printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "DATASAFE_BASE_HOME"
+        printf "%-20s %-16s %-13s %-15s %-15s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "CMAN VERSION" "CONNECTOR VER" "DATASAFE_BASE_HOME"
         echo "------------------------------------------------------------------------------------------"
         
         # OPTIMIZATION: Parallel status checks for multiple connectors
@@ -572,6 +572,8 @@ show_oracle_status_registry() {
         local -a ds_homes=()
         local -a ds_statuses=()
         local -a ds_ports=()
+        local -a ds_cman_versions=()
+        local -a ds_connector_versions=()
         local -a ds_pids=()
         local -a ds_temp_files=()
         
@@ -589,11 +591,15 @@ show_oracle_status_registry() {
             if [[ ! -d "$home" ]]; then
                 ds_statuses+=("unavailable")
                 ds_ports+=("n/a")
+                ds_cman_versions+=("n/a")
+                ds_connector_versions+=("n/a")
                 ds_pids+=("")
                 ds_temp_files+=("")
             elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
                 ds_statuses+=("empty")
                 ds_ports+=("n/a")
+                ds_cman_versions+=("n/a")
+                ds_connector_versions+=("n/a")
                 ds_pids+=("")
                 ds_temp_files+=("")
             else
@@ -606,6 +612,8 @@ show_oracle_status_registry() {
                 (
                     local status="unknown"
                     local port_display="n/a"
+                    local cman_ver="n/a"
+                    local connector_ver="n/a"
                     
                     # Export cached process list for plugin to use
                     export ORADBA_CACHED_PS="$process_list"
@@ -618,26 +626,37 @@ show_oracle_status_registry() {
                         fi
                     fi
                     
-                    # Get port from metadata
+                    # Get metadata (port and versions)
                     if type -t execute_plugin_function_v2 &>/dev/null; then
                         local metadata
                         execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2>/dev/null || true
                         if [[ -n "${metadata}" ]]; then
-                            local port
+                            local port cman_version connector_version
                             port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
+                            cman_version=$(echo "${metadata}" | awk -F= '$1=="cman_version" {print $2; exit}')
+                            connector_version=$(echo "${metadata}" | awk -F= '$1=="connector_version" {print $2; exit}')
+                            
                             if [[ -n "${port}" ]]; then
                                 port_display="${port}"
+                            fi
+                            if [[ -n "${cman_version}" ]]; then
+                                cman_ver="${cman_version}"
+                            fi
+                            if [[ -n "${connector_version}" ]]; then
+                                connector_ver="${connector_version}"
                             fi
                         fi
                     fi
                     
-                    # Write results to temp file
-                    echo "${status}|${port_display}" > "$temp_file"
+                    # Write results to temp file (pipe-delimited)
+                    echo "${status}|${port_display}|${cman_ver}|${connector_ver}" > "$temp_file"
                 ) &
                 
                 ds_pids+=("$!")
                 ds_statuses+=("")  # Placeholder
                 ds_ports+=("")     # Placeholder
+                ds_cman_versions+=("")  # Placeholder
+                ds_connector_versions+=("")  # Placeholder
             fi
             
             ((idx++))
@@ -654,22 +673,29 @@ show_oracle_status_registry() {
                 if [[ -f "$temp_file" ]]; then
                     local result
                     result=$(cat "$temp_file")
-                    ds_statuses[idx]="${result%%|*}"
-                    ds_ports[idx]="${result#*|}"
+                    # Parse pipe-delimited fields: status|port|cman_version|connector_version
+                    ds_statuses[idx]=$(echo "$result" | cut -d'|' -f1)
+                    ds_ports[idx]=$(echo "$result" | cut -d'|' -f2)
+                    ds_cman_versions[idx]=$(echo "$result" | cut -d'|' -f3)
+                    ds_connector_versions[idx]=$(echo "$result" | cut -d'|' -f4)
                     rm -f "$temp_file"
                 else
                     ds_statuses[idx]="unknown"
                     ds_ports[idx]="n/a"
+                    ds_cman_versions[idx]="n/a"
+                    ds_connector_versions[idx]="n/a"
                 fi
             fi
         done
         
         # Display results in original order
         for idx in "${!ds_names[@]}"; do
-            printf "%-20s %-16s %-13s %s\n" \
+            printf "%-20s %-16s %-13s %-15s %-15s %s\n" \
                 "${ds_names[$idx]}" \
                 "${ds_ports[$idx]}" \
                 "${ds_statuses[$idx]}" \
+                "${ds_cman_versions[$idx]}" \
+                "${ds_connector_versions[$idx]}" \
                 "${ds_homes[$idx]}"
         done
     fi

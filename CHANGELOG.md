@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Data Safe Dual Version Display**
+  - Added `plugin_get_connector_version()` function to retrieve on-premises connector software version from `python3 setup.py version`
+  - Updated `plugin_get_metadata()` to output both `cman_version` (Oracle CMAN version) and `connector_version` (connector software version)
+  - Maintains backward compatibility with `version` field (maps to cman_version)
+  - Updated `oraup.sh` Data Safe section to display both CMAN VERSION and CONNECTOR VER columns
+  - Added 6 comprehensive tests for connector version detection and dual version display
+  - Enables update scripts (e.g., ds_connector_update.sh) to check both versions independently
+  - Facilitates troubleshooting with complete version information for both Oracle product and connector software
+
 - **Data Safe Connection Manager Status Display**
   - Added `plugin_get_cman_status()` function to Data Safe plugin
   - Parses `cmctl show status -c <instance>` output for start date, uptime, and gateway count

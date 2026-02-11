@@ -282,6 +282,50 @@ plugin_get_version() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: plugin_get_connector_version
+# Purpose.: Get Data Safe on-premises connector software version
+# Args....: $1 - Base path
+# Returns.: 0 on success with clean version string to stdout
+#           2 on error or unavailable (no output)
+# Output..: Version string (e.g., "220517.00")
+# Notes...: Uses python3 setup.py version command
+#           Expected output: "On-premises connector software version : 220517.00"
+#           No sentinel strings (ERR, unknown, N/A) in output
+#           Returns 2 when setup.py missing or python3 unavailable
+# ------------------------------------------------------------------------------
+plugin_get_connector_version() {
+    local base_path="$1"
+    local connector_version
+    
+    # Validate base path exists
+    [[ ! -d "${base_path}" ]] && return 2
+    
+    # Check if setup.py exists
+    [[ ! -f "${base_path}/setup.py" ]] && return 2
+    
+    # Check if python3 is available
+    if ! command -v python3 &>/dev/null; then
+        return 2
+    fi
+    
+    # Get connector version using setup.py version command
+    local version_output
+    version_output=$(cd "${base_path}" && python3 setup.py version 2>/dev/null)
+    
+    # Parse version from output using sed for portability
+    # Expected format: "On-premises connector software version : 220517.00"
+    connector_version=$(echo "${version_output}" | sed -n 's/.*connector software version[[:space:]]*:[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    
+    if [[ -n "${connector_version}" ]]; then
+        echo "${connector_version}"
+        return 0
+    fi
+    
+    # No version found - error
+    return 2
+}
+
+# ------------------------------------------------------------------------------
 # Function: plugin_get_metadata
 # Purpose.: Get Data Safe connector metadata
 # Args....: $1 - Base path
@@ -291,17 +335,26 @@ plugin_get_version() {
 plugin_get_metadata() {
     local base_path="$1"
     local cman_home
-    local version
+    local cman_version
+    local connector_version
     local service_name
     local port
     local connection_count
     local cman_status
     cman_home=$(plugin_adjust_environment "${base_path}")
     
-    # Get version using plugin_get_version
+    # Get CMAN version (Oracle-supplied version)
     # Only output version if available (no sentinel strings)
-    if version=$(plugin_get_version "${base_path}"); then
-        echo "version=${version}"
+    if cman_version=$(plugin_get_version "${base_path}"); then
+        echo "cman_version=${cman_version}"
+        # Also output as 'version' for backward compatibility
+        echo "version=${cman_version}"
+    fi
+    
+    # Get connector software version (on-premises connector version)
+    # Only output version if available (no sentinel strings)
+    if connector_version=$(plugin_get_connector_version "${base_path}"); then
+        echo "connector_version=${connector_version}"
     fi
 
     service_name=$(plugin_get_service_name "${base_path}")
