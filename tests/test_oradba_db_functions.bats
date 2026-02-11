@@ -235,52 +235,47 @@ setup() {
     # Test that all datasafe metadata fields are displayed when available
     # This verifies the fix for: version, port, connections, uptime etc should be shown
     
-    # Create temp directory for mock
-    local temp_dir="${BATS_TMPDIR}/datasafe_meta_test"
-    rm -rf "${temp_dir}"
-    mkdir -p "${temp_dir}/oracle_cman_home/bin"
-    mkdir -p "${temp_dir}/oracle_cman_home/lib"
-    mkdir -p "${temp_dir}/oracle_cman_home/network/admin"
+    # Mock execute_plugin_function_v2 to return full datasafe metadata
+    execute_plugin_function_v2() {
+        local product_type="$1"
+        local function_name="$2"
+        # shellcheck disable=SC2034
+        local oracle_home="$3"
+        local result_var="$4"
+        
+        if [[ "${product_type}" == "datasafe" ]] && [[ "${function_name}" == "get_metadata" ]]; then
+            # Return comprehensive datasafe metadata
+            # shellcheck disable=SC2034
+            local metadata="cman_version=23.4.0.0.0
+version=23.4.0.0.0
+service_name=test_service
+port=1521
+connections=5
+cman_start_date=10-FEB-2026 15:20:38
+cman_uptime=0 days 20 hr. 10 min. 7 sec
+cman_gateways=12"
+            eval "${result_var}=\"\${metadata}\""
+            return 0
+        fi
+        return 1
+    }
+    export -f execute_plugin_function_v2
     
-    # Create cman.ora with port
-    cat > "${temp_dir}/oracle_cman_home/network/admin/cman.ora" << 'CMAN_ORA'
-test_service = (configuration = (
-  (address=(protocol=tcps)(host=localhost)(port=1521))
-))
-CMAN_ORA
-    
-    # Create mock cmctl that returns full metadata
-    cat > "${temp_dir}/oracle_cman_home/bin/cmctl" << 'CMCTL'
-#!/usr/bin/env bash
-if [[ "$1" == "show" && "$2" == "version" ]]; then
-    echo "Oracle Connection Manager Version 23.4.0.0.0"
-    exit 0
-elif [[ "$1" == "show" && "$2" == "services" ]]; then
-    echo "Instance test_service is READY"
-    exit 0
-elif [[ "$1" == "show" && "$2" == "tunnels" ]]; then
-    echo "Number of connections: 5"
-    exit 0
-elif [[ "$1" == "show" && "$2" == "status" ]]; then
-    cat << 'STATUS'
-Start date                10-FEB-2026 15:20:38
-Uptime                    0 days 20 hr. 10 min. 7 sec
-Num of gateways started   12
-STATUS
-    exit 0
-fi
-exit 1
-CMCTL
-    chmod +x "${temp_dir}/oracle_cman_home/bin/cmctl"
+    # Mock oradba_get_product_status to return 'running'
+    oradba_get_product_status() {
+        echo "running"
+        return 0
+    }
+    export -f oradba_get_product_status
     
     # Set environment
     export ORADBA_CURRENT_HOME_TYPE="datasafe"
-    export ORACLE_HOME="${temp_dir}/oracle_cman_home"
-    export DATASAFE_HOME="${temp_dir}"
+    export ORACLE_HOME="/test/dscon1/oracle_cman_home"
+    export DATASAFE_HOME="/test/dscon1"
     export ORACLE_SID="test_service"
     
     # Call show_oracle_home_status
-    run show_oracle_home_status "datasafe" "${temp_dir}" "test_service" "true"
+    run show_oracle_home_status "datasafe" "/test/dscon1" "test_service" "true"
     [ "$status" -eq 0 ]
     
     # Verify all metadata fields are displayed
@@ -302,5 +297,6 @@ CMCTL
     [[ "$output" =~ 12 ]]
     
     # Cleanup
-    rm -rf "${temp_dir}"
+    unset -f execute_plugin_function_v2
+    unset -f oradba_get_product_status
 }
