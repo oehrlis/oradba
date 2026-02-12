@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- _None_
+
+### Changed
+
+- _None_
+
+## [0.21.2] - 2026-02-12
+
+### Fixed
+
 - **Extension Update Configuration Preservation**
   - Fixed `oradba_extension.sh add --update` not properly restoring preserved configuration files
   - Enhanced preservation logic to include all modified files from `.extension.checksum`, not just `etc/` directory
@@ -20,10 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Files not present in `.extension.checksum` are now automatically preserved during updates
   - All preserved files are correctly restored after new extension content is installed
   - Improved directory structure handling for nested configuration files
-
-### Changed
-
-- _None_
 
 ## [0.21.1] - 2026-02-11
 
