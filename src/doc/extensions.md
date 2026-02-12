@@ -157,6 +157,7 @@ The add command will:
   - Restore all preserved files to their original locations
 
 **File Preservation During Updates:**
+
 - Modified configuration files you've customized
 - Custom scripts you've added to `bin/`, `sql/`, `rcv/`
 - Additional environment and property files
