@@ -541,13 +541,14 @@ validate_extension_structure() {
 # ------------------------------------------------------------------------------
 # Function: update_extension
 # Purpose.: Update existing extension with backup of modified files
-# Args....: $1 - Source directory path
-#           $2 - Extension name
-#           $3 - Target directory path
+# Args....: $1 - Extension path (existing installation)
+#           $2 - New content directory (extracted from tarball)
 # Returns.: 0 on success, 1 on failure
 # Output..: Update status to stdout
-# Notes...: Creates .save backups of modified configuration files
-#           Compares checksums if .extension.checksum exists
+# Notes...: Creates timestamped backup of entire extension
+#           Creates .save backups of modified files (based on checksums)
+#           Also preserves user-added files (*.conf not in checksum)
+#           Restores all preserved files after copying new content
 #           Similar to RPM update behavior for configs
 # ------------------------------------------------------------------------------
 update_extension() {
@@ -564,37 +565,50 @@ update_extension() {
         return 1
     fi
 
-    # Save modified config files in etc/
-    if [[ -d "${ext_path}/etc" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
-        echo "Checking for modified configuration files..."
+    # Save modified files and user-added files
+    if [[ -f "${ext_path}/.extension.checksum" ]]; then
+        echo "Checking for modified and user-added files..."
         cd "${ext_path}" || return 1
 
-        # Check each file in etc/ against checksum
-        if [[ -d "etc" ]]; then
-            while IFS= read -r line; do
-                [[ "${line}" =~ ^# ]] && continue
-                [[ -z "${line}" ]] && continue
+        # Check each file against checksum to identify modifications
+        while IFS= read -r line; do
+            [[ "${line}" =~ ^# ]] && continue
+            [[ -z "${line}" ]] && continue
 
-                local checksum
-                local filename
-                checksum=$(echo "${line}" | awk '{print $1}')
-                filename=$(echo "${line}" | awk '{print $2}')
+            local checksum
+            local filename
+            checksum=$(echo "${line}" | awk '{print $1}')
+            filename=$(echo "${line}" | awk '{print $2}')
 
-                # Only process etc/ files
-                [[ "${filename}" =~ ^etc/ ]] || continue
-                [[ -f "${filename}" ]] || continue
+            [[ -f "${filename}" ]] || continue
 
-                # Calculate current checksum
-                local current_checksum
-                current_checksum=$(sha256sum "${filename}" 2> /dev/null | awk '{print $1}')
+            # Calculate current checksum
+            local current_checksum
+            current_checksum=$(sha256sum "${filename}" 2> /dev/null | awk '{print $1}')
 
-                # If modified, create .save file
-                if [[ "${current_checksum}" != "${checksum}" ]]; then
-                    echo "  Preserving modified file: ${filename}"
-                    cp "${filename}" "${filename}.save"
-                fi
-            done < ".extension.checksum"
-        fi
+            # If modified, create .save file
+            if [[ "${current_checksum}" != "${checksum}" ]]; then
+                echo "  Preserving modified file: ${filename}"
+                mkdir -p "$(dirname "${filename}.save")"
+                cp "${filename}" "${filename}.save"
+            fi
+        done < ".extension.checksum"
+
+        # Find user-added files (exist but not in checksum)
+        find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" \) | while read -r user_file; do
+            # Remove leading ./
+            user_file="${user_file#./}"
+            
+            # Skip if file is in checksum
+            if grep -q " ${user_file}$" ".extension.checksum" 2>/dev/null; then
+                continue
+            fi
+            
+            # This is a user-added file, preserve it
+            echo "  Preserving user-added file: ${user_file}"
+            mkdir -p "$(dirname "${user_file}.save")"
+            cp "${user_file}" "${user_file}.save"
+        done
     fi
 
     # Remove old files (except log/, *.save, and backup)
@@ -624,9 +638,15 @@ update_extension() {
         return 1
     fi
 
-    # Restore .save files
-    if compgen -G "${ext_path}/etc/*.save" > /dev/null 2>&1; then
-        echo "Restored modified configuration files (*.save)"
+    # Restore .save files to their original names
+    if find "${ext_path}" -name "*.save" -type f | read; then
+        echo "Restoring modified and user-added files..."
+        cd "${ext_path}" || return 1
+        find . -name "*.save" -type f | while read -r save_file; do
+            original_name="${save_file%.save}"
+            echo "  Restoring: ${original_name}"
+            mv "${save_file}" "${original_name}"
+        done
     fi
 
     echo "Update completed. Backup: ${backup_dir}"

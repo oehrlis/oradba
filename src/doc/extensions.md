@@ -149,7 +149,21 @@ The add command will:
 - Download/extract the extension
 - Validate structure
 - Enable by default
-- When updating: create backups and `.save` files for modified configs
+- When updating with `--update`:
+  - Create timestamped backup (e.g., `extension_backup_20260211_193500/`)
+  - Preserve modified files (detected via `.extension.checksum`)
+  - Preserve user-added files: `*.conf`, `*.sh`, `*.sql`, `*.rcv`, `*.rman`, `*.env`, `*.properties`
+  - Install new extension content
+  - Restore all preserved files to their original locations
+
+**File Preservation During Updates:**
+- Modified configuration files you've customized
+- Custom scripts you've added to `bin/`, `sql/`, `rcv/`
+- Additional environment and property files
+- Any files not present in the original extension's `.extension.checksum`
+
+Example: If you've customized `etc/datasafe.conf` and added `bin/my_script.sh`, both files
+will be automatically preserved and restored during the update.
 
 ### List Extensions
 
