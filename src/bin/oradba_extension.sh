@@ -639,13 +639,14 @@ update_extension() {
     fi
 
     # Restore .save files to their original names
+    # Keep .save backups to match update expectations
     if find "${ext_path}" -name "*.save" -type f | read; then
         echo "Restoring modified and user-added files..."
         cd "${ext_path}" || return 1
         find . -name "*.save" -type f | while read -r save_file; do
             original_name="${save_file%.save}"
             echo "  Restoring: ${original_name}"
-            mv "${save_file}" "${original_name}"
+            cp -p "${save_file}" "${original_name}"
         done
     fi
 
