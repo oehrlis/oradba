@@ -645,6 +645,9 @@ update_extension() {
         cd "${ext_path}" || return 1
         find . -name "*.save" -type f | while read -r save_file; do
             original_name="${save_file%.save}"
+            if [[ -e "${original_name}" ]]; then
+                continue
+            fi
             echo "  Restoring: ${original_name}"
             cp -p "${save_file}" "${original_name}"
         done
