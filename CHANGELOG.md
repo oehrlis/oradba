@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - _None_
 
+## [0.21.3] - 2026-02-16
+
+### Fixed
+
+- **Extension Update .save Noise Reduction**
+  - Skip creating .save backups for files that are present in the new extension content
+  - Reduces unnecessary .save files after updates while preserving user-added files
+
 ## [0.21.2] - 2026-02-12
 
 ### Fixed
