@@ -375,6 +375,33 @@ download_extension_from_github() {
 
     echo "GitHub repository: ${repo}"
 
+    # Helper: select best downloadable archive URL from GitHub release JSON
+    # Priority: extension package assets (.tar.gz/.tgz) -> source tarball_url
+    select_release_archive_url() {
+        local release_json="$1"
+        local selected_url=""
+
+        # First try: explicit release assets
+        selected_url=$(echo "${release_json}" | \
+            grep -oE '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]*\.(tar\.gz|tgz)"' | \
+            sed -E 's/^.*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' | \
+            grep -vE '(\.sha256|\.sha512|checksums?)$' | \
+            head -1)
+
+        if [[ -n "${selected_url}" ]]; then
+            echo "${selected_url}"
+            return 0
+        fi
+
+        # Fallback: GitHub source tarball from release metadata
+        selected_url=$(echo "${release_json}" | \
+            grep -oE '"tarball_url"[[:space:]]*:[[:space:]]*"[^"]*"' | \
+            sed -E 's/^.*"tarball_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' | \
+            head -1)
+        echo "${selected_url}"
+        return 0
+    }
+
     # Determine version/tag to use
     local api_url
     local download_url
@@ -389,10 +416,15 @@ download_extension_from_github() {
         # Check if this tag/release exists
         api_url="https://api.github.com/repos/${repo}/releases/tags/${version}"
 
+        local release_info
         if command -v curl > /dev/null 2>&1; then
-            download_url=$(curl -fsSL "${api_url}" 2> /dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+            release_info=$(curl -fsSL "${api_url}" 2> /dev/null)
         elif command -v wget > /dev/null 2>&1; then
-            download_url=$(wget -qO- "${api_url}" 2> /dev/null | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+            release_info=$(wget -qO- "${api_url}" 2> /dev/null)
+        fi
+
+        if [[ -n "${release_info}" ]]; then
+            download_url=$(select_release_archive_url "${release_info}")
         fi
 
         if [[ -z "${download_url}" ]]; then
@@ -467,7 +499,7 @@ download_extension_from_github() {
             fi
         else
             # Release found
-            download_url=$(echo "${release_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+            download_url=$(select_release_archive_url "${release_info}")
             tag_name=$(echo "${release_info}" | grep '"tag_name"' | cut -d'"' -f4 | head -1)
 
             if [[ -z "${download_url}" ]]; then

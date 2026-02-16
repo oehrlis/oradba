@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - _None_
 
+## [0.21.5] - 2026-02-16
+
+### Fixed
+
+- **GitHub Extension Install Uses Release Assets**
+  - Fixed `oradba_extension.sh add <owner/repo> [--update]` to prefer release assets (`browser_download_url`) over GitHub source tarballs
+  - Prevents installing repository-only directories and files such as `.github/` and `tests/` when adding/updating extensions from GitHub
+  - Keeps fallback to source tarball only when no release asset archive is available
+  - Ensures extension release packages containing metadata files like `.extension.checksum` are installed as intended
+
 ## [0.21.4] - 2026-02-16
 
 ### Changed

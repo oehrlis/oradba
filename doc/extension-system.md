@@ -364,17 +364,23 @@ oradba_extension.sh add oehrlis/odb_xyz --update
 
 The `add` command will:
 
-1. Download the extension tarball (for GitHub sources)
+1. Download the extension tarball (for GitHub sources, preferring release assets)
 2. Validate the extension structure
 3. Extract to target location
 4. Enable the extension by default (`enabled: true`)
 5. Show next steps for configuration
 
+For GitHub repositories, `add` first uses release asset archives (`.tar.gz`/`.tgz`)
+from the release page. It falls back to source tarballs only if no release asset
+archive is available. This ensures extension package files such as
+`.extension.checksum` are included when provided by the extension release.
+
 **Update Behavior (`--update` flag)**:
 
-- Creates timestamped backup: `<extension>.backup.YYYYMMDD_HHMMSS`
+- Creates timestamped backup: `<extension>_backup_YYYYMMDD_HHMMSS`
 - Compares files against `.extension.checksum`
-- Creates `.save` files for modified configs in `etc/` (RPM-style)
+- Creates `.save` files for modified managed files (RPM-style)
+- Preserves user-added files (for common extension file types)
 - Preserves `log/` directory
 - Installs new version
 - Restores `.save` files alongside new configs
@@ -390,11 +396,11 @@ $ vi /opt/oracle/local/odb_xyz/etc/config.conf
 
 # Update to new version
 $ oradba_extension.sh add oehrlis/odb_xyz --update
-Creating backup: /opt/oracle/local/odb_xyz.backup.20260108_143022
-Checking for modified configuration files...
+Creating backup: /opt/oracle/local/odb_xyz_backup_20260108_143022
+Checking for modified and user-added files...
   Preserving modified file: etc/config.conf
 Installing new version...
-Restored modified configuration files (*.save)
+Restoring modified and user-added files...
 
 # Check for .save files
 $ ls /opt/oracle/local/odb_xyz/etc/

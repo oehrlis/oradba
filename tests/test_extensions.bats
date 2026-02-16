@@ -1602,6 +1602,130 @@ EOF
 }
 
 # ==============================================================================
+# GitHub Download Tests
+# ==============================================================================
+
+@test "download_extension_from_github prefers release asset over tarball_url for latest release" {
+    # Source only download_extension_from_github function
+    # shellcheck disable=SC1090
+    source <(awk '
+        /^download_extension_from_github\(\)/ {capture=1}
+        capture {
+            if ($0 ~ /^validate_extension_structure\(\)/) exit
+            print
+        }
+    ' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+
+    # Mock curl in PATH
+    local mock_bin="${TEST_TEMP_DIR}/mock_bin"
+    mkdir -p "${mock_bin}"
+    cat > "${mock_bin}/curl" << 'EOF'
+#!/usr/bin/env bash
+output_file=""
+url=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o)
+            output_file="$2"
+            shift 2
+            ;;
+        -*)
+            shift
+            ;;
+        *)
+            url="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ "${url}" == *"/releases/latest" ]]; then
+    cat << 'JSON'
+{"tag_name":"v1.2.3","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v1.2.3","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v1.2.3/repo-extension-v1.2.3.tar.gz"}]}
+JSON
+    exit 0
+fi
+
+if [[ -n "${output_file}" ]]; then
+    printf '%s' "${url}" > "${output_file}"
+    exit 0
+fi
+
+exit 1
+EOF
+    chmod +x "${mock_bin}/curl"
+    export PATH="${mock_bin}:${PATH}"
+
+    local output_file="${TEST_TEMP_DIR}/downloaded.tar.gz"
+
+    run download_extension_from_github "owner/repo" "" "${output_file}"
+    [[ "${status}" -eq 0 ]]
+    [[ -f "${output_file}" ]]
+    grep -q "releases/download/v1.2.3/repo-extension-v1.2.3.tar.gz" "${output_file}"
+}
+
+@test "download_extension_from_github prefers release asset over tarball_url for specific version" {
+    # Source only download_extension_from_github function
+    # shellcheck disable=SC1090
+    source <(awk '
+        /^download_extension_from_github\(\)/ {capture=1}
+        capture {
+            if ($0 ~ /^validate_extension_structure\(\)/) exit
+            print
+        }
+    ' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+
+    # Mock curl in PATH
+    local mock_bin="${TEST_TEMP_DIR}/mock_bin"
+    mkdir -p "${mock_bin}"
+    cat > "${mock_bin}/curl" << 'EOF'
+#!/usr/bin/env bash
+output_file=""
+url=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o)
+            output_file="$2"
+            shift 2
+            ;;
+        -*)
+            shift
+            ;;
+        *)
+            url="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ "${url}" == *"/releases/tags/v2.0.0" ]]; then
+    cat << 'JSON'
+{"tag_name":"v2.0.0","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v2.0.0","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz"}]}
+JSON
+    exit 0
+fi
+
+if [[ -n "${output_file}" ]]; then
+    printf '%s' "${url}" > "${output_file}"
+    exit 0
+fi
+
+exit 1
+EOF
+    chmod +x "${mock_bin}/curl"
+    export PATH="${mock_bin}:${PATH}"
+
+    local output_file="${TEST_TEMP_DIR}/downloaded-v2.tar.gz"
+
+    run download_extension_from_github "owner/repo" "2.0.0" "${output_file}"
+    [[ "${status}" -eq 0 ]]
+    [[ -f "${output_file}" ]]
+    grep -q "releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz" "${output_file}"
+}
+
+# ==============================================================================
 # Extension Update Tests
 # ==============================================================================
 

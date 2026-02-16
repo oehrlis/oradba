@@ -52,4 +52,4 @@ gh release edit "${LATEST_TAG}" --notes-file "doc/releases/${LATEST_TAG}.md"
 
 Files follow the pattern: `vMAJOR.MINOR.PATCH.md`
 
-Examples: `v0.21.3.md`, `v0.20.6.md`, `v0.19.10.md`
+Examples: `v0.21.5.md`, `v0.20.6.md`, `v0.19.10.md`
