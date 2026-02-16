@@ -3,19 +3,19 @@ This directory contains release notes for OraDBA versions.
 
 ## Current Release
 
-### v0.19.0 - Plugin Architecture Release (2026-01-19)
+Release notes are stored one file per release using semantic version filenames:
+`vMAJOR.MINOR.PATCH.md`.
 
-- [v0.19.0](v0.19.0.md) - **Latest**: Plugin architecture adoption with v1.0.0 plugins,
-  complete function documentation (437 functions), comprehensive testing (1516 tests across 65 test files),
-  and code cleanup
+- To see the latest release notes, open the highest versioned file in this directory
+  or check [GitHub Releases](https://github.com/oehrlis/oradba/releases).
 
 ## Archived Releases
 
 - **Older releases** (v0.9.4 through v0.18.5): Available in [archive/](archive/) directory
-- **Internal v1.x releases** (v1.0.0 through v1.2.2): Removed in v0.19.0+ cleanup
-  - These were internal development versions superseded by v0.19.0
+- **Internal v1.x releases** (v1.0.0 through v1.2.2): Removed during cleanup
+  - These were internal development versions superseded by stable semver releases
   - Available in git history if needed for reference
-- **Phase 4 development docs**: Removed in v0.19.0+ cleanup
+- **Phase 4 development docs**: Removed during cleanup
   - Architectural decisions integrated into main documentation
   - Available in git history if needed for reference
 
@@ -25,7 +25,7 @@ For a complete list of all releases, see [GitHub Releases](https://github.com/oe
 
 We maintain release notes for:
 
-- **Current version**: Latest stable release (v0.19.0)
+- **Current versions**: Recent stable releases in this directory
 - **Older versions**: Pre-v0.19.0 releases (v0.9.4 through v0.18.5) in `archive/` directory
 - **Historical releases**: Internal v1.x and Phase 4 development docs removed (available in git history)
 
@@ -34,8 +34,8 @@ We maintain release notes for:
 ### View Release Notes
 
 ```bash
-# Current release
-cat doc/releases/v0.19.0.md
+# Latest release in this directory
+ls -1 doc/releases/v*.md | sort -V | tail -1
 
 # Archived release
 cat doc/releases/archive/v0.18.5.md
@@ -44,11 +44,12 @@ cat doc/releases/archive/v0.18.5.md
 ### Update GitHub Release
 
 ```bash
-gh release edit v0.19.0 --notes-file doc/releases/v0.19.0.md
+LATEST_TAG="$(git describe --tags --abbrev=0)"
+gh release edit "${LATEST_TAG}" --notes-file "doc/releases/${LATEST_TAG}.md"
 ```
 
 ## File Naming Convention
 
 Files follow the pattern: `vMAJOR.MINOR.PATCH.md`
 
-Examples: `v0.19.0.md`, `v0.18.5.md`, `v0.18.4.md`
+Examples: `v0.21.3.md`, `v0.20.6.md`, `v0.19.10.md`

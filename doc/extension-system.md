@@ -3,10 +3,9 @@
 The OraDBA extension system allows you to add custom scripts, SQL files, and RMAN
 scripts in a modular way without modifying the core OraDBA installation.
 
-> **Note:** This document provides complete extension development guidance for v0.19.0+.
-> For detailed implementation patterns and integration examples from the development process,
-> see [archive/extension-docs-implementation.md](archive/extension-docs-implementation.md) and
-> [archive/extension-docs-integration.md](archive/extension-docs-integration.md).
+> **Note:** This document provides complete extension development guidance for the
+> current OraDBA extension framework.
+> For historical implementation context, see [archive/](archive/).
 
 ## Overview
 
@@ -771,6 +770,6 @@ For example, loading the `usz` extension creates `$USZ_BASE=/opt/oracle/local/us
 
 ## See Also
 
-- [Configuration System](05-configuration.md)
-- [Architecture](../architecture.md)
-- [Project Structure](../structure.md)
+- [Configuration System](../src/doc/configuration.md)
+- [Architecture](architecture.md)
+- [Development Guide](development.md)

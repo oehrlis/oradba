@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD013 -->
 # Developer Documentation
 
-Welcome to the OraDBA developer documentation. This directory contains technical documentation for contributors, maintainers, and developers working on the OraDBA v0.19.0+ project.
+Welcome to the OraDBA developer documentation. This directory contains technical documentation for contributors, maintainers, and developers working on the modern OraDBA architecture.
 
 **Audience:** Project contributors, developers extending OraDBA, maintainers
 
@@ -17,7 +17,6 @@ Welcome to the OraDBA developer documentation. This directory contains technical
 | **Extension System**   | [extension-system.md](extension-system.md)   | ⏳ Review   | Extension development guide and API                 |
 | **Testing**            | [automated_testing.md](automated_testing.md) | ⏳ Review   | Automated testing guide and framework               |
 | **Testing**            | [manual_testing.md](manual_testing.md)       | ⏳ Review   | Manual testing procedures                           |
-| **Environment Design** | [oradba-env-design.md](oradba-env-design.md) | 📚 Archive  | Original design document (historical reference)     |
 | **Archive**            | [archive/](archive/)                         | 📚          | Historical docs, completed plans, legacy references |
 | **Diagrams**           | [images/](images/)                           | ✅          | Mermaid diagrams (Registry API, Plugin System)      |
 
@@ -94,7 +93,7 @@ make ci                # Complete CI pipeline (~10-15 min)
 
 ### Architecture & Design
 
-**[architecture.md](architecture.md)** - v0.19.0+ System Architecture
+**[architecture.md](architecture.md)** - System Architecture
 
 - **Registry API**: Unified access to oratab + oradba_homes.conf
   - Auto-synchronization of database entries
@@ -111,13 +110,6 @@ make ci                # Complete CI pipeline (~10-15 min)
 - **Environment Management Libraries**: 6 specialized libraries
 - **Data Flow**: Mermaid diagram showing Registry API integration
 - **Design Principles**: Modularity, testability, extensibility
-
-**[oradba-env-design.md](oradba-env-design.md)** - Historical Design Document
-
-- Original environment library design rationale
-- Parser, Builder, Validator, Config Manager patterns
-- Implementation details and testing strategies
-- **Status**: Archived for reference, see architecture.md for current design
 
 ### Technical Reference
 
@@ -190,18 +182,8 @@ make pre-commit        # Smart + lint (~2-4 min) - pre-commit hook
 make ci                # Full pipeline (~10-15 min) - before releases
 ```
 
-**[release-testing-checklist.md](release-testing-checklist.md)** - Pre-release Testing
-
-- Installation testing (multiple platforms)
-- Core functionality verification
-- Plugin system testing (all 6 plugins)
-- Configuration system testing
-- Documentation validation
-- Upgrade testing
-  - Phase 4: Code Quality & Standards ✅
-  - Phase 5: CHANGELOG Consolidation ✅
-- Phase 6: README & Main Docs ⏳ **IN PROGRESS**
-- Phase 7-9: Pre-Release Testing → Version Prep → Release & Announce
+For release process notes and historical release context, see `doc/releases/` and
+`doc/archive/`.
 
 ## Templates & Standards
 

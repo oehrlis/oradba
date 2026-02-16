@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - _None_
 
+## [0.21.4] - 2026-02-16
+
+### Changed
+
+- **Documentation Maintenance and Link Cleanup**
+  - Simplified root `README.md` by removing brittle version-specific labels where not required
+  - Updated `doc/releases/README.md` to remove hardcoded latest-version references and use maintainable guidance
+  - Removed stale references to missing historical files in `doc/README.md`
+  - Fixed extension documentation cross-links in `doc/extension-system.md` to existing paths
+
 ## [0.21.3] - 2026-02-16
 
 ### Fixed

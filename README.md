@@ -9,44 +9,44 @@ A comprehensive toolset for Oracle Database administration and operations,
 designed for lab and engineering environments such as Oracle AI Database Free
 Docker containers, Oracle databases in VM environments, and OCI-based lab infrastructures.
 
-Current Version: v0.21.1
+Current Version: See [GitHub Releases](https://github.com/oehrlis/oradba/releases/latest)
 
 ## Features
 
-### v0.21.0+ Registry API and Plugin System
+### Registry API and Plugin System
 
-- **Registry API** (v0.21.0+): Unified interface for Oracle installation metadata
+- **Registry API**: Unified interface for Oracle installation metadata
   - Single API for oratab and oradba_homes.conf access
   - Consistent pipe-delimited format: `type|name|home|version|flags|order|alias|desc`
   - Efficient querying by name, type, or all entries
   - Eliminates duplicate parsing logic across 20+ files
-- **Plugin System** (v0.19.0+): Product-specific behavior encapsulation
+- **Plugin System**: Product-specific behavior encapsulation
   - 9 plugins: database, datasafe, client, iclient, oud, java, weblogic, emagent, oms
   - 11-function interface: validate, adjust, status, metadata, discover, etc.
   - Comprehensive plugin tests (100% pass rate)
   - Consolidates product-specific logic into dedicated plugins
   - Extensible architecture for new product types
 
-### v0.21.0+ Architecture
+### Architecture
 
-- **Modular Library System** (v0.21.0+): Clean separation of concerns with 6 specialized libraries
+- **Modular Library System**: Clean separation of concerns with 6 specialized libraries
   - Environment Parser - Extract and parse Oracle environment metadata
   - Environment Builder - Construct complete Oracle environment variables
   - Environment Validator - Multi-level validation (basic/standard/full)
   - Configuration Manager - Section-based hierarchical configuration
   - Status Checker - Real-time service and database status monitoring
   - Change Detector - Configuration change tracking and auto-reload
-- **Hierarchical Configuration** (v0.21.0+): 6-level INI-style configuration system
+- **Hierarchical Configuration**: 6-level INI-style configuration system
   - Product sections: [RDBMS], [CLIENT], [ICLIENT], [GRID], [ASM], [DATASAFE], [OUD], [WLS]
   - Variable expansion: ${ORACLE_HOME}, ${ORACLE_SID}, ${ORACLE_BASE}
   - Override hierarchy: core → standard → local → customer → services → SID
-- **Oracle Homes Management** (v0.19.0+): Unified support for all Oracle products
+- **Oracle Homes Management**: Unified support for all Oracle products
   - Database, Client, Instant Client (ICLIENT), Grid Infrastructure, ASM
   - Oracle Unified Directory (OUD), WebLogic Server (WLS), Data Safe On-Premises Connectors (DATASAFE)
   - Enterprise Manager (OMS, EM Agent), Java/JDK
   - Auto-discovery, export/import, version tracking
   - User-friendly aliases and integrated environment setup
-- **Auto-Discovery of Running Instances** (v0.19.0+): Zero-config instant startup
+- **Auto-Discovery of Running Instances**: Zero-config instant startup
   - Automatically detects running Oracle instances when oratab is empty
   - Persists discovered instances to oratab (or local oratab if permission denied)
   - Supports database instances (db_smon_*, ora_pmon_*) and ASM (+ASM)
@@ -119,7 +119,7 @@ chmod +x oradba_install.sh
 # Or specify custom installation directory
 ./oradba_install.sh --prefix /opt/oradba
 
-# Pre-Oracle installation (v0.17.0+) - install before Oracle Database
+# Pre-Oracle installation - install before Oracle Database
 ./oradba_install.sh --user-level          # Install to ~/oradba
 ./oradba_install.sh --base /opt           # Install to /opt/local/oradba
 
@@ -142,20 +142,20 @@ source oraenv.sh FREE
 # Or use auto-generated aliases
 free              # Shortcut for: source /opt/oradba/bin/oraenv.sh FREE
 
-# Setup Oracle Homes (v0.19.0+)
+# Setup Oracle Homes
 source oraenv.sh OUD12     # Oracle Unified Directory
 source oraenv.sh WLS14     # WebLogic Server
 
 # Interactive selection (displays both Oracle Homes and database SIDs)
 source oraenv.sh
 
-# Check environment status and changes (v0.19.0+)
+# Check environment status and changes
 oradba_env.sh status FREE  # Check database/service status
 oradba_env.sh changes      # Detect configuration changes
 oradba_env.sh validate     # Validate current environment
 ```
 
-Manage Oracle Homes (v0.19.0+):
+Manage Oracle Homes:
 
 ```bash
 # List registered Oracle Homes
@@ -168,14 +168,14 @@ oradba_homes.sh discover --auto-add
 oradba_homes.sh add --name OUD12 \
   --path /u01/app/oracle/product/12.2.1.4/oud --type oud
 
-# Export/import Oracle Homes configuration (v0.19.0+)
+# Export/import Oracle Homes configuration
 oradba_homes.sh export > homes_backup.conf
 oradba_homes.sh import homes_backup.conf
 
 # Show environment status (includes Oracle Homes)
 oraup.sh
 
-# Query installations via Registry API (v0.19.0+)
+# Query installations via Registry API
 oradba_registry_get_all                    # All installations
 oradba_registry_get_by_name "ORCLCDB"     # Specific database/home
 oradba_registry_get_by_type "database"    # All databases
