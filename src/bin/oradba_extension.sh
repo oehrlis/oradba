@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.02.11
-# Revision...: 0.21.0
+# Revision...: 0.21.3
 # Purpose....: Management tool for OraDBA extensions
 # Notes......: List, inspect, validate, and manage OraDBA extensions
 # Reference..: https://github.com/oehrlis/oradba
@@ -594,7 +594,7 @@ update_extension() {
             fi
         done < ".extension.checksum"
 
-        # Find user-added files (exist but not in checksum)
+        # Find user-added files (exist but not in checksum or new content)
         find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" \) | while read -r user_file; do
             # Remove leading ./
             user_file="${user_file#./}"
@@ -604,6 +604,11 @@ update_extension() {
                 continue
             fi
             
+            # Skip files that are part of the new release content
+            if [[ -f "${new_content_dir}/${user_file}" ]]; then
+                continue
+            fi
+
             # This is a user-added file, preserve it
             echo "  Preserving user-added file: ${user_file}"
             mkdir -p "$(dirname "${user_file}.save")"
