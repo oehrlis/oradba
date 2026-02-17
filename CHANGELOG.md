@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- _None_
+- Add comment out example entries in oradba_homes.conf.templates
 
 ### Changed
 

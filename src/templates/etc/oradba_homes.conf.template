@@ -4,8 +4,8 @@
 # Name.......: oradba_homes.conf.template
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.11
-# Version....: 0.19.0
+# Date.......: 2026.02.17
+# Version....: 0.22.1
 # Purpose....: Configuration file for Oracle Homes (all Oracle products)
 # Notes......: This file registers all Oracle products including:
 #              - Oracle Database (RDBMS)
