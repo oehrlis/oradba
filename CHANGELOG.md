@@ -13,11 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Add comment out example entries in oradba_homes.conf.templates
+- _None_
 
 ### Changed
 
 - _None_
+
+## [0.22.1] - 2026-02-17
+
+### Fixed
+
+- **Installer Integrity Verification Noise Reduction**
+  - Exclude runtime-managed extension template cache files (`templates/oradba_extension/.version` and `templates/oradba_extension/extension-template.tar.gz`) from core integrity mismatch reporting while keeping them in `.oradba.checksum`
+  - Keep `.install_info` excluded as runtime-managed installation metadata
+  - Prevent false "MODIFIED" results after refreshing bundled extension template cache files
 
 ## [0.22.0] - 2026-02-17
 

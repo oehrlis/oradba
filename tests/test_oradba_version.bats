@@ -181,6 +181,27 @@ teardown() {
     [[ "$output" =~ "Missing files:" ]]
 }
 
+@test "oradba_version.sh --verify ignores runtime-managed template cache files" {
+    # Create test installation with template cache files included in checksum
+    mkdir -p "$TEST_INSTALL_DIR/templates/oradba_extension"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "v0.4.0" > "$TEST_INSTALL_DIR/templates/oradba_extension/.version"
+    echo "template content" > "$TEST_INSTALL_DIR/templates/oradba_extension/extension-template.tar.gz"
+
+    # Generate checksums then modify runtime-managed files
+    cd "$TEST_INSTALL_DIR" || return 1
+    sha256sum VERSION templates/oradba_extension/.version templates/oradba_extension/extension-template.tar.gz > .oradba.checksum
+    echo "v0.4.1" > templates/oradba_extension/.version
+    echo "new template content" > templates/oradba_extension/extension-template.tar.gz
+    cd - > /dev/null || return 1
+
+    run "$ORADBA_VERSION" --verify
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Installation integrity verified" ]]
+    [[ ! "$output" =~ "templates/oradba_extension/.version: MODIFIED" ]]
+    [[ ! "$output" =~ "templates/oradba_extension/extension-template.tar.gz: MODIFIED" ]]
+}
+
 # ------------------------------------------------------------------------------
 # Update checking tests
 # ------------------------------------------------------------------------------

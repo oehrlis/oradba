@@ -145,6 +145,7 @@ get_checksum_exclusions() {
 check_integrity() {
     local skip_extensions="${1:-false}"
     local checksum_file="${BASE_DIR}/.oradba.checksum"
+    local runtime_modified_pattern='\.(install_info)$|templates/oradba_extension/(extension-template\.tar\.gz|\.version)$'
 
     if [[ ! -f "${checksum_file}" ]]; then
         echo -e "${RED}✗ ERROR: Checksum file not found${NC}"
@@ -162,17 +163,17 @@ check_integrity() {
     # Verify checksums and capture output
     # Exclude .install_info as it's modified during installation
     local verify_output
-    verify_output=$(grep -v '\.install_info$' "${checksum_file}" | sha256sum -c - 2>&1)
+    verify_output=$(grep -Ev "${runtime_modified_pattern}" "${checksum_file}" | sha256sum -c - 2>&1)
     local verify_status=$?
 
     local integrity_result=0
 
     if [[ ${verify_status} -eq 0 ]]; then
         local file_count
-        file_count=$(grep -v '^\.install_info$' "${checksum_file}" | grep -c '^[^#]')
+        file_count=$(grep -Ev "^#|${runtime_modified_pattern}" "${checksum_file}" | wc -l | tr -d ' ')
         echo -e "${GREEN}✓ Installation integrity verified${NC}"
         echo "  All ${file_count} files match their checksums"
-        echo "  (Excluding .install_info which is updated during installation)"
+        echo "  (Excluding runtime-managed files: .install_info and extension template cache)"
         integrity_result=0
     else
         echo -e "${RED}✗ Installation integrity check FAILED${NC}"
