@@ -17,7 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- _None_
+- **Oracle Homes Template Header Simplification**
+  - Shortened `src/templates/etc/oradba_homes.conf.template` header and reduced examples to a concise set
+  - Kept only essential format/field guidance for faster readability
+  - Ensured template documentation matches actual colon-delimited field order used by parser logic
 
 ## [0.21.5] - 2026-02-16
 

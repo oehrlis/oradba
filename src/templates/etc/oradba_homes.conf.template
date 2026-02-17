@@ -21,100 +21,37 @@
 
 # Configuration Format (Version 0.19.0+)
 # =======================================
-# ORACLE_HOME;Product;Version;Edition;DB_Type;Position;Dummy_SID;Short_Name;Description
+# NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
 #
-# Fields (semicolon-delimited):
-#   1. ORACLE_HOME   - Full path to Oracle home directory (REQUIRED)
-#   2. Product       - Product type (RDBMS|CLIENT|ICLIENT|GRID|DATASAFE|OUD|WLS)
-#   3. Version       - Oracle version (e.g., 19.0.0.0.0, 21.3.0.0.0)
-#   4. Edition       - Edition (EE|SE2|XE|N/A) for RDBMS/CLIENT, N/A for others
-#   5. DB_Type       - Database type (SI|RAC|DG|RAC-DG|N/A) for RDBMS, N/A for others
-#   6. Position      - Display order (lower numbers first, 10-based increments)
-#   7. Dummy_SID     - Default SID for non-database products (e.g., dummy)
-#   8. Short_Name    - Short identifier (e.g., DB19, CL21, IC19)
-#   9. Description   - Human-readable description
+# Fields (colon-delimited):
+#   1. NAME          - Unique entry name (REQUIRED)
+#   2. ORACLE_HOME   - Full path to Oracle home directory (REQUIRED)
+#   3. PRODUCT_TYPE  - Product type (database|client|iclient|grid|datasafe|oud|weblogic|java)
+#   4. ORDER         - Display order (lower numbers first, 10-based increments)
+#   5. ALIAS_NAME    - Optional short alias (can be empty)
+#   6. DESCRIPTION   - Human-readable description
+#   7. VERSION       - Product version (e.g., 19.0.0.0.0) or AUTO
 #
-# Product Types (Priority 1):
-#   RDBMS        - Oracle Database Server (databases managed via /etc/oratab)
-#   CLIENT       - Oracle Full Client (SQL*Plus, networking tools, libraries)
-#   ICLIENT      - Oracle Instant Client (lightweight client)
-#   GRID         - Oracle Grid Infrastructure (Clusterware + ASM)
-#
-# Product Types (Priority 2):
-#   DATASAFE     - Oracle Data Safe On-Premises Connector
-#
-# Product Types (Priority 3):
-#   OUD          - Oracle Unified Directory
-#   WLS          - Oracle WebLogic Server
-#
-# Version Format:
-#   - Use full dotted notation: 19.0.0.0.0, 21.3.0.0.0
-#   - Use AUTO for automatic detection
-#   - Use N/A if version not applicable
-#
-# Examples - Oracle Database (RDBMS):
-# ------------------------------------
-# Oracle Database 19c Enterprise Edition (Single Instance)
-/u01/app/oracle/product/19.0.0.0/dbhome_1;RDBMS;19.0.0.0.0;EE;SI;10;ORCL;DB19;Oracle Database 19c Enterprise Edition
-
-# Oracle Database 21c Express Edition
-/opt/oracle/product/21c/dbhomeXE;RDBMS;21.3.0.0.0;XE;SI;20;XE;XE21;Oracle Database 21c Express Edition
-
-# Examples - Grid Infrastructure:
-# --------------------------------
-# Grid Infrastructure 19c for standalone server (Oracle Restart)
-/u01/app/19.0.0.0/grid;GRID;19.0.0.0.0;N/A;N/A;15;+ASM;GRID19;Grid Infrastructure 19c
-
-# Examples - Oracle Client:
-# --------------------------
-# Full Oracle Client 19c
-/opt/oracle/product/19c/client;CLIENT;19.0.0.0.0;N/A;N/A;30;dummy;CL19;Oracle Client 19c
-
-# Oracle Client 23ai
-/opt/oracle/product/23.26.0.0/client;CLIENT;23.26.0.0.0;N/A;N/A;35;dummy;CL23;Oracle Client 23ai
-
-# Examples - Instant Client:
-# ---------------------------
-# Instant Client 19.19
-/opt/oracle/instantclient_19_19;ICLIENT;19.19.0.0.0;N/A;N/A;40;dummy;IC19;Oracle Instant Client 19.19
-
-# Examples - DataSafe (Priority 2):
-# ----------------------------------
-# DataSafe On-Premises Connector
-/opt/oracle/product/datasafe;DATASAFE;1.0.0.0.0;N/A;N/A;50;dummy;DS;Oracle Data Safe Connector
-
-# Examples - OUD (Priority 3):
-# -----------------------------
-# Oracle Unified Directory 12c
-/u01/app/oracle/product/oud12c;OUD;12.2.1.4.0;N/A;N/A;60;oud1;OUD12;Oracle Unified Directory 12c
-
-# Examples - WebLogic (Priority 3):
-# ----------------------------------
-# WebLogic Server 14c
-/u01/app/oracle/middleware/wls14;WLS;14.1.1.0.0;N/A;N/A;70;dummy;WLS14;Oracle WebLogic Server 14.1.1
+# Minimal examples:
+# Database home
+db19:/u01/app/oracle/product/19.0.0.0/dbhome_1:database:10:ORCL:Oracle Database 19c:AUTO
+# Data Safe connector
+dscon1:/opt/oracle/product/datasafe:datasafe:50::Oracle Data Safe Connector:AUTO
+# Instant Client
+ic19:/opt/oracle/instantclient_19_19:iclient:40:dummy:Oracle Instant Client 19.19:AUTO
 
 # Usage Notes
 # ===========
 # - One entry per line (empty lines and comments ignored)
-# - Fields are semicolon-delimited (no spaces around semicolons recommended)
+# - Fields are colon-delimited
 # - ORACLE_HOME paths must be absolute
-# - Use consistent Position increments (10, 20, 30...) for easy reordering
+# - Use consistent ORDER increments (10, 20, 30...) for easy reordering
 # - To activate a home: source oraenv.sh <SID_or_HOME>
 # - List all homes: oradba.sh env list
 #
-# Field Guidelines:
-#   - Version: Use AUTO for automatic detection, or specific version
-#   - Edition: Use EE, SE2, XE for RDBMS; N/A for others
-#   - DB_Type: Use SI, RAC, DG, RAC-DG for RDBMS; N/A for others
-#   - Position: Lower numbers appear first in listings
-#   - Dummy_SID: Used for non-database products as environment identifier
-#   - Short_Name: Used for aliases and quick reference
-#
-# Coexistence with /etc/oratab:
-#   - Database SIDs are managed in /etc/oratab (Oracle standard)
-#   - This file extends environment management to all Oracle products
-#   - Both files are read when building environment
-#   - oratab takes precedence for database SID conflicts
+# Quick guidelines:
+#   - PRODUCT_TYPE values should be lowercase
+#   - VERSION can be AUTO or a concrete version value
 
 
 # Your Oracle Homes Configuration
