@@ -24,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Installer Integrity Verification Noise Reduction**
-  - Exclude runtime-managed extension template cache files (`templates/oradba_extension/.version` and `templates/oradba_extension/extension-template.tar.gz`) from core integrity mismatch reporting while keeping them in `.oradba.checksum`
+  - Exclude runtime-managed extension template cache files (`templates/oradba_extension/.version`
+    and `templates/oradba_extension/extension-template.tar.gz`) from core integrity
+    mismatch reporting while keeping them in `.oradba.checksum`
   - Keep `.install_info` excluded as runtime-managed installation metadata
   - Prevent false "MODIFIED" results after refreshing bundled extension template cache files
 
