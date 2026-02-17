@@ -47,6 +47,7 @@ setup() {
     export ORADBA_LOCAL_BASE="${TEST_TEMP_DIR}"
     export ORADBA_AUTO_DISCOVER_EXTENSIONS="true"
     export ORADBA_EXTENSION_PATHS=""
+    export ORADBA_EXTENSIONS_SOURCE_ETC="false"
     export DEBUG=0
 }
 
@@ -62,6 +63,7 @@ teardown() {
     unset ORADBA_LOCAL_BASE
     unset ORADBA_AUTO_DISCOVER_EXTENSIONS
     unset ORADBA_EXTENSION_PATHS
+    unset ORADBA_EXTENSIONS_SOURCE_ETC
     unset ORIGINAL_TEST_PATH
     unset ORIGINAL_TEST_SQLPATH
 }
@@ -657,6 +659,63 @@ EOF
     
     # Should return error
     [[ "$status" -eq 1 ]]
+}
+
+@test "load_extension sources etc/env.sh when globally enabled and load_env=true" {
+    mkdir -p "${TEST_TEMP_DIR}/hookext/bin" "${TEST_TEMP_DIR}/hookext/etc"
+    cat > "${TEST_TEMP_DIR}/hookext/.extension" << 'EOF'
+name: hookext
+enabled: true
+load_env: true
+EOF
+    cat > "${TEST_TEMP_DIR}/hookext/etc/env.sh" << 'EOF'
+export HOOKEXT_ENV_LOADED="yes"
+EOF
+
+    export ORADBA_EXTENSIONS_SOURCE_ETC="true"
+    load_extension "${TEST_TEMP_DIR}/hookext"
+
+    [[ "${HOOKEXT_ENV_LOADED}" == "yes" ]]
+    unset HOOKEXT_ENV_LOADED
+}
+
+@test "load_extension does not source etc/env.sh when global flag is disabled" {
+    mkdir -p "${TEST_TEMP_DIR}/hookext_disabled/bin" "${TEST_TEMP_DIR}/hookext_disabled/etc"
+    cat > "${TEST_TEMP_DIR}/hookext_disabled/.extension" << 'EOF'
+name: hookext_disabled
+enabled: true
+load_env: true
+EOF
+    cat > "${TEST_TEMP_DIR}/hookext_disabled/etc/env.sh" << 'EOF'
+export HOOKEXT_DISABLED_ENV_LOADED="yes"
+EOF
+
+    export ORADBA_EXTENSIONS_SOURCE_ETC="false"
+    load_extension "${TEST_TEMP_DIR}/hookext_disabled"
+
+    [[ -z "${HOOKEXT_DISABLED_ENV_LOADED}" ]]
+}
+
+@test "load_extension sources etc/aliases.sh when globally enabled and load_aliases=true" {
+    mkdir -p "${TEST_TEMP_DIR}/aliashook/bin" "${TEST_TEMP_DIR}/aliashook/etc"
+    cat > "${TEST_TEMP_DIR}/aliashook/.extension" << 'EOF'
+name: aliashook
+enabled: true
+load_aliases: true
+EOF
+    cat > "${TEST_TEMP_DIR}/aliashook/etc/aliases.sh" << 'EOF'
+alias ext_test_alias='echo extension-alias-ok'
+export HOOKEXT_ALIAS_LOADED="yes"
+EOF
+
+    export ORADBA_EXTENSIONS_SOURCE_ETC="true"
+    load_extension "${TEST_TEMP_DIR}/aliashook"
+
+    [[ "${HOOKEXT_ALIAS_LOADED}" == "yes" ]]
+    run alias ext_test_alias
+    [[ "$status" -eq 0 ]]
+    unalias ext_test_alias
+    unset HOOKEXT_ALIAS_LOADED
 }
 
 # ==============================================================================

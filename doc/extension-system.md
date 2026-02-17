@@ -69,6 +69,8 @@ provides:
   sql: true
   rcv: true
   etc: false
+load_env: false
+load_aliases: false
 ```
 
 ### Metadata Fields
@@ -82,9 +84,18 @@ provides:
 | `enabled`     | No       | Whether to load (default: true)             |
 | `priority`    | No       | Load order (lower = first, default: 50)     |
 | `provides`    | No       | Which directories are present               |
+| `load_env`    | No       | Source `etc/env.sh` when enabled            |
+| `load_aliases`| No       | Source `etc/aliases.sh` when enabled        |
 
 **Note**: Extensions work without a `.extension` file. The file is optional and only
 provides additional metadata for tracking and management.
+
+`etc/` hooks are **opt-in** and require both:
+
+- Global flag: `ORADBA_EXTENSIONS_SOURCE_ETC=true`
+- Extension metadata flag: `load_env: true` and/or `load_aliases: true`
+
+If either condition is not met, `etc/env.sh` and `etc/aliases.sh` are not sourced.
 
 ### Integrity Verification
 

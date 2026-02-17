@@ -23,6 +23,12 @@
 [[ -n "${ORADBA_EXTENSIONS_LOADED}" ]] && return 0
 readonly ORADBA_EXTENSIONS_LOADED=1
 
+# Optional extension etc/ hook sourcing (disabled by default for safety)
+# When enabled, extensions can opt-in via .extension metadata:
+#   load_env: true      -> source etc/env.sh
+#   load_aliases: true  -> source etc/aliases.sh
+export ORADBA_EXTENSIONS_SOURCE_ETC="${ORADBA_EXTENSIONS_SOURCE_ETC:-false}"
+
 # Backup directory pattern for extension updates
 # Format: <extension_name>_backup_YYYYMMDD_HHMMSS
 readonly BACKUP_DIR_PATTERN='_backup_[0-9]{8}_[0-9]{6}$'
@@ -493,6 +499,8 @@ load_extension() {
     local provides_bin="true"
     local provides_sql="true"
     local provides_rcv="true"
+    local load_env="false"
+    local load_aliases="false"
     
     # Read provides section if metadata exists
     if [[ -f "${metadata}" ]]; then
@@ -500,12 +508,23 @@ load_extension() {
         provides_bin=$(grep -A5 "^provides:" "${metadata}" | grep "bin:" | awk '{print $2}' | head -1)
         provides_sql=$(grep -A5 "^provides:" "${metadata}" | grep "sql:" | awk '{print $2}' | head -1)
         provides_rcv=$(grep -A5 "^provides:" "${metadata}" | grep "rcv:" | awk '{print $2}' | head -1)
+        load_env=$(parse_extension_metadata "${metadata}" "load_env")
+        load_aliases=$(parse_extension_metadata "${metadata}" "load_aliases")
         
         # Default to true if not specified
         provides_bin="${provides_bin:-true}"
         provides_sql="${provides_sql:-true}"
         provides_rcv="${provides_rcv:-true}"
+        load_env="${load_env:-false}"
+        load_aliases="${load_aliases:-false}"
     fi
+
+    # Normalize booleans to lowercase
+    provides_bin="${provides_bin,,}"
+    provides_sql="${provides_sql,,}"
+    provides_rcv="${provides_rcv,,}"
+    load_env="${load_env,,}"
+    load_aliases="${load_aliases,,}"
 
     # Add to PATH (bin directory) - only if provides bin
     if [[ "${provides_bin}" == "true" ]] && [[ -d "${ext_path}/bin" ]]; then
@@ -531,9 +550,6 @@ load_extension() {
         oradba_log DEBUG "  Added ${ext_name}/rcv to RMAN search paths"
     fi
 
-    # Create navigation alias (cd<extname> or cde<extname>)
-    create_extension_alias "${ext_name}" "${ext_path}"
-
     # Sanitize extension name for use in variable names
     # Replace hyphens with underscores and remove dots and other special characters
     local safe_ext_name="${ext_name//-/_}"
@@ -546,6 +562,34 @@ load_extension() {
     # Export <EXTENSION>_BASE variable (e.g., USZ_BASE=/opt/oracle/local/usz)
     local base_var="${safe_ext_name^^}_BASE"
     export "${base_var}=${ext_path}"
+
+    # Optional etc/ hook sourcing (opt-in via global + metadata flags)
+    if [[ "${ORADBA_EXTENSIONS_SOURCE_ETC}" == "true" ]]; then
+        if [[ "${load_env}" == "true" ]] && [[ -f "${ext_path}/etc/env.sh" ]]; then
+            # shellcheck disable=SC1090
+            if ! source "${ext_path}/etc/env.sh"; then
+                oradba_log WARN "  Failed to source ${ext_name}/etc/env.sh"
+            else
+                oradba_log DEBUG "  Sourced ${ext_name}/etc/env.sh"
+            fi
+        fi
+
+        if [[ "${load_aliases}" == "true" ]] && [[ -f "${ext_path}/etc/aliases.sh" ]]; then
+            # shellcheck disable=SC1090
+            if ! source "${ext_path}/etc/aliases.sh"; then
+                oradba_log WARN "  Failed to source ${ext_name}/etc/aliases.sh"
+            else
+                oradba_log DEBUG "  Sourced ${ext_name}/etc/aliases.sh"
+            fi
+        fi
+    else
+        if [[ "${load_env}" == "true" ]] || [[ "${load_aliases}" == "true" ]]; then
+            oradba_log DEBUG "  Skipped etc/ hooks for ${ext_name} (ORADBA_EXTENSIONS_SOURCE_ETC=false)"
+        fi
+    fi
+
+    # Create navigation alias (cd<extname> or cde<extname>)
+    create_extension_alias "${ext_name}" "${ext_path}"
 
     # Show version if available
     local version
