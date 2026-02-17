@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- _None_
+
+### Fixed
+
+- _None_
+
+### Changed
+
+- _None_
+
+## [0.22.0] - 2026-02-17
+
+### Added
+
 - **Opt-In Extension etc Hooks**
   - Added optional extension hook loading for `etc/env.sh` and `etc/aliases.sh`
   - Hook sourcing is disabled by default and controlled globally by `ORADBA_EXTENSIONS_SOURCE_ETC=true`
