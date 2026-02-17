@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added optional extension hook loading for `etc/env.sh` and `etc/aliases.sh`
   - Hook sourcing is disabled by default and controlled globally by `ORADBA_EXTENSIONS_SOURCE_ETC=true`
   - Per-extension control via `.extension` metadata flags: `load_env: true` and `load_aliases: true`
+  - Added corresponding config documentation in `oradba_standard.conf` and `oradba_customer.conf.example`
 
 ### Fixed
 

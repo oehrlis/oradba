@@ -143,6 +143,11 @@
 # Add manual extension paths (colon-separated)
 # ORADBA_EXTENSION_PATHS="/opt/custom/ext1:/data/extensions/ext2"
 
+# Allow opt-in extension hook sourcing from etc/env.sh and etc/aliases.sh
+# Requires both this global flag and extension metadata flags:
+#   load_env: true and/or load_aliases: true
+# ORADBA_EXTENSIONS_SOURCE_ETC="true"
+
 # Disable specific extension
 # ORADBA_EXT_CUSTOMER_ENABLED="false"
 
