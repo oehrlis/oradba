@@ -34,11 +34,13 @@
 #
 # Minimal examples:
 # Database home
-db19:/u01/app/oracle/product/19.0.0.0/dbhome_1:database:10:ORCL:Oracle Database 19c:AUTO
+# db19:/u01/app/oracle/product/19.0.0.0/dbhome_1:database:10:ORCL:Oracle Database 19c:AUTO
+
 # Data Safe connector
-dscon1:/opt/oracle/product/datasafe:datasafe:50::Oracle Data Safe Connector:AUTO
+# dscon1:/opt/oracle/product/datasafe:datasafe:50::Oracle Data Safe Connector:AUTO
+
 # Instant Client
-ic19:/opt/oracle/instantclient_19_19:iclient:40:dummy:Oracle Instant Client 19.19:AUTO
+# ic19:/opt/oracle/instantclient_19_19:iclient:40:dummy:Oracle Instant Client 19.19:AUTO
 
 # Usage Notes
 # ===========
