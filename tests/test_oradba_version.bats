@@ -198,8 +198,8 @@ teardown() {
     run "$ORADBA_VERSION" --verify
     [[ "$status" -eq 0 ]]
     [[ "$output" =~ "Installation integrity verified" ]]
-    [[ ! "$output" =~ "templates/oradba_extension/.version: MODIFIED" ]]
-    [[ ! "$output" =~ "templates/oradba_extension/extension-template.tar.gz: MODIFIED" ]]
+    [[ "$output" != *"templates/oradba_extension/.version: MODIFIED"* ]]
+    [[ "$output" != *"templates/oradba_extension/extension-template.tar.gz: MODIFIED"* ]]
 }
 
 # ------------------------------------------------------------------------------
