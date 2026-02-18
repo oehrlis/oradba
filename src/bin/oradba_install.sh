@@ -310,6 +310,77 @@ backup_modified_files() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: preserve_runtime_files
+# Purpose.: Preserve runtime-generated files before installation overwrite
+# Args....: $1 - Installation directory path
+#           $2 - Temporary preserve directory path
+# Returns.: 0 always
+# Output..: Logs preserved files
+# Notes...: Protects runtime-managed files from payload overwrite:
+#           etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
+# ------------------------------------------------------------------------------
+preserve_runtime_files() {
+    local install_dir="$1"
+    local temp_preserve_dir="$2"
+
+    mkdir -p "$temp_preserve_dir"
+
+    local runtime_files=(
+        "etc/oradba_homes.conf"
+        "etc/oratab"
+        "etc/sid.dummy.conf"
+    )
+
+    local file
+    for file in "${runtime_files[@]}"; do
+        local src="${install_dir}/${file}"
+        if [[ -f "$src" ]] || [[ -L "$src" ]]; then
+            local dest="${temp_preserve_dir}/${file}"
+            mkdir -p "$(dirname "$dest")"
+            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            log_info "Preserved runtime file: ${file}"
+        fi
+    done
+
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: restore_runtime_files
+# Purpose.: Restore preserved runtime-generated files after installation copy
+# Args....: $1 - Installation directory path
+#           $2 - Temporary preserve directory path
+# Returns.: 0 always
+# Output..: Logs restored files
+# ------------------------------------------------------------------------------
+restore_runtime_files() {
+    local install_dir="$1"
+    local temp_preserve_dir="$2"
+
+    if [[ ! -d "$temp_preserve_dir" ]]; then
+        return 0
+    fi
+
+    local restored_any=false
+    while IFS= read -r src; do
+        [[ -z "$src" ]] && continue
+        local rel_path="${src#"${temp_preserve_dir}"/}"
+        local dest="${install_dir}/${rel_path}"
+
+        mkdir -p "$(dirname "$dest")"
+        cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+        log_info "Restored runtime file: ${rel_path}"
+        restored_any=true
+    done < <(find "$temp_preserve_dir" -type f 2>/dev/null)
+
+    if [[ "$restored_any" == "true" ]]; then
+        log_info "Runtime files restored after installation copy"
+    fi
+
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: usage
 # Purpose.: Display installer usage information and examples
 # Args....: None
@@ -2055,6 +2126,10 @@ if [[ ! -d "$INSTALL_PREFIX" ]]; then
     mkdir -p "$INSTALL_PREFIX"
 fi
 
+# Preserve runtime-managed files before payload copy (protect existing state)
+RUNTIME_PRESERVE_DIR=$(mktemp -d)
+preserve_runtime_files "$INSTALL_PREFIX" "$RUNTIME_PRESERVE_DIR"
+
 # Backup modified configuration files before overwriting
 backup_modified_files "$INSTALL_PREFIX"
 
@@ -2063,6 +2138,10 @@ log_info "Installing files..."
 cp -r "$TEMP_DIR"/* "$INSTALL_PREFIX/"
 # Also copy hidden files (like .oradba.checksum)
 cp -r "$TEMP_DIR"/.[!.]* "$INSTALL_PREFIX/" 2> /dev/null || true
+
+# Restore runtime-managed files that must never be replaced by payload content
+restore_runtime_files "$INSTALL_PREFIX" "$RUNTIME_PRESERVE_DIR"
+rm -rf "$RUNTIME_PRESERVE_DIR"
 
 # Create log directory
 mkdir -p "$INSTALL_PREFIX/log"

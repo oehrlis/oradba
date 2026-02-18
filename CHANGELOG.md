@@ -34,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true` (opt-in), preventing unexpected writes when discovery is disabled
   - Gate `oraenv.sh` fallback `oradba_registry_sync_oratab` path behind `ORADBA_AUTO_DISCOVER_ORATAB=true` to avoid writes when requested target is not found and discovery is disabled
   - Reduces login overhead when sourcing `oraenv.sh` for Oracle Home targets
+- **Installer runtime config protection**
+  - Preserve and restore runtime-managed files during install/update copy: `etc/oradba_homes.conf`, `etc/oratab`, and `etc/sid.dummy.conf`
+  - Exclude these runtime-generated files from build payload staging in `scripts/build_installer.sh`
+  - Prevents installer/build artifacts from overwriting local Oracle home registry state
 
 ### Changed
 

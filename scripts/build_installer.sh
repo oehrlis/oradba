@@ -62,6 +62,11 @@ rm -rf "$TEMP_TAR_DIR/doc/stylesheets"
 rm -f "$TEMP_TAR_DIR/doc/index.md"
 rm -f "$TEMP_TAR_DIR/doc/oradba-user-guide.pdf" 2> /dev/null || true
 
+# Remove runtime-generated files from payload (must remain local state)
+rm -f "$TEMP_TAR_DIR/etc/oradba_homes.conf"
+rm -f "$TEMP_TAR_DIR/etc/oratab"
+rm -f "$TEMP_TAR_DIR/etc/sid.dummy.conf"
+
 # Copy additional files
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
