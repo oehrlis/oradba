@@ -176,14 +176,16 @@ _oraenv_profile_mark() {
 _oraenv_profile_dump_effective_flags() {
     [[ "${_ORAENV_PROFILE_ENABLED}" != "true" ]] && return 0
 
-    printf '[PROFILE] flags: AUTO_CREATE_SID_CONFIG=%s AUTO_DISCOVER_ORATAB=%s AUTO_DISCOVER_PRODUCTS=%s AUTO_DISCOVER_INSTANCES=%s AUTO_DISCOVER_EXTENSIONS=%s LOAD_ALIASES=%s CONFIGURE_SQLPATH=%s\n' \
+    printf '[PROFILE] flags: AUTO_CREATE_SID_CONFIG=%s AUTO_DISCOVER_ORATAB=%s AUTO_DISCOVER_PRODUCTS=%s AUTO_DISCOVER_INSTANCES=%s AUTO_DISCOVER_EXTENSIONS=%s LOAD_ALIASES=%s LOAD_ALIASES_IN_SILENT=%s CONFIGURE_SQLPATH=%s CONFIGURE_SQLPATH_IN_SILENT=%s\n' \
         "${ORADBA_AUTO_CREATE_SID_CONFIG:-unset}" \
         "${ORADBA_AUTO_DISCOVER_ORATAB:-unset}" \
         "${ORADBA_AUTO_DISCOVER_PRODUCTS:-unset}" \
         "${ORADBA_AUTO_DISCOVER_INSTANCES:-unset}" \
         "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-unset}" \
         "${ORADBA_LOAD_ALIASES:-unset}" \
-        "${ORADBA_CONFIGURE_SQLPATH:-unset}" >&2
+        "${ORADBA_LOAD_ALIASES_IN_SILENT:-unset}" \
+        "${ORADBA_CONFIGURE_SQLPATH:-unset}" \
+        "${ORADBA_CONFIGURE_SQLPATH_IN_SILENT:-unset}" >&2
     return 0
 }
 
@@ -698,7 +700,9 @@ _oraenv_handle_oracle_home() {
 
     # Set Oracle Home environment using Oracle Homes management
     if command -v set_oracle_home_environment &> /dev/null; then
-        set_oracle_home_environment "$requested_sid"
+        # Defer expensive Java/client path helper work until after config is loaded
+        # (so helper settings from config are applied only once)
+        set_oracle_home_environment "$requested_sid" "" "true"
         if [[ $? -ne 0 ]]; then
             oradba_log ERROR "Failed to set Oracle Home environment for: $requested_sid"
             return 1
@@ -1038,6 +1042,25 @@ _oraenv_setup_environment_variables() {
 # ------------------------------------------------------------------------------
 _oraenv_load_configurations() {
     local identifier="$1"
+    local original_load_aliases="${ORADBA_LOAD_ALIASES:-true}"
+    local original_configure_sqlpath="${ORADBA_CONFIGURE_SQLPATH:-true}"
+    local restore_load_aliases=false
+    local restore_configure_sqlpath=false
+
+    # Optional startup optimization for silent/non-interactive mode.
+    # Backward compatible defaults keep current behavior unless explicitly disabled.
+    if [[ "${ORAENV_INTERACTIVE}" != "true" ]]; then
+        if [[ "${ORADBA_LOAD_ALIASES_IN_SILENT:-true}" != "true" ]]; then
+            export ORADBA_LOAD_ALIASES="false"
+            restore_load_aliases=true
+            oradba_log DEBUG "Silent mode optimization: ORADBA_LOAD_ALIASES disabled"
+        fi
+        if [[ "${ORADBA_CONFIGURE_SQLPATH_IN_SILENT:-true}" != "true" ]]; then
+            export ORADBA_CONFIGURE_SQLPATH="false"
+            restore_configure_sqlpath=true
+            oradba_log DEBUG "Silent mode optimization: ORADBA_CONFIGURE_SQLPATH disabled"
+        fi
+    fi
     
     # Load hierarchical configuration
     # This reloads all configs in order: core -> standard -> customer -> default -> sid-specific
@@ -1066,6 +1089,14 @@ _oraenv_load_configurations() {
         fi
     else
         oradba_log DEBUG "Extension loading skipped: Coexistence mode (ORADBA_COEXIST_MODE=${ORADBA_COEXIST_MODE}, ORADBA_EXTENSIONS_IN_COEXIST=${ORADBA_EXTENSIONS_IN_COEXIST:-false})"
+    fi
+
+    # Restore original settings to avoid side effects for later manual operations
+    if [[ "${restore_load_aliases}" == "true" ]]; then
+        export ORADBA_LOAD_ALIASES="${original_load_aliases}"
+    fi
+    if [[ "${restore_configure_sqlpath}" == "true" ]]; then
+        export ORADBA_CONFIGURE_SQLPATH="${original_configure_sqlpath}"
     fi
 }
 

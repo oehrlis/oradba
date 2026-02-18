@@ -1652,6 +1652,7 @@ derive_oracle_base() {
 # Purpose.: Set environment variables for a specific Oracle Home
 # Args....: $1 - Oracle Home name or alias
 #           $2 - Oracle Home path (optional, will lookup if not provided)
+#           $3 - Defer path config helpers (optional, true/false; default: false)
 # Returns.: 0 - Environment set successfully
 #           1 - Oracle Home not found or invalid
 # Output..: Debug/error messages via oradba_log
@@ -1661,6 +1662,7 @@ derive_oracle_base() {
 set_oracle_home_environment() {
     local name="$1"
     local oracle_home="$2"
+    local defer_path_config="${3:-false}"
     local product_type
     local actual_name
     local alias_name
@@ -1737,7 +1739,8 @@ set_oracle_home_environment() {
     alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
 
     # Clean old Oracle paths from PATH before adding new ones (Phase 4+)
-    if command -v oradba_clean_path &>/dev/null; then
+    # Skip when deferred (oraenv already called _oraenv_unset_old_env)
+    if [[ "${defer_path_config}" != "true" ]] && command -v oradba_clean_path &>/dev/null; then
         oradba_clean_path
     fi
 
@@ -1792,57 +1795,60 @@ set_oracle_home_environment() {
             # Source env_builder if available to use helper functions
     esac
 
-    # Add Java path for products that need it if configured
-    # This happens BEFORE client path so Java takes precedence
-    case "${product_type}" in
-        datasafe|oud|weblogic|oms|emagent)
-            # Source env_builder if available to use helper functions
-            if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
-                # Only source if not already loaded
-                if ! command -v oradba_add_java_path &>/dev/null; then
-                    # shellcheck source=/dev/null
-                    source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
-                fi
-                
-                # Add Java path if function is available
-                if command -v oradba_add_java_path &>/dev/null; then
-                    # Convert to uppercase for function call
-                    local product_upper
-                    product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
-                    # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
-                    oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
-                fi
-            fi
-            ;;
-    esac
+    # Add Java/client paths and dedupe unless deferred to caller
+    if [[ "${defer_path_config}" != "true" ]]; then
+        # Add Java path for products that need it if configured
+        # This happens BEFORE client path so Java takes precedence
+        case "${product_type}" in
+            datasafe|oud|weblogic|oms|emagent)
+                # Source env_builder if available to use helper functions
+                if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                    # Only source if not already loaded
+                    if ! command -v oradba_add_java_path &>/dev/null; then
+                        # shellcheck source=/dev/null
+                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                    fi
 
-    # Add client path for non-client products if configured
-    # Check if the product needs external client tools
-    case "${product_type}" in
-        datasafe|oud|weblogic|oms|emagent)
-            # Source env_builder if available to use helper functions
-            if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
-                # Only source if not already loaded
-                if ! command -v oradba_add_client_path &>/dev/null; then
-                    # shellcheck source=/dev/null
-                    source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                    # Add Java path if function is available
+                    if command -v oradba_add_java_path &>/dev/null; then
+                        # Convert to uppercase for function call
+                        local product_upper
+                        product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+                        # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
+                        oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
+                    fi
                 fi
-                
-                # Add client path if function is available
-                if command -v oradba_add_client_path &>/dev/null; then
-                    # Convert to uppercase for function call
-                    local product_upper
-                    product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
-                    oradba_add_client_path "${product_upper}" 2>/dev/null || true
+                ;;
+        esac
+
+        # Add client path for non-client products if configured
+        # Check if the product needs external client tools
+        case "${product_type}" in
+            datasafe|oud|weblogic|oms|emagent)
+                # Source env_builder if available to use helper functions
+                if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                    # Only source if not already loaded
+                    if ! command -v oradba_add_client_path &>/dev/null; then
+                        # shellcheck source=/dev/null
+                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                    fi
+
+                    # Add client path if function is available
+                    if command -v oradba_add_client_path &>/dev/null; then
+                        # Convert to uppercase for function call
+                        local product_upper
+                        product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+                        oradba_add_client_path "${product_upper}" 2>/dev/null || true
+                    fi
                 fi
-            fi
-            ;;
-    esac
-    
-    # Deduplicate PATH after all additions
-    if command -v oradba_dedupe_path &>/dev/null; then
-        PATH="$(oradba_dedupe_path "${PATH}")"
-        export PATH
+                ;;
+        esac
+
+        # Deduplicate PATH after all additions
+        if command -v oradba_dedupe_path &>/dev/null; then
+            PATH="$(oradba_dedupe_path "${PATH}")"
+            export PATH
+        fi
     fi
 
     oradba_log DEBUG "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"

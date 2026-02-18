@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Avoid duplicate `oradba_registry_sync_oratab` runs in the same shell session during alias generation
   - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true` (opt-in), preventing unexpected writes when discovery is disabled
   - Gate `oraenv.sh` fallback `oradba_registry_sync_oratab` path behind `ORADBA_AUTO_DISCOVER_ORATAB=true` to avoid writes when requested target is not found and discovery is disabled
+  - Defer Oracle Home path-helper work in `set_oracle_home_environment()` and apply it once after config load (reduces redundant path processing)
+  - Added silent-mode tuning flags for faster login via `source oraenv.sh --silent`:
+    - `ORADBA_LOAD_ALIASES_IN_SILENT=false`
+    - `ORADBA_CONFIGURE_SQLPATH_IN_SILENT=false`
   - Reduces login overhead when sourcing `oraenv.sh` for Oracle Home targets
 - **Installer runtime config protection**
   - Preserve and restore runtime-managed files during install/update copy: `etc/oradba_homes.conf`, `etc/oratab`, and `etc/sid.dummy.conf`
