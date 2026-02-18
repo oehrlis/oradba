@@ -20,6 +20,7 @@ setup() {
     # Set ORADBA_BASE and ORADBA_PREFIX
     export ORADBA_BASE="${BATS_TEST_DIRNAME}/../src"
     export ORADBA_PREFIX="${ORADBA_BASE}"
+    export ORIGINAL_PATH="${PATH}"
     
     # Source required libraries
     source "${ORADBA_BASE}/lib/oradba_common.sh"
@@ -34,8 +35,10 @@ setup() {
 
 teardown() {
     /bin/rm -rf "${TEST_DIR}"
+    export PATH="${ORIGINAL_PATH}"
     unset ORADBA_CLIENT_PATH_FOR_NON_CLIENT
     unset ORACLE_CLIENT_HOME
+    unset ORIGINAL_PATH
 }
 
 # Helper: Setup mock Oracle homes
@@ -216,7 +219,7 @@ EOF
 
 @test "add_client_path: appends client path after existing entries" {
     export ORADBA_CLIENT_PATH_FOR_NON_CLIENT="CL19"
-    export PATH="/datasafe/bin:/usr/bin"
+    export PATH="/datasafe/bin:/usr/bin:/bin"
     
     oradba_add_client_path "DATASAFE"
     
