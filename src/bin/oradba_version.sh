@@ -272,6 +272,7 @@ check_additional_files() {
     local checksum_file="${BASE_DIR}/.oradba.checksum"
     local managed_dirs=("bin" "doc" "etc" "lib" "rcv" "sql" "templates")
     local additional_files=()
+    local runtime_additional_pattern='^templates/oradba_extension/(extension-template\.tar\.gz|\.version)$'
 
     # Extract file list from checksum file
     local checksummed_files
@@ -286,6 +287,11 @@ check_additional_files() {
         # Find all files in directory
         while IFS= read -r -d '' file; do
             local rel_path="${file#${BASE_DIR}/}"
+
+            # Skip runtime-managed template cache files
+            if [[ "${rel_path}" =~ ${runtime_additional_pattern} ]]; then
+                continue
+            fi
 
             # Skip if file is in checksum list
             if echo "${checksummed_files}" | grep -qxF "${rel_path}"; then

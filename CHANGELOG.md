@@ -13,7 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- _None_
+- **Version Verify Runtime Template Cache Noise**
+  - Exclude runtime-managed extension template cache files from additional-file
+    reporting in `oradba_version.sh --verify`
+  - Prevents fresh installations from showing
+    `templates/oradba_extension/.version` and
+    `templates/oradba_extension/extension-template.tar.gz` as changed/additional
 
 ### Changed
 

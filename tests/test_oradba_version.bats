@@ -202,6 +202,26 @@ teardown() {
     [[ "$output" != *"templates/oradba_extension/extension-template.tar.gz: MODIFIED"* ]]
 }
 
+@test "oradba_version.sh --verify does not report runtime template cache as additional files" {
+    # Simulate release artifact where template cache files are runtime-generated and
+    # not present in .oradba.checksum, then ensure --verify stays clean.
+    mkdir -p "$TEST_INSTALL_DIR/templates/oradba_extension"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "v0.4.1" > "$TEST_INSTALL_DIR/templates/oradba_extension/.version"
+    echo "template runtime content" > "$TEST_INSTALL_DIR/templates/oradba_extension/extension-template.tar.gz"
+
+    cd "$TEST_INSTALL_DIR" || return 1
+    sha256sum VERSION > .oradba.checksum
+    cd - > /dev/null || return 1
+
+    run "$ORADBA_VERSION" --verify
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Installation integrity verified" ]]
+    [[ "$output" != *"Additional files detected"* ]]
+    [[ "$output" != *"templates/oradba_extension/.version"* ]]
+    [[ "$output" != *"templates/oradba_extension/extension-template.tar.gz"* ]]
+}
+
 # ------------------------------------------------------------------------------
 # Update checking tests
 # ------------------------------------------------------------------------------
