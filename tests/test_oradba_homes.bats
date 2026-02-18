@@ -363,6 +363,17 @@ EOF
     [[ "$output" =~ "client" ]]
 }
 
+@test "oradba_homes.sh discover finds macOS instant client homes" {
+    # Create mock macOS Instant Client installation (dylib-based, no bin/)
+    mkdir -p "${ORACLE_BASE}/product/iclient23.3"
+    touch "${ORACLE_BASE}/product/iclient23.3/libclntsh.dylib"
+
+    run "$HOMES_SCRIPT" discover
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ \[FOUND\] ]]
+    [[ "$output" =~ "iclient" ]]
+}
+
 @test "oradba_homes.sh discover --dry-run doesn't modify config" {
     # Create mock installation
     mkdir -p "${ORACLE_BASE}/product/oud12/oud/lib"

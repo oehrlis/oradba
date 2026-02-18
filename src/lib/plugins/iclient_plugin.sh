@@ -8,7 +8,7 @@
 # Date.......: 2026.02.11
 # Version....: 1.0.0
 # Purpose....: Plugin for Oracle Instant Client
-# Notes......: Handles Oracle Instant Client (libclntsh.so based, no bin/)
+# Notes......: Handles Oracle Instant Client (libclntsh.so/libclntsh.dylib based, no bin/)
 #              Implements plugin interface v1.0.0
 # Reference..: Architecture Review & Refactoring Plan (Phase 2.1)
 # License....: Apache License Version 2.0, January 2004 as shown
@@ -62,7 +62,7 @@ plugin_detect_installation() {
                 
                 homes+=("$ic_dir")
             fi
-        done < <(find "$base_dir" -maxdepth 3 -type f -name "libclntsh.so*" -print0 2>/dev/null | \
+        done < <(find "$base_dir" -maxdepth 3 -type f \( -name "libclntsh.so*" -o -name "libclntsh.dylib*" \) -print0 2>/dev/null | \
                  xargs -0 dirname 2>/dev/null | sort -u)
     done
     
@@ -113,8 +113,11 @@ plugin_validate_home() {
     # Should NOT have rdbms directory (that's a database home)
     [[ -d "${home_path}/rdbms" ]] && return 1
     
-    # Check for libclntsh.so (instant client signature)
+    # Check for libclntsh.so or libclntsh.dylib (instant client signature)
     if [[ -f "${home_path}/libclntsh.so" ]]; then
+        return 0
+    fi
+    if [[ -f "${home_path}/libclntsh.dylib" ]]; then
         return 0
     fi
     # Check for versioned library
@@ -122,6 +125,11 @@ plugin_validate_home() {
     for lib in "${home_path}"/libclntsh.so.*; do
         [[ -f "$lib" ]] && found=1 && break
     done
+    if [[ $found -eq 0 ]]; then
+        for lib in "${home_path}"/libclntsh.dylib.*; do
+            [[ -f "$lib" ]] && found=1 && break
+        done
+    fi
     [[ $found -eq 1 ]] || return 1
     
     return 0
@@ -373,7 +381,7 @@ plugin_get_version() {
     fi
     
     # Method 2: Extract version from library filenames
-    # Check for libclntsh.so.X.Y, libclntshcore.so.X.Y, libocci.so.X.Y
+    # Check for libclntsh.so.X.Y / libclntsh.dylib.X.Y variants
     for lib_base in libclntsh libclntshcore libocci; do
         for lib_file in "${home_path}/${lib_base}.so."*; do
             if [[ -f "${lib_file}" ]]; then
@@ -381,6 +389,19 @@ plugin_get_version() {
                 local version_string
                 version_string=$(basename "${lib_file}" | grep -oE '[0-9]+\.[0-9]+$')
                 
+                if [[ -n "${version_string}" ]]; then
+                    # Convert to X.Y.0.0.0 format
+                    echo "${version_string}.0.0.0"
+                    return 0
+                fi
+            fi
+        done
+        for lib_file in "${home_path}/${lib_base}.dylib."*; do
+            if [[ -f "${lib_file}" ]]; then
+                # Extract version from filename: libclntsh.dylib.23.1 -> 23.1
+                local version_string
+                version_string=$(basename "${lib_file}" | grep -oE '[0-9]+\.[0-9]+$')
+
                 if [[ -n "${version_string}" ]]; then
                     # Convert to X.Y.0.0.0 format
                     echo "${version_string}.0.0.0"

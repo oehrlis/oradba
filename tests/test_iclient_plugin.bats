@@ -135,6 +135,17 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "iclient plugin validates macOS dylib instant client" {
+    # Create mock instant client with macOS library naming
+    local ic_home="${TEST_DIR}/test_homes/instantclient_23_3_macos"
+    mkdir -p "${ic_home}"
+    touch "${ic_home}/libclntsh.dylib"
+
+    source "${TEST_DIR}/lib/plugins/iclient_plugin.sh"
+    run plugin_validate_home "${ic_home}"
+    [ "$status" -eq 0 ]
+}
+
 @test "iclient plugin rejects home without libclntsh" {
     # Create mock home without instant client library
     local fake_home="${TEST_DIR}/test_homes/fake_ic"
