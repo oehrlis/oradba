@@ -616,6 +616,7 @@ parse_oratab() {
 # ------------------------------------------------------------------------------
 generate_sid_lists() {
     local oratab_file="${1:-$(get_oratab_path)}"
+    local load_aliases="${ORADBA_LOAD_ALIASES:-true}"
 
     # Check if oratab exists
     if [[ ! -f "$oratab_file" ]]; then
@@ -645,11 +646,13 @@ generate_sid_lists() {
             real_sids="${real_sids}${real_sids:+ }${oratab_sid}"
         fi
 
-        # Create alias for this SID (lowercase)
-        local sid_lower
-        sid_lower=$(echo "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
-        # shellcheck disable=SC2139
-        alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
+        # Create alias for this SID (lowercase) only when alias loading is enabled
+        if [[ "${load_aliases}" == "true" ]]; then
+            local sid_lower
+            sid_lower=$(echo "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
+            # shellcheck disable=SC2139
+            alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
+        fi
 
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
@@ -724,6 +727,11 @@ generate_sid_lists() {
 # ------------------------------------------------------------------------------
 generate_oracle_home_aliases() {
     local homes_config
+
+    if [[ "${ORADBA_LOAD_ALIASES:-true}" != "true" ]]; then
+        oradba_log DEBUG "Skipping Oracle Home alias generation (ORADBA_LOAD_ALIASES=${ORADBA_LOAD_ALIASES:-true})"
+        return 0
+    fi
 
     # Auto-sync database homes from oratab (ensures homes available for aliases)
     # Only when ORADBA_AUTO_DISCOVER_ORATAB=true (opt-in behavior)

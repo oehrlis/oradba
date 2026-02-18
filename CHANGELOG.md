@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added silent-mode tuning flags for faster login via `source oraenv.sh --silent`:
     - `ORADBA_LOAD_ALIASES_IN_SILENT=false`
     - `ORADBA_CONFIGURE_SQLPATH_IN_SILENT=false`
+  - Make alias generation honor `ORADBA_LOAD_ALIASES` to skip SID/home alias creation
+    work in startup-optimized modes (including `--fast-silent`)
   - Reduces login overhead when sourcing `oraenv.sh` for Oracle Home targets
 - **Installer runtime config protection**
   - Preserve and restore runtime-managed files during install/update copy: `etc/oradba_homes.conf`, `etc/oratab`, and `etc/sid.dummy.conf`

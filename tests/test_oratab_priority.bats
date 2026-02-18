@@ -207,6 +207,41 @@ EOF
     [[ "$ORADBA_SIDLIST" != *"+ASM"* ]]
 }
 
+@test "generate_sid_lists: Skips alias creation when ORADBA_LOAD_ALIASES=false" {
+    # Create test oratab
+    cat > "${TEST_DIR}/etc/oratab" << EOF
+FREE:/opt/oracle/product/23ai:Y
+TESTDB:/opt/oracle/product/19c:N
+EOF
+
+    unset ORADBA_ORATAB
+    export ORADBA_BASE="${TEST_DIR}"
+    export ORADBA_LOAD_ALIASES="false"
+
+    # Skip if system oratab exists
+    if [[ -f "/etc/oratab" ]] || [[ -f "/var/opt/oracle/oratab" ]]; then
+        skip "System oratab exists, would take priority"
+    fi
+
+    # Ensure aliases do not already exist
+    unalias free 2>/dev/null || true
+    unalias testdb 2>/dev/null || true
+
+    # Build SID lists without creating aliases
+    generate_sid_lists
+
+    # SID list values are still populated for downstream logic
+    [[ "$ORADBA_SIDLIST" == *"FREE"* ]]
+    [[ "$ORADBA_REALSIDLIST" == *"FREE"* ]]
+
+    # Aliases are not created when disabled
+    run alias free
+    [[ $status -ne 0 ]]
+
+    run alias testdb
+    [[ $status -ne 0 ]]
+}
+
 @test "is_dummy_sid: Uses get_oratab_path()" {
     # Create test oratab
     cat > "${TEST_DIR}/etc/oratab" << EOF
