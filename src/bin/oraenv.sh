@@ -101,6 +101,71 @@ ORAENV_STATUS_ONLY=false
 ORAENV_INTERACTIVE=true
 REQUESTED_SID=""
 
+# Optional startup profiling (disabled by default)
+_ORAENV_PROFILE_ENABLED=false
+_ORAENV_PROFILE_START_MS=0
+_ORAENV_PROFILE_LAST_MS=0
+
+# ------------------------------------------------------------------------------
+# Function: _oraenv_now_ms
+# Purpose.: Get current timestamp in milliseconds (portable fallback chain)
+# Args....: None
+# Returns.: 0 on success
+# Output..: Milliseconds since epoch
+# Notes...: Uses python3 first, then perl Time::HiRes, then date seconds fallback
+# ------------------------------------------------------------------------------
+_oraenv_now_ms() {
+    if command -v python3 &>/dev/null; then
+        python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null && return 0
+    fi
+
+    if command -v perl &>/dev/null; then
+        perl -MTime::HiRes=time -e 'print int(time()*1000)' 2>/dev/null && return 0
+    fi
+
+    # Coarse fallback (seconds -> milliseconds)
+    echo "$(( $(date +%s) * 1000 ))"
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oraenv_profile_start
+# Purpose.: Initialize startup profiling if enabled
+# Args....: None
+# Returns.: 0 always
+# Output..: Optional profile header to stderr
+# ------------------------------------------------------------------------------
+_oraenv_profile_start() {
+    if [[ "${ORADBA_PROFILE_STARTUP:-false}" == "true" ]]; then
+        _ORAENV_PROFILE_ENABLED=true
+        _ORAENV_PROFILE_START_MS="$(_oraenv_now_ms)"
+        _ORAENV_PROFILE_LAST_MS="${_ORAENV_PROFILE_START_MS}"
+        echo "[PROFILE] oraenv startup profiling enabled" >&2
+    fi
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oraenv_profile_mark
+# Purpose.: Record elapsed startup time for a named phase
+# Args....: $1 - Phase label
+# Returns.: 0 always
+# Output..: Profile timing line to stderr when enabled
+# ------------------------------------------------------------------------------
+_oraenv_profile_mark() {
+    local label="$1"
+    [[ "${_ORAENV_PROFILE_ENABLED}" != "true" ]] && return 0
+
+    local now_ms
+    now_ms="$(_oraenv_now_ms)"
+
+    local delta_ms=$((now_ms - _ORAENV_PROFILE_LAST_MS))
+    local total_ms=$((now_ms - _ORAENV_PROFILE_START_MS))
+
+    printf '[PROFILE] +%6d ms  total=%6d ms  %s\n' "${delta_ms}" "${total_ms}" "${label}" >&2
+    _ORAENV_PROFILE_LAST_MS="${now_ms}"
+    return 0
+}
+
 # ------------------------------------------------------------------------------
 # Function: _oraenv_parse_args
 # Purpose.: Parse command line arguments for oraenv.sh
@@ -957,10 +1022,12 @@ _oraenv_load_configurations() {
     # This reloads all configs in order: core -> standard -> customer -> default -> sid-specific
     # Later configs override earlier settings, including aliases
     load_config "$identifier"
+    _oraenv_profile_mark "load_config (${identifier})"
 
     # Configure SQLPATH for SQL script discovery (#11)
     if [[ "${ORADBA_CONFIGURE_SQLPATH}" != "false" ]]; then
         configure_sqlpath
+        _oraenv_profile_mark "configure_sqlpath"
     fi
 
     # Load extensions (skip in coexistence mode unless forced) (#15)
@@ -969,6 +1036,7 @@ _oraenv_load_configurations() {
         if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &> /dev/null; then
             oradba_log DEBUG "Loading enabled extension bin directories into PATH"
             load_extensions
+            _oraenv_profile_mark "load_extensions"
         elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" != "true" ]]; then
             oradba_log DEBUG "Extension loading skipped: ORADBA_AUTO_DISCOVER_EXTENSIONS=${ORADBA_AUTO_DISCOVER_EXTENSIONS}"
         elif ! command -v load_extensions &> /dev/null; then
@@ -1116,7 +1184,10 @@ _oraenv_unset_old_env() {
 #           Handles no-Oracle mode when oratab not found. Must be sourced, not executed.
 # ------------------------------------------------------------------------------
 _oraenv_main() {
+    _oraenv_profile_start
+
     _oraenv_parse_args "$@"
+    _oraenv_profile_mark "parse_args"
 
     if [[ $? -ne 0 ]]; then
         return 1
@@ -1125,6 +1196,7 @@ _oraenv_main() {
     # Find oratab file
     local oratab_file
     oratab_file=$(_oraenv_find_oratab)
+    _oraenv_profile_mark "find_oratab"
 
     if [[ $? -ne 0 ]]; then
         oradba_log WARN "No oratab file found - running in no-Oracle mode"
@@ -1150,6 +1222,7 @@ _oraenv_main() {
     # Get ORACLE_SID if not provided
     if [[ -z "$REQUESTED_SID" ]]; then
         REQUESTED_SID=$(_oraenv_prompt_sid "$oratab_file")
+        _oraenv_profile_mark "resolve_requested_sid"
         if [[ -z "$REQUESTED_SID" ]]; then
             oradba_log ERROR "No ORACLE_SID provided"
             return 1
@@ -1159,6 +1232,7 @@ _oraenv_main() {
     # Set environment
     _oraenv_set_environment "$REQUESTED_SID" "$oratab_file"
     local result=$?
+    _oraenv_profile_mark "set_environment"
 
     if [[ $result -eq 0 ]]; then
         # Handle different display modes
@@ -1168,9 +1242,12 @@ _oraenv_main() {
         elif [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
             # Interactive mode with status
             show_database_status
+            _oraenv_profile_mark "show_database_status"
         fi
         # Silent mode or no status: show nothing
     fi
+
+    _oraenv_profile_mark "done"
 
     return $result
 }
