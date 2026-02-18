@@ -167,6 +167,27 @@ _oraenv_profile_mark() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: _oraenv_profile_dump_effective_flags
+# Purpose.: Print effective startup-related flags when profiling is enabled
+# Args....: None
+# Returns.: 0 always
+# Output..: One profile line with key effective flag values
+# ------------------------------------------------------------------------------
+_oraenv_profile_dump_effective_flags() {
+    [[ "${_ORAENV_PROFILE_ENABLED}" != "true" ]] && return 0
+
+    printf '[PROFILE] flags: AUTO_CREATE_SID_CONFIG=%s AUTO_DISCOVER_ORATAB=%s AUTO_DISCOVER_PRODUCTS=%s AUTO_DISCOVER_INSTANCES=%s AUTO_DISCOVER_EXTENSIONS=%s LOAD_ALIASES=%s CONFIGURE_SQLPATH=%s\n' \
+        "${ORADBA_AUTO_CREATE_SID_CONFIG:-unset}" \
+        "${ORADBA_AUTO_DISCOVER_ORATAB:-unset}" \
+        "${ORADBA_AUTO_DISCOVER_PRODUCTS:-unset}" \
+        "${ORADBA_AUTO_DISCOVER_INSTANCES:-unset}" \
+        "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-unset}" \
+        "${ORADBA_LOAD_ALIASES:-unset}" \
+        "${ORADBA_CONFIGURE_SQLPATH:-unset}" >&2
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: _oraenv_parse_args
 # Purpose.: Parse command line arguments for oraenv.sh
 # Args....: $@ - All command line arguments
@@ -1022,6 +1043,7 @@ _oraenv_load_configurations() {
     # This reloads all configs in order: core -> standard -> customer -> default -> sid-specific
     # Later configs override earlier settings, including aliases
     load_config "$identifier"
+    _oraenv_profile_dump_effective_flags
     _oraenv_profile_mark "load_config (${identifier})"
 
     # Configure SQLPATH for SQL script discovery (#11)

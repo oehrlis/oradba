@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Startup Profiling for Login Tracing**
   - Added optional `ORADBA_PROFILE_STARTUP=true` mode to `oraenv.sh`
   - Emits per-phase startup timings (e.g., argument parsing, config loading, SQLPATH setup, extension loading, environment setup)
+  - Prints effective startup flag values (auto-discovery, alias loading, SQLPATH, SID config auto-create) to expose config overrides
   - Helps identify login slowness root causes directly during shell startup
 
 ### Fixed
