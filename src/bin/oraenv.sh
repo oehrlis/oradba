@@ -724,6 +724,7 @@ _oraenv_handle_oracle_home() {
             oradba_log ERROR "Failed to set Oracle Home environment for: $requested_sid"
             return 1
         fi
+        _oraenv_profile_mark "set_oracle_home_environment"
 
         # Set ORACLE_SID to empty for non-database homes
         export ORACLE_SID=""
@@ -739,6 +740,7 @@ _oraenv_handle_oracle_home() {
         # This allows ORADBA_TNS_ADMIN to be set from config files
         oradba_log DEBUG "LD_LIBRARY_PATH before load_config: ${LD_LIBRARY_PATH:-<empty>}"
         _oraenv_load_configurations "$requested_sid"
+        _oraenv_profile_mark "load_configurations_oracle_home"
         oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
 
         # Get product type for TNS_ADMIN and path configurations
@@ -770,12 +772,14 @@ _oraenv_handle_oracle_home() {
         else
             _oraenv_apply_tns_admin "${product_type}"
         fi
+        _oraenv_profile_mark "apply_tns_admin"
         
         # Set NLS_LANG if not set
         export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
         # Apply Java/client path configurations
         _oraenv_apply_path_configs "${product_type}" "${ORACLE_HOME}"
+        _oraenv_profile_mark "apply_path_configs"
 
         oradba_log DEBUG "Oracle Home environment set: $requested_sid"
         oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"

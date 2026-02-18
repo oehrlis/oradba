@@ -1677,10 +1677,16 @@ set_oracle_home_environment() {
 
     # Resolve alias to actual name if needed
     actual_name=$(resolve_oracle_home_name "${name}")
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.resolve_name"
+    fi
     
     # Get ORACLE_HOME if not provided
     if [[ -z "${oracle_home}" ]]; then
         oracle_home=$(get_oracle_home_path "${actual_name}") || return 1
+    fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.resolve_path"
     fi
 
     # Get product type from config first, fall back to detection
@@ -1690,6 +1696,9 @@ set_oracle_home_environment() {
     else
         # Fallback to filesystem detection
         product_type=$(detect_product_type "${oracle_home}")
+    fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.detect_type"
     fi
 
     # Apply product-specific adjustments via plugin system
@@ -1714,6 +1723,9 @@ set_oracle_home_environment() {
             fi
         fi
     fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.adjust_product_home"
+    fi
 
     # Set base environment
     export ORACLE_HOME="${adjusted_home}"
@@ -1725,6 +1737,9 @@ set_oracle_home_environment() {
         oradba_set_lib_path "${adjusted_home}" "${product_type}"
     else
         oradba_log WARN "oradba_set_lib_path not available - library path not set via plugin system"
+    fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.set_lib_path"
     fi
     
     # Set DataSafe-specific variables if applicable
@@ -1745,6 +1760,9 @@ set_oracle_home_environment() {
     # Always use actual name in alias target, not the alias itself
     # shellcheck disable=SC2139  # We want the alias to expand now
     alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.create_alias"
+    fi
 
     # Clean old Oracle paths from PATH before adding new ones (Phase 4+)
     # Skip when deferred (oraenv already called _oraenv_unset_old_env)
@@ -1795,6 +1813,9 @@ set_oracle_home_environment() {
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
     esac
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.apply_base_path"
+    fi
 
     # Add client path for non-client products if configured
     # Check if the product needs external client tools
@@ -1857,6 +1878,9 @@ set_oracle_home_environment() {
             PATH="$(oradba_dedupe_path "${PATH}")"
             export PATH
         fi
+    fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "set_home.finalize_path"
     fi
 
     oradba_log DEBUG "Set environment for ${name} (${product_type}): ${ORACLE_HOME}"
@@ -2027,6 +2051,9 @@ load_config() {
     # Clean up variables from previous SID configuration
     # This ensures environment isolation when switching between SIDs
     cleanup_previous_sid_config
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.cleanup_previous_sid_config"
+    fi
 
     # Enable auto-export of all variables (set -a)
     # This ensures all variables in config files are exported to environment
@@ -2038,17 +2065,29 @@ load_config() {
         set +a
         return 1
     fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.oradba_core.conf"
+    fi
 
     # 2. Load standard configuration (required, but warn if missing)
     if ! load_config_file "${config_dir}/oradba_standard.conf"; then
         oradba_log WARN "Standard configuration not found: ${config_dir}/oradba_standard.conf"
     fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.oradba_standard.conf"
+    fi
 
     # 3. Load customer configuration (optional)
     load_config_file "${config_dir}/oradba_customer.conf"
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.oradba_customer.conf"
+    fi
 
     # 4. Load default SID configuration (optional)
     load_config_file "${config_dir}/sid._DEFAULT_.conf"
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.sid._DEFAULT_.conf"
+    fi
 
     # Disable auto-export before SID config (we'll track variables manually)
     set +a
@@ -2084,6 +2123,9 @@ load_config() {
                 oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
             fi
         fi
+    fi
+    if command -v _oraenv_profile_mark &>/dev/null; then
+        _oraenv_profile_mark "load_config.sid.${sid:-none}.conf"
     fi
 
     oradba_log DEBUG "Configuration loading complete"
