@@ -182,9 +182,13 @@ oradba_log() {
     local level="$1"
     shift
     local message="$*"
+    local level_upper
+    local min_level_upper
 
     # Default log level is INFO if not set
     local min_level="${ORADBA_LOG_LEVEL:-INFO}"
+    level_upper=$(echo "${level}" | tr '[:lower:]' '[:upper:]')
+    min_level_upper=$(echo "${min_level}" | tr '[:lower:]' '[:upper:]')
 
     # Legacy DEBUG=1 support - if DEBUG is set, enable DEBUG level
     if [[ "${DEBUG:-0}" == "1" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
@@ -200,7 +204,7 @@ oradba_log() {
     local level_value=0
     local min_level_value=0
 
-    case "${level^^}" in
+    case "${level_upper}" in
         TRACE) level_value=-1 ;;
         DEBUG) level_value=0 ;;
         INFO) level_value=1 ;;
@@ -212,7 +216,7 @@ oradba_log() {
         *) level_value=1 ;;       # Default to INFO for unknown levels
     esac
 
-    case "${min_level^^}" in
+    case "${min_level_upper}" in
         TRACE) min_level_value=-1 ;;
         DEBUG) min_level_value=0 ;;
         INFO) min_level_value=1 ;;
@@ -225,7 +229,7 @@ oradba_log() {
     if [[ ${level_value} -ge ${min_level_value} ]]; then
         # Select color based on level
         local color=""
-        case "${level^^}" in
+        case "${level_upper}" in
             TRACE) color="${LOG_COLOR_TRACE}" ;;
             DEBUG) color="${LOG_COLOR_DEBUG}" ;;
             INFO) color="${LOG_COLOR_INFO}" ;;
@@ -244,9 +248,9 @@ oradba_log() {
         local log_line
         if [[ "${ORADBA_LOG_SHOW_CALLER:-false}" == "true" ]]; then
             local caller="${BASH_SOURCE[2]##*/}:${BASH_LINENO[1]}"
-            log_line="[${level^^}] ${timestamp} [${caller}] - ${message}"
+            log_line="[${level_upper}] ${timestamp} [${caller}] - ${message}"
         else
-            log_line="[${level^^}] ${timestamp} - ${message}"
+            log_line="[${level_upper}] ${timestamp} - ${message}"
         fi
 
         # Output to stderr with color if enabled
@@ -642,7 +646,8 @@ generate_sid_lists() {
         fi
 
         # Create alias for this SID (lowercase)
-        local sid_lower="${oratab_sid,,}"
+        local sid_lower
+        sid_lower=$(echo "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
         # shellcheck disable=SC2139
         alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
 
@@ -759,7 +764,8 @@ generate_oracle_home_aliases() {
         alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
         
         # Create alias for the Oracle Home name (lowercase, consistent with SID aliases)
-        local name_lower="${name,,}"
+        local name_lower
+        name_lower=$(echo "${name}" | tr '[:upper:]' '[:lower:]')
         # shellcheck disable=SC2139
         alias "${name_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
         oradba_log DEBUG "Created Oracle Home alias: ${name_lower}"
@@ -828,7 +834,8 @@ EOF
         [[ -z "$pdb_name" ]] && continue
 
         # Create lowercase alias
-        local pdb_lower="${pdb_name,,}"
+        local pdb_lower
+        pdb_lower=$(echo "${pdb_name}" | tr '[:upper:]' '[:lower:]')
 
         # Create alias to set ORADBA_PDB and connect
         # shellcheck disable=SC2139
@@ -925,7 +932,7 @@ discover_running_oracle_instances() {
             sid="${BASH_REMATCH[1]}"
         elif [[ "$comm" =~ ^ora_pmon_(.+)$ ]]; then
             # Convert lowercase pmon SID to uppercase
-            sid="${BASH_REMATCH[1]^^}"
+            sid=$(echo "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]')
         elif [[ "$comm" =~ ^asm_smon_(.+)$ ]]; then
             sid="${BASH_REMATCH[1]}"
         else
@@ -1786,7 +1793,8 @@ set_oracle_home_environment() {
                 # Add Java path if function is available
                 if command -v oradba_add_java_path &>/dev/null; then
                     # Convert to uppercase for function call
-                    local product_upper="${product_type^^}"
+                    local product_upper
+                    product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
                     # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
                     oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
                 fi
@@ -1809,7 +1817,8 @@ set_oracle_home_environment() {
                 # Add client path if function is available
                 if command -v oradba_add_client_path &>/dev/null; then
                     # Convert to uppercase for function call
-                    local product_upper="${product_type^^}"
+                    local product_upper
+                    product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
                     oradba_add_client_path "${product_upper}" 2>/dev/null || true
                 fi
             fi
@@ -2093,7 +2102,9 @@ create_sid_config() {
 
     oradba_log DEBUG "Using template: ${example_config}"
     # Copy example and replace ORCL with actual SID
-    if sed "s/ORCL/${sid}/g; s/orcl/${sid,,}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
+    local sid_lower
+    sid_lower=$(echo "${sid}" | tr '[:upper:]' '[:lower:]')
+    if sed "s/ORCL/${sid}/g; s/orcl/${sid_lower}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
         "${example_config}" > "${sid_config}"; then
         echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2
         oradba_log INFO "Created SID configuration: ${sid_config}"
@@ -3006,7 +3017,9 @@ is_plugin_debug_enabled() {
     
     # Check if ORADBA_LOG_LEVEL is DEBUG or TRACE
     local log_level="${ORADBA_LOG_LEVEL:-INFO}"
-    if [[ "${log_level^^}" == "DEBUG" ]] || [[ "${log_level^^}" == "TRACE" ]]; then
+    local log_level_upper
+    log_level_upper=$(echo "${log_level}" | tr '[:lower:]' '[:upper:]')
+    if [[ "${log_level_upper}" == "DEBUG" ]] || [[ "${log_level_upper}" == "TRACE" ]]; then
         return 0
     fi
     
@@ -3028,7 +3041,9 @@ is_plugin_debug_enabled() {
 # ------------------------------------------------------------------------------
 is_plugin_trace_enabled() {
     local log_level="${ORADBA_LOG_LEVEL:-INFO}"
-    if [[ "${log_level^^}" == "TRACE" ]]; then
+    local log_level_upper
+    log_level_upper=$(echo "${log_level}" | tr '[:lower:]' '[:upper:]')
+    if [[ "${log_level_upper}" == "TRACE" ]]; then
         return 0
     fi
     return 1

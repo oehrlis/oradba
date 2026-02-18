@@ -268,7 +268,8 @@ oradba_get_product_status() {
     local status=""
     
     # Convert to lowercase for plugin matching
-    local plugin_type="${product_type,,}"
+    local plugin_type
+    plugin_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     
     # Map old types to plugin names
     case "$plugin_type" in
@@ -380,7 +381,9 @@ oradba_get_product_status() {
     
     # Fallback to legacy product-specific functions if plugin doesn't exist or returned unexpected code
     oradba_log WARN "oradba_get_product_status: Using fallback status check for ${product_type} (plugin system failed)"
-    case "${product_type^^}" in
+    local product_type_upper
+    product_type_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+    case "${product_type_upper}" in
         RDBMS|DATABASE)
             oradba_check_db_status "$instance_name" "$home_path"
             ;;

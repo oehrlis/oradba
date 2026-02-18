@@ -287,13 +287,22 @@ _oraenv_find_oratab() {
 # ------------------------------------------------------------------------------
 _oraenv_gather_available_entries() {
     local oratab_file="$1"
-    local -n sids_ref="$2"
-    local -n homes_ref="$3"
+    local sids_var="$2"
+    local homes_var="$3"
+    local sids_count=0
+    local homes_count=0
+
+    # Initialize output arrays by variable name (portable to Bash 3.2)
+    eval "${sids_var}=()"
+    eval "${homes_var}=()"
     
     # Try registry API first (Phase 1)
     if type -t oradba_registry_get_databases &>/dev/null; then
         # Get database SIDs from registry
-        mapfile -t sids_ref < <(oradba_registry_get_databases 2>/dev/null | cut -d'|' -f2)
+        while IFS= read -r sid; do
+            [[ -z "${sid}" ]] && continue
+            eval "${sids_var}+=(\"${sid}\")"
+        done < <(oradba_registry_get_databases 2>/dev/null | cut -d'|' -f2)
         
         # Get non-database homes from registry
         local all_entries
@@ -302,34 +311,38 @@ _oraenv_gather_available_entries() {
             while IFS='|' read -r ptype name home version flags order alias desc; do
                 # Skip database types (already in sids)
                 [[ "${ptype}" == "database" ]] && continue
-                homes_ref+=("${name}")
+                eval "${homes_var}+=(\"${name}\")"
             done <<< "${all_entries}"
         fi
     fi
 
-    local total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
+    eval "sids_count=\${#${sids_var}[@]}"
+    eval "homes_count=\${#${homes_var}[@]}"
+    local total_entries=$((sids_count + homes_count))
 
     # If no non-database homes are registered, try product discovery
-    if [[ ${#homes_ref[@]} -eq 0 ]] && [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" ]]; then
+    if [[ ${homes_count} -eq 0 ]] && [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" ]]; then
         oradba_log INFO "Auto-discovering all Oracle products (db, datasafe, java, iclient, oud)..."
         "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
             oradba_log INFO "  $line"
         done
 
         # Refresh homes list after product discovery
-        homes_ref=()
+        eval "${homes_var}=()"
         if command -v oradba_registry_get_all &> /dev/null; then
             local all_entries
             all_entries=$(oradba_registry_get_all 2>/dev/null)
             if [[ -n "${all_entries}" ]]; then
                 while IFS='|' read -r ptype name home version flags order alias desc; do
                     [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                    homes_ref+=("${name}")
+                    eval "${homes_var}+=(\"${name}\")"
                 done <<< "${all_entries}"
             fi
         fi
 
-        total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
+        eval "sids_count=\${#${sids_var}[@]}"
+        eval "homes_count=\${#${homes_var}[@]}"
+        total_entries=$((sids_count + homes_count))
     fi
 
     # If no entries found, try auto-discovery
@@ -343,7 +356,11 @@ _oraenv_gather_available_entries() {
                 oradba_log INFO "Auto-discovered running Oracle instances (not in oratab)"
                 
                 # Extract SIDs from discovered entries (filter empty lines)
-                mapfile -t sids_ref < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
+                eval "${sids_var}=()"
+                while IFS= read -r sid; do
+                    [[ -z "${sid}" ]] && continue
+                    eval "${sids_var}+=(\"${sid}\")"
+                done < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
             fi
         fi
         
@@ -353,14 +370,14 @@ _oraenv_gather_available_entries() {
             auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
             
             # Refresh homes list after discovery
-            homes_ref=()
+            eval "${homes_var}=()"
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries
                 all_entries=$(oradba_registry_get_all 2>/dev/null)
                 if [[ -n "${all_entries}" ]]; then
                     while IFS='|' read -r ptype name home version flags order alias desc; do
                         [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                        homes_ref+=("${name}")
+                        eval "${homes_var}+=(\"${name}\")"
                     done <<< "${all_entries}"
                 fi
             fi
@@ -374,21 +391,23 @@ _oraenv_gather_available_entries() {
             done
             
             # Refresh homes list after product discovery
-            homes_ref=()
+            eval "${homes_var}=()"
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries
                 all_entries=$(oradba_registry_get_all 2>/dev/null)
                 if [[ -n "${all_entries}" ]]; then
                     while IFS='|' read -r ptype name home version flags order alias desc; do
                         [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                        homes_ref+=("${name}")
+                        eval "${homes_var}+=(\"${name}\")"
                     done <<< "${all_entries}"
                 fi
             fi
         fi
         
         # Check if any entries were found after auto-discovery
-        total_entries=$((${#sids_ref[@]} + ${#homes_ref[@]}))
+        eval "sids_count=\${#${sids_var}[@]}"
+        eval "homes_count=\${#${homes_var}[@]}"
+        total_entries=$((sids_count + homes_count))
         if [[ $total_entries -eq 0 ]]; then
             oradba_log ERROR "No Oracle instances or homes found"
             return 1
@@ -410,10 +429,13 @@ _oraenv_gather_available_entries() {
 #           numbered sequentially for user selection.
 # ------------------------------------------------------------------------------
 _oraenv_display_selection_menu() {
-    # shellcheck disable=SC2178
-    local -n sids_ref="$1"
-    # shellcheck disable=SC2178
-    local -n homes_ref="$2"
+    local sids_var="$1"
+    local homes_var="$2"
+    local -a sids_ref=()
+    local -a homes_ref=()
+
+    eval "sids_ref=(\"\${${sids_var}[@]}\")"
+    eval "homes_ref=(\"\${${homes_var}[@]}\")"
     
     # Display list to stderr so it appears before the prompt
     {
@@ -465,10 +487,13 @@ _oraenv_display_selection_menu() {
 _oraenv_parse_user_selection() {
     local selection="$1"
     local total_entries="$2"
-    # shellcheck disable=SC2178
-    local -n sids_ref="$3"
-    # shellcheck disable=SC2178
-    local -n homes_ref="$4"
+    local sids_var="$3"
+    local homes_var="$4"
+    local -a sids_ref=()
+    local -a homes_ref=()
+
+    eval "sids_ref=(\"\${${sids_var}[@]}\")"
+    eval "homes_ref=(\"\${${homes_var}[@]}\")"
     
     # Check if user entered a number
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ $selection -ge 1 ]] && [[ $selection -le $total_entries ]]; then

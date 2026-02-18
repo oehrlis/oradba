@@ -180,7 +180,7 @@ oradba_add_oracle_path() {
     [[ ! -d "$oracle_home" ]] && return 1
     
     # Convert product type to lowercase for plugin matching
-    product_type="${product_type,,}"
+    product_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     
     # Map old uppercase types to plugin names
     case "$product_type" in
@@ -253,7 +253,7 @@ oradba_set_lib_path() {
     esac
     
     # Convert product type to lowercase for plugin matching
-    product_type="${product_type,,}"
+    product_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     
     # Map old uppercase types to plugin names
     case "$product_type" in
@@ -578,7 +578,8 @@ oradba_resolve_client_home() {
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             
             # Convert type to uppercase for comparison
-            local ptype_upper="${ptype^^}"
+            local ptype_upper
+            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Check if it's a client type or database (databases have client tools)
             if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]] || [[ "${ptype_upper}" == "DATABASE" ]]; then
@@ -598,7 +599,8 @@ oradba_resolve_client_home() {
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             
             # Convert type to uppercase for comparison
-            local ptype_upper="${ptype^^}"
+            local ptype_upper
+            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
@@ -762,7 +764,8 @@ oradba_resolve_java_home() {
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             
             # Convert type to uppercase for comparison
-            local ptype_upper="${ptype^^}"
+            local ptype_upper
+            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Check if it's a Java type
             if [[ "${ptype_upper}" == "JAVA" ]]; then
@@ -792,7 +795,8 @@ oradba_resolve_java_home() {
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             
             # Convert type to uppercase for comparison
-            local ptype_upper="${ptype^^}"
+            local ptype_upper
+            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then

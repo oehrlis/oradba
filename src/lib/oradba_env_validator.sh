@@ -124,7 +124,8 @@ oradba_check_oracle_binaries() {
     local binaries=()
     
     # Convert to lowercase for plugin matching
-    local plugin_type="${product_type,,}"
+    local plugin_type
+    plugin_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     
     # Map old types to plugin names
     case "$plugin_type" in
@@ -144,7 +145,9 @@ oradba_check_oracle_binaries() {
     # Fallback to basic checks if plugin not available
     if [[ ${#binaries[@]} -eq 0 ]]; then
         _oradba_validator_log DEBUG "Using fallback binary checks for ${product_type}"
-        case "${product_type^^}" in
+        local product_type_upper
+        product_type_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+        case "${product_type_upper}" in
             RDBMS|DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
             CLIENT) binaries=("sqlplus" "tnsping") ;;
             ICLIENT) binaries=("sqlplus") ;;
@@ -164,7 +167,9 @@ oradba_check_oracle_binaries() {
     done
     
     # Special check for Instant Client library path
-    if [[ "${product_type^^}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
+    local product_type_upper
+    product_type_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+    if [[ "${product_type_upper}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
         if [[ -z "${LD_LIBRARY_PATH}" ]]; then
             echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
             ((missing++))
@@ -277,7 +282,8 @@ oradba_validate_environment() {
     
     # For non-database products, do minimal validation
     # Convert to uppercase for comparison
-    local product_upper="${product_type^^}"
+    local product_upper
+    product_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
     if [[ "$product_upper" =~ ^(JAVA|OUD|WEBLOGIC|OMS|EMAGENT)$ ]]; then
         echo "=== Basic Validation ==="
         if [[ -d "$ORACLE_HOME" ]]; then

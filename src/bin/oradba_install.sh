@@ -1758,6 +1758,48 @@ ORATAB_HEADER
 extract_local_tarball() {
     local tarball="$1"
 
+    # Allow directory input for convenience (auto-detect tarball)
+    if [[ -d "$tarball" ]]; then
+        log_info "Local path is a directory, searching for tarball: $tarball"
+
+        local match_count=0
+        local selected_tarball=""
+
+        # Prefer OraDBA-named artifacts first
+        while IFS= read -r candidate; do
+            [[ -z "$candidate" ]] && continue
+            selected_tarball="$candidate"
+            ((match_count++)) || true
+        done < <(find "$tarball" -maxdepth 1 -type f -name "oradba-*.tar.gz" 2> /dev/null | sort)
+
+        # Fallback: any .tar.gz file
+        if [[ $match_count -eq 0 ]]; then
+            while IFS= read -r candidate; do
+                [[ -z "$candidate" ]] && continue
+                selected_tarball="$candidate"
+                ((match_count++)) || true
+            done < <(find "$tarball" -maxdepth 1 -type f -name "*.tar.gz" 2> /dev/null | sort)
+        fi
+
+        if [[ $match_count -eq 1 ]]; then
+            tarball="$selected_tarball"
+            log_info "Using local tarball: $tarball"
+        elif [[ $match_count -gt 1 ]]; then
+            log_error "Multiple tarballs found in directory: $tarball"
+            log_error "Please specify one tarball file explicitly with --local"
+            while IFS= read -r candidate; do
+                [[ -z "$candidate" ]] && continue
+                echo "  - $candidate"
+            done < <(find "$tarball" -maxdepth 1 -type f -name "*.tar.gz" 2> /dev/null | sort)
+            return 1
+        else
+            log_error "No tarball found in directory: $tarball"
+            log_error "Expected a file like: oradba-x.y.z.tar.gz"
+            log_error "Tip: Use --local /path/to/oradba-x.y.z.tar.gz"
+            return 1
+        fi
+    fi
+
     log_info "Validating local tarball: $tarball"
 
     # Check if file exists

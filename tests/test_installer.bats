@@ -228,6 +228,25 @@ teardown() {
     fi
 }
 
+@test "local mode accepts directory with a single tarball" {
+    cd "$PROJECT_ROOT"
+    version=$(cat VERSION)
+    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tar_dir="${TEST_TEMP_DIR}/tarballs"
+
+    if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
+        mkdir -p "$tar_dir"
+        cp "$tarball" "$tar_dir/"
+
+        "$STANDALONE_INSTALLER" --no-update-profile --local "$tar_dir" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+        [ -d "$TEST_INSTALL_DIR" ]
+        [ -f "$TEST_INSTALL_DIR/bin/oraenv.sh" ]
+        [ -f "$TEST_INSTALL_DIR/.install_info" ]
+    else
+        skip "Tarball or standalone installer not found"
+    fi
+}
+
 @test "installed oradba_install.sh is standalone" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then

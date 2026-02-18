@@ -195,7 +195,8 @@ oradba_apply_product_config() {
     oradba_load_generic_configs "DEFAULT"
     
     # Convert to lowercase for plugin matching
-    local plugin_type="${product_type,,}"
+    local plugin_type
+    plugin_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     
     # Map old types to plugin names
     case "$plugin_type" in
@@ -206,7 +207,9 @@ oradba_apply_product_config() {
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     # Note: plugin_get_config_section takes no arguments, so use NOARGS
     # Only query plugin if product_type matches plugin_type (not mapped)
-    if [[ "${product_type,,}" == "${plugin_type}" ]]; then
+    local product_type_lower
+    product_type_lower=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
+    if [[ "${product_type_lower}" == "${plugin_type}" ]]; then
         if execute_plugin_function_v2 "${plugin_type}" "get_config_section" "NOARGS" "config_section"; then
             oradba_log DEBUG "Plugin ${plugin_type}: config section = ${config_section}"
         fi
@@ -214,7 +217,7 @@ oradba_apply_product_config() {
     
     # Fallback to uppercase product type if plugin not available or not queried
     if [[ -z "$config_section" ]]; then
-        config_section="${product_type^^}"
+        config_section=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
         oradba_log DEBUG "Using fallback config section: ${config_section}"
     fi
     

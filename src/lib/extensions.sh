@@ -158,7 +158,11 @@ get_extension_property() {
         # Replace hyphens with underscores and remove dots and other special characters
         local safe_ext_name="${ext_name//-/_}"
         safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
-        local config_var="ORADBA_EXT_${safe_ext_name^^}_${property^^}"
+        local safe_ext_name_upper
+        local property_upper
+        safe_ext_name_upper=$(echo "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+        property_upper=$(echo "${property}" | tr '[:lower:]' '[:upper:]')
+        local config_var="ORADBA_EXT_${safe_ext_name_upper}_${property_upper}"
         value="${!config_var}"
     fi
 
@@ -520,11 +524,11 @@ load_extension() {
     fi
 
     # Normalize booleans to lowercase
-    provides_bin="${provides_bin,,}"
-    provides_sql="${provides_sql,,}"
-    provides_rcv="${provides_rcv,,}"
-    load_env="${load_env,,}"
-    load_aliases="${load_aliases,,}"
+    provides_bin=$(echo "${provides_bin}" | tr '[:upper:]' '[:lower:]')
+    provides_sql=$(echo "${provides_sql}" | tr '[:upper:]' '[:lower:]')
+    provides_rcv=$(echo "${provides_rcv}" | tr '[:upper:]' '[:lower:]')
+    load_env=$(echo "${load_env}" | tr '[:upper:]' '[:lower:]')
+    load_aliases=$(echo "${load_aliases}" | tr '[:upper:]' '[:lower:]')
 
     # Add to PATH (bin directory) - only if provides bin
     if [[ "${provides_bin}" == "true" ]] && [[ -d "${ext_path}/bin" ]]; then
@@ -556,11 +560,13 @@ load_extension() {
     safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
 
     # Export extension path variables for reference
-    local var_name="ORADBA_EXT_${safe_ext_name^^}_PATH"
+    local safe_ext_name_upper
+    safe_ext_name_upper=$(echo "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+    local var_name="ORADBA_EXT_${safe_ext_name_upper}_PATH"
     export "${var_name}=${ext_path}"
 
     # Export <EXTENSION>_BASE variable (e.g., USZ_BASE=/opt/oracle/local/usz)
-    local base_var="${safe_ext_name^^}_BASE"
+    local base_var="${safe_ext_name_upper}_BASE"
     export "${base_var}=${ext_path}"
 
     # Optional etc/ hook sourcing (opt-in via global + metadata flags)

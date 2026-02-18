@@ -91,8 +91,10 @@ oradba_parse_oratab() {
         # If looking for specific SID (case-insensitive for convenience)
         if [[ -n "$target_sid" ]]; then
             # Convert both to uppercase for comparison
-            local sid_upper="${sid^^}"
-            local target_upper="${target_sid^^}"
+            local sid_upper
+            local target_upper
+            sid_upper=$(echo "${sid}" | tr '[:lower:]' '[:upper:]')
+            target_upper=$(echo "${target_sid}" | tr '[:lower:]' '[:upper:]')
             if [[ "$sid_upper" == "$target_upper" ]]; then
                 echo "${sid}|${oracle_home}|${flag:-N}"
                 return 0
@@ -322,7 +324,7 @@ oradba_get_product_type() {
     product=$(oradba_get_home_metadata "$oracle_home" "Type" 2>/dev/null)
     if [[ -n "$product" ]] && [[ "$product" != "N/A" ]]; then
         # Convert to uppercase for consistency
-        echo "${product^^}"
+        echo "${product}" | tr '[:lower:]' '[:upper:]'
         return 0
     fi
     
