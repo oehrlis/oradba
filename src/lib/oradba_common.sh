@@ -654,21 +654,28 @@ generate_sid_lists() {
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
 
     # Auto-sync database homes from oratab to oradba_homes.conf (first login)
-    # Source registry module if not already loaded
-    if ! type -t oradba_registry_sync_oratab &>/dev/null; then
-        local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        if [[ -f "${registry_lib}" ]]; then
-            # shellcheck source=/dev/null
-            source "${registry_lib}" 2>/dev/null
+    # Only when ORADBA_AUTO_DISCOVER_ORATAB=true (opt-in behavior)
+    # Use one-time sync guard to avoid repeating costly sync in same shell session
+    if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && [[ "${ORADBA_REGISTRY_SYNC_DONE:-false}" != "true" ]]; then
+        # Source registry module if not already loaded
+        if ! type -t oradba_registry_sync_oratab &>/dev/null; then
+            local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+            [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+            if [[ -f "${registry_lib}" ]]; then
+                # shellcheck source=/dev/null
+                source "${registry_lib}" 2>/dev/null
+            fi
         fi
-    fi
-    if type -t oradba_registry_sync_oratab &>/dev/null; then
-        local homes_added
-        homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
-        if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
-            echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+        if type -t oradba_registry_sync_oratab &>/dev/null; then
+            local homes_added
+            homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
+            if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
+                echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+            fi
+            export ORADBA_REGISTRY_SYNC_DONE=true
         fi
+    elif [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" != "true" ]]; then
+        oradba_log DEBUG "Skipping oratab->homes sync (ORADBA_AUTO_DISCOVER_ORATAB=${ORADBA_AUTO_DISCOVER_ORATAB:-false})"
     fi
 
     # Add Oracle Home names and aliases to ORADBA_SIDLIST
@@ -717,23 +724,30 @@ generate_sid_lists() {
 # ------------------------------------------------------------------------------
 generate_oracle_home_aliases() {
     local homes_config
-    
+
     # Auto-sync database homes from oratab (ensures homes available for aliases)
-    # Source registry module if not already loaded
-    if ! type -t oradba_registry_sync_oratab &>/dev/null; then
-        local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
-        if [[ -f "${registry_lib}" ]]; then
-            # shellcheck source=/dev/null
-            source "${registry_lib}" 2>/dev/null
+    # Only when ORADBA_AUTO_DISCOVER_ORATAB=true (opt-in behavior)
+    # Use one-time sync guard to avoid repeating costly sync in same shell session
+    if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && [[ "${ORADBA_REGISTRY_SYNC_DONE:-false}" != "true" ]]; then
+        # Source registry module if not already loaded
+        if ! type -t oradba_registry_sync_oratab &>/dev/null; then
+            local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+            [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
+            if [[ -f "${registry_lib}" ]]; then
+                # shellcheck source=/dev/null
+                source "${registry_lib}" 2>/dev/null
+            fi
         fi
-    fi
-    if type -t oradba_registry_sync_oratab &>/dev/null; then
-        local homes_added
-        homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
-        if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
-            echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+        if type -t oradba_registry_sync_oratab &>/dev/null; then
+            local homes_added
+            homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
+            if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
+                echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
+            fi
+            export ORADBA_REGISTRY_SYNC_DONE=true
         fi
+    elif [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" != "true" ]]; then
+        oradba_log DEBUG "Skipping oratab->homes sync for aliases (ORADBA_AUTO_DISCOVER_ORATAB=${ORADBA_AUTO_DISCOVER_ORATAB:-false})"
     fi
     
     # Get Oracle Homes config path

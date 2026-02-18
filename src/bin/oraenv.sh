@@ -1254,14 +1254,15 @@ _oraenv_main() {
     # Set environment
     _oraenv_set_environment "$REQUESTED_SID" "$oratab_file"
     local result=$?
+    local current_product_type="${ORADBA_CURRENT_HOME_TYPE:-database}"
     _oraenv_profile_mark "set_environment"
 
     if [[ $result -eq 0 ]]; then
         # Handle different display modes
-        if [[ "$ORAENV_STATUS_ONLY" == "true" ]] && command -v show_database_status &> /dev/null; then
+        if [[ "$ORAENV_STATUS_ONLY" == "true" ]] && [[ "${current_product_type}" == "database" ]] && command -v show_database_status &> /dev/null; then
             # --status flag: show only database status
             show_database_status
-        elif [[ "$SHOW_STATUS" == "true" ]] && command -v show_database_status &> /dev/null; then
+        elif [[ "$SHOW_STATUS" == "true" ]] && [[ "${current_product_type}" == "database" ]] && command -v show_database_status &> /dev/null; then
             # Interactive mode with status
             show_database_status
             _oraenv_profile_mark "show_database_status"

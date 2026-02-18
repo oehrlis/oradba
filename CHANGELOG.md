@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `oradba_install.sh --local` now accepts a directory path and auto-detects a single tarball
   - Added clear error messages when no tarball is found or when multiple tarballs exist
   - Added installer test coverage for directory-based local source resolution in `tests/test_installer.bats`
+- **oraenv startup performance for non-database homes**
+  - Skip `show_database_status` rendering for non-database product types (e.g., Instant Client)
+  - Avoid duplicate `oradba_registry_sync_oratab` runs in the same shell session during alias generation
+  - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true` (opt-in), preventing unexpected writes when discovery is disabled
+  - Reduces login overhead when sourcing `oraenv.sh` for Oracle Home targets
 
 ### Changed
 
