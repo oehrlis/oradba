@@ -519,7 +519,17 @@ ORADBA_PROFILE_STARTUP=true source oraenv.sh icli23 --silent
 # Typical hot phases in output:
 # [PROFILE] ... load_config (...)
 # [PROFILE] ... set_environment
+# [PROFILE] ... set_home.* / standard_conf.* / load_config.*
 ```
+
+**How to read detailed markers:**
+
+- `set_home.*` markers isolate Oracle Home resolution/type/path setup time.
+- `load_config.*` markers isolate each config file load stage.
+- `standard_conf.*` markers isolate SID/home alias generation and catalog setup.
+- If `set_home.*` or `standard_conf.*` dominate on macOS, this is typically
+  shell/filesystem overhead (BSD userland + startup alias/config work), not
+  Oracle Home count.
 
 **Fix options:**
 
@@ -539,6 +549,14 @@ source oraenv.sh icli23 --silent
 - Dynamic aliases from `oradba_aliases.sh` are not loaded
 - `SQLPATH` is not built by OraDBA, so SQL*Plus script lookup may be reduced
 - If you rely on these features, use normal mode (`source oraenv.sh <NAME>`) in interactive shells
+
+**Cross-platform note (macOS vs Linux):**
+
+- Linux containers can still show lower startup timings on the same host due to
+  different shell/tooling behavior.
+- Tune by profile marker, not by platform assumptions.
+- Keep startup mode platform-neutral (`--fast-silent` or tuned `--silent`) and
+  re-enable full interactive behavior when needed.
 
 ## Platform-Specific Issues
 

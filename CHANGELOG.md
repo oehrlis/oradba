@@ -9,13 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- _None_
+
+### Fixed
+
+- _None_
+
+### Changed
+
+- _None_
+
+## [0.23.0] - 2026-02-18
+
+### Added
+
 - **Startup Profiling for Login Tracing**
   - Added optional `ORADBA_PROFILE_STARTUP=true` mode to `oraenv.sh`
   - Emits per-phase startup timings (e.g., argument parsing, config loading,
     SQLPATH setup, extension loading, environment setup)
   - Prints effective startup flag values (auto-discovery, alias loading, SQLPATH,
     SID config auto-create) to expose config overrides
-  - Helps identify login slowness root causes directly during shell startup
+  - Added granular SID and Oracle Home marker points to isolate startup hotspots
 - **Fast Silent Startup Option**
   - Added `--fast-silent` to `oraenv.sh` for startup-optimized silent mode
   - `--fast-silent` disables alias generation and SQLPATH setup during startup
@@ -63,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated troubleshooting guidance with profile-based startup diagnosis and tuning
   - Updated user docs (`usage.md`, `environment.md`) with `--fast-silent` usage
   - Added explicit downsides when aliases and SQLPATH are not loaded during fast startup
+  - Added guidance for interpreting granular startup profile markers across macOS and Linux
 
 ## [0.22.1] - 2026-02-17
 
