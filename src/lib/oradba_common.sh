@@ -2344,7 +2344,7 @@ configure_sqlpath() {
     fi
 
     # Build colon-separated SQLPATH, removing duplicates while preserving order
-    SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd:)
+    SQLPATH=$(printf "%s\n" "${sqlpath_parts[@]}" | awk '!seen[$0]++' | paste -sd ':' -)
     export SQLPATH
 
     oradba_log DEBUG "SQLPATH configured: ${SQLPATH}"

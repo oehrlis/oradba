@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced Bash 4+ case conversion expansions (`${var^^}` / `${var,,}`) in startup-critical libraries with portable `tr`-based conversion
   - Updated `oraenv.sh` startup helpers to avoid Bash 4-only features (`local -n`, `mapfile`) for both silent and interactive selection paths
   - Applied portability updates across core and env libraries (`oradba_common.sh`, `oradba_env_*`, `extensions.sh`, `oradba_aliases.sh`)
+  - Fixed SQLPATH assembly to use BSD-compatible `paste` invocation on macOS (prevents `usage: paste ...` noise)
   - Prevents login-time errors like `bad substitution` on macOS shells still using `/bin/bash` 3.2
 - **Installer local source path handling**
   - `oradba_install.sh --local` now accepts a directory path and auto-detects a single tarball
