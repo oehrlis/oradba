@@ -1143,10 +1143,12 @@ _oraenv_set_environment() {
     # Not an Oracle Home - proceed with normal database SID lookup
     local oratab_entry
     oratab_entry=$(_oraenv_lookup_oratab_entry "$requested_sid" "$oratab_file")
+    _oraenv_profile_mark "lookup_sid_entry"
 
     # Try auto-discovery if not found
     if [[ -z "$oratab_entry" ]]; then
         oratab_entry=$(_oraenv_auto_discover_instances "$requested_sid" "$oratab_file")
+        _oraenv_profile_mark "auto_discover_sid_entry"
         
         # Still no entry found after discovery attempt - try syncing database homes
         if [[ -z "$oratab_entry" ]]; then
@@ -1177,6 +1179,7 @@ _oraenv_set_environment() {
     # Extract ORACLE_HOME from oratab
     local oracle_home
     oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
+    _oraenv_profile_mark "resolve_sid_home"
 
     if [[ ! -d "$oracle_home" ]]; then
         oradba_log WARN "ORACLE_HOME directory does not exist: $oracle_home"
