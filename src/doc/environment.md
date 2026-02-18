@@ -280,6 +280,32 @@ sqlplus -S / as sysdba <<EOF
 EOF
 ```
 
+### Fast Silent Mode (Startup Optimization)
+
+Use fast silent mode when sourcing `oraenv.sh` from shell startup files and you want minimal login latency:
+
+```bash
+# Optimized for .bash_profile / .bashrc
+source oraenv.sh icli23 --fast-silent
+```
+
+`--fast-silent` behaves like `--silent` and additionally skips:
+
+- Alias generation/loading
+- SQLPATH configuration
+
+Downsides:
+
+- OraDBA aliases (for example `free`, `oraup`, `sq`, `rmanh`) are not initialized during startup
+- Dynamic aliases from `oradba_aliases.sh` are not available until normal mode is sourced
+- SQL*Plus may not find scripts via OraDBA-managed `SQLPATH`
+
+If you need full shell features after login, run normal mode once:
+
+```bash
+source oraenv.sh icli23
+```
+
 ### Data Safe Environment Details
 
 When working with Data Safe connectors, `oradba_env.sh` now exposes the key

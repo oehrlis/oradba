@@ -99,6 +99,7 @@ SHOW_ENV=true
 SHOW_STATUS=false
 ORAENV_STATUS_ONLY=false
 ORAENV_INTERACTIVE=true
+ORAENV_FAST_SILENT=false
 REQUESTED_SID=""
 
 # Optional startup profiling (disabled by default)
@@ -176,7 +177,7 @@ _oraenv_profile_mark() {
 _oraenv_profile_dump_effective_flags() {
     [[ "${_ORAENV_PROFILE_ENABLED}" != "true" ]] && return 0
 
-    printf '[PROFILE] flags: AUTO_CREATE_SID_CONFIG=%s AUTO_DISCOVER_ORATAB=%s AUTO_DISCOVER_PRODUCTS=%s AUTO_DISCOVER_INSTANCES=%s AUTO_DISCOVER_EXTENSIONS=%s LOAD_ALIASES=%s LOAD_ALIASES_IN_SILENT=%s CONFIGURE_SQLPATH=%s CONFIGURE_SQLPATH_IN_SILENT=%s\n' \
+    printf '[PROFILE] flags: AUTO_CREATE_SID_CONFIG=%s AUTO_DISCOVER_ORATAB=%s AUTO_DISCOVER_PRODUCTS=%s AUTO_DISCOVER_INSTANCES=%s AUTO_DISCOVER_EXTENSIONS=%s LOAD_ALIASES=%s LOAD_ALIASES_IN_SILENT=%s CONFIGURE_SQLPATH=%s CONFIGURE_SQLPATH_IN_SILENT=%s FAST_SILENT=%s\n' \
         "${ORADBA_AUTO_CREATE_SID_CONFIG:-unset}" \
         "${ORADBA_AUTO_DISCOVER_ORATAB:-unset}" \
         "${ORADBA_AUTO_DISCOVER_PRODUCTS:-unset}" \
@@ -185,7 +186,8 @@ _oraenv_profile_dump_effective_flags() {
         "${ORADBA_LOAD_ALIASES:-unset}" \
         "${ORADBA_LOAD_ALIASES_IN_SILENT:-unset}" \
         "${ORADBA_CONFIGURE_SQLPATH:-unset}" \
-        "${ORADBA_CONFIGURE_SQLPATH_IN_SILENT:-unset}" >&2
+        "${ORADBA_CONFIGURE_SQLPATH_IN_SILENT:-unset}" \
+        "${ORAENV_FAST_SILENT:-false}" >&2
     return 0
 }
 
@@ -196,8 +198,8 @@ _oraenv_profile_dump_effective_flags() {
 # Returns.: 0 on success, 1 on error
 # Output..: Sets global variables: REQUESTED_SID, SHOW_ENV, SHOW_STATUS, 
 #           ORAENV_INTERACTIVE, ORAENV_STATUS_ONLY
-# Notes...: Detects TTY for interactive mode, processes --silent, --status,
-#           --force, and --help flags
+# Notes...: Detects TTY for interactive mode, processes --silent, --fast-silent,
+#           --status, --force, and --help flags
 # ------------------------------------------------------------------------------
 _oraenv_parse_args() {
     # shellcheck disable=SC2034  # Reserved for future use
@@ -229,6 +231,15 @@ _oraenv_parse_args() {
                 ;;
             -s | --silent)
                 ORAENV_INTERACTIVE=false
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
+                SHOW_STATUS=false
+                # shellcheck disable=SC2034  # Global variables used in _oraenv_main
+                SHOW_ENV=false
+                shift
+                ;;
+            --fast-silent)
+                ORAENV_INTERACTIVE=false
+                ORAENV_FAST_SILENT=true
                 # shellcheck disable=SC2034  # Global variables used in _oraenv_main
                 SHOW_STATUS=false
                 # shellcheck disable=SC2034  # Global variables used in _oraenv_main
@@ -287,6 +298,7 @@ Arguments:
 
 Options:
   -s, --silent        Silent mode: no prompts, no status display
+    --fast-silent       Silent mode + skip aliases and SQLPATH setup for faster login
   --status            Force showing detailed database status
   -f, --force         Force environment setup even if validation fails
   -h, --help          Display this help message
@@ -299,6 +311,11 @@ Behavior:
   Non-interactive (no TTY) or --silent:
     - With NAME: Sets environment silently
     - Without NAME: Uses first entry (Oracle Home or SID) silently
+
+    Fast silent (--fast-silent):
+        - Same behavior as --silent
+        - Also skips alias generation and SQLPATH configuration during startup
+        - Best for login/profile performance; use normal mode for full interactive setup
 
 Examples:
   source oraenv.sh FREE              # Database SID: with status
@@ -1049,7 +1066,13 @@ _oraenv_load_configurations() {
 
     # Optional startup optimization for silent/non-interactive mode.
     # Backward compatible defaults keep current behavior unless explicitly disabled.
-    if [[ "${ORAENV_INTERACTIVE}" != "true" ]]; then
+    if [[ "${ORAENV_FAST_SILENT}" == "true" ]]; then
+        export ORADBA_LOAD_ALIASES="false"
+        export ORADBA_CONFIGURE_SQLPATH="false"
+        restore_load_aliases=true
+        restore_configure_sqlpath=true
+        oradba_log DEBUG "Fast silent mode: aliases and SQLPATH disabled for startup"
+    elif [[ "${ORAENV_INTERACTIVE}" != "true" ]]; then
         if [[ "${ORADBA_LOAD_ALIASES_IN_SILENT:-true}" != "true" ]]; then
             export ORADBA_LOAD_ALIASES="false"
             restore_load_aliases=true

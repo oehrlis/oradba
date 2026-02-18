@@ -506,6 +506,40 @@ cat /etc/oratab
 - Optimize oratab (remove unused entries)
 - Check disk performance
 
+### Slow Login / Shell Profile Startup
+
+**Symptom:** Terminal login takes several seconds when your profile sources `oraenv.sh`.
+
+**Check (profile timings):**
+
+```bash
+# One-time profile trace
+ORADBA_PROFILE_STARTUP=true source oraenv.sh icli23 --silent
+
+# Typical hot phases in output:
+# [PROFILE] ... load_config (...)
+# [PROFILE] ... set_environment
+```
+
+**Fix options:**
+
+```bash
+# Fastest login path (recommended for .bash_profile)
+source oraenv.sh icli23 --fast-silent
+
+# Or keep --silent and tune via config/env vars
+export ORADBA_LOAD_ALIASES_IN_SILENT=false
+export ORADBA_CONFIGURE_SQLPATH_IN_SILENT=false
+source oraenv.sh icli23 --silent
+```
+
+**Downside of skipping aliases/SQLPATH:**
+
+- OraDBA aliases are not created during startup (`free`, `oraup`, `sq`, `rmanh`, etc.)
+- Dynamic aliases from `oradba_aliases.sh` are not loaded
+- `SQLPATH` is not built by OraDBA, so SQL*Plus script lookup may be reduced
+- If you rely on these features, use normal mode (`source oraenv.sh <NAME>`) in interactive shells
+
 ## Platform-Specific Issues
 
 ### macOS

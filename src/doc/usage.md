@@ -30,6 +30,9 @@ source oraenv.sh
 # Silent mode (for scripts, no output)
 source oraenv.sh FREE --silent
 
+# Fast silent mode (for login/profile speed)
+source oraenv.sh FREE --fast-silent
+
 # Display only database status
 source oraenv.sh FREE --status
 
@@ -41,6 +44,25 @@ source oraenv.sh FREE --status
 - Automatically displays available SIDs from oratab as a numbered list
 - Shows database status after environment is set (unless --silent is used)
 - Detects TTY automatically to enable/disable interactive features
+
+**Fast Silent Mode (`--fast-silent`)**
+
+- Uses silent behavior and additionally skips alias generation and SQLPATH configuration
+- Intended for `.bash_profile` / `.bashrc` performance-sensitive startup
+- Keeps environment essentials (`ORACLE_HOME`, `ORACLE_BASE`, `TNS_ADMIN`, `PATH`, library path)
+
+Trade-offs when aliases/SQLPATH are skipped:
+
+- OraDBA aliases are not loaded during startup (`free`, `oraup`, `sq`, `rmanh`, etc.)
+- Dynamic aliases from `oradba_aliases.sh` are not available until normal mode is sourced
+- `SQLPATH` is not assembled by OraDBA, so SQL script lookup can be limited
+
+Optional tuning (if using `--silent`):
+
+```bash
+export ORADBA_LOAD_ALIASES_IN_SILENT=false
+export ORADBA_CONFIGURE_SQLPATH_IN_SILENT=false
+```
 
 ### Environment Variables
 
@@ -310,6 +332,7 @@ Options:
   -f, --force      Force environment setup
   -h, --help       Display help message
   --silent         Silent mode (no output, for scripts)
+  --fast-silent    Silent mode + skip aliases and SQLPATH for faster startup
   --status         Display only database status
 ```
 

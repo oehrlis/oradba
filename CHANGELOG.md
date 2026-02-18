@@ -11,15 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Startup Profiling for Login Tracing**
   - Added optional `ORADBA_PROFILE_STARTUP=true` mode to `oraenv.sh`
-  - Emits per-phase startup timings (e.g., argument parsing, config loading, SQLPATH setup, extension loading, environment setup)
-  - Prints effective startup flag values (auto-discovery, alias loading, SQLPATH, SID config auto-create) to expose config overrides
+  - Emits per-phase startup timings (e.g., argument parsing, config loading,
+    SQLPATH setup, extension loading, environment setup)
+  - Prints effective startup flag values (auto-discovery, alias loading, SQLPATH,
+    SID config auto-create) to expose config overrides
   - Helps identify login slowness root causes directly during shell startup
+- **Fast Silent Startup Option**
+  - Added `--fast-silent` to `oraenv.sh` for startup-optimized silent mode
+  - `--fast-silent` disables alias generation and SQLPATH setup during startup
+  - Keeps core environment setup while reducing login/profile latency
 
 ### Fixed
 
 - **macOS default Bash startup compatibility**
-  - Replaced Bash 4+ case conversion expansions (`${var^^}` / `${var,,}`) in startup-critical libraries with portable `tr`-based conversion
-  - Updated `oraenv.sh` startup helpers to avoid Bash 4-only features (`local -n`, `mapfile`) for both silent and interactive selection paths
+  - Replaced Bash 4+ case conversion expansions (`${var^^}` / `${var,,}`) in
+    startup-critical libraries with portable `tr`-based conversion
+  - Updated `oraenv.sh` startup helpers to avoid Bash 4-only features
+    (`local -n`, `mapfile`) for both silent and interactive selection paths
   - Applied portability updates across core and env libraries (`oradba_common.sh`, `oradba_env_*`, `extensions.sh`, `oradba_aliases.sh`)
   - Fixed SQLPATH assembly to use BSD-compatible `paste` invocation on macOS (prevents `usage: paste ...` noise)
   - Fixed Instant Client discovery on macOS by accepting `libclntsh.dylib` layouts in `iclient` plugin validation/detection
@@ -31,9 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **oraenv startup performance for non-database homes**
   - Skip `show_database_status` rendering for non-database product types (e.g., Instant Client)
   - Avoid duplicate `oradba_registry_sync_oratab` runs in the same shell session during alias generation
-  - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true` (opt-in), preventing unexpected writes when discovery is disabled
-  - Gate `oraenv.sh` fallback `oradba_registry_sync_oratab` path behind `ORADBA_AUTO_DISCOVER_ORATAB=true` to avoid writes when requested target is not found and discovery is disabled
-  - Defer Oracle Home path-helper work in `set_oracle_home_environment()` and apply it once after config load (reduces redundant path processing)
+  - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true`
+    (opt-in), preventing unexpected writes when discovery is disabled
+  - Gate `oraenv.sh` fallback `oradba_registry_sync_oratab` path behind
+    `ORADBA_AUTO_DISCOVER_ORATAB=true` to avoid writes when requested target is not
+    found and discovery is disabled
+  - Defer Oracle Home path-helper work in `set_oracle_home_environment()` and
+    apply it once after config load (reduces redundant path processing)
   - Added silent-mode tuning flags for faster login via `source oraenv.sh --silent`:
     - `ORADBA_LOAD_ALIASES_IN_SILENT=false`
     - `ORADBA_CONFIGURE_SQLPATH_IN_SILENT=false`
@@ -45,7 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- _None_
+- **Documentation: Startup Troubleshooting and Fast Silent Mode**
+  - Updated troubleshooting guidance with profile-based startup diagnosis and tuning
+  - Updated user docs (`usage.md`, `environment.md`) with `--fast-silent` usage
+  - Added explicit downsides when aliases and SQLPATH are not loaded during fast startup
 
 ## [0.22.1] - 2026-02-17
 
