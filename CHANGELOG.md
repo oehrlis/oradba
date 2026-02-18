@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Skip `show_database_status` rendering for non-database product types (e.g., Instant Client)
   - Avoid duplicate `oradba_registry_sync_oratab` runs in the same shell session during alias generation
   - Run `oratab` → `oradba_homes.conf` sync only when `ORADBA_AUTO_DISCOVER_ORATAB=true` (opt-in), preventing unexpected writes when discovery is disabled
+  - Gate `oraenv.sh` fallback `oradba_registry_sync_oratab` path behind `ORADBA_AUTO_DISCOVER_ORATAB=true` to avoid writes when requested target is not found and discovery is disabled
   - Reduces login overhead when sourcing `oraenv.sh` for Oracle Home targets
 
 ### Changed

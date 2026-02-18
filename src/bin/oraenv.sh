@@ -1096,16 +1096,18 @@ _oraenv_set_environment() {
         
         # Still no entry found after discovery attempt - try syncing database homes
         if [[ -z "$oratab_entry" ]]; then
-            # Auto-sync database homes from oratab and retry lookup
-            if type -t oradba_registry_sync_oratab &>/dev/null; then
-                oradba_log DEBUG "Home not found, syncing database homes from oratab"
+            # Auto-sync database homes from oratab and retry lookup only when opt-in discovery is enabled
+            if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && type -t oradba_registry_sync_oratab &>/dev/null; then
+                oradba_log DEBUG "Home not found, syncing database homes from oratab (ORADBA_AUTO_DISCOVER_ORATAB=true)"
                 oradba_registry_sync_oratab >/dev/null 2>&1
-                
+
                 # Retry Oracle Home lookup after sync
                 if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then
                     _oraenv_handle_oracle_home "$requested_sid"
                     return $?
                 fi
+            else
+                oradba_log DEBUG "Home not found; skipping oratab sync (ORADBA_AUTO_DISCOVER_ORATAB=${ORADBA_AUTO_DISCOVER_ORATAB:-false})"
             fi
             
             # Still not found - report error
