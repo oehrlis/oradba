@@ -19,6 +19,7 @@ setup() {
     # Load the common library first
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     ORADBA_SRC_BASE="${PROJECT_ROOT}/src"
+    export ORADBA_BASE="${ORADBA_SRC_BASE}"
     source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     source "${ORADBA_SRC_BASE}/lib/oradba_db_functions.sh"
 }

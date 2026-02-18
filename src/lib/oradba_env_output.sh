@@ -125,7 +125,7 @@ show_oracle_home_status() {
     local meta_cman_uptime=""
     local meta_cman_gateways=""
     local meta_cman_version=""
-    local metadata=""
+    local plugin_metadata=""
     local product_type_lower
     product_type_lower=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
     local tns_admin="${TNS_ADMIN:-}"
@@ -154,10 +154,13 @@ show_oracle_home_status() {
         if [[ -n "${datasafe_home}" ]]; then
             metadata_home="${datasafe_home}"
         fi
-        execute_plugin_function_v2 "${product_type_lower}" "get_metadata" "${metadata_home}" "metadata" "${instance_name}" 2>/dev/null || true
+        ORADBA_PLUGIN_METADATA_TMP=""
+        execute_plugin_function_v2 "${product_type_lower}" "get_metadata" "${metadata_home}" "ORADBA_PLUGIN_METADATA_TMP" "${instance_name}" 2>/dev/null || true
+        plugin_metadata="${ORADBA_PLUGIN_METADATA_TMP:-}"
+        unset ORADBA_PLUGIN_METADATA_TMP
     fi
 
-    if [[ -n "${metadata}" ]]; then
+    if [[ -n "${plugin_metadata}" ]]; then
         while IFS='=' read -r key value; do
             case "${key}" in
                 version)
@@ -191,7 +194,7 @@ show_oracle_home_status() {
                     meta_cman_gateways="${value}"
                     ;;
             esac
-        done <<< "${metadata}"
+        done <<< "${plugin_metadata}"
     fi
 
     if [[ -n "${meta_version}" ]]; then

@@ -188,7 +188,6 @@ oradba_log() {
     # Default log level is INFO if not set
     local min_level="${ORADBA_LOG_LEVEL:-INFO}"
     level_upper=$(echo "${level}" | tr '[:lower:]' '[:upper:]')
-    min_level_upper=$(echo "${min_level}" | tr '[:lower:]' '[:upper:]')
 
     # Legacy DEBUG=1 support - if DEBUG is set, enable DEBUG level
     if [[ "${DEBUG:-0}" == "1" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
@@ -199,6 +198,9 @@ oradba_log() {
     if [[ "${ORADBA_PLUGIN_DEBUG:-false}" == "true" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
         min_level="DEBUG"
     fi
+
+    # Recompute normalized minimum level after compatibility overrides
+    min_level_upper=$(echo "${min_level}" | tr '[:lower:]' '[:upper:]')
 
     # Convert levels to numeric values for comparison
     local level_value=0
