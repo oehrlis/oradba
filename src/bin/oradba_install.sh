@@ -318,6 +318,8 @@ backup_modified_files() {
 # Output..: Logs preserved files
 # Notes...: Protects runtime-managed files from payload overwrite:
 #           etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
+#           and sensitive runtime files in etc/ and extensions/*/etc/
+#           (*.b64, *.pem, *.key, *.crt)
 # ------------------------------------------------------------------------------
 preserve_runtime_files() {
     local install_dir="$1"
@@ -341,6 +343,33 @@ preserve_runtime_files() {
             log_info "Preserved runtime file: ${file}"
         fi
     done
+
+    # Preserve sensitive runtime files from core etc/
+    if [[ -d "${install_dir}/etc" ]]; then
+        while IFS= read -r src; do
+            [[ -z "${src}" ]] && continue
+            local rel_path="${src#"${install_dir}"/}"
+            local dest="${temp_preserve_dir}/${rel_path}"
+            mkdir -p "$(dirname "$dest")"
+            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            log_info "Preserved sensitive runtime file: ${rel_path}"
+        done < <(find "${install_dir}/etc" -maxdepth 1 -type f \
+            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) 2>/dev/null)
+    fi
+
+    # Preserve sensitive runtime files from bundled extensions (extensions/*/etc/)
+    if [[ -d "${install_dir}/extensions" ]]; then
+        while IFS= read -r src; do
+            [[ -z "${src}" ]] && continue
+            local rel_path="${src#"${install_dir}"/}"
+            local dest="${temp_preserve_dir}/${rel_path}"
+            mkdir -p "$(dirname "$dest")"
+            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            log_info "Preserved extension sensitive file: ${rel_path}"
+        done < <(find "${install_dir}/extensions" -type f \
+            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) \
+            -path "*/etc/*" 2>/dev/null)
+    fi
 
     return 0
 }

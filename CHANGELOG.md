@@ -13,16 +13,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- _None_
+
+### Changed
+
+- _None_
+
+## [0.23.1] - 2026-02-19
+
+### Fixed
+
 - **Version Verify Runtime Template Cache Noise**
   - Exclude runtime-managed extension template cache files from additional-file
     reporting in `oradba_version.sh --verify`
   - Prevents fresh installations from showing
     `templates/oradba_extension/.version` and
     `templates/oradba_extension/extension-template.tar.gz` as changed/additional
-
-### Changed
-
-- _None_
+- **Update Preservation for Secret/Certificate Files**
+  - Preserve user-managed sensitive files during core installer updates
+    (`oradba_install.sh --update` / `--force`) for:
+    - `etc/*.b64`, `etc/*.pem`, `etc/*.key`, `etc/*.crt`
+    - `extensions/*/etc/*.b64|*.pem|*.key|*.crt` (for bundled extensions)
+  - Preserve user-added sensitive files during extension updates
+    (`oradba_extension.sh add ... --update`) for:
+    - `*.b64`, `*.pem`, `*.key`, `*.crt`
 
 ## [0.23.0] - 2026-02-18
 

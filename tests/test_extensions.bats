@@ -1892,6 +1892,42 @@ EOF
     grep -q "new_config=true" "${ext_path}/etc/config.conf"
 }
 
+@test "update_extension preserves user-added sensitive files" {
+    # Source the update_extension function
+    # shellcheck disable=SC1090
+    source <(sed -n '/^update_extension()/,/^}/p' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+
+    # Create initial extension with user-added sensitive files
+    local ext_path="${TEST_TEMP_DIR}/test_ext"
+    mkdir -p "${ext_path}/bin" "${ext_path}/etc"
+    echo "name: test_ext" > "${ext_path}/.extension"
+    echo "version: 1.0.0" >> "${ext_path}/.extension"
+    echo "abc123 bin/test.sh" > "${ext_path}/.extension.checksum"
+    echo "ENCODED_SECRET" > "${ext_path}/etc/DS_ADMIN_pwd.b64"
+    echo "CERT_DATA" > "${ext_path}/etc/client.pem"
+
+    # Create new version without those user-added files
+    local new_content="${TEST_TEMP_DIR}/new_version"
+    mkdir -p "${new_content}/bin" "${new_content}/etc"
+    echo "name: test_ext" > "${new_content}/.extension"
+    echo "version: 2.0.0" >> "${new_content}/.extension"
+    echo "abc123 bin/test.sh" > "${new_content}/.extension.checksum"
+    echo "new_config=true" > "${new_content}/etc/config.conf"
+
+    # Perform update
+    update_extension "${ext_path}" "${new_content}"
+
+    # Verify .save backup files and restored originals exist
+    [[ -f "${ext_path}/etc/DS_ADMIN_pwd.b64.save" ]]
+    [[ -f "${ext_path}/etc/client.pem.save" ]]
+    [[ -f "${ext_path}/etc/DS_ADMIN_pwd.b64" ]]
+    [[ -f "${ext_path}/etc/client.pem" ]]
+
+    # Verify content preserved
+    grep -q "ENCODED_SECRET" "${ext_path}/etc/DS_ADMIN_pwd.b64"
+    grep -q "CERT_DATA" "${ext_path}/etc/client.pem"
+}
+
 @test "discover_extensions skips backup directories" {
     # Create normal extension
     mkdir -p "${TEST_TEMP_DIR}/test_ext/bin"

@@ -298,6 +298,27 @@ teardown() {
     fi
 }
 
+@test "installation preserves user-added sensitive files during update" {
+    cd "$PROJECT_ROOT"
+    if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
+        # First installation
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+
+        # Add sensitive user-managed file
+        mkdir -p "$TEST_INSTALL_DIR/etc"
+        echo "ENCODED_SECRET" > "$TEST_INSTALL_DIR/etc/DS_ADMIN_pwd.b64"
+
+        # Update installation (force reinstall)
+        "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" --force >/dev/null 2>&1
+
+        # Verify sensitive file is preserved
+        [ -f "$TEST_INSTALL_DIR/etc/DS_ADMIN_pwd.b64" ]
+        grep -q "ENCODED_SECRET" "$TEST_INSTALL_DIR/etc/DS_ADMIN_pwd.b64"
+    else
+        skip "Built installer not found"
+    fi
+}
+
 @test "installation creates checksum file" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then

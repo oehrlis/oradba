@@ -627,7 +627,7 @@ update_extension() {
         done < ".extension.checksum"
 
         # Find user-added files (exist but not in checksum or new content)
-        find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" \) | while read -r user_file; do
+        find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" -o -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) | while read -r user_file; do
             # Remove leading ./
             user_file="${user_file#./}"
             

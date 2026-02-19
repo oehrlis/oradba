@@ -625,6 +625,9 @@ chmod +x oradba_install.sh
 
 - **Automatic backup** - Creates `${PREFIX}.backup.TIMESTAMP`
 - **Config preservation** - Detects modified files, saves as `.save` extension
+- **Sensitive file preservation** - Keeps user-managed secrets/certs in update flows:
+  - Core etc files: `etc/*.b64`, `etc/*.pem`, `etc/*.key`, `etc/*.crt`
+  - Bundled extension files: `extensions/*/etc/*.b64|*.pem|*.key|*.crt`
 - **Rollback support** - Previous version available if issues occur
 - **Selective replacement** - Only updates core files, keeps customizations
 
@@ -756,9 +759,11 @@ The installer performs these steps:
    - Detects modified configuration files using checksums
    - Automatically backs up modified files with `.save` extension
    - Only backs up files in `etc/` and `.conf`/`.example` files
-   - Preserves file permissions in backup copies
-   - Similar to RPM package management behavior
-   - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
+     - Preserves user-managed secret/certificate files (`*.b64`, `*.pem`, `*.
+       key`, `*.crt`) in `etc/` and bundled extension `etc/` directories
+     - Preserves file permissions in backup copies
+     - Similar to RPM package management behavior
+     - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
 
 4. **Extraction**
    - Creates directory structure

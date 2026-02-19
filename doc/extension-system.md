@@ -391,7 +391,8 @@ archive is available. This ensures extension package files such as
 - Creates timestamped backup: `<extension>_backup_YYYYMMDD_HHMMSS`
 - Compares files against `.extension.checksum`
 - Creates `.save` files for modified managed files (RPM-style)
-- Preserves user-added files (for common extension file types)
+- Preserves user-added files (for common extension file types), including
+  `*.b64`, `*.pem`, `*.key`, and `*.crt`
 - Preserves `log/` directory
 - Installs new version
 - Restores `.save` files alongside new configs
