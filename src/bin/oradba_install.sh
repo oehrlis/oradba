@@ -1649,8 +1649,27 @@ prompt_oracle_base() {
     # Check if parent directory exists and is writable
     local parent_dir="${input_base%/*}"
     if [[ ! -d "$parent_dir" ]]; then
-        log_error "Parent directory does not exist: ${parent_dir}"
-        return 1
+        # Find first existing parent directory in the path
+        local base_dir="$parent_dir"
+        while [[ ! -d "$base_dir" ]] && [[ "$base_dir" != "/" ]]; do
+            base_dir="$(dirname "$base_dir")"
+        done
+
+        # Check if we can create missing parent directories
+        if [[ ! -w "$base_dir" ]]; then
+            log_error "Parent directory does not exist: ${parent_dir}"
+            log_error "Cannot create parent directory tree (base not writable): ${base_dir}"
+            log_info "You may need to run with sudo or choose a different location"
+            return 1
+        fi
+
+        log_warn "Parent directory does not exist: ${parent_dir}"
+        log_warn "Creating parent directory tree: ${parent_dir}"
+        if ! mkdir -p "$parent_dir"; then
+            log_error "Failed to create parent directory tree: ${parent_dir}"
+            return 1
+        fi
+        log_info "Created parent directory tree: ${parent_dir}"
     fi
 
     if [[ ! -w "$parent_dir" ]]; then
@@ -1672,7 +1691,7 @@ prompt_oracle_base() {
 # Args....: $1 - Target installation path
 # Returns.: 0 if writable, 1 otherwise
 # Output..: Permission errors and suggestions to stderr
-# Notes...: Checks target if exists, otherwise checks parent directory
+# Notes...: Checks target if exists, otherwise checks/creates parent directory
 #           Suggests sudo or alternative location if no permissions
 #           Handles root directory edge case
 # ------------------------------------------------------------------------------
@@ -1699,9 +1718,29 @@ validate_write_permissions() {
 
     # Check if parent exists
     if [[ ! -d "$parent_dir" ]]; then
-        log_error "Parent directory does not exist: ${parent_dir}"
-        log_info "Please create the parent directory first or choose a different location"
-        return 1
+        # Find first existing parent directory in the path
+        local base_dir="$parent_dir"
+        while [[ ! -d "$base_dir" ]] && [[ "$base_dir" != "/" ]]; do
+            base_dir="$(dirname "$base_dir")"
+        done
+
+        # Check if we can create missing parent directories
+        if [[ ! -w "$base_dir" ]]; then
+            log_error "Parent directory does not exist: ${parent_dir}"
+            log_error "Cannot create parent directory tree (base not writable): ${base_dir}"
+            log_info "You may need to run with sudo or choose a different location using --prefix"
+            return 1
+        fi
+
+        log_warn "Parent directory does not exist: ${parent_dir}"
+        log_warn "Creating parent directory tree: ${parent_dir}"
+        if ! mkdir -p "$parent_dir"; then
+            log_error "Failed to create parent directory tree: ${parent_dir}"
+            log_info "You may need to run with sudo or choose a different location using --prefix"
+            return 1
+        fi
+        log_info "Created parent directory tree: ${parent_dir}"
+        return 0
     fi
 
     # Check if parent is writable

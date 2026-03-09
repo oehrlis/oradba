@@ -13,7 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- _None_
+- **Installer Parent Directory Auto-Creation**
+  - `oradba_install.sh` no longer fails when the immediate parent directory of the target prefix is missing
+  - Installer now finds the nearest existing writable ancestor and creates the
+    missing parent directory tree (for example `/opt/oracle/local`) with
+    warning messages
+  - Applied consistently to both installation prefix validation and interactive Oracle Base prompt validation
 
 ### Changed
 

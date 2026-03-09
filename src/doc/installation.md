@@ -679,6 +679,9 @@ sudo ./oradba_install.sh --prefix /opt/oradba --user oracle --group dba
 **The installer will:**
 
 - Create directories with specified ownership
+- Automatically create missing parent directories for `--prefix` / default
+  install paths (for example, `/opt/oracle/local`) when the nearest existing
+  base directory is writable
 - Set appropriate permissions (755 for directories, 644/755 for files)
 - Preserve execute permissions for scripts
 - Create installation metadata
@@ -748,39 +751,40 @@ The installer performs these steps:
    - Checks required tools
    - Validates options and arguments
    - Checks disk space
-   - Verifies permissions
+   - Verifies permissions and prepares missing parent directory trees when
+     allowed
 
-2. **Backup** (for updates)
+1. **Backup** (for updates)
    - Creates backup of existing installation
    - Preserves custom configurations
    - Stores in `${PREFIX}.backup.TIMESTAMP`
 
-3. **Configuration Protection** (for updates)
+1. **Configuration Protection** (for updates)
    - Detects modified configuration files using checksums
    - Automatically backs up modified files with `.save` extension
    - Only backs up files in `etc/` and `.conf`/`.example` files
-     - Preserves user-managed secret/certificate files (`*.b64`, `*.pem`, `*.
-       key`, `*.crt`) in `etc/` and bundled extension `etc/` directories
-     - Preserves file permissions in backup copies
-     - Similar to RPM package management behavior
-     - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
+   - Preserves user-managed secret/certificate files (`*.b64`, `*.pem`,
+     `*.key`, `*.crt`) in `etc/` and bundled extension `etc/` directories
+   - Preserves file permissions in backup copies
+   - Similar to RPM package management behavior
+   - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
 
-4. **Extraction**
+1. **Extraction**
    - Creates directory structure
    - Extracts files from embedded payload or tarball
    - Sets ownership and permissions
 
-5. **Verification**
+1. **Verification**
    - Validates SHA256 checksums
    - Confirms all files present
    - Reports any discrepancies
 
-6. **Metadata**
+1. **Metadata**
    - Records installation date, version, method
    - Stores in `${PREFIX}/.install_info`
    - Used for update detection and verification
 
-7. **Profile Integration** (if enabled)
+1. **Profile Integration** (if enabled)
    - Detects shell profile file
    - Creates backup
    - Adds OraDBA sourcing
