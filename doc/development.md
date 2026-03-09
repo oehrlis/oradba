@@ -1806,6 +1806,9 @@ make docs
 
 # Or build PDF directly
 make docs-pdf        # Creates dist/oradba-user-guide.pdf
+
+# Override Docker image used for pandoc
+PANDOC_IMAGE=custom/pandoc:latest make docs-pdf
 ```
 
 ### Complete CI Pipeline Locally

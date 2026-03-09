@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     missing parent directory tree (for example `/opt/oracle/local`) with
     warning messages
   - Applied consistently to both installation prefix validation and interactive Oracle Base prompt validation
+- **docs-pdf Honors `PANDOC_IMAGE` Environment Override**
+  - Updated Makefile `PANDOC_IMAGE` assignment to conditional (`?=`) so
+    environment values are respected by `make docs-pdf`
+- Remove Deprecated: --listings. Use --syntax-highlighting=idiomatic instead.
+  Update metadata and doc build scripts to reflect deprecation and remove --listings references.
 
 ### Changed
 

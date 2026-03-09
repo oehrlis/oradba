@@ -353,7 +353,7 @@ uninstall: ## Uninstall OraDBA
 USER_DOC_DIR := $(SRC_DIR)/doc
 USER_DOC_CHAPTERS := $(USER_DOC_DIR)/??-*.md
 USER_DOC_METADATA := $(DOC_DIR)/metadata.yml
-PANDOC_IMAGE := oehrlis/pandoc:latest
+PANDOC_IMAGE ?= oehrlis/pandoc:latest
 
 .PHONY: docs
 docs: ## Generate all documentation (PDF only)
