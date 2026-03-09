@@ -63,11 +63,8 @@ urlcolor:       blue
 filecolor:      blue
 bulletcolor:    black
 
-# - Listings -------------------------------------------------------------------
-listings: true
-listings-disable-line-numbers: true
-listings-no-page-break: true
-code-block-font-size: \scriptsize
+# - Syntax highlighting --------------------------------------------------------
+syntax-highlighting: idiomatic
 
 # - LaTeX config ---------------------------------------------------------------
 header-includes: |

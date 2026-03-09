@@ -191,7 +191,7 @@ build_pdf() {
                 --metadata-file=/doc/metadata.yml \
                 --toc --toc-depth=2 \
                 --pdf-engine=xelatex \
-                -N --listings 2>&1 | grep -v "Missing character" || true
+                -N 2>&1 | grep -v "Missing character" || true
         )
     else
         log_error "No markdown files found in ${TMP_DOCS_DIR}"
