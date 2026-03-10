@@ -9,7 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- _None_
+- **API Documentation: `make docs-api` Target**
+  - `scripts/generate_api_docs.py` wired into the build system; parses all
+    function headers in `src/lib/` and `src/bin/` and generates categorised
+    markdown pages under `src/doc/api/`
+  - `make docs` now also calls `make docs-api` (skips gracefully if python3
+    is absent); `make docs-clean` removes generated `src/doc/api/` output
+
+- **`archive_github_releases.sh`: Dynamic Release Discovery**
+  - Replaced hardcoded 34-entry version list with live `gh release list`
+  - `--keep N` (default: 3) — archives all but the N most recent releases
+  - `--before VERSION` — archives everything older than a given tag
+  - `--repo REPO` override for forks; `--dry-run` retained
+
+### Removed
+
+- **`scripts/fix_doc_links.py`** — one-shot post-migration helper, no longer
+  needed after filename prefix removal was completed
+- **`scripts/generate_api_docs.sh`** — superseded by the Python
+  implementation (`scripts/generate_api_docs.py`)
 
 ### Fixed
 

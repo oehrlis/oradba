@@ -5,187 +5,255 @@
 # Name.......: archive_github_releases.sh
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
-# Date.......: 2026.02.11
-# Revision...: 1.0.0
+# Date.......: 2026.03.10
+# Revision...: 1.1.0
 # Purpose....: Add archive notices to old GitHub releases
-# Notes......: Updates release descriptions with archive notices for outdated versions
+# Notes......: Dynamically fetches all releases and archives everything except
+#              the N most recent ones (configurable via --keep).
+#              Requires GitHub CLI (gh) and an authenticated session.
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
+# Modified...:
+# 2026.03.10 oehrli - rewrite: replace hardcoded list with dynamic discovery
+# 2026.02.11 oehrli - initial version
+# ------------------------------------------------------------------------------
 
 set -euo pipefail
 
+# ------------------------------------------------------------------------------
 # Configuration
+# ------------------------------------------------------------------------------
 REPO="oehrlis/oradba"
 DRY_RUN=false
-CURRENT_VERSION=""  # Will be fetched from GitHub
-
-# Archived releases (v0.9.4 through v0.18.5 - pre-1.0 releases)
-ARCHIVED_RELEASES=(
-    v0.9.4 v0.9.5
-    v0.10.0 v0.10.1 v0.10.2 v0.10.3 v0.10.4 v0.10.5
-    v0.11.0 v0.11.1
-    v0.12.0 v0.12.1
-    v0.13.0 v0.13.1 v0.13.2 v0.13.3 v0.13.4 v0.13.5
-    v0.14.0 v0.14.1 v0.14.2
-    v0.15.0
-    v0.16.0
-    v0.17.0
-    v0.18.0 v0.18.1 v0.18.2 v0.18.3 v0.18.4 v0.18.5
-)
+KEEP=3          # Keep this many most-recent releases un-archived
+BEFORE_VERSION="" # Archive everything before this explicit version tag
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
+# ------------------------------------------------------------------------------
 # Usage
+# ------------------------------------------------------------------------------
 usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Add archive notices to old GitHub releases.
+Dynamically add archive notices to old GitHub releases.
+
+All releases except the most recent --keep releases are marked with an archive
+notice. Alternatively, use --before to archive everything prior to a specific
+version tag.
 
 OPTIONS:
-    -d, --dry-run       Show what would be done without making changes
-    -h, --help          Show this help message
+    -d, --dry-run           Show what would be done without making changes
+    -k, --keep N            Keep N most recent releases un-archived (default: ${KEEP})
+    -b, --before VERSION    Archive all releases older than VERSION (e.g. v0.22.0)
+    -r, --repo REPO         GitHub repository (default: ${REPO})
+    -h, --help              Show this help message
 
 EXAMPLES:
-    # Preview changes
+    # Preview: archive all but the 3 latest releases
     $(basename "$0") --dry-run
 
-    # Apply changes
-    $(basename "$0")
+    # Archive all but the 5 latest releases
+    $(basename "$0") --keep 5
+
+    # Archive everything before v0.22.0
+    $(basename "$0") --before v0.22.0
+
+    # Apply to a different fork
+    $(basename "$0") --repo myorg/oradba
 
 EOF
     exit 0
 }
 
-# Parse arguments
+# ------------------------------------------------------------------------------
+# Argument parsing
+# ------------------------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
     case $1 in
         -d|--dry-run)
             DRY_RUN=true
             shift
             ;;
+        -k|--keep)
+            KEEP="$2"
+            shift 2
+            ;;
+        -b|--before)
+            BEFORE_VERSION="$2"
+            shift 2
+            ;;
+        -r|--repo)
+            REPO="$2"
+            shift 2
+            ;;
         -h|--help)
             usage
             ;;
         *)
-            echo -e "${RED}Error: Unknown option: $1${NC}"
+            echo -e "${RED}Error: Unknown option: $1${NC}" >&2
             usage
             ;;
     esac
 done
 
-# Check if gh is installed
-if ! command -v gh &> /dev/null; then
-    echo -e "${RED}Error: GitHub CLI (gh) is not installed${NC}"
+# ------------------------------------------------------------------------------
+# Dependency checks
+# ------------------------------------------------------------------------------
+if ! command -v gh > /dev/null 2>&1; then
+    echo -e "${RED}Error: GitHub CLI (gh) is not installed${NC}" >&2
     echo "Install with: brew install gh"
     exit 1
 fi
 
-# Check if authenticated
-if ! gh auth status &> /dev/null; then
-    echo -e "${RED}Error: Not authenticated with GitHub${NC}"
+if ! gh auth status > /dev/null 2>&1; then
+    echo -e "${RED}Error: Not authenticated with GitHub${NC}" >&2
     echo "Run: gh auth login"
     exit 1
 fi
 
-# Get the latest release version
-echo -e "${BLUE}Fetching latest release...${NC}"
-CURRENT_VERSION=$(gh release list --repo "$REPO" --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null)
-if [ -z "$CURRENT_VERSION" ]; then
-    echo -e "${RED}Error: Could not fetch latest release${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ Latest release: $CURRENT_VERSION${NC}"
-echo
-
-# Function to archive a release
+# ------------------------------------------------------------------------------
+# Function: archive_release
+# Purpose.: Add archive notice to a single release if not already present
+# Args....: $1 - Version tag (e.g. v0.18.5)
+# Returns.: 0 on success
+# Output..: Status messages
+# ------------------------------------------------------------------------------
 archive_release() {
-    local version=$1
-    
-    echo -e "${BLUE}Processing $version...${NC}"
-    
-    # Check if release exists
-    if ! gh release view "$version" --repo "$REPO" &> /dev/null; then
-        echo -e "  ${YELLOW}⚠️  Release $version not found, skipping${NC}"
-        return 0
-    fi
-    
-    # Get current release notes
-    local current_body
-    current_body=$(gh release view "$version" --repo "$REPO" --json body -q .body)
-    
-    # Check if already archived
-    if echo "$current_body" | grep -q "Archived Release" 2>/dev/null || false; then
-        echo -e "  ${YELLOW}⏭️  Already archived, skipping${NC}"
-        return 0
-    fi
-    
-    # Create new body with archive notice
-    local temp_file="/tmp/release_${version}.md"
-    cat > "$temp_file" << EOF
-> [!NOTE]
-> **Archived Release** - This is an older version. See the [latest release](https://github.com/$REPO/releases/latest) for the current version.
+    local version="$1"
+    local temp_file="/tmp/oradba_release_${version}.md"
 
-$current_body
-EOF
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo -e "  ${YELLOW}[DRY RUN] Would update release $version${NC}"
-        echo -e "  ${YELLOW}Preview of new content:${NC}"
-        head -n 5 "$temp_file"
-        echo "  ..."
-    else
-        # Update the release
-        if gh release edit "$version" --repo "$REPO" --notes-file "$temp_file"; then
-            echo -e "  ${GREEN}✓ Updated $version${NC}"
-        else
-            echo -e "  ${RED}✗ Failed to update $version${NC}"
-        fi
+    echo -e "${BLUE}Processing ${version}...${NC}"
+
+    # Check if release exists
+    if ! gh release view "${version}" --repo "${REPO}" > /dev/null 2>&1; then
+        echo -e "  ${YELLOW}⚠  Release ${version} not found, skipping${NC}"
+        return 0
     fi
-    
-    rm -f "$temp_file"
+
+    # Get current release body
+    local current_body
+    current_body=$(gh release view "${version}" --repo "${REPO}" --json body -q .body)
+
+    # Skip if already archived
+    if echo "${current_body}" | grep -q "Archived Release" 2>/dev/null; then
+        echo -e "  ${YELLOW}⏭  Already archived, skipping${NC}"
+        return 0
+    fi
+
+    # Build new body with archive notice prepended
+    cat > "${temp_file}" << EOF
+> [!NOTE]
+> **Archived Release** - This is an older version. See the [latest release](https://github.com/${REPO}/releases/latest) for the current version.
+
+${current_body}
+EOF
+
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        echo -e "  ${YELLOW}[DRY RUN] Would prepend archive notice to ${version}${NC}"
+        echo -e "  ${YELLOW}Preview:${NC}"
+        head -n 4 "${temp_file}" | sed 's/^/    /'
+        echo "    ..."
+    else
+        if gh release edit "${version}" --repo "${REPO}" --notes-file "${temp_file}"; then
+            echo -e "  ${GREEN}✓ Updated ${version}${NC}"
+        else
+            echo -e "  ${RED}✗ Failed to update ${version}${NC}"
+        fi
+        # Brief pause to avoid GitHub API rate limiting
+        sleep 1
+    fi
+
+    rm -f "${temp_file}"
 }
 
-# Main execution
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
 echo "=========================================="
-echo "Archive GitHub Releases"
+echo "OraDBA Archive GitHub Releases"
 echo "=========================================="
-echo "Repository: $REPO"
-echo "Current Version: $CURRENT_VERSION"
-echo "Releases to archive: ${#ARCHIVED_RELEASES[@]}"
-echo "Dry Run: $DRY_RUN"
+echo "Repository : ${REPO}"
+if [[ -n "${BEFORE_VERSION}" ]]; then
+    echo "Mode       : archive before ${BEFORE_VERSION}"
+else
+    echo "Mode       : keep ${KEEP} most recent, archive the rest"
+fi
+echo "Dry Run    : ${DRY_RUN}"
 echo "=========================================="
 echo
 
-if [ "$DRY_RUN" = true ]; then
-    echo -e "${YELLOW}DRY RUN MODE - No changes will be made${NC}"
+if [[ "${DRY_RUN}" == "true" ]]; then
+    echo -e "${YELLOW}DRY RUN MODE — no changes will be made${NC}"
     echo
 fi
 
-# Process each release
-count=0
-for version in "${ARCHIVED_RELEASES[@]}"; do
-    archive_release "$version" || true
-    count=$((count + 1))
-    
-    # Add delay to avoid rate limiting
-    if [ "$DRY_RUN" = false ]; then
-        sleep 1
+# Fetch all release tags ordered newest-first (GitHub returns them that way)
+echo -e "${BLUE}Fetching release list from ${REPO}...${NC}"
+mapfile -t ALL_TAGS < <(
+    gh release list --repo "${REPO}" --limit 200 --json tagName -q '.[].tagName'
+)
+
+total="${#ALL_TAGS[@]}"
+echo -e "${GREEN}✓ Found ${total} releases${NC}"
+echo
+
+# Determine which tags to archive
+declare -a TO_ARCHIVE=()
+
+if [[ -n "${BEFORE_VERSION}" ]]; then
+    # --before mode: archive everything strictly older than the named version
+    found_boundary=false
+    for tag in "${ALL_TAGS[@]}"; do
+        if [[ "${tag}" == "${BEFORE_VERSION}" ]]; then
+            found_boundary=true
+            continue
+        fi
+        if [[ "${found_boundary}" == "true" ]]; then
+            TO_ARCHIVE+=("${tag}")
+        fi
+    done
+    if [[ "${found_boundary}" == "false" ]]; then
+        echo -e "${RED}Error: --before version '${BEFORE_VERSION}' not found in release list${NC}" >&2
+        exit 1
     fi
+else
+    # --keep mode: archive everything after the first KEEP releases
+    if [[ "${KEEP}" -ge "${total}" ]]; then
+        echo -e "${YELLOW}Nothing to archive — fewer releases than --keep ${KEEP}${NC}"
+        exit 0
+    fi
+    TO_ARCHIVE=("${ALL_TAGS[@]:${KEEP}}")
+fi
+
+if [[ "${#TO_ARCHIVE[@]}" -eq 0 ]]; then
+    echo -e "${YELLOW}Nothing to archive.${NC}"
+    exit 0
+fi
+
+echo "Releases to archive: ${#TO_ARCHIVE[@]}"
+echo
+
+count=0
+for version in "${TO_ARCHIVE[@]}"; do
+    archive_release "${version}" || true
+    ((count++)) || true
 done
 
 echo
 echo "=========================================="
-echo -e "${GREEN}Completed: Processed $count releases${NC}"
+echo -e "${GREEN}Completed: processed ${count} release(s)${NC}"
 echo "=========================================="
 
-if [ "$DRY_RUN" = true ]; then
+if [[ "${DRY_RUN}" == "true" ]]; then
     echo -e "${YELLOW}Run without --dry-run to apply changes${NC}"
 fi
+# - End of script --------------------------------------------------------------

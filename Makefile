@@ -356,13 +356,14 @@ USER_DOC_METADATA := $(DOC_DIR)/metadata.yml
 PANDOC_IMAGE ?= oehrlis/pandoc:latest
 
 .PHONY: docs
-docs: ## Generate all documentation (PDF only)
+docs: ## Generate all documentation (PDF + API reference)
 	@if [ -n "$(DOCKER)" ]; then \
 		$(MAKE) docs-pdf; \
 	else \
-		echo -e "$(COLOR_YELLOW)⚠ Docker not available - skipping documentation generation$(COLOR_RESET)"; \
-		echo -e "$(COLOR_YELLOW)  Install Docker to generate documentation: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)⚠ Docker not available - skipping PDF generation$(COLOR_RESET)"; \
+		echo -e "$(COLOR_YELLOW)  Install Docker to generate PDF: https://docs.docker.com/get-docker/$(COLOR_RESET)"; \
 	fi
+	@$(MAKE) docs-api
 
 .PHONY: docs-prepare
 docs-prepare: ## Prepare documentation images for distribution
@@ -382,6 +383,16 @@ docs-prepare: ## Prepare documentation images for distribution
 docs-pdf: docs-prepare ## Generate PDF user guide from markdown (requires Docker)
 	@echo -e "$(COLOR_BLUE)Generating PDF documentation...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/build_pdf.sh
+
+.PHONY: docs-api
+docs-api: ## Generate API reference from function headers (requires python3)
+	@if command -v python3 > /dev/null 2>&1; then \
+		echo -e "$(COLOR_BLUE)Generating API reference documentation...$(COLOR_RESET)"; \
+		python3 $(SCRIPTS_DIR)/generate_api_docs.py; \
+		echo -e "$(COLOR_GREEN)✓ API reference generated in src/doc/api/$(COLOR_RESET)"; \
+	else \
+		echo -e "$(COLOR_YELLOW)⚠ python3 not available - skipping API documentation generation$(COLOR_RESET)"; \
+	fi
 
 .PHONY: docs-check
 docs-check: ## Check if documentation source files exist
@@ -405,6 +416,7 @@ docs-clean: ## Remove generated documentation
 	@rm -f $(DIST_DIR)/oradba-user-guide.pdf 2>/dev/null || true
 	@rm -f $(USER_DOC_DIR)/oradba-user-guide.pdf 2>/dev/null || true
 	@rm -rf $(DIST_DIR)/.tmp_docs 2>/dev/null || true
+	@rm -rf $(USER_DOC_DIR)/api 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Documentation cleaned$(COLOR_RESET)"
 
 .PHONY: docs-clean-images
