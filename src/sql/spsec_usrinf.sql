@@ -41,6 +41,8 @@ BEGIN
   dbms_output.put_line('- OS_USER               : '||sys_context('userenv','OS_USER'));
   dbms_output.put_line('- AUTHENTICATED_IDENTITY: '||sys_context('userenv','AUTHENTICATED_IDENTITY'));
   dbms_output.put_line('- ENTERPRISE_IDENTITY   : '||sys_context('userenv','ENTERPRISE_IDENTITY'));
+  dbms_output.put_line('- MFA_METHODS           : '||sys_context('userenv','MULTIFACTOR_AUTHENTICATION_METHODS'));
+
   dbms_output.put_line('-');
  
   dbms_output.put_line('Other Information');
