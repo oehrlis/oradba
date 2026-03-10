@@ -43,7 +43,7 @@ flowchart TD
     GetLists --> CheckInteractiveMode{ORAENV_<br>INTERACTIVE<br>== true?}
     
     CheckInteractiveMode -->|Yes| DisplayMenu[Display Numbered Menu:<br>Oracle Homes first<br>Database SIDs second]
-    DisplayMenu --> ReadInput[read -p "Enter name or number"]
+    DisplayMenu --> ReadInput["read -p 'Enter name or number'"]
     ReadInput --> ValidateInput{Input is<br>number?}
     ValidateInput -->|Yes| MapNumber[Map number to<br>HOME or SID]
     ValidateInput -->|No| UseDirectName[Use name directly]

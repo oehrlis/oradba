@@ -38,8 +38,8 @@ flowchart TD
     DefineFunc --> Func11[plugin_build_bin_path<br>PATH components]
     DefineFunc --> Func12[plugin_build_lib_path<br>LD_LIBRARY_PATH components]
     DefineFunc --> Func13[plugin_get_config_section<br>Config section name]
-    DefineFunc --> Func14[plugin_should_show_listener (category)<br>Listener visible?]
-    DefineFunc --> Func15[plugin_check_listener_status (category)<br>Listener status]
+    DefineFunc --> Func14["plugin_should_show_listener (category)<br>Listener visible?"]
+    DefineFunc --> Func15["plugin_check_listener_status (category)<br>Listener status"]
 
     Func1 --> NextPlugin
     Func2 --> NextPlugin
@@ -86,7 +86,7 @@ flowchart TD
     NextHome --> LoopHomes
     LoopHomes -->|No| EnvComplete
     
-    EnvComplete([Plugin system ready])
+    EnvComplete([Plugin system ready"])
     
     style Start fill:#e1f5ff,stroke:#01579b,stroke-width:3px
     style LoadInterface fill:#fff3e0,stroke:#f57c00,stroke-width:2px

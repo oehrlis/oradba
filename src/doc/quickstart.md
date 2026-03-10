@@ -38,7 +38,7 @@ OraDBA uses a **Registry API** that automatically manages all Oracle installatio
 
 ```mermaid
 graph LR
-    Oratab[/etc/oratab<br>Databases]
+    Oratab["/etc/oratab<br>Databases"]
     Homes[oradba_homes.conf<br>Other Products]
     Registry[Registry API]
     Plugins[Plugin System<br>8 Product Types]

@@ -30,7 +30,7 @@ graph TB
         PL4[iclient_plugin.sh]
         PL5[oud_plugin.sh]
         PL6[java_plugin.sh]
-        PL7[weblogic_plugin.sh (planned)]
+        PL7["weblogic_plugin.sh (planned)"]
     end
     
     subgraph EnvLibs["Environment Management Libraries"]

@@ -64,8 +64,8 @@ flowchart TD
     CallShowRegistry --> InitArrays[Initialize arrays:<br>databases array<br>other_homes array]
     
     InitArrays --> SeparateLoop[Loop: for install in installations]
-    SeparateLoop --> GetType[oradba_registry_get_field<br>install "type"]
-    GetType --> TypeCheck{ptype ==<br>"database"?}
+    SeparateLoop --> GetType[oradba_registry_get_field<br>install #quot;type#quot;]
+    GetType --> TypeCheck{ptype ==<br>#quot;database#quot;?}
     TypeCheck -->|Yes| AddDB[databases+= install]
     TypeCheck -->|No| AddHome[other_homes+= install]
     AddDB --> NextInstall
@@ -74,9 +74,9 @@ flowchart TD
     NextInstall -->|No| CheckHomes{other_homes<br>count > 0?}
     
     CheckHomes -->|Yes| HomeLoop[for home_obj in other_homes]
-    HomeLoop --> ExtractHomeFields[Extract fields:<br>name= get_field "name"<br>home= get_field "home"<br>ptype= get_field "type"]
+    HomeLoop --> ExtractHomeFields[Extract fields:<br>name= get_field #quot;name#quot;<br>home= get_field #quot;home#quot;<br>ptype= get_field #quot;type#quot;]
     
-    ExtractHomeFields --> InitStatus[status= "available"]
+    ExtractHomeFields --> InitStatus[status= #quot;available#quot;]
     InitStatus --> CheckPluginType{type -t<br>ptype_plugin.sh<br>exists?}
     
     CheckPluginType -->|Yes| LoadPluginFile[plugin_file= plugins/ptype_plugin.sh<br>source plugin_file if exists]
@@ -87,7 +87,7 @@ flowchart TD
     CheckStatusFunc -->|No| MapDisplay
     CallCheckStatus --> MapDisplay[Map ptype to display_type:<br>datasafe → DataSafe Conn<br>client|iclient → Client<br>oud → OUD<br>weblogic → WebLogic<br>grid → Grid Infra<br>oms → OMS<br>emagent → EM Agent<br>default → ORACLE_HOME]
     
-    MapDisplay --> PrintHomeStatus[printf "%-17s : %-12s %-11s %s"<br>display_type name status home]
+    MapDisplay --> PrintHomeStatus[printf #quot;%-17s : %-12s %-11s %s#quot;<br>display_type name status home]
     
     PrintHomeStatus --> NextHome{More<br>other_homes?}
     NextHome -->|Yes| HomeLoop
@@ -96,16 +96,16 @@ flowchart TD
     CheckHomes -->|No| CheckDBs{databases<br>count > 0?}
     
     CheckDBs -->|Yes| DBLoop[for db_obj in databases]
-    DBLoop --> ExtractDBFields[Extract fields:<br>sid= get_field "name"<br>home= get_field "home"<br>flags= get_field "flags"]
+    DBLoop --> ExtractDBFields[Extract fields:<br>sid= get_field #quot;name#quot;<br>home= get_field #quot;home#quot;<br>flags= get_field #quot;flags#quot;]
     
     ExtractDBFields --> CallGetDBStatus[get_db_status sid]
     
     CallGetDBStatus --> PSCheck[ps -ef grep -E<br>db_pmon_SID or ora_pmon_sid]
     PSCheck --> PmonFound{Pmon<br>found?}
-    PmonFound -->|Yes| SetUp[status= "up"]
-    PmonFound -->|No| SetDown[status= "down"]
+    PmonFound -->|Yes| SetUp[status= #quot;up#quot;]
+    PmonFound -->|No| SetDown[status= #quot;down#quot;]
     
-    SetUp --> CheckUpStatus{status ==<br>"up"?}
+    SetUp --> CheckUpStatus{status ==<br>#quot;up#quot;?}
     SetDown --> CheckUpStatus
     
     CheckUpStatus -->|Yes| CallGetMode[get_db_mode sid home]
@@ -118,7 +118,7 @@ flowchart TD
     FallbackQuery --> UpdateStatus
     UpdateStatus --> PrintDB
     
-    CheckUpStatus -->|No| PrintDB[printf "%-17s : %-12s %-11s %s"<br>"DB-instance flags" sid status home]
+    CheckUpStatus -->|No| PrintDB[printf #quot;%-17s : %-12s %-11s %s#quot;<br>#quot;DB-instance flags#quot; sid status home]
     
     PrintDB --> NextDB{More<br>databases?}
     NextDB -->|Yes| DBLoop
@@ -134,18 +134,18 @@ flowchart TD
     InitLsnrCount --> ListenerLoop{More<br>listener<br>processes?}
     
     ListenerLoop -->|Yes| ExtractLsnrName[Extract listener_name<br>awk print $NF]
-    ExtractLsnrName --> InitLsnrStatus[lsnr_status= "unknown"]
+    ExtractLsnrName --> InitLsnrStatus[lsnr_status= #quot;unknown#quot;]
     InitLsnrStatus --> CheckLsnrctl{command -v<br>lsnrctl<br>exists?}
     
     CheckLsnrctl -->|Yes| RunLsnrctl[lsnrctl status listener_name<br>2>/dev/null]
-    RunLsnrctl --> GrepReady[grep -q "ready"]
+    RunLsnrctl --> GrepReady[grep -q #quot;ready#quot;]
     GrepReady --> ReadyFound{Ready<br>found?}
-    ReadyFound -->|Yes| SetReady[lsnr_status= "READY"]
+    ReadyFound -->|Yes| SetReady[lsnr_status= #quot;READY#quot;]
     ReadyFound -->|No| KeepUnknown
-    CheckLsnrctl -->|No| KeepUnknown[Keep status= "unknown"]
+    CheckLsnrctl -->|No| KeepUnknown[Keep status= #quot;unknown#quot;]
     
     SetReady --> PrintListener
-    KeepUnknown --> PrintListener[printf "%-17s : %-12s %-11s"<br>"Listener" listener_name lsnr_status]
+    KeepUnknown --> PrintListener[printf #quot;%-17s : %-12s %-11s#quot;<br>#quot;Listener#quot; listener_name lsnr_status]
     
     PrintListener --> IncrementCount[listener_count++]
     IncrementCount --> ListenerLoop
@@ -156,18 +156,18 @@ flowchart TD
     ShowNoListeners --> CheckDataSafeOnly
     
     CheckDataSafeOnly --> InitDSArray[datasafe_homes=]
-    InitDSArray --> FilterDS[Loop other_homes<br>Filter ptype=="datasafe"]
+    InitDSArray --> FilterDS[Loop other_homes<br>Filter ptype==#quot;datasafe#quot;]
     FilterDS --> CheckDSCount{datasafe_homes<br>count>0?}
     
     CheckDSCount -->|Yes| DSHeader[echo blank line<br>echo Data Safe Status<br>echo separators]
     DSHeader --> DSLoop[for ds_obj in datasafe_homes]
-    DSLoop --> ExtractDSFields[Extract fields:<br>name= get_field "name"<br>home= get_field "home"]
+    DSLoop --> ExtractDSFields[Extract fields:<br>name= get_field #quot;name#quot;<br>home= get_field #quot;home#quot;]
     
     ExtractDSFields --> CheckDSPlugin{type -t<br>plugin_check_status<br>exists?}
     CheckDSPlugin -->|Yes| CallDSStatus[status= plugin_check_status home<br>DataSafe plugin uses:<br>ORACLE_HOME=cman_home<br>cmctl status]
-    CheckDSPlugin -->|No| SetDSUnknown[status= "unknown"]
+    CheckDSPlugin -->|No| SetDSUnknown[status= #quot;unknown#quot;]
     
-    CallDSStatus --> PrintDS[printf "%-17s : %-12s %-11s %s"<br>"Connector" name status home]
+    CallDSStatus --> PrintDS[printf #quot;%-17s : %-12s %-11s %s#quot;<br>#quot;Connector#quot; name status home]
     SetDSUnknown --> PrintDS
     
     PrintDS --> NextDS{More<br>datasafe?}

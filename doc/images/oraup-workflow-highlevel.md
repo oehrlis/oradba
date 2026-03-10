@@ -36,7 +36,7 @@ flowchart TD
     ExtractHomeFields --> LoadPlugin{Plugin<br>available?}
     LoadPlugin -->|Yes| SourcePlugin[Source plugin file<br>Load product functions]
     SourcePlugin --> CheckStatusFunc
-    LoadPlugin -->|No| DefaultStatus[status = "available"]
+    LoadPlugin -->|No| DefaultStatus[status = #quot;available#quot;]
     DefaultStatus --> CheckStatusFunc{plugin_check_status<br>exists?}
     
     CheckStatusFunc -->|Yes| CallStatus[plugin_check_status home<br>Get actual status]
@@ -56,7 +56,7 @@ flowchart TD
     
     ExtractDBFields --> GetDBStatus[get_db_status SID<br>Check pmon process:<br>- db_pmon_SID<br>- ora_pmon_sid]
     
-    GetDBStatus --> StatusCheck{Status<br>== "up"?}
+    GetDBStatus --> StatusCheck{Status<br>== #quot;up#quot;?}
     StatusCheck -->|Yes| GetMode[get_db_mode SID home<br>Query v$instance:<br>OPEN/MOUNTED/STARTED]
     GetMode --> PrintDB
     StatusCheck -->|No| PrintDB[printf formatted:<br>DB-instance flag : SID STATUS HOME]
@@ -72,7 +72,7 @@ flowchart TD
     
     FindListeners --> LoopListeners[Loop through listeners]
     LoopListeners --> ExtractLsnrName[Extract listener name<br>from process]
-    ExtractLsnrName --> GetLsnrStatus[lsnrctl status NAME<br>Check if "ready"]
+    ExtractLsnrName --> GetLsnrStatus[lsnrctl status NAME<br>Check if #quot;ready#quot;]
     GetLsnrStatus --> PrintListener[printf formatted:<br>Listener : NAME STATUS]
     
     PrintListener --> NextListener{More<br>listeners?}
