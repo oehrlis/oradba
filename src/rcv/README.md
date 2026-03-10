@@ -15,7 +15,6 @@ and email notifications.
 **File Extensions**:
 
 - `.rcv` - RMAN scripts with template tags (e.g., `<ALLOCATE_CHANNELS>`)
-- `.rman` - Static RMAN scripts (legacy)
 
 ## Available Scripts
 
@@ -196,7 +195,7 @@ enables template substitution and enhanced features.
 
 ```bash
 # Use rman alias with configured environment
-rman target / @$ORADBA_BASE/rcv/backup_full.rman
+rman target / @$ORADBA_BASE/rcv/backup_full.rcv
 ```
 
 ## Script Templates
