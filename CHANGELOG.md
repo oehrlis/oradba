@@ -21,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--keep N` (default: 3) — archives all but the N most recent releases
   - `--before VERSION` — archives everything older than a given tag
   - `--repo REPO` override for forks; `--dry-run` retained
+- Update `spsec_usrinf.sql`to include new MFA related USERENV variable `MULTIFACTOR_AUTHENTICATION_METHODS` in the
+  output for comprehensive user identity information.
+
+### Changed
+
+- **`set -euo pipefail` added to all 26 pure-executable `src/bin/*.sh` scripts**
+  — previously absent or only partially set (`set -e`, `set -o pipefail`,
+  `set -o errexit`/`set -o nounset` split across multiple lines); dual-mode
+  scripts (`oraenv.sh`, `oradba_env.sh`, `oradba_extension.sh`,
+  `oradba_homes.sh`) are intentionally excluded as sourcing them would affect
+  the caller's shell options
 
 ### Removed
 
