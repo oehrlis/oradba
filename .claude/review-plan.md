@@ -214,16 +214,22 @@ through topics sequentially or in parallel — check off items as completed.
 
 ### Findings (2026-03-10)
 
-**Dead functions (zero callers, safe to remove):**
+**Dead functions (zero callers in production, safe to remove):**
 
 - `get_listener_status()` — `src/bin/oraup.sh:204` — marked "legacy,
-  backward compat" but has **no callers** in the entire codebase
-- `plugin_get_adjusted_paths()` — `src/lib/plugins/datasafe_plugin.sh:590`
-  — marked "legacy, use plugin_build_bin_path/plugin_build_lib_path" and
-  has **no callers** outside its own definition
+  backward compat" and has **no callers** anywhere (production or tests)
 - `oradba_apply_oracle_plugin()` — `src/lib/oradba_common.sh:2975` —
-  marked DEPRECATED, emits runtime WARN, **no callers** found — schedule
-  for removal in next minor version
+  marked DEPRECATED, emits runtime WARN, no callers in production or tests
+
+**Correction — NOT dead (keep):**
+
+- `plugin_get_adjusted_paths()` — `src/lib/plugins/datasafe_plugin.sh:590`
+  — called directly in `tests/test_datasafe_plugin.bats` (lines 192, 236)
+  and acknowledged as a datasafe-specific extra in
+  `tests/test_plugin_interface.bats:496`; may also be used by downstream
+  `odb_datasafe` extension. The "legacy" note means "prefer interface
+  functions for new callers", not "will be removed". **Do not delete.**
+  Consider improving the Notes comment to clarify it remains supported.
 
 **Orphaned scripts in `scripts/` (not referenced from Makefile or CI):**
 
@@ -260,10 +266,11 @@ through topics sequentially or in parallel — check off items as completed.
 - [x] Check `doc/images/` Mermaid files are all referenced ✓
 - [ ] **Remove** dead function `get_listener_status()` from
       `src/bin/oraup.sh` (function + header comment block)
-- [ ] **Remove** dead function `plugin_get_adjusted_paths()` from
-      `src/lib/plugins/datasafe_plugin.sh` (function + header comment block)
 - [ ] **Remove** deprecated `oradba_apply_oracle_plugin()` from
-      `src/lib/oradba_common.sh` — confirm no external consumers first
+      `src/lib/oradba_common.sh` — no callers found
+- [ ] **Clarify** `plugin_get_adjusted_paths()` Notes comment in
+      `datasafe_plugin.sh` — replace misleading "legacy" with "datasafe-specific
+      helper, not part of standard interface; remains supported"
 - [x] **Orphaned scripts resolved**:
       `fix_doc_links.py` removed (legacy migration); `generate_api_docs.sh`
       removed (superseded by Python version); `generate_api_docs.py` wired

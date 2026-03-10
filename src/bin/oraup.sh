@@ -192,39 +192,6 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Function: get_listener_status
-# Purpose.: Get listener status (legacy, kept for backward compatibility)
-# Args....: $1 - Listener name (default: LISTENER)
-#           $2 - Oracle Home
-#           $3 - Optional: cached process list (from get_process_list)
-# Returns.: "up" or "down"
-# Notes...: Consider using plugin_check_listener_status() for new code
-#           If process list is provided, uses it instead of calling ps -ef
-# ------------------------------------------------------------------------------
-get_listener_status() {
-    local listener_name="${1:-LISTENER}"
-    local oracle_home="$2"
-    local process_list="${3:-}"
-
-    # Check if listener process is running
-    if [[ -n "$process_list" ]]; then
-        # Use cached process list (safer with here-string)
-        if grep -v grep <<< "$process_list" | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
-            echo "up"
-        else
-            echo "down"
-        fi
-    else
-        # Fall back to calling ps -ef directly
-        if ps -ef | grep -v grep | grep "tnslsnr ${listener_name}" > /dev/null 2>&1; then
-            echo "up"
-        else
-            echo "down"
-        fi
-    fi
-}
-
-# ------------------------------------------------------------------------------
 # Function: should_show_listener_section
 # Purpose.: Check if listener section should be displayed using plugin system
 # Args....: $1 - Process list (from get_process_list)

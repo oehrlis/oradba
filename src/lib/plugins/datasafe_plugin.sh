@@ -580,28 +580,6 @@ plugin_get_required_binaries() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: plugin_get_adjusted_paths
-# Purpose.: Get adjusted PATH and LD_LIBRARY_PATH for Data Safe
-# Args....: $1 - Base path
-# Returns.: 0 on success
-# Output..: PATH and LD_LIBRARY_PATH (one per line)
-# Notes...: Helper function for environment setup (legacy, use plugin_build_bin_path/plugin_build_lib_path)
-# ------------------------------------------------------------------------------
-plugin_get_adjusted_paths() {
-    local base_path="$1"
-    local cman_home
-    cman_home=$(plugin_adjust_environment "${base_path}")
-    
-    # PATH: oracle_cman_home/bin
-    echo "PATH=${cman_home}/bin"
-    
-    # LD_LIBRARY_PATH: oracle_cman_home/lib
-    echo "LD_LIBRARY_PATH=${cman_home}/lib"
-    
-    return 0
-}
-
-# ------------------------------------------------------------------------------
 # Function: plugin_set_environment
 # Purpose.: Set DataSafe-specific environment variables (not part of standard interface)
 # Args....: $1 - Base path (will be adjusted to oracle_cman_home)

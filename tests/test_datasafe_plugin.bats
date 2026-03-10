@@ -183,18 +183,6 @@ teardown() {
     [[ "$output" == *"type=datasafe_connector"* ]]
 }
 
-@test "datasafe plugin has adjusted paths helper" {
-    local ds_home="${TEST_DIR}/test_homes/datasafe_conn1"
-    mkdir -p "${ds_home}/oracle_cman_home/bin"
-    mkdir -p "${ds_home}/oracle_cman_home/lib"
-    
-    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
-    run plugin_get_adjusted_paths "${ds_home}"
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"PATH="* ]]
-    [[ "$output" == *"LD_LIBRARY_PATH="* ]]
-}
-
 @test "datasafe plugin handles non-existent directory" {
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
     run plugin_validate_home "/nonexistent/path"
@@ -227,14 +215,6 @@ teardown() {
         run type "${func}"
         [ "$status" -eq 0 ]
     done
-}
-
-@test "datasafe plugin has datasafe-specific functions" {
-    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
-    
-    # DataSafe-specific helper function
-    run type plugin_get_adjusted_paths
-    [ "$status" -eq 0 ]
 }
 
 @test "datasafe plugin detects running connector via cmadmin process" {

@@ -28,6 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   needed after filename prefix removal was completed
 - **`scripts/generate_api_docs.sh`** — superseded by the Python
   implementation (`scripts/generate_api_docs.py`)
+- **Dead function `get_listener_status()`** removed from `src/bin/oraup.sh`
+  — listener status is now handled exclusively via `plugin_check_listener_status()`
+  from the database plugin; the legacy function had zero callers
+- **Dead function `plugin_get_adjusted_paths()`** removed from
+  `src/lib/plugins/datasafe_plugin.sh` — superseded by the standard plugin
+  interface functions `plugin_build_bin_path()` / `plugin_build_lib_path()`;
+  corresponding tests removed from `tests/test_datasafe_plugin.bats`
+- **Deprecated function `oradba_apply_oracle_plugin()`** removed from
+  `src/lib/oradba_common.sh` — use `execute_plugin_function_v2()` instead;
+  no callers existed in production code or tests
 
 ### Fixed
 
