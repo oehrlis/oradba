@@ -16,11 +16,11 @@ consistent workflows.
 ```mermaid
 graph TB
     User[👤 User/DBA]
-    CLI[CLI Layer<br/>oraenv.sh, oraup.sh, etc.]
-    Registry[Registry API<br/>Unified Oracle Installation Metadata]
-    Plugins[Plugin System<br/>8 Product Types]
-    EnvLibs[Environment Libraries<br/>Parser, Builder, Validator]
-    Oracle[🗄️ Oracle Layer<br/>Database, Client, Data Safe, OUD, Java]
+    CLI[CLI Layer<br>oraenv.sh, oraup.sh, etc.]
+    Registry[Registry API<br>Unified Oracle Installation Metadata]
+    Plugins[Plugin System<br>8 Product Types]
+    EnvLibs[Environment Libraries<br>Parser, Builder, Validator]
+    Oracle[🗄️ Oracle Layer<br>Database, Client, Data Safe, OUD, Java]
     
     User --> CLI
     CLI --> Registry

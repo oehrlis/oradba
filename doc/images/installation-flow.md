@@ -4,13 +4,13 @@ Self-extracting installer with embedded payload and integrity verification.
 
 ```mermaid
 flowchart TD
-    A[User Downloads<br/>oradba_install.sh] --> B[Execute Installer]
+    A[User Downloads<br>oradba_install.sh] --> B[Execute Installer]
     
-    B --> C{Installation<br/>Mode?}
+    B --> C{Installation<br>Mode?}
     
-    C -->|Default| D[Embedded Payload<br/>base64 in Script]
-    C -->|--local FILE| E[Local Tarball<br/>File Path]
-    C -->|--github| F[GitHub Download<br/>Latest Release]
+    C -->|Default| D[Embedded Payload<br>base64 in Script]
+    C -->|--local FILE| E[Local Tarball<br>File Path]
+    C -->|--github| F[GitHub Download<br>Latest Release]
     
     D --> G[Extract base64 Payload]
     E --> H[Read Local File]
@@ -20,19 +20,19 @@ flowchart TD
     H --> J
     I --> J
     
-    J --> K{Valid<br/>Checksum?}
+    J --> K{Valid<br>Checksum?}
     
-    K -->|No| M[❌ Installation Failed<br/>Invalid Tarball]
+    K -->|No| M[❌ Installation Failed<br>Invalid Tarball]
     
-    K -->|Yes| N{Update<br/>Mode?}
+    K -->|Yes| N{Update<br>Mode?}
     
     N -->|Yes| O[Check Installed Version]
-    O --> P{Version<br/>Newer?}
-    P -->|No| Q[❌ No Update Needed<br/>Same/Older Version]
+    O --> P{Version<br>Newer?}
+    P -->|No| Q[❌ No Update Needed<br>Same/Older Version]
     P -->|Yes| R[Backup Existing Install]
     
-    N -->|No| S{Prefix<br/>Exists?}
-    S -->|Yes| T[❌ Already Installed<br/>Use --update]
+    N -->|No| S{Prefix<br>Exists?}
+    S -->|Yes| T[❌ Already Installed<br>Use --update]
     S -->|No| U[Create Directories]
     
     R --> V[Preserve Config Files]
@@ -41,11 +41,11 @@ flowchart TD
     
     U --> X[Extract Tarball]
     
-    X --> Y[Create Structure:<br/>bin/ lib/ etc/<br/>sql/ rcv/ log/]
+    X --> Y[Create Structure:<br>bin/ lib/ etc/<br>sql/ rcv/ log/]
     
     Y --> Z[Set Permissions]
     
-    Z --> AA{--user<br/>Specified?}
+    Z --> AA{--user<br>Specified?}
     
     AA -->|Yes| AB[chown to User:Group]
     AA -->|No| AC[Keep Current Owner]
@@ -53,14 +53,14 @@ flowchart TD
     AB --> AD[Integrity Check]
     AC --> AD
     
-    AD --> AE{Verification<br/>Pass?}
+    AD --> AE{Verification<br>Pass?}
     
     AE -->|No| AF[Rollback to Backup]
-    AF --> AG[❌ Installation Failed<br/>Verification Error]
+    AF --> AG[❌ Installation Failed<br>Verification Error]
     
     AE -->|Yes| AH[Create .install_info]
     
-    AH --> AI[Generate<br/>oradba_local.conf]
+    AH --> AI[Generate<br>oradba_local.conf]
     
     AI --> AJ[Create Uninstall Script]
     

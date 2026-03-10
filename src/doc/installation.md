@@ -74,10 +74,10 @@ OraDBA offers multiple installation methods to support different environments an
 ```mermaid
 graph TB
     Start[Choose Installation Method]
-    Quick[Quick Install<br/>Embedded Payload]
-    AirGap[Air-Gapped Install<br/>Embedded Payload]
-    Separate[Air-Gapped Install<br/>Separate Tarball]
-    GitHub[GitHub Repository<br/>Latest Development]
+    Quick[Quick Install<br>Embedded Payload]
+    AirGap[Air-Gapped Install<br>Embedded Payload]
+    Separate[Air-Gapped Install<br>Separate Tarball]
+    GitHub[GitHub Repository<br>Latest Development]
     
     Download[Download Installer]
     Transfer[Transfer to Target]

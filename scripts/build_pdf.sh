@@ -191,6 +191,7 @@ build_pdf() {
                 --metadata-file=/doc/metadata.yml \
                 --toc --toc-depth=2 \
                 --pdf-engine=xelatex \
+                --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
                 -N 2>&1 | grep -v "Missing character" || true
         )
     else

@@ -20,14 +20,14 @@ Data Safe connectors, OUD, Java, and more.
 
 ```mermaid
 graph TB
-    User[User Command<br/>source oraenv.sh]
-    Wrapper[oraenv.sh<br/>Wrapper Script]
-    Registry[Registry API<br/>oratab + oradba_homes.conf]
-    Parser[Environment Parser<br/>oradba_env_parser.sh]
-    Builder[Environment Builder<br/>oradba_env_builder.sh]
-    Plugins[Plugin System<br/>8 Product Types]
-    Validator[Environment Validator<br/>oradba_env_validator.sh]
-    Oracle[Oracle Products<br/>DB, Client, Data Safe, etc.]
+    User[User Command<br>source oraenv.sh]
+    Wrapper[oraenv.sh<br>Wrapper Script]
+    Registry[Registry API<br>oratab + oradba_homes.conf]
+    Parser[Environment Parser<br>oradba_env_parser.sh]
+    Builder[Environment Builder<br>oradba_env_builder.sh]
+    Plugins[Plugin System<br>8 Product Types]
+    Validator[Environment Validator<br>oradba_env_validator.sh]
+    Oracle[Oracle Products<br>DB, Client, Data Safe, etc.]
     
     User --> Wrapper
     Wrapper --> Registry

@@ -6,24 +6,24 @@ Complete environment setup process from user request to active environment.
 flowchart TD
     A[User: source oraenv.sh SID] --> B[oraenv.sh Wrapper]
     
-    B --> C{SID/Name<br/>Provided?}
+    B --> C{SID/Name<br>Provided?}
     
-    C -->|No| D[List Available<br/>SIDs/Homes]
+    C -->|No| D[List Available<br>SIDs/Homes]
     D --> E[User Selects]
     E --> F[Call oradba_env.sh]
     
     C -->|Yes| F
     
-    F --> G[oradba_env.sh<br/>Main Builder]
+    F --> G[oradba_env.sh<br>Main Builder]
     
-    G --> H[Load Environment<br/>Management Libraries]
+    G --> H[Load Environment<br>Management Libraries]
     
     H --> I[Parser: Load Configs]
-    I --> J[Merge 6 Levels:<br/>1. core 2. standard<br/>3. local 4. customer<br/>5. SID 6. runtime]
+    I --> J[Merge 6 Levels:<br>1. core 2. standard<br>3. local 4. customer<br>5. SID 6. runtime]
     
     J --> K[Builder: Query Registry]
     
-    K --> L{SID or<br/>Home Name?}
+    K --> L{SID or<br>Home Name?}
     
     L -->|SID| M[Query oratab]
     L -->|Home Name| N[Query oradba_homes.conf]
@@ -31,33 +31,33 @@ flowchart TD
     M --> O[Get ORACLE_HOME]
     N --> O
     
-    O --> P{Valid<br/>ORACLE_HOME?}
+    O --> P{Valid<br>ORACLE_HOME?}
     
-    P -->|No| Q[❌ Error:<br/>Invalid Home]
+    P -->|No| Q[❌ Error:<br>Invalid Home]
     
-    P -->|Yes| R[Set Base Environment<br/>ORACLE_SID, ORACLE_HOME<br/>Auto-derive ORACLE_BASE]
+    P -->|Yes| R[Set Base Environment<br>ORACLE_SID, ORACLE_HOME<br>Auto-derive ORACLE_BASE]
     
     R --> S[Validator: Check Installation]
     
-    S --> T[Plugin System:<br/>Detect Type & Version<br/>Validate Home]
+    S --> T[Plugin System:<br>Detect Type & Version<br>Validate Home]
     
-    T --> U{Validation<br/>Pass?}
+    T --> U{Validation<br>Pass?}
     
-    U -->|No| V[❌ Error:<br/>Validation Failed]
+    U -->|No| V[❌ Error:<br>Validation Failed]
     
-    U -->|Yes| W[Builder: Construct Environment<br/>PATH, LD_LIBRARY_PATH<br/>TNS_ADMIN, SQLPATH]
+    U -->|Yes| W[Builder: Construct Environment<br>PATH, LD_LIBRARY_PATH<br>TNS_ADMIN, SQLPATH]
     
-    W --> X[Alias Generator:<br/>Generate Shortcuts]
+    W --> X[Alias Generator:<br>Generate Shortcuts]
     
-    X --> Y{CDB<br/>Database?}
+    X --> Y{CDB<br>Database?}
     
-    Y -->|Yes| Z[Detect & Create<br/>PDB Aliases]
+    Y -->|Yes| Z[Detect & Create<br>PDB Aliases]
     Y -->|No| AA[Skip PDB Aliases]
     
     Z --> AB[Generate Aliases]
     AA --> AB
     
-    AB --> AC[Status Display:<br/>Show Environment Summary]
+    AB --> AC[Status Display:<br>Show Environment Summary]
     
     AC --> AD[✅ Environment Ready]
     

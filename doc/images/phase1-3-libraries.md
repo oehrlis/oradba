@@ -5,20 +5,20 @@ Modular library system for parsing, building, and validating Oracle environments
 ```mermaid
 graph TB
     subgraph Entry["Entry Points"]
-        E1[oraenv.sh<br/>Wrapper]
-        E2[oradba_env.sh<br/>Main Builder]
-        E3[oradba_homes.sh<br/>Home Manager]
+        E1[oraenv.sh<br>Wrapper]
+        E2[oradba_env.sh<br>Main Builder]
+        E3[oradba_homes.sh<br>Home Manager]
     end
     
     subgraph Registry["Registry API"]
-        RE1[oradba_registry.sh<br/>Unified Installation Access]
-        RE2[get_all / get_by_name<br/>get_by_type / get_databases]
+        RE1[oradba_registry.sh<br>Unified Installation Access]
+        RE2[get_all / get_by_name<br>get_by_type / get_databases]
     end
     
     subgraph Plugins["Plugin System"]
         PL1[Plugin Interface]
-        PL2[6 Product Plugins:<br/>database, datasafe, client<br/>iclient, oud, java]
-        PL3[8 Required Functions:<br/>detect, validate, adjust<br/>status, metadata, etc]
+        PL2[6 Product Plugins:<br>database, datasafe, client<br>iclient, oud, java]
+        PL3[8 Required Functions:<br>detect, validate, adjust<br>status, metadata, etc]
     end
     
     subgraph Parser["Parser Library"]
@@ -39,7 +39,7 @@ graph TB
     subgraph Validator["Validator Library"]
         P3A[oradba_env_validator.sh]
         P3A1[validate_oracle_home]
-        P3A2[detect_product_type<br/>Uses Plugins]
+        P3A2[detect_product_type<br>Uses Plugins]
         P3A3[detect_version]
     end
     
@@ -64,17 +64,17 @@ graph TB
     end
     
     subgraph ConfigFiles["Configuration Files"]
-        C1[oradba_core.conf<br/>System Defaults]
-        C2[oradba_standard.conf<br/>Standard Settings]
-        C3[oradba_local.conf<br/>Auto-Detected]
-        C4[oradba_customer.conf<br/>Site-Specific]
-        C5[sid.*.conf<br/>Database-Specific]
-        C6[oradba_homes.conf<br/>Oracle Homes]
+        C1[oradba_core.conf<br>System Defaults]
+        C2[oradba_standard.conf<br>Standard Settings]
+        C3[oradba_local.conf<br>Auto-Detected]
+        C4[oradba_customer.conf<br>Site-Specific]
+        C5[sid.*.conf<br>Database-Specific]
+        C6[oradba_homes.conf<br>Oracle Homes]
     end
     
     subgraph Common["Common Libraries"]
-        L1[oradba_common.sh<br/>Logging & Utilities]
-        L2[oradba_aliases.sh<br/>Safe Alias Generation]
+        L1[oradba_common.sh<br>Logging & Utilities]
+        L2[oradba_aliases.sh<br>Safe Alias Generation]
     end
     
     E1 --> E2

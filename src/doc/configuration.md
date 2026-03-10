@@ -28,12 +28,12 @@ earlier settings:
 
 ```mermaid
 graph TB
-    Core["1. oradba_core.conf<br/>(Core Settings)"]
-    Standard["2. oradba_standard.conf<br/>(Standard Env)"]
-    Local["3. oradba_local.conf<br/>(Auto-detected)"]
-    Customer["4. oradba_customer.conf<br/>(Your Global Settings)"]
-    Default["5. sid._DEFAULT_.conf<br/>(Installation Defaults)"]
-    SID["6. sid.<NAME>.conf<br/>(Installation Specific)"]
+    Core["1. oradba_core.conf<br>(Core Settings)"]
+    Standard["2. oradba_standard.conf<br>(Standard Env)"]
+    Local["3. oradba_local.conf<br>(Auto-detected)"]
+    Customer["4. oradba_customer.conf<br>(Your Global Settings)"]
+    Default["5. sid._DEFAULT_.conf<br>(Installation Defaults)"]
+    SID["6. sid.<NAME>.conf<br>(Installation Specific)"]
     
     Core --> Standard
     Standard --> Local
@@ -41,9 +41,9 @@ graph TB
     Customer --> Default
     Default --> SID
     
-    Parser[oradba_env_parser.sh<br/>Parses & Merges]
-    Builder[oradba_env_builder.sh<br/>Builds Environment]
-    Validator[oradba_env_validator.sh<br/>Validates Installation]
+    Parser[oradba_env_parser.sh<br>Parses & Merges]
+    Builder[oradba_env_builder.sh<br>Builds Environment]
+    Validator[oradba_env_validator.sh<br>Validates Installation]
     
     SID --> Parser
     Parser --> Builder

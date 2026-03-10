@@ -5,47 +5,47 @@
 ```mermaid
 flowchart TB
     subgraph Processing["Processing Libraries"]
-        P1[oradba_env_parser.sh<br/>Parse & Merge Configs]
-        P2[oradba_env_builder.sh<br/>Build Environment]
-        P3[oradba_env_validator.sh<br/>Validate Installation]
+        P1[oradba_env_parser.sh<br>Parse & Merge Configs]
+        P2[oradba_env_builder.sh<br>Build Environment]
+        P3[oradba_env_validator.sh<br>Validate Installation]
     end
     
     subgraph Level1["Level 1: Core Defaults"]
-        L1[oradba_core.conf<br/>System Defaults<br/>Installation Paths<br/>VERSION, PREFIX]
+        L1[oradba_core.conf<br>System Defaults<br>Installation Paths<br>VERSION, PREFIX]
     end
     
     subgraph Level2["Level 2: Standard Settings"]
-        L2[oradba_standard.conf<br/>Standard Oracle Paths<br/>Common Patterns<br/>Default Aliases]
+        L2[oradba_standard.conf<br>Standard Oracle Paths<br>Common Patterns<br>Default Aliases]
     end
     
     subgraph Level3["Level 3: Local Auto-Detection"]
-        L3[oradba_local.conf<br/>Auto-Detected Settings<br/>Coexistence Mode<br/>Local Paths]
+        L3[oradba_local.conf<br>Auto-Detected Settings<br>Coexistence Mode<br>Local Paths]
     end
     
     subgraph Level4["Level 4: Customer Overrides"]
-        L4[oradba_customer.conf<br/>Site-Specific Settings<br/>RMAN Catalog<br/>Custom TNS_ADMIN]
+        L4[oradba_customer.conf<br>Site-Specific Settings<br>RMAN Catalog<br>Custom TNS_ADMIN]
     end
     
     subgraph Level5["Level 5: SID Configuration"]
-        L5[sid.SID.conf<br/>Database-Specific<br/>Custom Aliases<br/>Specific Paths]
-        L5D[sid._DEFAULT_.conf<br/>Template for New SIDs]
+        L5[sid.SID.conf<br>Database-Specific<br>Custom Aliases<br>Specific Paths]
+        L5D[sid._DEFAULT_.conf<br>Template for New SIDs]
     end
     
     subgraph Level6["Level 6: Runtime"]
-        L6[Environment Variables<br/>Command-Line Args<br/>Highest Priority]
+        L6[Environment Variables<br>Command-Line Args<br>Highest Priority]
     end
     
     subgraph Result["Final Environment"]
-        R[Active Oracle Environment<br/>All Variables Resolved]
+        R[Active Oracle Environment<br>All Variables Resolved]
     end
     
-    L1 -->|Priority 1<br/>Lowest| P1
+    L1 -->|Priority 1<br>Lowest| P1
     L2 -->|Priority 2| P1
     L3 -->|Priority 3| P1
     L4 -->|Priority 4| P1
     L5 -->|Priority 5| P1
     L5D -.->|Template| L5
-    L6 -->|Priority 6<br/>Highest| P1
+    L6 -->|Priority 6<br>Highest| P1
     
     P1 --> |Merged Config| P2
     P2 --> |Built Environment| P3

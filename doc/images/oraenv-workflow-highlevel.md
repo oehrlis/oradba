@@ -2,61 +2,61 @@
 flowchart TD
     Start([User: source oraenv.sh NAME])
     
-    Start --> ParseArgs[Parse Arguments<br/>--silent, --status, --help]
+    Start --> ParseArgs[Parse Arguments<br>--silent, --status, --help]
     
-    ParseArgs --> DetectTTY{TTY<br/>detected?}
+    ParseArgs --> DetectTTY{TTY<br>detected?}
     
-    DetectTTY -->|Yes| Interactive[Interactive Mode<br/>SHOW_STATUS=true]
-    DetectTTY -->|No| NonInteractive[Non-Interactive Mode<br/>SHOW_STATUS=false]
+    DetectTTY -->|Yes| Interactive[Interactive Mode<br>SHOW_STATUS=true]
+    DetectTTY -->|No| NonInteractive[Non-Interactive Mode<br>SHOW_STATUS=false]
     
     Interactive --> CheckSID
-    NonInteractive --> CheckSID{NAME<br/>provided?}
+    NonInteractive --> CheckSID{NAME<br>provided?}
     
-    CheckSID -->|No NAME| PromptUser[Display Available Options<br/>- Oracle Homes from registry<br/>- Database SIDs from oratab]
-    PromptUser --> UserSelect[User Selects:<br/>Number or Name]
-    UserSelect --> ResolveName[Resolve Selection<br/>to NAME]
+    CheckSID -->|No NAME| PromptUser[Display Available Options<br>- Oracle Homes from registry<br>- Database SIDs from oratab]
+    PromptUser --> UserSelect[User Selects:<br>Number or Name]
+    UserSelect --> ResolveName[Resolve Selection<br>to NAME]
     
     CheckSID -->|NAME given| ResolveName
     
-    ResolveName --> CheckType{Is NAME an<br/>Oracle Home?}
+    ResolveName --> CheckType{Is NAME an<br>Oracle Home?}
     
-    CheckType -->|Yes Home| LookupRegistry[Registry Lookup<br/>oradba_registry_get_by_name]
-    LookupRegistry --> GetHomePath[Extract ORACLE_HOME<br/>from registry entry]
-    GetHomePath --> SetHomeEnv[Set Oracle Home Environment:<br/>- ORACLE_HOME<br/>- ORACLE_BASE derived<br/>- Product-specific paths]
+    CheckType -->|Yes Home| LookupRegistry[Registry Lookup<br>oradba_registry_get_by_name]
+    LookupRegistry --> GetHomePath[Extract ORACLE_HOME<br>from registry entry]
+    GetHomePath --> SetHomeEnv[Set Oracle Home Environment:<br>- ORACLE_HOME<br>- ORACLE_BASE derived<br>- Product-specific paths]
     
-    CheckType -->|No SID| LookupOratab[Registry/Oratab Lookup<br/>1. Try registry API<br/>2. Fallback to parse_oratab]
+    CheckType -->|No SID| LookupOratab[Registry/Oratab Lookup<br>1. Try registry API<br>2. Fallback to parse_oratab]
     
-    LookupOratab --> FoundEntry{Entry<br/>found?}
+    LookupOratab --> FoundEntry{Entry<br>found?}
     
-    FoundEntry -->|No| AutoDiscover{Auto-discover<br/>enabled?}
-    AutoDiscover -->|Yes| Discover[discover_running_oracle_instances<br/>Find running instances]
-    Discover --> DiscoverFound{Found<br/>instances?}
+    FoundEntry -->|No| AutoDiscover{Auto-discover<br>enabled?}
+    AutoDiscover -->|Yes| Discover[discover_running_oracle_instances<br>Find running instances]
+    Discover --> DiscoverFound{Found<br>instances?}
     DiscoverFound -->|Yes| SetSIDEnv
-    DiscoverFound -->|No| ErrorNotFound[Error:<br/>SID not found]
+    DiscoverFound -->|No| ErrorNotFound[Error:<br>SID not found]
     
     AutoDiscover -->|No| ErrorNotFound
     
-    FoundEntry -->|Yes| ExtractInfo[Extract from oratab:<br/>- ORACLE_SID actual<br/>- ORACLE_HOME<br/>- STARTUP_FLAG]
+    FoundEntry -->|Yes| ExtractInfo[Extract from oratab:<br>- ORACLE_SID actual<br>- ORACLE_HOME<br>- STARTUP_FLAG]
     
-    ExtractInfo --> ValidateHome{ORACLE_HOME<br/>exists?}
+    ExtractInfo --> ValidateHome{ORACLE_HOME<br>exists?}
     
-    ValidateHome -->|No| ErrorInvalid[Error:<br/>Invalid ORACLE_HOME]
-    ValidateHome -->|Yes| SetSIDEnv[Set Database Environment:<br/>- ORACLE_SID<br/>- ORACLE_HOME<br/>- ORACLE_BASE derived<br/>- TNS_ADMIN, etc.]
+    ValidateHome -->|No| ErrorInvalid[Error:<br>Invalid ORACLE_HOME]
+    ValidateHome -->|Yes| SetSIDEnv[Set Database Environment:<br>- ORACLE_SID<br>- ORACLE_HOME<br>- ORACLE_BASE derived<br>- TNS_ADMIN, etc.]
     
     SetHomeEnv --> LoadConfig
-    SetSIDEnv --> LoadConfig[Load Hierarchical Config<br/>load_config SID]
+    SetSIDEnv --> LoadConfig[Load Hierarchical Config<br>load_config SID]
     
-    LoadConfig --> ConfigureEnv[Configure Environment:<br/>- PATH with Oracle bins<br/>- LD_LIBRARY_PATH<br/>- SQLPATH extensions]
+    LoadConfig --> ConfigureEnv[Configure Environment:<br>- PATH with Oracle bins<br>- LD_LIBRARY_PATH<br>- SQLPATH extensions]
     
-    ConfigureEnv --> LoadPlugins{Plugins<br/>enabled?}
+    ConfigureEnv --> LoadPlugins{Plugins<br>enabled?}
     
-    LoadPlugins -->|Yes| DiscoverPlugins[discover_extensions<br/>Auto-load from<br/>ORADBA_LOCAL_BASE]
+    LoadPlugins -->|Yes| DiscoverPlugins[discover_extensions<br>Auto-load from<br>ORADBA_LOCAL_BASE]
     DiscoverPlugins --> CheckStatus
     
-    LoadPlugins -->|No| CheckStatus{Show<br/>status?}
+    LoadPlugins -->|No| CheckStatus{Show<br>status?}
     
-    CheckStatus -->|--status flag| ShowStatus[show_database_status<br/>Display DB info]
-    CheckStatus -->|Interactive +<br/>is SID| ShowStatus
+    CheckStatus -->|--status flag| ShowStatus[show_database_status<br>Display DB info]
+    CheckStatus -->|Interactive +<br>is SID| ShowStatus
     CheckStatus -->|Silent mode| Done
     CheckStatus -->|is Home| Done
     

@@ -12,15 +12,15 @@ graph TB
     end
     
     subgraph CLI["Command-Line Interface"]
-        C1[oraenv.sh<br/>Environment Wrapper]
-        C2[oradba_env.sh<br/>Main Environment Builder]
-        C3[oradba_homes.sh<br/>Oracle Homes Manager]
-        C4[oraup.sh<br/>Status Display]
+        C1[oraenv.sh<br>Environment Wrapper]
+        C2[oradba_env.sh<br>Main Environment Builder]
+        C3[oradba_homes.sh<br>Oracle Homes Manager]
+        C4[oraup.sh<br>Status Display]
     end
     
     subgraph Registry["Registry API v0.19.0+"]
-        R1[oradba_registry.sh<br/>Unified Installation Access]
-        R2[Registry Functions:<br/>get_all, get_by_name<br/>get_by_type, get_databases]
+        R1[oradba_registry.sh<br>Unified Installation Access]
+        R2[Registry Functions:<br>get_all, get_by_name<br>get_by_type, get_databases]
     end
     
     subgraph Plugins["Plugin System v0.19.0+"]
@@ -34,32 +34,32 @@ graph TB
     end
     
     subgraph EnvLibs["Environment Management Libraries"]
-        E1[oradba_env_parser.sh<br/>Configuration Parser]
-        E2[oradba_env_builder.sh<br/>Environment Builder]
-        E3[oradba_env_validator.sh<br/>Validation Engine]
-        E4[oradba_env_config.sh<br/>Config Manager]
-        E5[oradba_env_status.sh<br/>Status Display]
-        E6[oradba_env_changes.sh<br/>Change Detection]
+        E1[oradba_env_parser.sh<br>Configuration Parser]
+        E2[oradba_env_builder.sh<br>Environment Builder]
+        E3[oradba_env_validator.sh<br>Validation Engine]
+        E4[oradba_env_config.sh<br>Config Manager]
+        E5[oradba_env_status.sh<br>Status Display]
+        E6[oradba_env_changes.sh<br>Change Detection]
     end
     
     subgraph Core["Core Libraries"]
-        L1[oradba_common.sh<br/>Logging & Utilities]
-        L2[oradba_db_functions.sh<br/>Database Operations]
-        L3[oradba_aliases.sh<br/>Safe Alias Generation]
+        L1[oradba_common.sh<br>Logging & Utilities]
+        L2[oradba_db_functions.sh<br>Database Operations]
+        L3[oradba_aliases.sh<br>Safe Alias Generation]
     end
     
     subgraph Config["Configuration System"]
-        CF1[oradba_core.conf<br/>System Defaults]
-        CF2[oradba_standard.conf<br/>Standard Settings]
-        CF3[oradba_local.conf<br/>Auto-Detected]
-        CF4[oradba_customer.conf<br/>Site-Specific]
-        CF5[sid.*.conf<br/>Database-Specific]
-        CF6[oradba_homes.conf<br/>Oracle Homes Registry]
+        CF1[oradba_core.conf<br>System Defaults]
+        CF2[oradba_standard.conf<br>Standard Settings]
+        CF3[oradba_local.conf<br>Auto-Detected]
+        CF4[oradba_customer.conf<br>Site-Specific]
+        CF5[sid.*.conf<br>Database-Specific]
+        CF6[oradba_homes.conf<br>Oracle Homes Registry]
     end
     
     subgraph Oracle["Oracle Database Layer"]
-        O1[Oracle Homes<br/>RDBMS, Client, DataSafe, OUD, Java]
-        O2[Oracle Instances<br/>CDB & PDBs]
+        O1[Oracle Homes<br>RDBMS, Client, DataSafe, OUD, Java]
+        O2[Oracle Instances<br>CDB & PDBs]
         O3[Listeners]
         O4[oratab]
     end

@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Mermaid Diagram Syntax: Replace `<br/>` with `<br>` in All Diagrams**
+  - Fixed Mermaid lexical parse errors caused by XML self-closing `<br/>` tags
+    in node labels — Mermaid requires HTML-style `<br>` (not `<br/>`)
+  - Fixed 19 files: `src/doc/introduction.md`, `installation.md`,
+    `environment.md`, `quickstart.md`, `configuration.md` and all 14
+    `doc/images/*.md` diagram files
+- **PDF Build: Enable Mermaid Diagram Rendering**
+  - Added `--lua-filter /usr/local/share/pandoc/filters/mermaid.lua` to
+    `scripts/build_pdf.sh` so Mermaid code blocks are rendered to PNG and
+    embedded in the generated PDF (requires `oehrlis/pandoc:*-full` image)
 - **Installer Parent Directory Auto-Creation**
   - `oradba_install.sh` no longer fails when the immediate parent directory of the target prefix is missing
   - Installer now finds the nearest existing writable ancestor and creates the

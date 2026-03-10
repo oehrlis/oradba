@@ -2,18 +2,18 @@
 flowchart TD
     Start([User sources oraenv.sh])
     
-    Start --> Layer1[1. oradba_core.conf<br/>Core System Settings<br/>Required]
+    Start --> Layer1[1. oradba_core.conf<br>Core System Settings<br>Required]
     
-    Layer1 --> Layer2[2. oradba_standard.conf<br/>Standard Oracle Paths<br/>Aliases & Functions<br/>Required]
+    Layer1 --> Layer2[2. oradba_standard.conf<br>Standard Oracle Paths<br>Aliases & Functions<br>Required]
     
-    Layer2 --> Layer3[3. oradba_local.conf<br/>Auto-detected Settings<br/>Coexistence Mode<br/>Optional]
+    Layer2 --> Layer3[3. oradba_local.conf<br>Auto-detected Settings<br>Coexistence Mode<br>Optional]
     
-    Layer3 --> Layer4[4. oradba_customer.conf<br/>Site-specific Customizations<br/>Optional]
+    Layer3 --> Layer4[4. oradba_customer.conf<br>Site-specific Customizations<br>Optional]
     
     Layer4 --> Layer5{SID provided?}
     
-    Layer5 -->|Yes| Layer5a[5a. sid._DEFAULT_.conf<br/>Database Defaults<br/>Optional]
-    Layer5a --> Layer5b[5b. sid.SID.conf<br/>SID-specific Settings<br/>Optional]
+    Layer5 -->|Yes| Layer5a[5a. sid._DEFAULT_.conf<br>Database Defaults<br>Optional]
+    Layer5a --> Layer5b[5b. sid.SID.conf<br>SID-specific Settings<br>Optional]
     
     Layer5 -->|No| EnvReady
     Layer5b --> EnvReady

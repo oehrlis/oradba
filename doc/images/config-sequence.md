@@ -5,8 +5,8 @@ Complete sequence diagram showing library-based configuration loading and enviro
 ```mermaid
 sequenceDiagram
     participant User
-    participant oraenv as oraenv.sh<br/>(Wrapper)
-    participant oradba_env as oradba_env.sh<br/>(Main Builder)
+    participant oraenv as oraenv.sh<br>(Wrapper)
+    participant oradba_env as oradba_env.sh<br>(Main Builder)
     participant Registry as Registry API
     participant Parser as oradba_env_parser.sh
     participant Builder as oradba_env_builder.sh
