@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **PDF Build: Suppress LaTeX `\underbar`/`\underline` Changed Warnings**
+  - Added `awk`-based stderr filter to `scripts/build_pdf.sh` to suppress
+    spurious two-line LaTeX warnings (`Command \underbar has changed` /
+    `Command \underline has changed`) emitted by the XeLaTeX engine
+  - Also folds in the existing `Missing character` suppression, replacing
+    the previous `2>&1 | grep -v` pipe with a cleaner process-substitution
+    filter that leaves stdout unaffected
+
 - **Mermaid Diagram Syntax: Replace `<br/>` with `<br>` in All Diagrams**
   - Fixed Mermaid lexical parse errors caused by XML self-closing `<br/>` tags
     in node labels — Mermaid requires HTML-style `<br>` (not `<br/>`)

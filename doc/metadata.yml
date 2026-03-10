@@ -64,8 +64,9 @@ filecolor:      blue
 bulletcolor:    black
 
 # - Syntax highlighting --------------------------------------------------------
-syntax-highlighting: idiomatic
-
+syntax-highlighting: default
+highlight-style: pygments
+#pygments (the default), kate, monochrome, breezeDark, espresso, zenburn, haddock, and tango.
 # - LaTeX config ---------------------------------------------------------------
 header-includes: |
    \definecolor{blue}{HTML}{0000FF}
@@ -80,9 +81,9 @@ pandoc-latex-environment:
 
 # - Font settings --------------------------------------------------------------
 # generic font settings
-# mainfont: Arial           # Main font
-# sansfont: Arial           # Font for headings and toc
-# monofont: Courier New     # Font for listing and codes
+mainfont: Arial           # Main font
+sansfont: Arial           # Font for headings and toc
+monofont: Courier New     # Font for listing and codes
 
 # mainfont: Graphik-Regular.ttf
 # mainfontoptions:

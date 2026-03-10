@@ -26,7 +26,7 @@ readonly DOCS_DIR="${PROJECT_ROOT}/src/doc"
 readonly DIST_DIR="${PROJECT_ROOT}/dist"
 readonly OUTPUT_PDF="${DIST_DIR}/oradba-user-guide.pdf"
 readonly DOC_METADATA="${PROJECT_ROOT}/doc/metadata.yml"
-readonly PANDOC_IMAGE="${PANDOC_IMAGE:-oehrlis/pandoc:latest}"
+readonly PANDOC_IMAGE="${PANDOC_IMAGE:-oehrlis/pandoc:latest-full}"
 readonly TMP_DOCS_DIR="${DIST_DIR}/.tmp_docs"
 readonly MKDOCS_CONFIG="${PROJECT_ROOT}/mkdocs.yml"
 
@@ -192,7 +192,16 @@ build_pdf() {
                 --toc --toc-depth=2 \
                 --pdf-engine=xelatex \
                 --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
-                -N 2>&1 | grep -v "Missing character" || true
+                -N 2> >(
+                    awk '
+                      BEGIN { suppress_next = 0 }
+                      /Command \\underbar has changed\. Check if/  { suppress_next = 1; next }
+                      /Command \\underline has changed\. Check if/ { suppress_next = 1; next }
+                      suppress_next == 1 && /^[[:space:]]*current package is valid\./ { suppress_next = 0; next }
+                      /Missing character/ { suppress_next = 0; next }
+                      { suppress_next = 0; print > "/dev/stderr" }
+                    '
+                ) || true
         )
     else
         log_error "No markdown files found in ${TMP_DOCS_DIR}"
