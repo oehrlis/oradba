@@ -119,8 +119,8 @@ setup() {
     [[ "$output" =~ "#!/usr/bin/env bash" ]]
 }
 
-@test "longops.sh has set -o pipefail" {
-    run bash -c "grep -q 'set -o pipefail' '$LONGOPS_SCRIPT'"
+@test "longops.sh has set -euo pipefail" {
+    run bash -c "grep -q 'set -euo pipefail' '$LONGOPS_SCRIPT'"
     [[ "$status" -eq 0 ]]
 }
 

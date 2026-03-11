@@ -144,8 +144,8 @@ teardown() {
     [[ "$output" =~ "#!/usr/bin/env bash" ]]
 }
 
-@test "get_seps_pwd.sh has set -o pipefail" {
-    run bash -c "grep -q 'set -o pipefail' '$GET_SEPS_PWD'"
+@test "get_seps_pwd.sh has set -euo pipefail" {
+    run bash -c "grep -q 'set -euo pipefail' '$GET_SEPS_PWD'"
     [[ "$status" -eq 0 ]]
 }
 

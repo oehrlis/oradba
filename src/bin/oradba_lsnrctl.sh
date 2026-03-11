@@ -17,8 +17,11 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Source OraDBA libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 ORADBA_BIN="${SCRIPT_DIR}"
 ORADBA_BASE="$(dirname "${ORADBA_BIN}")"
 
@@ -34,7 +37,7 @@ fi
 # ------------------------------------------------------------------------------
 # Global variables
 # ------------------------------------------------------------------------------
-SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 FORCE_MODE=false
 ACTION=""
 LISTENERS=()

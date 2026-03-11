@@ -17,6 +17,8 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Script directory and common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"

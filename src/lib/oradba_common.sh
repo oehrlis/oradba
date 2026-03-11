@@ -402,7 +402,7 @@ get_oratab_path() {
     oratab_path="/etc/oratab"
     oradba_log DEBUG "No oratab found, returning default: $oratab_path"
     echo "$oratab_path"
-    return 1
+    return 0
 }
 
 # ------------------------------------------------------------------------------

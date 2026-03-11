@@ -18,12 +18,16 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Script metadata
 # shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_NAME="$(basename "$0")"
 ORADBA_DEBUG="${ORADBA_DEBUG:-false}"  # Debug mode
+ORACLE_HOME="${ORACLE_HOME:-}"
+ORACLE_BASE="${ORACLE_BASE:-}"
+ORACLE_SID="${ORACLE_SID:-}"
+TNS_ADMIN="${TNS_ADMIN:-}"
 
 # Try to read version from VERSION file, fall back to hardcoded version
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -72,7 +76,7 @@ CHECKS_INFO=0
 # Notes...: Increments CHECKS_PASSED counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_pass() {
-    ((CHECKS_PASSED++))
+    ((CHECKS_PASSED++)) || true
     [[ "$QUIET" == "true" ]] && return # Don't show passes in quiet mode
     echo -e "  ${GREEN}[OK]${NC} $1"
 }
@@ -86,7 +90,7 @@ log_pass() {
 # Notes...: Increments CHECKS_FAILED counter; never suppressed (critical errors)
 # ------------------------------------------------------------------------------
 log_fail() {
-    ((CHECKS_FAILED++))
+    ((CHECKS_FAILED++)) || true
     echo -e "  ${RED}[FAIL]${NC} $1"
 }
 
@@ -99,7 +103,7 @@ log_fail() {
 # Notes...: Increments CHECKS_WARNING counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_warn() {
-    ((CHECKS_WARNING++))
+    ((CHECKS_WARNING++)) || true
     [[ "$QUIET" == "true" ]] && return # Don't show warnings in quiet mode
     echo -e "  ${YELLOW}[WARN]${NC} $1"
 }
@@ -113,7 +117,7 @@ log_warn() {
 # Notes...: Increments CHECKS_INFO counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_info() {
-    ((CHECKS_INFO++))
+    ((CHECKS_INFO++)) || true
     [[ "$QUIET" == "true" ]] && return # Don't show info in quiet mode
     echo -e "  ${BLUE}[INFO]${NC} $1"
 }

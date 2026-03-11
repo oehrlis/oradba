@@ -17,7 +17,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -e
+set -euo pipefail
 
 # Variables
 INSTALLER_VERSION="__VERSION__"
@@ -42,14 +42,14 @@ NC='\033[0m' # No Color
 # ------------------------------------------------------------------------------
 determine_default_prefix() {
     # Priority 1: ORACLE_BASE is set
-    if [[ -n "${ORACLE_BASE}" ]]; then
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
         [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] oradba_install.sh: Using ORACLE_BASE: ${ORACLE_BASE}/local/oradba" >&2
         echo "${ORACLE_BASE}/local/oradba"
         return 0
     fi
 
     # Priority 2: Derive from ORACLE_HOME
-    if [[ -n "${ORACLE_HOME}" ]]; then
+    if [[ -n "${ORACLE_HOME:-}" ]]; then
         # Try orabasetab first
         if [[ -f "${ORACLE_HOME}/install/orabasetab" ]]; then
             local oracle_base

@@ -52,6 +52,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`set -euo pipefail` Compatibility Fixes**
+  - `get_oratab_path()` in `src/lib/oradba_common.sh` changed to `return 0`
+    in the default-path case — previously returned 1 ("not found") even though
+    it always echoes a usable path, causing callers to exit under `set -e`
+  - `${ORADBA_DEBUG}`, `${ORACLE_BASE}`, `${ORACLE_HOME}`, `${ORACLE_SID}`,
+    `${TNS_ADMIN}`, `${ETC_BASE}` references across 14 scripts hardened to
+    `${VAR:-}` / `${VAR:-default}` patterns to satisfy `set -u`
+  - `SCRIPT_NAME` moved before library `source` in `oradba_dbctl.sh`,
+    `oradba_dsctl.sh`, `oradba_lsnrctl.sh`, `oradba_services.sh` — it was
+    used in `oradba_log` calls immediately after sourcing but defined later
+  - Empty-array safe expansion: `${config_files[*]-}` and explicit
+    `PEER_HOSTS=()` declaration in `sync_from_peers.sh` / `sync_to_peers.sh`
+    (bash 4.4+ treats empty array expansion as unbound with `set -u`)
+  - Counter increments in `oradba_check.sh` changed to `((counter++)) || true`
+    — `(( 0++ ))` evaluates to 0 (false) on first call, which `set -e` treats
+    as a failure; `|| true` makes these always succeed
+  - `ORADBA_DEBUG` default initialised (`${ORADBA_DEBUG:-false}`) in
+    `exp_jobs.sh`, `imp_jobs.sh`, `rman_jobs.sh`, `longops.sh`
+  - `oradba_install.sh` `determine_default_prefix()` uses `${ORACLE_BASE:-}`
+    and `${ORACLE_HOME:-}` to suppress spurious `set -u` errors in the
+    command-substitution subshell
+
 - **PDF Build: Suppress LaTeX `\underbar`/`\underline` Changed Warnings**
   - Added `awk`-based stderr filter to `scripts/build_pdf.sh` to suppress
     spurious two-line LaTeX warnings (`Command \underbar has changed` /

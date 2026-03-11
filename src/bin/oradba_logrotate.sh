@@ -15,8 +15,7 @@
 # ------------------------------------------------------------------------------
 
 # Set script defaults
-set -o pipefail
-set -o nounset
+set -euo pipefail
 
 # Script information
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")

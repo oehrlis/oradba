@@ -15,7 +15,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Script directory and name
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -34,7 +34,7 @@ else
 fi
 
 # Default values
-WALLET_DIR="${cdn:-${ORACLE_BASE}/network}/wallet"
+WALLET_DIR="${cdn:-${ORACLE_BASE:-}/network}/wallet"
 WALLET_PASSWORD="${WALLET_PASSWORD:-}"
 CONNECT_STRING=""
 QUIET=false

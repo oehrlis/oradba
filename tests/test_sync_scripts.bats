@@ -158,8 +158,8 @@ setup() {
     skip "Error handling implementation may vary - not critical for CI"
 }
 
-@test "sync_to_peers.sh has set -o pipefail" {
-    run bash -c "grep -q 'set -o pipefail' '$SYNC_TO_PEERS'"
+@test "sync_to_peers.sh has set -euo pipefail" {
+    run bash -c "grep -q 'set -euo pipefail' '$SYNC_TO_PEERS'"
     [[ "$status" -eq 0 ]]
 }
 

@@ -12,7 +12,7 @@
 # Example....: ./oradba_datasafe_debug.sh /appl/oracle/product/exacc-wob-vwg-ha1 dscon1
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -49,7 +49,7 @@ print_info() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Determine ORADBA_BASE
-if [[ -n "${ORADBA_BASE}" ]]; then
+if [[ -n "${ORADBA_BASE:-}" ]]; then
     print_success "ORADBA_BASE is set: ${ORADBA_BASE}"
 else
     # Try to derive from script location

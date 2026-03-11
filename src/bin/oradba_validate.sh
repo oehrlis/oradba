@@ -12,6 +12,8 @@
 # Usage......: oradba_validate.sh [-h|--help] [-v|--verbose]
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Script directory and setup
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"

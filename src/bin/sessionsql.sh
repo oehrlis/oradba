@@ -13,6 +13,8 @@
 # Reference..: Uses tput cols to detect terminal size
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Detect terminal width
 if command -v tput &> /dev/null; then
     TERM_COLS=$(tput cols 2> /dev/null || echo 120)

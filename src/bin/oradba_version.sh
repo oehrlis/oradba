@@ -14,10 +14,10 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Determine ORADBA_BASE
-if [[ -n "${ORADBA_BASE}" ]]; then
+if [[ -n "${ORADBA_BASE:-}" ]]; then
     BASE_DIR="${ORADBA_BASE}"
 elif [[ -L "${BASH_SOURCE[0]}" ]]; then
     # Script is symlinked, resolve to actual location

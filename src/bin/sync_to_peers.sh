@@ -15,7 +15,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Script directory and name
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,6 +36,7 @@ fi
 
 # Default values
 PEER_HOSTS_DEFAULT=()
+PEER_HOSTS=()
 SSH_USER_DEFAULT="oracle"
 SSH_PORT_DEFAULT="22"
 RSYNC_OPTS="-az"
@@ -71,7 +72,7 @@ load_config() {
     fi
 
     # Alternative config location
-    if [[ -n "${ETC_BASE}" && -d "${ETC_BASE}" ]]; then
+    if [[ -n "${ETC_BASE:-}" && -d "${ETC_BASE:-}" ]]; then
         local alt_conf="${ETC_BASE}/${SCRIPT_NAME%.sh}.conf"
         if [[ -f "${alt_conf}" ]]; then
             # shellcheck source=/dev/null
@@ -87,16 +88,16 @@ load_config() {
         config_files+=("${CONFIG_FILE}")
     fi
 
-    # Join config files with comma
+    # Join config files with comma (safe for empty arrays with set -u)
     LOADED_CONFIG=$(
         IFS=,
-        echo "${config_files[*]}"
+        echo "${config_files[*]-}"
     )
 
     # Use env vars or fall back to defaults
     SSH_USER="${SSH_USER:-${SSH_USER_DEFAULT}}"
     SSH_PORT="${SSH_PORT:-${SSH_PORT_DEFAULT}}"
-    PEER_HOSTS=("${PEER_HOSTS[@]:-${PEER_HOSTS_DEFAULT[@]}}")
+    if [[ ${#PEER_HOSTS[@]} -eq 0 ]]; then PEER_HOSTS=("${PEER_HOSTS_DEFAULT[@]-}"); fi
 }
 
 # ------------------------------------------------------------------------------

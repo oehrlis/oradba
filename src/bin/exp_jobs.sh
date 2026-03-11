@@ -14,6 +14,8 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -21,6 +23,7 @@ readonly SCRIPT_NAME
 
 # Debug flag
 DEBUG_ENABLED=false
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 
 # Source common functions if available
 if [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then

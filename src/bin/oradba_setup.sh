@@ -15,6 +15,8 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"

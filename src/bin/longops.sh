@@ -14,8 +14,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o errexit
-set -o pipefail
+set -euo pipefail
 
 # Script directory and sourcing common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,6 +23,7 @@ readonly SCRIPT_NAME
 
 # Debug flag
 DEBUG_ENABLED=false
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 
 # Source common functions if available
 if [[ -f "${SCRIPT_DIR}/../lib/oradba_common.sh" ]]; then
@@ -286,7 +286,7 @@ display_header() {
 # Notes...: Watch mode clears screen and loops with WATCH_INTERVAL; sources oraenv per SID
 # ------------------------------------------------------------------------------
 run_monitor() {
-    local sid_to_monitor="${SID_LIST:-${ORACLE_SID}}"
+    local sid_to_monitor="${SID_LIST:-${ORACLE_SID:-}}"
 
     debug_log "Starting run_monitor function"
     debug_log "SID_LIST: ${SID_LIST:-<empty>}"

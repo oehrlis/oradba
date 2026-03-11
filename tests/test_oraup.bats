@@ -68,8 +68,8 @@ setup() {
     grep "grep -E" "${ORAUP_SCRIPT}" | grep -q "db_pmon_\|ora_pmon_"
 }
 
-@test "oraup.sh contains get_listener_status function" {
-    grep -q "get_listener_status()" "${ORAUP_SCRIPT}"
+@test "oraup.sh uses plugin_check_listener_status for listener status" {
+    grep -q "plugin_check_listener_status" "${ORAUP_SCRIPT}"
 }
 
 @test "oraup.sh contains get_db_mode function" {

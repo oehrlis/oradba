@@ -173,36 +173,45 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High
 **Effort:** Large
+**Status:** Analysis complete — critical gap identified; fixes in progress
 
-### Findings
+### Findings (2026-03-10)
 
-- `#!/usr/bin/env bash` 100% compliance
-- `set -euo pipefail` intentionally NOT in sourced libraries (documented)
-- Unified logging via `oradba_log` with 8 levels
-- ShellCheck compliance at `warning` severity
-- SC1091, SC2030, SC2031, SC2314, SC2315 disabled
-- One deprecated function: `execute_plugin_function_v2()` with doc pointing
-  to replacement
+- `#!/usr/bin/env bash` 100% compliance ✓
+- **CRITICAL: All 30 `src/bin/*.sh` scripts are missing `set -euo pipefail`**
+  despite this being a stated convention. Some have partial options:
+  `set -e`, `set -o pipefail`, `set -o errexit` — none have the full triple.
+  - 4 scripts are dual-mode (sourced OR executed): `oradba_env.sh`,
+    `oradba_extension.sh`, `oradba_homes.sh`, `oraenv.sh` — adding
+    `set -euo pipefail` at top level would affect the sourcing shell, so
+    these are excluded from the blanket fix.
+  - 26 pure-executable scripts: all need `set -euo pipefail`
+- `set -euo pipefail` correctly absent from all `src/lib/*.sh` libraries
+  (intentional, documented)
+- `oradba_datasafe_debug.sh:370-376`: core library sourcing failures silently
+  suppressed with `2>/dev/null || true` — should at minimum log failure
+- `.shellcheckrc` disables: SC1091, SC2030, SC2031, SC2162, SC2181, SC2314,
+  SC2315, SC2329 — SC2162/SC2181 are borderline info/style; SC2329 is
+  questionable for library functions
+- 58 inline `# shellcheck disable=` annotations — mostly justified per review
+- Unified logging via `oradba_log` with 8 levels ✓
+- No TODO/FIXME/HACK comments found in `src/` ✓
+- Deprecated `execute_plugin_function_v2()` note removed (this is the
+  CURRENT production function, not deprecated — naming is confusing)
 
 ### Work Items
 
-- [ ] Run shellcheck across entire `src/` tree; review all remaining
-      warnings at `style` level — decide which to suppress vs fix
-- [ ] Audit ShellCheck disabled checks — are SC2314/SC2315 still needed
-      (BATS version-specific)?
-- [ ] Review all `TODO` / `FIXME` / `HACK` comments (none found currently —
-      verify with grep)
-- [ ] Audit variable naming: spot-check that internal (non-oradba_) variables
-      use `local` in functions
-- [ ] Review all `|| true` usages — distinguish legitimate error suppression
-      from accidental swallowing
-- [ ] Audit `2>/dev/null` suppressions — each one should be intentional
-- [ ] Check that `oradba_log` is used consistently; no stray bare `echo` or
-      `printf` for user-visible output in library files
-- [ ] Review the deprecated `execute_plugin_function_v2()` — schedule removal
-      in next minor version
-- [ ] Verify all scripts handle missing `ORACLE_HOME` or `ORACLE_SID`
-      gracefully (no uninitialised variable errors with `set -u`)
+- [x] **Add `set -euo pipefail`** to all 26 pure-executable `src/bin/*.sh`
+      scripts (upgrade from partial `set -e` / `set -o pipefail` where present)
+- [ ] Review `oradba_datasafe_debug.sh` core library sourcing suppressions
+      (lines ~370-376) — replace `|| true` with proper failure reporting
+- [ ] Audit ShellCheck disabled checks in `.shellcheckrc` — consider removing
+      SC2162 (read without -r) and SC2181 ($? comparison) if not needed
+- [ ] Run shellcheck at `style` level across `src/` — review findings
+- [ ] Review all `|| true` usages — distinguish legitimate from accidental
+- [ ] Audit `2>/dev/null` suppressions — each should be intentional
+- [ ] Verify all scripts handle missing `ORACLE_HOME`/`ORACLE_SID` gracefully
+      with `set -u` now active
 
 ---
 
@@ -264,13 +273,10 @@ through topics sequentially or in parallel — check off items as completed.
 - [x] Audit `src/sql/` for deprecated Oracle features — clean ✓
 - [x] Audit `src/rcv/` for outdated RMAN syntax — clean ✓
 - [x] Check `doc/images/` Mermaid files are all referenced ✓
-- [ ] **Remove** dead function `get_listener_status()` from
-      `src/bin/oraup.sh` (function + header comment block)
-- [ ] **Remove** deprecated `oradba_apply_oracle_plugin()` from
-      `src/lib/oradba_common.sh` — no callers found
-- [ ] **Clarify** `plugin_get_adjusted_paths()` Notes comment in
-      `datasafe_plugin.sh` — replace misleading "legacy" with "datasafe-specific
-      helper, not part of standard interface; remains supported"
+- [x] **Remove** dead function `get_listener_status()` from `src/bin/oraup.sh`
+- [x] **Remove** deprecated `oradba_apply_oracle_plugin()` from `src/lib/oradba_common.sh`
+- [x] **Remove** `plugin_get_adjusted_paths()` from `datasafe_plugin.sh` and
+      corresponding tests — odb_datasafe confirmed not using it
 - [x] **Orphaned scripts resolved**:
       `fix_doc_links.py` removed (legacy migration); `generate_api_docs.sh`
       removed (superseded by Python version); `generate_api_docs.py` wired
@@ -278,7 +284,7 @@ through topics sequentially or in parallel — check off items as completed.
       `make docs-clean`); `archive_github_releases.sh` rewritten — hardcoded
       list replaced with dynamic GitHub release discovery (`--keep N` /
       `--before VERSION`)
-- [ ] **Clean up** stale `.rman` reference in `src/rcv/README.md`
+- [x] **Clean up** stale `.rman` reference in `src/rcv/README.md` — handled by user
 
 ---
 

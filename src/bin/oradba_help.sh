@@ -13,6 +13,8 @@
 # License....: Apache License Version 2.0
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Script metadata (unused but kept for consistency)
 # shellcheck disable=SC2034
 SCRIPT_NAME="$(basename "$0")"

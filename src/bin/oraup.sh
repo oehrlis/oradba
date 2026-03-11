@@ -13,6 +13,8 @@
 # License....: Apache License Version 2.0, January 2004
 # ------------------------------------------------------------------------------
 
+set -euo pipefail
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
