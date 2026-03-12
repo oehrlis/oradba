@@ -70,6 +70,27 @@ OPT_TABLESPACES=""
 OPT_DATAFILES=""
 OPT_PLUGGABLE_DATABASE=""
 
+# RMAN configuration defaults (overridden by load_rman_config)
+RMAN_CHANNELS=""
+RMAN_FORMAT=""
+RMAN_TAG=""
+RMAN_COMPRESSION=""
+RMAN_BACKUP_PATH=""
+RMAN_CATALOG=""
+RMAN_NOTIFY_EMAIL=""
+RMAN_NOTIFY_ON_SUCCESS="false"
+RMAN_NOTIFY_ON_ERROR="true"
+RMAN_LOG_DIR=""
+RMAN_SET_COMMANDS_FILE=""
+RMAN_SET_COMMANDS_INLINE=""
+RMAN_TABLESPACES=""
+RMAN_DATAFILES=""
+RMAN_PLUGGABLE_DATABASE=""
+RMAN_SECTION_SIZE=""
+RMAN_ARCHIVE_RANGE=""
+RMAN_ARCHIVE_PATTERN=""
+RMAN_RESYNC_CATALOG=""
+
 # ------------------------------------------------------------------------------
 # Function: usage
 # Purpose.: Display comprehensive usage information for RMAN wrapper script
@@ -235,9 +256,9 @@ load_rman_config() {
     local config_file
 
     # Determine admin directory
-    if [[ -n "${ORADBA_ORA_ADMIN_SID}" ]]; then
+    if [[ -n "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
         config_file="${ORADBA_ORA_ADMIN_SID}/etc/oradba_rman.conf"
-    elif [[ -n "${ORACLE_BASE}" ]]; then
+    elif [[ -n "${ORACLE_BASE:-}" ]]; then
         config_file="${ORACLE_BASE}/admin/${sid}/etc/oradba_rman.conf"
     else
         oradba_log WARN "Cannot determine admin directory for ${sid}, using defaults"
@@ -360,7 +381,7 @@ EOF
     else
         # No path specified - use admin backup directory for SQL-generated files
         # RMAN FORMAT will use FRA, but SQL commands need a filesystem path
-        if [[ -z "${ORADBA_ORA_ADMIN_SID}" ]]; then
+        if [[ -z "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
             oradba_log ERROR "ORADBA_ORA_ADMIN_SID not set - cannot determine backup directory"
             return 1
         fi
@@ -590,14 +611,20 @@ execute_rman_for_sid() {
     export ORACLE_SID="${sid}"
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         # shellcheck source=oraenv.sh
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
+        # Temporarily disable strict mode: oraenv.sh and its sourced conf files may access
+        # unbound variables (set -u) or have internal command failures (set -e) that are
+        # expected in environments without Oracle installed. Re-enable after sourcing.
+        # ORACLE_HOME validation below handles the result.
+        set +eu
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
+        set -eu
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1
     fi
 
     # Validate ORACLE_HOME (skip in dry-run mode for test environments)
-    if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" || ! -d "${ORACLE_HOME:-}" ]]; then
         if [[ "${OPT_DRY_RUN}" == "true" ]]; then
             oradba_log WARN "ORACLE_HOME not set or invalid for SID: ${sid} (dry-run mode)"
             # In dry-run mode, use a dummy ORACLE_HOME for validation
@@ -609,17 +636,17 @@ execute_rman_for_sid() {
     fi
 
     # Set ORADBA_ORA_ADMIN_SID if not already set (needed for template processing)
-    if [[ -z "${ORADBA_ORA_ADMIN_SID}" && -n "${ORACLE_BASE}" ]]; then
+    if [[ -z "${ORADBA_ORA_ADMIN_SID:-}" && -n "${ORACLE_BASE:-}" ]]; then
         export ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${sid}"
         oradba_log DEBUG "Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
-    elif [[ -z "${ORADBA_ORA_ADMIN_SID}" && "${OPT_DRY_RUN}" == "true" ]]; then
+    elif [[ -z "${ORADBA_ORA_ADMIN_SID:-}" && "${OPT_DRY_RUN}" == "true" ]]; then
         # In dry-run mode without ORACLE_BASE, use a dummy path
         export ORADBA_ORA_ADMIN_SID="${ORADBA_BASE}/admin/${sid}"
         oradba_log DEBUG "Dry-run mode: Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
     fi
 
     # Validate admin directory exists (create if needed in dry-run mode)
-    if [[ -n "${ORADBA_ORA_ADMIN_SID}" && ! -d "${ORADBA_ORA_ADMIN_SID}" ]]; then
+    if [[ -n "${ORADBA_ORA_ADMIN_SID:-}" && ! -d "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
         if [[ "${OPT_DRY_RUN}" == "true" ]]; then
             oradba_log DEBUG "Creating admin directory for dry-run: ${ORADBA_ORA_ADMIN_SID}"
             mkdir -p "${ORADBA_ORA_ADMIN_SID}/log" "${ORADBA_ORA_ADMIN_SID}/backup" || {
@@ -632,8 +659,8 @@ execute_rman_for_sid() {
         fi
     fi
 
-    # Load SID-specific configuration
-    load_rman_config "${sid}"
+    # Load SID-specific configuration (optional — missing config uses defaults)
+    load_rman_config "${sid}" || true
 
     # Determine log directory
     local log_dir
@@ -770,9 +797,10 @@ execute_parallel_background() {
     done
 
     # Wait for all jobs to complete
+    # Use || true: success/failure tracked via success.txt/failed.txt, not exit codes
     oradba_log INFO "Waiting for ${#pids[@]} background job(s) to complete..."
     for pid in "${pids[@]}"; do
-        wait "${pid}"
+        wait "${pid}" || true
     done
 
     oradba_log INFO "All background jobs completed"
@@ -1003,6 +1031,12 @@ main() {
         exit 2
     fi
 
+    # Validate RCV script exists (check direct path and ORADBA_BASE/rcv/)
+    if [[ ! -f "${OPT_RCV_SCRIPT}" ]] && [[ ! -f "${ORADBA_BASE}/rcv/${OPT_RCV_SCRIPT}" ]]; then
+        echo "ERROR: RCV script not found: ${OPT_RCV_SCRIPT}" >&2
+        exit 1
+    fi
+
     # Create temporary directory
     mkdir -p "${TEMP_DIR}" || {
         echo "ERROR: Cannot create temporary directory: ${TEMP_DIR}" >&2
@@ -1051,9 +1085,15 @@ main() {
             execute_parallel_background "${SID_ARRAY[@]}"
         fi
 
-        # Read results
-        [[ -f "${TEMP_DIR}/success.txt" ]] && mapfile -t SUCCESSFUL_SIDS < "${TEMP_DIR}/success.txt"
-        [[ -f "${TEMP_DIR}/failed.txt" ]] && mapfile -t FAILED_SIDS < "${TEMP_DIR}/failed.txt"
+        # Read results (bash 3 compatible: avoid mapfile/readarray)
+        if [[ -f "${TEMP_DIR}/success.txt" ]]; then
+            SUCCESSFUL_SIDS=()
+            while IFS= read -r line; do SUCCESSFUL_SIDS+=("$line"); done < "${TEMP_DIR}/success.txt"
+        fi
+        if [[ -f "${TEMP_DIR}/failed.txt" ]]; then
+            FAILED_SIDS=()
+            while IFS= read -r line; do FAILED_SIDS+=("$line"); done < "${TEMP_DIR}/failed.txt"
+        fi
     fi
 
     # Summary

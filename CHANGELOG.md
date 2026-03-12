@@ -52,6 +52,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`oradba_rman.sh` / `oradba_help.sh`: `set -euo pipefail` Compatibility**
+  - `source oraenv.sh` wrapped with `set +eu` / `set -eu` in
+    `execute_rman_for_sid()` — `oraenv.sh` and its sourced conf files access
+    unbound variables and may return non-zero in Oracle-less environments;
+    without disabling strict mode the parent process was killed before
+    `|| true` could intercept, breaking all per-SID dry-run tests
+  - Added upfront RCV script existence check in `main()` before SID processing
+    so `oradba_rman.sh --rcv nonexistent.rcv` fails immediately with a clear
+    error message rather than dying silently inside `execute_rman_for_sid()`
+  - `${ORACLE_HOME:-}`, `${ORADBA_ORA_ADMIN_SID:-}`, `${ORACLE_BASE:-}` safe
+    expansions added in `execute_rman_for_sid()` and `load_rman_config()` to
+    guard against `set -u` for variables not set in test environments
+  - `mapfile -t` replaced with `while IFS= read -r` loop in `main()` for
+    reading parallel-job result files — `mapfile` is bash 4+; macOS ships
+    `/bin/bash` 3.2 which caused `command not found` for parallel tests
+  - `${ORACLE_SID:-}` safe expansion in `show_config_help()` config-file
+    array in `oradba_help.sh` — `${ORACLE_SID}` without default triggered
+    `set -u` when help was invoked without Oracle environment set
+  - Removed unused `readonly SCRIPT_NAME` / `readonly SCRIPT_VERSION`
+    variables from `oradba_help.sh` (SC2034 shellcheck warnings)
+  - Pipeline `env | grep "^ORADBA_" | sort | while read` in
+    `show_variables_help()` replaced with process substitution
+    `< <(… || true)` to prevent `set -o pipefail` exit when no `ORADBA_`
+    variables are set
+  - `${!var}` indirect expansion for Oracle variables in `show_variables_help()`
+    changed to `${!var-}` to suppress `set -u` when vars are unbound
+
 - **`set -euo pipefail` Compatibility Fixes**
   - `get_oratab_path()` in `src/lib/oradba_common.sh` changed to `return 0`
     in the default-path case — previously returned 1 ("not found") even though

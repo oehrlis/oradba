@@ -15,14 +15,6 @@
 
 set -euo pipefail
 
-# Script metadata (unused but kept for consistency)
-# shellcheck disable=SC2034
-SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
-# shellcheck disable=SC2034
-SCRIPT_VERSION="0.10.4"
-readonly SCRIPT_VERSION
-
 # Color definitions
 readonly COLOR_RESET='\033[0m'
 readonly COLOR_BOLD='\033[1m'
@@ -157,15 +149,16 @@ show_variables_help() {
     echo ""
 
     echo -e "${COLOR_GREEN}OraDBA Variables:${COLOR_RESET}"
-    env | grep "^ORADBA_" | sort | while IFS= read -r line; do
+    while IFS= read -r line; do
         echo "  $line"
-    done
+    done < <(env | grep "^ORADBA_" | sort || true)
 
     echo ""
     echo -e "${COLOR_GREEN}Oracle Variables:${COLOR_RESET}"
     for var in ORACLE_SID ORACLE_HOME ORACLE_BASE TNS_ADMIN NLS_LANG; do
-        if [[ -n "${!var}" ]]; then
-            echo "  $var=${!var}"
+        local val="${!var-}"
+        if [[ -n "$val" ]]; then
+            echo "  $var=$val"
         fi
     done
 
@@ -200,7 +193,7 @@ show_config_help() {
         "oradba_standard.conf:Standard environment and aliases"
         "oradba_customer.conf:Your custom settings (optional)"
         "sid._DEFAULT_.conf:Default SID settings (optional)"
-        "sid.${ORACLE_SID}.conf:Current SID settings (optional)"
+        "sid.${ORACLE_SID:-}.conf:Current SID settings (optional)"
     )
 
     for entry in "${config_files[@]}"; do
