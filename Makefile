@@ -295,7 +295,7 @@ build: clean clean-test-configs ## Build distribution archive and installer
 	@echo -e "$(COLOR_BLUE)Building OraDBA distribution and installer...$(COLOR_RESET)"
 	@bash $(SCRIPTS_DIR)/build_installer.sh
 	@echo -e "$(COLOR_GREEN)✓ Build complete$(COLOR_RESET)"
-	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION_FULL).tar.gz $(DIST_DIR)/oradba_install.sh
+	@ls -lh $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION_FULL).tar.gz $(DIST_DIR)/$(PROJECT_NAME)-sql-$(VERSION_FULL).tar.gz $(DIST_DIR)/oradba_install.sh
 
 .PHONY: build-dev
 build-dev: ## Build distribution with -dev suffix for testing

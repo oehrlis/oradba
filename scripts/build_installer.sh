@@ -32,6 +32,8 @@ BUILD_DIR="build"
 DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
 DIST_TARBALL="${DIST_DIR}/${PACKAGE_NAME}.tar.gz"
+SQL_PACKAGE_NAME="oradba-sql-${VERSION}"
+SQL_DIST_TARBALL="${DIST_DIR}/${SQL_PACKAGE_NAME}.tar.gz"
 INSTALLER_OUTPUT="${DIST_DIR}/oradba_install.sh"
 CHECK_SCRIPT_OUTPUT="${DIST_DIR}/oradba_check.sh"
 
@@ -224,10 +226,23 @@ tar -czf "$DIST_TARBALL" \
     -C "$TEMP_TAR_DIR" \
     .
 
+echo "Creating SQL distribution tarball..."
+SQL_TAR_DIR="${BUILD_DIR}/sql_staging"
+mkdir -p "${SQL_TAR_DIR}/oradba"
+cp -r src/sql "${SQL_TAR_DIR}/oradba/"
+tar -czf "$SQL_DIST_TARBALL" \
+    --exclude='.git' \
+    --exclude='*.log' \
+    --exclude='*.tmp' \
+    -C "$SQL_TAR_DIR" \
+    oradba
+
 # Clean up staging directory
 rm -rf "$TEMP_TAR_DIR"
+rm -rf "$SQL_TAR_DIR"
 
 echo "Distribution tarball: $(du -h "$DIST_TARBALL" | cut -f1)"
+echo "SQL tarball:          $(du -h "$SQL_DIST_TARBALL" | cut -f1)"
 
 # Copy standalone installer and prepare it
 echo "Preparing installer script..."
@@ -270,10 +285,12 @@ echo "Generating SHA256 checksums..."
 
 if command -v sha256sum &> /dev/null; then
     sha256sum "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
+    sha256sum "$SQL_DIST_TARBALL" > "${SQL_DIST_TARBALL}.sha256"
     sha256sum "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
     sha256sum "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
 elif command -v shasum &> /dev/null; then
     shasum -a 256 "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
+    shasum -a 256 "$SQL_DIST_TARBALL" > "${SQL_DIST_TARBALL}.sha256"
     shasum -a 256 "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
     shasum -a 256 "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
 else
@@ -282,6 +299,7 @@ fi
 
 if [[ -f "${DIST_TARBALL}.sha256" ]]; then
     echo "  ✓ Created ${DIST_TARBALL}.sha256"
+    echo "  ✓ Created ${SQL_DIST_TARBALL}.sha256"
     echo "  ✓ Created ${INSTALLER_OUTPUT}.sha256"
     echo "  ✓ Created ${CHECK_SCRIPT_OUTPUT}.sha256"
 fi
@@ -291,12 +309,14 @@ echo "========================================="
 echo "Build completed successfully!"
 echo "========================================="
 echo "Distribution: $DIST_TARBALL ($(du -h "$DIST_TARBALL" | cut -f1))"
+echo "SQL Package:  $SQL_DIST_TARBALL ($(du -h "$SQL_DIST_TARBALL" | cut -f1))"
 echo "Installer:    $INSTALLER_OUTPUT ($(du -h "$INSTALLER_OUTPUT" | cut -f1))"
 echo "Check Script: $CHECK_SCRIPT_OUTPUT ($(du -h "$CHECK_SCRIPT_OUTPUT" | cut -f1))"
 if [[ -f "${DIST_TARBALL}.sha256" ]]; then
     echo ""
     echo "SHA256 Checksums:"
     echo "  - ${DIST_TARBALL}.sha256"
+    echo "  - ${SQL_DIST_TARBALL}.sha256"
     echo "  - ${INSTALLER_OUTPUT}.sha256"
     echo "  - ${CHECK_SCRIPT_OUTPUT}.sha256"
 fi
@@ -310,6 +330,8 @@ echo ""
 echo "For GitHub release, upload:"
 echo "  - $DIST_TARBALL"
 echo "  - $DIST_TARBALL.sha256"
+echo "  - $SQL_DIST_TARBALL"
+echo "  - $SQL_DIST_TARBALL.sha256"
 echo "  - $INSTALLER_OUTPUT"
 echo "  - $INSTALLER_OUTPUT.sha256"
 echo "  - $CHECK_SCRIPT_OUTPUT"

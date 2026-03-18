@@ -151,11 +151,14 @@ jobs:
         run: |
           ./scripts/build_installer.sh
       
-      - name: Upload installer artifact
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: oradba-installer
-          path: dist/oradba_install.sh
+          path: |
+            dist/oradba_install.sh
+            dist/oradba-sql-*.tar.gz
+            dist/oradba-sql-*.tar.gz.sha256
           retention-days: 30
       
       - name: Display build info

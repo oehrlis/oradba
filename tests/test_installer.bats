@@ -128,6 +128,27 @@ teardown() {
     [ -f "${PROJECT_ROOT}/dist/oradba-${version}.tar.gz" ]
 }
 
+@test "build creates SQL tarball payload" {
+    cd "$PROJECT_ROOT"
+    ./scripts/build_installer.sh >/dev/null 2>&1
+    version=$(cat VERSION)
+    [ -f "${PROJECT_ROOT}/dist/oradba-sql-${version}.tar.gz" ]
+}
+
+@test "SQL tarball contains sql files under oradba/sql" {
+    cd "$PROJECT_ROOT"
+    ./scripts/build_installer.sh >/dev/null 2>&1
+    version=$(cat VERSION)
+    tar -tzf "${PROJECT_ROOT}/dist/oradba-sql-${version}.tar.gz" | grep -q "^oradba/sql/"
+}
+
+@test "build creates SQL tarball checksum" {
+    cd "$PROJECT_ROOT"
+    ./scripts/build_installer.sh >/dev/null 2>&1
+    version=$(cat VERSION)
+    [ -f "${PROJECT_ROOT}/dist/oradba-sql-${version}.tar.gz.sha256" ]
+}
+
 @test "built installer is executable" {
     cd "$PROJECT_ROOT"
     ./scripts/build_installer.sh >/dev/null 2>&1

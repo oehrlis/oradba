@@ -116,6 +116,8 @@ jobs:
           - **oradba_install.sh**: Self-contained installer with embedded payload
           - **oradba_check.sh**: Standalone prerequisites checker (can be run before installation)
           - **oradba-${VERSION}.tar.gz**: Distribution tarball with version-substituted installer
+          - **oradba-sql-${VERSION}.tar.gz**: SQL scripts bundle packaged as `oradba/sql`
+          - **oradba-sql-${VERSION}.tar.gz.sha256**: SHA256 checksum for the SQL scripts bundle
           - **oradba-user-guide.pdf**: Complete user documentation (PDF)
           EOF
           fi
@@ -128,6 +130,8 @@ jobs:
             "dist/oradba_install.sh" \
             "dist/oradba_check.sh" \
             "dist/oradba-${{ steps.version.outputs.version }}.tar.gz" \
+            "dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz" \
+            "dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz.sha256" \
             "dist/oradba-user-guide.pdf"; do
             if [ ! -f "$file" ]; then
               echo "ERROR: Missing required file: $file"
@@ -153,12 +157,17 @@ jobs:
             dist/oradba_install.sh
             dist/oradba_check.sh
             dist/oradba-${{ steps.version.outputs.version }}.tar.gz
+            dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz
+            dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz.sha256
             dist/oradba-user-guide.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload installer artifact
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: oradba-installer-v${{ steps.version.outputs.version }}
-          path: dist/oradba_install.sh
+          path: |
+            dist/oradba_install.sh
+            dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz
+            dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz.sha256
