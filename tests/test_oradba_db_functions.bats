@@ -127,12 +127,14 @@ setup() {
 
 # Integration test: show_database_status handles no connection gracefully
 @test "show_database_status handles missing connection gracefully" {
+    # Ensure the function takes the database path, not the iclient/non-db early exit
+    unset ORADBA_CURRENT_HOME_TYPE
     # Mock sqlplus to simulate no connection
     sqlplus() {
         return 1
     }
     export -f sqlplus
-    
+
     run show_database_status
     # Should return 0 (success) because it shows environment info with NOT STARTED status
     [ "$status" -eq 0 ]

@@ -1137,7 +1137,7 @@ done
 
 log_debug "oradba_install.sh: CLI parsing complete"
 log_debug "oradba_install.sh: INSTALL_MODE=${INSTALL_MODE}, UPDATE_MODE=${UPDATE_MODE}"
-log_debug "oradba_install.sh: USER_PREFIX=${USER_PREFIX}, ORACLE_BASE_ARG=${ORACLE_BASE_ARG}, USER_LEVEL=${USER_LEVEL}"
+log_debug "oradba_install.sh: INSTALL_PREFIX=${INSTALL_PREFIX}, ORACLE_BASE_PARAM=${ORACLE_BASE_PARAM}, USER_LEVEL_INSTALL=${USER_LEVEL_INSTALL}"
 log_debug "oradba_install.sh: GITHUB_VERSION=${GITHUB_VERSION}, LOCAL_TARBALL=${LOCAL_TARBALL}"
 
 # Validate arguments (before checking prefix requirements)
@@ -2223,14 +2223,14 @@ BASENV_DETECTED="no"
 COEXIST_MODE="standalone"
 
 # Check for basenv markers
-if [[ -f "${HOME}/.BE_HOME" ]] || [[ -f "${HOME}/.TVDPERL_HOME" ]] || [[ -n "${BE_HOME}" ]]; then
+if [[ -f "${HOME}/.BE_HOME" ]] || [[ -f "${HOME}/.TVDPERL_HOME" ]] || [[ -n "${BE_HOME:-}" ]]; then
     BASENV_DETECTED="yes"
     COEXIST_MODE="basenv"
     log_info "TVD BasEnv / DB*Star detected - enabling coexistence mode"
     log_info "OraDBA will not override existing basenv aliases and settings"
 
     # Show basenv details if available
-    if [[ -n "${BE_HOME}" ]]; then
+    if [[ -n "${BE_HOME:-}" ]]; then
         log_info "  BE_HOME: ${BE_HOME}"
     elif [[ -f "${HOME}/.BE_HOME" ]]; then
         # shellcheck disable=SC1090
