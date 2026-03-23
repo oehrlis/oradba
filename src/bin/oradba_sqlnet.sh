@@ -101,9 +101,9 @@ EOF
 # Notes...: Precedence: TNS_ADMIN env var, then ORACLE_HOME, finally HOME fallback
 # ------------------------------------------------------------------------------
 get_tns_admin() {
-    if [[ -n "${TNS_ADMIN}" ]]; then
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
         echo "${TNS_ADMIN}"
-    elif [[ -n "${ORACLE_HOME}" ]]; then
+    elif [[ -n "${ORACLE_HOME:-}" ]]; then
         echo "${ORACLE_HOME}/network/admin"
     else
         echo "${HOME}/.oracle/network/admin"
@@ -141,7 +141,7 @@ backup_file() {
 #           Read-only homes use ORACLE_BASE_HOME and ORACLE_BASE_CONFIG for writable files
 # ------------------------------------------------------------------------------
 is_readonly_home() {
-    local oracle_home="${1:-${ORACLE_HOME}}"
+    local oracle_home="${1:-${ORACLE_HOME:-}}"
 
     if [[ -z "${oracle_home}" ]]; then
         return 1
@@ -242,7 +242,7 @@ migrate_config_files() {
 
             mv "${source_dir}/${file}" "${target_dir}/${file}"
             echo "✓ Moved ${file} to ${target_dir}"
-            ((moved++))
+            moved=$(( moved + 1 ))
         fi
     done
 
@@ -296,7 +296,7 @@ create_symlinks() {
         if [[ -f "${target}" ]] || [[ "${file}" == "sqlnet.ora" ]] || [[ "${file}" == "tnsnames.ora" ]]; then
             ln -sf "${target}" "${link}"
             echo "✓ Created symlink: ${link} -> ${target}"
-            ((created++))
+            created=$(( created + 1 ))
         fi
     done
 
@@ -360,8 +360,8 @@ EOF
 # Notes...: Orchestrates: structure creation, file migration, path updates, symlinks; exports TNS_ADMIN
 # ------------------------------------------------------------------------------
 setup_tns_admin() {
-    local sid="${1:-${ORACLE_SID}}"
-    local oracle_home="${2:-${ORACLE_HOME}}"
+    local sid="${1:-${ORACLE_SID:-}}"
+    local oracle_home="${2:-${ORACLE_HOME:-}}"
 
     if [[ -z "${sid}" ]]; then
         echo "ERROR: ORACLE_SID required (set ORACLE_SID or provide as argument)" >&2
@@ -461,9 +461,9 @@ setup_all_tns_admin() {
         # Setup for this database
         echo "Processing ${sid}..."
         if setup_tns_admin "${sid}" "${home}"; then
-            ((count++))
+            count=$(( count + 1 ))
         else
-            ((errors++))
+            errors=$(( errors + 1 ))
         fi
         echo ""
         echo ""
@@ -685,7 +685,7 @@ validate_config() {
     fi
 
     # Check ORACLE_HOME
-    if [[ -n "${ORACLE_HOME}" ]]; then
+    if [[ -n "${ORACLE_HOME:-}" ]]; then
         echo "✓ ORACLE_HOME is set: ${ORACLE_HOME}"
     else
         echo "⚠ ORACLE_HOME not set" >&2
@@ -719,7 +719,7 @@ backup_config() {
     for file in sqlnet.ora tnsnames.ora ldap.ora; do
         if [[ -f "${tns_admin}/${file}" ]]; then
             backup_file "${tns_admin}/${file}"
-            ((backup_count++))
+            backup_count=$(( backup_count + 1 ))
         fi
     done
 
@@ -758,7 +758,7 @@ main() {
             install_sqlnet "${2}"
             ;;
         -g | --generate)
-            if [[ -z "${2}" ]]; then
+            if [[ -z "${2:-}" ]]; then
                 echo "ERROR: ORACLE_SID required" >&2
                 usage
                 exit 1
@@ -766,7 +766,7 @@ main() {
             generate_tnsnames "${2}"
             ;;
         -t | --test)
-            if [[ -z "${2}" ]]; then
+            if [[ -z "${2:-}" ]]; then
                 echo "ERROR: TNS alias required" >&2
                 usage
                 exit 1
@@ -783,7 +783,7 @@ main() {
             backup_config
             ;;
         -s | --setup)
-            setup_tns_admin "${2}"
+            setup_tns_admin "${2:-}"
             ;;
         -a | --setup-all)
             setup_all_tns_admin

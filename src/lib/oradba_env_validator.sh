@@ -78,7 +78,7 @@ _oradba_validator_log() {
 # ------------------------------------------------------------------------------
 # shellcheck disable=SC2120  # Optional argument pattern
 oradba_validate_oracle_home() {
-    local oracle_home="${1:-${ORACLE_HOME}}"
+    local oracle_home="${1-${ORACLE_HOME:-}}"
     
     [[ -z "$oracle_home" ]] && return 1
     [[ ! -d "$oracle_home" ]] && return 1

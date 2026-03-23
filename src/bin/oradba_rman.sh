@@ -615,9 +615,16 @@ execute_rman_for_sid() {
         # unbound variables (set -u) or have internal command failures (set -e) that are
         # expected in environments without Oracle installed. Re-enable after sourcing.
         # ORACLE_HOME validation below handles the result.
+        # Save ORADBA_ORA_ADMIN_SID: oradba_standard.conf resets it to
+        # ${ORACLE_BASE}/admin/${ORACLE_SID} which would override any caller-supplied value.
+        local _saved_admin_sid="${ORADBA_ORA_ADMIN_SID:-}"
         set +eu
         source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
         set -eu
+        # Restore caller-supplied value if it was explicitly set before sourcing
+        if [[ -n "${_saved_admin_sid}" ]]; then
+            export ORADBA_ORA_ADMIN_SID="${_saved_admin_sid}"
+        fi
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1

@@ -162,9 +162,11 @@ check_integrity() {
 
     # Verify checksums and capture output
     # Exclude .install_info as it's modified during installation
-    local verify_output
-    verify_output=$(grep -Ev "${runtime_modified_pattern}" "${checksum_file}" | sha256sum -c - 2>&1)
-    local verify_status=$?
+    # Note: sha256sum -c exits non-zero when mismatches are found; capture status without
+    # triggering set -e by using || assignment so script doesn't abort before formatting output.
+    local verify_output=""
+    local verify_status=0
+    verify_output=$(grep -Ev "${runtime_modified_pattern}" "${checksum_file}" | sha256sum -c - 2>&1) || verify_status=$?
 
     local integrity_result=0
 
@@ -197,10 +199,10 @@ check_integrity() {
                 local file="${BASH_REMATCH[1]}"
                 # Remove leading space if present
                 file="${file# }"
-                # Skip if already reported
-                if [[ -z "${reported_files[$file]}" ]]; then
+                # Skip if already reported (use :- to handle unset key with set -u)
+                if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MISSING"
-                    ((missing_count++))
+                    missing_count=$(( missing_count + 1 ))
                     reported_files[$file]=1
                 fi
                 continue
@@ -216,18 +218,18 @@ check_integrity() {
                 # File not found or can't be read
                 local file="${BASH_REMATCH[1]}"
                 # Skip if already reported
-                if [[ -z "${reported_files[$file]}" ]]; then
+                if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MISSING"
-                    ((missing_count++))
+                    missing_count=$(( missing_count + 1 ))
                     reported_files[$file]=1
                 fi
             elif [[ "$line" =~ ^(.+):[[:space:]]*FAILED$ ]]; then
                 # Checksum mismatch
                 local file="${BASH_REMATCH[1]}"
                 # Skip if already reported
-                if [[ -z "${reported_files[$file]}" ]]; then
+                if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MODIFIED"
-                    ((modified_count++))
+                    modified_count=$(( modified_count + 1 ))
                     reported_files[$file]=1
                 fi
             fi
@@ -315,7 +317,7 @@ check_additional_files() {
         done
 
         # Show backup commands if requested
-        if [[ "${SHOW_BACKUP}" == "true" ]]; then
+        if [[ "${SHOW_BACKUP:-}" == "true" ]]; then
             echo ""
             echo "  Backup commands:"
             for file in "${additional_files[@]}"; do
@@ -346,7 +348,7 @@ check_extension_checksums() {
     fi
 
     # Check extensions in ORADBA_LOCAL_BASE if set and different
-    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]] && [[ "${ORADBA_LOCAL_BASE}" != "${BASE_DIR}/extensions" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]] && [[ "${ORADBA_LOCAL_BASE}" != "${BASE_DIR}/extensions" ]]; then
         while IFS= read -r -d '' checksum_file; do
             local checksum_dir
             checksum_dir=$(dirname "${checksum_file}")
