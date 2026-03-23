@@ -234,7 +234,7 @@ jobs:
       
       - name: Generate documentation
         run: |
-          docker pull oehrlis/pandoc:latest
+          docker pull oehrlis/pandoc:latest-full
           make docs
       
       - name: Upload documentation artifacts

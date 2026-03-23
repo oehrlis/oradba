@@ -66,7 +66,7 @@ jobs:
       - name: Generate documentation
         run: |
           echo "Generating PDF and HTML documentation..."
-          docker pull oehrlis/pandoc:latest
+          docker pull oehrlis/pandoc:latest-full
           make docs-pdf
           
           # Verify docs were generated
