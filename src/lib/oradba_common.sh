@@ -1585,6 +1585,10 @@ execute_plugin_function_v2() {
                 echo "WARNING: Skipping experimental plugin: ${product_type}" >&2
                 exit 1
             fi
+            # Warn if plugin declares a different interface version than expected
+            if [[ -n "${plugin_interface_version:-}" ]] && [[ "${plugin_interface_version}" != "1.0.0" ]]; then
+                echo "WARNING: Plugin ${product_type} declares interface_version=${plugin_interface_version} (expected 1.0.0) — compatibility not guaranteed" >&2
+            fi
             if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
                 exit 1
             fi
@@ -1619,6 +1623,10 @@ execute_plugin_function_v2() {
                 # Log to stderr so it doesn't pollute stdout
                 echo "WARNING: Skipping experimental plugin: ${product_type}" >&2
                 exit 1
+            fi
+            # Warn if plugin declares a different interface version than expected
+            if [[ -n "${plugin_interface_version:-}" ]] && [[ "${plugin_interface_version}" != "1.0.0" ]]; then
+                echo "WARNING: Plugin ${product_type} declares interface_version=${plugin_interface_version} (expected 1.0.0) — compatibility not guaranteed" >&2
             fi
             if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
                 exit 1

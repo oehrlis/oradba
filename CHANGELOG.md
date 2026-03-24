@@ -77,6 +77,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`execute_plugin_function_v2`: plugin interface version mismatch now warned**
+  — `plugin_interface_version` was declared by all plugins but never checked;
+  loading a plugin that declares a version other than `1.0.0` now emits a
+  `WARNING` to stderr (non-fatal); both the no-arg and with-arg subshell
+  branches are covered (`src/lib/oradba_common.sh`)
+
+- **`load_extension`: unreadable extension directory now fails with WARN**
+  — previously only checked `[[ -d ... ]]`; an existing but unreadable directory
+  was silently added to PATH, causing mysterious "command not found" errors at
+  runtime; now checks `-r` and `-x` and returns 1 with a WARN message
+  (`src/lib/extensions.sh`)
+
 - **`oradba_rman.sh` / `oradba_help.sh`: `set -euo pipefail` Compatibility**
   - `source oraenv.sh` wrapped with `set +eu` / `set -eu` in
     `execute_rman_for_sid()` — `oraenv.sh` and its sourced conf files access

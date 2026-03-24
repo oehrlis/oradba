@@ -486,6 +486,10 @@ load_extension() {
         oradba_log WARN "Extension directory not found: ${ext_path}"
         return 1
     fi
+    if [[ ! -r "${ext_path}" ]] || [[ ! -x "${ext_path}" ]]; then
+        oradba_log WARN "Extension directory not readable: ${ext_path} (permission denied)"
+        return 1
+    fi
 
     # Get extension name
     ext_name="$(get_extension_name "${ext_path}")"

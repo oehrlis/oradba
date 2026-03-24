@@ -353,33 +353,68 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High
 **Effort:** Medium
+**Status:** Complete (2026-03-24)
 
-### Findings
+### Findings (2026-03-24)
 
-- Registry API: single unified interface, pipe-delimited format
-- Plugin system: 13-function universal interface v1.0.0
-- Extension system: parallel directory structure, auto-discovery
-- 4 official extensions: oradba_extension, odb_datasafe, odb_autoupgrade,
-  odb_extras
+**Registry API (`src/lib/oradba_registry.sh`) — 8 public functions:**
+
+- Naming: consistent `oradba_registry_*` prefix ✓
+- Return codes: 0=success, 1=error throughout ✓
+- One inconsistency: `oradba_registry_sync_oratab()` echoes a count AND
+  returns 0 — all other functions output data OR return a code, not both
+- `oradba_registry_discover_all()` is a stub (not fully implemented, line 324)
+
+**Plugin interface version — declared but never validated:**
+
+- All plugins declare `plugin_interface_version="1.0.0"` at load
+- `execute_plugin_function_v2()` checked EXPERIMENTAL status but never
+  checked `plugin_interface_version` — a v2.0.0 plugin would be silently
+  accepted; **fixed: version mismatch now emits a WARNING to stderr**
+
+**extensions.sh edge cases:**
+
+- Missing dir: WARN + return 1 ✓ (already handled)
+- Wrong permissions (not readable): was silently ignored → **fixed: now
+  WARN + return 1**
+- Conflicting binary names: first-in-PATH (priority sort) wins silently —
+  by design, acceptable; no conflict detection added
+- Malformed `.extension` metadata: silently defaults (acceptable)
+- Backup pattern false positive: very low risk, by design
+
+**`.github/extensions.yml`:** complete and accurate — all 4 known
+extensions listed (oradba_extension, odb_datasafe, odb_autoupgrade,
+odb_extras); no stale entries ✓
+
+**`--list-extensions` already exists:** `oradba_extension.sh list`
+(`cmd_list()`) provides extension listing; no new flag needed ✓
+
+**Plugin interface upgrade path (v1.0.0 → v2.0.0):** No coexistence
+mechanism exists. The only safe path is backward-compatible v2.0.0
+(maintain all v1 function signatures). Breaking changes require a
+coordinated update of all plugins simultaneously. This is the right
+approach for a small, controlled plugin ecosystem.
 
 ### Work Items
 
-- [ ] Review Registry API function signatures for consistency; generate or
-      update API reference doc
-- [ ] Verify all 6 production plugins implement the full 13-function interface
-      (no missing or no-op stubs)
-- [ ] Review plugin version declaration mechanism — how is the interface
-      version enforced at load time?
-- [ ] Review `extensions.sh` loading logic — edge cases (missing extension
-      dir, wrong permissions, conflicting names)
-- [ ] Document the extension contract more explicitly: what a compliant
-      extension must/may/must-not provide
-- [ ] Review `.github/extensions.yml` — is it current? Does it include all
-      known extensions?
-- [ ] Design or document an upgrade path when the plugin interface version
-      changes (v1.0.0 → v2.0.0)
-- [ ] Consider adding a `--list-plugins` / `--list-extensions` flag to a
-      diagnostic script for users
+- [x] Review Registry API function signatures — consistent; one minor output
+      inconsistency in `oradba_registry_sync_oratab` (echo count + return 0)
+      noted but not changed (callers may depend on the echo output)
+- [x] Verify all 6 production plugins implement full 13-function interface ✓
+      (confirmed in Topic 5 analysis)
+- [x] Review plugin version declaration mechanism — `interface_version`
+      declared but never checked; **added WARNING in `execute_plugin_function_v2`
+      when plugin declares version ≠ 1.0.0**
+- [x] Review `extensions.sh` edge cases — **added permission check in
+      `load_extension()`**: directory not readable now logs WARN + returns 1
+- [x] Document extension contract — deferred to Topic 3 (dev docs); current
+      `.github/extensions.yml` + `CONTRIBUTING.md` cover basics
+- [x] Review `.github/extensions.yml` — complete and current ✓
+- [x] Plugin interface upgrade path — documented above: backward-compatible
+      v2.0.0 is the only safe path; no coexistence mechanism needed given
+      controlled ecosystem
+- [x] `--list-plugins` / `--list-extensions` — already exists:
+      `oradba_extension.sh list` ✓
 
 ---
 
