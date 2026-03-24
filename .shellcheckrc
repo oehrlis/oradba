@@ -6,14 +6,15 @@
 # This matches the CI pipeline: shellcheck -x -S warning
 severity=warning
 
-# Disable checks that are false positives for BATS test files
+# Disable checks that are false positives for BATS test files or library patterns
 # SC1091: Can't follow sourced files in test context
 # SC2030/SC2031: Variable modifications in subshells (BATS tests run in subshells)
-# SC2162: read without -r (info level)
-# SC2181: Check exit code directly (style level)
 # SC2314/SC2315: BATS-specific ! handling
-# SC2329: Function never invoked (info level)
-disable=SC1091,SC2030,SC2031,SC2162,SC2181,SC2314,SC2315,SC2329
+# SC2329: Function never invoked (info level — expected for library functions)
+# Removed (zero occurrences in codebase, verified 2026-03-24):
+#   SC2162: read without -r
+#   SC2181: Check exit code directly ($? comparison)
+disable=SC1091,SC2030,SC2031,SC2314,SC2315,SC2329
 
 # Optionally disable other specific checks (uncomment as needed)
 # disable=SC2034  # Unused variables

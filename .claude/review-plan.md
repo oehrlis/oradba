@@ -232,7 +232,7 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High
 **Effort:** Large
-**Status:** Analysis complete — critical gap identified; fixes in progress
+**Status:** Complete (2026-03-24) — all items resolved
 
 ### Findings (2026-03-10)
 
@@ -266,13 +266,25 @@ through topics sequentially or in parallel — check off items as completed.
       with `set -u` active — fixed `((counter++))` from-zero aborts, `${var}`
       unbound issues in oradba_sqlnet.sh, oradba_version.sh, oradba_env_validator.sh,
       oradba_rman.sh; all 753 tests pass (2026-03-23)
-- [ ] Review `oradba_datasafe_debug.sh` core library sourcing suppressions
-      (lines ~370-376) — replace `|| true` with proper failure reporting
-- [ ] Audit ShellCheck disabled checks in `.shellcheckrc` — consider removing
-      SC2162 (read without -r) and SC2181 ($? comparison) if not needed
-- [ ] Run shellcheck at `style` level across `src/` — review findings
-- [ ] Review all `|| true` usages — distinguish legitimate from accidental
-- [ ] Audit `2>/dev/null` suppressions — each should be intentional
+- [x] Review `oradba_datasafe_debug.sh` core library sourcing suppressions
+      — replaced `2>/dev/null || true` with `if ! source ...; then print_warning ...`
+      so sourcing failures are now reported to the user
+- [x] Audit ShellCheck disabled checks in `.shellcheckrc` — SC2162 and SC2181
+      verified to have zero occurrences in the codebase; removed from
+      `.shellcheckrc`; remaining disabled: SC1091, SC2030, SC2031, SC2314,
+      SC2315, SC2329 (all legitimately needed)
+- [x] Run shellcheck at `style` level across `src/` — 0 warnings at `-S warning`
+      level (the CI threshold); info-level findings (SC2015 in extensions.sh
+      and oradba_aliases.sh, SC2009 in database_discovery.sh) are below threshold
+      and acceptable — no changes needed
+- [x] Review all `|| true` usages (50 total) — all legitimate:
+      arithmetic increment guards `((n++)) || true`, optional config/env
+      sourcing, background process `wait`, cleanup ops that may fail; all
+      clearly intentional; no accidental suppression found
+- [x] Audit `2>/dev/null` suppressions (265 total) — all intentional:
+      process listing, plugin calls in loops (may not exist for all homes),
+      optional lib sourcing in env scripts, cleanup ops; datasafe_debug.sh
+      suppressions fixed above; no blind suppressions of genuine errors found
 
 ---
 

@@ -375,12 +375,16 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     # Source required libraries - try installed path first, then dev path
     if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
         # shellcheck disable=SC1091
-        source "${ORADBA_BASE}/lib/oradba_common.sh" 2>/dev/null || true
+        if ! source "${ORADBA_BASE}/lib/oradba_common.sh" 2>/dev/null; then
+            print_warning "Failed to source oradba_common.sh from ${ORADBA_BASE}/lib — OraDBA function tests may be incomplete"
+        fi
     fi
-    
+
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
         # shellcheck disable=SC1091
-        source "${ORADBA_BASE}/lib/oradba_env_status.sh" 2>/dev/null || true
+        if ! source "${ORADBA_BASE}/lib/oradba_env_status.sh" 2>/dev/null; then
+            print_warning "Failed to source oradba_env_status.sh from ${ORADBA_BASE}/lib — status checks may be incomplete"
+        fi
     fi
     
     # Test oradba_check_datasafe_status
