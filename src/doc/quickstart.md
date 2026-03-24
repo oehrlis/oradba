@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-**Purpose:** Get started with OraDBA in 5 minutes - learn environment setup, Registry API basics, and common tasks.
+**Purpose:** Get started with OraDBA in 5 minutes — environment setup, Registry API basics, and common tasks.
 
 **Prerequisites:**
 
@@ -12,20 +12,10 @@
 
 ### Verify Installation
 
-Check that OraDBA is properly installed:
-
 ```bash
-# Check version
-oradba_version.sh
-
-# Verify installation integrity
+# Check version and integrity
+oradba_version.sh --check
 oradba_validate.sh
-
-# Expected output:
-# ═══════════════════════════════════════════════════════════════
-# OraDBA Installation Validation
-# ═══════════════════════════════════════════════════════════════
-# All checks passed
 ```
 
 ### Understand the Registry
@@ -43,12 +33,12 @@ graph LR
     Registry[Registry API]
     Plugins[Plugin System<br>8 Product Types]
     User[User Commands<br>oraenv.sh, oraup.sh]
-    
+
     Oratab -->|Auto-Sync| Registry
     Homes --> Registry
     Registry --> Plugins
     Plugins --> User
-    
+
     style Oratab fill:#90EE90
     style Homes fill:#FFE4B5
     style Registry fill:#98FB98
@@ -61,14 +51,11 @@ graph LR
 **For Databases** (auto-discovered from oratab):
 
 ```bash
-# Check what's available (auto-syncs from oratab on first run)
+# Interactive selection on first run
 source oraenv.sh
 
-# Output shows:
-Available Oracle Installations:
-  [1] FREE (database) - /u01/app/oracle/product/23ai/dbhomeFree
-  [2] TESTDB (database) - /u01/app/oracle/product/19c/dbhome_1
-Select [1-2, or 0 to cancel]:
+# Or directly by SID
+source oraenv.sh FREE
 ```
 
 **For Non-Database Products** (register manually):
@@ -76,479 +63,176 @@ Select [1-2, or 0 to cancel]:
 ```bash
 # Register Data Safe connector
 oradba_homes.sh add --name datasafe-conn1 \
-  --path /u01/app/oracle/datasafe-conn1 \
-  --type datasafe
+  --path /u01/app/oracle/datasafe-conn1 --type datasafe
 
 # Register Instant Client
 oradba_homes.sh add --name ic23c \
-  --path /usr/lib/oracle/23/client64 \
-  --type iclient
-
-# Register Oracle Java
-oradba_homes.sh add --name java21 \
-  --path /u01/app/oracle/product/jdk-21 \
-  --type java
+  --path /usr/lib/oracle/23/client64 --type iclient
 
 # List all registrations
 oradba_homes.sh list
 ```
 
-### Set Your Oracle Environment
-
-Use `oraenv.sh` to set environment for any registered Oracle installation:
-
-```bash
-# Database
-source oraenv.sh FREE
-
-# Data Safe connector
-source oraenv.sh datasafe-conn1
-
-# Instant Client
-source oraenv.sh ic23c
-
-# Oracle Java
-source oraenv.sh java21
-
-# Interactive selection (if no argument)
-source oraenv.sh
-```
-
-### Verify Environment
-
-After setting the environment:
-
-```bash
-# Check environment variables
-echo $ORACLE_SID      # Database SID (or installation name)
-echo $ORACLE_HOME     # Oracle installation path
-echo $ORACLE_BASE     # Oracle base directory
-
-# Check product type and version
-oraup.sh
-
-# Or use the short alias
-u
-```
-
-## Common Tasks
-
-### Switching Between Environments
-
-**Using Direct Names:**
-
-```bash
-# Switch to FREE database
-source oraenv.sh FREE
-
-# Switch to Data Safe connector
-source oraenv.sh datasafe-conn1
-
-# Switch to Instant Client
-source oraenv.sh ic23c
-
-# Verify current environment
-echo $ORACLE_SID
-oraup.sh
-```
-
-**Using Auto-Generated Aliases:**
-
 Each registered installation gets an automatic alias:
 
 ```bash
-# Each installation gets a lowercase alias
-free              # Same as: source oraenv.sh FREE
-testdb            # Same as: source oraenv.sh TESTDB
-datasafe-conn1    # Same as: source oraenv.sh datasafe-conn1
-ic23c             # Same as: source oraenv.sh ic23c
+free              # source oraenv.sh FREE
+testdb            # source oraenv.sh TESTDB
+datasafe-conn1    # source oraenv.sh datasafe-conn1
 ```
 
-### Working with Databases
+## Working with Oracle Products
 
-**Connect to Database:**
+### oraenv.sh Options
+
+```text
+source oraenv.sh [ORACLE_SID] [OPTIONS]
+
+  --silent          Silent mode — no output (for scripts)
+  --fast-silent     Silent + skip alias/SQLPATH setup (fastest startup)
+  --status          Display only database status
+  -f, --force       Force environment setup
+  -h, --help        Display help message
+```
+
+**Fast-silent mode** (`--fast-silent`) is optimized for `.bash_profile` performance. It skips alias
+generation and SQLPATH configuration — OraDBA aliases (`sq`, `taa`, `cdh`, etc.) will not be available
+until you reload in normal mode.
+
+### Check All Environments
 
 ```bash
-# Set environment
+oraup.sh        # Show all registered installations and their status
+u               # Short alias for oraup.sh
+```
+
+Output shows Oracle Homes (type, status, path), database instances (SID, flag, status), and listeners.
+
+### Database Operations
+
+```bash
 source oraenv.sh FREE
 
-# Connect as sysdba (using alias)
-sq              # Same as: sqlplus / as sysdba
+sq              # sqlplus / as sysdba
+sqh             # sqlplus with rlwrap (command history)
+rmanc           # rman target / [catalog]
 
-# With rlwrap for command history
-sqh             # Same as: rlwrap sqlplus / as sysdba
-
-# Connect as sysoper
-sqo             # Same as: sqlplus / as sysoper
+sta             # Database status — alias for dbstatus.sh
+dbstatus.sh     # Detailed status: state, memory, storage, PDB info
+dbstatus.sh --sid FREE --debug
 ```
 
-**Check Database Status:**
+**dbstatus.sh** displays:
+
+- Instance state (NOMOUNT / MOUNT / OPEN) and uptime
+- Memory allocation (SGA/PGA targets) and actual usage
+- Database storage size, archive log mode, character set
+- PDB status and session counts (for OPEN databases)
+
+### Running SQL Scripts
 
 ```bash
-# Detailed status for current environment
-dbstatus.sh     # or alias: sta
-
-# Shows:
-# - Database state (NOMOUNT/MOUNT/OPEN)
-# - Instance information and uptime
-# - Memory allocation (SGA/PGA)
-# - Storage information
-# - PDB status (if multitenant)
-# - Archive log mode
-
-# All registered installations
-oraup.sh        # or alias: u
+# SQLPATH is configured automatically
+sqlplus / as sysdba @db_info.sql    # Database name, version, status
+sqlplus / as sysdba @space.sql      # Tablespace usage
+sqlplus / as sysdba @sess.sql       # Active sessions
 ```
 
-**Running SQL Scripts:**
+### Navigating Directories
 
 ```bash
-# SQLPATH is automatically configured
-sqlplus / as sysdba @db_info.sql
-
-# Available SQL scripts in $ORADBA_PREFIX/sql/:
-# - db_info.sql      - Database information
-# - whoami.sql       - Current user info
-# - ssec_usrinf.sql  - Security user information
-# - tde_*.sql        - TDE encryption status
-# - aud_*.sql        - Audit configuration
-```
-
-### Working with RMAN
-
-```bash
-# Set environment
-source oraenv.sh FREE
-
-# Run RMAN (using alias)
-rman            # Basic RMAN connection
-
-# With rlwrap for command history
-rmanh
-
-# With catalog
-rmanc
-
-# Run RMAN script
-rman target / @$ORADBA_PREFIX/rcv/backup_full.rcv
-```
-
-### Working with Data Safe
-
-```bash
-# Set Data Safe connector environment
-source oraenv.sh datasafe-conn1
-
-# Check connector status
-cmctl status
-
-# Environment variables are set:
-echo $ORACLE_HOME     # Data Safe connector home
-echo $PATH            # Includes connector bin directory
-```
-
-### Working with Instant Client
-
-```bash
-# Set Instant Client environment
-source oraenv.sh ic23c
-
-# Verify
-sqlplus64 -V
-
-# Connect to remote database
-sqlplus username/password@hostname:1521/service_name
-```
-
-### Navigating Oracle Directories
-
-Convenient aliases for quick navigation:
-
-```bash
-# Oracle directories
-cdh             # cd $ORACLE_HOME
-cdob            # cd $ORACLE_BASE
-cdb             # cd $ORADBA_PREFIX
-cdn             # cd $TNS_ADMIN
-
-# Admin directories
-cda             # cd $ORACLE_BASE/admin/$ORACLE_SID
-cdc             # cd $ORACLE_BASE/admin/$ORACLE_SID/create
-
-# Diagnostic directories
-cdd             # cd diagnostic directory
-cddt            # cd diagnostic/trace
-cdda            # cd diagnostic/alert
-
-# Logs
-cdlog           # cd $ORADBA_PREFIX/log
+cdh / cdob / cda    # Oracle Home / Base / Admin
+cddt / cdda         # Diagnostic trace / alert directories
+cdb / etc / cdlog   # OraDBA prefix / etc / log
 ```
 
 ### Viewing Logs
 
 ```bash
-# Alert log (databases only)
-taa             # tail -f alert log
-vaa             # view alert log (less)
-via             # edit alert log (vi)
-
-# Listener control (databases only)
+taa             # tail -f alert log (real-time)
+vaa             # browse alert log (less)
 lstat           # lsnrctl status
-lstart          # lsnrctl start
-lstop           # lsnrctl stop
 ```
 
-## Registry API Usage
-
-### List All Installations
+### Data Safe and Instant Client
 
 ```bash
-# Simple list
-oradba_homes.sh list
+# Data Safe connector
+source oraenv.sh datasafe-conn1
+cmctl status
 
-# Detailed information
-oradba_homes.sh list --verbose
-
-# Filter by type
-oradba_homes.sh list --type database
-oradba_homes.sh list --type datasafe
-oradba_homes.sh list --type iclient
+# Instant Client
+source oraenv.sh ic23c
+sqlplus64 -V
+sqlplus username/password@hostname:1521/service_name
 ```
 
-### View Installation Details
+### Scripts and Automation
 
-```bash
-# Show details for specific installation
-oradba_homes.sh show FREE
-
-# Shows:
-# - Installation name and type
-# - ORACLE_HOME path
-# - Product version
-# - Plugin information
-# - Environment variables
-```
-
-### Sync Database Homes from Oratab
-
-Databases are automatically synced on first login, but you can trigger manually:
-
-```bash
-# Manual sync from oratab
-oradba_homes.sh sync-oratab
-
-# Shows:
-# - Scans /etc/oratab for database entries
-# - Deduplicates by ORACLE_HOME path
-# - Names homes from directory (dbhomeFree, dbhome19c, etc.)
-# - Adds only new homes (skips existing)
-```
-
-### Add Non-Database Installation
-
-```bash
-# Add Data Safe connector
-oradba_homes.sh add \
-  --name datasafe-conn1 \
-  --path /u01/app/oracle/datasafe-conn1 \
-  --type datasafe \
-  --description "Production Data Safe Connector"
-
-# Add Instant Client
-oradba_homes.sh add \
-  --name ic23c \
-  --path /usr/lib/oracle/23/client64 \
-  --type iclient
-
-# Add Oracle Unified Directory
-oradba_homes.sh add \
-  --name oud1 \
-  --path /u01/app/oracle/oud1 \
-  --type oud
-
-# Add Oracle Java
-oradba_homes.sh add \
-  --name java21 \
-  --path /u01/app/oracle/product/jdk-21 \
-  --type java
-```
-
-### Update or Remove Installation
-
-```bash
-# Update installation details
-oradba_homes.sh update --name FREE --description "Free 23ai Database"
-
-# Remove installation from registry
-oradba_homes.sh remove --name old-test-db
-
-# Note: Does not delete files, only removes from registry
-```
-
-## Plugin System
-
-OraDBA uses plugins for product-specific operations:
-
-**Supported Product Types:**
-
-- `database` - Oracle Database (primary focus)
-- `datasafe` - Oracle Data Safe On-Premises Connector
-- `client` - Oracle Full Client
-- `iclient` - Oracle Instant Client
-- `oud` - Oracle Unified Directory
-- `java` - Oracle Java (JDK/JRE)
-- `weblogic` - WebLogic Server (basic support)
-- `oms` - Enterprise Manager OMS (basic support)
-- `emagent` - Enterprise Manager Agent (basic support)
-
-Each plugin handles:
-
-- Product detection and validation
-- Version detection
-- Environment variable setup (PATH, LD_LIBRARY_PATH, etc.)
-- Status display
-- Product-specific operations
-
-## Silent Mode (for Scripts)
-
-Use silent mode in automated scripts:
+Use `--silent` in scripts to suppress interactive output:
 
 ```bash
 #!/usr/bin/env bash
-
-# Set environment silently (no output)
 source oraenv.sh FREE --silent
 
-# Now run database operations
 sqlplus -S / as sysdba <<EOF
 SELECT name, open_mode FROM v\$database;
 EXIT;
 EOF
 ```
 
-## View Comprehensive Status
-
-The `oraup.sh` command shows complete environment information:
+## Registry API
 
 ```bash
-# Run status display
-oraup.sh
+# List all installations
+oradba_homes.sh list
+oradba_homes.sh list --type database
+oradba_homes.sh list --verbose
 
-# Shows:
-# Oracle Environment Status
-# ==========================================================================================
-#
-# Oracle Homes
-# ------------------------------------------------------------------------------------------
-# NAME                 TYPE             STATUS        ORACLE_HOME
-# ------------------------------------------------------------------------------------------
-# dbhomeFree           database         available     /u01/app/oracle/product/23ai/dbhomeFree
-# rdbms26              database         dummy (→FREE) /u01/app/oracle/product/23ai/dbhomeFree
-# datasafe-conn1       datasafe         available     /u01/app/oracle/datasafe-conn1
-# ic23c                iclient          available     /usr/lib/oracle/23/client64
-#
-# Database Instances
-# ------------------------------------------------------------------------------------------
-# SID                  FLAG             STATUS        ORACLE_HOME
-# ------------------------------------------------------------------------------------------
-# FREE                 AUTO-START       open          /u01/app/oracle/product/23ai/dbhomeFree
-#
-# ------------------------------------------------------------------------------------------
-# NAME                 PORT (tcp/tcps)  STATUS        ORACLE_HOME
-# ------------------------------------------------------------------------------------------
-# LISTENER             1521             up            /u01/app/oracle/product/23ai/dbhomeFree
-#
-# ==========================================================================================
+# Show details for one installation
+oradba_homes.sh show FREE
+
+# Sync databases from oratab (runs automatically on first login)
+oradba_homes.sh sync-oratab
+
+# Add non-database installation
+oradba_homes.sh add --name oud1 --path /u01/app/oracle/oud1 --type oud
+
+# Remove from registry (does not delete files)
+oradba_homes.sh remove --name old-test-db
 ```
 
-## Extension System
+**Supported product types:** `database`, `datasafe`, `client`, `iclient`, `oud`, `java`, `weblogic`, `oms`, `emagent`
 
-Add custom functionality without modifying OraDBA core:
+## Extensions
+
+Extensions add custom scripts and tools without modifying OraDBA core:
 
 ```bash
-# List available extensions
-ls -1 $ORADBA_LOCAL_BASE/*/
+# List extensions
+oradba_extension.sh list
 
-# Example output:
-# odb_datasafe/     - Data Safe target management
-# odb_autoupgrade/  - Oracle AutoUpgrade wrapper
-# custom_scripts/   - Your custom scripts
+# Create new extension from template
+oradba_extension.sh create mycompany
 
-# Extensions are auto-discovered and loaded
-# Scripts in */bin/ are added to PATH
-# Scripts in */sql/ are added to SQLPATH
+# Install from GitHub
+oradba_extension.sh add oehrlis/odb_autoupgrade
+
+# Scripts in extensions/bin/ are added to PATH automatically
+# SQL in extensions/sql/ is added to SQLPATH
 ```
 
-See [Extension System](extensions.md) for details.
+See [Extension System](extensions.md) for details on creating and managing extensions.
 
-## Updating OraDBA
-
-Keep OraDBA updated to the latest release:
-
-```bash
-# Check current version
-oradba_version.sh
-
-# Check for updates
-oradba_version.sh --update-check
-
-# Update to latest release
-oraup.sh --update
-
-# Or manually download and install
-curl -L -o oradba_install.sh \
-  https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
-chmod +x oradba_install.sh
-./oradba_install.sh --update
-```
-
-## What's Different in v0.20.0
-
-If you're upgrading from older versions:
-
-**Registry API:**
-
-- Databases auto-sync from oratab (no manual registration needed)
-- Single `oradba_homes.conf` replaces old configuration approach
-- Use `oradba_homes.sh` command for registry management
-
-**Plugin System:**
-
-- All product types use plugins (uniform interface)
-- 8 product types supported (was limited in previous versions)
-- Product detection is automatic and consistent
-
-**No Basenv Coexistence:**
-
-- Basenv coexistence mode removed in v0.20.0
-- Clean architecture without legacy compatibility layer
-- May be re-engineered with plugin approach in future releases
-
-**Simplified Configuration:**
-
-- Same 6-level hierarchy
-- Core files remain compatible
-- Customer customizations preserved during upgrade
-
-## Next Steps
-
-Now that you understand the basics:
-
-- **[Environment Management](environment.md)** - Deep dive into Registry API and Plugin System
-- **[Configuration](configuration.md)** - Customize OraDBA for your environment
-- **[Aliases](aliases.md)** - Complete reference of 50+ aliases
-- **[SQL Scripts](sql-scripts.md)** - Database administration SQL library
-- **[RMAN Scripts](rman-scripts.md)** - Backup and recovery templates
-- **[Extensions](extensions.md)** - Add custom functionality
-- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-
-## Quick Reference Card
+## Quick Reference
 
 ```bash
 # Environment Setup
 source oraenv.sh FREE          # Set environment
 source oraenv.sh               # Interactive selection
 oraup.sh / u                   # Show all installations
+oradba_version.sh --check      # Version check
+oradba_validate.sh             # Validate installation
 
 # Registry Management
 oradba_homes.sh list           # List all installations
@@ -556,46 +240,42 @@ oradba_homes.sh add ...        # Register installation
 oradba_homes.sh sync-oratab    # Sync from oratab
 
 # Database Operations
-sq / sqh                       # SQL*Plus (with/without rlwrap)
-rman / rmanh                   # RMAN (with/without rlwrap)
-dbstatus.sh / sta              # Database status
+sq / sqh                       # SQL*Plus (bare / with rlwrap)
+rmanc / rmanh                  # RMAN (with catalog / with rlwrap)
+sta / dbstatus.sh              # Database status
 
 # Navigation
 cdh / cdob / cda / cdd         # Oracle directories
-taa / vaa                      # View alert log
+taa / vaa                      # Alert log (tail / less)
 
 # Product-Specific
 cmctl status                   # Data Safe connector status
 sqlplus64 -V                   # Instant Client version
-java -version                  # Oracle Java version
 
-# Help & Version
-alih                           # Alias help
-oradba_version.sh              # Version information
-oradba_validate.sh             # Validate installation
+# Help
+alih                           # Alias quick reference
+oradba_version.sh --info       # Installation info
 ```
 
-## Getting Help
+**Tips:**
 
-If you encounter issues:
+1. Always `source oraenv.sh` before Oracle operations
+2. Use `--silent` in scripts and cron jobs
+3. Use `sqh` / `rmanh` for interactive work (rlwrap history)
+4. Use `$cdh`, `$cda`, `$etc` convenience variables in commands
+5. Check `$ORACLE_SID` after switching environments
 
-- **[Troubleshooting Guide](troubleshooting.md)** - Common problems and solutions
-- **Alias Help**: Run `alih` for quick alias reference
-- **Version Info**: Run `oradba_version.sh --info`
-- **Logs**: Check `$ORADBA_PREFIX/log/` for detailed logs
-- **GitHub**: [github.com/oehrlis/oradba/issues](https://github.com/oehrlis/oradba/issues)
+If you encounter issues: [Troubleshooting Guide](troubleshooting.md) · `alih` · [GitHub Issues](https://github.com/oehrlis/oradba/issues)
 
-## Tips and Best Practices
+## See Also {.unlisted .unnumbered}
 
-1. **Always set environment first** - Use `source oraenv.sh` before Oracle operations
-2. **Use the Registry** - Let OraDBA manage installations via Registry API
-3. **Leverage plugins** - Each product type has optimized plugin handling
-4. **Learn the aliases** - Memorize common ones (sq, rman, cdh, taa, u)
-5. **Verify environment** - Check `$ORACLE_SID` when switching
-6. **Use silent mode in scripts** - Add `--silent` for automation
-7. **Keep updated** - Stay on the latest release for bug fixes and features
+- [Environment Management](environment.md) - Registry API and Plugin System deep dive
+- [Configuration](configuration.md) - Customizing OraDBA
+- [Aliases](aliases.md) - Complete alias reference
+- [Extensions](extensions.md) - Adding custom functionality
+- [Troubleshooting](troubleshooting.md) - Common issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Installation](installation.md)  
+**Previous:** [Installation](installation.md)
 **Next:** [Environment Management](environment.md)

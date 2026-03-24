@@ -464,10 +464,10 @@ SQL> @my_script
 
 - [RMAN Scripts](rman-scripts.md) - Backup and recovery templates
 - [Functions Reference](functions.md) - Database functions library
-- [Quick Reference](reference.md) - Common SQL script examples
+- [Quick Start](quickstart.md) - Common SQL script examples
 - [Troubleshooting](troubleshooting.md) - Solving script issues
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [PDB Alias Reference](pdb-aliases.md)  
+**Previous:** [Aliases Reference](aliases.md)  
 **Next:** [RMAN Script Templates](rman-scripts.md)

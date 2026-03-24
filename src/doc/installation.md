@@ -39,89 +39,29 @@ installation methods, and post-installation verification.
 - Minimum: 100MB
 - Recommended: 500MB (includes logs, backups, custom scripts)
 
-## Pre-Installation Check
-
-Before installing, run the system prerequisites check:
-
-```bash
-# Download system check script
-curl -L -o oradba_check.sh \
-  https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh
-chmod +x oradba_check.sh
-
-# Run check
-./oradba_check.sh
-
-# Verbose output (shows all checks)
-./oradba_check.sh --verbose
-
-# Check specific installation directory
-./oradba_check.sh --dir /opt/oradba
-```
-
-The check validates:
-
-- Required system tools availability
-- Disk space sufficiency
-- Oracle environment configuration
-- Optional tools status
-- Installation directory permissions
-
 ## Installation Methods
 
 OraDBA offers multiple installation methods to support different environments and use cases.
+All methods follow the same core flow: download installer, transfer if needed, extract files,
+verify integrity with SHA256 checksums, update shell profile, and initialize the Registry API.
 
-```mermaid
-graph TB
-    Start[Choose Installation Method]
-    Quick[Quick Install<br>Embedded Payload]
-    AirGap[Air-Gapped Install<br>Embedded Payload]
-    Separate[Air-Gapped Install<br>Separate Tarball]
-    GitHub[GitHub Repository<br>Latest Development]
-    
-    Download[Download Installer]
-    Transfer[Transfer to Target]
-    Extract[Extract & Install]
-    Verify[Verify Installation]
-    Profile[Update Shell Profile]
-    Registry[Initialize Registry]
-    Done[Installation Complete]
-    
-    Start --> Quick
-    Start --> AirGap
-    Start --> Separate
-    Start --> GitHub
-    
-    Quick --> Download
-    AirGap --> Download
-    Separate --> Download
-    GitHub --> Download
-    
-    Download --> Transfer
-    Transfer --> Extract
-    Extract --> Verify
-    Verify --> Profile
-    Profile --> Registry
-    Registry --> Done
-    
-    style Start fill:#E6E6FA
-    style Quick fill:#87CEEB
-    style AirGap fill:#87CEEB
-    style Separate fill:#87CEEB
-    style GitHub fill:#87CEEB
-    style Done fill:#98FB98
+Before installing, optionally run the prerequisites check:
+
+```bash
+curl -L -o oradba_check.sh \
+  https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh
+chmod +x oradba_check.sh
+./oradba_check.sh          # basic check
+./oradba_check.sh --verbose  # show all checks
+./oradba_check.sh --dir /opt/oradba  # check specific target directory
 ```
-
-**Installation process:**  
-All methods follow the same core flow - download installer, transfer if needed, extract files, verify integrity with
-SHA256 checksums, update shell profile, and initialize Registry API for managing installations.
 
 ### Method 1: Quick Install with Embedded Payload (Recommended)
 
-**Best for:** Standard installations with internet access
+**Best for:** Standard installations with internet access.
 
-The `oradba_install.sh` installer includes an embedded tarball payload, making it a single-file
-installation solution. Download and run - no separate package required.
+The `oradba_install.sh` installer includes an embedded tarball payload — a single-file
+installation solution. Download and run; no separate package required.
 
 ```bash
 # Download installer (contains embedded payload)
@@ -142,30 +82,25 @@ chmod +x oradba_install.sh
 ./oradba_install.sh --prefix /opt/oradba
 ```
 
-**Key Features:**
-
-- **Single file download** - Installer includes complete OraDBA package as base64-encoded payload
-- **Auto-detection** - Detects ORACLE_BASE and uses `$ORACLE_BASE/local/oradba` as default prefix
-- **Fallback prefix** - Uses `$HOME/local/oradba` if ORACLE_BASE not set
-- **Integrity verification** - SHA256 checksums validate all extracted files
-- **Version flexibility** - Download any released version from GitHub
-- **Smart updates** - Detects existing installations and preserves configurations
+Key features: single file download with complete embedded package, auto-detection of
+`ORACLE_BASE` (fallback to `$HOME/local/oradba`), SHA256 integrity verification, and
+smart update detection that preserves existing configurations.
 
 ### Method 2: Air-Gapped Install with Embedded Payload
 
-**Best for:** Air-gapped, DMZ, or restricted network environments
+**Best for:** Air-gapped, DMZ, or restricted network environments.
 
 Use the same self-contained installer in environments without internet access.
 
 ```bash
-# On internet-connected system: Download installer
+# On internet-connected system: download installer
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 
 # Transfer oradba_install.sh to target system via approved method
 # (USB drive, secure file transfer, etc.)
 
-# On air-gapped system: Install
+# On air-gapped system: install
 chmod +x oradba_install.sh
 ./oradba_install.sh --prefix /opt/oradba
 
@@ -173,18 +108,9 @@ chmod +x oradba_install.sh
 sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
 ```
 
-**Key Features:**
-
-- **No network required** - Complete package embedded in installer
-- **Transfer-friendly** - Single file simplifies approval and transfer processes
-- **Same installer** - Identical file used for online and offline installations
-- **Validation included** - Full integrity checking without external dependencies
-
 ### Method 3: Air-Gapped Install with Separate Tarball
 
-**Best for:** Environments requiring separate payload verification or custom packages
-
-Download installer and tarball separately for maximum flexibility.
+**Best for:** Environments requiring separate payload verification or custom packages.
 
 ```bash
 # Step 1: On internet-connected system, download both files
@@ -193,7 +119,7 @@ curl -L -o oradba_install.sh \
 curl -L -o oradba-0.14.0.tar.gz \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba-0.14.0.tar.gz
 
-# Step 2: Verify checksums (optional but recommended)
+# Step 2: Verify checksum (optional but recommended)
 sha256sum oradba-0.14.0.tar.gz
 
 # Step 3: Transfer both files to target system
@@ -203,18 +129,9 @@ chmod +x oradba_install.sh
 ./oradba_install.sh --local oradba-0.14.0.tar.gz --prefix /opt/oradba
 ```
 
-**Key Features:**
-
-- **Separate verification** - Independently validate tarball before installation
-- **Custom packages** - Build and deploy your own tarball with extensions
-- **Policy compliance** - Supports environments requiring separate approval of payload
-- **Explicit versioning** - Tarball filename clearly indicates version
-
 ### Method 4: Direct from GitHub Repository
 
-**Best for:** Development environments, testing unreleased features, contributors
-
-Install directly from GitHub repository for latest development code.
+**Best for:** Development environments, testing unreleased features, contributors.
 
 ```bash
 # Install latest development version from main branch
@@ -227,22 +144,13 @@ Install directly from GitHub repository for latest development code.
 ./oradba_install.sh --github --version dev-branch-name
 ```
 
-**Requirements:** `git` and `curl` or `wget`
-
-**Key Features:**
-
-- **Latest code** - Access unreleased features and bug fixes
-- **Branch flexibility** - Install from any branch or tag
-- **Development workflow** - Perfect for testing and contribution
-- **Auto-build** - Clones repository and builds package on-the-fly
+**Requirements:** `git` and `curl` or `wget`.
 
 **Warning:** Development branches may contain unstable code. Use stable releases for production.
 
 ### Method 5: Ansible Automated Deployment
 
-**Best for:** Managing multiple Oracle servers, standardized deployments, infrastructure as code
-
-Automate OraDBA installation across your Oracle infrastructure using Ansible.
+**Best for:** Managing multiple Oracle servers, standardized deployments, infrastructure as code.
 
 ```yaml
 # playbook: deploy-oradba.yml
@@ -326,61 +234,28 @@ Automate OraDBA installation across your Oracle infrastructure using Ansible.
         state: absent
 ```
 
-**Usage:**
+Deploy the playbook:
 
 ```bash
-# Deploy to all Oracle servers
-ansible-playbook -i inventory.ini deploy-oradba.yml
-
-# Deploy to specific group
+ansible-playbook -i inventory.ini deploy-oradba.yml           # all Oracle servers
 ansible-playbook -i inventory.ini deploy-oradba.yml --limit production
-
-# Check mode (dry-run)
-ansible-playbook -i inventory.ini deploy-oradba.yml --check
-
-# Update existing installations
+ansible-playbook -i inventory.ini deploy-oradba.yml --check   # dry-run
 ansible-playbook -i inventory.ini deploy-oradba.yml -e "oradba_force_update=yes"
 ```
 
-**Key Features:**
+For air-gapped Ansible deployments, pre-download the installer and place it in
+`playbook/files/oradba_install.sh`; the playbook's `copy` task handles the rest.
 
-- **Idempotent** - Safely re-run without reinstalling
-- **Scalable** - Deploy to hundreds of servers simultaneously
-- **Consistent** - Ensures identical configuration across all environments
-- **Versioned** - Pin to specific OraDBA versions for stability
-- **Air-gap ready** - Use local files when internet unavailable
-- **Integration** - Combine with Oracle installation playbooks
-
-**Air-Gapped Ansible Deployment:**
-
-```yaml
-# For air-gapped: Pre-download installer and place in playbook files/
-# playbook/
-#   ├── deploy-oradba.yml
-#   └── files/
-#       └── oradba_install.sh  # Pre-downloaded from GitHub releases
-```
-
-## Installation Scenarios
-
-### Pre-Oracle Installation
+## Pre-Oracle Installation
 
 **Available from:** v0.17.0
 
-OraDBA can now be installed **before Oracle Database is installed**, enabling
+OraDBA can be installed **before Oracle Database is installed**, enabling
 preparatory system setup, CI/CD pipeline bootstrapping, or Docker image layering.
 
-#### Why Install Before Oracle?
+### Installation Options
 
-- **CI/CD Pipelines:** Prepare database tools before Oracle installation in automation workflows
-- **Docker/Container Images:** Layer OraDBA in base images before Oracle binaries
-- **System Preparation:** Set up administrative tooling on new servers
-- **Development Environments:** Configure tooling before full Oracle setup
-- **Gradual Deployment:** Install tools first, Oracle later
-
-#### Pre-Oracle Installation Methods
-
-**User-Level Installation (Recommended for Pre-Oracle):**
+**User-level installation (recommended for pre-Oracle):**
 
 ```bash
 # Install to ~/oradba with no Oracle requirement
@@ -390,114 +265,51 @@ preparatory system setup, CI/CD pipeline bootstrapping, or Docker image layering
 ./oradba_install.sh --prefix $HOME/oradba
 ```
 
-Creates structure:
-
-```text
-$HOME/
-  oradba/               # OraDBA installation
-  .oratab               # Temporary oratab (symlink ready)
-  .bashrc               # Updated with OraDBA (if --update-profile)
-```
-
-**Base Directory Installation:**
+**Base directory installation:**
 
 ```bash
-# Install to /opt/local/oradba with temp oratab
+# Install to /opt/local/oradba
 ./oradba_install.sh --base /opt
 
 # Or specify path explicitly
 ./oradba_install.sh --prefix /opt/local/oradba
 ```
 
-Creates structure:
-
-```text
-/opt/
-  local/oradba/         # OraDBA installation
-    etc/oratab          # Temporary oratab (ready for symlink)
-```
-
-**Silent Installation (Non-Interactive):**
+**Silent installation (non-interactive / automation):**
 
 ```bash
-# Suppress Oracle Base prompt
 ./oradba_install.sh --user-level --silent
-
-# For automation/scripts
 ./oradba_install.sh --prefix /opt/local/oradba --silent --update-profile
 ```
 
-#### Understanding Temporary oratab
+### Temporary oratab
 
-In pre-Oracle mode, OraDBA creates a **temporary oratab** at `${ORADBA_BASE}/etc/oratab`:
-
-```bash
-# Example temporary oratab content
-#
-# OraDBA Temporary oratab
-# This file was created during pre-Oracle installation.
-# Replace with symlink to system oratab after Oracle installation:
-#   oradba_setup.sh link-oratab
-#
-```
-
-**Characteristics:**
-
-- ✓ Allows OraDBA to function without Oracle
-- ✓ Tools work with graceful degradation  
-- ✓ Ready to be replaced with symlink post-Oracle
-- ✓ No interference with system oratab
-
-#### Post-Oracle Configuration
+In pre-Oracle mode, OraDBA creates a **temporary oratab** at `${ORADBA_BASE}/etc/oratab`.
+This allows OraDBA to function without Oracle, is ready to be replaced with a symlink
+post-Oracle, and does not interfere with any system oratab.
 
 After Oracle Database is installed, link OraDBA to the system oratab:
 
 ```bash
-# Link to system oratab (requires appropriate permissions)
-oradba_setup.sh link-oratab
-
-# Verify configuration
+oradba_setup.sh link-oratab   # detects /etc/oratab or /var/opt/oracle/oratab,
+                               # backs up temp oratab, creates symlink
 oradba_setup.sh check
-
-# Display current settings
 oradba_setup.sh show-config
 ```
 
-**What `link-oratab` does:**
+### Graceful Degradation (No-Oracle Mode)
 
-1. Detects system oratab location (`/etc/oratab` or `/var/opt/oracle/oratab`)
-2. Backs up temporary oratab (`${ORADBA_BASE}/etc/oratab.backup.TIMESTAMP`)
-3. Creates symlink: `${ORADBA_BASE}/etc/oratab -> /etc/oratab`
-4. Validates symlink functionality
+When Oracle is not detected, OraDBA operates in **No-Oracle Mode**
+(`ORADBA_NO_ORACLE_MODE=true`). The following work without Oracle:
 
-#### Graceful Degradation (No-Oracle Mode)
+- Base directory structure, configuration management, extension system, documentation
 
-When Oracle is not detected, OraDBA operates in **No-Oracle Mode**:
+The following require Oracle:
 
-```bash
-# Tools work with minimal environment
-source oraenv.sh     # Sets ORADBA_NO_ORACLE_MODE=true
-oraup.sh            # Shows helpful pre-Oracle guidance
+- Database environment switching (`oraenv.sh <SID>`), database listing (`oraup.sh`),
+  Oracle-specific tools (RMAN, SQL wrappers)
 
-# Validation is context-aware
-oradba_validate.sh  # Reports "Pre-Oracle" mode, skips Oracle checks
-```
-
-**What works without Oracle:**
-
-- ✓ Base directory structure
-- ✓ Configuration management
-- ✓ Extension system
-- ✓ Documentation and help
-- ✓ Setup helper commands
-
-**What requires Oracle:**
-
-- ✗ Database environment switching (`oraenv.sh <SID>`)
-- ✗ Database listing (`oraup.sh`)
-- ✗ Oracle-specific tools (RMAN, SQL wrappers)
-
-#### Example: Docker Multi-Stage Build
+### Example: Docker Multi-Stage Build
 
 ```dockerfile
 # Stage 1: OraDBA preparation
@@ -522,7 +334,7 @@ RUN /home/oracle/oradba/bin/oradba_setup.sh link-oratab
 CMD ["/home/oracle/oradba/bin/oraenv.sh"]
 ```
 
-#### Example: CI/CD Pipeline
+### Example: CI/CD Pipeline
 
 ```yaml
 # .github/workflows/oracle-setup.yml
@@ -536,259 +348,17 @@ jobs:
           curl -L -o install.sh \
             https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
           bash install.sh --user-level --silent
-          
+
       - name: Verify OraDBA
         run: ~/oradba/bin/oradba_validate.sh
-        
+
       - name: Install Oracle Database
         run: |
           # ... Oracle installation steps ...
-          
+
       - name: Link OraDBA to Oracle
         run: ~/oradba/bin/oradba_setup.sh link-oratab
 ```
-
-#### Troubleshooting Pre-Oracle Issues
-
-**Issue**: "Oracle Base directory not found"
-
-```bash
-# Use explicit prefix or user-level
-./oradba_install.sh --user-level
-# Or
-./oradba_install.sh --prefix /opt/local/oradba
-```
-
-**Issue**: "Permission denied" during installation
-
-```bash
-# Install to user directory
-./oradba_install.sh --user-level
-
-# Or fix permissions
-sudo chown -R oracle:oinstall /opt/local
-./oradba_install.sh --base /opt
-```
-
-**Issue**: Tools not finding databases
-
-```bash
-# This is expected before Oracle installation
-# Verify pre-Oracle mode:
-oradba_validate.sh  # Should show "Pre-Oracle" mode
-
-# After Oracle is installed:
-oradba_setup.sh link-oratab
-```
-
-**Issue**: Want to test pre-Oracle without Oracle
-
-```bash
-# Use dummy home for testing
-./oradba_install.sh --dummy-home /tmp/fake-oracle --prefix /tmp/oradba
-```
-
-### New Installation
-
-First-time installation with default settings:
-
-```bash
-# Auto-detect ORACLE_BASE
-./oradba_install.sh
-
-# Custom prefix
-./oradba_install.sh --prefix /opt/oradba
-
-# With profile integration
-./oradba_install.sh --update-profile
-```
-
-### Update Existing Installation
-
-Upgrade OraDBA while preserving configurations:
-
-```bash
-# Update to latest version
-./oradba_install.sh --update
-
-# Update to specific version
-curl -L -o oradba_install.sh \
-  https://github.com/oehrlis/oradba/releases/download/v0.14.0/oradba_install.sh
-chmod +x oradba_install.sh
-./oradba_install.sh --update --prefix /opt/oradba
-
-# Force reinstall same version (repair)
-./oradba_install.sh --force --prefix /opt/oradba
-```
-
-**Update behavior:**
-
-- **Automatic backup** - Creates `${PREFIX}.backup.TIMESTAMP`
-- **Config preservation** - Detects modified files, saves as `.save` extension
-- **Sensitive file preservation** - Keeps user-managed secrets/certs in update flows:
-  - Core etc files: `etc/*.b64`, `etc/*.pem`, `etc/*.key`, `etc/*.crt`
-  - Bundled extension files: `extensions/*/etc/*.b64|*.pem|*.key|*.crt`
-- **Rollback support** - Previous version available if issues occur
-- **Selective replacement** - Only updates core files, keeps customizations
-
-### Version Management
-
-Install multiple versions side-by-side:
-
-```bash
-# Production version
-./oradba_install.sh --prefix /opt/oradba-0.14.0
-
-# Testing version  
-./oradba_install.sh --prefix /opt/oradba-0.15.0
-
-# Switch versions via symlink or profile
-ln -sf /opt/oradba-0.14.0 /opt/oradba
-```
-
-### Custom Installation Prefix
-
-Install to non-standard location:
-
-```bash
-# User home directory
-./oradba_install.sh --prefix $HOME/tools/oradba
-
-# Shared tools directory
-./oradba_install.sh --prefix /usr/local/oradba
-
-# Project-specific location
-./oradba_install.sh --prefix /projects/oracle/oradba
-```
-
-### User and Permissions
-
-Control installation ownership:
-
-```bash
-# Install as oracle user (requires sudo)
-sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
-
-# Install with specific group
-sudo ./oradba_install.sh --prefix /opt/oradba --user oracle --group dba
-
-# User installation (no sudo needed)
-./oradba_install.sh --prefix $HOME/local/oradba
-```
-
-**The installer will:**
-
-- Create directories with specified ownership
-- Automatically create missing parent directories for `--prefix` / default
-  install paths (for example, `/opt/oracle/local`) when the nearest existing
-  base directory is writable
-- Set appropriate permissions (755 for directories, 644/755 for files)
-- Preserve execute permissions for scripts
-- Create installation metadata
-
-### Shell Profile Integration
-
-```bash
-# Enable automatic environment loading on shell startup
-./oradba_install.sh --update-profile
-
-# Disable profile integration (manual sourcing required)
-./oradba_install.sh --no-update-profile
-```
-
-**What profile integration does:**
-
-- Adds OraDBA sourcing to your shell profile
-- Auto-loads first Oracle SID from oratab on login
-- Displays environment status for interactive shells
-- Supports `~/.bash_profile`, `~/.profile`, `~/.zshrc`
-- Creates backup before modification
-
-**Profile Integration Example:**
-
-```bash
-# Added to ~/.bash_profile
-# OraDBA Environment Integration
-if [ -f "/opt/oracle/local/oradba/bin/oraenv.sh" ]; then
-    source "/opt/oracle/local/oradba/bin/oraenv.sh" --silent
-    if [[ $- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then
-        oraup.sh
-    fi
-fi
-```
-
-### Update and Maintenance
-
-```bash
-# Update existing installation
-./oradba_install.sh --update --prefix /opt/oradba
-
-# Update from GitHub
-./oradba_install.sh --update --github
-
-# Force reinstall (same version)
-./oradba_install.sh --force --prefix /opt/oradba
-```
-
-### Information and Help
-
-```bash
-# Show installer version
-./oradba_install.sh --show-version
-
-# Display help message
-./oradba_install.sh --help
-
-# Quiet mode (minimal output)
-./oradba_install.sh --quiet
-```
-
-## Installation Process
-
-The installer performs these steps:
-
-1. **Validation**
-   - Checks required tools
-   - Validates options and arguments
-   - Checks disk space
-   - Verifies permissions and prepares missing parent directory trees when
-     allowed
-
-1. **Backup** (for updates)
-   - Creates backup of existing installation
-   - Preserves custom configurations
-   - Stores in `${PREFIX}.backup.TIMESTAMP`
-
-1. **Configuration Protection** (for updates)
-   - Detects modified configuration files using checksums
-   - Automatically backs up modified files with `.save` extension
-   - Only backs up files in `etc/` and `.conf`/`.example` files
-   - Preserves user-managed secret/certificate files (`*.b64`, `*.pem`,
-     `*.key`, `*.crt`) in `etc/` and bundled extension `etc/` directories
-   - Preserves file permissions in backup copies
-   - Similar to RPM package management behavior
-   - Example: `etc/oradba_standard.conf` → `etc/oradba_standard.conf.save`
-
-1. **Extraction**
-   - Creates directory structure
-   - Extracts files from embedded payload or tarball
-   - Sets ownership and permissions
-
-1. **Verification**
-   - Validates SHA256 checksums
-   - Confirms all files present
-   - Reports any discrepancies
-
-1. **Metadata**
-   - Records installation date, version, method
-   - Stores in `${PREFIX}/.install_info`
-   - Used for update detection and verification
-
-1. **Profile Integration** (if enabled)
-   - Detects shell profile file
-   - Creates backup
-   - Adds OraDBA sourcing
-   - Prevents duplicate entries
 
 ## Post-Installation
 
@@ -817,12 +387,6 @@ TESTDB:/u01/app/oracle/product/21c/dbhome_1:Y
 PRODCDB:/u01/app/oracle/product/19c/dbhome_1:N
 ```
 
-**Startup Flags:**
-
-- `Y` - Database should auto-start
-- `N` - Manual startup required
-- `D` - Dummy entry (e.g., for Data Guard Broker)
-
 ### Test Environment Setup
 
 ```bash
@@ -830,20 +394,18 @@ PRODCDB:/u01/app/oracle/product/19c/dbhome_1:N
 source /opt/oradba/bin/oraenv.sh FREE
 
 # Verify environment variables
-echo $ORACLE_SID        # Should show: FREE
-echo $ORACLE_HOME       # Should show: /u01/app/oracle/product/19c/dbhome_1
-echo $ORACLE_BASE       # Should show: /u01/app/oracle
+echo $ORACLE_SID    # FREE
+echo $ORACLE_HOME   # /u01/app/oracle/product/19c/dbhome_1
+echo $ORACLE_BASE   # /u01/app/oracle
 
 # Test SQL*Plus connection
-sqlplus -V              # Should show Oracle SQL*Plus version
+sqlplus -V
 
 # Test database status
 /opt/oradba/bin/dbstatus.sh
 ```
 
-### Add to PATH (Optional)
-
-Add OraDBA to your PATH for easier access:
+### Add to PATH
 
 ```bash
 # Add to ~/.bash_profile or ~/.bashrc
@@ -853,20 +415,33 @@ export SQLPATH="$ORADBA_PREFIX/sql"
 export ORACLE_PATH="$ORADBA_PREFIX/sql"
 ```
 
-## Installation Locations
+### Shell Profile Integration
 
-### Default Prefix Detection
+```bash
+# Enable automatic environment loading on shell startup
+./oradba_install.sh --update-profile
 
-The installer uses this priority for default prefix:
+# Disable profile integration (manual sourcing required)
+./oradba_install.sh --no-update-profile
+```
 
-1. `${ORACLE_BASE}/local/oradba` - If ORACLE_BASE is set
-2. `/opt/oracle/local/oradba` - If `/opt/oracle` exists
-3. `/u01/app/oracle/local/oradba` - If `/u01/app/oracle` exists
-4. `${HOME}/local/oradba` - Fallback to user's home directory
+Profile integration adds OraDBA sourcing to `~/.bash_profile`, `~/.profile`,
+or `~/.zshrc`, auto-loads the first Oracle SID from oratab on login, and creates
+a backup before modification. Example entry added:
+
+```bash
+# OraDBA Environment Integration
+if [ -f "/opt/oracle/local/oradba/bin/oraenv.sh" ]; then
+    source "/opt/oracle/local/oradba/bin/oraenv.sh" --silent
+    if [[ $- == *i* ]] && command -v oraup.sh >/dev/null 2>&1; then
+        oraup.sh
+    fi
+fi
+```
 
 ### Directory Structure
 
-After installation (excerpt):
+After installation:
 
 ```text
 ${PREFIX}/
@@ -882,6 +457,96 @@ ${PREFIX}/
 └── .install_info  # Installation metadata
 ```
 
+Default prefix detection order:
+
+1. `${ORACLE_BASE}/local/oradba` — if ORACLE_BASE is set
+2. `/opt/oracle/local/oradba` — if `/opt/oracle` exists
+3. `/u01/app/oracle/local/oradba` — if `/u01/app/oracle` exists
+4. `${HOME}/local/oradba` — fallback to user's home directory
+
+## Docker Installation
+
+**Purpose:** Install OraDBA inside a running Oracle Database container (e.g. Oracle Free 26ai)
+using the published installer.
+
+### Prerequisites
+
+- A running Oracle Database container (example: Oracle Free 26ai image)
+- Docker CLI access on the host
+- Network egress from the container to GitHub, or a pre-downloaded installer
+- Container user `oracle` exists (typical for Oracle images)
+
+### Helpful Variables
+
+Set these on the host to simplify commands:
+
+```bash
+CTR=free26ai            # container name or ID
+INSTALLER_URL="https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh"
+PREFIX="/opt/oradba"    # install target inside container
+```
+
+### Step 1: Ensure Required Tools Inside the Container
+
+If the container is missing curl/wget/tar, install them as root:
+
+```bash
+docker exec -it -u root "$CTR" microdnf install -y curl tar gzip shadow-utils findutils
+```
+
+(Use `dnf`/`yum`/`apt` if microdnf is unavailable.)
+
+### Step 2: Download and Run the Installer
+
+Run as the `oracle` user inside the container:
+
+```bash
+docker exec -it "$CTR" bash -lc "
+  curl -L -o /tmp/oradba_install.sh \"$INSTALLER_URL\" &&
+  chmod +x /tmp/oradba_install.sh &&
+  /tmp/oradba_install.sh --prefix \"$PREFIX\"
+"
+```
+
+### Step 3: Verify Installation
+
+```bash
+docker exec -it "$CTR" bash -lc "
+  test -x \"$PREFIX/bin/oraenv.sh\" &&
+  echo \"OraDBA installed at $PREFIX\"
+"
+```
+
+Optional — run the prerequisites checker inside the container:
+
+```bash
+docker exec -it "$CTR" bash -lc "
+  curl -L -o /tmp/oradba_check.sh https://github.com/oehrlis/oradba/releases/latest/download/oradba_check.sh &&
+  chmod +x /tmp/oradba_check.sh &&
+  /tmp/oradba_check.sh --dir \"$PREFIX\"
+"
+```
+
+### Step 4: Use OraDBA Inside the Container
+
+```bash
+docker exec -it "$CTR" bash -lc "
+  source \"$PREFIX/bin/oraenv.sh\" FREE &&
+  oradba_extension.sh list
+"
+```
+
+Replace `FREE` with your SID if different.
+
+### Notes and Tips
+
+- **Persisting install:** Mount a host volume to `$PREFIX`
+  (e.g., `-v /opt/oradba:/opt/oradba`) so the install survives container rebuilds.
+- **Air-gapped:** Download `oradba_install.sh` on the host, copy it into the container
+  (`docker cp oradba_install.sh $CTR:/tmp/`), then run it as above.
+- **Missing root access:** If you cannot use root in the container, ensure required tools
+  are already present or bake them into a custom image.
+
 ## Updating OraDBA
 
 ### Update from GitHub
@@ -894,39 +559,62 @@ $PREFIX/bin/oradba_install.sh --update --github
 $PREFIX/bin/oradba_install.sh --update --github --version 0.7.4
 ```
 
-### Update from Local Tarball
+### Update from Local Installer
 
 ```bash
-# Download latest version
+# Download latest installer
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
-
-# Update installation
 chmod +x oradba_install.sh
+
+# Update existing installation
 ./oradba_install.sh --update
+
+# Force reinstall (repair)
+./oradba_install.sh --force --prefix /opt/oradba
 ```
-
-### Update Features
-
-- **Automatic Backup**: Creates timestamped backup before update
-- **Configuration Preservation**: Keeps all custom settings
-- **Rollback on Failure**: Restores previous version if update fails
-- **Version Detection**: Skips update if already running latest version
-- **Selective Updates**: Only replaces core files, preserves customizations
 
 ### Check for Updates
 
 ```bash
-# Check if updates available
+# Check if updates are available
 $PREFIX/bin/oradba_version.sh --update-check
 
 # Show detailed version information
 $PREFIX/bin/oradba_version.sh --info
 ```
 
-## Troubleshooting Installation
+### Update Behavior
 
-### Installer Not Found
+- **Automatic backup** — Creates `${PREFIX}.backup.TIMESTAMP` before update
+- **Configuration preservation** — Detects modified files, saves as `.save` extension
+- **Sensitive file preservation** — Keeps `etc/*.b64`, `*.pem`, `*.key`, `*.crt` and
+  equivalent files in bundled extension `etc/` directories
+- **Rollback on failure** — Restores previous version if update fails
+- **Version detection** — Skips update if already running latest version
+- **Selective replacement** — Only replaces core files, preserves customizations
+
+### Uninstalling OraDBA
+
+```bash
+# Remove installation directory
+rm -rf /opt/oradba
+
+# Remove profile integration (if added)
+# Edit ~/.bash_profile and remove the OraDBA section
+
+# Remove user config (optional)
+rm -f ~/.oradba_config
+
+# Remove SID-specific configs
+rm -f /opt/oradba/etc/sid.*.conf
+```
+
+**Note:** Always back up custom configurations before uninstalling.
+
+## Troubleshooting
+
+### Installer Not Found or Not Executable
 
 ```bash
 # Check download
@@ -935,7 +623,7 @@ ls -l oradba_install.sh
 # Make executable
 chmod +x oradba_install.sh
 
-# Check if it's a text file or binary
+# Check file type
 file oradba_install.sh
 ```
 
@@ -959,11 +647,11 @@ sudo ./oradba_install.sh --prefix /opt/oradba --user oracle
 curl -L -o oradba_install.sh \
   https://github.com/oehrlis/oradba/releases/latest/download/oradba_install.sh
 
-# Verify download
+# Inspect file
 file oradba_install.sh
 head -5 oradba_install.sh
 
-# If still fails, report issue on GitHub
+# If still failing, report an issue on GitHub
 ```
 
 ### Disk Space Insufficient
@@ -972,10 +660,10 @@ head -5 oradba_install.sh
 # Check available space
 df -h /opt
 
-# Clean up if needed
+# Clean up temporary files
 find /tmp -name "oradba*" -mtime +7 -delete
 
-# Install to location with more space
+# Install to a location with more space
 ./oradba_install.sh --prefix /u01/app/oracle/local/oradba
 ```
 
@@ -985,32 +673,26 @@ find /tmp -name "oradba*" -mtime +7 -delete
 # Check which tools are missing
 ./oradba_check.sh
 
-# Install missing tools (example for RHEL/Oracle Linux)
+# Install missing tools (RHEL/Oracle Linux)
 sudo yum install bash tar gawk sed grep coreutils findutils
 
 # For rlwrap (optional)
 sudo yum install rlwrap
 ```
 
-## Uninstallation
+### Pre-Oracle Mode Issues
 
-To remove OraDBA:
+**"Oracle Base directory not found"** — use explicit prefix or user-level install:
 
 ```bash
-# Remove installation directory
-rm -rf /opt/oradba
-
-# Remove profile integration (if added)
-# Edit ~/.bash_profile and remove OraDBA section
-
-# Remove user config (optional)
-rm -f ~/.oradba_config
-
-# Remove SID-specific configs
-rm -f /opt/oradba/etc/sid.*.conf
+./oradba_install.sh --user-level
+# or
+./oradba_install.sh --prefix /opt/local/oradba
 ```
 
-**Note:** Always backup custom configurations before uninstalling.
+**Tools not finding databases** — this is expected before Oracle installation.
+Verify pre-Oracle mode with `oradba_validate.sh` (should report "Pre-Oracle" mode),
+then after Oracle is installed run `oradba_setup.sh link-oratab`.
 
 ## See Also {.unlisted .unnumbered}
 
@@ -1020,5 +702,5 @@ rm -f /opt/oradba/etc/sid.*.conf
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Introduction](introduction.md)  
+**Previous:** [Introduction](introduction.md)
 **Next:** [Quick Start](quickstart.md)

@@ -1,31 +1,24 @@
 # Alias Reference
 
-**Purpose:** Complete reference for OraDBA shell aliases - the canonical location for all alias documentation.
+**Purpose:** Complete reference for OraDBA shell aliases — SQL*Plus, RMAN, directory navigation,
+database operations, PDB management, and rlwrap integration.
 
 **Audience:** All users who want to streamline database administration tasks.
 
 ## Introduction {.unlisted}
 
-OraDBA provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are automatically
-loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient shortcuts for common operations.
+OraDBA provides 50+ shell aliases to streamline Oracle database administration tasks. Aliases are
+automatically loaded when you set your Oracle environment using `oraenv.sh`, giving you convenient
+shortcuts for common operations.
 
-The alias system uses the Plugin System to detect product types and generates appropriate aliases. For databases, it
-automatically detects if your database is a CDB and generates PDB-specific aliases accordingly.
+The alias system uses the Plugin System to detect product types and generates appropriate aliases.
+For Container Databases, it automatically queries `v$pdbs` and generates PDB-specific connection
+aliases. rlwrap-enabled aliases (`sqh`, `rmanh`, etc.) provide command history and optional
+password filtering when rlwrap is installed.
 
-## Alias Categories
+## SQL*Plus and RMAN Aliases
 
-Aliases are organized into these categories:
-
-- **SQL*Plus & RMAN** - Database connection shortcuts
-- **Directory Navigation** - Quick navigation to Oracle directories
-- **Database Operations** - Status, listener, process management
-- **File Editing** - Edit configuration files
-- **Diagnostic** - Log file access and viewing
-- **PDB Management** - Pluggable database shortcuts (auto-generated)
-
-## SQL*Plus Aliases
-
-Quick access to SQL*Plus with various options:
+### SQL*Plus
 
 | Alias        | Description                          | Command                       |
 |--------------|--------------------------------------|-------------------------------|
@@ -35,34 +28,20 @@ Quick access to SQL*Plus with various options:
 | `sqoh`       | SQL*Plus as SYSOPER (with rlwrap)    | `rlwrap sqlplus / as sysoper` |
 | `sessionsql` | SQL*Plus with dynamic terminal width | `sessionsql.sh`               |
 
-**Usage Examples:**
+**`sessionsql`** automatically detects your terminal width and configures SQL*Plus `LINESIZE` and
+`PAGESIZE` for optimal display. rlwrap-enabled aliases (`sqh`, `sqoh`, `sqlplush`) add command
+history (up/down arrows), tab completion, and line editing; see [rlwrap Integration](#rlwrap-integration)
+for password filtering.
 
 ```bash
-# Connect as SYSDBA
-sq
-
-# Connect with command history (rlwrap)
+# Connect as SYSDBA with command history
 sqh
 
-# Connect with proper terminal formatting
-sessionsql
-
-# Connect as SYSOPER
-sqoh
+# Connect /nolog then authenticate at the prompt
+sqlplush
 ```
 
-**rlwrap Features:**
-
-- Command history (up/down arrows)
-- Tab completion with SQL keywords
-- Line editing capabilities
-- Password filtering (when `ORADBA_RLWRAP_FILTER=true`)
-
-**sessionsql** automatically detects your terminal width and configures SQL*Plus LINESIZE and PAGESIZE for optimal display.
-
-## RMAN Aliases
-
-Recovery Manager connection shortcuts:
+### RMAN
 
 | Alias    | Description                       | Command                          |
 |----------|-----------------------------------|----------------------------------|
@@ -72,49 +51,26 @@ Recovery Manager connection shortcuts:
 
 **Note:** The `rman` command itself is not aliased to avoid conflicts with Oracle's native binary.
 
-**Usage Examples:**
+Configure the catalog in `oradba_customer.conf` or `sid.<SID>.conf`:
 
 ```bash
-# Direct RMAN with catalog or fallback to target /
-rmanc
-
-# RMAN with rlwrap - connect manually at prompt
-rmanh
-RMAN> connect target /
-
-# RMAN with rlwrap and catalog (uses ORADBA_RMAN_CATALOG if configured)
-rmanch
-
-# Standard Oracle RMAN command (not aliased)
-rman target /
-```
-
-**Catalog Configuration:**
-Configure `ORADBA_RMAN_CATALOG` in `oradba_customer.conf` or `sid.<SID>.conf`:
-
-```bash
-# Global catalog (in oradba_customer.conf)
+# Global catalog
 ORADBA_RMAN_CATALOG="rman_user/password@catdb"
 
 # Per-database catalog (in sid.PRODDB.conf)
 ORADBA_RMAN_CATALOG="rman_user@prodcat"
 ```
 
-**Connection Flexibility:**
-
 ```bash
-# Use rmanh for flexible connections
+# RMAN with rlwrap — connect manually at prompt
 rmanh
 RMAN> connect target /
 RMAN> connect catalog rman@catdb
-
-# Or specify at command line
-rmanh target / catalog rman@catdb
 ```
 
-## Directory Navigation Aliases
+## Directory Navigation
 
-Quick navigation to Oracle and OraDBA directories:
+Quick navigation to Oracle and OraDBA directories.
 
 ### Oracle Directories
 
@@ -140,7 +96,7 @@ Quick navigation to Oracle and OraDBA directories:
 
 ### SID-Specific Directories (Dynamic)
 
-These aliases are generated dynamically based on current `ORACLE_SID`:
+Generated dynamically based on the current `ORACLE_SID`:
 
 | Alias  | Description                      | Target Directory                   |
 |--------|----------------------------------|------------------------------------|
@@ -150,29 +106,15 @@ These aliases are generated dynamically based on current `ORACLE_SID`:
 | `cddt` | Change to trace directory        | `diagnostic_dest/trace`            |
 | `cdda` | Change to alert directory        | `diagnostic_dest/alert`            |
 
-**Usage Examples:**
-
 ```bash
-# Navigate to ORACLE_HOME
-cdh
-pwd  # /u01/app/oracle/product/19.0.0/dbhome_1
-
-# Navigate to database admin directory
-cda
-pwd  # /u01/app/oracle/admin/FREE
-
-# Navigate to trace directory
-cddt
-pwd  # /u01/app/oracle/diag/rdbms/free/FREE/trace
-
-# Navigate to OraDBA configuration
-etc
-pwd  # /opt/oradba/etc
+# Navigate to trace directory and ORACLE_HOME
+cddt && pwd   # /u01/app/oracle/diag/rdbms/free/FREE/trace
+cdh  && pwd   # /u01/app/oracle/product/19.0.0/dbhome_1
 ```
 
-### Convenience Variables
+### Convenience Variables {#convenience-variables}
 
-Short variables for use in commands or scripts:
+The same names also work as shell variables — useful in one-liners and scripts:
 
 | Variable | Description          | Value                   |
 |----------|----------------------|-------------------------|
@@ -183,24 +125,12 @@ Short variables for use in commands or scripts:
 | `$etc`   | OraDBA etc path      | `$ORADBA_ETC`           |
 | `$log`   | OraDBA log path      | `$ORADBA_LOG`           |
 
-**Usage Examples:**
-
 ```bash
-# Navigate using variables
-cd $cdh/bin
-cd $cda/scripts
-
-# Use in commands
 ls -l $etc/*.conf
 vi $cda/pfile/init${ORACLE_SID}.ora
-
-# Copy files
-cp myfile.sql $cda/scripts/
 ```
 
-## Database Operations Aliases
-
-Manage databases, listeners, and view status:
+## Database Operations and Diagnostics
 
 ### Status and Monitoring
 
@@ -210,28 +140,8 @@ Manage databases, listeners, and view status:
 | `sta`         | Database status                 | `dbstatus.sh`         |
 | `pmon`        | Show running database processes | `ps -ef \| grep pmon` |
 
-**Usage Examples:**
-
-```bash
-# Show all Oracle databases and their status
-oraup
-# or
-u
-
-# Show detailed status for current ORACLE_SID
-sta
-
-# Check running Oracle instances
-pmon
-```
-
-**oraup.sh** displays:
-
-- All databases from oratab
-- Database status (OPEN, MOUNTED, NOMOUNT, DOWN)
-- Listener status
-- Oracle Home paths
-- Startup flags
+**`oraup.sh`** displays all databases from oratab, their status (OPEN/MOUNTED/NOMOUNT/DOWN),
+listener status, Oracle Home paths, and startup flags.
 
 ### Listener Commands
 
@@ -243,22 +153,6 @@ pmon
 | `lstart` | Start listener                 | `lsnrctl start`  |
 | `lstop`  | Stop listener                  | `lsnrctl stop`   |
 
-**Usage Examples:**
-
-```bash
-# Check listener status
-lstat
-
-# Start listener
-lstart
-
-# Stop listener
-lstop
-
-# Interactive listener control with command history
-lsnrh
-```
-
 ### Configuration Viewing
 
 | Alias    | Description          | Command                       |
@@ -266,11 +160,9 @@ lsnrh
 | `oratab` | Display oratab file  | `cat /etc/oratab`             |
 | `tns`    | Display tnsnames.ora | `cat $TNS_ADMIN/tnsnames.ora` |
 
-## File Editing Aliases
+### File Editing
 
-Quick access to edit configuration files:
-
-### Oracle Configuration Files
+#### Oracle Configuration Files
 
 | Alias    | Description       | Target File               |
 |----------|-------------------|---------------------------|
@@ -280,7 +172,7 @@ Quick access to edit configuration files:
 | `visql`  | Edit sqlnet.ora   | `$TNS_ADMIN/sqlnet.ora`   |
 | `vildap` | Edit ldap.ora     | `$TNS_ADMIN/ldap.ora`     |
 
-### OraDBA Configuration Files
+#### OraDBA Configuration Files
 
 | Alias | Description          | Target File                        |
 |-------|----------------------|------------------------------------|
@@ -288,252 +180,241 @@ Quick access to edit configuration files:
 | `vic` | Edit customer config | `$ORADBA_ETC/oradba_customer.conf` |
 | `vii` | Edit SID config      | `$ORADBA_ETC/sid.$ORACLE_SID.conf` |
 
-**Usage Examples:**
+### Alert Log and Diagnostics
 
-```bash
-# Edit tnsnames.ora
-vit
+| Alias    | Description             | Command                              |
+|----------|-------------------------|--------------------------------------|
+| `taa`    | Tail alert log (follow) | `tail -f -n 50 $ORADBA_SID_ALERTLOG` |
+| `vaa`    | View alert log (less)   | `less $ORADBA_SID_ALERTLOG`          |
+| `via`    | Edit alert log (vi)     | `vi $ORADBA_SID_ALERTLOG`            |
+| `adrcih` | ADRCI with rlwrap       | `rlwrap adrci`                       |
 
-# Edit your customer configuration
-vic
-
-# Edit SID-specific configuration
-vii
-```
-
-## Diagnostic Aliases
-
-Access and monitor Oracle diagnostic files:
-
-### Alert Log Access (Dynamic)
-
-| Alias | Description             | Command                              |
-|-------|-------------------------|--------------------------------------|
-| `taa` | Tail alert log (follow) | `tail -f -n 50 $ORADBA_SID_ALERTLOG` |
-| `vaa` | View alert log (less)   | `less $ORADBA_SID_ALERTLOG`          |
-| `via` | Edit alert log (vi)     | `vi $ORADBA_SID_ALERTLOG`            |
-
-**Usage Examples:**
+These aliases point to the standard text alert log (`alert_$ORACLE_SID.log`), not the XML version.
 
 ```bash
 # Watch alert log in real-time
 taa
 
-# Browse alert log
-vaa
-
-# Search alert log
-via
-/ORA-
-```
-
-**Note:** These aliases automatically point to the standard text alert log (`alert_$ORACLE_SID.log`), not the XML version.
-
-### Diagnostic Tools
-
-| Alias    | Description       | Command        |
-|----------|-------------------|----------------|
-| `adrcih` | ADRCI with rlwrap | `rlwrap adrci` |
-
-**Usage Example:**
-
-```bash
 # Interactive ADRCI with command history
 adrcih
-ADRCI> show homes
-ADRCI> set home diag/rdbms/free/FREE
 ADRCI> show alert -tail 50
 ```
 
-## Information Display Aliases
+### Information Display
 
-OraDBA provides convenient aliases to display important paths and configuration hierarchy:
+| Alias | Description                  | Function       |
+|-------|------------------------------|----------------|
+| `sqa` | Show SQLPATH directories     | `show_sqlpath` |
+| `pth` | Show PATH directories        | `show_path`    |
+| `cfg` | Show OraDBA config hierarchy | `show_config`  |
 
-### Path and Configuration Display
+`cfg` displays the 5-level configuration hierarchy and load order, with `[[OK] loaded]`,
+`[[X] MISSING - REQUIRED]`, and `[- not configured]` indicators. Use these aliases to
+troubleshoot missing PATH/SQLPATH directories and configuration precedence issues.
 
-| Alias | Description                   | Function       |
-|-------|-------------------------------|----------------|
-| `sqa` | Show SQLPATH directories      | `show_sqlpath` |
-| `pth` | Show PATH directories         | `show_path`    |
-| `cfg` | Show OraDBA config hierarchy  | `show_config`  |
+### Help and Utility Aliases
 
-**Usage Examples:**
+| Alias       | Description              | Command                                  |
+|-------------|--------------------------|------------------------------------------|
+| `alih`      | Display alias help       | `cat $ORADBA_PREFIX/doc/alias_help.txt`  |
+| `alig`      | Search aliases           | `alias \| grep -i`                       |
+| `version`   | Show OraDBA version      | `oradba_version.sh -i`                   |
+| `c`         | Clear screen             | `clear`                                  |
+| `l`         | List all (long format)   | `ls -al`                                 |
+| `ll`        | List all (detailed)      | `ls -alb`                                |
+| `lr`        | List reverse time order  | `ls -ltr`                                |
+| `lsl`       | List recent 20 files     | `ls -lrt \| tail -n 20`                  |
+| `psg`       | Search processes         | `ps -ef \| grep`                         |
+| `save_cron` | Backup crontab           | `crontab -l > ~/crontab.txt.$(date)`     |
+
+## PDB Aliases
+
+OraDBA automatically generates aliases for Pluggable Databases (PDBs) in Oracle Multitenant
+environments, providing quick SYSDBA connections to each PDB without typing long SQL commands.
+
+### How It Works
+
+When you source `oraenv.sh` for a CDB, OraDBA:
+
+1. Checks if the database is a CDB (`v$database.cdb = 'YES'`)
+2. Queries `v$pdbs` for all PDBs (excluding `PDB$SEED`)
+3. Creates two aliases for each PDB and exports `ORADBA_PDBLIST`
+
+This happens automatically unless `ORADBA_NO_PDB_ALIASES=true`.
+
+### Generated Aliases
+
+For each PDB (e.g., `PDB1`) two aliases are created:
 
 ```bash
-# Display SQLPATH directories with validation
-sqa
-# Output:
-# SQLPATH Directories:
-# ===================
-#  1. /opt/oracle/local/oradba/sql                            [[OK]]
-#  2. /opt/oracle/product/23ai/dbhome_1/sqlplus/admin         [[OK]]
-#  3. /opt/oracle/product/23ai/dbhome_1/rdbms/admin           [[OK]]
+# Simple alias — lowercase PDB name
+alias pdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
 
-# Display PATH directories
-pth
-# Output:
-# PATH Directories:
-# =================
-#  1. /opt/oracle/product/23ai/dbhome_1/bin                   [[OK]]
-#  2. /usr/local/bin                                          [[OK]]
-#  3. /usr/bin                                                [[OK]]
-
-# Display OraDBA configuration load order
-cfg
-# Output:
-# OraDBA Configuration Hierarchy:
-# ================================
-# SID: FREE
-# Config Directory: /opt/oracle/local/oradba/etc
-# 
-# Load Order (later configs override earlier):
-# ---------------------------------------------
-#  1. oradba_core.conf                                [[OK] loaded]
-#  2. oradba_standard.conf                            [[OK] loaded]
-#  3. oradba_customer.conf (optional)                 [- not configured]
-#  4. sid._DEFAULT_.conf (optional)                   [[OK] loaded]
-#  5. sid.FREE.conf (optional)                        [[OK] loaded]
+# Prefixed alias — same with 'pdb' prefix for clarity
+alias pdbpdb1="export ORADBA_PDB='PDB1'; sqlplus / as sysdba <<< 'ALTER SESSION SET CONTAINER=PDB1;'"
 ```
 
-**Features:**
+Aliases are always lowercase regardless of PDB name case.
 
-- **Validation**: Shows which directories/files exist with `[[OK]]` or are missing with `[[X]]`
-- **Hierarchy**: `cfg` displays the 5-level configuration hierarchy and load order
-- **Status indicators**:
-  - `[[OK] loaded]` - File exists and was loaded
-  - `[[X] MISSING - REQUIRED]` - Required file not found
-  - `[- not configured]` - Optional file not present
+### Key Variables
 
-These aliases help troubleshoot:
+| Variable               | Description                              |
+|------------------------|------------------------------------------|
+| `ORADBA_PDBLIST`       | Space-separated list of PDBs in the CDB  |
+| `ORADBA_PDB`           | Currently selected PDB (set by alias)    |
+| `ORADBA_NO_PDB_ALIASES`| Set `true` to disable alias generation   |
 
-- Path issues (missing directories in PATH/SQLPATH)
-- Configuration precedence (which config file will take priority)
-- Missing required configuration files
+`ORADBA_PDB` is also used by the PS1 prompt customisation, which shows `[CDB1.PDB1]` after
+connecting to a PDB (requires `ORADBA_CUSTOMIZE_PS1=true`, the default).
 
-## PDB Aliases (Auto-Generated)
-
-For Container Databases (CDB), OraDBA automatically generates aliases for each Pluggable Database (PDB).
-
-Each PDB gets two aliases:
-
-- Simple form (e.g., `pdb1`) - Connect directly to PDB1
-- Prefixed form (e.g., `pdbpdb1`) - Same with 'pdb' prefix for clarity
-
-**Quick Example:**
+### Basic Usage
 
 ```bash
-# List available PDBs
-echo $ORADBA_PDBLIST
+# Source CDB environment
+source oraenv.sh CDB1
+
+# Check available PDBs
+echo $ORADBA_PDBLIST    # PDB1 PDB2 TESTPDB
 
 # Connect to PDB1
 pdb1
-SQL> show con_name
+SQL> SHOW CON_NAME      # PDB1
+
+# Switch to PDB2
+pdb2
+SQL> SHOW CON_NAME      # PDB2
 ```
 
-For complete PDB alias documentation, configuration options, troubleshooting, and advanced usage, see [PDB Alias Reference](pdb-aliases.md).
+### Configuration (Enable / Disable)
 
-## Help and Information Aliases
-
-| Alias     | Description         | Command                                 |
-|-----------|---------------------|-----------------------------------------|
-| `alih`    | Display alias help  | `cat $ORADBA_PREFIX/doc/alias_help.txt` |
-| `alig`    | Search aliases      | `alias \| grep -i`                      |
-| `version` | Show OraDBA version | `oradba_version.sh -i`                  |
-
-**Usage Examples:**
+PDB aliases are enabled by default. To disable:
 
 ```bash
-# Quick alias reference
-alih
+# Globally — in oradba_customer.conf
+export ORADBA_NO_PDB_ALIASES="true"
 
-# Find aliases containing "sql"
-alig sql
-
-# Show OraDBA version and installation info
-version
+# Per CDB — in sid.CDB1.conf
+export ORADBA_NO_PDB_ALIASES="true"
 ```
 
-## General Utility Aliases
+Re-enable by removing the setting or setting it to `false`, then re-sourcing `oraenv.sh`.
 
-Additional convenience aliases:
+PDB aliases are generated at environment load time. After creating or dropping PDBs, reload:
 
-| Alias       | Description              | Command                              |
-|-------------|--------------------------|--------------------------------------|
-| `c`         | Clear screen             | `clear`                              |
-| `m`         | More                     | `more`                               |
-| `l`         | List all (long format)   | `ls -al`                             |
-| `ll`        | List all (detailed)      | `ls -alb`                            |
-| `lr`        | List reverse time order  | `ls -ltr`                            |
-| `lsl`       | List recent 20 files     | `ls -lrt \| tail -n 20`              |
-| `psg`       | Search processes         | `ps -ef \| grep`                     |
-| `sqa`       | Show SQLPATH directories | `show_sqlpath`                       |
-| `pth`       | Show PATH directories    | `show_path`                          |
-| `cfg`       | Show config hierarchy    | `show_config`                        |
-| `save_cron` | Backup crontab           | `crontab -l > ~/crontab.txt.$(date)` |
+```bash
+source oraenv.sh CDB1
+echo $ORADBA_PDBLIST    # updated list
+```
+
+### Limitations
+
+- Requires database access to query `v$pdbs` (must be OPEN READ WRITE)
+- Requires SYSDBA privileges
+- Static — not updated dynamically; reload after PDB changes
+- Alias names conflict with existing aliases: existing alias takes precedence
+- Only works for CDB databases; non-CDB databases produce no PDB aliases
+
+**Security note:** PDB aliases use OS authentication (`/ as sysdba`), which has full CDB
+privileges. In production environments consider disabling automatic PDB aliases
+(`ORADBA_NO_PDB_ALIASES=true`) and using proper connection strings with Oracle Wallet or
+dedicated PDB accounts.
 
 ## rlwrap Integration
 
-OraDBA automatically uses [rlwrap](https://github.com/hanslub42/rlwrap) when available, providing:
-
-- **Command history** - Navigate with up/down arrows
-- **Tab completion** - Tool-specific keywords
-- **Line editing** - Emacs/vi editing modes
-- **Password filtering** - Hide passwords from history (optional)
+[rlwrap](https://github.com/hanslub42/rlwrap) (readline wrapper) adds command-line history,
+tab completion, and line editing to programs that do not natively support them. OraDBA
+automatically uses rlwrap with SQL*Plus, RMAN, lsnrctl, and ADRCI when it is installed.
 
 ### Completion Files
 
-OraDBA includes completion files for enhanced tab completion:
+OraDBA ships completion word lists for tool-specific tab completion:
 
-- **SQL*Plus** (`rlwrap_sqlplus_completions`) - SQL commands, SET/SHOW parameters, views, privileges
-- **RMAN** (`rlwrap_rman_completions`) - Backup/restore commands, keywords
-- **lsnrctl** (`rlwrap_lsnrctl_completions`) - Listener commands, parameters
-- **ADRCI** (`rlwrap_adrci_completions`) - Diagnostic commands
+| File                         | Covers                                               |
+|------------------------------|------------------------------------------------------|
+| `rlwrap_sqlplus_completions` | SQL commands, SET/SHOW parameters, views, privileges |
+| `rlwrap_rman_completions`    | Backup/restore commands and keywords                 |
+| `rlwrap_lsnrctl_completions` | Listener commands and parameters                     |
+| `rlwrap_adrci_completions`   | Diagnostic commands                                  |
 
 ### Installing rlwrap
 
-**RHEL/Oracle Linux/CentOS:**
-
 ```bash
+# RHEL / Oracle Linux / CentOS
 sudo yum install rlwrap
-```
 
-**Ubuntu/Debian:**
-
-```bash
+# Ubuntu / Debian
 sudo apt-get install rlwrap
-```
 
-**macOS:**
-
-```bash
+# macOS
 brew install rlwrap
 ```
 
+When rlwrap is not installed the `sqh`, `rmanh`, `rmanch`, `lsnrh`, and `adrcih` aliases
+fall back gracefully (they simply invoke the underlying tool without rlwrap).
+
 ### Password Filtering
 
-Enable password filtering to hide passwords from command history:
+Password filtering removes sensitive information from rlwrap history files, so plain-text
+passwords do not appear in `~/.sqlplus_history` or `~/.rman_history`.
+
+**Example — what gets saved in history:**
+
+```sql
+-- Input:                            -- Saved as:
+CONNECT scott/tiger@orcl          →  CONNECT scott/@orcl
+CREATE USER u IDENTIFIED BY pass; →  CREATE USER u IDENTIFIED BY ***FILTERED***;
+ALTER USER u IDENTIFIED BY pass;  →  ALTER USER u IDENTIFIED BY ***FILTERED***;
+```
+
+**RMAN:**
+
+```rman
+CONNECT TARGET user/password@db   →  CONNECT TARGET user/@db
+CONNECT CATALOG rman/pass@cat     →  CONNECT CATALOG rman/@cat
+```
+
+#### Enable Password Filtering
+
+**Requirements:** rlwrap installed + Perl `RlwrapFilter` module.
 
 ```bash
-# In oradba_customer.conf
+# Check Perl module
+perl -MRlwrapFilter -e 'print "OK\n"'
+
+# Install Perl module if missing
+sudo cpan RlwrapFilter
+# or on Debian/Ubuntu:
+sudo apt-get install libterm-readline-gnu-perl
+```
+
+Enable in `oradba_customer.conf` (global) or `sid.<SID>.conf` (per database):
+
+```bash
 export ORADBA_RLWRAP_FILTER="true"
 ```
 
-**Requirements:**
+Reload the environment and verify:
 
-- rlwrap installed
-- Perl with RlwrapFilter module
+```bash
+source oraenv.sh FREE
+type sqh    # should include: -z ".../rlwrap_filter_oracle"
+```
 
-**What gets filtered:**
+**Affected aliases when `ORADBA_RLWRAP_FILTER=true`:** `sqh`, `sqlplush`, `sqoh`, `rmanh`,
+`rmanch`, `adrcih`.
 
-- Password prompts (SQL*Plus, RMAN)
-- CONNECT commands with passwords
-- CREATE/ALTER USER statements
+To disable filtering, set `ORADBA_RLWRAP_FILTER="false"` or unset the variable and reload.
+Aliases continue using rlwrap for history/completion — only the password filter is removed.
 
-See [rlwrap Filter Configuration](rlwrap.md) for details.
+**Security note:** The filter catches common patterns but may miss edge cases. It does not
+retroactively clean existing history files. For production environments, Oracle Wallet or
+OS/Kerberos authentication are preferred over relying solely on password filtering.
 
-## Custom Aliases
+## Custom Aliases and Configuration
 
-Add your own aliases in `oradba_customer.conf`:
+### Custom Aliases
+
+Add personal aliases and functions in `oradba_customer.conf`:
 
 ```bash
 # Custom SQL*Plus connections
@@ -547,7 +428,7 @@ alias cdbkp='cd /backup/oracle'
 # Custom RMAN shortcuts
 alias fullbackup='rman target / cmdfile=${ORADBA_PREFIX}/rcv/backup_full.rman'
 
-# Custom functions
+# Custom shell function
 backup_config() {
     local backup_dir="/backup/config/$(date +%Y%m%d)"
     mkdir -p "$backup_dir"
@@ -556,39 +437,25 @@ backup_config() {
 }
 ```
 
-## Dynamic Alias Generation
+### Dynamic Alias Generation
 
-### How It Works
+When you source `oraenv.sh`, the `generate_sid_aliases()` function:
 
-When you set your Oracle environment with `oraenv.sh`, the `generate_sid_aliases()` function automatically:
-
-1. Queries database for `diagnostic_dest` parameter
-2. Generates SID-specific aliases (taa, vaa, via, cda, cdd, cddt, cdda)
-3. Creates directory navigation aliases based on actual paths
-4. Falls back to convention-based paths if database is unavailable
-
-### Example
+1. Queries the database for the `diagnostic_dest` parameter
+2. Generates SID-specific aliases (`taa`, `vaa`, `via`, `cda`, `cdd`, `cddt`, `cdda`)
+3. Falls back to convention-based paths if the database is unavailable
 
 ```bash
 $ source oraenv.sh FREE
-Setting environment for ORACLE_SID: FREE
-
-$ type taa
-taa is aliased to `if [ -f "${ORADBA_SID_ALERTLOG}" ]; then tail -f -n 50 ${ORADBA_SID_ALERTLOG}; ...'
-
 $ echo $ORADBA_SID_ALERTLOG
 /u01/app/oracle/diag/rdbms/free/FREE/trace/alert_FREE.log
-
-$ cddt
-$ pwd
+$ cddt && pwd
 /u01/app/oracle/diag/rdbms/free/FREE/trace
 ```
 
-## Configuration
+### Enable / Disable All Aliases
 
-### Enable/Disable Aliases
-
-Control alias loading in `oradba_core.conf`:
+Control alias loading in `oradba_core.conf` (or override in `oradba_customer.conf`):
 
 ```bash
 # Enable (default)
@@ -598,124 +465,135 @@ ORADBA_LOAD_ALIASES="true"
 ORADBA_LOAD_ALIASES="false"
 ```
 
-### Disable Specific Aliases
-
-Override specific aliases in `oradba_customer.conf`:
+To disable or redefine a specific alias, add to `oradba_customer.conf`:
 
 ```bash
-# Disable an alias by unaliasing it
 unalias sq
-
-# Or redefine it
+# or redefine:
 alias sq='echo "Use sqh instead"'
 ```
+
+**Best practices:**
+
+- Learn the essentials first: `sq`/`sqh`, `cdh`, `taa`, `oraup`
+- Use rlwrap aliases (`sqh`, `rmanh`) for command history in interactive sessions
+- Customise in `oradba_customer.conf` — never edit the core alias file directly
+- Use `type alias_name` to inspect what an alias expands to
+- Comment your custom aliases so future you remembers why they exist
 
 ## Troubleshooting
 
 ### Aliases Not Loading
 
-**Check if aliases are enabled:**
-
 ```bash
-echo $ORADBA_LOAD_ALIASES
-# Should show: true
-```
+# Check if aliases are enabled
+echo $ORADBA_LOAD_ALIASES      # should be: true
 
-**Enable debug mode:**
-
-```bash
+# Enable debug mode when sourcing
 DEBUG=1 source oraenv.sh FREE
-```
 
-**Verify oradba_aliases.sh exists:**
-
-```bash
+# Verify the alias library exists
 ls -l ${ORADBA_PREFIX}/lib/oradba_aliases.sh
 ```
 
-### Dynamic Aliases Not Generated
-
-**Check ORACLE_SID is set:**
+### Dynamic / SID-Specific Aliases Not Generated
 
 ```bash
+# Confirm ORACLE_SID is set
 echo $ORACLE_SID
-# Should show your SID
-```
 
-**Check database connectivity:**
-
-```bash
+# Confirm database is accessible
 sqlplus -S / as sysdba <<< "SELECT instance_name FROM v\$instance;"
+
+# Check diagnostic_dest (needed for taa/vaa/cdd/cddt)
+sqlplus -S / as sysdba <<< "SHOW PARAMETER diagnostic_dest"
 ```
 
-**Check diagnostic_dest parameter:**
+### PDB Aliases Missing
 
 ```bash
-sqlplus -S / as sysdba <<< "SHOW PARAMETER diagnostic_dest"
+# Check whether generation is disabled
+echo $ORADBA_NO_PDB_ALIASES    # must NOT be true
+
+# Confirm CDB
+sqlplus -s / as sysdba <<< "SELECT cdb FROM v\$database;"
+# CDB must be YES
+
+# Confirm database is open READ WRITE
+sqlplus -s / as sysdba <<< "SELECT open_mode FROM v\$database;"
+
+# Check for PDBs (excluding seed)
+sqlplus -s / as sysdba <<< "SELECT name FROM v\$pdbs WHERE name != 'PDB\$SEED';"
+
+# Reload environment after creating new PDBs
+source oraenv.sh CDB1
+echo $ORADBA_PDBLIST
+```
+
+### PDB Alias Not Working
+
+```bash
+# Verify the alias was created
+type pdb1
+
+# Manual test — should succeed if PDB is accessible
+sqlplus / as sysdba <<< "ALTER SESSION SET CONTAINER=PDB1;"
+
+# Check PDB open mode
+sqlplus -s / as sysdba <<< "SELECT name, open_mode FROM v\$pdbs WHERE name='PDB1';"
 ```
 
 ### rlwrap Not Working
 
-**Check if rlwrap is installed:**
-
 ```bash
-which rlwrap
-# Should show: /usr/bin/rlwrap or similar
-```
+# Check installation
+which rlwrap         # should show /usr/bin/rlwrap or similar
 
-**Verify rlwrap configuration:**
-
-```bash
+# Check current configuration
 echo $RLWRAP_COMMAND
 echo $RLWRAP_OPTS
-```
 
-**Test rlwrap directly:**
-
-```bash
+# Test directly
 rlwrap -i -c sqlplus / as sysdba
 ```
 
-**Install if missing:**
+### Password Filter Not Working
 
 ```bash
-# RHEL/OL
-sudo yum install rlwrap
+# Check filter is enabled
+echo $ORADBA_RLWRAP_FILTER     # should be: true
 
-# Ubuntu/Debian
-sudo apt-get install rlwrap
+# Verify alias includes filter option
+type sqh   # should include: -z ".../rlwrap_filter_oracle"
 
-# macOS
-brew install rlwrap
+# Check filter script exists and is executable
+ls -l /opt/oradba/etc/rlwrap_filter_oracle
+
+# Check Perl module
+perl -MRlwrapFilter -e 'print "OK\n"'
 ```
 
-## Complete Alias Reference
+**If history still shows passwords:**
 
-For a quick reference card, use:
+1. Ensure `ORADBA_RLWRAP_FILTER=true` and reload the environment
+2. Use `sqh`/`rmanh`, not `sq`/`rman` (unfiltered aliases bypass rlwrap entirely)
+3. The filter does not retroactively clean existing history — back up and remove old files:
 
 ```bash
-alih
+mv ~/.sqlplus_history ~/.sqlplus_history.bak
+mv ~/.rman_history    ~/.rman_history.bak
 ```
 
-This displays a condensed list of the most commonly used aliases.
-
-## Best Practices
-
-1. **Learn the essentials first** - Focus on `sq`, `cdh`, `taa`, `oraup`
-2. **Use rlwrap aliases** - `sqh` and `rmanh` provide better command history
-3. **Customize in customer config** - Add personal aliases to `oradba_customer.conf`
-4. **Use convenience variables** - `$cdh`, `$cda`, `$etc` in scripts and commands
-5. **Check alias definitions** - Use `type alias_name` to see what it does
-6. **Document custom aliases** - Comment your aliases in customer config
+For a quick alias reference card at any time, run `alih`.
 
 ## See Also {.unlisted .unnumbered}
 
-- [PDB Aliases](pdb-aliases.md) - Pluggable database shortcuts
-- [rlwrap Configuration](rlwrap.md) - Password filtering and completion
-- [Configuration](configuration.md) - Customizing aliases
-- [Quick Reference](reference.md) - Condensed alias list
+- [Configuration](configuration.md) - Customising OraDBA settings
+- [Environment Management](environment.md) - How aliases are loaded at environment set
+- [SQL Scripts](sql-scripts.md) - SQL scripts available via SQLPATH
+- [Quick Start](quickstart.md) - Quick reference card
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Configuration System](configuration.md)  
-**Next:** [PDB Alias Reference](pdb-aliases.md)
+**Previous:** [Configuration System](configuration.md)
+**Next:** [SQL Scripts](sql-scripts.md)

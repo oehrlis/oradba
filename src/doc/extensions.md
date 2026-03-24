@@ -8,7 +8,7 @@ The OraDBA extension system allows you to add custom scripts and tools without m
 installation. Extensions are automatically discovered and integrated into your environment, working seamlessly with the
 Registry API and Plugin System.
 
-## What are Extensions?
+## What Are Extensions
 
 Extensions are directories parallel to your OraDBA installation that contain custom:
 
@@ -17,6 +17,33 @@ Extensions are directories parallel to your OraDBA installation that contain cus
 - **RMAN Scripts** (`rcv/`) - Available for RMAN operations
 - **Configuration** (`etc/`) - Example configurations
 - **Libraries** (`lib/`) - Shared bash libraries
+
+OraDBA automatically discovers extensions in `${ORADBA_LOCAL_BASE}` (typically
+`/opt/oracle/local`). Extensions are identified by:
+
+1. **Metadata file**: Directories with `.extension` file
+2. **Content directories**: Directories with `bin/`, `sql/`, or `rcv/` subdirectories
+
+The core OraDBA installation (`/opt/oradba`) is excluded from discovery.
+
+### Navigation Aliases {.unlisted .unnumbered}
+
+OraDBA creates navigation aliases for each extension:
+
+```bash
+# If extension name is "customer"
+cdecustomer              # cd to extension directory
+
+# If extension name is "monitoring"
+cdemonitoring           # cd to monitoring extension
+```
+
+Each loaded extension also exports a `<NAME>_BASE` variable pointing to its directory:
+
+```bash
+echo $CUSTOMER_BASE    # /opt/oracle/local/customer
+echo $USZ_BASE         # /opt/oracle/local/usz
+```
 
 ## Quick Start
 
@@ -59,7 +86,7 @@ oradba_extension.sh list
    SELECT name, open_mode FROM v\$database;
    SQL
    EOF
-   
+
    chmod +x /opt/oracle/local/customer/bin/check_db.sh
    ```
 
@@ -68,7 +95,7 @@ oradba_extension.sh list
    ```bash
    source oraenv.sh FREE
    # Extension is auto-discovered and loaded
-   
+
    check_db.sh  # Your script is now in PATH
    ```
 
@@ -86,21 +113,58 @@ description: Customer-specific Oracle tools and scripts
 EOF
 ```
 
-## Extension Discovery
+### Database Monitoring Extension Example
 
-OraDBA automatically discovers extensions in `${ORADBA_LOCAL_BASE}` (typically
-`/opt/oracle/local`). Extensions are identified by:
+```bash
+mkdir -p /opt/oracle/local/monitoring/{bin,sql}
 
-1. **Metadata file**: Directories with `.extension` file
-2. **Content directories**: Directories with `bin/`, `sql/`, or `rcv/` subdirectories
+# Add monitoring script
+cat > /opt/oracle/local/monitoring/bin/check_tablespaces.sh << 'EOF'
+#!/usr/bin/env bash
+sqlplus -s / as sysdba @${ORADBA_LOCAL_BASE}/monitoring/sql/tablespaces.sql
+EOF
 
-The core OraDBA installation (`/opt/oradba`) is excluded from discovery.
+# Add SQL query
+cat > /opt/oracle/local/monitoring/sql/tablespaces.sql << 'EOF'
+SET PAGESIZE 100 LINESIZE 200
+SELECT tablespace_name,
+       ROUND(used_space*8192/1024/1024,2) used_mb,
+       ROUND(tablespace_size*8192/1024/1024,2) size_mb,
+       ROUND(used_percent,2) pct_used
+FROM dba_tablespace_usage_metrics
+ORDER BY pct_used DESC;
+EOF
+
+chmod +x /opt/oracle/local/monitoring/bin/check_tablespaces.sh
+```
+
+### Backup Extension Example
+
+```bash
+mkdir -p /opt/oracle/local/backup/{bin,rcv}
+
+# Add backup script
+cat > /opt/oracle/local/backup/bin/backup_db.sh << 'EOF'
+#!/usr/bin/env bash
+rman target / @${ORADBA_LOCAL_BASE}/backup/rcv/level0.rman
+EOF
+
+# Add RMAN script
+cat > /opt/oracle/local/backup/rcv/level0.rman << 'EOF'
+RUN {
+  BACKUP DATABASE PLUS ARCHIVELOG;
+  DELETE NOPROMPT OBSOLETE;
+}
+EOF
+
+chmod +x /opt/oracle/local/backup/bin/backup_db.sh
+```
 
 ## Managing Extensions
 
-Use the `oradba_extension.sh` command-line tool:
+Use the `oradba_extension.sh` command-line tool to create, install, inspect, and validate extensions.
 
-### Create Extension
+### Create
 
 ```bash
 # Create from default template
@@ -116,14 +180,10 @@ oradba_extension.sh create mycompany --template /path/to/template.tar.gz
 oradba_extension.sh create mycompany --path /opt/oracle/custom
 ```
 
-The create command will:
+The create command validates the extension name, extracts the template to the target location,
+updates metadata with the new name, and displays next steps for customization.
 
-- Validate the extension name
-- Extract template to target location
-- Update metadata with new name
-- Display next steps for customization
-
-### Install/Add Extension
+### Add / Install
 
 Install existing extensions from GitHub or local tarballs:
 
@@ -144,29 +204,19 @@ oradba_extension.sh add oehrlis/odb_autoupgrade --update
 oradba_extension.sh add oehrlis/odb_xyz --name custom_name
 ```
 
-The add command will:
+The add command downloads and extracts the extension, validates its structure, and enables it by default.
+When updating with `--update`, it:
 
-- Download/extract the extension
-- Validate structure
-- Enable by default
-- When updating with `--update`:
-  - Create timestamped backup (e.g., `extension_backup_20260211_193500/`)
-  - Preserve modified files (detected via `.extension.checksum`)
-  - Preserve user-added files: `*.conf`, `*.sh`, `*.sql`, `*.rcv`, `*.rman`, `*.env`, `*.properties`
-  - Install new extension content
-  - Restore all preserved files to their original locations
+- Creates a timestamped backup (e.g., `extension_backup_20260211_193500/`)
+- Preserves modified files detected via `.extension.checksum`
+- Preserves user-added files: `*.conf`, `*.sh`, `*.sql`, `*.rcv`, `*.rman`, `*.env`, `*.properties`
+- Installs new extension content
+- Restores all preserved files to their original locations
 
-**File Preservation During Updates:**
+This means customized configuration files (e.g., `etc/datasafe.conf`) and custom scripts you have added
+to `bin/`, `sql/`, or `rcv/` are automatically preserved and restored during the update.
 
-- Modified configuration files you've customized
-- Custom scripts you've added to `bin/`, `sql/`, `rcv/`
-- Additional environment and property files
-- Any files not present in the original extension's `.extension.checksum`
-
-Example: If you've customized `etc/datasafe.conf` and added `bin/my_script.sh`, both files
-will be automatically preserved and restored during the update.
-
-### List Extensions
+### List
 
 ```bash
 # Show all extensions
@@ -179,9 +229,13 @@ oradba_extension.sh list
 
 # Show detailed information
 oradba_extension.sh list --verbose
+
+# List only enabled or disabled extensions
+oradba_extension.sh enabled
+oradba_extension.sh disabled
 ```
 
-### Show Extension Information
+### Info
 
 ```bash
 oradba_extension.sh info customer
@@ -196,7 +250,7 @@ oradba_extension.sh info customer
 # ...
 ```
 
-### Validate Extensions
+### Validate
 
 ```bash
 # Validate specific extension
@@ -206,7 +260,7 @@ oradba_extension.sh validate customer
 oradba_extension.sh validate-all
 ```
 
-### Other Commands
+### Discover
 
 ```bash
 # Show auto-discovered extensions
@@ -214,15 +268,11 @@ oradba_extension.sh discover
 
 # Display search paths
 oradba_extension.sh paths
-
-# List only enabled extensions
-oradba_extension.sh enabled
-
-# List only disabled extensions
-oradba_extension.sh disabled
 ```
 
-## Priority and Load Order
+## Configuration
+
+### Priority and Load Order
 
 Extensions support priority-based loading (lower number = higher priority):
 
@@ -238,13 +288,8 @@ Extensions are loaded in PATH as:
 3. Oracle Home (`${ORACLE_HOME}/bin`)
 4. System PATH
 
-This ensures:
-
-- OraDBA core commands are always available
-- High-priority extensions can override Oracle tools
-- Low-priority extensions don't interfere with core functionality
-
-## Configuration
+This ensures OraDBA core commands are always available, high-priority extensions can override Oracle tools,
+and low-priority extensions do not interfere with core functionality.
 
 ### Enable/Disable Extensions
 
@@ -279,9 +324,9 @@ export ORADBA_EXTENSION_PATHS="/data/ext1:/opt/custom/ext2"
 export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
 ```
 
-## Extension Structure
+### Extension Structure
 
-### Minimal Extension
+**Minimal extension** — a single content directory is sufficient:
 
 ```text
 /opt/oracle/local/customer/
@@ -289,7 +334,7 @@ export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
     └── my_script.sh
 ```
 
-### Complete Extension
+**Complete extension** with all optional components:
 
 ```text
 /opt/oracle/local/customer/
@@ -310,77 +355,100 @@ export ORADBA_AUTO_DISCOVER_EXTENSIONS="false"
     └── functions.sh
 ```
 
-## Navigation Aliases
+**Best practices:**
 
-OraDBA creates navigation aliases for each extension:
+1. Always create `.extension` for version tracking
+2. Include `README.md` with usage instructions
+3. Keep extensions in version control (git)
+4. Run `oradba_extension.sh validate` before deployment
+5. Avoid overriding core OraDBA commands
+6. Choose distinctive script names to avoid conflicts
+7. Use `${ORADBA_LOG}` for logging (shared by default)
+8. Use `etc/` for configuration templates
 
-```bash
-# If extension name is "customer"
-cdecustomer              # cd to extension directory
+## Available Extensions
 
-# If extension name is "monitoring"
-cdemonitoring           # cd to monitoring extension
-```
+Extensions are separate packages that integrate with OraDBA to provide additional functionality. Each
+extension has its own repository and version numbers, follows the standard OraDBA directory structure
+(`bin/`, `sql/`, `rcv/`, `lib/`, etc.), is automatically discovered when placed parallel to the OraDBA
+installation, and can be installed using the OraDBA extension management tools.
 
-## Best Practices
+<!-- This section is automatically updated by the documentation build workflow -->
+<!-- EXTENSIONS_LIST_START -->
+### OraDBA Extension Template
 
-1. **Use Metadata Files**: Always create `.extension` for version tracking
-2. **Document Your Extensions**: Include README.md with usage instructions
-3. **Version Control**: Keep extensions in version control (git)
-4. **Test Validation**: Run `oradba_extension.sh validate` before deployment
-5. **Avoid Core Conflicts**: Don't override core OraDBA commands
-6. **Use Unique Names**: Choose distinctive script names to avoid conflicts
-7. **Log Appropriately**: Extensions share `${ORADBA_LOG}` by default
-8. **Provide Configuration Examples**: Use `etc/` for config templates
+**Repository:** [oehrlis/oradba_extension](https://github.com/oehrlis/oradba_extension)
+**Category:** Development
+**Status:** Active
+**Version:** v0.4.0
 
-## Examples
+Template for creating OraDBA extensions with priority-based loading, provides metadata, and comprehensive documentation
 
-### Database Monitoring Extension
+**Features:**
 
-```bash
-mkdir -p /opt/oracle/local/monitoring/{bin,sql}
+- Priority-based loading (default: 50, range: 10-90)
+- Selective directory inclusion via provides metadata
+- OraDBA library dependency tracking
+- Environment variables and navigation aliases
+- Example scripts (bin/, sql/, rcv/)
 
-# Add monitoring script
-cat > /opt/oracle/local/monitoring/bin/check_tablespaces.sh << 'EOF'
-#!/usr/bin/env bash
-sqlplus -s / as sysdba @${ORADBA_LOCAL_BASE}/monitoring/sql/tablespaces.sql
-EOF
+[View Documentation](https://github.com/oehrlis/oradba_extension#readme){ .md-button }
 
-# Add SQL query
-cat > /opt/oracle/local/monitoring/sql/tablespaces.sql << 'EOF'
-SET PAGESIZE 100 LINESIZE 200
-SELECT tablespace_name, 
-       ROUND(used_space*8192/1024/1024,2) used_mb,
-       ROUND(tablespace_size*8192/1024/1024,2) size_mb,
-       ROUND(used_percent,2) pct_used
-FROM dba_tablespace_usage_metrics
-ORDER BY pct_used DESC;
-EOF
+### OraDBA Data Safe Extension
 
-chmod +x /opt/oracle/local/monitoring/bin/check_tablespaces.sh
-```
+**Repository:** [oehrlis/odb_datasafe](https://github.com/oehrlis/odb_datasafe)
+**Category:** Operations
+**Status:** Active
 
-### Backup Extension
+Tools for managing Oracle Data Safe targets in OCI with simplified CLI and comprehensive logging
 
-```bash
-mkdir -p /opt/oracle/local/backup/{bin,rcv}
+[View Documentation](https://github.com/oehrlis/odb_datasafe#readme){ .md-button }
 
-# Add backup script
-cat > /opt/oracle/local/backup/bin/backup_db.sh << 'EOF'
-#!/usr/bin/env bash
-rman target / @${ORADBA_LOCAL_BASE}/backup/rcv/level0.rman
-EOF
+### OraDBA AutoUpgrade Extension
 
-# Add RMAN script
-cat > /opt/oracle/local/backup/rcv/level0.rman << 'EOF'
-RUN {
-  BACKUP DATABASE PLUS ARCHIVELOG;
-  DELETE NOPROMPT OBSOLETE;
-}
-EOF
+**Repository:** [oehrlis/odb_autoupgrade](https://github.com/oehrlis/odb_autoupgrade)
+**Category:** Operations
+**Status:** Active
 
-chmod +x /opt/oracle/local/backup/bin/backup_db.sh
-```
+Oracle AutoUpgrade wrapper scripts with ready-to-use configs for database upgrades
+
+[View Documentation](https://github.com/oehrlis/odb_autoupgrade#readme){ .md-button }
+
+### OraDBA Extras Extension
+
+**Repository:** [oehrlis/odb_extras](https://github.com/oehrlis/odb_extras)
+**Category:** Utilities
+**Status:** Active
+**Version:** v0.1.0
+
+User-specific tools and wrappers for GNU utilities, OCI CLI, jq, and other commonly used tools
+
+**Features:**
+
+- GNU tar wrapper (gnu-tar) for consistent behavior on Solaris/Linux
+- OCI CLI enhancements (oci-wrapper)
+- JSON processing helpers (jq wrappers)
+- Additional command-line utilities
+- No database dependencies (works with any Oracle product)
+
+[View Documentation](https://github.com/oehrlis/odb_extras#readme){ .md-button }
+
+<!-- EXTENSIONS_LIST_END -->
+
+### Contributing Extensions
+
+To have your extension listed here:
+
+1. **Follow the structure** - Use the standard OraDBA extension layout
+2. **Add documentation** - Include markdown docs in your repository's README
+3. **Submit a request** - Open an issue or PR to add your extension to this catalog
+4. **Review process** - Extensions are reviewed for quality and compatibility
+
+Each extension maintains its own documentation in its GitHub repository. At minimum, the README should include
+an overview and features, installation instructions, configuration options, usage examples and command reference,
+and a changelog with version history. See the
+[Extension Template](https://github.com/oehrlis/oradba_extension) for a complete example with comprehensive
+documentation structure.
 
 ## Troubleshooting
 
@@ -463,7 +531,7 @@ intentionally excluded from integrity checks.
    ```bash
    # Use verbose mode to see details
    oradba_version.sh --info --verbose
-   
+
    # Or check manually
    cd /opt/oracle/local/customer
    sha256sum -c .extension.checksum
@@ -478,9 +546,7 @@ intentionally excluded from integrity checks.
      xargs sha256sum > .extension.checksum
    ```
 
-4. Exclude files from integrity checks:
-
-   Create or edit `.checksumignore` to exclude runtime-generated files:
+4. Exclude files from integrity checks by creating or editing `.checksumignore`:
 
    ```bash
    # Add patterns to .checksumignore
@@ -488,33 +554,28 @@ intentionally excluded from integrity checks.
    # Temporary files
    tmp/
    *.tmp
-   
+
    # Credentials (if stored in extension)
    keystore/
    secrets/
    EOF
    ```
 
-   See "Checksum Exclusions" below for pattern syntax.
-
 **Checksum Exclusions (.checksumignore)**:
 
 The `.checksumignore` file lets you exclude specific files or patterns from integrity checks.
 
-**Default exclusions** (always applied):
+Default exclusions (always applied): `.extension` (metadata file), `.checksumignore` (this file itself),
+and `log/` (log directory).
 
-- `.extension` - Metadata file
-- `.checksumignore` - This file itself
-- `log/` - Log directory
-
-**Pattern syntax**:
+Pattern syntax:
 
 - One pattern per line, `#` for comments
 - `*` matches any characters: `*.log`, `data/*.cache`
 - `?` matches one character: `file?.txt`
 - Patterns ending with `/` match directories: `tmp/`, `keystore/`
 
-**Common patterns**:
+Common patterns:
 
 ```text
 # Runtime files
@@ -533,53 +594,25 @@ secrets/
 etc/*.local
 ```
 
-**Verbose Mode Output**:
-
-```bash
-# With --verbose flag, see detailed information
-oradba_version.sh --verify --verbose
-
-Extension Integrity Checks:
-  ✗ Extension 'customer': FAILED
-      Modified or missing files:
-        ${CUSTOMER_BASE}/bin/tool.sh
-      Additional files (not in checksum):
-        ${CUSTOMER_BASE}/sql/new_script.sql
-```
-
-**Extension Environment Variables**:
-
-Each loaded extension exports a `<NAME>_BASE` variable pointing to its directory:
-
-```bash
-echo $CUSTOMER_BASE    # /opt/oracle/local/customer
-echo $USZ_BASE         # /opt/oracle/local/usz
-```
-
-**Note**: The `.extension` metadata file and `log/` directory are excluded from
-checksum verification as they're modified during normal operation.
+Use `oradba_version.sh --verify --verbose` to see detailed output showing exactly which files
+are modified, missing, or untracked.
 
 ### Priority Issues
 
 **Problem**: Wrong extension loads first
 
-**Solution**: Set priority explicitly:
+**Solution**: Set priority explicitly in `oradba_customer.conf`:
 
 ```bash
-# In oradba_customer.conf
 export ORADBA_EXT_IMPORTANT_PRIORITY="5"   # Loads last (appears first in PATH)
 export ORADBA_EXT_OTHER_PRIORITY="50"      # Loads first (appears later in PATH)
 ```
 
 ## See Also {.unlisted .unnumbered}
 
-- **[Extension System Documentation](https://github.com/oehrlis/oradba/blob/main/doc/extension-system.md)** -
-  Complete technical reference
-- **[Example Extension](https://github.com/oehrlis/oradba/tree/main/doc/examples/extensions/customer)** -
-  Reference implementation
-- **[Configuration Guide](configuration.md)** - Configuration hierarchy
-- **[Troubleshooting](troubleshooting.md)** - General troubleshooting
+- **[Configuration Guide](configuration.md)** - Configuration hierarchy and environment variables
+- **[Troubleshooting](troubleshooting.md)** - General troubleshooting reference
 
 ---
 
-**Next Chapter**: [Usage Guide](usage.md) | **Previous Chapter**: [Service Management](service-management.md)
+**Next Chapter**: [Troubleshooting](troubleshooting.md) | **Previous Chapter**: [Functions Library](functions.md)

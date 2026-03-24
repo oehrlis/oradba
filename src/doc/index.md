@@ -20,48 +20,42 @@ The complete OraDBA user documentation is available in multiple formats:
 
 ### Getting Started
 
-| Document                                        | Description                        |
-| ----------------------------------------------- | ---------------------------------- |
-| [Introduction](introduction.md)                 | What is OraDBA and why use it      |
-| [Quick Start](quickstart.md)                    | Get up and running in 5 minutes    |
-| [Installation](installation.md)                 | Complete installation guide        |
-| [Installation (Docker)](installation-docker.md) | Docker-specific installation       |
-| [Usage Guide](usage.md)                         | Daily usage patterns and workflows |
+| Document                              | Description                         |
+| ------------------------------------- | ----------------------------------- |
+| [Introduction](introduction.md)       | What is OraDBA and why use it       |
+| [Installation](installation.md)       | Complete installation guide         |
+| [Quick Start](quickstart.md)          | Get up and running in 5 minutes     |
 
 ### Configuration & Environment
 
-| Document                                    | Description                        |
-| ------------------------------------------- | ---------------------------------- |
-| [Configuration System](configuration.md)    | 6-level configuration hierarchy    |
-| [Environment Management](environment.md)    | Environment variables and setup    |
-| [SQLNet Configuration](sqlnet-config.md)    | SQLNet and network configuration   |
+| Document                                             | Description                         |
+| ---------------------------------------------------- | ----------------------------------- |
+| [Configuration System](configuration.md)             | 6-level configuration hierarchy     |
+| [Advanced Configuration](advanced-configuration.md)  | Multi-version, Grid, ROOH, products |
+| [Environment Management](environment.md)             | Registry API and Plugin System      |
 
 ### Commands & Features
 
-| Document                                    | Description                            |
-|---------------------------------------------|----------------------------------------|
-| [Aliases Reference](aliases.md)             | Shell command aliases (sq, alih, etc.) |
-| [PDB Aliases](pdb-aliases.md)               | Pluggable database shortcuts           |
-| [Functions Reference](functions.md)         | Available shell functions              |
-| [Service Management](service-management.md) | Database service operations            |
-| [SQL Scripts](sql-scripts.md)               | SQL script library reference           |
-| [RMAN Scripts](rman-scripts.md)             | RMAN backup script templates           |
-| [rlwrap Filter](rlwrap.md)                  | SQLPlus command-line enhancement       |
+| Document                            | Description                            |
+|-------------------------------------|----------------------------------------|
+| [Aliases Reference](aliases.md)     | Aliases, PDB aliases, rlwrap           |
+| [Functions Reference](functions.md) | Available shell functions              |
+| [SQL Scripts](sql-scripts.md)       | SQL script library reference           |
+| [RMAN Scripts](rman-scripts.md)     | RMAN backup script templates           |
 
 ### Extensions & Customization
 
-| Document                                    | Description                     |
-| ------------------------------------------- | ------------------------------- |
-| [Extension System](extensions.md)           | Creating and using extensions   |
-| [Extension Catalog](extensions-catalog.md)  | Available extensions directory  |
+| Document                          | Description                                     |
+| --------------------------------- | ----------------------------------------------- |
+| [Extension System](extensions.md) | Creating, managing, and available extensions    |
 
 ### Operations & Support
 
-| Document                                | Description                          |
-| --------------------------------------- | ------------------------------------ |
-| [Log Management](log-management.md)     | Logging system and troubleshooting   |
-| [Troubleshooting](troubleshooting.md)   | Common issues and solutions          |
-| [Quick Reference](reference.md)         | Command quick reference card         |
+| Document                                            | Description                             |
+| --------------------------------------------------- | --------------------------------------- |
+| [Service and Log Operations](operations.md)         | Service management and log rotation     |
+| [SQL*Net Configuration](sqlnet-config.md)           | SQLNet and network configuration        |
+| [Troubleshooting](troubleshooting.md)               | Common issues and solutions             |
 
 ## Quick Start
 
@@ -90,8 +84,8 @@ See [Quick Start Guide](quickstart.md) for detailed first steps.
 | See available commands | [Aliases Reference](aliases.md) or run `alih` |
 | Extend functionality   | [Extension System](extensions.md)             |
 | Fix issues             | [Troubleshooting](troubleshooting.md)         |
-| Quick command lookup   | [Quick Reference](reference.md)               |
-| See practical examples | [Usage Guide](usage.md)                       |
+| Quick command lookup   | [Quick Start](quickstart.md)                  |
+| See practical examples | [Quick Start](quickstart.md)                  |
 
 ## Support
 

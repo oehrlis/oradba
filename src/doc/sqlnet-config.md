@@ -944,5 +944,5 @@ NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [Quick Reference](reference.md)  
-**Next:** [Log Management](log-management.md)
+**Previous:** [Service and Log Operations](operations.md)  
+**Next:** [Operations](operations.md)

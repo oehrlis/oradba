@@ -317,4 +317,4 @@ This architecture provides:
 - **Documentation**: Complete guides in this documentation site
 - **Alias Help**: Run `alih` for quick alias reference
 - **GitHub Issues**: Report bugs or request features at [github.com/oehrlis/oradba/issues](https://github.com/oehrlis/oradba/issues)
-- **Examples**: See [Usage Guide](usage.md) for common scenarios
+- **Examples**: See [Quick Start](quickstart.md) for common scenarios

@@ -101,37 +101,30 @@ plugins:
 # Navigation structure
 nav:
   - Home: index.md
-  
+
   - Getting Started:
     - Introduction: introduction.md
     - Installation: installation.md
-    - Docker Installation: installation-docker.md
     - Quick Start: quickstart.md
-  
+
   - Configuration:
     - Configuration System: configuration.md
     - Advanced Configuration: advanced-configuration.md
+    - Environment Management: environment.md
+
+  - Aliases & Tools:
     - Aliases Reference: aliases.md
-    - PDB Aliases: pdb-aliases.md
-  
-  - Scripts & Tools:
     - SQL Scripts: sql-scripts.md
     - RMAN Scripts: rman-scripts.md
     - Database Functions: functions.md
-    - rlwrap Filter: rlwrap.md
-  
+
   - Operations:
-    - Usage Guide: usage.md
-    - Troubleshooting: troubleshooting.md
-    - Quick Reference: reference.md
+    - Service and Log Operations: operations.md
     - SQL*Net Configuration: sqlnet-config.md
-    - Log Management: log-management.md
-    - Service Management: service-management.md
-    - Environment Management: environment.md
-  
+    - Troubleshooting: troubleshooting.md
+
   - Extensions:
     - Extension System: extensions.md
-    - Extensions Catalog: extensions-catalog.md
 
   - Developer Reference:
     - API Reference:

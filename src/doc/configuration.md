@@ -677,7 +677,7 @@ You can still manually run `oraup.sh` or `dbstatus.sh` when needed.
 ORADBA_RLWRAP_FILTER="true"
 ```
 
-See [rlwrap Filter Configuration](rlwrap.md) for setup details.
+See [Aliases Reference](aliases.md) for setup details.
 
 ### Scenario 7: Managing Non-Database Products
 

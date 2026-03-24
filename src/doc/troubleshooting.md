@@ -1044,7 +1044,7 @@ oraup.sh
 lsnrctl status LISTENER_FREE
 ```
 
-**Related Chapters:** [Service Management](service-management.md), [Usage Guide](usage.md)
+**Related Chapters:** [Service and Log Operations](operations.md), [Quick Start](quickstart.md)
 
 ## Log Files
 
@@ -1089,10 +1089,10 @@ cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 - [Environment Management](environment.md) - Detailed environment setup
 - [Configuration](configuration.md) - Configuration issues
 - [Aliases](aliases.md) - Alias loading problems
-- [PDB Aliases](pdb-aliases.md) - PDB alias issues
+- [Aliases Reference](aliases.md) - PDB alias and rlwrap issues
 - [Installation](installation.md) - Reinstallation guide
 
 ## Navigation {.unlisted .unnumbered}
 
-**Previous:** [rlwrap Filter Configuration](rlwrap.md)  
-**Next:** [Quick Reference](reference.md)
+**Previous:** [SQL\*Net Configuration](sqlnet-config.md)
+**Next:** [Extension System](extensions.md)

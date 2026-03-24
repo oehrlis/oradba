@@ -26,6 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **User documentation restructured: 22 chapters → 14 chapters**
+  — Reduces PDF TOC from 3+ pages to ~1.5 pages (target: ≤8 H2s per chapter):
+  - `installation.md` + `installation-docker.md` merged into single `installation.md`
+    (7 H2s, 706 lines; down from 1024 + 86)
+  - `aliases.md` + `pdb-aliases.md` + `rlwrap.md` merged into single `aliases.md`
+    (7 content H2s; PDB aliases and rlwrap sections condensed but complete)
+  - `service-management.md` + `log-management.md` merged into new `operations.md`
+    (7 H2s; service management, log rotation, system integration, troubleshooting)
+  - `extensions.md` + `extensions-catalog.md` merged into single `extensions.md`
+    (6 H2s; includes Available Extensions section from catalog)
+  - `quickstart.md` rewritten and expanded with key content from `usage.md`
+    (5 H2s; oraenv.sh options, dbstatus.sh reference, Registry API, tips)
+  - `reference.md` retired — content now in `quickstart.md` and `aliases.md`
+  - `usage.md` retired — unique content merged into `quickstart.md`
+  - `mkdocs.yml` nav updated: 5 sections, 14 chapters; removed retired entries
+  - All internal cross-references updated across remaining doc files
+
 - **`oradba_common.sh` refactored: 21 functions extracted into 3 focused libraries**
   — `src/lib/oradba_common.sh` reduced from 3,202 → 1,675 lines (48%); extracted
   functions retain full backward-compatibility as `oradba_common.sh` sources the

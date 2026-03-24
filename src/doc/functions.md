@@ -480,11 +480,11 @@ Both sync scripts support configuration via:
 
 ## See Also {.unlisted .unnumbered}
 
-- [Usage Guide](usage.md) - Including dbstatus.sh usage
+- [Quick Start](quickstart.md) - Including dbstatus.sh usage
 - [Environment Management](environment.md) - Environment setup with status
 - [Configuration](configuration.md) - Function behavior settings
 
 ## Navigation {.unlisted .unnumbered}
 
 **Previous:** [RMAN Script Templates](rman-scripts.md)  
-**Next:** [rlwrap Filter Configuration](rlwrap.md)
+**Next:** [Troubleshooting Guide](troubleshooting.md)

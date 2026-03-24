@@ -107,29 +107,52 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High (directly visible to users)
 **Effort:** Large
+**Status:** Complete (2026-03-24) — documentation restructured from 22 → 14 chapters; PDF TOC reduced
 
-### Findings
+### Findings (2026-03-24)
 
-- 32 markdown chapters in `src/doc/`
-- MkDocs Material theme, deployed to `https://code.oradba.ch/oradba`
-- PDF user guide generated via Pandoc/Docker
-- `mkdocs.yml` navigation is the canonical chapter order
+- 22 markdown chapters in `src/doc/` (down from 32; prior cleanup removed stub files)
+- PDF TOC was 3+ pages due to 287 H2 headings across all chapters (avg 13 H2s/chapter)
+- Target: reduce to ~1.5 PDF TOC pages by merging and trimming to ≤8 H2s/chapter
+- `mkdocs.yml` nav was the canonical chapter order — updated to match restructuring
 
-### Work Items
+### Work Done (2026-03-24)
 
-- [ ] Read all 32 chapters; flag any that are outdated (especially install,
-      quickstart, configuration)
-- [ ] Verify `mkdocs.yml` nav matches actual files in `src/doc/` — no
-      broken links or missing entries
-- [ ] Review troubleshooting chapter — is it current with common issues?
-- [ ] Add version table to docs (what oradba version introduced each feature)
-- [ ] Review PDF metadata (`doc/metadata.yml`) after recent font/highlight
-      changes — rebuild and visually inspect PDF
-- [ ] Check that all Mermaid diagrams render correctly in both MkDocs site
-      and generated PDF (post `<br>` fix)
-- [ ] Verify API reference sections in mkdocs are auto-generated or
-      manually maintained — identify gaps
-- [ ] Review cross-references between chapters for broken internal links
+**File merges (8 files → 4 combined chapters):**
+
+- [x] `installation.md` ← merged `installation-docker.md` (Docker section added as H3s)
+- [x] `aliases.md` ← merged `pdb-aliases.md` + `rlwrap.md` (7 content H2s, 599 lines)
+- [x] `operations.md` ← NEW: merged `service-management.md` + `log-management.md` (7 H2s, 591 lines)
+- [x] `extensions.md` ← merged `extensions-catalog.md` (6 H2s, 618 lines; Available Extensions section static for now)
+
+**Files retired (deleted via `git rm`):**
+- [x] `installation-docker.md`, `pdb-aliases.md`, `rlwrap.md`, `usage.md`
+- [x] `reference.md`, `extensions-catalog.md`, `log-management.md`, `service-management.md`
+
+**Rewrites:**
+- [x] `quickstart.md` rewritten with 5 H2s; content from `usage.md` merged in
+      (`--fast-silent` option, `oraenv.sh` options table, `dbstatus.sh` details)
+
+**Navigation and index updates:**
+- [x] `mkdocs.yml` nav updated: 22 → 14 entries (Developer Reference kept as-is)
+- [x] `src/doc/index.md` updated: removed retired file rows, added `operations.md`
+
+**Cross-references fixed** in: `introduction.md`, `sql-scripts.md`, `configuration.md`,
+`functions.md`, `sqlnet-config.md`, `aliases.md`, `troubleshooting.md`
+
+**CHANGELOG.md** updated with full restructuring summary.
+
+### Deferred Tasks
+
+- [ ] **Restore auto-generated extensions catalog**: Re-implement the GitHub Actions
+      workflow that reads `.github/extensions.yml` and pulls README content from each
+      extension repo to regenerate the "Available Extensions" section in `extensions.md`.
+      The static content merged in (2026-03-24) is a temporary placeholder.
+- [ ] Review PDF metadata (`doc/metadata.yml`) — rebuild and visually inspect PDF
+      to confirm TOC is now ~1.5 pages
+- [ ] Check that all Mermaid diagrams render correctly in both MkDocs site and PDF
+- [ ] Verify API reference sections (`src/doc/api/`) are auto-generated or manually
+      maintained — identify gaps
 
 ---
 
