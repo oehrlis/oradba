@@ -45,6 +45,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     functions: `get_oradba_version`, `version_compare`, `version_meets_requirement`,
     `get_install_info`, `set_install_info`, `init_install_info`
   - `.testmap.yml` updated with mappings for the three new libraries
+  - `oradba_install.sh` and `oradba_extension.sh` reviewed for extraction
+    opportunities — `oradba_install.sh` is intentionally standalone (no lib
+    sourcing); no changes made; deferred internal refactoring noted
+  - `oradba_aliases.sh` reviewed — 277 lines, hand-maintained, clean state;
+    no stale entries; no changes needed
 
 - **`set -euo pipefail` added to all 26 pure-executable `src/bin/*.sh` scripts**
   — previously absent or only partially set (`set -e`, `set -o pipefail`,

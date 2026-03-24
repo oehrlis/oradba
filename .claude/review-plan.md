@@ -137,7 +137,7 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High
 **Effort:** Large
-**Status:** Analysis complete (2026-03-23) — findings below; actionable items identified
+**Status:** Complete (2026-03-24) — analysis done; oradba_common.sh refactored; all items resolved
 
 ### Findings (2026-03-23)
 
@@ -209,10 +209,22 @@ through topics sequentially or in parallel — check off items as completed.
       `oradba_version_metadata.sh` (6 functions). oradba_common.sh reduced
       from 3,202 → 1,675 lines (48% reduction). oradba_common.sh sources the
       new libs at end — backward-compatible for all existing consumers.
-- [ ] Review `oradba_install.sh` (2,395 lines) and `oradba_extension.sh`
-      (2,000 lines) for helper extraction opportunities
-- [ ] Review `oradba_aliases.sh` (11,963 lines) — understand generation
-      mechanism; check for stale or wrong aliases
+- [x] Review `oradba_install.sh` (2,395 lines) and `oradba_extension.sh`
+      (2,000 lines) for helper extraction opportunities — findings:
+      **oradba_install.sh**: standalone installer (no external lib sourcing,
+      by design); 1 actionable internal refactor: extract
+      `_verify_extraction_complete()` helper to eliminate identical
+      sync/sleep/retry block duplicated across 3 extract functions (~60 lines);
+      `extract_github_release()` (394 lines) could be decomposed into 3
+      internal sub-functions; no external lib extraction possible.
+      **oradba_extension.sh**: `cmd_create()` (267 lines) and `cmd_add()`
+      (296 lines) share ~40% download/extract/install logic — could extract
+      shared helpers; not urgent. Both files are in acceptable state.
+      **No changes made** — analysis only; extraction deferred (low urgency).
+- [x] Review `oradba_aliases.sh` (277 lines, not 11,963 as initially noted) —
+      hand-maintained, 6 functions, clean design; generates SID-specific and
+      service-management aliases dynamically; all referenced scripts exist;
+      no stale entries; no changes needed.
 
 ---
 
