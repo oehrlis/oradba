@@ -32,6 +32,9 @@ setup() {
     cp "${PROJECT_ROOT}/src/etc/oradba_core.conf" "${TEST_DIR}/etc/"
     cp "${PROJECT_ROOT}/src/etc/oradba_standard.conf" "${TEST_DIR}/etc/"
     cp "${ORADBA_SRC_BASE}/lib/oradba_common.sh" "${TEST_DIR}/lib/"
+    cp "${ORADBA_SRC_BASE}/lib/oradba_home_discovery.sh" "${TEST_DIR}/lib/"
+    cp "${ORADBA_SRC_BASE}/lib/oradba_database_discovery.sh" "${TEST_DIR}/lib/"
+    cp "${ORADBA_SRC_BASE}/lib/oradba_version_metadata.sh" "${TEST_DIR}/lib/"
     
     # Set environment for testing
     export ORADBA_PREFIX="${TEST_DIR}"

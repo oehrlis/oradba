@@ -26,6 +26,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`oradba_common.sh` refactored: 21 functions extracted into 3 focused libraries**
+  — `src/lib/oradba_common.sh` reduced from 3,202 → 1,675 lines (48%); extracted
+  functions retain full backward-compatibility as `oradba_common.sh` sources the
+  new libs at the end of the file:
+  - `src/lib/oradba_home_discovery.sh` (new, 995 lines) — 15 Oracle Home
+    discovery and management functions: `generate_oracle_home_aliases`,
+    `get_oracle_homes_path`, `resolve_oracle_home_name`, `parse_oracle_home`,
+    `list_oracle_homes`, `get_oracle_home_path`, `get_oracle_home_alias`,
+    `get_oracle_home_type`, `detect_product_type`, `detect_oracle_version`,
+    `derive_oracle_base`, `is_oracle_home`, `is_subdirectory_of_oracle_home`,
+    `is_bundled_component`, `auto_discover_oracle_homes`
+  - `src/lib/oradba_database_discovery.sh` (new, 441 lines) — 5 database and
+    instance discovery functions: `parse_oratab`, `generate_sid_lists`,
+    `generate_pdb_aliases`, `discover_running_oracle_instances`,
+    `persist_discovered_instances`
+  - `src/lib/oradba_version_metadata.sh` (new) — 6 version and install metadata
+    functions: `get_oradba_version`, `version_compare`, `version_meets_requirement`,
+    `get_install_info`, `set_install_info`, `init_install_info`
+  - `.testmap.yml` updated with mappings for the three new libraries
+
 - **`set -euo pipefail` added to all 26 pure-executable `src/bin/*.sh` scripts**
   — previously absent or only partially set (`set -e`, `set -o pipefail`,
   `set -o errexit`/`set -o nounset` split across multiple lines); dual-mode

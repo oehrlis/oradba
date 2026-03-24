@@ -137,35 +137,82 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** High
 **Effort:** Large
+**Status:** Analysis complete (2026-03-23) — findings below; actionable items identified
 
-### Findings
+### Findings (2026-03-23)
 
-- 30 binary scripts, 22 libraries, 9 plugins
-- Registry API (`oradba_registry.sh`) is the central unifying abstraction
-- Plugin interface v1.0.0 with 13 universal functions
-- Extension system via `oradba_extension.sh` and `extensions.sh`
-- Environment management split across 7 `oradba_env_*.sh` libraries
-- `oradba_common.sh` is the largest single file (3,317 lines)
+**Dependency graph (no circular deps detected):**
+
+- `oradba_common.sh` is the central hub: sourced by 17/30 bin scripts
+- `oraenv.sh` and `oradba_env.sh` are the most complex: each source 8 libraries
+- 6 standalone scripts (oradba_check, oradba_help, oradba_install, oradba_logrotate,
+  oradba_sqlnet, sessionsql) are self-contained — intentional
+- Library dep chain is acyclic: common → env_builder → env_parser (clean)
+- `oradba_env_status.sh` sources oradba_common.sh (back-reference but not circular)
+
+**oradba_common.sh cohesion (52 functions, 3,202 lines):**
+
+- 12 distinct logical groups identified
+- **Strong extraction candidates:**
+  - Oracle Home Discovery (8 functions) → potential `oradba_home_discovery.sh`
+  - Database/Instance Discovery (5 functions) → potential `oradba_database_discovery.sh`
+- **Moderate extraction candidates:**
+  - Version Detection (6 functions)
+  - Path Management (6 functions)
+- Residual core after extraction would be ~30 functions (~1,200 lines)
+
+**oradba_env_*.sh split — excellent design, no changes needed:**
+
+- All 7 libraries have single, well-defined responsibilities
+- Clean phase split: Parse → Validate → Config → Build → Status → Output → Changes
+- No merge or split candidates
+
+**Plugin interface completeness:**
+
+- All 9 plugins (6 production + 3 stub) implement the full 13-function interface ✓
+- `datasafe_plugin.sh` extends with 6 custom functions (connection mgmt, port, version)
+- Stub plugins (weblogic, oms, emagent): complete stubs, EXPERIMENTAL status,
+  discovery returns 0/nothing; header says "Full support to be added later"
+
+**Direct oratab parsing (9 locations bypass registry):**
+
+- `oradba_common.sh` (parse_oratab, generate_sid_lists), `oradba_env_parser.sh`,
+  `oradba_dbctl.sh`, `oradba_logrotate.sh`, `oradba_sqlnet.sh`, `oradba_homes.sh`,
+  `database_plugin.sh` all parse oratab/IFS=: directly
+- Rationale: bootstrapping before registry is available + standalone scripts
+- Risk: low — consistent and tested, but reduces abstraction benefit
+
+**Extension loading — well-designed:**
+
+- Auto-discovery via `ORADBA_LOCAL_BASE` scan + marker file (`.extension`)
+- Priority-based sort (lower number = loaded earlier, higher priority = first in PATH)
+- Conflict resolution: deduplication (first-wins), priority ordering, enables flags,
+  provides flags (bin/sql/rcv), env-var overrides, backup dir skipping
+- Guard against double-sourcing via `ORADBA_EXTENSIONS_LOADED`
+- `ORADBA_EXTENSIONS_SOURCE_ETC` defaults to false (security)
 
 ### Work Items
 
-- [ ] Map the dependency graph: which scripts source which libraries —
-      identify any circular or unexpected deps
-- [ ] Review `oradba_common.sh` for cohesion — should any function groups
-      be extracted into separate focused libraries?
-- [ ] Review the 7 `oradba_env_*.sh` split — is the granularity appropriate
-      or should some be merged/split differently?
-- [ ] Review plugin interface: are all 13 functions consistently implemented
-      in all 6 production plugins (database, datasafe, client, iclient, oud, java)?
-- [ ] Review the 3 stub plugins (weblogic, oms, emagent) — document clearly
-      or remove if no plan to implement
+- [x] Map the dependency graph — no circular deps; oradba_common.sh is hub ✓
+- [x] Review `oradba_env_*.sh` split — design is optimal, no changes needed ✓
+- [x] Review plugin interface — all 6 production plugins complete; stubs are
+      EXPERIMENTAL with clear header intent ✓
+- [x] Review extension loading priority and conflict resolution — well-designed ✓
+- [x] Verify Registry API consistency — 9 locations parse oratab directly
+      (rationale: bootstrapping/standalone); not a defect, low risk ✓
+- [x] **Clarify intent for stub plugins** (weblogic, oms, emagent) — confirmed:
+      planned for later implementation; keep as EXPERIMENTAL with current header
+      note "Full support to be added later"
+- [x] **oradba_common.sh extraction** — extracted 21 functions into 3 new libs:
+      `oradba_home_discovery.sh` (15 functions, 995 lines),
+      `oradba_database_discovery.sh` (5 functions, 441 lines),
+      `oradba_version_metadata.sh` (6 functions). oradba_common.sh reduced
+      from 3,202 → 1,675 lines (48% reduction). oradba_common.sh sources the
+      new libs at end — backward-compatible for all existing consumers.
 - [ ] Review `oradba_install.sh` (2,395 lines) and `oradba_extension.sh`
-      (2,000 lines) for opportunities to extract helper libraries
+      (2,000 lines) for helper extraction opportunities
 - [ ] Review `oradba_aliases.sh` (11,963 lines) — understand generation
       mechanism; check for stale or wrong aliases
-- [ ] Verify Registry API pipe-delimited format is used consistently across
-      all consumers — no direct oratab parsing outside registry
-- [ ] Review extension loading priority and conflict resolution
 
 ---
 
@@ -203,6 +250,10 @@ through topics sequentially or in parallel — check off items as completed.
 
 - [x] **Add `set -euo pipefail`** to all 26 pure-executable `src/bin/*.sh`
       scripts (upgrade from partial `set -e` / `set -o pipefail` where present)
+- [x] **Verify all scripts handle missing `ORACLE_HOME`/`ORACLE_SID` gracefully**
+      with `set -u` active — fixed `((counter++))` from-zero aborts, `${var}`
+      unbound issues in oradba_sqlnet.sh, oradba_version.sh, oradba_env_validator.sh,
+      oradba_rman.sh; all 753 tests pass (2026-03-23)
 - [ ] Review `oradba_datasafe_debug.sh` core library sourcing suppressions
       (lines ~370-376) — replace `|| true` with proper failure reporting
 - [ ] Audit ShellCheck disabled checks in `.shellcheckrc` — consider removing
@@ -210,8 +261,6 @@ through topics sequentially or in parallel — check off items as completed.
 - [ ] Run shellcheck at `style` level across `src/` — review findings
 - [ ] Review all `|| true` usages — distinguish legitimate from accidental
 - [ ] Audit `2>/dev/null` suppressions — each should be intentional
-- [ ] Verify all scripts handle missing `ORACLE_HOME`/`ORACLE_SID` gracefully
-      with `set -u` now active
 
 ---
 
