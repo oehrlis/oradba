@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD036 -->
 # Development Guide
 
-This guide provides comprehensive development information for OraDBA v0.20.0 contributors.
+This guide provides comprehensive development information for OraDBA v0.21.0 contributors.
 
 ## Quick Start for Developers
 
@@ -25,12 +25,14 @@ make build
 
 ## Architecture Overview
 
-OraDBA v0.20.0 uses a modular, library-based architecture:
+OraDBA v0.21.0 uses a modular, library-based architecture:
 
 - **Registry API**: Unified interface for Oracle installation metadata (oratab + oradba_homes.conf)
 - **Plugin System**: 9 product plugins (6 production + 3 stubs) with 13-function universal core interface
 - **Plugin Standards**: Exit code contract (0/1/2), subshell isolation, no sentinel strings
 - **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
+- **Core Libraries**: oradba_common.sh (logging/utilities), oradba_home_discovery.sh,
+  oradba_database_discovery.sh, oradba_version_metadata.sh, oradba_db_functions.sh, oradba_aliases.sh
 - **Oracle Homes Management**: Central registry with comprehensive metadata
 - **Hierarchical Configuration**: 6-level configuration system with override capabilities
 
@@ -112,7 +114,7 @@ To add support for a new Oracle product type:
 2. **Implement 13 universal core functions** (see template below)
 3. **Add tests**: `tests/test_myproduct_plugin.bats`
 4. **Update validation**: Add to valid types in `src/lib/oradba_registry.sh`
-5. **Update detection**: Add case to `detect_product_type()` in `src/lib/oradba_common.sh`
+5. **Update detection**: Add case to `detect_product_type()` in `src/lib/oradba_database_discovery.sh`
 
 **Plugin Template**:
 
@@ -288,9 +290,15 @@ oradba/
 │   │   │   ├── client_plugin.sh         # Full Client
 │   │   │   ├── iclient_plugin.sh        # Instant Client
 │   │   │   ├── oud_plugin.sh            # OUD
-│   │   │   └── java_plugin.sh           # Java/JDK
+│   │   │   ├── java_plugin.sh           # Java/JDK
+│   │   │   ├── weblogic_plugin.sh       # WebLogic (stub)
+│   │   │   ├── oms_plugin.sh            # EM OMS (stub)
+│   │   │   └── emagent_plugin.sh        # EM Agent (stub)
 │   │   ├── oradba_registry.sh          # Registry API
-│   │   ├── oradba_common.sh            # Core utilities
+│   │   ├── oradba_common.sh            # Core utilities & logging
+│   │   ├── oradba_home_discovery.sh    # Oracle Home discovery
+│   │   ├── oradba_database_discovery.sh # Database/instance discovery
+│   │   ├── oradba_version_metadata.sh  # Version detection & metadata
 │   │   ├── oradba_env_parser.sh        # Config parser
 │   │   ├── oradba_env_builder.sh       # Environment builder
 │   │   ├── oradba_env_validator.sh     # Validation

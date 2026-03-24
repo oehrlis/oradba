@@ -26,6 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Developer documentation updated for v0.21.0 library extraction:**
+  - `doc/development.md`: bumped to v0.21.0; added 3 new core libs to architecture
+    overview and project structure tree; fixed `detect_product_type()` source file
+    reference (`oradba_common.sh` → `oradba_database_discovery.sh`); added 3 stub
+    plugins to directory tree
+  - `doc/architecture.md`: replaced stale `v1.2.2+` version references with
+    `v0.19.0+`; added weblogic/oms/emagent stubs to Plugins subgraph; added
+    `oradba_home_discovery.sh`, `oradba_database_discovery.sh`,
+    `oradba_version_metadata.sh` to Core Libraries subgraph; fixed "11-function"
+    reference → "13-function universal core interface"
+  - `doc/images/phase1-3-libraries.md`: updated Plugins node from 6 → 9 plugins
+    (added ★ stubs); corrected "8 Required Functions" → "13 Universal Core Functions
+    and Category-Specific"; renamed Common Libraries → Core Libraries; added 3 new
+    discovery libs to Core Libraries subgraph
+  - `SECURITY.md`: created at repo root (was referenced in CONTRIBUTING.md but
+    the file did not exist)
+
 - **CI/CD pipeline hardened:**
   - `ci.yml`: Added concurrency group to cancel redundant runs on same branch/PR
   - `ci.yml`: Pinned `shellcheck` to v0.10.0 (downloaded from GitHub releases,

@@ -17,8 +17,8 @@ graph TB
     
     subgraph Plugins["Plugin System"]
         PL1[Plugin Interface]
-        PL2[6 Product Plugins:<br>database, datasafe, client<br>iclient, oud, java]
-        PL3[8 Required Functions:<br>detect, validate, adjust<br>status, metadata, etc]
+        PL2[9 Product Plugins:<br>database, datasafe, client<br>iclient, oud, java<br>weblogic★, oms★, emagent★]
+        PL3[13 Universal Core Functions<br>+ Category-Specific:<br>detect, validate, adjust<br>status, metadata, aliases, etc]
     end
     
     subgraph Parser["Parser Library"]
@@ -72,9 +72,12 @@ graph TB
         C6[oradba_homes.conf<br>Oracle Homes]
     end
     
-    subgraph Common["Common Libraries"]
+    subgraph Common["Core Libraries"]
         L1[oradba_common.sh<br>Logging & Utilities]
         L2[oradba_aliases.sh<br>Safe Alias Generation]
+        L3[oradba_home_discovery.sh<br>Home Discovery]
+        L4[oradba_database_discovery.sh<br>Database Discovery]
+        L5[oradba_version_metadata.sh<br>Version & Metadata]
     end
     
     E1 --> E2
@@ -147,7 +150,8 @@ graph TB
 The Environment Management Library architecture provides:
 
 1. **Registry API**: Unified interface for Oracle installation metadata
-2. **Plugin System**: Product-specific logic with 11-function interface
+2. **Plugin System**: 9 product plugins (6 production + 3 stubs★) with 13-function universal core interface
+   and category-specific functions
 3. **Parser Library**: Loads and merges 6 configuration levels
 4. **Builder Library**: Constructs Oracle environment variables
 5. **Validator Library**: Checks Oracle Home validity using plugins

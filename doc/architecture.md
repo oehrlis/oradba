@@ -42,6 +42,9 @@ graph TB
         PL4[iclient_plugin.sh]
         PL5[oud_plugin.sh]
         PL6[java_plugin.sh]
+        PL7[weblogic_plugin.sh<br/>stub]
+        PL8[oms_plugin.sh<br/>stub]
+        PL9[emagent_plugin.sh<br/>stub]
     end
     
     subgraph EnvLibs["Environment Management Libraries"]
@@ -55,8 +58,11 @@ graph TB
     
     subgraph Core["Core Libraries"]
         L1[oradba_common.sh<br/>Logging & Utilities]
-        L2[oradba_db_functions.sh<br/>Database Operations]
-        L3[oradba_aliases.sh<br/>Safe Alias Generation]
+        L2[oradba_home_discovery.sh<br/>Home Discovery]
+        L3[oradba_database_discovery.sh<br/>Database Discovery]
+        L4[oradba_version_metadata.sh<br/>Version & Metadata]
+        L5[oradba_db_functions.sh<br/>Database Operations]
+        L6[oradba_aliases.sh<br/>Safe Alias Generation]
     end
     
     subgraph Config["Configuration System"]
@@ -114,10 +120,12 @@ graph TB
 ```
 
 - **Entry Points**: oraenv.sh wrapper, oradba_env.sh builder, oradba_homes.sh manager
-- **Registry API** (v1.2.2+): Unified access to oratab and oradba_homes.conf with consistent interface
-- **Plugin System** (v1.2.2+): Product-specific plugins for database, datasafe, client, iclient, oud
+- **Registry API** (v0.19.0+): Unified access to oratab and oradba_homes.conf with consistent interface
+- **Plugin System** (v0.19.0+): 9 product plugins (6 production: database, datasafe, client, iclient, oud,
+  java; 3 stubs: weblogic, oms, emagent)
 - **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
-- **Core Libraries**: oradba_common.sh (logging/utilities), oradba_db_functions.sh, oradba_aliases.sh
+- **Core Libraries**: oradba_common.sh (logging/utilities), oradba_home_discovery.sh,
+  oradba_database_discovery.sh, oradba_version_metadata.sh, oradba_db_functions.sh, oradba_aliases.sh
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
 - **Oracle Integration**: oratab, oradba_homes.conf, Oracle instances, listeners, PDBs
 
@@ -128,7 +136,7 @@ For detailed visual documentation of workflows and component interactions, see t
 - **[Configuration System](images/config-workflow-highlevel.md)** - 5-layer hierarchy and loading flow
 - **[oraenv Workflow](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
 - **[oraup Workflow](images/oraup-workflow-highlevel.md)** - Status display with Registry API integration
-- **[Plugin System](images/plugin-system.md)** - 11-function interface and lifecycle
+- **[Plugin System](images/plugin-system.md)** - 13-function universal core interface and lifecycle
 
 These Mermaid diagrams are interactive and render automatically in VS Code, GitHub, and modern documentation sites.
 
@@ -147,7 +155,8 @@ These Mermaid diagrams are interactive and render automatically in VS Code, GitH
 - Efficient querying by name, type, or all entries
 - Product type detection with plugin integration
 - Automatic synchronization with oratab
-- Supports 6 product types (database, datasafe, client, iclient, oud, java)
+- Supports 9 product types (6 production: database, datasafe, client, iclient, oud, java;
+  3 stubs: weblogic, oms, emagent)
 
 **Core Functions**:
 

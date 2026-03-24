@@ -90,28 +90,41 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** Medium
 **Effort:** Medium
+**Status:** Complete (2026-03-24) — all items resolved
 
-### Findings
+### Findings (2026-03-24)
 
-- Excellent coverage: `CONTRIBUTING.md` (452 lines), `doc/development.md`,
-  `doc/development-workflow.md`, `doc/function-header-guide.md`
-- `doc/automated_testing.md` and `doc/manual_testing.md` present
-- `/.claude/CLAUDE.md` covers ecosystem context and edit policy
+- `CONTRIBUTING.md` (452 lines) — current; branch strategy, PR process, release
+  procedure all accurate; "Quick Start for Contributors" already present ✓
+- `doc/development-workflow.md` — current; Makefile targets, test framework, Docker
+  integration, commit conventions all accurate ✓
+- `doc/function-header-guide.md` — current; format matches actual headers in source ✓
+- `SECURITY.md` — **missing**; security reporting was mentioned in CONTRIBUTING.md
+  but no formal file existed ✗ → created
+- `doc/development.md` — partially stale: still said v0.20.0; missing 3 new core
+  libs (extracted in Topic 5); `detect_product_type()` pointed to wrong file ✗ → fixed
+- `doc/architecture.md` — two issues: stale `v1.2.2+` version references; Plugins
+  subgraph missing 3 stub plugins; Core Libraries missing 3 new libs;
+  "11-function" reference ✗ → all fixed
+- `doc/images/phase1-3-libraries.md` — three issues: 6 plugins shown (not 9);
+  "8 Required Functions" (not 13); missing 3 new discovery libs ✗ → all fixed
+- `.testmap.yml` usage — documented in `doc/development-workflow.md` ✓
+- Remaining 13 Mermaid diagram files audited — all current ✓
 
 ### Work Items
 
-- [ ] Review `CONTRIBUTING.md` for accuracy against current workflow
-      (branch strategy, PR labels, release procedure)
-- [ ] Review `doc/development.md` — check for outdated sections (especially
-      around plugin system v1.0.0 and Registry API)
-- [ ] Add or verify a `SECURITY.md` at repo root (disclosure policy)
-- [ ] Ensure architecture diagrams in `doc/images/` are in sync with current
-      code (plugin interface, library loading order, registry format)
-- [ ] Validate that `doc/function-header-guide.md` reflects actual header
-      format used in source (run a diff check)
-- [ ] Review `.testmap.yml` documentation — is usage documented in dev guide?
-- [ ] Add a "Getting Started for Contributors" quick-start section to
-      `CONTRIBUTING.md` if missing
+- [x] Review `CONTRIBUTING.md` — current ✓; Quick Start section present ✓
+- [x] Review `doc/development.md` — bumped to v0.21.0; added 3 new core libs;
+      updated project structure tree (3 new libs + 3 stub plugins);
+      fixed `detect_product_type()` source reference
+- [x] Add `SECURITY.md` — created at repo root with vulnerability disclosure
+      policy, scope, and security design notes
+- [x] Update architecture diagrams — `architecture.md` and
+      `phase1-3-libraries.md` updated (see details above); 13 other diagrams
+      audited and confirmed current ✓
+- [x] Validate `doc/function-header-guide.md` — format matches actual source ✓
+- [x] `.testmap.yml` documentation — covered in `development-workflow.md` ✓
+- [x] "Getting Started for Contributors" in CONTRIBUTING.md — already present ✓
 
 ---
 
@@ -138,14 +151,17 @@ through topics sequentially or in parallel — check off items as completed.
 - [x] `extensions.md` ← merged `extensions-catalog.md` (6 H2s, 618 lines; Available Extensions section static for now)
 
 **Files retired (deleted via `git rm`):**
+
 - [x] `installation-docker.md`, `pdb-aliases.md`, `rlwrap.md`, `usage.md`
 - [x] `reference.md`, `extensions-catalog.md`, `log-management.md`, `service-management.md`
 
 **Rewrites:**
+
 - [x] `quickstart.md` rewritten with 5 H2s; content from `usage.md` merged in
       (`--fast-silent` option, `oraenv.sh` options table, `dbstatus.sh` details)
 
 **Navigation and index updates:**
+
 - [x] `mkdocs.yml` nav updated: 22 → 14 entries (Developer Reference kept as-is)
 - [x] `src/doc/index.md` updated: removed retired file rows, added `operations.md`
 
