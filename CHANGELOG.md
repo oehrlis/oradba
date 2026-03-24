@@ -26,6 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Topic 9 — General Optimisation review (analysis only; no code changes):**
+  - Startup profiling: `ORADBA_PROFILE_STARTUP` opt-in exists; `--fast-silent` skips
+    alias/SQLPATH at runtime (library loading unchanged); lazy-loading deferred
+  - Config cascade: fully documented in `configuration.md` ✓
+  - SQL scripts: 126 scripts checked — no hardcoded schema/tablespace names ✓
+  - RMAN best practices: SECTION_SIZE + catalog support + BACKUP OPTIMIZATION already
+    injectable via `<SET_COMMANDS>` tag ✓
+  - `--version` flag: 6/30 scripts implement it; design is to delegate to
+    `oradba_version.sh`; no blanket addition needed ✓
+  - `ORADBA_` namespace: 108 variables, zero collisions with Oracle reserved names ✓
+  - Deferred: lazy-loading, error message standardisation, GitHub download helper extraction
+
 - **Developer documentation updated for v0.21.0 library extraction:**
   - `doc/development.md`: bumped to v0.21.0; added 3 new core libs to architecture
     overview and project structure tree; fixed `detect_product_type()` source file

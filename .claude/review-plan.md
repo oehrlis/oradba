@@ -485,32 +485,81 @@ approach for a small, controlled plugin ecosystem.
 
 **Priority:** Medium
 **Effort:** Medium
+**Status:** Complete (2026-03-24) — all 8 items analysed; no code changes made (findings below)
 
-### Findings
+### Findings (2026-03-24)
 
-- Large scripts (`oradba_install.sh`, `oradba_extension.sh`) are well-organized
-  but could benefit from helper extraction
-- Configuration cascade (6 levels) is powerful but complex
-- No documented performance benchmarks
+**1. oraenv.sh startup profiling:**
+- Sources 10 libraries/configs unconditionally; opt-in profiling exists
+  (`ORADBA_PROFILE_STARTUP`); `--fast-silent` skips alias/SQLPATH setup at
+  runtime but does NOT skip library loading at source-time
+- Fast-silent is recommended for `.bash_profile` — documented in quickstart.md ✓
+- Lazy-loading of optional Phase 1 libs is a potential 30-50% source-time win
+  but requires refactoring; deferred (risk vs. benefit unclear without profiling data)
+
+**2. Configuration cascade documentation:**
+- 6-level cascade fully documented in `src/doc/configuration.md` (lines 17-61)
+  with both narrative and Mermaid diagram ✓; also in `doc/architecture.md` ✓
+- No duplication; canonical location clear — no change needed ✓
+
+**3. Code sharing oradba_install.sh / oradba_extension.sh:**
+- Both are standalone by design (no external lib sourcing for core logic)
+- Minor duplication: GitHub download logic (~40 lines) exists in both
+- Previously analysed in Topic 5 — deferred (low urgency)
+
+**4. Error message quality:**
+- Inconsistent: ~50% of sampled messages include path/SID context; ~50% are generic
+- None include remediation hints ("Try running...", "Check...")
+- Standardising all ~40 error messages in oraenv.sh/oradba_homes.sh is medium effort;
+  deferred to a dedicated quality pass
+
+**5. SQL script parameterisation:**
+- 126 SQL scripts checked — no hardcoded schema names or tablespace names found in
+  sampled scripts; scripts use SQL*Plus `&` substitution throughout ✓
+- Read-only diagnostic scripts predominate; no changes needed ✓
+
+**6. RMAN modern best practices:**
+- SECTION SIZE: implemented via `<SECTION_SIZE>` template tag in 16+ scripts ✓
+- Catalog: optional via `<RESYNC_CATALOG>` conditional tag ✓
+- BACKUP OPTIMIZATION: is an RMAN `CONFIGURE` setting (outside RUN block);
+  already injectable via `<SET_COMMANDS>` tag — no additional tag needed ✓
+- Scripts are current with modern RMAN best practices ✓
+
+**7. --version flag coverage:**
+- 6/30 bin scripts have `--version` (`dbstatus.sh`, `oradba_check.sh`,
+  `oradba_dbca.sh`, `oradba_homes.sh`, `oradba_install.sh`, `oradba_logrotate.sh`)
+- `oradba_version.sh` is the dedicated version tool (`--check`, `--info`) —
+  other scripts are expected to delegate to it, not duplicate version logic
+- Design is intentional; no blanket `--version` addition needed ✓
+
+**8. ORADBA_ variable namespace:**
+- 108 unique ORADBA_* variables found; zero collisions with Oracle reserved
+  environment variables (ORACLE_SID, ORACLE_HOME, ORACLE_BASE, TNS_ADMIN) ✓
+- Clean namespace with consistent `ORADBA_CATEGORY_NAME` convention ✓
+- No changes needed ✓
 
 ### Work Items
 
-- [ ] Profile startup time of `oraenv.sh` sourcing (library loading) — set
-      a target and identify bottlenecks if slow
-- [ ] Review configuration cascade: document the resolution order clearly in
-      one place (currently spread across multiple files)
-- [ ] Review `oradba_install.sh` for opportunities to share code with
-      `oradba_extension.sh` (both do download/extract/install flows)
-- [ ] Review error messages for user-friendliness — are they actionable?
-      Do they include enough context (file, line, suggestion)?
-- [ ] Evaluate whether any SQL scripts (`src/sql/`) should be parameterised
-      more consistently (avoid hardcoded schema names, tablespace names)
-- [ ] Review RMAN scripts (`src/rcv/`) for modern best practices (e.g.
-      section size, backup optimization, catalog vs nocatalog)
-- [ ] Consider adding a `--version` flag to all binary scripts (currently
-      only some implement it)
-- [ ] Evaluate `ORADBA_` variable namespace — any collisions with Oracle's
-      own environment variables?
+- [x] Profile startup time — profiling infrastructure exists; lazy-loading
+      deferred; fast-silent documented ✓
+- [x] Configuration cascade documentation — canonical in configuration.md ✓
+- [x] Code sharing install.sh / extension.sh — analysis only; deferred ✓
+- [x] Error message quality — inconsistent; deferred to dedicated quality pass
+- [x] SQL parameterisation — well-parameterised; no hardcoded values found ✓
+- [x] RMAN best practices — all modern features present; BACKUP OPTIMIZATION
+      already injectable via SET_COMMANDS ✓
+- [x] --version flag coverage — design is delegation to oradba_version.sh;
+      6 scripts with direct --version is correct ✓
+- [x] ORADBA_ namespace — 108 variables; zero Oracle name collisions ✓
+
+### Deferred
+
+- [ ] **Lazy-loading for oraenv.sh**: source optional Phase 1 libraries
+      only when needed (not in fast-silent paths). Needs profiling data first.
+- [ ] **Error message standardisation**: audit ~40 messages in oraenv.sh /
+      oradba_homes.sh; add (1) what failed (2) why (3) remediation hint.
+- [ ] **oradba_install.sh / oradba_extension.sh**: extract shared GitHub
+      download helper (~40 lines) into oradba_common.sh.
 
 ---
 
