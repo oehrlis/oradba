@@ -209,6 +209,7 @@ mappings:
   
   src/lib/plugins/weblogic_plugin.sh:
     - test_plugin_interface.bats
+    - test_weblogic_plugin.bats
     - test_oradba_env_status.bats
   
   src/lib/plugins/oms_plugin.sh:

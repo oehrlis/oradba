@@ -128,8 +128,11 @@ jobs:
           MISSING=0
           for file in \
             "dist/oradba_install.sh" \
+            "dist/oradba_install.sh.sha256" \
             "dist/oradba_check.sh" \
+            "dist/oradba_check.sh.sha256" \
             "dist/oradba-${{ steps.version.outputs.version }}.tar.gz" \
+            "dist/oradba-${{ steps.version.outputs.version }}.tar.gz.sha256" \
             "dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz" \
             "dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz.sha256" \
             "dist/oradba-user-guide.pdf"; do
@@ -144,7 +147,7 @@ jobs:
             exit 1
           fi
           echo "All release assets verified ✓"
-      
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -155,8 +158,11 @@ jobs:
           prerelease: false
           files: |
             dist/oradba_install.sh
+            dist/oradba_install.sh.sha256
             dist/oradba_check.sh
+            dist/oradba_check.sh.sha256
             dist/oradba-${{ steps.version.outputs.version }}.tar.gz
+            dist/oradba-${{ steps.version.outputs.version }}.tar.gz.sha256
             dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz
             dist/oradba-sql-${{ steps.version.outputs.version }}.tar.gz.sha256
             dist/oradba-user-guide.pdf

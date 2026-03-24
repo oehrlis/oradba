@@ -7,6 +7,10 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Determine which jobs to run based on changed files
   changes:
@@ -41,6 +45,7 @@ jobs:
             markdown:
               - '**/*.md'
               - '.markdownlint.json'
+              - '.markdownlint.yaml'
             docs:
               - 'VERSION'
               - 'src/doc/**'
@@ -63,16 +68,21 @@ jobs:
   lint:
     name: Lint Shell Scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: changes
     if: needs.changes.outputs.scripts == 'true' || needs.changes.outputs.tests == 'true'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install shellcheck
+        env:
+          SHELLCHECK_VERSION: "0.10.0"
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-      
+          curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ
+          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          shellcheck --version
+
       - name: Run shellcheck via Makefile
         run: make lint-shell
 
@@ -139,6 +149,7 @@ jobs:
   build:
     name: Build Installer
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [changes, test]
     if: |
       always() &&
@@ -169,6 +180,7 @@ jobs:
   validate:
     name: Validate Installation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [changes, build]
     if: |
       always() &&
@@ -205,6 +217,7 @@ jobs:
   lint-markdown:
     name: Lint Markdown
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: changes
     if: needs.changes.outputs.markdown == 'true'
     steps:
@@ -224,6 +237,7 @@ jobs:
   docs:
     name: Generate Documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [changes, lint-markdown]
     if: |
       always() &&

@@ -10,14 +10,16 @@ permissions:
 
 jobs:
   dependency-review:
+    name: Dependency Review
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
-      - name: Security Scan
-        run: |
-          echo "Running security scan..."
-          # Add any security scanning tools here
-          # For bash scripts, we rely on shellcheck in CI
-          echo "Security scan completed"
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Report vulnerabilities but do not fail — this is a bash project
+          # with no package manager manifests; the action may find nothing.
+          fail-on-severity: critical
+          comment-summary-in-pr: always

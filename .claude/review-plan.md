@@ -46,31 +46,43 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** Medium
 **Effort:** Medium
+**Status:** Complete (2026-03-24) — all items resolved
 
-### Findings
+### Findings (2026-03-24)
 
 - 5 workflows: `ci.yml`, `docker-tests.yml`, `docs.yml`, `release.yml`,
   `dependency-review.yml`
-- Smart test selection via `.testmap.yml` — good
-- Docker integration tests are **manual-trigger only** (resource constraints)
-- Linting: shellcheck with `-x` and `-S warning`
-- PDF generation baked into `docs.yml`
+- Smart test selection via `.testmap.yml` ✓
+- Docker integration tests are **manual-trigger only** (intentional — resource constraints) ✓
+- `docs.yml` has `workflow_dispatch` ✓; `sync_extension_docs.py` was targeting
+  deleted `extensions-catalog.md` — fixed to point to `extensions.md`
+- `markdownlint` already a separate job in `ci.yml` ✓
+- Both `.markdownlint.json` and `.markdownlint.yaml` exist; changes filter only
+  watched `.json` — fixed
+- `shellcheck` installed via `apt-get` without version pin — fixed: v0.10.0
+  downloaded from GitHub releases
+- No `timeout-minutes` on `lint`/`build`/`validate`/`lint-markdown`/`docs` — fixed
+- No concurrency group on `ci.yml` — fixed; redundant runs now cancelled
+- Build script generates SHA256 for all 4 artifacts; `release.yml` only uploaded
+  the SQL bundle checksum — fixed; all 4 SHA256 files now uploaded
+- `dependency-review.yml` was a no-op stub — replaced with real `actions/dependency-review-action@v4`
+- `.testmap.yml`: `test_weblogic_plugin.bats` existed but not mapped — fixed
+- 5 bin scripts with no test mapping and no test file:
+  `oradba_logrotate.sh`, `sessionsql.sh`, `oradba_validate.sh`,
+  `oradba_datasafe_debug.sh`, `oradba_setup.sh` — tracked in Cross-Cutting Items
 
 ### Work Items
 
-- [ ] Review `.github/workflows/ci.yml` — validate step order, timeout
-      settings, and concurrency groups
-- [ ] Add `workflow_dispatch` to `docs.yml` for on-demand doc rebuilds if
-      missing
-- [ ] Review `release.yml` — ensure checksums cover all artifacts and release
-      notes are auto-generated from CHANGELOG
-- [ ] Consider adding `markdownlint` to the lint step (currently shell-only)
-- [ ] Evaluate whether Docker integration tests can be triggered automatically
-      on tagged commits (not just manual)
-- [ ] Review `.testmap.yml` completeness — are all new scripts/libs mapped?
-- [ ] Add `shellcheck` version pinning in CI to avoid silent behavior changes
-- [ ] Review `dependency-review.yml` — verify it covers all relevant
-      dependency types
+- [x] Review `ci.yml` — added concurrency group, pinned shellcheck v0.10.0,
+      added timeouts to all jobs, fixed `.markdownlint.yaml` filter gap
+- [x] `workflow_dispatch` on `docs.yml` — already present ✓
+- [x] `release.yml` checksums — all 4 SHA256 files now uploaded as release assets
+- [x] `markdownlint` lint step — already present as separate job in `ci.yml` ✓
+- [x] Docker integration tests — intentionally manual-only; no change needed
+- [x] `.testmap.yml` completeness — 3 new libs from Topic 5 already mapped ✓;
+      `test_weblogic_plugin.bats` added to weblogic mapping; 5 untested scripts noted
+- [x] `shellcheck` version pinning — pinned to v0.10.0 via GitHub releases download
+- [x] `dependency-review.yml` — replaced no-op stub with real action
 
 ---
 

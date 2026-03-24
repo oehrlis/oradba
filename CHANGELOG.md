@@ -26,6 +26,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CI/CD pipeline hardened:**
+  - `ci.yml`: Added concurrency group to cancel redundant runs on same branch/PR
+  - `ci.yml`: Pinned `shellcheck` to v0.10.0 (downloaded from GitHub releases,
+    replacing unpinned `apt-get install shellcheck`)
+  - `ci.yml`: Added `timeout-minutes` to all jobs (`lint`: 10, `build`: 15,
+    `validate`: 10, `lint-markdown`: 10, `docs`: 20); only `test` had a timeout before
+  - `ci.yml`: Added `.markdownlint.yaml` to `markdown` changes filter (was only
+    watching `.markdownlint.json`; both config files exist)
+  - `release.yml`: All four SHA256 checksum files (`oradba_install.sh.sha256`,
+    `oradba_check.sh.sha256`, `oradba-*.tar.gz.sha256`, `oradba-sql-*.tar.gz.sha256`)
+    now uploaded as release assets (build script was already generating all four)
+  - `dependency-review.yml`: Replaced no-op stub with `actions/dependency-review-action@v4`
+  - `.testmap.yml`: Added `test_weblogic_plugin.bats` to `weblogic_plugin.sh` mapping
+  - `.github/scripts/sync_extension_docs.py`: Updated stale reference from
+    `extensions-catalog.md` to `extensions.md`
+
 - **User documentation restructured: 22 chapters → 14 chapters**
   — Reduces PDF TOC from 3+ pages to ~1.5 pages (target: ≤8 H2s per chapter):
   - `installation.md` + `installation-docker.md` merged into single `installation.md`
