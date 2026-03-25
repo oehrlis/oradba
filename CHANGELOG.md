@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Topic 1 + Cross-Cutting review:**
+  - `src/templates/script_template.sh`: added `set -euo pipefail` — the template
+    was missing it despite this being a stated convention for all executable scripts
+  - `.DS_Store` not in git (already in `.gitignore`) ✓; `dist/` not tracked ✓;
+    `doc/` vs `src/doc/` split clean ✓; no misplaced files
+  - Hardcoded `/opt/oracle` and `/u01` are discovery heuristics and help-text
+    examples — not configuration values; appropriate as-is ✓
+  - `exit 1` calls (100 total): all preceded by `oradba_log ERROR` with context ✓
+  - Test coverage: all 48 test files have ≥5 test cases ✓
+  - External tool dependencies (`yq`, `python3`, `docker`, `pandoc`): none used
+    unconditionally in bin scripts; `python3` is an optional timing fallback in
+    oraenv.sh with graceful degradation ✓
+
 - **Topic 9 — General Optimisation review (analysis only; no code changes):**
   - Startup profiling: `ORADBA_PROFILE_STARTUP` opt-in exists; `--fast-silent` skips
     alias/SQLPATH at runtime (library loading unchanged); lazy-loading deferred

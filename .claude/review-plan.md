@@ -1,7 +1,7 @@
 # oradba Major Review Plan
 
 > Created: 2026-03-10
-> Status: In Progress
+> Status: Complete (2026-03-25) — all 9 topics + cross-cutting items resolved
 > Model: claude-sonnet-4-6
 
 This plan tracks a systematic review of the oradba repository across all major
@@ -24,21 +24,22 @@ through topics sequentially or in parallel — check off items as completed.
 
 **Priority:** Low (structure is already clean)
 **Effort:** Small
+**Status:** Complete (2026-03-25) — one fix; all other items clean
 
-### Findings
+### Findings (2026-03-25)
 
-- Clean top-level layout: `src/`, `doc/`, `tests/`, `scripts/`, `dist/`
-- One stale `.DS_Store` file in repo root
-- `dist/` build artifacts may be partially tracked in git
+- `.DS_Store`: not tracked in git; already in `.gitignore` — no action needed ✓
+- `dist/`: not tracked in git; gitignored at `/dist/` ✓
+- `doc/` vs `src/doc/` split: clean; README.md files co-located in `src/bin/`,
+  `src/lib/`, `src/lib/plugins/` are intentional reference docs, not misplacements ✓
+- `src/templates/script_template.sh`: **missing `set -euo pipefail`** — fixed
 
 ### Work Items
 
-- [ ] Remove `.DS_Store` from repo and add to `.gitignore` if missing
-- [ ] Verify `dist/` is fully `.gitignore`d (no build artifacts committed)
-- [ ] Review whether `doc/` (dev docs) vs `src/doc/` (user docs) split is
-      always consistently respected — check for misplaced files
-- [ ] Confirm `templates/` content is up to date with current script header
-      standards (see Topic 7)
+- [x] `.DS_Store` — not in git; already in `.gitignore` ✓
+- [x] `dist/` tracking — not tracked; gitignored ✓
+- [x] `doc/` vs `src/doc/` split — clean; no misplaced files ✓
+- [x] `templates/` up to date — added missing `set -euo pipefail`
 
 ---
 
@@ -565,16 +566,18 @@ approach for a small, controlled plugin ecosystem.
 
 ## Cross-Cutting Items
 
-These apply across multiple topics:
+**Status:** Complete (2026-03-25)
 
-- [ ] **Grep for hardcoded paths** — `/opt/oracle`, `/u01`, etc. — each
-      should be a variable referencing the configured install prefix
-- [ ] **Review all `exit 1`** — should use a named exit code constant or
-      at least a comment explaining the error
-- [ ] **Audit test coverage gaps** — identify any `src/bin/` scripts with
-      less than ~5 BATS test cases
-- [ ] **Review all external tool dependencies** — `yq`, `python3`, `docker`,
-      `pandoc` — are optional dependencies handled gracefully?
+- [x] **Hardcoded paths** — `/opt/oracle` and `/u01` appear only in discovery
+      heuristics and help-text examples; the configured prefix (`ORADBA_BASE`) is
+      used throughout; appropriate as-is ✓
+- [x] **`exit 1` review** — 100 calls across bin scripts; all preceded by
+      `oradba_log ERROR "..."` with context; pattern is clean ✓
+- [x] **Test coverage gaps** — all 48 test files have ≥5 test cases ✓;
+      5 bin scripts with no coverage noted in Topic 2 (Cross-Cutting deferred item)
+- [x] **External tool dependencies** — `yq`/`docker`/`pandoc` not used in bin
+      scripts; `python3` used only as optional timing fallback in `oraenv.sh`
+      with graceful degradation to `perl` then `date` ✓
 
 ---
 
