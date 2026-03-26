@@ -4,7 +4,12 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 
 ---
 
+- [`_oradba_builder_log`](environment.md#-oradba-builder-log) - Environment Management
+- [`_oradba_parser_log`](environment.md#-oradba-parser-log) - Environment Management
+- [`_oradba_validator_log`](environment.md#-oradba-validator-log) - Environment Management
+- [`_oraenv_apply_path_configs`](scripts.md#-oraenv-apply-path-configs) - Scripts and Commands
 - [`_oraenv_apply_product_adjustments`](scripts.md#-oraenv-apply-product-adjustments) - Scripts and Commands
+- [`_oraenv_apply_tns_admin`](scripts.md#-oraenv-apply-tns-admin) - Scripts and Commands
 - [`_oraenv_auto_discover_instances`](scripts.md#-oraenv-auto-discover-instances) - Scripts and Commands
 - [`_oraenv_display_selection_menu`](scripts.md#-oraenv-display-selection-menu) - Scripts and Commands
 - [`_oraenv_find_oratab`](scripts.md#-oraenv-find-oratab) - Scripts and Commands
@@ -14,8 +19,12 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`_oraenv_lookup_oratab_entry`](scripts.md#-oraenv-lookup-oratab-entry) - Scripts and Commands
 - [`_oraenv_main`](scripts.md#-oraenv-main) - Scripts and Commands
 - [`_oraenv_main`](scripts.md#-oraenv-main) - Scripts and Commands
+- [`_oraenv_now_ms`](scripts.md#-oraenv-now-ms) - Scripts and Commands
 - [`_oraenv_parse_args`](scripts.md#-oraenv-parse-args) - Scripts and Commands
 - [`_oraenv_parse_user_selection`](scripts.md#-oraenv-parse-user-selection) - Scripts and Commands
+- [`_oraenv_profile_dump_effective_flags`](scripts.md#-oraenv-profile-dump-effective-flags) - Scripts and Commands
+- [`_oraenv_profile_mark`](scripts.md#-oraenv-profile-mark) - Scripts and Commands
+- [`_oraenv_profile_start`](scripts.md#-oraenv-profile-start) - Scripts and Commands
 - [`_oraenv_prompt_sid`](scripts.md#-oraenv-prompt-sid) - Scripts and Commands
 - [`_oraenv_set_environment`](scripts.md#-oraenv-set-environment) - Scripts and Commands
 - [`_oraenv_setup_environment_variables`](scripts.md#-oraenv-setup-environment-variables) - Scripts and Commands
@@ -27,6 +36,8 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`ask_justification`](scripts.md#ask-justification) - Scripts and Commands
 - [`ask_justification`](scripts.md#ask-justification) - Scripts and Commands
 - [`ask_justification`](scripts.md#ask-justification) - Scripts and Commands
+- [`ask_justification`](scripts.md#ask-justification) - Scripts and Commands
+- [`auto_discover_oracle_homes`](scripts.md#auto-discover-oracle-homes) - Scripts and Commands
 - [`backup_config`](scripts.md#backup-config) - Scripts and Commands
 - [`backup_file`](scripts.md#backup-file) - Scripts and Commands
 - [`backup_installation`](scripts.md#backup-installation) - Scripts and Commands
@@ -65,8 +76,10 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`cmd_changes`](scripts.md#cmd-changes) - Scripts and Commands
 - [`cmd_check`](scripts.md#cmd-check) - Scripts and Commands
 - [`cmd_create`](scripts.md#cmd-create) - Scripts and Commands
+- [`cmd_disable`](scripts.md#cmd-disable) - Scripts and Commands
 - [`cmd_disabled`](scripts.md#cmd-disabled) - Scripts and Commands
 - [`cmd_discover`](scripts.md#cmd-discover) - Scripts and Commands
+- [`cmd_enable`](scripts.md#cmd-enable) - Scripts and Commands
 - [`cmd_enabled`](scripts.md#cmd-enabled) - Scripts and Commands
 - [`cmd_info`](scripts.md#cmd-info) - Scripts and Commands
 - [`cmd_link_oratab`](scripts.md#cmd-link-oratab) - Scripts and Commands
@@ -82,6 +95,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`cmd_version`](scripts.md#cmd-version) - Scripts and Commands
 - [`command_exists`](common.md#command-exists) - Core Utilities
 - [`configure_sqlpath`](common.md#configure-sqlpath) - Core Utilities
+- [`create_directories`](scripts.md#create-directories) - Scripts and Commands
 - [`create_dynamic_alias`](aliases.md#create-dynamic-alias) - Alias Management
 - [`create_extension_alias`](extensions.md#create-extension-alias) - Extension System
 - [`create_sid_config`](common.md#create-sid-config) - Core Utilities
@@ -93,20 +107,22 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`dedupe_homes`](scripts.md#dedupe-homes) - Scripts and Commands
 - [`deduplicate_path`](extensions.md#deduplicate-path) - Extension System
 - [`deduplicate_sqlpath`](extensions.md#deduplicate-sqlpath) - Extension System
-- [`derive_oracle_base`](common.md#derive-oracle-base) - Core Utilities
-- [`detect_oracle_version`](common.md#detect-oracle-version) - Core Utilities
-- [`detect_product_type`](common.md#detect-product-type) - Core Utilities
+- [`derive_oracle_base`](scripts.md#derive-oracle-base) - Scripts and Commands
+- [`detect_domain`](scripts.md#detect-domain) - Scripts and Commands
+- [`detect_oracle_version`](scripts.md#detect-oracle-version) - Scripts and Commands
+- [`detect_product_type`](scripts.md#detect-product-type) - Scripts and Commands
 - [`detect_profile_file`](scripts.md#detect-profile-file) - Scripts and Commands
 - [`determine_default_prefix`](scripts.md#determine-default-prefix) - Scripts and Commands
 - [`discover_extensions`](extensions.md#discover-extensions) - Extension System
 - [`discover_homes`](scripts.md#discover-homes) - Scripts and Commands
-- [`discover_running_oracle_instances`](common.md#discover-running-oracle-instances) - Core Utilities
+- [`discover_running_oracle_instances`](scripts.md#discover-running-oracle-instances) - Scripts and Commands
 - [`display_header`](scripts.md#display-header) - Scripts and Commands
 - [`download_extension_from_github`](scripts.md#download-extension-from-github) - Scripts and Commands
 - [`download_github_release`](scripts.md#download-github-release) - Scripts and Commands
 - [`execute_db_query`](common.md#execute-db-query) - Core Utilities
 - [`execute_parallel_background`](scripts.md#execute-parallel-background) - Scripts and Commands
 - [`execute_parallel_gnu`](scripts.md#execute-parallel-gnu) - Scripts and Commands
+- [`execute_plugin_function_v2`](common.md#execute-plugin-function-v2) - Core Utilities
 - [`execute_rman_for_sid`](scripts.md#execute-rman-for-sid) - Scripts and Commands
 - [`export_config`](scripts.md#export-config) - Scripts and Commands
 - [`extension_provides`](extensions.md#extension-provides) - Extension System
@@ -119,13 +135,15 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`generate_base_aliases`](aliases.md#generate-base-aliases) - Alias Management
 - [`generate_cron`](scripts.md#generate-cron) - Scripts and Commands
 - [`generate_home_name`](scripts.md#generate-home-name) - Scripts and Commands
-- [`generate_oracle_home_aliases`](common.md#generate-oracle-home-aliases) - Core Utilities
-- [`generate_pdb_aliases`](common.md#generate-pdb-aliases) - Core Utilities
+- [`generate_oracle_home_aliases`](scripts.md#generate-oracle-home-aliases) - Scripts and Commands
+- [`generate_pdb_aliases`](scripts.md#generate-pdb-aliases) - Scripts and Commands
 - [`generate_sid_aliases`](aliases.md#generate-sid-aliases) - Alias Management
-- [`generate_sid_lists`](common.md#generate-sid-lists) - Core Utilities
+- [`generate_sid_lists`](scripts.md#generate-sid-lists) - Scripts and Commands
 - [`generate_tnsnames`](scripts.md#generate-tnsnames) - Scripts and Commands
 - [`get_all_extensions`](extensions.md#get-all-extensions) - Extension System
 - [`get_checksum_exclusions`](scripts.md#get-checksum-exclusions) - Scripts and Commands
+- [`get_cman_instance_name`](scripts.md#get-cman-instance-name) - Scripts and Commands
+- [`get_connectors`](scripts.md#get-connectors) - Scripts and Commands
 - [`get_database_open_mode`](database.md#get-database-open-mode) - Database Operations
 - [`get_databases`](scripts.md#get-databases) - Scripts and Commands
 - [`get_db_mode`](scripts.md#get-db-mode) - Scripts and Commands
@@ -138,45 +156,52 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`get_extension_property`](extensions.md#get-extension-property) - Extension System
 - [`get_extension_version`](extensions.md#get-extension-version) - Extension System
 - [`get_first_oracle_home`](scripts.md#get-first-oracle-home) - Scripts and Commands
-- [`get_install_info`](common.md#get-install-info) - Core Utilities
+- [`get_install_info`](scripts.md#get-install-info) - Scripts and Commands
 - [`get_installed_version`](scripts.md#get-installed-version) - Scripts and Commands
-- [`get_listener_status`](scripts.md#get-listener-status) - Scripts and Commands
-- [`get_oracle_home_alias`](common.md#get-oracle-home-alias) - Core Utilities
-- [`get_oracle_home_path`](common.md#get-oracle-home-path) - Core Utilities
-- [`get_oracle_home_type`](common.md#get-oracle-home-type) - Core Utilities
-- [`get_oracle_homes_path`](common.md#get-oracle-homes-path) - Core Utilities
+- [`get_oracle_home_alias`](scripts.md#get-oracle-home-alias) - Scripts and Commands
+- [`get_oracle_home_path`](scripts.md#get-oracle-home-path) - Scripts and Commands
+- [`get_oracle_home_type`](scripts.md#get-oracle-home-type) - Scripts and Commands
+- [`get_oracle_homes_path`](scripts.md#get-oracle-homes-path) - Scripts and Commands
 - [`get_oracle_version`](common.md#get-oracle-version) - Core Utilities
-- [`get_oradba_version`](common.md#get-oradba-version) - Core Utilities
+- [`get_oradba_version`](scripts.md#get-oradba-version) - Scripts and Commands
 - [`get_oratab_path`](common.md#get-oratab-path) - Core Utilities
+- [`get_oud_instance_base`](plugins.md#get-oud-instance-base) - Plugin Interface
+- [`get_process_list`](scripts.md#get-process-list) - Scripts and Commands
 - [`get_running_listeners`](scripts.md#get-running-listeners) - Scripts and Commands
 - [`get_script_dir`](common.md#get-script-dir) - Core Utilities
 - [`get_tns_admin`](scripts.md#get-tns-admin) - Scripts and Commands
 - [`has_rlwrap`](aliases.md#has-rlwrap) - Alias Management
 - [`import_config`](scripts.md#import-config) - Scripts and Commands
-- [`init_install_info`](common.md#init-install-info) - Core Utilities
+- [`init_install_info`](scripts.md#init-install-info) - Scripts and Commands
 - [`init_logging`](common.md#init-logging) - Core Utilities
 - [`init_session_log`](common.md#init-session-log) - Core Utilities
 - [`install_logrotate`](scripts.md#install-logrotate) - Scripts and Commands
 - [`install_sqlnet`](scripts.md#install-sqlnet) - Scripts and Commands
 - [`install_user`](scripts.md#install-user) - Scripts and Commands
+- [`is_bundled_component`](scripts.md#is-bundled-component) - Scripts and Commands
 - [`is_dummy_sid`](common.md#is-dummy-sid) - Core Utilities
 - [`is_extension_enabled`](extensions.md#is-extension-enabled) - Extension System
-- [`is_oracle_home`](common.md#is-oracle-home) - Core Utilities
+- [`is_oracle_home`](scripts.md#is-oracle-home) - Scripts and Commands
+- [`is_plugin_debug_enabled`](common.md#is-plugin-debug-enabled) - Core Utilities
+- [`is_plugin_trace_enabled`](common.md#is-plugin-trace-enabled) - Core Utilities
 - [`is_readonly_home`](scripts.md#is-readonly-home) - Scripts and Commands
+- [`is_subdirectory_of_oracle_home`](scripts.md#is-subdirectory-of-oracle-home) - Scripts and Commands
 - [`list_aliases`](scripts.md#list-aliases) - Scripts and Commands
 - [`list_homes`](scripts.md#list-homes) - Scripts and Commands
 - [`list_logrotate`](scripts.md#list-logrotate) - Scripts and Commands
-- [`list_oracle_homes`](common.md#list-oracle-homes) - Core Utilities
+- [`list_oracle_homes`](scripts.md#list-oracle-homes) - Scripts and Commands
+- [`load_config`](scripts.md#load-config) - Scripts and Commands
+- [`load_config`](scripts.md#load-config) - Scripts and Commands
+- [`load_config`](scripts.md#load-config) - Scripts and Commands
 - [`load_config`](common.md#load-config) - Core Utilities
-- [`load_config`](scripts.md#load-config) - Scripts and Commands
-- [`load_config`](scripts.md#load-config) - Scripts and Commands
-- [`load_config`](scripts.md#load-config) - Scripts and Commands
 - [`load_config_file`](common.md#load-config-file) - Core Utilities
 - [`load_extension`](extensions.md#load-extension) - Extension System
 - [`load_extensions`](extensions.md#load-extensions) - Extension System
 - [`load_rman_catalog_connection`](common.md#load-rman-catalog-connection) - Core Utilities
 - [`load_rman_config`](scripts.md#load-rman-config) - Scripts and Commands
 - [`load_wallet_password`](scripts.md#load-wallet-password) - Scripts and Commands
+- [`log_debug`](scripts.md#log-debug) - Scripts and Commands
+- [`log_debug`](scripts.md#log-debug) - Scripts and Commands
 - [`log_error`](scripts.md#log-error) - Scripts and Commands
 - [`log_fail`](scripts.md#log-fail) - Scripts and Commands
 - [`log_header`](scripts.md#log-header) - Scripts and Commands
@@ -210,9 +235,9 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`oradba_apply_product_config`](environment.md#oradba-apply-product-config) - Environment Management
 - [`oradba_auto_reload_on_change`](environment.md#oradba-auto-reload-on-change) - Environment Management
 - [`oradba_build_environment`](environment.md#oradba-build-environment) - Environment Management
+- [`oradba_builder_init`](environment.md#oradba-builder-init) - Environment Management
 - [`oradba_check_asm_status`](environment.md#oradba-check-asm-status) - Environment Management
 - [`oradba_check_config_changes`](environment.md#oradba-check-config-changes) - Environment Management
-- [`oradba_check_datasafe_status`](environment.md#oradba-check-datasafe-status) - Environment Management
 - [`oradba_check_db_running`](environment.md#oradba-check-db-running) - Environment Management
 - [`oradba_check_db_status`](environment.md#oradba-check-db-status) - Environment Management
 - [`oradba_check_file_changed`](environment.md#oradba-check-file-changed) - Environment Management
@@ -225,6 +250,10 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`oradba_clear_change_tracking`](environment.md#oradba-clear-change-tracking) - Environment Management
 - [`oradba_dedupe_path`](environment.md#oradba-dedupe-path) - Environment Management
 - [`oradba_detect_rooh`](environment.md#oradba-detect-rooh) - Environment Management
+- [`oradba_env_output_divider`](scripts.md#oradba-env-output-divider) - Scripts and Commands
+- [`oradba_env_output_kv`](scripts.md#oradba-env-output-kv) - Scripts and Commands
+- [`oradba_env_output_print_home_section`](scripts.md#oradba-env-output-print-home-section) - Scripts and Commands
+- [`oradba_env_output_resolve_oracle_base`](scripts.md#oradba-env-output-resolve-oracle-base) - Scripts and Commands
 - [`oradba_expand_variables`](environment.md#oradba-expand-variables) - Environment Management
 - [`oradba_find_home`](environment.md#oradba-find-home) - Environment Management
 - [`oradba_find_sid`](environment.md#oradba-find-sid) - Environment Management
@@ -245,6 +274,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`oradba_log`](common.md#oradba-log) - Core Utilities
 - [`oradba_parse_homes`](environment.md#oradba-parse-homes) - Environment Management
 - [`oradba_parse_oratab`](environment.md#oradba-parse-oratab) - Environment Management
+- [`oradba_parser_init`](environment.md#oradba-parser-init) - Environment Management
 - [`oradba_product_needs_client`](environment.md#oradba-product-needs-client) - Environment Management
 - [`oradba_product_needs_java`](environment.md#oradba-product-needs-java) - Environment Management
 - [`oradba_registry_discover_all`](registry.md#oradba-registry-discover-all) - Registry API
@@ -267,17 +297,19 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`oradba_validate_environment`](environment.md#oradba-validate-environment) - Environment Management
 - [`oradba_validate_oracle_home`](environment.md#oradba-validate-oracle-home) - Environment Management
 - [`oradba_validate_sid`](environment.md#oradba-validate-sid) - Environment Management
+- [`oradba_validator_init`](environment.md#oradba-validator-init) - Environment Management
 - [`parse_args`](scripts.md#parse-args) - Scripts and Commands
 - [`parse_args`](scripts.md#parse-args) - Scripts and Commands
 - [`parse_args`](scripts.md#parse-args) - Scripts and Commands
 - [`parse_args`](scripts.md#parse-args) - Scripts and Commands
+- [`parse_arguments`](scripts.md#parse-arguments) - Scripts and Commands
 - [`parse_extension_metadata`](extensions.md#parse-extension-metadata) - Extension System
-- [`parse_oracle_home`](common.md#parse-oracle-home) - Core Utilities
-- [`parse_oratab`](common.md#parse-oratab) - Core Utilities
+- [`parse_oracle_home`](scripts.md#parse-oracle-home) - Scripts and Commands
+- [`parse_oratab`](scripts.md#parse-oratab) - Scripts and Commands
 - [`perform_sync`](scripts.md#perform-sync) - Scripts and Commands
 - [`perform_sync`](scripts.md#perform-sync) - Scripts and Commands
 - [`perform_update`](scripts.md#perform-update) - Scripts and Commands
-- [`persist_discovered_instances`](common.md#persist-discovered-instances) - Core Utilities
+- [`persist_discovered_instances`](scripts.md#persist-discovered-instances) - Scripts and Commands
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
@@ -288,16 +320,16 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
 - [`plugin_adjust_environment`](plugins.md#plugin-adjust-environment) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
+- [`plugin_build_base_path`](plugins.md#plugin-build-base-path) - Plugin Interface
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
@@ -308,6 +340,30 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
 - [`plugin_build_bin_path`](plugins.md#plugin-build-bin-path) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_env`](plugins.md#plugin-build-env) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
+- [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
+- [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
+- [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
+- [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
 - [`plugin_check_status`](plugins.md#plugin-check-status) - Plugin Interface
 - [`plugin_check_status`](plugins.md#plugin-check-status) - Plugin Interface
 - [`plugin_check_status`](plugins.md#plugin-check-status) - Plugin Interface
@@ -338,7 +394,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_discover_instances`](plugins.md#plugin-discover-instances) - Plugin Interface
 - [`plugin_discover_instances`](plugins.md#plugin-discover-instances) - Plugin Interface
 - [`plugin_discover_instances`](plugins.md#plugin-discover-instances) - Plugin Interface
-- [`plugin_get_adjusted_paths`](plugins.md#plugin-get-adjusted-paths) - Plugin Interface
+- [`plugin_get_cman_status`](plugins.md#plugin-get-cman-status) - Plugin Interface
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
@@ -349,8 +405,20 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
 - [`plugin_get_config_section`](plugins.md#plugin-get-config-section) - Plugin Interface
+- [`plugin_get_connection_count`](plugins.md#plugin-get-connection-count) - Plugin Interface
+- [`plugin_get_connector_version`](plugins.md#plugin-get-connector-version) - Plugin Interface
 - [`plugin_get_display_name`](plugins.md#plugin-get-display-name) - Plugin Interface
 - [`plugin_get_display_name`](plugins.md#plugin-get-display-name) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
+- [`plugin_get_instance_list`](plugins.md#plugin-get-instance-list) - Plugin Interface
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
@@ -361,6 +429,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
 - [`plugin_get_metadata`](plugins.md#plugin-get-metadata) - Plugin Interface
+- [`plugin_get_port`](plugins.md#plugin-get-port) - Plugin Interface
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
@@ -371,12 +440,16 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
 - [`plugin_get_required_binaries`](plugins.md#plugin-get-required-binaries) - Plugin Interface
+- [`plugin_get_service_name`](plugins.md#plugin-get-service-name) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
 - [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
+- [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
+- [`plugin_get_version`](plugins.md#plugin-get-version) - Plugin Interface
+- [`plugin_set_environment`](plugins.md#plugin-set-environment) - Plugin Interface
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
@@ -387,6 +460,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
 - [`plugin_should_show_listener`](plugins.md#plugin-should-show-listener) - Plugin Interface
+- [`plugin_stop`](plugins.md#plugin-stop) - Plugin Interface
 - [`plugin_supports_aliases`](plugins.md#plugin-supports-aliases) - Plugin Interface
 - [`plugin_supports_aliases`](plugins.md#plugin-supports-aliases) - Plugin Interface
 - [`plugin_supports_aliases`](plugins.md#plugin-supports-aliases) - Plugin Interface
@@ -408,6 +482,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_validate_home`](plugins.md#plugin-validate-home) - Plugin Interface
 - [`plugin_validate_home`](plugins.md#plugin-validate-home) - Plugin Interface
 - [`preserve_configs`](scripts.md#preserve-configs) - Scripts and Commands
+- [`preserve_runtime_files`](scripts.md#preserve-runtime-files) - Scripts and Commands
 - [`print_message`](scripts.md#print-message) - Scripts and Commands
 - [`process_template`](scripts.md#process-template) - Scripts and Commands
 - [`profile_has_oradba`](scripts.md#profile-has-oradba) - Scripts and Commands
@@ -420,24 +495,31 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`query_sessions_info`](database.md#query-sessions-info) - Database Operations
 - [`remove_extension_paths`](extensions.md#remove-extension-paths) - Extension System
 - [`remove_home`](scripts.md#remove-home) - Scripts and Commands
-- [`resolve_oracle_home_name`](common.md#resolve-oracle-home-name) - Core Utilities
+- [`resolve_datasafe_env`](scripts.md#resolve-datasafe-env) - Scripts and Commands
+- [`resolve_default_tns_admin`](scripts.md#resolve-default-tns-admin) - Scripts and Commands
+- [`resolve_oracle_home_name`](scripts.md#resolve-oracle-home-name) - Scripts and Commands
 - [`restore_configs`](scripts.md#restore-configs) - Scripts and Commands
 - [`restore_from_backup`](scripts.md#restore-from-backup) - Scripts and Commands
+- [`restore_runtime_files`](scripts.md#restore-runtime-files) - Scripts and Commands
 - [`run_as_oracle`](scripts.md#run-as-oracle) - Scripts and Commands
+- [`run_dbca`](scripts.md#run-dbca) - Scripts and Commands
 - [`run_monitor`](scripts.md#run-monitor) - Scripts and Commands
 - [`run_preflight_checks`](scripts.md#run-preflight-checks) - Scripts and Commands
 - [`run_user`](scripts.md#run-user) - Scripts and Commands
 - [`safe_alias`](common.md#safe-alias) - Core Utilities
+- [`sanitize_sensitive_data`](common.md#sanitize-sensitive-data) - Core Utilities
 - [`search_wallet`](scripts.md#search-wallet) - Scripts and Commands
 - [`send_notification`](scripts.md#send-notification) - Scripts and Commands
-- [`set_install_info`](common.md#set-install-info) - Core Utilities
+- [`set_install_info`](scripts.md#set-install-info) - Scripts and Commands
 - [`set_listener_env`](scripts.md#set-listener-env) - Scripts and Commands
 - [`set_oracle_home_environment`](common.md#set-oracle-home-environment) - Core Utilities
 - [`setup_all_tns_admin`](scripts.md#setup-all-tns-admin) - Scripts and Commands
+- [`setup_connector_environment`](scripts.md#setup-connector-environment) - Scripts and Commands
 - [`setup_tns_admin`](scripts.md#setup-tns-admin) - Scripts and Commands
 - [`should_log`](scripts.md#should-log) - Scripts and Commands
 - [`should_log`](scripts.md#should-log) - Scripts and Commands
 - [`should_log`](scripts.md#should-log) - Scripts and Commands
+- [`should_show_listener_section`](scripts.md#should-show-listener-section) - Scripts and Commands
 - [`show_alias_help`](scripts.md#show-alias-help) - Scripts and Commands
 - [`show_config`](common.md#show-config) - Core Utilities
 - [`show_config_help`](scripts.md#show-config-help) - Scripts and Commands
@@ -447,7 +529,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`show_installed_extensions`](scripts.md#show-installed-extensions) - Scripts and Commands
 - [`show_main_help`](scripts.md#show-main-help) - Scripts and Commands
 - [`show_online_help`](scripts.md#show-online-help) - Scripts and Commands
-- [`show_oracle_home_status`](database.md#show-oracle-home-status) - Database Operations
+- [`show_oracle_home_status`](scripts.md#show-oracle-home-status) - Scripts and Commands
 - [`show_oracle_status`](scripts.md#show-oracle-status) - Scripts and Commands
 - [`show_oracle_status_registry`](scripts.md#show-oracle-status-registry) - Scripts and Commands
 - [`show_path`](common.md#show-path) - Core Utilities
@@ -457,23 +539,28 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`show_status`](scripts.md#show-status) - Scripts and Commands
 - [`show_status`](scripts.md#show-status) - Scripts and Commands
 - [`show_status`](scripts.md#show-status) - Scripts and Commands
+- [`show_status`](scripts.md#show-status) - Scripts and Commands
 - [`show_summary`](scripts.md#show-summary) - Scripts and Commands
 - [`show_summary`](scripts.md#show-summary) - Scripts and Commands
+- [`show_templates`](scripts.md#show-templates) - Scripts and Commands
 - [`show_usage`](scripts.md#show-usage) - Scripts and Commands
 - [`show_usage`](scripts.md#show-usage) - Scripts and Commands
 - [`show_variables_help`](scripts.md#show-variables-help) - Scripts and Commands
 - [`show_version`](scripts.md#show-version) - Scripts and Commands
 - [`sort_extensions_by_priority`](extensions.md#sort-extensions-by-priority) - Extension System
 - [`start_all`](scripts.md#start-all) - Scripts and Commands
+- [`start_connector`](scripts.md#start-connector) - Scripts and Commands
 - [`start_database`](scripts.md#start-database) - Scripts and Commands
 - [`start_databases`](scripts.md#start-databases) - Scripts and Commands
 - [`start_listener`](scripts.md#start-listener) - Scripts and Commands
 - [`start_listeners`](scripts.md#start-listeners) - Scripts and Commands
 - [`stop_all`](scripts.md#stop-all) - Scripts and Commands
+- [`stop_connector`](scripts.md#stop-connector) - Scripts and Commands
 - [`stop_database`](scripts.md#stop-database) - Scripts and Commands
 - [`stop_databases`](scripts.md#stop-databases) - Scripts and Commands
 - [`stop_listener`](scripts.md#stop-listener) - Scripts and Commands
 - [`stop_listeners`](scripts.md#stop-listeners) - Scripts and Commands
+- [`substitute_variables`](scripts.md#substitute-variables) - Scripts and Commands
 - [`test_item`](scripts.md#test-item) - Scripts and Commands
 - [`test_logrotate`](scripts.md#test-logrotate) - Scripts and Commands
 - [`test_tnsalias`](scripts.md#test-tnsalias) - Scripts and Commands
@@ -500,6 +587,9 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`usage`](scripts.md#usage) - Scripts and Commands
 - [`usage`](scripts.md#usage) - Scripts and Commands
 - [`usage`](scripts.md#usage) - Scripts and Commands
+- [`usage`](scripts.md#usage) - Scripts and Commands
+- [`usage`](scripts.md#usage) - Scripts and Commands
+- [`validate_arguments`](scripts.md#validate-arguments) - Scripts and Commands
 - [`validate_config`](scripts.md#validate-config) - Scripts and Commands
 - [`validate_directory`](common.md#validate-directory) - Core Utilities
 - [`validate_environment`](scripts.md#validate-environment) - Scripts and Commands
@@ -507,10 +597,11 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`validate_extension_name`](scripts.md#validate-extension-name) - Scripts and Commands
 - [`validate_extension_structure`](scripts.md#validate-extension-structure) - Scripts and Commands
 - [`validate_homes`](scripts.md#validate-homes) - Scripts and Commands
+- [`validate_prerequisites`](scripts.md#validate-prerequisites) - Scripts and Commands
 - [`validate_write_permissions`](scripts.md#validate-write-permissions) - Scripts and Commands
 - [`verify_oracle_env`](common.md#verify-oracle-env) - Core Utilities
 - [`version`](scripts.md#version) - Scripts and Commands
-- [`version_compare`](common.md#version-compare) - Core Utilities
+- [`version_compare`](scripts.md#version-compare) - Scripts and Commands
 - [`version_compare`](scripts.md#version-compare) - Scripts and Commands
 - [`version_info`](scripts.md#version-info) - Scripts and Commands
-- [`version_meets_requirement`](common.md#version-meets-requirement) - Core Utilities
+- [`version_meets_requirement`](scripts.md#version-meets-requirement) - Scripts and Commands

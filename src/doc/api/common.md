@@ -145,90 +145,6 @@ Create SID-specific configuration file from template
 
 ---
 
-### `derive_oracle_base` {: #derive-oracle-base }
-
-Derive ORACLE_BASE from ORACLE_HOME by searching upward
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - ORACLE_HOME path
-
-**Returns:** 0 on success, 1 if unable to derive
-
-**Output:** Derived ORACLE_BASE path
-
-!!! info "Notes"
-    Searches upward for directory containing "product", "oradata",
-    "oraInventory", or "admin" (max 5 levels)
-
----
-
-### `detect_oracle_version` {: #detect-oracle-version }
-
-Detect Oracle version from ORACLE_HOME path
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - ORACLE_HOME path
-- $2 - Product type (optional, will detect if not provided)
-
-**Returns:** 0 on success, 1 on error
-
-**Output:** Oracle version in format XXYZ (e.g., 1920 for 19.2.0, 2301 for 23.1)
-
-!!! info "Notes"
-    Delegates to product plugin if available, otherwise uses fallback methods
-    Plugin detection via plugin_get_version() (returns X.Y.Z.W format)
-    Fallback methods: sqlplus, OPatch, inventory XML, path parsing
-
----
-
-### `detect_product_type` {: #detect-product-type }
-
-Detect Oracle product type from ORACLE_HOME path
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - ORACLE_HOME path
-
-**Returns:** 0 on success, 1 if unable to detect
-
-**Output:** Product type: database, client, iclient, java, oud, weblogic, oms,
-
-!!! info "Notes"
-    Checks for specific files/directories to identify product type
-
----
-
-### `discover_running_oracle_instances` {: #discover-running-oracle-instances }
-
-Auto-discover running Oracle instances when oratab is empty
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 if instances discovered, 1 if none found
-
-**Output:** Prints discovered instances in oratab format (SID:ORACLE_HOME:N)
-
-!!! info "Notes"
-    - Only checks processes owned by current user
-    - Detects db_smon_\*, ora_pmon_\*, asm_smon_\* processes
-    - Extracts ORACLE_HOME from /proc/\<pid\>/exe
-    - Adds temporary entries with startup flag 'N'
-    - Shows warning if Oracle processes run as different user
-
----
-
 ### `execute_db_query` {: #execute-db-query }
 
 Execute SQL\*Plus query with standardized configuration and formatting
@@ -239,154 +155,27 @@ Execute SQL\*Plus query with standardized configuration and formatting
 
 ---
 
-### `generate_oracle_home_aliases` {: #generate-oracle-home-aliases }
+### `execute_plugin_function_v2` {: #execute-plugin-function-v2 }
 
-Create shell aliases for all registered Oracle Homes
+Execute a plugin function in an isolated subshell with minimal env
 
 **Source:** `oradba_common.sh`
 
 **Arguments:**
 
-- None
+- $1 - product type (plugin name, e.g., database, datasafe)
+- $2 - function name (without plugin_ prefix)
+- $3 - ORACLE_HOME / base path (use "NOARGS" for no-arg functions)
+- $4 - result variable name (optional)
+- $5 - extra argument (optional)
 
-**Returns:** 0 on success
+**Returns:** Exit code from plugin function
 
-**Output:** Creates shell aliases for Oracle Home switching
+**Output:** Stdout from plugin function (or stored in result variable)
 
 !!! info "Notes"
-    Creates aliases for both NAME and ALIAS_NAME entries
-    Example: DBHOMEFREE and rdbms26 both point to same home
-
----
-
-### `generate_pdb_aliases` {: #generate-pdb-aliases }
-
-Generate aliases for PDBs in the current CDB
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 on success
-
-**Output:** Creates shell aliases for each PDB and exports ORADBA_PDBLIST
-
----
-
-### `generate_sid_lists` {: #generate-sid-lists }
-
-Generate SID lists and aliases from oratab and Oracle Homes config
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - (Optional) Path to oratab file (defaults to get_oratab_path)
-
-**Returns:** 0 on success, 1 if oratab not found
-
-**Output:** Sets ORADBA_SIDLIST and ORADBA_REALSIDLIST environment variables
-
-!!! info "Notes"
-    SIDLIST includes all SIDs and aliases, REALSIDLIST excludes dummies
-
----
-
-### `get_install_info` {: #get-install-info }
-
-Get installation metadata value by key
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Metadata key to retrieve
-
-**Returns:** 0 - Key found and value retrieved
-
-**Output:** Value for the specified key
-
-!!! info "Notes"
-    Supports both old format (install_version) and new format (version).
-    Example: install_date=$(get_install_info "install_date")
-
----
-
-### `get_oracle_home_alias` {: #get-oracle-home-alias }
-
-Get alias name for a registered Oracle Home
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Oracle Home name
-
-**Returns:** 0 on success, 1 if not found
-
-**Output:** Alias name (or home name if no alias defined)
-
-!!! info "Notes"
-    Reads from oradba_homes.conf, column 5 (ALIAS_NAME)
-
----
-
-### `get_oracle_home_path` {: #get-oracle-home-path }
-
-Get ORACLE_HOME path for a registered Oracle Home
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Oracle Home name
-
-**Returns:** 0 on success, 1 if not found
-
-**Output:** ORACLE_HOME path
-
-!!! info "Notes"
-    Reads from oradba_homes.conf, column 2 (PATH)
-
----
-
-### `get_oracle_home_type` {: #get-oracle-home-type }
-
-Get product type for a registered Oracle Home
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Oracle Home name
-
-**Returns:** 0 on success, 1 if not found
-
-**Output:** Product type (database, client, oud, weblogic, oms, emagent, etc.)
-
-!!! info "Notes"
-    Reads from oradba_homes.conf, column 3 (TYPE)
-
----
-
-### `get_oracle_homes_path` {: #get-oracle-homes-path }
-
-Get path to oradba_homes.conf configuration file
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 if file exists, 1 if not found
-
-**Output:** Prints path to oradba_homes.conf
-
-!!! info "Notes"
-    Looks for ${ORADBA_BASE}/etc/oradba_homes.conf
+    Adds subshell isolation (Phase 3) and minimal ORACLE_HOME/LD_LIBRARY_PATH
+    For no-arg functions (e.g., plugin_get_config_section), pass "NOARGS" as oracle_home
 
 ---
 
@@ -407,25 +196,6 @@ Retrieve Oracle database version from sqlplus
 !!! info "Notes"
     Uses sqlplus if available, otherwise delegates to detect_oracle_version()
     for plugin-based detection (library filenames, JDBC JAR, etc.)
-
----
-
-### `get_oradba_version` {: #get-oradba-version }
-
-Get OraDBA version from VERSION file
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 - Version retrieved successfully
-
-**Output:** Version string (e.g., "1.0.0-dev") or "unknown"
-
-!!! info "Notes"
-    Example: version=$(get_oradba_version)
 
 ---
 
@@ -462,27 +232,6 @@ Get the absolute path of the script directory
 **Returns:** 0 on success
 
 **Output:** Absolute directory path
-
----
-
-### `init_install_info` {: #init-install-info }
-
-Initialize installation info file with metadata
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 - Installation info initialized successfully
-
-**Output:** Info message about initialization
-
-!!! info "Notes"
-    Uses lowercase keys without quotes to match installer format.
-    Creates ${ORADBA_BASE}/.install_info with install metadata.
-    Example: init_install_info
 
 ---
 
@@ -540,41 +289,41 @@ Check if current Oracle SID is marked as dummy/template in oratab
 
 ---
 
-### `is_oracle_home` {: #is-oracle-home }
+### `is_plugin_debug_enabled` {: #is-plugin-debug-enabled }
 
-Check if given name refers to an Oracle Home (vs database SID)
+Check if plugin debug mode is enabled
 
 **Source:** `oradba_common.sh`
 
 **Arguments:**
 
-- $1 - Name to check (Oracle Home name/alias or SID)
+- None
 
-**Returns:** 0 - Name is an Oracle Home
+**Returns:** 0 if plugin debug enabled, 1 otherwise
 
 **Output:** None
 
 !!! info "Notes"
-    Example: if is_oracle_home "ora19"; then echo "Oracle Home"; fi
+    Plugin debug enabled when ORADBA_PLUGIN_DEBUG=true OR ORADBA_LOG_LEVEL=DEBUG/TRACE
 
 ---
 
-### `list_oracle_homes` {: #list-oracle-homes }
+### `is_plugin_trace_enabled` {: #is-plugin-trace-enabled }
 
-List all Oracle Homes from oradba_homes.conf
+Check if plugin trace mode is enabled (more verbose than debug)
 
 **Source:** `oradba_common.sh`
 
 **Arguments:**
 
-- $1 - (Optional) Filter by product type
+- None
 
-**Returns:** 0 on success, 1 if config file not found
+**Returns:** 0 if plugin trace enabled, 1 otherwise
 
-**Output:** One line per home: NAME PATH TYPE ORDER ALIAS DESCRIPTION VERSION
+**Output:** None
 
 !!! info "Notes"
-    Output sorted by ORDER (column 4), ascending
+    Plugin trace enabled only when ORADBA_LOG_LEVEL=TRACE
 
 ---
 
@@ -643,7 +392,7 @@ Modern unified logging function with level filtering and color support
 
 **Arguments:**
 
-- $1 - Log level (DEBUG|INFO|WARN|ERROR|SUCCESS|FAILURE|SECTION)
+- $1 - Log level (TRACE|DEBUG|INFO|WARN|ERROR|SUCCESS|FAILURE|SECTION)
 - $@ - Log message (remaining arguments)
 
 **Returns:** 0 - Always successful
@@ -655,90 +404,8 @@ Modern unified logging function with level filtering and color support
     Supports color output (disable with ORADBA_NO_COLOR=1)
     Dual logging to ORADBA_LOG_FILE and ORADBA_SESSION_LOG
     Legacy DEBUG=1 support for backward compatibility
+    TRACE level is finer than DEBUG for very detailed diagnostics
     Replaces deprecated log_info/log_warn/log_error/log_debug functions
-
----
-
-### `parse_oracle_home` {: #parse-oracle-home }
-
-Parse Oracle Home configuration entry from oradba_homes.conf
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Oracle Home name or alias to parse
-
-**Returns:** 0 - Successfully parsed
-
-**Output:** Space-separated values: name alias type path version
-
-!!! info "Notes"
-    Example: read -r oh_name oh_alias oh_type oh_path oh_version \< \<(parse_oracle_home "ora19")
-    Returns: "ora19 19c database /u01/app/oracle/product/19.3.0/dbhome_1 19.3.0"
-
----
-
-### `parse_oratab` {: #parse-oratab }
-
-Parse oratab file to get Oracle home path for a SID
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Oracle SID to look up
-- $2 - (Optional) Path to oratab file (defaults to get_oratab_path)
-
-**Returns:** 0 if SID found, 1 if not found or error
-
-**Output:** Oracle home path for the specified SID
-
-!!! info "Notes"
-    Skips comment lines and dummy entries (:D flag)
-
----
-
-### `persist_discovered_instances` {: #persist-discovered-instances }
-
-Write auto-discovered instances to oratab file with fallback
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Discovered oratab entries (multi-line string)
-- $2 - Target oratab file (optional, defaults to ORATAB_FILE)
-
-**Returns:** 0 - Successfully persisted
-
-**Output:** Appends entries to oratab, logs warnings/info
-
-!!! info "Notes"
-    - Tries system oratab first (e.g., /etc/oratab)
-    - Falls back to local oratab if permission denied
-    - Checks for duplicates before adding
-    - Updates ORATAB_FILE if fallback used
-    Example: persist_discovered_instances "$discovered_data"
-
----
-
-### `resolve_oracle_home_name` {: #resolve-oracle-home-name }
-
-Resolve Oracle Home alias to actual NAME from oradba_homes.conf
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Name or alias to resolve
-
-**Returns:** 0 on success, 1 if not found or error
-
-**Output:** Actual Oracle Home NAME (or original if not found)
-
-!!! info "Notes"
-    Checks both NAME and ALIAS_NAME columns in oradba_homes.conf
 
 ---
 
@@ -763,24 +430,27 @@ Create alias respecting coexistence mode with other Oracle environments
 
 ---
 
-### `set_install_info` {: #set-install-info }
+### `sanitize_sensitive_data` {: #sanitize-sensitive-data }
 
-Set installation metadata key-value pair
+Sanitize sensitive data from log output (passwords, connection strings)
 
 **Source:** `oradba_common.sh`
 
 **Arguments:**
 
-- $1 - Metadata key
-- $2 - Metadata value
+- $1 - Text to sanitize
 
-**Returns:** 0 - Key-value set successfully
+**Returns:** 0 - Always successful
 
-**Output:** None
+**Output:** Sanitized text to stdout
 
 !!! info "Notes"
-    Uses lowercase keys without quotes for consistency with installer.
-    Example: set_install_info "install_date" "2026-01-14"
+    Masks passwords in common formats (sqlplus, rman, connection strings)
+    Pattern examples:
+    - sqlplus user/pass@db -\> sqlplus user/***@db
+    - rman target user/pass -\> rman target user/***
+    - PASSWORD=secret -\> PASSWORD=***
+    - pwd=secret -\> pwd=***
 
 ---
 
@@ -794,6 +464,7 @@ Set environment variables for a specific Oracle Home
 
 - $1 - Oracle Home name or alias
 - $2 - Oracle Home path (optional, will lookup if not provided)
+- $3 - Defer path config helpers (optional, true/false; default: false)
 
 **Returns:** 0 - Environment set successfully
 
@@ -899,45 +570,5 @@ Verify required Oracle environment variables are set
 
 !!! info "Notes"
     Checks ORACLE_SID and ORACLE_HOME
-
----
-
-### `version_compare` {: #version-compare }
-
-Compare two semantic version strings
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - First version string (e.g., "1.2.3")
-- $2 - Second version string (e.g., "1.2.0")
-
-**Returns:** 0 - Versions are equal
-
-**Output:** None
-
-!!! info "Notes"
-    Example: version_compare "1.2.3" "1.2.0"; result=$?  # Returns 1
-
----
-
-### `version_meets_requirement` {: #version-meets-requirement }
-
-Check if current version meets minimum requirement
-
-**Source:** `oradba_common.sh`
-
-**Arguments:**
-
-- $1 - Current version string
-- $2 - Required version string
-
-**Returns:** 0 - Current version meets requirement (\>=)
-
-**Output:** None
-
-!!! info "Notes"
-    Example: if version_meets_requirement "1.2.3" "1.2.0"; then echo "OK"; fi
 
 ---

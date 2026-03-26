@@ -8,6 +8,28 @@ Command-line scripts and tools for OraDBA operations.
 
 ## Functions
 
+### `_oraenv_apply_path_configs` {: #-oraenv-apply-path-configs }
+
+Apply Java and client path configurations after environment setup
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- $1 - Product type (DATABASE, DATASAFE, OUD, etc.)
+- $2 - ORACLE_HOME path (optional, for Java auto-detection)
+
+**Returns:** None (modifies PATH, exports JAVA_HOME and ORACLE_CLIENT_HOME)
+
+**Output:** Applies Java and client path settings based on user configuration
+
+!!! info "Notes"
+    Should be called AFTER config files are loaded to honor user settings.
+    Handles both ORADBA_JAVA_PATH_FOR_NON_JAVA and
+    ORADBA_CLIENT_PATH_FOR_NON_CLIENT settings.
+
+---
+
 ### `_oraenv_apply_product_adjustments` {: #-oraenv-apply-product-adjustments }
 
 Apply product-specific path adjustments (e.g., DataSafe plugin)
@@ -27,6 +49,26 @@ Apply product-specific path adjustments (e.g., DataSafe plugin)
     sources datasafe_plugin.sh, and calls plugin_adjust_environment().
     Returns original path if no adjustments needed. Plugin system allows
     extensible product-specific environment handling.
+
+---
+
+### `_oraenv_apply_tns_admin` {: #-oraenv-apply-tns-admin }
+
+Set TNS_ADMIN for non-DataSafe products
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- $1 - Product type
+
+**Returns:** 0 on success
+
+**Output:** None (exports TNS_ADMIN)
+
+!!! info "Notes"
+    Uses ORADBA_TNS_ADMIN if configured, otherwise defaults to
+    ORACLE_BASE/network/admin or ORACLE_HOME/network/admin.
 
 ---
 
@@ -226,6 +268,25 @@ Main orchestration function for oraenv.sh
 
 ---
 
+### `_oraenv_now_ms` {: #-oraenv-now-ms }
+
+Get current timestamp in milliseconds (portable fallback chain)
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success
+
+**Output:** Milliseconds since epoch
+
+!!! info "Notes"
+    Uses python3 first, then perl Time::HiRes, then date seconds fallback
+
+---
+
 ### `_oraenv_parse_args` {: #-oraenv-parse-args }
 
 Parse command line arguments for oraenv.sh
@@ -241,8 +302,8 @@ Parse command line arguments for oraenv.sh
 **Output:** Sets global variables: REQUESTED_SID, SHOW_ENV, SHOW_STATUS,
 
 !!! info "Notes"
-    Detects TTY for interactive mode, processes --silent, --status,
-    --force, and --help flags
+    Detects TTY for interactive mode, processes --silent, --fast-silent,
+    --status, --force, and --help flags
 
 ---
 
@@ -266,6 +327,54 @@ Parse and validate user selection from interactive prompt
 !!! info "Notes"
     Accepts either numeric selection (1-N) or direct name entry.
     Numeric selection maps to arrays (Homes first, then SIDs).
+
+---
+
+### `_oraenv_profile_dump_effective_flags` {: #-oraenv-profile-dump-effective-flags }
+
+Print effective startup-related flags when profiling is enabled
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 always
+
+**Output:** One profile line with key effective flag values
+
+---
+
+### `_oraenv_profile_mark` {: #-oraenv-profile-mark }
+
+Record elapsed startup time for a named phase
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- $1 - Phase label
+
+**Returns:** 0 always
+
+**Output:** Profile timing line to stderr when enabled
+
+---
+
+### `_oraenv_profile_start` {: #-oraenv-profile-start }
+
+Initialize startup profiling if enabled
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 always
+
+**Output:** Optional profile header to stderr
 
 ---
 
@@ -425,6 +534,51 @@ Prompt for justification when operating on all listeners (safety check)
 
 !!! info "Notes"
     Skipped if FORCE_MODE=true; requires "yes" confirmation to proceed
+
+---
+
+### `ask_justification` {: #ask-justification }
+
+Prompt for justification when operating on multiple connectors
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Action name (start/stop/restart), $2 - Connector count
+
+**Returns:** 0 if confirmed, 1 if cancelled or no justification
+
+**Output:** Warning banner, prompts for justification and confirmation to stdout
+
+!!! info "Notes"
+    Skipped if FORCE_MODE=true; logs justification; requires 'yes' to proceed
+
+---
+
+### `auto_discover_oracle_homes` {: #auto-discover-oracle-homes }
+
+Auto-discover Oracle Homes and add to oradba_homes.conf
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Discovery paths (optional, defaults to ORADBA_DISCOVERY_PATHS)
+- $2 - Silent mode flag (optional, "true" for silent, default: false)
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Discovery summary (unless silent)
+
+!!! info "Notes"
+    Issue #70 - Unified auto-discovery function
+    Used by both oraenv.sh initialization and oradba_homes.sh discover
+    Silently skips already registered homes (no duplicates)
+    Uses plugin system's detect_product_type() and plugin_validate_home()
+    Excludes subdirectories of validated Oracle Homes (fixes false positives)
+    Generates home names using generate_home_name() logic
+    Only adds homes if not already in oradba_homes.conf
 
 ---
 
@@ -1104,6 +1258,27 @@ Create new extension from template
 
 ---
 
+### `cmd_disable` {: #cmd-disable }
+
+Disable a specific extension by updating its .extension metadata
+
+**Source:** `oradba_extension.sh`
+
+**Arguments:**
+
+- $1 - Extension name
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Success/error message to stdout/stderr
+
+!!! info "Notes"
+    Updates enabled: false in .extension file
+    Creates .extension file if missing
+    Prompts user to reload environment
+
+---
+
 ### `cmd_disabled` {: #cmd-disabled }
 
 List only disabled extensions
@@ -1143,6 +1318,27 @@ Discover and list all extensions in search paths
     Searches in ORADBA_LOCAL_BASE and configured paths
     Shows discovery process and results
     Uses extension auto-discovery mechanism
+
+---
+
+### `cmd_enable` {: #cmd-enable }
+
+Enable a specific extension by updating its .extension metadata
+
+**Source:** `oradba_extension.sh`
+
+**Arguments:**
+
+- $1 - Extension name
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Success/error message to stdout/stderr
+
+!!! info "Notes"
+    Updates enabled: true in .extension file
+    Creates .extension file if missing
+    Prompts user to reload environment
 
 ---
 
@@ -1209,6 +1405,14 @@ Replace temp oratab with symlink to system /etc/oratab
 
 ### `cmd_list` {: #cmd-list }
 
+List available SIDs and/or Homes
+
+**Source:** `oradba_env.sh`
+
+---
+
+### `cmd_list` {: #cmd-list }
+
 List all installed extensions with details
 
 **Source:** `oradba_extension.sh`
@@ -1225,14 +1429,6 @@ List all installed extensions with details
     Shows: name, version, priority, status (enabled/disabled)
     Verbose mode adds: provides (bin/sql/rcv/etc/doc), path
     Uses get_all_extensions() from extensions.sh library
-
----
-
-### `cmd_list` {: #cmd-list }
-
-List available SIDs and/or Homes
-
-**Source:** `oradba_env.sh`
 
 ---
 
@@ -1294,6 +1490,14 @@ Check status of Oracle instance/service
 
 ### `cmd_validate` {: #cmd-validate }
 
+Validate current Oracle environment or specified target
+
+**Source:** `oradba_env.sh`
+
+---
+
+### `cmd_validate` {: #cmd-validate }
+
 Validate specific extension structure and metadata
 
 **Source:** `oradba_extension.sh`
@@ -1310,14 +1514,6 @@ Validate specific extension structure and metadata
     Checks: directory exists, .extension file, required fields, structure
     Uses get_extension_path() and validate_extension_structure()
     Provides detailed validation report
-
----
-
-### `cmd_validate` {: #cmd-validate }
-
-Validate current Oracle environment or specified target
-
-**Source:** `oradba_env.sh`
 
 ---
 
@@ -1347,6 +1543,22 @@ Validate all installed extensions
 Display version information
 
 **Source:** `oradba_env.sh`
+
+---
+
+### `create_directories` {: #create-directories }
+
+Create database directories if they don't exist
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Directory creation messages to log
 
 ---
 
@@ -1456,6 +1668,83 @@ Remove duplicate entries from configuration
 
 ---
 
+### `derive_oracle_base` {: #derive-oracle-base }
+
+Derive ORACLE_BASE from ORACLE_HOME by searching upward
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - ORACLE_HOME path
+
+**Returns:** 0 on success, 1 if unable to derive
+
+**Output:** Derived ORACLE_BASE path
+
+!!! info "Notes"
+    Searches upward for directory containing "product", "oradata",
+    "oraInventory", or "admin" (max 5 levels)
+
+---
+
+### `detect_domain` {: #detect-domain }
+
+Auto-detect database domain from hostname
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success
+
+**Output:** Domain name to stdout
+
+---
+
+### `detect_oracle_version` {: #detect-oracle-version }
+
+Detect Oracle version from ORACLE_HOME path
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - ORACLE_HOME path
+- $2 - Product type (optional, will detect if not provided)
+
+**Returns:** 0 on success, 1 on error (no version detected)
+
+**Output:** Oracle version in format XXYZ (e.g., 1920 for 19.2.0, 2301 for 23.1)
+
+!!! info "Notes"
+    Delegates to product plugin if available, otherwise uses fallback methods
+    Plugin detection via plugin_get_version() (returns X.Y.Z.W format)
+    Fallback methods: sqlplus, OPatch, inventory XML, path parsing
+
+---
+
+### `detect_product_type` {: #detect-product-type }
+
+Detect Oracle product type from ORACLE_HOME path
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - ORACLE_HOME path
+
+**Returns:** 0 on success, 1 if unable to detect
+
+**Output:** Product type: database, client, iclient, java, oud, weblogic, oms,
+
+!!! info "Notes"
+    Checks for specific files/directories to identify product type
+
+---
+
 ### `detect_profile_file` {: #detect-profile-file }
 
 Detect appropriate shell profile file for current user
@@ -1503,6 +1792,33 @@ Auto-detect default OraDBA installation prefix from Oracle environment
 Auto-discover Oracle Homes
 
 **Source:** `oradba_homes.sh`
+
+!!! info "Notes"
+    Wrapper around auto_discover_oracle_homes() in oradba_common.sh
+    Supports legacy options for backward compatibility
+
+---
+
+### `discover_running_oracle_instances` {: #discover-running-oracle-instances }
+
+Auto-discover running Oracle instances when oratab is empty
+
+**Source:** `oradba_database_discovery.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 if instances discovered, 1 if none found
+
+**Output:** Prints discovered instances in oratab format (SID:ORACLE_HOME:N)
+
+!!! info "Notes"
+    - Only checks processes owned by current user
+    - Detects db_smon_\*, ora_pmon_\*, asm_smon_\* processes
+    - Extracts ORACLE_HOME from /proc/\<pid\>/exe
+    - Adds temporary entries with startup flag 'N'
+    - Shows warning if Oracle processes run as different user
 
 ---
 
@@ -1786,6 +2102,61 @@ Generate home name from directory name and product type
 
 ---
 
+### `generate_oracle_home_aliases` {: #generate-oracle-home-aliases }
+
+Create shell aliases for all registered Oracle Homes
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success
+
+**Output:** Creates shell aliases for Oracle Home switching
+
+!!! info "Notes"
+    Creates aliases for both NAME and ALIAS_NAME entries
+    Example: DBHOMEFREE and rdbms26 both point to same home
+
+---
+
+### `generate_pdb_aliases` {: #generate-pdb-aliases }
+
+Generate aliases for PDBs in the current CDB
+
+**Source:** `oradba_database_discovery.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success
+
+**Output:** Creates shell aliases for each PDB and exports ORADBA_PDBLIST
+
+---
+
+### `generate_sid_lists` {: #generate-sid-lists }
+
+Generate SID lists and aliases from oratab and Oracle Homes config
+
+**Source:** `oradba_database_discovery.sh`
+
+**Arguments:**
+
+- $1 - (Optional) Path to oratab file (defaults to get_oratab_path)
+
+**Returns:** 0 on success, 1 if oratab not found
+
+**Output:** Sets ORADBA_SIDLIST and ORADBA_REALSIDLIST environment variables
+
+!!! info "Notes"
+    SIDLIST includes all SIDs and aliases, REALSIDLIST excludes dummies
+
+---
+
 ### `generate_tnsnames` {: #generate-tnsnames }
 
 Generate and append TNS alias entry to tnsnames.ora
@@ -1824,6 +2195,44 @@ Parse .checksumignore file and generate awk exclusion patterns
 
 ---
 
+### `get_cman_instance_name` {: #get-cman-instance-name }
+
+Extract CMAN instance name from cman.ora configuration
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector home path
+
+**Returns:** 0 on success, 1 if cman.ora not found
+
+**Output:** CMAN instance name (defaults to "cust_cman" if not found)
+
+!!! info "Notes"
+    Parses first non-comment line with = sign from cman.ora
+
+---
+
+### `get_connectors` {: #get-connectors }
+
+Get Data Safe connectors from registry
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** One line per connector: NAME:HOME:AUTOSTART (excludes dummy entries)
+
+!!! info "Notes"
+    Uses oradba_registry API to get datasafe type installations
+
+---
+
 ### `get_databases` {: #get-databases }
 
 Parse oratab to extract database entries
@@ -1859,7 +2268,15 @@ Get database instance status by checking pmon process
 
 **Source:** `oraup.sh`
 
+**Arguments:**
+
+- $1 - SID name
+- $2 - Optional: cached process list (from get_process_list)
+
 **Returns:** "up" or "down"
+
+!!! info "Notes"
+    If process list is provided, uses it instead of calling ps -ef
 
 ---
 
@@ -1901,6 +2318,26 @@ Get first valid Oracle Home from oratab
 
 ---
 
+### `get_install_info` {: #get-install-info }
+
+Get installation metadata value by key
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- $1 - Metadata key to retrieve
+
+**Returns:** 0 - Key found and value retrieved
+
+**Output:** Value for the specified key
+
+!!! info "Notes"
+    Supports both old format (install_version) and new format (version).
+    Example: install_date=$(get_install_info "install_date")
+
+---
+
 ### `get_installed_version` {: #get-installed-version }
 
 Get currently installed OraDBA version
@@ -1921,13 +2358,113 @@ Get currently installed OraDBA version
 
 ---
 
-### `get_listener_status` {: #get-listener-status }
+### `get_oracle_home_alias` {: #get-oracle-home-alias }
 
-Get listener status
+Get alias name for a registered Oracle Home
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Oracle Home name
+
+**Returns:** 0 on success, 1 if not found
+
+**Output:** Alias name (or home name if no alias defined)
+
+!!! info "Notes"
+    Reads from oradba_homes.conf, column 5 (ALIAS_NAME)
+
+---
+
+### `get_oracle_home_path` {: #get-oracle-home-path }
+
+Get ORACLE_HOME path for a registered Oracle Home
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Oracle Home name
+
+**Returns:** 0 on success, 1 if not found
+
+**Output:** ORACLE_HOME path
+
+!!! info "Notes"
+    Reads from oradba_homes.conf, column 2 (PATH)
+
+---
+
+### `get_oracle_home_type` {: #get-oracle-home-type }
+
+Get product type for a registered Oracle Home
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Oracle Home name
+
+**Returns:** 0 on success, 1 if not found
+
+**Output:** Product type (database, client, oud, weblogic, oms, emagent, etc.)
+
+!!! info "Notes"
+    Reads from oradba_homes.conf, column 3 (TYPE)
+
+---
+
+### `get_oracle_homes_path` {: #get-oracle-homes-path }
+
+Get path to oradba_homes.conf configuration file
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 if file exists, 1 if not found
+
+**Output:** Prints path to oradba_homes.conf
+
+!!! info "Notes"
+    Looks for ${ORADBA_BASE}/etc/oradba_homes.conf
+
+---
+
+### `get_oradba_version` {: #get-oradba-version }
+
+Get OraDBA version from VERSION file
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 - Version retrieved successfully
+
+**Output:** Version string (e.g., "1.0.0-dev") or "unknown"
+
+!!! info "Notes"
+    Example: version=$(get_oradba_version)
+
+---
+
+### `get_process_list` {: #get-process-list }
+
+Get cached process list (for batch process detection)
 
 **Source:** `oraup.sh`
 
-**Returns:** "up" or "down"
+**Returns:** Full process list from ps -ef
+
+**Output:** Process list to stdout
+
+!!! info "Notes"
+    Call once at start, reuse results to avoid repeated ps -ef calls
 
 ---
 
@@ -1974,6 +2511,27 @@ Determine TNS_ADMIN directory path
 Import Oracle Homes configuration
 
 **Source:** `oradba_homes.sh`
+
+---
+
+### `init_install_info` {: #init-install-info }
+
+Initialize installation info file with metadata
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 - Installation info initialized successfully
+
+**Output:** Info message about initialization
+
+!!! info "Notes"
+    Uses lowercase keys without quotes to match installer format.
+    Creates ${ORADBA_BASE}/.install_info with install metadata.
+    Example: init_install_info
 
 ---
 
@@ -2034,6 +2592,45 @@ Set up user-mode logrotate configurations (non-root operation)
 
 ---
 
+### `is_bundled_component` {: #is-bundled-component }
+
+Check if directory is a common bundled component of Oracle Home
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Directory basename
+
+**Returns:** 0 if bundled component, 1 if not
+
+**Output:** None
+
+!!! info "Notes"
+    Excludes common subdirectories found in Oracle Homes
+    Examples: jdk, jre, lib, inventory, OPatch, etc.
+
+---
+
+### `is_oracle_home` {: #is-oracle-home }
+
+Check if given name refers to an Oracle Home (vs database SID)
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Name to check (Oracle Home name/alias or SID)
+
+**Returns:** 0 - Name is an Oracle Home
+
+**Output:** None
+
+!!! info "Notes"
+    Example: if is_oracle_home "ora19"; then echo "Oracle Home"; fi
+
+---
+
 ### `is_readonly_home` {: #is-readonly-home }
 
 Detect Oracle read-only home configuration (18c+ feature)
@@ -2051,6 +2648,27 @@ Detect Oracle read-only home configuration (18c+ feature)
 !!! info "Notes"
     Uses orabasehome utility; output != ORACLE_HOME indicates read-only mode
     Read-only homes use ORACLE_BASE_HOME and ORACLE_BASE_CONFIG for writable files
+
+---
+
+### `is_subdirectory_of_oracle_home` {: #is-subdirectory-of-oracle-home }
+
+Check if path is a subdirectory of a valid Oracle Home
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Path to check
+- $2 - Array of already-validated Oracle Home paths (passed by reference)
+
+**Returns:** 0 if is subdirectory, 1 if not
+
+**Output:** None
+
+!!! info "Notes"
+    Used to avoid false positives in discovery (e.g., dbhomeFree/jdk)
+    Checks if path is beneath any Oracle Home in the validated list
 
 ---
 
@@ -2097,6 +2715,25 @@ List all installed OraDBA logrotate configurations
 
 !!! info "Notes"
     Searches for oradba\* and oracle-* in /etc/logrotate.d
+
+---
+
+### `list_oracle_homes` {: #list-oracle-homes }
+
+List all Oracle Homes from oradba_homes.conf
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - (Optional) Filter by product type
+
+**Returns:** 0 on success, 1 if config file not found
+
+**Output:** One line per home: NAME PATH TYPE ORDER ALIAS DESCRIPTION VERSION
+
+!!! info "Notes"
+    Output sorted by ORDER (column 4), ascending
 
 ---
 
@@ -2194,6 +2831,44 @@ Load wallet password from file, environment, or interactive prompt
 
 !!! info "Notes"
     Tries ${WALLET_DIR}/.wallet_pwd (base64), then env var, then prompts
+
+---
+
+### `log_debug` {: #log-debug }
+
+Display debug message with [DEBUG] prefix when debug mode is enabled
+
+**Source:** `oradba_install.sh`
+
+**Arguments:**
+
+- $* - Message text
+
+**Returns:** 0
+
+**Output:** Debug message to stderr (only if ORADBA_DEBUG=true)
+
+!!! info "Notes"
+    Enable via ORADBA_DEBUG=true or --debug flag
+
+---
+
+### `log_debug` {: #log-debug }
+
+Display debug message when debug mode is enabled
+
+**Source:** `oradba_check.sh`
+
+**Arguments:**
+
+- $* - Message text
+
+**Returns:** 0
+
+**Output:** Debug message to stderr (only if ORADBA_DEBUG=true)
+
+!!! info "Notes"
+    Enable via ORADBA_DEBUG=true or --debug flag
 
 ---
 
@@ -2351,204 +3026,6 @@ Log warning with yellow warning sign
 
 ### `main` {: #main }
 
-Main entry point for extension management tool
-
-**Source:** `oradba_extension.sh`
-
-**Arguments:**
-
-- $1 - Command (add|create|list|info|validate|validate-all|discover|paths|enabled|disabled|help)
-- $@ - Command-specific arguments
-
-**Returns:** 0 on success, 1 on error
-
-**Output:** Command output to stdout, errors to stderr
-
-!!! info "Notes"
-    Dispatcher to cmd_\* handler functions
-    Shows usage for unknown commands or help flags
-
----
-
-### `main` {: #main }
-
-Orchestrate long operations monitoring workflow
-
-**Source:** `longops.sh`
-
-**Arguments:**
-
-- Command line arguments (passed as "$@")
-
-**Returns:** Exit code from run_monitor
-
-**Output:** Depends on watch/filter modes
-
-!!! info "Notes"
-    Workflow: parse args → run monitor; defaults to $ORACLE_SID if no SIDs specified
-
----
-
-### `main` {: #main }
-
-Main entry point for database status display
-
-**Source:** `dbstatus.sh`
-
-**Arguments:**
-
-- [OPTIONS] - Command-line options
-
-**Returns:** 0 on success, 1 on error
-
-**Output:** Database status information to stdout
-
-!!! info "Notes"
-    Parses arguments, validates environment, calls show_database_status
-    Requires ORACLE_HOME and ORACLE_SID (or --sid option)
-
----
-
-### `main` {: #main }
-
-Orchestrate wallet password retrieval workflow
-
-**Source:** `get_seps_pwd.sh`
-
-**Arguments:**
-
-- Command line arguments (passed as "$@")
-
-**Returns:** Exit code from search_wallet (0 success, 1 failure)
-
-**Output:** Depends on mode (quiet/check/normal)
-
-!!! info "Notes"
-    Workflow: parse args → validate → load password → search wallet
-
----
-
-### `main` {: #main }
-
-Main entry point for Oracle Homes management
-
-**Source:** `oradba_homes.sh`
-
-**Arguments:**
-
-- $1 - Command (list|show|add|remove|discover|validate|dedupe|export|import)
-- $@ - Command-specific options and arguments
-
-**Returns:** 0 on success, 1 on error
-
-**Output:** Command output to stdout, errors to stderr
-
-!!! info "Notes"
-    Dispatches to appropriate command handler function
-    Shows usage if no command or -h/--help provided
-
----
-
-### `main` {: #main }
-
-Entry point and command-line argument dispatcher
-
-**Source:** `oradba_version.sh`
-
-**Arguments:**
-
-- $@ - Command-line arguments (see usage for options)
-
-**Returns:** Depends on selected operation (0 success, 1 error, 2 update available)
-
-**Output:** Depends on selected operation (check/verify/update-check/info/help)
-
-!!! info "Notes"
-    Defaults to version_info if no action specified; parses --verbose and --show-backup flags
-
----
-
-### `main` {: #main }
-
-Parse command and dispatch to appropriate subcommand
-
-**Source:** `oradba_setup.sh`
-
-**Arguments:**
-
-- Command line arguments (command + options)
-
-**Returns:** Exit code from subcommand (0 success, 1 failure)
-
-**Output:** Depends on selected command
-
-!!! info "Notes"
-    Commands: link-oratab, check, show-config, help; parses --force, --verbose, --help options
-
----
-
-### `main` {: #main }
-
-Main entry point for RMAN wrapper script
-
-**Source:** `oradba_rman.sh`
-
-**Arguments:**
-
-- $@ - Command-line arguments
-
-**Returns:** 0 if all operations successful, 1-3 for errors
-
-**Output:** Execution status and results to stdout/log
-
-!!! info "Notes"
-    Parses arguments, validates requirements, orchestrates execution
-    Supports single/parallel execution, dry-run mode
-    Sends notifications on completion
-    Exit codes: 0=success, 1=failed, 2=invalid args, 3=critical error
-
----
-
-### `main` {: #main }
-
-Entry point and command-line argument dispatcher
-
-**Source:** `oradba_sqlnet.sh`
-
-**Arguments:**
-
-- $@ - Command-line arguments (see usage for options)
-
-**Returns:** 0 on success, 1 on error
-
-**Output:** Depends on selected operation (install/generate/test/list/validate/backup/setup)
-
-!!! info "Notes"
-    Dispatches to appropriate function based on first argument; shows usage if no args
-
----
-
-### `main` {: #main }
-
-Orchestrate sync-to-peers workflow
-
-**Source:** `sync_to_peers.sh`
-
-**Arguments:**
-
-- Command line arguments (passed as "$@")
-
-**Returns:** Exit code 0 if all syncs succeed, 1 if any fail
-
-**Output:** Depends on verbose/quiet mode
-
-!!! info "Notes"
-    Workflow: load config → parse args → perform sync → show summary; exits 1 if failures exist
-
----
-
-### `main` {: #main }
-
 Entry point and command-line argument dispatcher
 
 **Source:** `oradba_logrotate.sh`
@@ -2587,6 +3064,83 @@ Entry point and topic dispatcher
 
 ### `main` {: #main }
 
+Orchestrate wallet password retrieval workflow
+
+**Source:** `get_seps_pwd.sh`
+
+**Arguments:**
+
+- Command line arguments (passed as "$@")
+
+**Returns:** Exit code from search_wallet (0 success, 1 failure)
+
+**Output:** Depends on mode (quiet/check/normal)
+
+!!! info "Notes"
+    Workflow: parse args → validate → load password → search wallet
+
+---
+
+### `main` {: #main }
+
+Main entry point for database status display
+
+**Source:** `dbstatus.sh`
+
+**Arguments:**
+
+- [OPTIONS] - Command-line options
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Database status information to stdout
+
+!!! info "Notes"
+    Parses arguments, validates environment, calls show_database_status
+    Requires ORACLE_HOME and ORACLE_SID (or --sid option)
+
+---
+
+### `main` {: #main }
+
+Parse command and dispatch to appropriate subcommand
+
+**Source:** `oradba_setup.sh`
+
+**Arguments:**
+
+- Command line arguments (command + options)
+
+**Returns:** Exit code from subcommand (0 success, 1 failure)
+
+**Output:** Depends on selected command
+
+!!! info "Notes"
+    Commands: link-oratab, check, show-config, help; parses --force, --verbose, --help options
+
+---
+
+### `main` {: #main }
+
+Orchestrate long operations monitoring workflow
+
+**Source:** `longops.sh`
+
+**Arguments:**
+
+- Command line arguments (passed as "$@")
+
+**Returns:** Exit code from run_monitor
+
+**Output:** Depends on watch/filter modes
+
+!!! info "Notes"
+    Workflow: parse args → run monitor; defaults to $ORACLE_SID if no SIDs specified
+
+---
+
+### `main` {: #main }
+
 Main entry point for Oracle Environment management utility
 
 **Source:** `oradba_env.sh`
@@ -2609,9 +3163,28 @@ Main entry point for Oracle Environment management utility
 
 ### `main` {: #main }
 
-Orchestrate sync-from-peers workflow
+Entry point and command-line argument dispatcher
 
-**Source:** `sync_from_peers.sh`
+**Source:** `oradba_version.sh`
+
+**Arguments:**
+
+- $@ - Command-line arguments (see usage for options)
+
+**Returns:** Depends on selected operation (0 success, 1 error, 2 update available)
+
+**Output:** Depends on selected operation (check/verify/update-check/info/help)
+
+!!! info "Notes"
+    Defaults to version_info if no action specified; parses --verbose and --show-backup flags
+
+---
+
+### `main` {: #main }
+
+Orchestrate sync-to-peers workflow
+
+**Source:** `sync_to_peers.sh`
 
 **Arguments:**
 
@@ -2644,6 +3217,108 @@ Main entry point for Oracle status display utility
     Quick status display for current Oracle environment
     Shows databases, listeners, and Oracle Homes status
     Part of oraenv/oraup quick environment switching workflow
+
+---
+
+### `main` {: #main }
+
+Main entry point for RMAN wrapper script
+
+**Source:** `oradba_rman.sh`
+
+**Arguments:**
+
+- $@ - Command-line arguments
+
+**Returns:** 0 if all operations successful, 1-3 for errors
+
+**Output:** Execution status and results to stdout/log
+
+!!! info "Notes"
+    Parses arguments, validates requirements, orchestrates execution
+    Supports single/parallel execution, dry-run mode
+    Sends notifications on completion
+    Exit codes: 0=success, 1=failed, 2=invalid args, 3=critical error
+
+---
+
+### `main` {: #main }
+
+Main entry point for Oracle Homes management
+
+**Source:** `oradba_homes.sh`
+
+**Arguments:**
+
+- $1 - Command (list|show|add|remove|discover|validate|dedupe|export|import)
+- $@ - Command-specific options and arguments
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Command output to stdout, errors to stderr
+
+!!! info "Notes"
+    Dispatches to appropriate command handler function
+    Shows usage if no command or -h/--help provided
+
+---
+
+### `main` {: #main }
+
+Main entry point for extension management tool
+
+**Source:** `oradba_extension.sh`
+
+**Arguments:**
+
+- $1 - Command (add|create|list|info|validate|validate-all|discover|paths|enabled|disabled|enable|disable|help)
+- $@ - Command-specific arguments
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Command output to stdout, errors to stderr
+
+!!! info "Notes"
+    Dispatcher to cmd_\* handler functions
+    Shows usage for unknown commands or help flags
+
+---
+
+### `main` {: #main }
+
+Entry point and command-line argument dispatcher
+
+**Source:** `oradba_sqlnet.sh`
+
+**Arguments:**
+
+- $@ - Command-line arguments (see usage for options)
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Depends on selected operation (install/generate/test/list/validate/backup/setup)
+
+!!! info "Notes"
+    Dispatches to appropriate function based on first argument; shows usage if no args
+
+---
+
+### `main` {: #main }
+
+Orchestrate sync-from-peers workflow
+
+**Source:** `sync_from_peers.sh`
+
+**Arguments:**
+
+- Command line arguments (passed as "$@")
+
+**Returns:** Exit code 0 if all syncs succeed, 1 if any fail
+
+**Output:** Depends on verbose/quiet mode
+
+!!! info "Notes"
+    Workflow: load config → parse args → perform sync → show summary; exits 1 if failures exist
 
 ---
 
@@ -2704,22 +3379,57 @@ Open all pluggable databases in a CDB
 
 ---
 
-### `parse_args` {: #parse-args }
+### `oradba_env_output_divider` {: #oradba-env-output-divider }
 
-Parse command line arguments and set mode flags
+Print a divider line
 
-**Source:** `longops.sh`
+**Source:** `oradba_env_output.sh`
+
+---
+
+### `oradba_env_output_kv` {: #oradba-env-output-kv }
+
+Print a label/value pair with consistent alignment
+
+**Source:** `oradba_env_output.sh`
 
 **Arguments:**
 
-- Command line arguments (passed as "$@")
+- $1 - Label
+- $2 - Value
+- $3 - Force output even if value is empty (true/false)
 
-**Returns:** Exits on unknown option
+---
 
-**Output:** Error messages to stderr for invalid options
+### `oradba_env_output_print_home_section` {: #oradba-env-output-print-home-section }
 
-!!! info "Notes"
-    Sets OPERATION_FILTER, SHOW_ALL, WATCH_MODE, WATCH_INTERVAL, SID_LIST globals
+Print the home/environment section
+
+**Source:** `oradba_env_output.sh`
+
+**Arguments:**
+
+- $1 - ORACLE_BASE
+- $2 - ORACLE_HOME
+- $3 - TNS_ADMIN
+- $4 - DATASAFE_HOME
+- $5 - JAVA_HOME
+- $6 - ORACLE_VERSION
+- $7 - PRODUCT_TYPE
+
+---
+
+### `oradba_env_output_resolve_oracle_base` {: #oradba-env-output-resolve-oracle-base }
+
+Resolve ORACLE_BASE for output (never empty)
+
+**Source:** `oradba_env_output.sh`
+
+**Arguments:**
+
+- $1 - ORACLE_HOME
+
+**Output:** ORACLE_BASE string
 
 ---
 
@@ -2739,6 +3449,25 @@ Parse command line arguments and validate required parameters
 
 !!! info "Notes"
     Sets global vars CONNECT_STRING, CHECK, QUIET, DEBUG, WALLET_DIR
+
+---
+
+### `parse_args` {: #parse-args }
+
+Parse command line arguments and set mode flags
+
+**Source:** `longops.sh`
+
+**Arguments:**
+
+- Command line arguments (passed as "$@")
+
+**Returns:** Exits on unknown option
+
+**Output:** Error messages to stderr for invalid options
+
+!!! info "Notes"
+    Sets OPERATION_FILTER, SHOW_ALL, WATCH_MODE, WATCH_INTERVAL, SID_LIST globals
 
 ---
 
@@ -2777,6 +3506,62 @@ Parse command line arguments and validate required parameters
 
 !!! info "Notes"
     Validates -p (source peer) and source path required; sets REMOTE_PEER, SOURCE, PEER_HOSTS
+
+---
+
+### `parse_arguments` {: #parse-arguments }
+
+Parse command-line arguments
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- $@ - All command-line arguments
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** None (sets global variables)
+
+---
+
+### `parse_oracle_home` {: #parse-oracle-home }
+
+Parse Oracle Home configuration entry from oradba_homes.conf
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Oracle Home name or alias to parse
+
+**Returns:** 0 - Successfully parsed
+
+**Output:** Space-separated values: name alias type path version
+
+!!! info "Notes"
+    Example: read -r oh_name oh_alias oh_type oh_path oh_version \< \<(parse_oracle_home "ora19")
+    Returns: "ora19 19c database /u01/app/oracle/product/19.3.0/dbhome_1 19.3.0"
+
+---
+
+### `parse_oratab` {: #parse-oratab }
+
+Parse oratab file to get Oracle home path for a SID
+
+**Source:** `oradba_database_discovery.sh`
+
+**Arguments:**
+
+- $1 - Oracle SID to look up
+- $2 - (Optional) Path to oratab file (defaults to get_oratab_path)
+
+**Returns:** 0 if SID found, 1 if not found or error
+
+**Output:** Oracle home path for the specified SID
+
+!!! info "Notes"
+    Skips comment lines and dummy entries (:D flag)
 
 ---
 
@@ -2840,6 +3625,30 @@ Execute update of existing OraDBA installation
 
 ---
 
+### `persist_discovered_instances` {: #persist-discovered-instances }
+
+Write auto-discovered instances to oratab file with fallback
+
+**Source:** `oradba_database_discovery.sh`
+
+**Arguments:**
+
+- $1 - Discovered oratab entries (multi-line string)
+- $2 - Target oratab file (optional, defaults to ORATAB_FILE)
+
+**Returns:** 0 - Successfully persisted
+
+**Output:** Appends entries to oratab, logs warnings/info
+
+!!! info "Notes"
+    - Tries system oratab first (e.g., /etc/oratab)
+    - Falls back to local oratab if permission denied
+    - Checks for duplicates before adding
+    - Updates ORATAB_FILE if fallback used
+    Example: persist_discovered_instances "$discovered_data"
+
+---
+
 ### `preserve_configs` {: #preserve-configs }
 
 Save user configuration files before update
@@ -2859,6 +3668,29 @@ Save user configuration files before update
     Preserves: .install_info, etc/oradba.conf, oratab.example
     Copies to temporary directory for restoration after update
     Used to maintain user customizations across updates
+
+---
+
+### `preserve_runtime_files` {: #preserve-runtime-files }
+
+Preserve runtime-generated files before installation overwrite
+
+**Source:** `oradba_install.sh`
+
+**Arguments:**
+
+- $1 - Installation directory path
+- $2 - Temporary preserve directory path
+
+**Returns:** 0 always
+
+**Output:** Logs preserved files
+
+!!! info "Notes"
+    Protects runtime-managed files from payload overwrite:
+    etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
+    and sensitive runtime files in etc/ and extensions/*/etc/
+    (*.b64, *.pem, *.key, *.crt)
 
 ---
 
@@ -2957,6 +3789,53 @@ Remove an Oracle Home from configuration
 
 ---
 
+### `resolve_datasafe_env` {: #resolve-datasafe-env }
+
+Resolve Data Safe environment paths for display
+
+**Source:** `oradba_env.sh`
+
+**Arguments:**
+
+- $1 - Data Safe base install path
+
+**Output:** install_dir|oracle_home|tns_admin|java_home
+
+---
+
+### `resolve_default_tns_admin` {: #resolve-default-tns-admin }
+
+Resolve non-DataSafe TNS_ADMIN for display
+
+**Source:** `oradba_env.sh`
+
+**Arguments:**
+
+- $1 - Oracle Home path
+
+**Output:** TNS_ADMIN path (may be empty)
+
+---
+
+### `resolve_oracle_home_name` {: #resolve-oracle-home-name }
+
+Resolve Oracle Home alias to actual NAME from oradba_homes.conf
+
+**Source:** `oradba_home_discovery.sh`
+
+**Arguments:**
+
+- $1 - Name or alias to resolve
+
+**Returns:** 0 on success, 1 if not found or error
+
+**Output:** Actual Oracle Home NAME (or original if not found)
+
+!!! info "Notes"
+    Checks both NAME and ALIAS_NAME columns in oradba_homes.conf
+
+---
+
 ### `restore_configs` {: #restore-configs }
 
 Restore preserved configuration files after update
@@ -3001,6 +3880,23 @@ Restore installation from backup directory
 
 ---
 
+### `restore_runtime_files` {: #restore-runtime-files }
+
+Restore preserved runtime-generated files after installation copy
+
+**Source:** `oradba_install.sh`
+
+**Arguments:**
+
+- $1 - Installation directory path
+- $2 - Temporary preserve directory path
+
+**Returns:** 0 always
+
+**Output:** Logs restored files
+
+---
+
 ### `run_as_oracle` {: #run-as-oracle }
 
 Execute oradba_services.sh as Oracle user with sudo/su
@@ -3017,6 +3913,22 @@ Execute oradba_services.sh as Oracle user with sudo/su
 
 !!! info "Notes"
     Uses 'su - ${ORACLE_USER}' to execute; passes --force flag
+
+---
+
+### `run_dbca` {: #run-dbca }
+
+Execute DBCA with response file
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- $1 - Response file path
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** DBCA output to log
 
 ---
 
@@ -3119,6 +4031,27 @@ Send email notification on success or failure
 
 ---
 
+### `set_install_info` {: #set-install-info }
+
+Set installation metadata key-value pair
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- $1 - Metadata key
+- $2 - Metadata value
+
+**Returns:** 0 - Key-value set successfully
+
+**Output:** None
+
+!!! info "Notes"
+    Uses lowercase keys without quotes for consistency with installer.
+    Example: set_install_info "install_date" "2026-01-14"
+
+---
+
 ### `set_listener_env` {: #set-listener-env }
 
 Set Oracle environment for listener operations (ORACLE_HOME, PATH, TNS_ADMIN)
@@ -3154,6 +4087,26 @@ Setup centralized TNS_ADMIN for all databases listed in oratab
 
 !!! info "Notes"
     Skips ASM (+*) and agent entries; processes regular database SIDs only
+
+---
+
+### `setup_connector_environment` {: #setup-connector-environment }
+
+Set up environment variables for a specific connector
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector name, $2 - Connector home path
+
+**Returns:** 0 on success, 1 on failure
+
+**Output:** Exports ORACLE_HOME, LD_LIBRARY_PATH, TNS_ADMIN, DATASAFE_HOME
+
+!!! info "Notes"
+    Must be called before any plugin operations for the connector.
+    Sets up the complete Oracle environment including library paths.
 
 ---
 
@@ -3230,6 +4183,24 @@ Determine if a log message should be displayed based on level and mode
 
 !!! info "Notes"
     Suppresses non-ERROR if QUIET=true; suppresses DEBUG if DEBUG=false
+
+---
+
+### `should_show_listener_section` {: #should-show-listener-section }
+
+Check if listener section should be displayed using plugin system
+
+**Source:** `oraup.sh`
+
+**Arguments:**
+
+- $1 - Process list (from get_process_list)
+- $2+ - Array of database homes
+
+**Returns:** 0 if section should be shown, 1 otherwise
+
+!!! info "Notes"
+    Uses plugin_should_show_listener() from database plugin
 
 ---
 
@@ -3336,6 +4307,14 @@ Open online OraDBA documentation in default browser
 
 ---
 
+### `show_oracle_home_status` {: #show-oracle-home-status }
+
+Display Oracle Home environment info for non-database homes
+
+**Source:** `oradba_env_output.sh`
+
+---
+
 ### `show_oracle_status` {: #show-oracle-status }
 
 Display comprehensive Oracle status overview
@@ -3356,6 +4335,7 @@ Display Oracle status using registry API (Phase 1)
 
 !!! info "Notes"
     Uses plugin system for product-specific behavior
+    Implements batch process detection and parallel status checks
 
 ---
 
@@ -3454,6 +4434,25 @@ Show status of all Oracle services (databases and listeners)
 
 ---
 
+### `show_status` {: #show-status }
+
+Display current status of a connector
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector name, $2 - Connector home path
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** One line: "NAME: STATUS"
+
+!!! info "Notes"
+    Uses plugin_check_status from datasafe_plugin if available
+
+---
+
 ### `show_summary` {: #show-summary }
 
 Display synchronization results summary
@@ -3492,11 +4491,19 @@ Display two-phase synchronization results summary
 
 ---
 
-### `show_usage` {: #show-usage }
+### `show_templates` {: #show-templates }
 
-Display usage information
+Display available DBCA templates
 
-**Source:** `oradba_homes.sh`
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success
+
+**Output:** List of available templates to stdout
 
 ---
 
@@ -3505,6 +4512,14 @@ Display usage information
 Display usage information
 
 **Source:** `oraup.sh`
+
+---
+
+### `show_usage` {: #show-usage }
+
+Display usage information
+
+**Source:** `oradba_homes.sh`
 
 ---
 
@@ -3562,6 +4577,25 @@ Start all Oracle services in configured order
 
 !!! info "Notes"
     Processes STARTUP_ORDER (default: listener,database); tracks success/failure counts
+
+---
+
+### `start_connector` {: #start-connector }
+
+Start a Data Safe connector instance
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector name, $2 - Connector home path
+
+**Returns:** 0 on success, 1 on failure
+
+**Output:** Status messages via oradba_log
+
+!!! info "Notes"
+    Uses cmctl startup command; checks if already running first
 
 ---
 
@@ -3660,6 +4694,25 @@ Stop all Oracle services in configured order
 
 ---
 
+### `stop_connector` {: #stop-connector }
+
+Stop a Data Safe connector instance with timeout and fallback
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector name, $2 - Connector home path
+
+**Returns:** 0 on success, 1 on failure
+
+**Output:** Status messages via oradba_log
+
+!!! info "Notes"
+    Uses cmctl shutdown command; attempts graceful shutdown with timeout
+
+---
+
 ### `stop_database` {: #stop-database }
 
 Stop an Oracle database instance with timeout and fallback
@@ -3733,6 +4786,23 @@ Stop Oracle listeners using oradba_lsnrctl.sh
 
 !!! info "Notes"
     Constructs oradba_lsnrctl.sh stop command with options
+
+---
+
+### `substitute_variables` {: #substitute-variables }
+
+Substitute template variables with actual values
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- $1 - Input template file path
+- $2 - Output response file path
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Generated response file
 
 ---
 
@@ -3823,17 +4893,18 @@ Update existing extension with backup of modified files
 
 **Arguments:**
 
-- $1 - Source directory path
-- $2 - Extension name
-- $3 - Target directory path
+- $1 - Extension path (existing installation)
+- $2 - New content directory (extracted from tarball)
 
 **Returns:** 0 on success, 1 on failure
 
 **Output:** Update status to stdout
 
 !!! info "Notes"
-    Creates .save backups of modified configuration files
-    Compares checksums if .extension.checksum exists
+    Creates timestamped backup of entire extension
+    Creates .save backups of modified files (based on checksums)
+    Also preserves user-added files (*.conf not in checksum)
+    Restores all preserved files after copying new content
     Similar to RPM update behavior for configs
 
 ---
@@ -3857,6 +4928,8 @@ Add OraDBA auto-loading to shell profile
     Creates backup of profile before modification
     Adds oraenv.sh sourcing and oraup.sh status display
     Respects UPDATE_PROFILE variable (yes/no/auto)
+    Exports ORADBA_AUTO_DISCOVER_ORATAB=true if ENABLE_ORATAB_DISCOVERY is set
+    Exports ORADBA_AUTO_DISCOVER_PRODUCTS=true if ENABLE_PRODUCT_DISCOVERY is set
 
 ---
 
@@ -3881,79 +4954,39 @@ Update sqlnet.ora with centralized log and trace directory paths
 
 ### `usage` {: #usage }
 
-Display usage information and command reference
+Display comprehensive help for logrotate configuration management
 
-**Source:** `oradba_extension.sh`
+**Source:** `oradba_logrotate.sh`
 
 **Arguments:**
 
 - None
 
-**Returns:** 0 (exits after display)
+**Returns:** None (prints to stdout)
 
-**Output:** Usage help to stdout
+**Output:** Multi-section help (scenarios, options, examples, notes for root/user modes)
 
 !!! info "Notes"
-    Shows all extension management commands
-    Includes add, create, list, info, validate, discover, paths, enabled/disabled
+    Explains both system-wide (root) and user-mode (non-root) operation scenarios
 
 ---
 
 ### `usage` {: #usage }
 
-Display usage information, options, examples, and common operation patterns
+Display usage information and examples
 
-**Source:** `longops.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** Exits with code 0
-
-**Output:** Usage text, options, examples, pattern reference to stdout
-
-!!! info "Notes"
-    Shows watch mode, operation filters, interval config, common patterns for RMAN/DataPump
-
----
-
-### `usage` {: #usage }
-
-Display usage information and command-line options
-
-**Source:** `dbstatus.sh`
+**Source:** `oradba_services_root.sh`
 
 **Arguments:**
 
 - None
 
-**Returns:** 0 (exits after display)
+**Returns:** None (outputs to stdout)
 
-**Output:** Usage information to stdout
-
-!!! info "Notes"
-    Shows options, examples, and requirements
-
----
-
-### `usage` {: #usage }
-
-Display installer usage information and examples
-
-**Source:** `oradba_install.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** 0 (exits after display)
-
-**Output:** Usage help to stdout
+**Output:** Usage text, actions, environment variables, examples
 
 !!! info "Notes"
-    Shows installation modes, location options, examples
-    Includes pre-Oracle installation instructions
+    Shows wrapper purpose and available service actions
 
 ---
 
@@ -3997,20 +5030,39 @@ Display usage information and examples
 
 ### `usage` {: #usage }
 
-Display comprehensive help information for version utility
+Display usage information and command-line options
 
-**Source:** `oradba_version.sh`
+**Source:** `dbstatus.sh`
 
 **Arguments:**
 
 - None
 
-**Returns:** None (prints to stdout)
+**Returns:** 0 (exits after display)
 
-**Output:** Multi-section help (options, examples, exit codes)
+**Output:** Usage information to stdout
 
 !!! info "Notes"
-    Shows all command-line options for version checking, verification, updates
+    Shows options, examples, and requirements
+
+---
+
+### `usage` {: #usage }
+
+Display usage information and examples
+
+**Source:** `oradba_dbctl.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 1
+
+**Output:** Usage text, options, examples, environment variables to stdout
+
+!!! info "Notes"
+    Shows action modes (start/stop/restart/status), timeout config, SID selection
 
 ---
 
@@ -4030,6 +5082,148 @@ Display usage information, commands, examples
 
 !!! info "Notes"
     Shows post-installation tasks: link-oratab, check, show-config
+
+---
+
+### `usage` {: #usage }
+
+Display usage information, options, examples, and common operation patterns
+
+**Source:** `longops.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 0
+
+**Output:** Usage text, options, examples, pattern reference to stdout
+
+!!! info "Notes"
+    Shows watch mode, operation filters, interval config, common patterns for RMAN/DataPump
+
+---
+
+### `usage` {: #usage }
+
+Display usage information
+
+**Source:** `oradba_env.sh`
+
+---
+
+### `usage` {: #usage }
+
+Display comprehensive help information for version utility
+
+**Source:** `oradba_version.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** None (prints to stdout)
+
+**Output:** Multi-section help (options, examples, exit codes)
+
+!!! info "Notes"
+    Shows all command-line options for version checking, verification, updates
+
+---
+
+### `usage` {: #usage }
+
+Display usage information, options, examples
+
+**Source:** `sync_to_peers.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 0
+
+**Output:** Usage text, configuration summary, examples to stdout
+
+!!! info "Notes"
+    Shows rsync options, peer hosts, SSH config; demonstrates common use cases
+
+---
+
+### `usage` {: #usage }
+
+Display help for Oracle listener control
+
+**Source:** `oradba_lsnrctl.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 1
+
+**Output:** Multi-section help (actions, options, arguments, examples, env vars)
+
+!!! info "Notes"
+    Shows start/stop/restart/status actions; supports multiple listeners
+
+---
+
+### `usage` {: #usage }
+
+Display installer usage information and examples
+
+**Source:** `oradba_install.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 (exits after display)
+
+**Output:** Usage help to stdout
+
+!!! info "Notes"
+    Shows installation modes, location options, examples
+    Includes pre-Oracle installation instructions
+
+---
+
+### `usage` {: #usage }
+
+Display help for Oracle services orchestration
+
+**Source:** `oradba_services.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 1
+
+**Output:** Multi-section help (actions, options, config, examples, env vars)
+
+!!! info "Notes"
+    Shows start/stop/restart/status actions; explains config file usage
+
+---
+
+### `usage` {: #usage }
+
+Display usage information and examples
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with code 1
+
+**Output:** Usage text, options, examples, environment variables to stdout
+
+!!! info "Notes"
+    Shows action modes (start/stop/restart/status), timeout config, connector selection
 
 ---
 
@@ -4055,115 +5249,21 @@ Display comprehensive usage information for RMAN wrapper script
 
 ### `usage` {: #usage }
 
-Display comprehensive help for SQL\*Net configuration management
+Display usage information and command reference
 
-**Source:** `oradba_sqlnet.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** None (prints to stdout)
-
-**Output:** Multi-section usage text (commands, options, templates, examples)
-
-!!! info "Notes"
-    Shows installation, setup, generation, testing, validation operations
-
----
-
-### `usage` {: #usage }
-
-Display usage information and examples
-
-**Source:** `oradba_dbctl.sh`
+**Source:** `oradba_extension.sh`
 
 **Arguments:**
 
 - None
 
-**Returns:** Exits with code 1
+**Returns:** 0 (exits after display)
 
-**Output:** Usage text, options, examples, environment variables to stdout
-
-!!! info "Notes"
-    Shows action modes (start/stop/restart/status), timeout config, SID selection
-
----
-
-### `usage` {: #usage }
-
-Display help for Oracle listener control
-
-**Source:** `oradba_lsnrctl.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** Exits with code 1
-
-**Output:** Multi-section help (actions, options, arguments, examples, env vars)
+**Output:** Usage help to stdout
 
 !!! info "Notes"
-    Shows start/stop/restart/status actions; supports multiple listeners
-
----
-
-### `usage` {: #usage }
-
-Display usage information, options, examples
-
-**Source:** `sync_to_peers.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** Exits with code 0
-
-**Output:** Usage text, configuration summary, examples to stdout
-
-!!! info "Notes"
-    Shows rsync options, peer hosts, SSH config; demonstrates common use cases
-
----
-
-### `usage` {: #usage }
-
-Display help for Oracle services orchestration
-
-**Source:** `oradba_services.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** Exits with code 1
-
-**Output:** Multi-section help (actions, options, config, examples, env vars)
-
-!!! info "Notes"
-    Shows start/stop/restart/status actions; explains config file usage
-
----
-
-### `usage` {: #usage }
-
-Display comprehensive help for logrotate configuration management
-
-**Source:** `oradba_logrotate.sh`
-
-**Arguments:**
-
-- None
-
-**Returns:** None (prints to stdout)
-
-**Output:** Multi-section help (scenarios, options, examples, notes for root/user modes)
-
-!!! info "Notes"
-    Explains both system-wide (root) and user-mode (non-root) operation scenarios
+    Shows all extension management commands
+    Includes add, create, list, info, validate, discover, paths, enabled/disabled
 
 ---
 
@@ -4188,9 +5288,36 @@ Display comprehensive help information and exit
 
 ### `usage` {: #usage }
 
+Display comprehensive help for SQL\*Net configuration management
+
+**Source:** `oradba_sqlnet.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** None (prints to stdout)
+
+**Output:** Multi-section usage text (commands, options, templates, examples)
+
+!!! info "Notes"
+    Shows installation, setup, generation, testing, validation operations
+
+---
+
+### `usage` {: #usage }
+
 Display usage information
 
-**Source:** `oradba_env.sh`
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** Exits with 0
+
+**Output:** Usage text to stdout
 
 ---
 
@@ -4213,22 +5340,19 @@ Display usage information, options, examples
 
 ---
 
-### `usage` {: #usage }
+### `validate_arguments` {: #validate-arguments }
 
-Display usage information and examples
+Validate required arguments are provided
 
-**Source:** `oradba_services_root.sh`
+**Source:** `oradba_dbca.sh`
 
 **Arguments:**
 
 - None
 
-**Returns:** None (outputs to stdout)
+**Returns:** 0 on success, 1 on error
 
-**Output:** Usage text, actions, environment variables, examples
-
-!!! info "Notes"
-    Shows wrapper purpose and available service actions
+**Output:** Error messages if validation fails
 
 ---
 
@@ -4318,6 +5442,22 @@ Validate Oracle Homes configuration
 
 ---
 
+### `validate_prerequisites` {: #validate-prerequisites }
+
+Validate prerequisites for database creation
+
+**Source:** `oradba_dbca.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success, 1 on error
+
+**Output:** Validation messages to log
+
+---
+
 ### `validate_write_permissions` {: #validate-write-permissions }
 
 Validate write permissions for installation target
@@ -4333,7 +5473,7 @@ Validate write permissions for installation target
 **Output:** Permission errors and suggestions to stderr
 
 !!! info "Notes"
-    Checks target if exists, otherwise checks parent directory
+    Checks target if exists, otherwise checks/creates parent directory
     Suggests sudo or alternative location if no permissions
     Handles root directory edge case
 
@@ -4355,6 +5495,26 @@ Display script version information
 
 !!! info "Notes"
     Simple version display and exit
+
+---
+
+### `version_compare` {: #version-compare }
+
+Compare two semantic version strings
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- $1 - First version string (e.g., "1.2.3")
+- $2 - Second version string (e.g., "1.2.0")
+
+**Returns:** 0 - Versions are equal
+
+**Output:** None
+
+!!! info "Notes"
+    Example: version_compare "1.2.3" "1.2.0"; result=$?  # Returns 1
 
 ---
 
@@ -4396,5 +5556,25 @@ Display comprehensive version information, installation details, and integrity c
 
 !!! info "Notes"
     Reads .install_info for details; calls show_installed_extensions and check_integrity
+
+---
+
+### `version_meets_requirement` {: #version-meets-requirement }
+
+Check if current version meets minimum requirement
+
+**Source:** `oradba_version_metadata.sh`
+
+**Arguments:**
+
+- $1 - Current version string
+- $2 - Required version string
+
+**Returns:** 0 - Current version meets requirement (\>=)
+
+**Output:** None
+
+!!! info "Notes"
+    Example: if version_meets_requirement "1.2.3" "1.2.0"; then echo "OK"; fi
 
 ---

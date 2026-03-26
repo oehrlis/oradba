@@ -1,9 +1,5 @@
 # API Reference
 
-!!! note "Developer Documentation"
-    This section contains comprehensive API reference documentation for OraDBA developers and advanced users.
-    For general user documentation, see the main [OraDBA Documentation](../index.md).
-
 Complete function reference for OraDBA libraries and scripts.
 
 ## Overview
@@ -160,7 +156,7 @@ if plugin_validate_home "$ORACLE_HOME"; then
 fi
 ```
 
-## See Also {.unlisted .unnumbered}
+## See Also
 
 - [Function Index](function-index.md) - Alphabetical function list
 
@@ -170,5 +166,5 @@ see the project repository documentation.
 ---
 
 **API Reference Version:** 1.0  
-**Last Generated:** 2026-01-21  
+**Last Generated:** 2026-03-26  
 **OraDBA Version:** v0.19.1+

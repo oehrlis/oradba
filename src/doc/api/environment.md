@@ -6,6 +6,66 @@ Environment management libraries for building, parsing, validating, and tracking
 
 ## Functions
 
+### `_oradba_builder_log` {: #-oradba-builder-log }
+
+Internal logging function that uses injected logger or fallback
+
+**Source:** `oradba_env_builder.sh`
+
+**Arguments:**
+
+- $1 - Log level (DEBUG, INFO, WARN, ERROR)
+- $@ - Log message
+
+**Returns:** 0 on success
+
+**Output:** None (delegates to injected logger)
+
+!!! info "Notes"
+    Internal use only. Falls back to oradba_log if available, or no-op.
+
+---
+
+### `_oradba_parser_log` {: #-oradba-parser-log }
+
+Internal logging function that uses injected logger or no-op
+
+**Source:** `oradba_env_parser.sh`
+
+**Arguments:**
+
+- $1 - Log level (DEBUG, INFO, WARN, ERROR)
+- $@ - Log message
+
+**Returns:** 0 on success
+
+**Output:** None (delegates to injected logger)
+
+!!! info "Notes"
+    Internal use only. Prefix with underscore to indicate private.
+
+---
+
+### `_oradba_validator_log` {: #-oradba-validator-log }
+
+Internal logging function that uses injected logger or fallback
+
+**Source:** `oradba_env_validator.sh`
+
+**Arguments:**
+
+- $1 - Log level (DEBUG, INFO, WARN, ERROR)
+- $@ - Log message
+
+**Returns:** 0 on success
+
+**Output:** None (delegates to injected logger)
+
+!!! info "Notes"
+    Internal use only. Falls back to oradba_log if available, or no-op.
+
+---
+
 ### `oradba_add_client_path` {: #oradba-add-client-path }
 
 Add client tools to PATH for non-client products
@@ -125,6 +185,26 @@ Main function to build complete environment
 
 ---
 
+### `oradba_builder_init` {: #oradba-builder-init }
+
+Initialize builder library with optional dependency injection
+
+**Source:** `oradba_env_builder.sh`
+
+**Arguments:**
+
+- $1 - Logger function name (optional, defaults to "oradba_log")
+
+**Returns:** 0 on success
+
+**Output:** None
+
+!!! info "Notes"
+    Call this function before using builder functions if you want to inject
+    a custom logger. If not called, falls back to oradba_log if available.
+
+---
+
 ### `oradba_check_asm_status` {: #oradba-check-asm-status }
 
 Check if ASM instance is running
@@ -155,25 +235,6 @@ Check if any configuration files have changed
 **Returns:** 0 if changes detected, 1 if no changes
 
 **Output:** List of changed files
-
----
-
-### `oradba_check_datasafe_status` {: #oradba-check-datasafe-status }
-
-Check if DataSafe On-Premises Connector is running
-
-**Source:** `oradba_env_status.sh`
-
-**Arguments:**
-
-- $1 - ORACLE_HOME (DataSafe connector path)
-
-**Returns:** 0 if running, 1 if not running
-
-**Output:** Status string (RUNNING|STOPPED|UNKNOWN)
-
-!!! info "Notes"
-    Uses direct cmctl command (faster than Python setup.py)
 
 ---
 
@@ -682,6 +743,26 @@ Parse /etc/oratab file and find SID entry
 
 ---
 
+### `oradba_parser_init` {: #oradba-parser-init }
+
+Initialize parser library with optional dependency injection
+
+**Source:** `oradba_env_parser.sh`
+
+**Arguments:**
+
+- $1 - Logger function name (optional, defaults to "oradba_log")
+
+**Returns:** 0 on success
+
+**Output:** None
+
+!!! info "Notes"
+    Call this function before using parser functions if you want to inject
+    a custom logger. If not called, parser works standalone without logging.
+
+---
+
 ### `oradba_product_needs_client` {: #oradba-product-needs-client }
 
 Determine if a product type needs external client tools
@@ -887,5 +968,25 @@ Check if SID is valid format
 - $1 - SID
 
 **Returns:** 0 if valid, 1 if not
+
+---
+
+### `oradba_validator_init` {: #oradba-validator-init }
+
+Initialize validator library with optional dependency injection
+
+**Source:** `oradba_env_validator.sh`
+
+**Arguments:**
+
+- $1 - Logger function name (optional, defaults to "oradba_log")
+
+**Returns:** 0 on success
+
+**Output:** None
+
+!!! info "Notes"
+    Call this function before using validator functions if you want to inject
+    a custom logger. If not called, falls back to oradba_log if available.
 
 ---
