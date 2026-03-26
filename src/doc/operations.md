@@ -62,12 +62,12 @@ orastatus       # Show all service status
 oradba_dbctl.sh {start|stop|restart|status} [OPTIONS] [SID1 SID2 ...]
 ```
 
-| Option | Long Form | Description |
-|--------|-----------|-------------|
-| `-f` | `--force` | Skip confirmation prompts |
-| `-t` | `--timeout SECONDS` | Shutdown timeout (default: 180) |
-| `-p` | `--open-pdbs` | Explicitly open all PDBs after startup |
-| `-h` | `--help` | Show help message |
+| Option | Long Form           | Description                            |
+|--------|---------------------|----------------------------------------|
+| `-f`   | `--force`           | Skip confirmation prompts              |
+| `-t`   | `--timeout SECONDS` | Shutdown timeout (default: 180)        |
+| `-p`   | `--open-pdbs`       | Explicitly open all PDBs after startup |
+| `-h`   | `--help`            | Show help message                      |
 
 ### Key Examples
 
@@ -119,11 +119,11 @@ confirmation to proceed. Use `--force` to bypass in automation.
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORADBA_SHUTDOWN_TIMEOUT` | 180 | Default shutdown timeout in seconds |
-| `ORADBA_LOG` | `/var/log/oracle` | Log directory |
-| `ORATAB` | `/etc/oratab` | Path to oratab file |
+| Variable                  | Default           | Description                         |
+|---------------------------|-------------------|-------------------------------------|
+| `ORADBA_SHUTDOWN_TIMEOUT` | 180               | Default shutdown timeout in seconds |
+| `ORADBA_LOG`              | `/var/log/oracle` | Log directory                       |
+| `ORATAB`                  | `/etc/oratab`     | Path to oratab file                 |
 
 ## Listener Control
 
@@ -143,10 +143,10 @@ confirmation to proceed. Use `--force` to bypass in automation.
 oradba_lsnrctl.sh {start|stop|restart|status} [OPTIONS] [LISTENER1 ...]
 ```
 
-| Option | Long Form | Description |
-|--------|-----------|-------------|
-| `-f` | `--force` | Skip confirmation prompts |
-| `-h` | `--help` | Show help message |
+| Option | Long Form | Description               |
+|--------|-----------|---------------------------|
+| `-f`   | `--force` | Skip confirmation prompts |
+| `-h`   | `--help`  | Show help message         |
 
 ### Key Examples
 
@@ -166,11 +166,11 @@ oradba_lsnrctl.sh status
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ORADBA_LOG` | `/var/log/oracle` | Log directory |
-| `ORATAB` | `/etc/oratab` | Path to oratab file |
-| `TNS_ADMIN` | — | TNS configuration directory |
+| Variable     | Default           | Description                 |
+|--------------|-------------------|-----------------------------|
+| `ORADBA_LOG` | `/var/log/oracle` | Log directory               |
+| `ORATAB`     | `/etc/oratab`     | Path to oratab file         |
+| `TNS_ADMIN`  | —                 | TNS configuration directory |
 
 ## Service Orchestration
 
@@ -192,11 +192,11 @@ order.
 oradba_services.sh {start|stop|restart|status} [OPTIONS]
 ```
 
-| Option | Long Form | Description |
-|--------|-----------|-------------|
-| `-f` | `--force` | Skip confirmation prompts |
-| `-c` | `--config FILE` | Use alternate configuration file |
-| `-h` | `--help` | Show help message |
+| Option | Long Form       | Description                      |
+|--------|-----------------|----------------------------------|
+| `-f`   | `--force`       | Skip confirmation prompts        |
+| `-c`   | `--config FILE` | Use alternate configuration file |
+| `-h`   | `--help`        | Show help message                |
 
 ### Configuration File
 
@@ -284,13 +284,13 @@ oradba_logrotate.sh --run-user
 
 Five logrotate templates are provided in `src/templates/logrotate/`:
 
-| Template | Purpose | Default Rotation | Retention |
-|---|---|---|---|
-| oradba.logrotate | OraDBA system logs | Monthly/Weekly | 12 months/8 weeks |
-| oracle-alert.logrotate | Database alert logs | Daily | 30 days |
-| oracle-trace.logrotate | Trace files cleanup | Weekly (maxage) | 30 days |
-| oracle-audit.logrotate | Audit logs | Weekly | 90 days |
-| oracle-listener.logrotate | Listener logs | Daily | 30 days |
+| Template                  | Purpose             | Default Rotation | Retention         |
+|---------------------------|---------------------|------------------|-------------------|
+| oradba.logrotate          | OraDBA system logs  | Monthly/Weekly   | 12 months/8 weeks |
+| oracle-alert.logrotate    | Database alert logs | Daily            | 30 days           |
+| oracle-trace.logrotate    | Trace files cleanup | Weekly (maxage)  | 30 days           |
+| oracle-audit.logrotate    | Audit logs          | Weekly           | 90 days           |
+| oracle-listener.logrotate | Listener logs       | Daily            | 30 days           |
 
 Each template includes OraDBA headers, inline documentation, safe defaults, gzip compression,
 `missingok`/`notifempty` error handling, and appropriate `create` modes or `copytruncate` for
@@ -300,14 +300,14 @@ active logs.
 
 For environments where root access is restricted, OraDBA supports non-root logrotate operation:
 
-| Aspect | User-Mode | System-Wide |
-|--------|-----------|-------------|
-| **Privileges** | No root required | Requires root |
-| **Installation** | `~/.oradba/logrotate/` | `/etc/logrotate.d/` |
-| **State files** | `~/.oradba/logrotate/state/` | `/var/lib/logrotate/` |
-| **Execution** | Manual or user crontab | System cron |
-| **Scope** | User's Oracle logs | All system logs |
-| **Management** | Self-service | System admin |
+| Aspect           | User-Mode                    | System-Wide           |
+|------------------|------------------------------|-----------------------|
+| **Privileges**   | No root required             | Requires root         |
+| **Installation** | `~/.oradba/logrotate/`       | `/etc/logrotate.d/`   |
+| **State files**  | `~/.oradba/logrotate/state/` | `/var/lib/logrotate/` |
+| **Execution**    | Manual or user crontab       | System cron           |
+| **Scope**        | User's Oracle logs           | All system logs       |
+| **Management**   | Self-service                 | System admin          |
 
 User-mode setup:
 
@@ -328,12 +328,12 @@ oradba_logrotate.sh --cron
 The oracle-audit.logrotate template manages audit trails. Default retention is 90 days; adjust
 `rotate` values to meet regulatory requirements:
 
-| Standard | Retention Period | Notes |
-|----------|------------------|-------|
-| PCI-DSS | 1 year minimum | Card payment data |
-| HIPAA | 6 years minimum | Healthcare data |
-| SOX | 7 years minimum | Financial records |
-| GDPR | Varies by data | EU privacy law |
+| Standard | Retention Period | Notes             |
+|----------|------------------|-------------------|
+| PCI-DSS  | 1 year minimum   | Card payment data |
+| HIPAA    | 6 years minimum  | Healthcare data   |
+| SOX      | 7 years minimum  | Financial records |
+| GDPR     | Varies by data   | EU privacy law    |
 
 Example PCI-DSS configuration:
 
@@ -401,11 +401,11 @@ sudo service oradba start
 
 All service management operations are logged to:
 
-| Log File | Contents |
-|---|---|
-| `${ORADBA_LOG}/oradba_dbctl.log` | Database operations |
-| `${ORADBA_LOG}/oradba_lsnrctl.log` | Listener operations |
-| `${ORADBA_LOG}/oradba_services.log` | Combined orchestration |
+| Log File                                 | Contents                |
+|------------------------------------------|-------------------------|
+| `${ORADBA_LOG}/oradba_dbctl.log`         | Database operations     |
+| `${ORADBA_LOG}/oradba_lsnrctl.log`       | Listener operations     |
+| `${ORADBA_LOG}/oradba_services.log`      | Combined orchestration  |
 | `${ORADBA_LOG}/oradba_services_root.log` | Root wrapper operations |
 
 Log format:

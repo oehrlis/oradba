@@ -13,7 +13,7 @@ Security fixes are applied to the latest release only.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Report vulnerabilities by email to: **stefan.oehrli@oradba.ch**
+Report vulnerabilities by email to: **<stefan.oehrli@oradba.ch>**
 
 Include in your report:
 

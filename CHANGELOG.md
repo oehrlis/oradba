@@ -242,6 +242,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     environment values are respected by `make docs-pdf`
 - Remove Deprecated: --listings. Use --syntax-highlighting=idiomatic instead.
   Update metadata and doc build scripts to reflect deprecation and remove --listings references.
+- **Test suite: align documentation tests with Topic 4 restructuring**
+  - `tests/test_service_management.bats`: updated 6 documentation tests to reference
+    `src/doc/operations.md` (merged destination) instead of the deleted
+    `src/doc/service-management.md`; updated section name checks from `## Overview`
+    to `## Service Management Overview` and `### Examples` to `### Key Examples`
+- **`SECURITY.md`: fix email address formatting** — wrapped contact address in
+  angle brackets (`<stefan.oehrli@oradba.ch>`) for correct RFC 5322 rendering
+- **`src/doc/operations.md`: Markdown table alignment** — aligned all table
+  column separators for consistent rendering and improved readability
 
 ## [0.23.1] - 2026-02-19
 
