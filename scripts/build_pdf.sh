@@ -183,17 +183,20 @@ build_pdf() {
     done < <(extract_nav_files)
 
     if [[ ${#ordered_files[@]} -gt 0 ]]; then
-        log_info "Running pandoc in Docker (${PANDOC_IMAGE})..."
+        # Substitute __VERSION__ placeholder in metadata before passing to pandoc.
+        # --metadata flags have lower precedence than --metadata-file in pandoc,
+        # so preprocessing the file is the only reliable way to inject the version.
+        sed "s/__VERSION__/${DOC_VERSION}/g" "${DOC_METADATA}" > "${TMP_DOCS_DIR}/metadata.yml"
+
+        log_info "Running pandoc in Docker (${PANDOC_IMAGE}) — version ${DOC_VERSION}..."
         (
             cd "${TMP_DOCS_DIR}" && \
             docker run --rm \
                 -v "${PWD}:/workdir" \
-                -v "${PROJECT_ROOT}/doc:/doc" \
                 -w /workdir \
                 "${PANDOC_IMAGE}" \
                 "${ordered_files[@]}" -o oradba-user-guide.pdf \
-                --metadata-file=/doc/metadata.yml \
-                --metadata "version=${DOC_VERSION}" \
+                --metadata-file=metadata.yml \
                 --toc --toc-depth=2 \
                 --pdf-engine=xelatex \
                 --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
