@@ -110,8 +110,8 @@ prepare_docs() {
         sed -i.bak -E 's|\]\(13-reference\.md\)|](#quick-reference)|g' "${file}"
         sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "${file}"
         # Strip web-only sections (See Also + Navigation footers) — redundant in PDF
-        sed -i.bak '/^## See Also \{\.unlisted/,$d' "${file}"
-        sed -i.bak '/^## Navigation \{\.unlisted/,$d' "${file}"
+        sed -i.bak '/^## See Also {\.unlisted/,$d' "${file}"
+        sed -i.bak '/^## Navigation {\.unlisted/,$d' "${file}"
         rm -f "${file}.bak"
     done
 
