@@ -694,6 +694,7 @@ sudo yum install rlwrap
 Verify pre-Oracle mode with `oradba_validate.sh` (should report "Pre-Oracle" mode),
 then after Oracle is installed run `oradba_setup.sh link-oratab`.
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Quick Start](quickstart.md) - Getting started with OraDBA

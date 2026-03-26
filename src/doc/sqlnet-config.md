@@ -935,6 +935,7 @@ vi $TNS_ADMIN/ldap.ora
 NAMES.DIRECTORY_PATH= (LDAP, TNSNAMES)
 ```
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Environment Management](environment.md) - TNS_ADMIN configuration

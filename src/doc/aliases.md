@@ -586,6 +586,7 @@ mv ~/.rman_history    ~/.rman_history.bak
 
 For a quick alias reference card at any time, run `alih`.
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Configuration](configuration.md) - Customising OraDBA settings

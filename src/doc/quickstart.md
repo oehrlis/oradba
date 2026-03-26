@@ -267,6 +267,7 @@ oradba_version.sh --info       # Installation info
 
 If you encounter issues: [Troubleshooting Guide](troubleshooting.md) · `alih` · [GitHub Issues](https://github.com/oehrlis/oradba/issues)
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Environment Management](environment.md) - Registry API and Plugin System deep dive

@@ -1084,6 +1084,7 @@ cp ~/oradba_customer.conf.backup $ORADBA_PREFIX/etc/oradba_customer.conf
 
 **Related Chapters:** [Installation](installation.md), [Configuration](configuration.md)
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Environment Management](environment.md) - Detailed environment setup

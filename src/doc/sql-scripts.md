@@ -460,6 +460,7 @@ SQL> SET PAGESIZE 100
 SQL> @my_script
 ```
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [RMAN Scripts](rman-scripts.md) - Backup and recovery templates

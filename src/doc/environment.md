@@ -773,6 +773,7 @@ See [Troubleshooting Guide](troubleshooting.md) for more solutions.
 - **[Aliases](aliases.md)** - Learn 50+ pre-configured aliases
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## Navigation {.unlisted .unnumbered}
 
 **Previous:** [Quick Start](quickstart.md)  

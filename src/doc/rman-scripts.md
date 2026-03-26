@@ -803,6 +803,7 @@ mkdir -p /backup
 chown oracle:oinstall /backup
 ```
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [SQL Scripts](sql-scripts.md) - Database administration scripts

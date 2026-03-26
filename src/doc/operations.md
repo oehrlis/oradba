@@ -579,6 +579,7 @@ sudo semodule -i logrotate_oracle.pp
 - Warning is issued (not an error) when auto-detecting from the `:Y` flag
 - Listener already running is logged as INFO and is not treated as a failure
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Configuration](configuration.md)

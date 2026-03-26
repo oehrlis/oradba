@@ -478,6 +478,7 @@ Both sync scripts support configuration via:
 - Config files: `${ORADBA_ETC}/sync_*.conf`
 - Command line: `-H "host1 host2"`, `-c config.conf`
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Quick Start](quickstart.md) - Including dbstatus.sh usage

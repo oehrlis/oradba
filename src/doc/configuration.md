@@ -917,6 +917,7 @@ ORADBA_INST_TYPE="java"
 JAVA_OPTS="-Xmx2g -XX:+UseG1GC"
 ```
 
+<!-- Web-only sections below: kept for MkDocs navigation, stripped during PDF build (build_pdf.sh). -->
 ## See Also {.unlisted .unnumbered}
 
 - [Installation](installation.md) - Installation and setup
