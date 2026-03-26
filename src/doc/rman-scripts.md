@@ -377,12 +377,16 @@ TVD Backup templates and adapted for OraDBA's template tag system.
 | `bck_inc1d.rcv`         | Incremental level 1 differential with archives    | Daily differential backup         |
 | `bck_inc1d_noarc.rcv`   | Incremental level 1 differential without archives | Differential without archive logs |
 
+: RMAN Full and Incremental Backup Scripts
+
 #### Specialized Backups
 
 | Script                  | Description                              | Use Case                  |
 |-------------------------|------------------------------------------|---------------------------|
 | `bck_recovery_area.rcv` | Fast recovery area backup (requires SBT) | Backup FRA to tape        |
 | `bck_standby_inc0.rcv`  | Incremental level 0 for standby setup    | Data Guard initialization |
+
+: RMAN Specialized Backup Scripts
 
 ### Maintenance Scripts
 
@@ -395,6 +399,8 @@ TVD Backup templates and adapted for OraDBA's template tag system.
 | `mnt_del_obs_nomaint.rcv` | Delete obsolete without maintenance window  | Continuous operation cleanup |
 | `mnt_reg.rcv`             | Register database, set snapshot controlfile | Catalog registration         |
 | `mnt_sync.rcv`            | Resync RMAN catalog                         | Catalog synchronization      |
+
+: RMAN Maintenance Scripts
 
 ### Reporting Scripts
 

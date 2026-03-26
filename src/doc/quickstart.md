@@ -26,7 +26,7 @@ OraDBA uses a **Registry API** that automatically manages all Oracle installatio
 - **Non-Database Products**: Registered in `oradba_homes.conf`
 - **Unified Access**: Single interface for all Oracle products
 
-```mermaid
+```{.mermaid caption="Oracle Home Registry Architecture"}
 graph LR
     Oratab["/etc/oratab<br>Databases"]
     Homes[oradba_homes.conf<br>Other Products]

@@ -13,7 +13,7 @@ consistent workflows.
 
 ### System Architecture
 
-```mermaid
+```{.mermaid caption="OraDBA System Architecture Overview"}
 graph TB
     User[👤 User/DBA]
     CLI[CLI Layer<br>oraenv.sh, oraup.sh, etc.]

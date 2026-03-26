@@ -28,6 +28,8 @@ password filtering when rlwrap is installed.
 | `sqoh`       | SQL*Plus as SYSOPER (with rlwrap)    | `rlwrap sqlplus / as sysoper` |
 | `sessionsql` | SQL*Plus with dynamic terminal width | `sessionsql.sh`               |
 
+: SQL*Plus Aliases
+
 **`sessionsql`** automatically detects your terminal width and configures SQL*Plus `LINESIZE` and
 `PAGESIZE` for optimal display. rlwrap-enabled aliases (`sqh`, `sqoh`, `sqlplush`) add command
 history (up/down arrows), tab completion, and line editing; see [rlwrap Integration](#rlwrap-integration)
@@ -48,6 +50,8 @@ sqlplush
 | `rmanc`  | RMAN with catalog/fallback        | `rman target / [catalog ...]`    |
 | `rmanh`  | RMAN with rlwrap (manual connect) | `rlwrap rman`                    |
 | `rmanch` | RMAN with rlwrap + catalog        | `rlwrap rman target / [catalog]` |
+
+: RMAN Aliases
 
 **Note:** The `rman` command itself is not aliased to avoid conflicts with Oracle's native binary.
 
@@ -82,6 +86,8 @@ Quick navigation to Oracle and OraDBA directories.
 | `cdn`  | Change to network parent  | `$TNS_ADMIN/..`      |
 | `cdt`  | Change to TNS_ADMIN       | `$TNS_ADMIN`         |
 | `cdl`  | Change to local directory | `$ORADBA_LOCAL_BASE` |
+
+: Oracle Directory Navigation Aliases
 
 ### OraDBA Directories
 
@@ -140,6 +146,8 @@ vi $cda/pfile/init${ORACLE_SID}.ora
 | `sta`         | Database status                 | `dbstatus.sh`         |
 | `pmon`        | Show running database processes | `ps -ef \| grep pmon` |
 
+: Database Status and Monitoring Aliases
+
 **`oraup.sh`** displays all databases from oratab, their status (OPEN/MOUNTED/NOMOUNT/DOWN),
 listener status, Oracle Home paths, and startup flags.
 
@@ -152,6 +160,8 @@ listener status, Oracle Home paths, and startup flags.
 | `lstat`  | Listener status                | `lsnrctl status` |
 | `lstart` | Start listener                 | `lsnrctl start`  |
 | `lstop`  | Stop listener                  | `lsnrctl stop`   |
+
+: Listener Control Aliases
 
 ### Configuration Viewing
 
@@ -171,6 +181,8 @@ listener status, Oracle Home paths, and startup flags.
 | `vil`    | Edit listener.ora | `$TNS_ADMIN/listener.ora` |
 | `visql`  | Edit sqlnet.ora   | `$TNS_ADMIN/sqlnet.ora`   |
 | `vildap` | Edit ldap.ora     | `$TNS_ADMIN/ldap.ora`     |
+
+: Oracle Configuration File Editing Aliases
 
 #### OraDBA Configuration Files
 

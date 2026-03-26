@@ -26,7 +26,7 @@ earlier settings:
 5. **sid._DEFAULT_.conf** - Default template for all installations (optional)
 6. **sid.\<NAME>.conf** - Installation-specific settings (optional, auto-created from template)
 
-```mermaid
+```{.mermaid caption="Configuration File Cascade"}
 graph TB
     Core["1. oradba_core.conf<br>(Core Settings)"]
     Standard["2. oradba_standard.conf<br>(Standard Env)"]
@@ -729,6 +729,8 @@ ORADBA_CONNECTION_POOL_SIZE=10
 | `LOG_DIR`           | `${ORADBA_PREFIX}/log` | Log directory                             |
 | `BACKUP_DIR`        | `/backup`              | Default backup directory                  |
 
+: Core System Configuration Variables
+
 ### Behavior Variables
 
 | Variable                            | Default | Description                                        |
@@ -757,6 +759,8 @@ For complete extension configuration details, see the [Extension System Guide](e
 | `NLS_LANG`        | `AMERICAN_AMERICA.AL32UTF8`  | NLS language and character set |
 | `NLS_DATE_FORMAT` | `YYYY-MM-DD HH24:MI:SS`      | Date format                    |
 | `SQLPATH`         | `${ORADBA_PREFIX}/sql`       | SQL*Plus script path           |
+
+: Oracle Environment Variables
 
 ### Database Metadata (SID-specific, auto-populated)
 

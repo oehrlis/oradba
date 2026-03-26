@@ -18,7 +18,7 @@ Data Safe connectors, OUD, Java, and more.
 
 ## Architecture Overview
 
-```mermaid
+```{.mermaid caption="Environment Management Architecture"}
 graph TB
     User[User Command<br>source oraenv.sh]
     Wrapper[oraenv.sh<br>Wrapper Script]
@@ -152,6 +152,8 @@ Each Oracle product type has a dedicated plugin that handles product-specific op
 | weblogic | weblogic.sh | WebLogic Server | ⚠️ Basic |
 | oms | oms.sh | Enterprise Manager OMS | ⚠️ Basic |
 | emagent | emagent.sh | Enterprise Manager Agent | ⚠️ Basic |
+
+: Supported Oracle Product Types
 
 ### Plugin Interface
 

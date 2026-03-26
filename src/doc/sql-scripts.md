@@ -151,6 +151,8 @@ Basic database and session information scripts:
 | `mon_sessions.sql`    | `sess.sql`  | Any       | Active database sessions       |
 | `mon_locks.sql`       | `locks.sql` | Any       | Current locks and blocking     |
 
+: Database Information SQL Scripts
+
 **Usage Examples:**
 
 ```sql
@@ -197,6 +199,8 @@ User and privilege management:
 | `sec_profiles.sql`      | `prof.sql`  | DBA       | Password profiles and settings     |
 | `sec_failed_logins.sql` | `fails.sql` | DBA       | Recent failed login attempts       |
 
+: Security SQL Scripts
+
 **Usage Examples:**
 
 ```sql
@@ -237,6 +241,8 @@ Unified audit query and analysis:
 | `dis_aud_policies_aud.sql` | AUDIT_ADMIN | Disable all audit policies       |
 | `gen_aud_enable.sql`       | AUDIT_ADMIN | Generate AUDIT POLICY statements |
 
+: Audit SQL Scripts
+
 **Usage Examples:**
 
 ```sql
@@ -274,6 +280,8 @@ Encryption management and monitoring:
 | `cr_tde_keystore_sys.sql` | SYSDBA    | Create software keystore                |
 | `cr_tde_key_sys.sql`      | SYSDBA    | Create master encryption key            |
 | `gen_tde_encrypt.sql`     | DBA       | Generate datafile encryption statements |
+
+: Transparent Data Encryption (TDE) SQL Scripts
 
 **Usage Examples:**
 

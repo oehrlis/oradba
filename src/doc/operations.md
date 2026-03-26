@@ -292,6 +292,8 @@ Five logrotate templates are provided in `src/templates/logrotate/`:
 | oracle-audit.logrotate    | Audit logs          | Weekly           | 90 days           |
 | oracle-listener.logrotate | Listener logs       | Daily            | 30 days           |
 
+: Logrotate Templates
+
 Each template includes OraDBA headers, inline documentation, safe defaults, gzip compression,
 `missingok`/`notifempty` error handling, and appropriate `create` modes or `copytruncate` for
 active logs.
@@ -308,6 +310,8 @@ For environments where root access is restricted, OraDBA supports non-root logro
 | **Execution**    | Manual or user crontab       | System cron           |
 | **Scope**        | User's Oracle logs           | All system logs       |
 | **Management**   | Self-service                 | System admin          |
+
+: Logrotate User-Mode vs System-Wide Comparison
 
 User-mode setup:
 
@@ -407,6 +411,8 @@ All service management operations are logged to:
 | `${ORADBA_LOG}/oradba_lsnrctl.log`       | Listener operations     |
 | `${ORADBA_LOG}/oradba_services.log`      | Combined orchestration  |
 | `${ORADBA_LOG}/oradba_services_root.log` | Root wrapper operations |
+
+: Service Management Log File Locations
 
 Log format:
 
