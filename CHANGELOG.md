@@ -9,22 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **PDF Build: Dynamic version injection from `VERSION` file**
+  - `build_pdf.sh` now reads `VERSION` at build time and passes it to pandoc via
+    `--metadata version=`; overrides the `__VERSION__` placeholder in
+    `doc/metadata.yml` — PDF title page and footer always reflect the release version
+  - `DOC_VERSION` environment variable override supported for custom builds
+- **PDF Build: Strip web-only sections before pandoc pass**
+  - `## See Also` and `## Navigation` sections (tagged `.unlisted .unnumbered`)
+    are removed from all markdown files in the `prepare_docs()` step via `sed`
+  - These sections are MkDocs web-navigation constructs; in PDF they appeared as
+    orphaned paragraphs with broken relative links; estimated saving: ~0.5–1 page
 - **API Documentation: `make docs-api` Target**
   - `scripts/generate_api_docs.py` wired into the build system; parses all
     function headers in `src/lib/` and `src/bin/` and generates categorised
     markdown pages under `src/doc/api/`
   - `make docs` now also calls `make docs-api` (skips gracefully if python3
     is absent); `make docs-clean` removes generated `src/doc/api/` output
-
 - **`archive_github_releases.sh`: Dynamic Release Discovery**
   - Replaced hardcoded 34-entry version list with live `gh release list`
   - `--keep N` (default: 3) — archives all but the N most recent releases
   - `--before VERSION` — archives everything older than a given tag
   - `--repo REPO` override for forks; `--dry-run` retained
-- Update `spsec_usrinf.sql`to include new MFA related USERENV variable `MULTIFACTOR_AUTHENTICATION_METHODS` in the
-  output for comprehensive user identity information.
+- Update `spsec_usrinf.sql` to include new MFA related USERENV variable
+  `MULTIFACTOR_AUTHENTICATION_METHODS` in the output for comprehensive user
+  identity information.
 
 ### Changed
+
+- **PDF Build: Reduce code block font size and page margins**
+  - `doc/metadata.yml`: added `monofontoptions: [Scale=0.85]` — Courier New now
+    renders at 85% of body size (~8.5pt), significantly reducing line-wrap in
+    code blocks; estimated saving: 15–25 pages across the document
+  - `doc/metadata.yml`: left/right margins reduced from 2.54 cm to 2.0 cm,
+    widening the text column by ~1 cm per side; combined with the font scale
+    this is the primary fix for code block overflow
+  - `doc/metadata.yml`: `version` and `tvddocversion` set to `__VERSION__`
+    placeholder (runtime value injected by `build_pdf.sh`)
 
 - **Topic 1 + Cross-Cutting review:**
   - `src/templates/script_template.sh`: added `set -euo pipefail` — the template

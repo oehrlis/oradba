@@ -18,8 +18,8 @@ author:
 - Stefan Oehrli
 # date is set by pandoc, uncomment the date line to explicitly set a date
 # date: 2020 November 06
-version: "1.0.0"
-tvddocversion: 1.0.0
+version: "__VERSION__"
+tvddocversion: __VERSION__
 lang: en-US
 
 # - Book settings --------------------------------------------------------------
@@ -31,8 +31,8 @@ papersize: a4
 geometry:
 - top=2.54cm
 - bottom=2.54cm
-- left=2.54cm
-- right=2.54cm
+- left=2.0cm
+- right=2.0cm
 
 # - Page Header/Footer ---------------------------------------------------------
 disable-header: true
@@ -84,6 +84,8 @@ pandoc-latex-environment:
 mainfont: Arial           # Main font
 sansfont: Arial           # Font for headings and toc
 monofont: Courier New     # Font for listing and codes
+monofontoptions:
+  - Scale=0.85            # Reduce code font to 85% of body size (~8.5pt)
 
 # mainfont: Graphik-Regular.ttf
 # mainfontoptions:

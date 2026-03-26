@@ -27,6 +27,7 @@ readonly DIST_DIR="${PROJECT_ROOT}/dist"
 readonly OUTPUT_PDF="${DIST_DIR}/oradba-user-guide.pdf"
 readonly DOC_METADATA="${PROJECT_ROOT}/doc/metadata.yml"
 readonly PANDOC_IMAGE="${PANDOC_IMAGE:-oehrlis/pandoc:latest-full}"
+readonly DOC_VERSION="${DOC_VERSION:-$(cat "${PROJECT_ROOT}/VERSION" 2>/dev/null || echo "0.0.0")}"
 readonly TMP_DOCS_DIR="${DIST_DIR}/.tmp_docs"
 readonly MKDOCS_CONFIG="${PROJECT_ROOT}/mkdocs.yml"
 
@@ -108,6 +109,9 @@ prepare_docs() {
         sed -i.bak -E 's|\]\(12-troubleshooting\.md\)|](#troubleshooting-guide)|g' "${file}"
         sed -i.bak -E 's|\]\(13-reference\.md\)|](#quick-reference)|g' "${file}"
         sed -i.bak -E 's|\.\./\.\./doc/images/|images/|g' "${file}"
+        # Strip web-only sections (See Also + Navigation footers) — redundant in PDF
+        sed -i.bak '/^## See Also \{\.unlisted/,$d' "${file}"
+        sed -i.bak '/^## Navigation \{\.unlisted/,$d' "${file}"
         rm -f "${file}.bak"
     done
 
@@ -189,6 +193,7 @@ build_pdf() {
                 "${PANDOC_IMAGE}" \
                 "${ordered_files[@]}" -o oradba-user-guide.pdf \
                 --metadata-file=/doc/metadata.yml \
+                --metadata "version=${DOC_VERSION}" \
                 --toc --toc-depth=2 \
                 --pdf-engine=xelatex \
                 --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
