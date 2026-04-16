@@ -147,7 +147,7 @@ Basic database and session information scripts:
 | Script                | Alias       | Privilege | Description                    |
 |-----------------------|-------------|-----------|--------------------------------|
 | `db_info.sql`         | -           | Any       | Database name, version, status |
-| `sec_whoami_show.sql` | `who.sql`   | Any       | Current session identity, roles, container, auth method |
+| `sec_whoami_show.sql` | `who.sql`   | Any       | Current session identity       |
 | `mon_sessions.sql`    | `sess.sql`  | Any       | Active database sessions       |
 | `mon_locks.sql`       | `locks.sql` | Any       | Current locks and blocking     |
 
@@ -261,7 +261,7 @@ SQL> @aud_top_users
 
 ### Audit Script Inventory
 
-<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD013 MD060 -->
 
 Complete inventory of all audit-specific SQL scripts organized by category.
 
@@ -391,7 +391,7 @@ Scripts for configuring Splunk archive timestamp management.
 
 : Audit Utility and Session Helper Scripts
 
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-enable MD013 MD060 -->
 
 ### TDE (Transparent Data Encryption) Scripts
 

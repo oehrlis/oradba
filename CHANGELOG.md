@@ -7,8 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-04-16
+
 ### Added
 
+- **SQL Scripts: 18 new audit analysis and utility scripts synced from ora-db-audit-eng**
+  - `aud_ddl_show_aud.sql`: Show recent DDL events (CREATE/ALTER/DROP/TRUNCATE/RENAME)
+  - `aud_health_show_aud.sql`: Single-screen operational health dashboard
+  - `aud_policies_create_aud_oracle.sql`: Oracle default ORA_* predefined audit policies reference
+  - `aud_report_config_aud.sql`: Comprehensive audit configuration report
+  - `aud_returncode_show_aud.sql`: Failed operations grouped by return code
+  - `aud_session_ctx_show_aud.sql`: Analyse USERENV context attributes for WHEN clauses
+  - `aud_splunk_at_detection_setup.sql`: Splunk archive timestamp via Audit Trail Detection (K-AT)
+  - `aud_splunk_checkpoint_setup.sql`: Splunk archive timestamp via Watchdog Checkpoint (K-WD)
+  - `aud_sysdba_show_aud.sql`: SYSDBA and SYSOPER privileged access events
+  - `aud_top_returncode_aud.sql`: Top-N error codes from the unified audit trail
+  - `aud_trail_analysis_aud.sql`: Comprehensive trail analysis for concept optimization
+  - `aud_trail_userhost_analysis_aud.sql`: User-host analysis for logon trigger regex design
+  - `auditpdb.sql`: Switch session container directly to AUDITPDB1
+  - `env.sql`: Show full session environment (DB version, audit mode, NLS, SQLPATH)
+  - `env_show_sqlpath.sql`: Show current SQLPATH directories with existence check
+  - `odb_audit_ctx_create_aud.sql`: Create ODB Application Context with WLS/K8s patterns (PROD)
+  - `odb_policies_enable_aud.sql`: Enable ODB audit policies Phase A+B with dynamic user resolution (PROD)
+  - `pdb.sql`: Switch session container to a given PDB (parameterized, default AUDITPDB1)
 - **PDF Build: Dynamic version injection from `VERSION` file**
   - `build_pdf.sh` now reads `VERSION` at build time and passes it to pandoc via
     `--metadata version=`; overrides the `__VERSION__` placeholder in
@@ -36,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `aud_policies_show_aud.sql`: improved formatting with ROW_NUMBER() deduplication of policy
+  attributes; sort order now Active YES first, then ODB policies before ORA policies
+- `aud_report_full_aud.sql`: extended to include trail volume analysis sections at end of report
+- `aud_critobj_show_aud.sql`: improved parameter handling with default values
+- `aud_critprivs_show_aud.sql`: improved parameter handling with default values
+- `src/doc/sql-scripts.md`: added full audit script inventory with 9 subsections covering all
+  audit scripts including new Splunk Integration and Trail Volume Analysis sections
 - **PDF Build: Reduce code block font size and page margins**
   - `doc/metadata.yml`: added `monofontoptions: [Scale=0.85]` — Courier New now
     renders at 85% of body size (~8.5pt), significantly reducing line-wrap in
@@ -172,6 +200,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `aud_config_show_aud.sql`: replace direct `sys.fga_log$` access with `dba_fga_audit_trail` view
+- `aud_grants_show_aud.sql`: add missing `SPOOL OFF` at end of script
+- `aud_top_policy_detail_aud.sql`: fix column header from `Policies` to `User` for dbusername column
+- `sec_whoami_show.sql`: full standalone implementation showing session identity, roles, container,
+  and authentication method (was previously just an alias to `spsec_usrinf.sql`)
 - **`execute_plugin_function_v2`: plugin interface version mismatch now warned**
   — `plugin_interface_version` was declared by all plugins but never checked;
   loading a plugin that declares a version other than `1.0.0` now emits a
