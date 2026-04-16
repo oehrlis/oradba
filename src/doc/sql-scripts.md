@@ -147,7 +147,7 @@ Basic database and session information scripts:
 | Script                | Alias       | Privilege | Description                    |
 |-----------------------|-------------|-----------|--------------------------------|
 | `db_info.sql`         | -           | Any       | Database name, version, status |
-| `sec_whoami_show.sql` | `who.sql`   | Any       | Current session info           |
+| `sec_whoami_show.sql` | `who.sql`   | Any       | Current session identity, roles, container, auth method |
 | `mon_sessions.sql`    | `sess.sql`  | Any       | Active database sessions       |
 | `mon_locks.sql`       | `locks.sql` | Any       | Current locks and blocking     |
 
@@ -258,6 +258,140 @@ SQL> @afails
 -- See top audit events by user
 SQL> @aud_top_users
 ```
+
+### Audit Script Inventory
+
+<!-- markdownlint-disable MD013 -->
+
+Complete inventory of all audit-specific SQL scripts organized by category.
+
+#### Policy Management
+
+Scripts to create, enable, disable, and drop audit policies.
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_policies_create_aud.sql` | Create custom local audit policies (OraDBA generic template with ORADBA_LOC_* prefix) | AUDIT_ADMIN |
+| `aud_policies_create_aud_oracle.sql` | Oracle default (ORA_*) predefined audit policies reference | AUDIT_VIEWER |
+| `aud_policies_drop_aud.sql` | Disable all audit policies and drop all non-Oracle-maintained policies | AUDIT_ADMIN |
+| `aud_policies_enable_aud.sql` | Enable custom local audit policies (OraDBA generic, ORADBA_LOC_* policies) | AUDIT_ADMIN |
+| `aud_policies_show_aud.sql` | Show all local audit policies with enabled status, WHEN condition, and entity details | AUDIT_VIEWER |
+| `aud_policies_gen_create_aud.sql` | Generate CREATE AUDIT POLICY statements from current enabled policies | AUDIT_VIEWER |
+| `aud_policies_gen_disable_aud.sql` | Generate NOAUDIT statements for all currently enabled policies | AUDIT_VIEWER |
+| `aud_policies_gen_drop_aud.sql` | Generate DROP AUDIT POLICY statements for all non-Oracle-maintained policies | AUDIT_VIEWER |
+| `aud_policies_gen_enable_aud.sql` | Generate AUDIT POLICY statements from current enabled policies | AUDIT_VIEWER |
+| `odb_audit_ctx_create_aud.sql` | Create ODB Application Context with WLS Classic and K8s Regex patterns (PROD) | AUDIT_ADMIN |
+| `odb_policies_enable_aud.sql` | Enable ODB audit policies Phase A+B with dynamic user resolution (PROD) | AUDIT_ADMIN |
+
+: Audit Policy Management Scripts
+
+#### Configuration and Health
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_init_full_aud.sql` | Initialize audit environment: create tablespace, move trail, create purge/archive jobs | SYSDBA |
+| `aud_config_show_aud.sql` | Show audit trail configuration: table sizes, record counts, trail statistics | AUDIT_VIEWER |
+| `aud_health_show_aud.sql` | Single-screen operational health dashboard: mode, trail volume, purge config, top users | AUDIT_VIEWER |
+| `aud_report_config_aud.sql` | Comprehensive audit configuration report (mode, parameters, tablespace, trail, purge jobs) | AUDIT_VIEWER |
+| `aud_report_full_aud.sql` | Run a full suite of audit report queries (trail overview, top-N, trail analysis) | AUDIT_VIEWER |
+
+: Audit Configuration and Health Scripts
+
+#### Session and Login Analysis
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_logins_show_aud.sql` | Show login events from the unified audit trail | AUDIT_VIEWER |
+| `aud_logins_failed_aud.sql` | Show failed login events from the unified audit trail | AUDIT_VIEWER |
+| `aud_session_ctx_show_aud.sql` | Analyse available USERENV session context attributes for audit policy WHEN clauses | AUDIT_VIEWER |
+| `aud_session_detail_show_aud.sql` | Show all audit entries for a given unified audit session ID | AUDIT_VIEWER |
+| `aud_session_sql_detail_show_aud.sql` | Show audit entries for a given session with SQL_TEXT column included | AUDIT_VIEWER |
+| `aud_sessions_show_aud.sql` | Show audit sessions for any audit type (parameterized) | AUDIT_VIEWER |
+| `aud_sessions_std_show_aud.sql` | Show audit sessions for Standard audit type | AUDIT_VIEWER |
+| `aud_sessions_datapump_show_aud.sql` | Show audit sessions for Datapump audit type | AUDIT_VIEWER |
+| `aud_sessions_dbv_show_aud.sql` | Show audit sessions for Database Vault audit type | AUDIT_VIEWER |
+| `aud_sessions_fga_show_aud.sql` | Show audit sessions for Fine Grained Audit type | AUDIT_VIEWER |
+| `aud_sessions_rman_show_aud.sql` | Show audit sessions for RMAN audit type | AUDIT_VIEWER |
+| `aud_sysdba_show_aud.sql` | Show SYSDBA and SYSOPER privileged access events from the unified audit trail | AUDIT_VIEWER |
+
+: Audit Session and Login Analysis Scripts
+
+#### Event Detail Queries
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_critobj_show_aud.sql` | Show recently accessed critical objects | AUDIT_VIEWER |
+| `aud_critprivs_show_aud.sql` | Show recently used critical privileges | AUDIT_VIEWER |
+| `aud_ddl_show_aud.sql` | Show recent DDL events (CREATE/ALTER/DROP/TRUNCATE/RENAME) | AUDIT_VIEWER |
+| `aud_grants_show_aud.sql` | Show recently granted privileges | AUDIT_VIEWER |
+| `aud_returncode_show_aud.sql` | Show failed operations grouped by return code (excludes ORA-00000) | AUDIT_VIEWER |
+
+: Audit Event Detail Query Scripts
+
+#### Storage and Trail Analysis
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_storage_usage_aud.sql` | Show unified audit trail storage usage | AUDIT_VIEWER |
+| `aud_storage_purge_gen_aud.sql` | Generate unified audit trail storage purge statements | AUDIT_ADMIN |
+| `aud_storage_usage_mod_gen_aud.sql` | Generate audit trail storage modification statements (move/resize) | AUDIT_ADMIN |
+| `aud_tabsize_show_aud.sql` | Show unified audit trail table and partition sizes | AUDIT_VIEWER |
+
+: Audit Storage and Trail Scripts
+
+#### Top-N Analysis
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_top_action_aud.sql` | Show top audit events by action name | AUDIT_VIEWER |
+| `aud_top_clientprog_aud.sql` | Show top audit events by client program name | AUDIT_VIEWER |
+| `aud_top_dbid_aud.sql` | Show top audit events by DBID | AUDIT_VIEWER |
+| `aud_top_host_aud.sql` | Show top audit events by user host | AUDIT_VIEWER |
+| `aud_top_object_aud.sql` | Show top audit events by object name | AUDIT_VIEWER |
+| `aud_top_object_user_aud.sql` | Show top audit events by object name (excluding Oracle maintained schemas) | AUDIT_VIEWER |
+| `aud_top_osuser_aud.sql` | Show top audit events by OS username | AUDIT_VIEWER |
+| `aud_top_owner_aud.sql` | Show top audit events by object schema (owner) | AUDIT_VIEWER |
+| `aud_top_policy_aud.sql` | Show top audit events by unified_audit_policies | AUDIT_VIEWER |
+| `aud_top_policy_detail_aud.sql` | Show top audit events by policy, user, and action combined | AUDIT_VIEWER |
+| `aud_top_returncode_aud.sql` | Show top-N error codes from the unified audit trail (excludes success) | AUDIT_VIEWER |
+| `aud_top_user_aud.sql` | Show top audit events by DB username | AUDIT_VIEWER |
+
+: Audit Top-N Analysis Scripts
+
+#### Trail Volume Analysis
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_trail_analysis_aud.sql` | Comprehensive trail analysis for concept optimization: volume trend, action/user distribution, noise candidates, policy coverage gaps | AUDIT_VIEWER |
+| `aud_trail_userhost_analysis_aud.sql` | Detailed user-host analysis to identify connection patterns for logon trigger regex design | AUDIT_VIEWER |
+
+: Audit Trail Volume Analysis Scripts
+
+#### Splunk Integration
+
+Scripts for configuring Splunk archive timestamp management.
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `aud_splunk_at_detection_setup.sql` | Set up Splunk archive timestamp management using Audit Trail Detection (K-AT pattern) | AUDIT_ADMIN |
+| `aud_splunk_checkpoint_setup.sql` | Set up Splunk archive timestamp management using Watchdog Checkpoint (K-WD pattern) | AUDIT_ADMIN |
+
+: Splunk Integration Scripts
+
+#### Utility and Session Helpers
+
+| Script | Purpose | Privilege |
+|--------|---------|-----------|
+| `audit.sql` | Alias for `aud_config_show_aud.sql` (shortcut for interactive use) | AUDIT_VIEWER |
+| `auditpdb.sql` | Switch session container directly to AUDITPDB1 | DBA |
+| `env.sql` | Show full session environment: DB version, audit mode, NLS, session identity, SQLPATH | Any |
+| `env_show_sqlpath.sql` | Show current SQLPATH directories with existence check (called by env.sql) | Any |
+| `pdb.sql` | Switch session container to a given PDB (parameterized, default AUDITPDB1) | DBA |
+| `sec_whoami_show.sql` | Show current session identity: user, schema, roles, container, authentication method | Any |
+
+: Audit Utility and Session Helper Scripts
+
+<!-- markdownlint-enable MD013 -->
 
 ### TDE (Transparent Data Encryption) Scripts
 
