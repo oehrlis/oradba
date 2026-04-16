@@ -20,7 +20,7 @@ SET SQLCASE mixed
 ALTER SESSION SET nls_date_format='DD.MM.YYYY HH24:MI:SS';
 ALTER SESSION SET nls_timestamp_format='DD.MM.YYYY HH24:MI:SS';
 COLUMN unified_audit_policies   FORMAT A60 WRAP HEADING "Policies"
-COLUMN dbusername               FORMAT A25 WRAP HEADING "Policies"
+COLUMN dbusername               FORMAT A25 WRAP HEADING "User"
 COLUMN events                   FORMAT 9,999,999,999 heading "Audit Events"
 
 -- Configure spool directory and filename components

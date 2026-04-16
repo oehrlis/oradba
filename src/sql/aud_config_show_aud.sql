@@ -90,12 +90,12 @@ SELECT 'AUD$' "table_name", min_rec,max_rec,rec_day,rec_month,rec_year,rec_tot F
  (SELECT nvl(count(*),0) rec_tot FROM sys.aud$)
 union
 SELECT 'FGA_LOG$' "table_name", min_rec,max_rec,rec_day,rec_month,rec_year,rec_tot FROM
- (SELECT max(ntimestamp#) max_rec FROM sys.fga_log$),
- (SELECT min(ntimestamp#) min_rec FROM sys.fga_log$),
- (SELECT nvl(avg(count(*)),0) rec_day FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY.MM.DD')),
- (SELECT nvl(avg(count(*)),0) rec_month FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY.MM')),
- (SELECT nvl(avg(count(*)),0) rec_year FROM sys.fga_log$ GROUP BY to_char(ntimestamp#,'YYYY')),
- (SELECT nvl(count(*),0) rec_tot FROM sys.fga_log$)  
+ (SELECT max(timestamp) max_rec FROM dba_fga_audit_trail),
+ (SELECT min(timestamp) min_rec FROM dba_fga_audit_trail),
+ (SELECT nvl(avg(count(*)),0) rec_day FROM dba_fga_audit_trail GROUP BY to_char(timestamp,'YYYY.MM.DD')),
+ (SELECT nvl(avg(count(*)),0) rec_month FROM dba_fga_audit_trail GROUP BY to_char(timestamp,'YYYY.MM')),
+ (SELECT nvl(avg(count(*)),0) rec_year FROM dba_fga_audit_trail GROUP BY to_char(timestamp,'YYYY')),
+ (SELECT nvl(count(*),0) rec_tot FROM dba_fga_audit_trail)  
 UNION
 SELECT 'UNIFIED_AUDIT_TRAIL' "table_name", min_rec,max_rec,rec_day,rec_month,rec_year,rec_tot FROM
  (SELECT max(event_timestamp) max_rec FROM unified_audit_trail),

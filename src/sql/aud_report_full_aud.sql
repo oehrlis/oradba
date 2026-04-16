@@ -84,9 +84,9 @@ PROMPT =========================================================================
 
 PROMPT
 PROMPT ================================================================================
-PROMPT = 
+PROMPT = Show top unified audit events by dbusername for current DBID
 PROMPT ================================================================================
-@aud_top_user_aud.sql Show top unified audit events by dbusername for current DBID
+@aud_top_user_aud.sql
 
 PROMPT
 PROMPT ================================================================================
@@ -131,3 +131,15 @@ PROMPT =========================================================================
 PROMPT = Show top unified audit events by userhost for current DBID
 PROMPT ================================================================================
 @aud_top_host_aud.sql
+
+PROMPT
+PROMPT ================================================================================
+PROMPT = Comprehensive audit trail analysis for concept optimization (E-01)
+PROMPT ================================================================================
+@aud_trail_analysis_aud.sql
+
+PROMPT
+PROMPT ================================================================================
+PROMPT = Detailed user-host analysis for regex pattern definition (E-05)
+PROMPT ================================================================================
+@aud_trail_userhost_analysis_aud.sql
