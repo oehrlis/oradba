@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SQL Scripts: Split `aud_init_full_aud.sql` into focused, standalone initialization scripts**
+  - `aud_init_tablespace_aud.sql`: Create audit tablespace (OMF, ASM, and regular filesystem)
+  - `aud_init_trail_aud.sql`: Configure Unified, Standard, and FGA audit trail locations and set
+    partition interval to 1 day
+  - `aud_init_jobs_aud.sql`: Create `DAILY_UNIFIED_AUDIT_TIMESTAMP` scheduler job and
+    `Daily_Unified_Audit_Purge_Job` purge job
+  - `aud_init_show_aud.sql`: Display audit configuration for verification (config params, purge
+    jobs, scheduler jobs, enabled policies)
+  - `aud_init_full_aud.sql`: Updated master script - orchestrates all four sub-scripts with the
+    same parameters as before; each sub-script can also be called individually
+
 ## [0.24.0] - 2026-04-16
 
 ### Added
