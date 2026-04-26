@@ -192,6 +192,7 @@ build_pdf() {
         (
             cd "${TMP_DOCS_DIR}" && \
             docker run --rm \
+                --user "$(id -u):$(id -g)" \
                 -v "${PWD}:/workdir" \
                 -w /workdir \
                 "${PANDOC_IMAGE}" \

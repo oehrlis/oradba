@@ -166,5 +166,5 @@ see the project repository documentation.
 ---
 
 **API Reference Version:** 1.0  
-**Last Generated:** 2026-03-26  
+**Last Generated:** 2026-04-16  
 **OraDBA Version:** v0.19.1+
