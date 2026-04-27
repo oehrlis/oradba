@@ -15,7 +15,7 @@
 --                                not create timestamps. Default 30 days
 -- Purpose...: Create audit scheduler jobs.
 --              - DAILY_UNIFIED_AUDIT_TIMESTAMP: sets archive timestamp for unified audit
---              - Daily_Unified_Audit_Purge_Job: purges audit records beyond archive timestamp
+--              - DAILY_UNIFIED_AUDIT_PURGE_JOB: purges audit records beyond archive timestamp
 --              Part of the audit initialization suite. Can also be called standalone.
 -- Notes.....: Called by aud_init_full_aud.sql. Requires AUDIT_ADMIN role.
 -- Reference.: https://github.com/oehrlis/oradba
@@ -99,7 +99,7 @@ BEGIN
     sys.dbms_audit_mgmt.create_purge_job(
       audit_trail_type           => sys.dbms_audit_mgmt.audit_trail_unified,
       audit_trail_purge_interval => 24 /* hours */,
-      audit_trail_purge_name     => 'Daily_Unified_Audit_Purge_Job',
+      audit_trail_purge_name     => 'DAILY_UNIFIED_AUDIT_PURGE_JOB',
       use_last_arch_timestamp    => TRUE
     );
     sys.dbms_output.put_line('created');

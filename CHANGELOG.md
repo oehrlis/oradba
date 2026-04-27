@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.3] - 2026-04-27
+
+### Fixed
+
+- **SQL: `aud_init_trail_aud.sql` - Standard/FGA trail location now conditional on audit mode**
+  - `set_audit_trail_location` for `AUDIT_TRAIL_DB_STD` is only called when the database runs in
+    Mixed Auditing Mode (`V$OPTION WHERE PARAMETER = 'Unified Auditing' AND VALUE = 'FALSE'`)
+  - In Pure Unified Auditing mode the call is skipped with an informational message
+  - The partition interval is set in both modes
+- **SQL: `aud_init_jobs_aud.sql` - Purge job name normalized to uppercase**
+  - `Daily_Unified_Audit_Purge_Job` renamed to `DAILY_UNIFIED_AUDIT_PURGE_JOB` for consistency
+    with `DAILY_UNIFIED_AUDIT_TIMESTAMP` and Oracle scheduler naming conventions
+
 ## [0.24.2] - 2026-04-27
 
 ### Fixed
