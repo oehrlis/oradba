@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.2] - 2026-04-27
+
+### Fixed
+
+- **Installer: `$ORACLE_BASE` unbound variable in `prompt_oracle_base()`**
+  - `oradba_install.sh` crashed in `prompt_oracle_base()` when `$ORACLE_BASE` is not set in the
+    environment (bare container or system without Oracle installed)
+  - Fix: `${ORACLE_BASE:-}` used in the guard check instead of bare `$ORACLE_BASE`
+  - Affected version: v0.24.0 and v0.24.1; v0.23.x was not affected
+
 ## [0.24.1] - 2026-04-27
 
 ### Added
@@ -28,11 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `oradba_install.sh` crashed during metadata creation in containers where `$USER` is not
     exported as an environment variable (e.g. Docker `USER oracle` build directive)
   - Fix: `${INSTALL_USER:-${USER:-$(whoami)}}` - falls back to `whoami` when `$USER` is unset
-  - Affected version: v0.24.0 only; v0.23.x was not affected
-- **Installer: `$ORACLE_BASE` unbound variable in `prompt_oracle_base()`**
-  - `oradba_install.sh` crashed in `prompt_oracle_base()` when `$ORACLE_BASE` is not set in the
-    environment (bare container or system without Oracle installed)
-  - Fix: `${ORACLE_BASE:-}` used in the guard check instead of bare `$ORACLE_BASE`
   - Affected version: v0.24.0 only; v0.23.x was not affected
 - **CI: pandoc Docker container now runs as current user**
   - `scripts/build_pdf.sh` passes `--user $(id -u):$(id -g)` to the pandoc container to prevent
