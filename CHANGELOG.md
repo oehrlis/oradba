@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     exported as an environment variable (e.g. Docker `USER oracle` build directive)
   - Fix: `${INSTALL_USER:-${USER:-$(whoami)}}` - falls back to `whoami` when `$USER` is unset
   - Affected version: v0.24.0 only; v0.23.x was not affected
+- **Installer: `$ORACLE_BASE` unbound variable in `prompt_oracle_base()`**
+  - `oradba_install.sh` crashed in `prompt_oracle_base()` when `$ORACLE_BASE` is not set in the
+    environment (bare container or system without Oracle installed)
+  - Fix: `${ORACLE_BASE:-}` used in the guard check instead of bare `$ORACLE_BASE`
+  - Affected version: v0.24.0 only; v0.23.x was not affected
 - **CI: pandoc Docker container now runs as current user**
   - `scripts/build_pdf.sh` passes `--user $(id -u):$(id -g)` to the pandoc container to prevent
     file ownership issues during CI cleanup

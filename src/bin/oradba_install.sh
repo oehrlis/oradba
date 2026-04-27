@@ -1624,8 +1624,8 @@ prompt_oracle_base() {
     fi
 
     # Skip if we detected Oracle installation (should have been caught already)
-    if [[ -n "$ORACLE_BASE" ]]; then
-        ORACLE_BASE_PARAM="$ORACLE_BASE"
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
+        ORACLE_BASE_PARAM="${ORACLE_BASE}"
         return 0
     fi
 
