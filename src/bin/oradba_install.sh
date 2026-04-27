@@ -2291,7 +2291,7 @@ cat > "$INSTALL_PREFIX/.install_info" << METADATA
 install_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 install_version=${INSTALLER_VERSION}
 install_method=${INSTALL_MODE}
-install_user=${INSTALL_USER:-${USER}}
+install_user=${INSTALL_USER:-${USER:-$(whoami)}}
 install_prefix=${INSTALL_PREFIX}
 coexist_mode=${COEXIST_MODE}
 basenv_detected=${BASENV_DETECTED}

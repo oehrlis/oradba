@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-04-27
+
 ### Added
 
 - **SQL Scripts: Split `aud_init_full_aud.sql` into focused, standalone initialization scripts**
@@ -19,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     jobs, scheduler jobs, enabled policies)
   - `aud_init_full_aud.sql`: Updated master script - orchestrates all four sub-scripts with the
     same parameters as before; each sub-script can also be called individually
+
+### Fixed
+
+- **Installer: `$USER` unbound variable in Docker/container environments**
+  - `oradba_install.sh` crashed during metadata creation in containers where `$USER` is not
+    exported as an environment variable (e.g. Docker `USER oracle` build directive)
+  - Fix: `${INSTALL_USER:-${USER:-$(whoami)}}` - falls back to `whoami` when `$USER` is unset
+  - Affected version: v0.24.0 only; v0.23.x was not affected
+- **CI: pandoc Docker container now runs as current user**
+  - `scripts/build_pdf.sh` passes `--user $(id -u):$(id -g)` to the pandoc container to prevent
+    file ownership issues during CI cleanup
 
 ## [0.24.0] - 2026-04-16
 
