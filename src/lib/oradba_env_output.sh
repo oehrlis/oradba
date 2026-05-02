@@ -127,7 +127,7 @@ show_oracle_home_status() {
     local meta_cman_version=""
     local plugin_metadata=""
     local product_type_lower
-    product_type_lower=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
+    product_type_lower="${product_type,,}" 2>/dev/null || product_type_lower=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]')
     local tns_admin="${TNS_ADMIN:-}"
     local java_home=""
 

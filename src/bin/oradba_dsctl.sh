@@ -522,7 +522,7 @@ show_status() {
 
     # Format status for output
     local status_upper
-    status_upper=$(echo "${status}" | tr '[:lower:]' '[:upper:]')
+    status_upper="${status^^}" 2>/dev/null || status_upper=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
     echo "${name}: ${status_upper}"
 }
 

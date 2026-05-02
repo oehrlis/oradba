@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.4] - 2026-05-02
+
+### Fixed
+
+- **`src/lib/extensions.sh`: unbound variable crash on first source under `set -u`**
+  - Guard variable `ORADBA_EXTENSIONS_LOADED` referenced without `:-` default, causing
+    `unbound variable` error when `oradba_version.sh -i` was run in an environment with
+    `set -u` active and the library had not yet been sourced
+  - Fix: `${ORADBA_EXTENSIONS_LOADED:-}` instead of bare `${ORADBA_EXTENSIONS_LOADED}`,
+    consistent with the guard pattern used in all other library files
+
+### Changed
+
+- **Performance: eliminate subshell anti-patterns across all library and script files**
+  - Replaced `$(echo "$var" | cut/sed/grep/tr)` chains in loops with bash parameter expansion
+    (`${var%%:*}`, `${var#*:}`, `${var//pattern/repl}`) - zero child processes per iteration
+  - `src/lib/oradba_common.sh` (`oradba_log`): level normalization via `case` lookup table
+    instead of `echo | tr` - highest-impact fix, called on every log message
+  - `src/lib/oradba_env_parser.sh`: whitespace trim in `while read` loops via bash built-in
+    `${var#"${var%%[![:space:]]*}"}` pattern; SID case comparison pre-normalized before loop
+  - `src/bin/oraup.sh`: Oracle listener endpoint parsing via `[[ =~ ]]` + `BASH_REMATCH`
+    replacing four-stage `echo|grep|cut|tr` pipeline per endpoint
+  - `src/bin/oradba_version.sh`: glob-to-regex conversion and whitespace trim in checksum loop
+  - `src/lib/oradba_home_discovery.sh`, `oradba_env_builder.sh`, `oradba_env_status.sh`,
+    `oradba_env_validator.sh`, `oradba_env_config.sh`, `oradba_env_output.sh`,
+    `oradba_database_discovery.sh`, `oradba_aliases.sh`, `oradba_homes.sh`, `oradba_dsctl.sh`,
+    `oraenv.sh`, `extensions.sh`: case normalization via `${var^^}`/`${var,,}` with
+    `tr`-based portable fallback for macOS bash 3.2
+  - `src/lib/plugins/database_plugin.sh`, `oud_plugin.sh`, `plugin_interface.sh`,
+    `datasafe_plugin.sh`: replaced `grep -oP` (PCRE, unavailable on macOS BSD grep)
+    with `grep -E` / `[[ =~ ]]` + `BASH_REMATCH` - fixes BSD/macOS compatibility
+- **Performance: eliminate subshell anti-patterns in test suite**
+  - `tests/docker_automated_tests.sh`: in-loop `$(echo "$cmd" | cut -d' ' -f1)` replaced with
+    `${cmd%% *}`; `pgrep -c` for process count; `while IFS=: read` for home name extraction
+  - `tests/test_extensions.bats`, `test_client_path_config.bats`, `test_java_path_config.bats`,
+    `test_oradba_common.bats`, `test_oradba_env_builder_unit.bats`: PATH occurrence counting
+    via `IFS=: read -ra` + array loop; position finding via `${PATH%%pattern*}` / `${#_tmp}`
+    replacing `echo|grep-o|wc-l|tr` and `echo|grep-ob|head|cut` chains
+
 ## [0.24.3] - 2026-04-27
 
 ### Fixed

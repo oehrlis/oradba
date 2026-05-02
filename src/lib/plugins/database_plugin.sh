@@ -34,12 +34,9 @@ plugin_detect_installation() {
     
     # Check running pmon processes
     while read -r pmon_line; do
-        local sid
-        sid=$(echo "${pmon_line}" | grep -oP 'pmon_\K\w+')
-        [[ -z "${sid}" ]] && continue
-        
-        # Try to get ORACLE_HOME from process environment
-        local pid
+        local sid pid
+        [[ "${pmon_line}" =~ pmon_([a-zA-Z0-9_]+) ]] || continue
+        sid="${BASH_REMATCH[1]}"
         pid=$(echo "${pmon_line}" | awk '{print $2}')
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             local home
@@ -228,11 +225,9 @@ plugin_discover_instances() {
     
     # Find all running instances from this home
     while read -r pmon_line; do
-        local sid
-        sid=$(echo "${pmon_line}" | grep -oP 'pmon_\K\w+')
-        [[ -z "${sid}" ]] && continue
-        
-        local pid
+        local sid pid
+        [[ "${pmon_line}" =~ pmon_([a-zA-Z0-9_]+) ]] || continue
+        sid="${BASH_REMATCH[1]}"
         pid=$(echo "${pmon_line}" | awk '{print $2}')
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             local proc_home

@@ -377,7 +377,9 @@ plugin_get_version() {
     # Try version file first
     local version_file="${home_path}/inventory/ContentsXML/comps.xml"
     if [[ -f "${version_file}" ]]; then
-        version=$(grep -oP 'VER="\K[^"]+' "${version_file}" 2>/dev/null | head -1)
+        local _ver_line
+        _ver_line=$(grep 'VER="' "${version_file}" 2>/dev/null | head -1)
+        [[ "${_ver_line}" =~ VER=\"([^\"]+)\" ]] && version="${BASH_REMATCH[1]}"
         if [[ -n "${version}" ]]; then
             echo "${version}"
             return 0
@@ -387,7 +389,7 @@ plugin_get_version() {
     # Fallback to opatch if available
     if [[ -x "${home_path}/OPatch/opatch" ]]; then
         version=$("${home_path}/OPatch/opatch" version 2>/dev/null | \
-                  grep -oP 'OPatch Version: \K[\d.]+' | head -1)
+                  grep -oE 'OPatch Version: [0-9.]+' | grep -oE '[0-9]+\.[0-9.]+' | head -1)
         if [[ -n "${version}" ]]; then
             echo "${version}"
             return 0

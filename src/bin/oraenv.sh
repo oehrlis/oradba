@@ -883,16 +883,16 @@ _oraenv_auto_discover_instances() {
     # If no SID was requested, use first discovered instance
     if [[ -z "$requested_sid" ]]; then
         oratab_entry=$(echo "$discovered_oratab" | head -n1)
-        oradba_log INFO "Auto-selecting first discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+        oradba_log INFO "Auto-selecting first discovered instance: ${oratab_entry%%:*}"
     else
         # Try to find requested SID in discovered instances (case-insensitive)
         oratab_entry=$(echo "$discovered_oratab" | awk -F: -v sid="$requested_sid" 'tolower($1) == tolower(sid) {print; exit}')
-        
+
         if [[ -z "$oratab_entry" ]]; then
             oradba_log DEBUG "SID '$requested_sid' not found in discovered instances"
             oradba_log DEBUG "Discovered entries: $discovered_oratab"
         else
-            oradba_log INFO "Found discovered instance: $(echo "$oratab_entry" | cut -d: -f1)"
+            oradba_log INFO "Found discovered instance: ${oratab_entry%%:*}"
         fi
     fi
     
@@ -1045,7 +1045,8 @@ _oraenv_setup_environment_variables() {
 
     # Set startup flag from oratab
     local startup_flag
-    startup_flag=$(echo "$oratab_entry" | cut -d: -f3)
+    local _oe_rest="${oratab_entry#*:}"
+    startup_flag="${_oe_rest#*:}"; startup_flag="${startup_flag%%:*}"
     export ORACLE_STARTUP="${startup_flag:-N}"
 }
 
@@ -1178,11 +1179,12 @@ _oraenv_set_environment() {
 
     # Extract actual SID from oratab (preserves uppercase from oratab)
     local actual_sid
-    actual_sid=$(echo "$oratab_entry" | cut -d: -f1)
+    actual_sid="${oratab_entry%%:*}"
 
     # Extract ORACLE_HOME from oratab
     local oracle_home
-    oracle_home=$(echo "$oratab_entry" | cut -d: -f2)
+    local _oe_rest2="${oratab_entry#*:}"
+    oracle_home="${_oe_rest2%%:*}"
     _oraenv_profile_mark "resolve_sid_home"
 
     if [[ ! -d "$oracle_home" ]]; then
@@ -1191,12 +1193,12 @@ _oraenv_set_environment() {
         oradba_log INFO "Continuing with environment setup..."
         # Don't return error - allow setting env even if HOME doesn't exist
     fi
-    
+
     # Apply product-specific adjustments via plugin system
     local adjustments datasafe_install_dir
     adjustments=$(_oraenv_apply_product_adjustments "$oracle_home")
-    oracle_home=$(echo "$adjustments" | cut -d'|' -f1)
-    datasafe_install_dir=$(echo "$adjustments" | cut -d'|' -f2)
+    oracle_home="${adjustments%%|*}"
+    datasafe_install_dir="${adjustments#*|}"
 
     # Unset previous Oracle environment
     _oraenv_unset_old_env

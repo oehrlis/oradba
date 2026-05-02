@@ -58,9 +58,10 @@ EXIT;
 EOF
     )
     
-    # Clean up output
-    status=$(echo "$status" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
-    
+    # Clean up output (strip whitespace via bash built-in, one tr for uppercase)
+    status="${status//[[:space:]]/}"
+    status=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
+
     # Determine status
     case "$status" in
         OPEN)
@@ -109,9 +110,10 @@ EXIT;
 EOF
     )
     
-    # Clean up output
-    status=$(echo "$status" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
-    
+    # Clean up output (strip whitespace via bash built-in, one tr for uppercase)
+    status="${status//[[:space:]]/}"
+    status=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
+
     # Determine status
     case "$status" in
         STARTED|MOUNTED)
@@ -267,11 +269,17 @@ oradba_get_product_status() {
     local home_path="${3:-}"
     local status=""
     
-    # Convert to lowercase for plugin matching
+    # Convert to lowercase for plugin matching (case lookup, no subshell)
     local plugin_type
-    plugin_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
-    
-    # Map old types to plugin names
+    case "${product_type}" in
+        RDBMS|rdbms)         plugin_type="database"  ;;
+        DATABASE|database)   plugin_type="database"  ;;
+        ASM|asm)             plugin_type="asm"        ;;
+        WLS|wls|WEBLOGIC|weblogic) plugin_type="weblogic" ;;
+        *)                   plugin_type="${product_type,,}" 2>/dev/null || plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+    esac
+
+    # Map old types to plugin names (already handled in case above for common ones)
     case "$plugin_type" in
         rdbms|grid) plugin_type="database" ;;
         wls) plugin_type="weblogic" ;;
@@ -382,7 +390,7 @@ oradba_get_product_status() {
     # Fallback to legacy product-specific functions if plugin doesn't exist or returned unexpected code
     oradba_log WARN "oradba_get_product_status: Using fallback status check for ${product_type} (plugin system failed)"
     local product_type_upper
-    product_type_upper=$(echo "${product_type}" | tr '[:lower:]' '[:upper:]')
+    product_type_upper="${product_type^^}" 2>/dev/null || product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     case "${product_type_upper}" in
         RDBMS|DATABASE)
             oradba_check_db_status "$instance_name" "$home_path"

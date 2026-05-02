@@ -404,7 +404,7 @@ test_auto_discovery() {
     test_start "Verify Oracle instance is running"
     if ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep > /dev/null; then
         local instance_count
-        instance_count=$(ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep | wc -l)
+        instance_count=$(pgrep -c -f "ora_pmon_|db_smon_" 2>/dev/null || echo 0)
         test_pass "$instance_count Oracle instance(s) running"
     else
         test_skip "No running Oracle instances - skipping auto-discovery tests"
@@ -835,9 +835,13 @@ test_enhanced_oracle_homes() {
     test_start "Show Oracle Home details"
     # Try to find a home name from the list (look for DBHOMEFREE first)
     local home_name
-    home_name=$(echo "$homes_output" | grep -E "^(DBHOMEFREE|FREE)" | head -1 | cut -d':' -f1 2>/dev/null)
+    while IFS=: read -r _name _rest; do
+        [[ "${_name}" =~ ^(DBHOMEFREE|FREE) ]] && home_name="${_name}" && break
+    done <<< "${homes_output}"
     if [[ -z "$home_name" ]]; then
-        home_name=$(echo "$homes_output" | grep -E "^[^#]" | head -1 | cut -d':' -f1 2>/dev/null)
+        while IFS=: read -r _name _rest; do
+            [[ -n "${_name}" ]] && [[ ! "${_name}" =~ ^[[:space:]]*# ]] && home_name="${_name}" && break
+        done <<< "${homes_output}"
     fi
     
     if [[ -n "$home_name" ]]; then
@@ -978,7 +982,7 @@ test_output_formats() {
     local list_success=0
     
     for cmd in "${list_commands[@]}"; do
-        if [[ -f "$INSTALL_PREFIX/bin/$(echo "$cmd" | cut -d' ' -f1)" ]]; then
+        if [[ -f "$INSTALL_PREFIX/bin/${cmd%% *}" ]]; then
             if $INSTALL_PREFIX/bin/$cmd >> "$TEST_RESULTS_FILE" 2>&1; then
                 ((list_success++))
             fi
@@ -1002,7 +1006,7 @@ test_output_formats() {
     local status_success=0
     
     for cmd in "${status_commands[@]}"; do
-        tool_name=$(echo "$cmd" | cut -d' ' -f1)
+        tool_name="${cmd%% *}"
         if [[ -f "$INSTALL_PREFIX/bin/$tool_name" ]]; then
             if $INSTALL_PREFIX/bin/$cmd >> "$TEST_RESULTS_FILE" 2>&1; then
                 ((status_success++))

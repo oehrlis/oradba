@@ -671,8 +671,9 @@ generate_home_name() {
                 # Java with version number: java17 -> jdk17
                 home_name="jdk${BASH_REMATCH[1]}"
             else
-                # No version number, use lowercase of original
-                home_name=$(echo "$dir_name" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                # No version number, use lowercase of original (2 param expansions + 1 tr)
+                home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                home_name=$(printf '%s' "${home_name}" | tr '[:upper:]' '[:lower:]')
             fi
             ;;
         iclient)
@@ -684,8 +685,9 @@ generate_home_name() {
                 version="${version%%[_.-]*}"
                 home_name="iclient${version}"
             else
-                # Use lowercase of original
-                home_name=$(echo "$dir_name" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                # Use lowercase of original (2 param expansions + 1 tr)
+                home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                home_name=$(printf '%s' "${home_name}" | tr '[:upper:]' '[:lower:]')
             fi
             ;;
         datasafe)
@@ -693,19 +695,20 @@ generate_home_name() {
             local config_file
             config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
             local counter=1
-            
+
             # Find next available dsconN number
             if [[ -f "$config_file" ]]; then
                 while grep -q "^dscon${counter}:" "$config_file" 2>/dev/null; do
                     ((counter++))
                 done
             fi
-            
+
             home_name="dscon${counter}"
             ;;
         *)
-            # Other products: use uppercase (backward compatible)
-            home_name=$(echo "$dir_name" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+            # Other products: use uppercase (2 param expansions + 1 tr)
+            home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+            home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
             ;;
     esac
     
@@ -1186,9 +1189,9 @@ dedupe_homes() {
         [[ -z "$name" ]] && continue
         [[ "$name" =~ ^[[:space:]]*# ]] && continue
         
-        # Trim whitespace
-        name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        # Trim whitespace (bash built-in, no subshells)
+        name="${name#"${name%%[![:space:]]*}"}"; name="${name%"${name##*[![:space:]]}"}"
+        path="${path#"${path%%[![:space:]]*}"}"; path="${path%"${path##*[![:space:]]}"}"
         
         # Check for duplicate NAME
         local name_seen=false

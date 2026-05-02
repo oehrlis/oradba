@@ -168,12 +168,12 @@ EXIT;
 EOF
     )
 
-    # Clean up output
-    mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    # Clean up output (strip whitespace/control chars via parameter expansion)
+    mode="${mode//[$'\n'$'\r']/}"; mode="${mode#"${mode%%[![:space:]]*}"}"; mode="${mode%"${mode##*[![:space:]]}"}"
 
     # Check if we got a valid result
     if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
-        echo "$mode" | tr '[:upper:]' '[:lower:]'
+        printf '%s\n' "${mode,,}" 2>/dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
     else
         # If v$instance query failed, try v$database for open_mode
         mode=$(
@@ -183,10 +183,10 @@ SELECT open_mode FROM v\$database;
 EXIT;
 EOF
         )
-        mode=$(echo "$mode" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        mode="${mode//[$'\n'$'\r']/}"; mode="${mode#"${mode%%[![:space:]]*}"}"; mode="${mode%"${mode##*[![:space:]]}"}"
 
         if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
-            echo "$mode" | tr '[:upper:]' '[:lower:]'
+            printf '%s\n' "${mode,,}" 2>/dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
         else
             echo "started"
         fi
@@ -431,17 +431,13 @@ show_oracle_status_registry() {
                         local -a tcps_ports=()
                         
                         while IFS= read -r endpoint; do
-                            local protocol port
-                            protocol=$(echo "$endpoint" | grep -o "PROTOCOL=[^)]*" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
-                            port=$(echo "$endpoint" | grep -o "PORT=[0-9]*" | cut -d= -f2)
-                            
-                            if [[ -n "$port" ]]; then
-                                if [[ "$protocol" == "tcps" ]]; then
-                                    tcps_ports+=("$port")
-                                elif [[ "$protocol" == "tcp" ]]; then
-                                    tcp_ports+=("$port")
-                                fi
-                            fi
+                            local protocol="" port=""
+                            [[ "${endpoint}" =~ PROTOCOL=([a-zA-Z0-9_]+) ]] && protocol="${BASH_REMATCH[1]}"
+                            [[ "${endpoint}" =~ PORT=([0-9]+) ]] && port="${BASH_REMATCH[1]}"
+                            case "${protocol^^}" in
+                                TCPS) [[ -n "${port}" ]] && tcps_ports+=("${port}") ;;
+                                TCP)  [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
+                            esac
                         done <<< "$endpoints"
                         
                         # Format: tcp_port/tcps_port or just tcp_port
@@ -482,17 +478,13 @@ show_oracle_status_registry() {
                             local -a tcps_ports=()
                             
                             while IFS= read -r endpoint; do
-                                local protocol port
-                                protocol=$(echo "$endpoint" | grep -o "PROTOCOL=[^)]*" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
-                                port=$(echo "$endpoint" | grep -o "PORT=[0-9]*" | cut -d= -f2)
-                                
-                                if [[ -n "$port" ]]; then
-                                    if [[ "$protocol" == "tcps" ]]; then
-                                        tcps_ports+=("$port")
-                                    elif [[ "$protocol" == "tcp" ]]; then
-                                        tcp_ports+=("$port")
-                                    fi
-                                fi
+                                local protocol="" port=""
+                                [[ "${endpoint}" =~ PROTOCOL=([a-zA-Z0-9_]+) ]] && protocol="${BASH_REMATCH[1]}"
+                                [[ "${endpoint}" =~ PORT=([0-9]+) ]] && port="${BASH_REMATCH[1]}"
+                                case "${protocol^^}" in
+                                    TCPS) [[ -n "${port}" ]] && tcps_ports+=("${port}") ;;
+                                    TCP)  [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
+                                esac
                             done <<< "$endpoints"
                             
                             # Format: tcp_port/tcps_port or just tcp_port
@@ -625,8 +617,8 @@ show_oracle_status_registry() {
                     local result
                     result=$(cat "$temp_file")
                     # Parse pipe-delimited fields: status|port
-                    ds_statuses[idx]=$(echo "$result" | cut -d'|' -f1)
-                    ds_ports[idx]=$(echo "$result" | cut -d'|' -f2)
+                    ds_statuses[idx]="${result%%|*}"
+                    ds_ports[idx]="${result#*|}"
                     rm -f "$temp_file"
                 else
                     ds_statuses[idx]="unknown"

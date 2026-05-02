@@ -86,7 +86,7 @@ generate_sid_lists() {
         # Create alias for this SID (lowercase) only when alias loading is enabled
         if [[ "${load_aliases}" == "true" ]]; then
             local sid_lower
-            sid_lower=$(echo "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
+            sid_lower="${oratab_sid,,}" 2>/dev/null || sid_lower=$(printf '%s' "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
             # shellcheck disable=SC2139
             alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
         fi
@@ -208,7 +208,7 @@ EOF
 
         # Create lowercase alias
         local pdb_lower
-        pdb_lower=$(echo "${pdb_name}" | tr '[:upper:]' '[:lower:]')
+        pdb_lower="${pdb_name,,}" 2>/dev/null || pdb_lower=$(printf '%s' "${pdb_name}" | tr '[:upper:]' '[:lower:]')
 
         # Create alias to set ORADBA_PDB and connect
         # shellcheck disable=SC2139
@@ -271,7 +271,7 @@ discover_running_oracle_instances() {
             sid="${BASH_REMATCH[1]}"
         elif [[ "$comm" =~ ^ora_pmon_(.+)$ ]]; then
             # Convert lowercase pmon SID to uppercase
-            sid=$(echo "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]')
+            sid="${BASH_REMATCH[1]^^}" 2>/dev/null || sid=$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]')
         elif [[ "$comm" =~ ^asm_smon_(.+)$ ]]; then
             sid="${BASH_REMATCH[1]}"
         else

@@ -632,15 +632,9 @@ plugin_get_port() {
     # Extract port from (address=(protocol=TCPS)(host=localhost)(port=1562))
     # Use grep with Perl regex for extraction, or awk as fallback
     local port
-    if command -v grep >/dev/null 2>&1; then
-        # Try Perl regex first
-        port=$(grep -oP '\(port=\K[0-9]+' "${cman_conf}" 2>/dev/null | head -1)
-        
-        # Fallback to basic regex if Perl regex not available
-        if [[ -z "${port}" ]]; then
-            port=$(grep -o 'port=[0-9]*' "${cman_conf}" 2>/dev/null | head -1 | cut -d= -f2)
-        fi
-    fi
+    local _port_line
+    _port_line=$(grep -o 'port=[0-9]*' "${cman_conf}" 2>/dev/null | head -1)
+    port="${_port_line#port=}"
     
     if [[ -n "${port}" ]]; then
         echo "${port}"

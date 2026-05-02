@@ -94,20 +94,15 @@ get_checksum_exclusions() {
             [[ -z "$line" ]] && continue
             [[ "$line" =~ ^[[:space:]]*# ]] && continue
 
-            # Trim whitespace
-            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            # Trim whitespace (bash built-in, no subshells)
+            line="${line#"${line%%[![:space:]]*}"}"; line="${line%"${line##*[![:space:]]}"}"
             [[ -z "$line" ]] && continue
 
-            # Convert glob pattern to awk regex
-            # Replace * with .* for regex matching
+            # Convert glob pattern to awk regex using parameter expansion
             local pattern="$line"
-
-            # Escape special regex characters except * and ?
-            pattern=$(echo "$pattern" | sed 's/\./\\./g') # Escape dots
-
-            # Convert glob wildcards to regex
-            pattern=$(echo "$pattern" | sed 's/\*/.*/g') # * -> .*
-            pattern=$(echo "$pattern" | sed 's/?/./g')   # ? -> .
+            pattern="${pattern//./\\.}"  # Escape dots: . -> \.
+            pattern="${pattern//\*/.*}"  # Glob * -> regex .*
+            pattern="${pattern//\?/.}"   # Glob ? -> regex .
 
             # If pattern ends with /, match directory contents
             if [[ "$pattern" == */ ]]; then
@@ -433,7 +428,7 @@ check_extension_checksums() {
                 while IFS= read -r line; do
                     if [[ "$line" =~ FAILED ]]; then
                         local failed_file
-                        failed_file=$(echo "$line" | cut -d: -f1)
+                        failed_file="${line%%:*}"
                         echo "        \${${ext_name^^}_BASE}/${failed_file}"
                     fi
                 done <<< "$verify_output"

@@ -254,8 +254,9 @@ EOF
     oradba_add_java_path "DATASAFE"
     
     # Count occurrences of Java path
-    local count
-    count=$(echo "$PATH" | grep -o "${java_bin}" | wc -l)
+    local count _p _jpath_parts
+    IFS=: read -ra _jpath_parts <<< "${PATH}"
+    count=0; for _p in "${_jpath_parts[@]}"; do [[ "${_p}" == "${java_bin}" ]] && (( count++ )); done
     [ "$count" -eq 1 ]
 }
 
@@ -324,9 +325,9 @@ EOF
     [[ "$PATH" =~ test_homes/(jdk-|db_19c/java) ]]
     
     # Java should come before DataSafe
-    local java_pos ds_pos
-    java_pos=$(echo "$PATH" | grep -ob "jdk-" | head -1 | cut -d: -f1)
-    ds_pos=$(echo "$PATH" | grep -ob "datasafe" | head -1 | cut -d: -f1)
+    local java_pos ds_pos _tmp
+    _tmp="${PATH%%jdk-*}"; java_pos="${#_tmp}"
+    _tmp="${PATH%%datasafe*}"; ds_pos="${#_tmp}"
     [ "$java_pos" -lt "$ds_pos" ]
 }
 

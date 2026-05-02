@@ -178,16 +178,15 @@ oradba_add_oracle_path() {
     local new_path=""
     
     [[ ! -d "$oracle_home" ]] && return 1
-    
-    # Convert product type to lowercase for plugin matching
-    product_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
-    
-    # Map old uppercase types to plugin names
-    case "$product_type" in
-        rdbms|grid) product_type="database" ;;
-        wls|weblogic) product_type="weblogic" ;;
+
+    # Convert product type to lowercase for plugin matching (case lookup, no subshell)
+    case "${product_type}" in
+        RDBMS|rdbms|GRID|grid)     product_type="database"  ;;
+        DATABASE|database)         product_type="database"  ;;
+        WLS|wls|WEBLOGIC|weblogic) product_type="weblogic"  ;;
+        *)                         product_type="${product_type,,}" 2>/dev/null || product_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
     esac
-    
+
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     if execute_plugin_function_v2 "${product_type}" "build_bin_path" "${oracle_home}" "new_path"; then
         _oradba_builder_log DEBUG "Plugin ${product_type}: PATH components = ${new_path}"
@@ -252,15 +251,14 @@ oradba_set_lib_path() {
         Darwin) lib_var="DYLD_LIBRARY_PATH" ;;
     esac
     
-    # Convert product type to lowercase for plugin matching
-    product_type=$(echo "${product_type}" | tr '[:upper:]' '[:lower:]')
-    
-    # Map old uppercase types to plugin names
-    case "$product_type" in
-        rdbms|grid) product_type="database" ;;
-        wls|weblogic) product_type="weblogic" ;;
+    # Convert product type to lowercase for plugin matching (case lookup, no subshell)
+    case "${product_type}" in
+        RDBMS|rdbms|GRID|grid)     product_type="database"  ;;
+        DATABASE|database)         product_type="database"  ;;
+        WLS|wls|WEBLOGIC|weblogic) product_type="weblogic"  ;;
+        *)                         product_type="${product_type,,}" 2>/dev/null || product_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
     esac
-    
+
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     if execute_plugin_function_v2 "${product_type}" "build_lib_path" "${oracle_home}" "lib_path"; then
         _oradba_builder_log DEBUG "Plugin ${product_type}: LIB_PATH components = ${lib_path}"
@@ -579,7 +577,7 @@ oradba_resolve_client_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}" 2>/dev/null || ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Check if it's a client type or database (databases have client tools)
             if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]] || [[ "${ptype_upper}" == "DATABASE" ]]; then
@@ -600,7 +598,7 @@ oradba_resolve_client_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}" 2>/dev/null || ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
@@ -765,7 +763,7 @@ oradba_resolve_java_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}" 2>/dev/null || ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Check if it's a Java type
             if [[ "${ptype_upper}" == "JAVA" ]]; then
@@ -796,7 +794,7 @@ oradba_resolve_java_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(echo "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}" 2>/dev/null || ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then

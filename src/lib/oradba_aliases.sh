@@ -62,7 +62,7 @@ EOF
         )
 
         # Clean up result (remove whitespace and check if it's a valid path)
-        diag_dest=$(echo "${diag_dest}" | tr -d '[:space:]')
+        diag_dest="${diag_dest//[[:space:]]/}"
 
         # If result contains error indicators or is too short, clear it
         if [[ "${diag_dest}" =~ (ERROR|ORA-|SP2-|Help:) ]] || [[ ${#diag_dest} -lt 5 ]]; then
@@ -73,7 +73,7 @@ EOF
     # Fallback to convention-based path if query failed
     if [[ -z "${diag_dest}" ]] || [[ "${diag_dest}" == "no rows selected" ]]; then
         local sid_lower
-        sid_lower=$(echo "${sid}" | tr '[:upper:]' '[:lower:]')
+        sid_lower="${sid,,}" 2>/dev/null || sid_lower=$(printf '%s' "${sid}" | tr '[:upper:]' '[:lower:]')
         diag_dest="${ORACLE_BASE}/diag/rdbms/${sid_lower}/${sid}"
     fi
 

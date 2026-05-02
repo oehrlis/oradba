@@ -20,7 +20,7 @@
 # Requires: oradba_common.sh must be sourced first
 
 # Prevent multiple sourcing
-[[ -n "${ORADBA_EXTENSIONS_LOADED}" ]] && return 0
+[[ -n "${ORADBA_EXTENSIONS_LOADED:-}" ]] && return 0
 readonly ORADBA_EXTENSIONS_LOADED=1
 
 # Optional extension etc/ hook sourcing (disabled by default for safety)
@@ -158,10 +158,9 @@ get_extension_property() {
         # Replace hyphens with underscores and remove dots and other special characters
         local safe_ext_name="${ext_name//-/_}"
         safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
-        local safe_ext_name_upper
-        local property_upper
-        safe_ext_name_upper=$(echo "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
-        property_upper=$(echo "${property}" | tr '[:lower:]' '[:upper:]')
+        local safe_ext_name_upper property_upper
+        safe_ext_name_upper="${safe_ext_name^^}" 2>/dev/null || safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+        property_upper="${property^^}" 2>/dev/null || property_upper=$(printf '%s' "${property}" | tr '[:lower:]' '[:upper:]')
         local config_var="ORADBA_EXT_${safe_ext_name_upper}_${property_upper}"
         value="${!config_var}"
     fi
@@ -527,12 +526,13 @@ load_extension() {
         load_aliases="${load_aliases:-false}"
     fi
 
-    # Normalize booleans to lowercase
-    provides_bin=$(echo "${provides_bin}" | tr '[:upper:]' '[:lower:]')
-    provides_sql=$(echo "${provides_sql}" | tr '[:upper:]' '[:lower:]')
-    provides_rcv=$(echo "${provides_rcv}" | tr '[:upper:]' '[:lower:]')
-    load_env=$(echo "${load_env}" | tr '[:upper:]' '[:lower:]')
-    load_aliases=$(echo "${load_aliases}" | tr '[:upper:]' '[:lower:]')
+    # Normalize booleans to lowercase (printf -v sets var directly, no subshells)
+    _ext_bool_lower() { case "$2" in TRUE|True|YES|Yes) printf -v "$1" 'true' ;; FALSE|False|NO|No) printf -v "$1" 'false' ;; *) printf -v "$1" '%s' "$2" ;; esac; }
+    _ext_bool_lower provides_bin "${provides_bin}"
+    _ext_bool_lower provides_sql "${provides_sql}"
+    _ext_bool_lower provides_rcv "${provides_rcv}"
+    _ext_bool_lower load_env "${load_env}"
+    _ext_bool_lower load_aliases "${load_aliases}"
 
     # Add to PATH (bin directory) - only if provides bin
     if [[ "${provides_bin}" == "true" ]] && [[ -d "${ext_path}/bin" ]]; then
@@ -565,7 +565,7 @@ load_extension() {
 
     # Export extension path variables for reference
     local safe_ext_name_upper
-    safe_ext_name_upper=$(echo "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+    safe_ext_name_upper="${safe_ext_name^^}" 2>/dev/null || safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
     local var_name="ORADBA_EXT_${safe_ext_name_upper}_PATH"
     export "${var_name}=${ext_path}"
 

@@ -235,8 +235,9 @@ EOF
     oradba_add_client_path "DATASAFE"
     
     # Count occurrences of client path
-    local count
-    count=$(echo "$PATH" | grep -o "${client_bin}" | wc -l)
+    local count _p _cpath_parts
+    IFS=: read -ra _cpath_parts <<< "${PATH}"
+    count=0; for _p in "${_cpath_parts[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( count++ )); done
     [ "$count" -eq 1 ]
 }
 
@@ -282,11 +283,10 @@ EOF
     oradba_add_client_path "DATASAFE"
     
     # DataSafe bin should come before client bin
-    local ds_pos
-    local client_pos
-    ds_pos=$(echo "$PATH" | grep -o "^[^:]*:.*${ds_bin}" | wc -c)
-    client_pos=$(echo "$PATH" | grep -o "^[^:]*:.*test_homes/client_19c/bin" | wc -c)
-    
+    local ds_pos client_pos _tmp
+    _tmp="${PATH%%"${ds_bin}"*}"; ds_pos="${#_tmp}"
+    _tmp="${PATH%%test_homes/client_19c/bin*}"; client_pos="${#_tmp}"
+
     [ "$ds_pos" -lt "$client_pos" ]
 }
 
@@ -301,10 +301,11 @@ EOF
     oradba_add_client_path "DATASAFE"
     
     # Should only appear once
-    local count
-    count=$(echo "$PATH" | grep -o "${client_bin}" | wc -l)
+    local count _p _cpath_parts2
+    IFS=: read -ra _cpath_parts2 <<< "${PATH}"
+    count=0; for _p in "${_cpath_parts2[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( count++ )); done
     [ "$count" -eq 1 ]
-    
+
     # Should still have all other paths
     [[ "$PATH" =~ /usr/bin ]]
     [[ "$PATH" =~ /bin ]]

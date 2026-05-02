@@ -92,7 +92,7 @@ generate_oracle_home_aliases() {
         
         # Create alias for the Oracle Home name (lowercase, consistent with SID aliases)
         local name_lower
-        name_lower=$(echo "${name}" | tr '[:upper:]' '[:lower:]')
+        name_lower="${name,,}" 2>/dev/null || name_lower=$(printf '%s' "${name}" | tr '[:upper:]' '[:lower:]')
         # shellcheck disable=SC2139
         alias "${name_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
         oradba_log DEBUG "Created Oracle Home alias: ${name_lower}"
@@ -477,8 +477,8 @@ detect_oracle_version() {
         oradba_log DEBUG "Plugin returned version: ${plugin_version}"
         # Convert X.Y.Z.W format to XXYZ format
         local major minor
-        major=$(echo "${plugin_version}" | cut -d. -f1)
-        minor=$(echo "${plugin_version}" | cut -d. -f2)
+        major="${plugin_version%%.*}"
+        local _maj_rest="${plugin_version#*.}"; minor="${_maj_rest%%.*}"
         oradba_log DEBUG "Converting ${plugin_version} to format: ${major}${minor}"
         printf "%02d%02d" "${major}" "${minor}"
         return 0
@@ -506,8 +506,8 @@ detect_oracle_version() {
             if [[ -n "${ver_str}" ]]; then
                 # Convert to XXYZ format: 19.21.0.0 -> 1921, 23.26.0.0 -> 2326
                 local major minor
-                major=$(echo "${ver_str}" | cut -d. -f1)
-                minor=$(echo "${ver_str}" | cut -d. -f2)
+                major="${ver_str%%.*}"
+                local _maj_rest="${ver_str#*.}"; minor="${_maj_rest%%.*}"
                 # Pad to 2 digits
                 printf "%02d%02d" "${major}" "${minor}"
                 return 0
@@ -526,8 +526,8 @@ detect_oracle_version() {
             
             if [[ -n "${ver_str}" ]]; then
                 local major minor
-                major=$(echo "${ver_str}" | cut -d. -f1)
-                minor=$(echo "${ver_str}" | cut -d. -f2)
+                major="${ver_str%%.*}"
+                local _maj_rest="${ver_str#*.}"; minor="${_maj_rest%%.*}"
                 printf "%02d%02d" "${major}" "${minor}"
                 return 0
             fi
@@ -541,8 +541,8 @@ detect_oracle_version() {
         
         if [[ -n "${xml_version}" ]]; then
             local major minor
-            major=$(echo "${xml_version}" | cut -d. -f1)
-            minor=$(echo "${xml_version}" | cut -d. -f2)
+            major="${xml_version%%.*}"
+            local _maj_rest="${xml_version#*.}"; minor="${_maj_rest%%.*}"
             printf "%02d%02d" "${major}" "${minor}"
             return 0
         fi
@@ -554,8 +554,8 @@ detect_oracle_version() {
     
     if [[ -n "${path_version}" ]]; then
         local major minor
-        major=$(echo "${path_version}" | cut -d. -f1)
-        minor=$(echo "${path_version}" | cut -d. -f2)
+        major="${path_version%%.*}"
+        local _maj_rest="${path_version#*.}"; minor="${_maj_rest%%.*}"
         printf "%02d%02d" "${major}" "${minor}"
         return 0
     fi
@@ -854,7 +854,8 @@ EOF
                     elif [[ "${dir_name}" =~ ^[Jj]ava[-_]?([0-9]+) ]]; then
                         home_name="jdk${BASH_REMATCH[1]}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 iclient)
@@ -864,7 +865,8 @@ EOF
                         version="${version%%[_.-]*}"
                         home_name="iclient${version}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 datasafe)
@@ -882,7 +884,8 @@ EOF
                     if [[ "${dir_name}" =~ [Oo][Uu][Dd][-_]?([0-9]+) ]]; then
                         home_name="oud${BASH_REMATCH[1]}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:upper:]' '[:lower:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 database)
@@ -894,7 +897,8 @@ EOF
                         [[ ${#version} -eq 3 ]] && version="${version}0"
                         home_name="rdbms${version}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 client)
@@ -905,7 +909,8 @@ EOF
                         [[ ${#version} -eq 3 ]] && version="${version}0"
                         home_name="client${version}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 weblogic)
@@ -913,12 +918,14 @@ EOF
                     if [[ "${dir_name}" =~ ([0-9]{2,4}) ]]; then
                         home_name="wls${BASH_REMATCH[1]}"
                     else
-                        home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                        home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 *)
                     # Other products: use uppercase (backward compatible)
-                    home_name=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]' | tr '.' '_' | tr '-' '_')
+                    home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                    home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     ;;
             esac
             

@@ -79,26 +79,28 @@ oradba_parse_oratab() {
         return 1
     fi
     
+    # Pre-normalize target_sid for case-insensitive matching (one call, before loop)
+    local target_sid_upper=""
+    if [[ -n "${target_sid}" ]]; then
+        target_sid_upper="${target_sid^^}" 2>/dev/null || target_sid_upper=$(printf '%s' "${target_sid}" | tr '[:lower:]' '[:upper:]')
+    fi
+
     # Parse oratab
     while IFS=: read -r sid oracle_home flag _remainder; do
         # Skip comments and empty lines
         [[ -z "$sid" ]] && continue
         [[ "$sid" =~ ^[[:space:]]*# ]] && continue
-        
+
         # Skip if no HOME specified
         [[ -z "$oracle_home" ]] && continue
-        
+
         # If looking for specific SID (case-insensitive for convenience)
         if [[ -n "$target_sid" ]]; then
-            # Convert both to uppercase for comparison
             local sid_upper
-            local target_upper
-            sid_upper=$(echo "${sid}" | tr '[:lower:]' '[:upper:]')
-            target_upper=$(echo "${target_sid}" | tr '[:lower:]' '[:upper:]')
-            if [[ "$sid_upper" == "$target_upper" ]]; then
-                echo "${sid}|${oracle_home}|${flag:-N}"
-                return 0
-            fi
+            sid_upper="${sid^^}" 2>/dev/null || sid_upper=$(printf '%s' "${sid}" | tr '[:lower:]' '[:upper:]')
+            [[ "${sid_upper}" == "${target_sid_upper}" ]] || continue
+            echo "${sid}|${oracle_home}|${flag:-N}"
+            return 0
         else
             # Return all entries
             echo "${sid}|${oracle_home}|${flag:-N}"
@@ -140,15 +142,15 @@ oradba_parse_homes() {
         [[ -z "$name" ]] && continue
         [[ "$name" =~ ^[[:space:]]*# ]] && continue
         
-        # Trim whitespace
-        name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        ptype=$(echo "$ptype" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        order=$(echo "$order" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        alias_name=$(echo "$alias_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        desc=$(echo "$desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        version=$(echo "$version" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        
+        # Trim whitespace (bash built-in, no subshells)
+        name="${name#"${name%%[![:space:]]*}"}"; name="${name%"${name##*[![:space:]]}"}"
+        path="${path#"${path%%[![:space:]]*}"}"; path="${path%"${path##*[![:space:]]}"}"
+        ptype="${ptype#"${ptype%%[![:space:]]*}"}"; ptype="${ptype%"${ptype##*[![:space:]]}"}"
+        order="${order#"${order%%[![:space:]]*}"}"; order="${order%"${order##*[![:space:]]}"}"
+        alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"; alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
+        desc="${desc#"${desc%%[![:space:]]*}"}"; desc="${desc%"${desc##*[![:space:]]}"}"
+        version="${version#"${version%%[![:space:]]*}"}"; version="${version%"${version##*[![:space:]]}"}"
+
         # Set defaults for optional fields
         [[ -z "$order" ]] && order="50"
         [[ -z "$alias_name" ]] && alias_name="$name"
@@ -220,15 +222,15 @@ oradba_find_home() {
         [[ -z "$name" ]] && continue
         [[ "$name" =~ ^[[:space:]]*# ]] && continue
         
-        path=$(echo "$path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        path="${path#"${path%%[![:space:]]*}"}"; path="${path%"${path##*[![:space:]]}"}"
         if [[ "$path" == "$search_term" ]]; then
-            # Trim and set defaults
-            name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            ptype=$(echo "$ptype" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            order=$(echo "$order" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            alias_name=$(echo "$alias_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            desc=$(echo "$desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            version=$(echo "$version" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            # Trim and set defaults (bash built-in, no subshells)
+            name="${name#"${name%%[![:space:]]*}"}"; name="${name%"${name##*[![:space:]]}"}"
+            ptype="${ptype#"${ptype%%[![:space:]]*}"}"; ptype="${ptype%"${ptype##*[![:space:]]}"}"
+            order="${order#"${order%%[![:space:]]*}"}"; order="${order%"${order##*[![:space:]]}"}"
+            alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"; alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
+            desc="${desc#"${desc%%[![:space:]]*}"}"; desc="${desc%"${desc##*[![:space:]]}"}"
+            version="${version#"${version%%[![:space:]]*}"}"; version="${version%"${version##*[![:space:]]}"}"
             [[ -z "$order" ]] && order="50"
             [[ -z "$alias_name" ]] && alias_name="$name"
             [[ -z "$version" ]] && version="AUTO"

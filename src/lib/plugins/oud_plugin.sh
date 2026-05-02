@@ -215,7 +215,9 @@ plugin_get_version() {
     
     # Alternative: Check setup command
     if [[ -x "${home_path}/setup" ]]; then
-        version=$("${home_path}/setup" --version 2>/dev/null | head -1 | grep -oP '\d+\.\d+\.\d+\.\d+')
+        local _oud_ver
+        _oud_ver=$("${home_path}/setup" --version 2>/dev/null | head -1)
+        [[ "${_oud_ver}" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) ]] && version="${BASH_REMATCH[1]}"
         if [[ -n "${version}" ]]; then
             echo "${version}"
             return 0

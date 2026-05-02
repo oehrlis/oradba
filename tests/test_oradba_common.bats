@@ -340,8 +340,8 @@ EOF
     load_config_file "${test_config}" "false"
     
     # Count occurrences of /usr/local/bin
-    local count
-    count=$(echo "${PATH}" | tr ':' '\n' | grep -c '^/usr/local/bin$' || true)
+    local count _p _path_parts
+    count=0; IFS=: read -ra _path_parts <<< "${PATH}"; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/local/bin" ]] && (( count++ )); done
     
     # Should only appear once (deduplicated)
     [ "${count}" -eq 1 ]

@@ -243,8 +243,8 @@ teardown() {
     [ "$?" -eq 0 ]
     
     # Should have exactly 50 unique paths
-    local count
-    count=$(echo "$result" | tr ':' '\n' | wc -l)
+    local count _res_parts
+    IFS=: read -ra _res_parts <<< "$result"; count="${#_res_parts[@]}"
     [ "$count" -eq 50 ]
 }
 

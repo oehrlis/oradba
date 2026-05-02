@@ -1083,12 +1083,13 @@ EOF
     deduplicate_path
     
     # Count occurrences of /usr/bin
-    local count
-    count=$(echo "${PATH}" | grep -o "/usr/bin" | wc -l | tr -d ' ')
+    local count _p _path_parts
+    IFS=: read -ra _path_parts <<< "${PATH}"
+    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/bin" ]] && (( count++ )); done
     [[ "${count}" -eq 1 ]]
-    
+
     # Count occurrences of /opt/bin
-    count=$(echo "${PATH}" | grep -o "/opt/bin" | wc -l | tr -d ' ')
+    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/opt/bin" ]] && (( count++ )); done
     [[ "${count}" -eq 1 ]]
 }
 
@@ -1111,8 +1112,9 @@ EOF
     deduplicate_sqlpath
     
     # Count occurrences of /opt/sql1
-    local count
-    count=$(echo "${SQLPATH}" | grep -o "/opt/sql1" | wc -l | tr -d ' ')
+    local count _p _sqlpath_parts
+    IFS=: read -ra _sqlpath_parts <<< "${SQLPATH}"
+    count=0; for _p in "${_sqlpath_parts[@]}"; do [[ "${_p}" == "/opt/sql1" ]] && (( count++ )); done
     [[ "${count}" -eq 1 ]]
 }
 
@@ -1146,9 +1148,10 @@ EOF
     load_extensions
     
     # Count occurrences of test_dup/bin
-    local count
-    count=$(echo "${PATH}" | grep -o "test_dup/bin" | wc -l | tr -d ' ')
-    
+    local count _p _path_parts2
+    IFS=: read -ra _path_parts2 <<< "${PATH}"
+    count=0; for _p in "${_path_parts2[@]}"; do [[ "${_p}" == *"test_dup/bin"* ]] && (( count++ )); done
+
     # Should only appear once
     [[ "${count}" -eq 1 ]]
 }
