@@ -341,7 +341,7 @@ EOF
     
     # Count occurrences of /usr/local/bin
     local count _p _path_parts
-    count=0; IFS=: read -ra _path_parts <<< "${PATH}"; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/local/bin" ]] && (( count++ )); done
+    count=0; IFS=: read -ra _path_parts <<< "${PATH}"; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/local/bin" ]] && (( ++count )); done
     
     # Should only appear once (deduplicated)
     [ "${count}" -eq 1 ]
