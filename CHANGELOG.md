@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.6] - 2026-05-03
+
+### Fixed
+
+- **Installer: self-overwrite corruption when updating from install prefix**
+  - When `oradba_install.sh` runs from the install prefix and executes
+    `cp -r "$TEMP_DIR"/* "$INSTALL_PREFIX/"`, it overwrites its own script file at the
+    same inode while bash is still reading it (bash reads scripts lazily); bash then reads
+    new file content at the old byte offset, producing
+    `syntax error near unexpected token '('` at line 2207
+  - Fix: move the running script to `<name>.updating` before the file copy; `mv` changes
+    only the directory entry, leaving bash's open fd pointing to the original inode;
+    `cp` creates a new inode for the new version; temp file removed after install completes
+  - Hidden-file copy (`.[!.]*`) rewritten as an explicit `for` loop with `[[ -e ]]` guard,
+    eliminating the unmatched-glob edge case when no hidden files exist in the temp dir
+
+- **`oradba_standard.conf`: `${ORACLE_SID,,}` fails on macOS system bash 3.2**
+  - Line 404 used `${ORACLE_SID,,}` (bash 4.0+ lowercase operator) in a double-quoted
+    `export` assignment; when macOS `/bin/bash` (3.2) was the active shell during profile
+    sourcing, this produced `bad substitution` on startup
+  - Typical scenario: VS Code opens a terminal with the system default shell (when
+    `terminal.integrated.defaultProfile.osx` is not set), sources `~/.bash_profile` →
+    `oraenv.sh` → `oradba_standard.conf` and fails; running `bash --version` in that
+    terminal shows homebrew bash 5.x because it was invoked as a subshell
+  - Fix: replaced with `$(printf '%s' "${ORACLE_SID}" | tr 'A-Z' 'a-z')`, bash 3.2 compatible
+
 ## [0.24.5] - 2026-05-03
 
 ### Fixed

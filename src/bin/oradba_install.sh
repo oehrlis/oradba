@@ -2201,11 +2201,28 @@ preserve_runtime_files "$INSTALL_PREFIX" "$RUNTIME_PRESERVE_DIR"
 # Backup modified configuration files before overwriting
 backup_modified_files "$INSTALL_PREFIX"
 
+# If running from the install prefix, move self to a temp name before copying.
+# Bash reads scripts lazily from an open fd. When cp overwrites the file at the
+# same inode, bash reads new content at the old offset → syntax errors. Moving
+# the file first creates a new inode for the new version while the old fd stays
+# valid, preventing corruption of the running script.
+_SELF_GUARD=""
+if [[ "${BASH_SOURCE[0]:-}" == "${INSTALL_PREFIX}"/* ]]; then
+    _SELF_GUARD="${BASH_SOURCE[0]}.updating"
+    mv "${BASH_SOURCE[0]}" "${_SELF_GUARD}"
+fi
+
 # Copy files
 log_info "Installing files..."
 cp -r "$TEMP_DIR"/* "$INSTALL_PREFIX/"
 # Also copy hidden files (like .oradba.checksum)
-cp -r "$TEMP_DIR"/.[!.]* "$INSTALL_PREFIX/" 2> /dev/null || true
+for _f in "$TEMP_DIR"/.[!.]*; do
+    [[ -e "$_f" ]] && cp -r "$_f" "$INSTALL_PREFIX/"
+done
+unset _f
+
+# Remove old installer backup (new version is in place)
+[[ -n "${_SELF_GUARD}" ]] && rm -f "${_SELF_GUARD}"
 
 # Restore runtime-managed files that must never be replaced by payload content
 restore_runtime_files "$INSTALL_PREFIX" "$RUNTIME_PRESERVE_DIR"
