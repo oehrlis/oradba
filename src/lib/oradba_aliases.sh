@@ -73,7 +73,7 @@ EOF
     # Fallback to convention-based path if query failed
     if [[ -z "${diag_dest}" ]] || [[ "${diag_dest}" == "no rows selected" ]]; then
         local sid_lower
-        sid_lower="${sid,,}" 2>/dev/null || sid_lower=$(printf '%s' "${sid}" | tr '[:upper:]' '[:lower:]')
+        sid_lower=$(printf '%s' "${sid}" | tr '[:upper:]' '[:lower:]')
         diag_dest="${ORACLE_BASE}/diag/rdbms/${sid_lower}/${sid}"
     fi
 

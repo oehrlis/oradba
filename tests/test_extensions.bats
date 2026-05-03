@@ -1085,11 +1085,11 @@ EOF
     # Count occurrences of /usr/bin
     local count _p _path_parts
     IFS=: read -ra _path_parts <<< "${PATH}"
-    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/bin" ]] && (( count++ )); done
+    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/usr/bin" ]] && (( ++count )); done
     [[ "${count}" -eq 1 ]]
 
     # Count occurrences of /opt/bin
-    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/opt/bin" ]] && (( count++ )); done
+    count=0; for _p in "${_path_parts[@]}"; do [[ "${_p}" == "/opt/bin" ]] && (( ++count )); done
     [[ "${count}" -eq 1 ]]
 }
 
@@ -1114,7 +1114,7 @@ EOF
     # Count occurrences of /opt/sql1
     local count _p _sqlpath_parts
     IFS=: read -ra _sqlpath_parts <<< "${SQLPATH}"
-    count=0; for _p in "${_sqlpath_parts[@]}"; do [[ "${_p}" == "/opt/sql1" ]] && (( count++ )); done
+    count=0; for _p in "${_sqlpath_parts[@]}"; do [[ "${_p}" == "/opt/sql1" ]] && (( ++count )); done
     [[ "${count}" -eq 1 ]]
 }
 
@@ -1150,7 +1150,7 @@ EOF
     # Count occurrences of test_dup/bin
     local count _p _path_parts2
     IFS=: read -ra _path_parts2 <<< "${PATH}"
-    count=0; for _p in "${_path_parts2[@]}"; do [[ "${_p}" == *"test_dup/bin"* ]] && (( count++ )); done
+    count=0; for _p in "${_path_parts2[@]}"; do [[ "${_p}" == *"test_dup/bin"* ]] && (( ++count )); done
 
     # Should only appear once
     [[ "${count}" -eq 1 ]]

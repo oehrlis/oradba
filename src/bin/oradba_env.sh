@@ -601,7 +601,8 @@ cmd_status() {
         return 1
     fi
     
-    local product_type_lower="${product_type,,}"
+    local product_type_lower
+    product_type_lower=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]')
 
     if [[ "${product_type_lower}" == "database" || "${product_type_lower}" == "rdbms" || "${product_type_lower}" == "grid" || "${product_type_lower}" == "asm" ]]; then
         local saved_home="${ORACLE_HOME:-}"

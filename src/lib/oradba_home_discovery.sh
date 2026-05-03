@@ -92,7 +92,7 @@ generate_oracle_home_aliases() {
         
         # Create alias for the Oracle Home name (lowercase, consistent with SID aliases)
         local name_lower
-        name_lower="${name,,}" 2>/dev/null || name_lower=$(printf '%s' "${name}" | tr '[:upper:]' '[:lower:]')
+        name_lower=$(printf '%s' "${name}" | tr '[:upper:]' '[:lower:]')
         # shellcheck disable=SC2139
         alias "${name_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${name}"
         oradba_log DEBUG "Created Oracle Home alias: ${name_lower}"
@@ -855,7 +855,7 @@ EOF
                         home_name="jdk${BASH_REMATCH[1]}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
+                        home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 iclient)
@@ -866,7 +866,7 @@ EOF
                         home_name="iclient${version}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
+                        home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 datasafe)
@@ -885,7 +885,7 @@ EOF
                         home_name="oud${BASH_REMATCH[1]}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name,,}" 2>/dev/null || home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
+                        home_name=$(printf "%s" "${home_name}" | tr "[:upper:]" "[:lower:]")
                     fi
                     ;;
                 database)
@@ -898,7 +898,7 @@ EOF
                         home_name="rdbms${version}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
+                        home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 client)
@@ -910,7 +910,7 @@ EOF
                         home_name="client${version}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
+                        home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 weblogic)
@@ -919,13 +919,13 @@ EOF
                         home_name="wls${BASH_REMATCH[1]}"
                     else
                         home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                        home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
+                        home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     fi
                     ;;
                 *)
                     # Other products: use uppercase (backward compatible)
                     home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
-                    home_name="${home_name^^}" 2>/dev/null || home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
+                    home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
                     ;;
             esac
             

@@ -11,6 +11,7 @@
 
 # Setup test environment
 setup() {
+    export ORIGINAL_PATH="${PATH}"
     # Create temporary test directory
     export TEST_DIR="${BATS_TEST_TMPDIR}/oradba_java_path_$$"
     mkdir -p "${TEST_DIR}/lib"
@@ -33,9 +34,11 @@ setup() {
 }
 
 teardown() {
+    export PATH="${ORIGINAL_PATH}"
     /bin/rm -rf "${TEST_DIR}"
     unset ORADBA_JAVA_PATH_FOR_NON_JAVA
     unset JAVA_HOME
+    unset ORIGINAL_PATH
 }
 
 # Helper: Setup mock Oracle and Java homes
@@ -256,7 +259,7 @@ EOF
     # Count occurrences of Java path
     local count _p _jpath_parts
     IFS=: read -ra _jpath_parts <<< "${PATH}"
-    count=0; for _p in "${_jpath_parts[@]}"; do [[ "${_p}" == "${java_bin}" ]] && (( count++ )); done
+    count=0; for _p in "${_jpath_parts[@]}"; do [[ "${_p}" == "${java_bin}" ]] && (( ++count )); done
     [ "$count" -eq 1 ]
 }
 

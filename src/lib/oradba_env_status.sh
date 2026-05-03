@@ -276,7 +276,7 @@ oradba_get_product_status() {
         DATABASE|database)   plugin_type="database"  ;;
         ASM|asm)             plugin_type="asm"        ;;
         WLS|wls|WEBLOGIC|weblogic) plugin_type="weblogic" ;;
-        *)                   plugin_type="${product_type,,}" 2>/dev/null || plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+        *)                   plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
     esac
 
     # Map old types to plugin names (already handled in case above for common ones)
@@ -390,7 +390,7 @@ oradba_get_product_status() {
     # Fallback to legacy product-specific functions if plugin doesn't exist or returned unexpected code
     oradba_log WARN "oradba_get_product_status: Using fallback status check for ${product_type} (plugin system failed)"
     local product_type_upper
-    product_type_upper="${product_type^^}" 2>/dev/null || product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+    product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     case "${product_type_upper}" in
         RDBMS|DATABASE)
             oradba_check_db_status "$instance_name" "$home_path"

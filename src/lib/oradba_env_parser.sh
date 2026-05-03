@@ -82,7 +82,7 @@ oradba_parse_oratab() {
     # Pre-normalize target_sid for case-insensitive matching (one call, before loop)
     local target_sid_upper=""
     if [[ -n "${target_sid}" ]]; then
-        target_sid_upper="${target_sid^^}" 2>/dev/null || target_sid_upper=$(printf '%s' "${target_sid}" | tr '[:lower:]' '[:upper:]')
+        target_sid_upper=$(printf '%s' "${target_sid}" | tr '[:lower:]' '[:upper:]')
     fi
 
     # Parse oratab
@@ -97,7 +97,7 @@ oradba_parse_oratab() {
         # If looking for specific SID (case-insensitive for convenience)
         if [[ -n "$target_sid" ]]; then
             local sid_upper
-            sid_upper="${sid^^}" 2>/dev/null || sid_upper=$(printf '%s' "${sid}" | tr '[:lower:]' '[:upper:]')
+            sid_upper=$(printf '%s' "${sid}" | tr '[:lower:]' '[:upper:]')
             [[ "${sid_upper}" == "${target_sid_upper}" ]] || continue
             echo "${sid}|${oracle_home}|${flag:-N}"
             return 0

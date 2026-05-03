@@ -159,8 +159,8 @@ get_extension_property() {
         local safe_ext_name="${ext_name//-/_}"
         safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
         local safe_ext_name_upper property_upper
-        safe_ext_name_upper="${safe_ext_name^^}" 2>/dev/null || safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
-        property_upper="${property^^}" 2>/dev/null || property_upper=$(printf '%s' "${property}" | tr '[:lower:]' '[:upper:]')
+        safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+        property_upper=$(printf '%s' "${property}" | tr '[:lower:]' '[:upper:]')
         local config_var="ORADBA_EXT_${safe_ext_name_upper}_${property_upper}"
         value="${!config_var}"
     fi
@@ -565,7 +565,7 @@ load_extension() {
 
     # Export extension path variables for reference
     local safe_ext_name_upper
-    safe_ext_name_upper="${safe_ext_name^^}" 2>/dev/null || safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+    safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
     local var_name="ORADBA_EXT_${safe_ext_name_upper}_PATH"
     export "${var_name}=${ext_path}"
 

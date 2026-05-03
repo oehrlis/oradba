@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.5] - 2026-05-03
+
+### Fixed
+
+- **Bash 3.2 compatibility: replace `${var,,}`/`${var^^}` fallback pattern with direct `tr`**
+  - Pattern `"${var,,}" 2>/dev/null || var=$(tr ...)` is broken on bash 3.2 (macOS `/bin/bash`):
+    the error is printed to stderr despite the redirect, and the `||` fallback never executes
+  - Replaced all occurrences in `src/lib/` with direct `tr '[:upper:]' '[:lower:]'` /
+    `tr '[:lower:]' '[:upper:]'` calls (no bash 4+ dependency)
+  - Affected files: `oradba_env_builder.sh`, `oradba_env_config.sh`, `oradba_env_status.sh`,
+    `oradba_env_validator.sh`, `oradba_env_parser.sh`, `oradba_env_output.sh`,
+    `oradba_home_discovery.sh`, `oradba_aliases.sh`, `oradba_database_discovery.sh`,
+    `oradba_common.sh`, `extensions.sh`
+  - Also fixed bare `${product_type,,}` without any fallback in `src/bin/oradba_env.sh:604`
+  - Resolves `bash: ${product_type,,}: bad substitution` error when loading oraenv in
+    VS Code integrated terminal (which uses macOS system bash 3.2)
+
+- **Test suite: `(( count++ ))` causes spurious failures under bats `set -e`**
+  - Post-increment `(( count++ ))` returns exit code 1 when `count` is 0 (evaluates to old
+    value 0); with bats' `set -e` this aborts the loop before any match is counted
+  - Replaced with `(( ++count ))` (pre-increment, always returns exit code 0 for count ≥ 1)
+  - Fixed in: `test_client_path_config.bats` (2 locations), `test_extensions.bats` (4 locations),
+    `test_java_path_config.bats` (1 location), `test_oradba_common.bats` (1 location)
+
+- **`test_iclient_plugin.bats`: `detect_oracle_version` not found in full test suite run**
+  - Setup extracted `detect_oracle_version` and `detect_product_type` from `oradba_common.sh`
+    via sed, but both functions live in `oradba_home_discovery.sh`; sed produced empty output
+    leaving the test stub without the function (exit 127 on `run detect_oracle_version`)
+  - Corrected source file to `oradba_home_discovery.sh` in both the live `eval` block and
+    the stub file append
+
+- **`test_java_path_config.bats`: `rm: command not found` in bats cleanup after PATH-mutating tests**
+  - Tests set `PATH` to values without `/bin` (e.g. `/datasafe/bin:/usr/bin`) but teardown
+    did not restore `PATH`; bats' own cleanup at bats-exec-test line 203 calls bare `rm`
+    which could not be found
+  - Added `ORIGINAL_PATH` save in `setup()` and restore as first line of `teardown()`
+
 ## [0.24.4] - 2026-05-02
 
 ### Fixed

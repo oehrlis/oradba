@@ -26,9 +26,9 @@ setup() {
     # Extract these functions from the real common.sh to avoid side effects
     if ! declare -f detect_oracle_version >/dev/null 2>&1; then
         eval "$(sed -n '/^oradba_log()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
-        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_product_type()/,/^}/p' "${ORADBA_BASE}/lib/oradba_home_discovery.sh")"
         eval "$(sed -n '/^execute_plugin_function_v2()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
-        eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh")"
+        eval "$(sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_home_discovery.sh")"
     fi
     
     # Create minimal oradba_common.sh stub for logging (used by plugins)
@@ -43,7 +43,7 @@ oradba_log() {
 EOF
     
     # Add detect_oracle_version function to the stub
-    sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_common.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
+    sed -n '/^detect_oracle_version()/,/^}/p' "${ORADBA_BASE}/lib/oradba_home_discovery.sh" >> "${TEST_DIR}/lib/oradba_common.sh"
     
     # Add execute_plugin_function_v2 implementation that actually loads and calls plugins
     cat >> "${TEST_DIR}/lib/oradba_common.sh" <<'EOF'

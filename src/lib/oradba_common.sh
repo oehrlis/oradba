@@ -867,7 +867,7 @@ set_oracle_home_environment() {
                     if command -v oradba_add_java_path &>/dev/null; then
                         # Convert to uppercase for function call
                         local product_upper
-                        product_upper="${product_type^^}" 2>/dev/null || product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+                        product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
                         # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
                         oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
                     fi
@@ -891,7 +891,7 @@ set_oracle_home_environment() {
                     if command -v oradba_add_client_path &>/dev/null; then
                         # Convert to uppercase for function call
                         local product_upper
-                        product_upper="${product_type^^}" 2>/dev/null || product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+                        product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
                         oradba_add_client_path "${product_upper}" 2>/dev/null || true
                     fi
                 fi
@@ -1181,7 +1181,7 @@ create_sid_config() {
     oradba_log DEBUG "Using template: ${example_config}"
     # Copy example and replace ORCL with actual SID
     local sid_lower
-    sid_lower="${sid,,}" 2>/dev/null || sid_lower=$(printf '%s' "${sid}" | tr '[:upper:]' '[:lower:]')
+    sid_lower=$(printf '%s' "${sid}" | tr '[:upper:]' '[:lower:]')
     if sed "s/ORCL/${sid}/g; s/orcl/${sid_lower}/g; s/Date.......: .*/Date.......: $(date '+%Y.%m.%d')/; s/Auto-created on first environment switch/Auto-created: $(date '+%Y-%m-%d %H:%M:%S')/" \
         "${example_config}" > "${sid_config}"; then
         echo "[INFO] ✓ Created SID configuration: ${sid_config}" >&2

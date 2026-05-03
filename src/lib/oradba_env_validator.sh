@@ -129,7 +129,7 @@ oradba_check_oracle_binaries() {
         RDBMS|rdbms|GRID|grid)     plugin_type="database"  ;;
         DATABASE|database)         plugin_type="database"  ;;
         WLS|wls|WEBLOGIC|weblogic) plugin_type="weblogic"  ;;
-        *)                         plugin_type="${product_type,,}" 2>/dev/null || plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+        *)                         plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
     esac
 
     # Map old types to plugin names (already handled above for common ones)
@@ -151,7 +151,7 @@ oradba_check_oracle_binaries() {
     if [[ ${#binaries[@]} -eq 0 ]]; then
         _oradba_validator_log DEBUG "Using fallback binary checks for ${product_type}"
         local product_type_upper
-        product_type_upper="${product_type^^}" 2>/dev/null || product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+        product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
         case "${product_type_upper}" in
             RDBMS|DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
             CLIENT) binaries=("sqlplus" "tnsping") ;;
@@ -173,7 +173,7 @@ oradba_check_oracle_binaries() {
     
     # Special check for Instant Client library path
     local product_type_upper
-    product_type_upper="${product_type^^}" 2>/dev/null || product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+    product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     if [[ "${product_type_upper}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
         if [[ -z "${LD_LIBRARY_PATH}" ]]; then
             echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
@@ -254,7 +254,7 @@ EXIT;
 EOF
 )
         status="${status//[[:space:]]/}"
-        status="${status^^}" 2>/dev/null || status=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
+        status=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
         
         case "$status" in
             OPEN|MOUNTED|STARTED)
@@ -289,7 +289,7 @@ oradba_validate_environment() {
     # For non-database products, do minimal validation
     # Convert to uppercase for comparison
     local product_upper
-    product_upper="${product_type^^}" 2>/dev/null || product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
+    product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     if [[ "$product_upper" =~ ^(JAVA|OUD|WEBLOGIC|OMS|EMAGENT)$ ]]; then
         echo "=== Basic Validation ==="
         if [[ -d "$ORACLE_HOME" ]]; then

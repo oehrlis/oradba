@@ -237,7 +237,7 @@ EOF
     # Count occurrences of client path
     local count _p _cpath_parts
     IFS=: read -ra _cpath_parts <<< "${PATH}"
-    count=0; for _p in "${_cpath_parts[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( count++ )); done
+    count=0; for _p in "${_cpath_parts[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( ++count )); done
     [ "$count" -eq 1 ]
 }
 
@@ -303,7 +303,7 @@ EOF
     # Should only appear once
     local count _p _cpath_parts2
     IFS=: read -ra _cpath_parts2 <<< "${PATH}"
-    count=0; for _p in "${_cpath_parts2[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( count++ )); done
+    count=0; for _p in "${_cpath_parts2[@]}"; do [[ "${_p}" == "${client_bin}" ]] && (( ++count )); done
     [ "$count" -eq 1 ]
 
     # Should still have all other paths
