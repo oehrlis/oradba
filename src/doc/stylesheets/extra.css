@@ -1,8 +1,31 @@
-/* Custom styles for OraDBA documentation */
+/* oradba.ch brand colors — derived from oradba-rss-logo.png color palette
+   BG_DARK   #1E3446  dark slate blue  (logo background / header)
+   BG_MID    #3D6B8A  warm steel blue  (primary)
+   ICE_LIGHT #A8C8D8  ice blue         (accent / highlights)
+   WHITE     #F0F5F8  near white       (text on dark bg)
+*/
 
+/* Light mode */
 :root {
-  --md-primary-fg-color: #ff6f00;
-  --md-accent-fg-color: #ff9800;
+  --md-primary-fg-color:        #3D6B8A;
+  --md-primary-fg-color--light: #A8C8D8;
+  --md-primary-fg-color--dark:  #1E3446;
+  --md-accent-fg-color:         #3D6B8A;
+  --md-primary-bg-color:        #F0F5F8;
+}
+
+/* Dark mode */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #A8C8D8;
+  --md-primary-fg-color--light: #C8DDE8;
+  --md-primary-fg-color--dark:  #3D6B8A;
+  --md-accent-fg-color:         #A8C8D8;
+  --md-default-bg-color:        #1A2D3F;
+}
+
+/* Header — dark slate blue in both modes */
+.md-header {
+  background-color: #1E3446;
 }
 
 /* Enhanced code blocks */

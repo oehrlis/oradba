@@ -18,20 +18,18 @@ theme:
   name: material
   language: en
   palette:
-    # Light mode (default)
     - scheme: default
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
-        name: Switch to dark mode
-    # Dark mode
+        name: Dark mode
     - scheme: slate
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: Light mode
   
   font:
     text: Roboto
@@ -138,6 +136,9 @@ nav:
       - Extension System: api/extensions.md
       - Scripts & Commands: api/scripts.md
       - Function Index: api/function-index.md
+
+extra_css:
+  - stylesheets/extra.css
 
 # Extra configuration
 extra:
