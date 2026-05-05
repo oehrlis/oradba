@@ -17,6 +17,8 @@ site_dir: site
 theme:
   name: material
   language: en
+  logo: assets/images/oradba-rss-logo.png
+  favicon: assets/images/oradba-rss-logo.png
   palette:
     - scheme: default
       primary: custom
@@ -142,6 +144,7 @@ extra_css:
 
 # Extra configuration
 extra:
+  homepage: https://oradba.ch
   version:
     provider: mike
   social:
