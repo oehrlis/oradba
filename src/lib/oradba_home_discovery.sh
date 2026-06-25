@@ -215,11 +215,14 @@ parse_oracle_home() {
         [[ -z "${h_name}" ]] && continue
 
         if [[ "${h_name}" == "${actual_name}" ]]; then
-            # If h_alias is empty or looks like a description, use h_name as alias
-            if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
-                # h_alias is actually description, shift values
+            # If h_alias contains spaces it is from an old-format config (no alias field):
+            # position 5 holds the description, not an alias — shift values accordingly.
+            # An empty h_alias simply means "no alias defined"; just default to h_name.
+            if [[ "${h_alias}" =~ [[:space:]] ]]; then
                 h_version="${h_desc}"
                 h_desc="${h_alias}"
+                h_alias="${h_name}"
+            elif [[ -z "${h_alias}" ]]; then
                 h_alias="${h_name}"
             fi
             # Default version to AUTO if not specified
@@ -258,14 +261,17 @@ list_oracle_homes() {
             [[ "${h_type}" != "${filter}" ]] && continue
         fi
 
-        # If h_alias is empty or looks like a description, use h_name as alias
-        if [[ -z "${h_alias}" ]] || [[ "${h_alias}" =~ [[:space:]] ]]; then
-            # h_alias is actually description, shift values
+        # If h_alias contains spaces it is from an old-format config (no alias field):
+        # position 5 holds the description, not an alias — shift values accordingly.
+        # An empty h_alias simply means "no alias defined"; just default to h_name.
+        if [[ "${h_alias}" =~ [[:space:]] ]]; then
             h_version="${h_desc}"
             h_desc="${h_alias}"
             h_alias="${h_name}"
+        elif [[ -z "${h_alias}" ]]; then
+            h_alias="${h_name}"
         fi
-        
+
         # Default version to AUTO if not specified
         [[ -z "${h_version}" ]] && h_version="AUTO"
 
