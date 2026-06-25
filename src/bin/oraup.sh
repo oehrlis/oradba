@@ -537,7 +537,6 @@ show_oracle_status_registry() {
         local -a ds_temp_files=()
         
         # Launch all status checks in parallel
-        local idx=0
         for ds_obj in "${datasafe_homes[@]}"; do
             local name home
             name=$(oradba_registry_get_field "$ds_obj" "name")
@@ -602,9 +601,8 @@ show_oracle_status_registry() {
                 ds_ports+=("")     # Placeholder
             fi
             
-            ((idx++))
         done
-        
+
         # Wait for all background jobs and collect results
         for idx in "${!ds_pids[@]}"; do
             local pid="${ds_pids[$idx]}"
