@@ -61,6 +61,10 @@ FORCE_MODE=false
 ACTION=""
 CONNECTORS=()
 LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+# Ensure log directory exists; fall back to /tmp if creation fails
+if [[ ! -d "${LOGFILE%/*}" ]]; then
+    mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
+fi
 
 # ------------------------------------------------------------------------------
 # Functions

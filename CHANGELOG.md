@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.11] - 2026-06-25
+
+### Fixed
+
+- **`oradba_dsctl.sh`: script crashes when log directory does not exist**
+  - `LOGFILE` is set to `${ORADBA_LOG:-/var/log/oracle}/oradba_dsctl.log`; under
+    `set -euo pipefail` any log write via `oradba_common.sh` fails immediately when
+    the directory is absent (`No such file or directory`), causing the systemd service
+    unit to fail at `ExecStart`
+  - Fix: after computing `LOGFILE`, the script attempts `mkdir -p` on the directory;
+    if that fails (e.g. no write permission), `LOGFILE` silently falls back to
+    `/tmp/oradba_dsctl.log` so logging never blocks execution
+  - The companion fix in `odb_datasafe` v0.20.4 sets
+    `Environment="ORADBA_LOG=${CONNECTOR_HOME}/log"` in generated service files,
+    pointing the log into the connector's own tree where it always exists
+
 ## [0.24.10] - 2026-06-25
 
 ### Fixed
