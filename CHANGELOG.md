@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.8] - 2026-06-25
+
+### Fixed
+
+- **`oradba_home_discovery.sh`: description wiped when `ALIAS_NAME` is empty in config**
+  - `parse_oracle_home()` and `list_oracle_homes()` both shifted `h_desc` into `h_version`
+    whenever `h_alias` was empty, leaving the DESCRIPTION column blank in `oradba_homes.sh list`
+  - Root cause: the empty-alias case (`::` in the config) was treated identically to old-format
+    configs that have no alias field and carry the description in position 5 with spaces
+  - Fix: split into two branches — alias contains spaces → old format (shift as before);
+    alias is empty → new format (default `h_alias` to home name only, no shift)
+  - Affected: `dscon*` entries auto-discovered with `oci=` metadata in the description;
+    all other home types with an explicit alias are unaffected
+
 ## [0.24.7] - 2026-06-25
 
 ### Added
