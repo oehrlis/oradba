@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.9] - 2026-06-25
+
+### Fixed
+
+- **`oraup.sh`: Data Safe connectors not displayed due to `((idx++))` under `set -e`**
+  - With `set -euo pipefail` active, `((idx++))` evaluates to `0` (falsy) when `idx=0`,
+    triggering an immediate exit on the first loop iteration
+  - The Data Safe section header was printed but the connector rows were never reached
+  - The `idx` counter was unused (arrays use `+=`; display loop reinitialises `idx` via
+    `"${!ds_names[@]}"`) — removed the line entirely
+  - Same root cause as the `(( count++ ))` fix applied to bats tests in v0.24.5
+
 ## [0.24.8] - 2026-06-25
 
 ### Fixed
