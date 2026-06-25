@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.10] - 2026-06-25
+
+### Fixed
+
+- **`oraup.sh`: stopped Data Safe connectors show no status**
+  - `oradba_get_product_status` returns exit code 1 for "stopped"; with `pipefail`
+    active the pipeline assignment `status=$(...)` propagates exit code 1 and kills
+    the background subshell before the temp file is written — status column stays blank
+  - Fix: `|| true` on the assignment lets the captured "stopped" string through
+    regardless of the pipeline exit code
+
 ## [0.24.9] - 2026-06-25
 
 ### Fixed
