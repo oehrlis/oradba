@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.7] - 2026-06-25
+
+### Added
+
+- **`odb_svc` - Role-aware PDB service trigger scripts for Data Guard environments**
+  - `odb_svc_service_trigger_create.sql` - creates `_RW`/`_RO` services and startup trigger
+    `odb_pdb_service_trigger` in the target PDB; aborts if objects already exist
+  - `odb_svc_service_trigger_recreate.sql` - idempotent: drops existing services/trigger and
+    re-creates them; recommended for migration runbooks
+  - `odb_svc_service_trigger_drop.sql` - stops and removes services, drops the trigger;
+    all operations are silent when objects do not exist
+  - `odb_svc_service_trigger_show.sql` - read-only status report: PDB identity/role, registered
+    services, active services, trigger status and source
+  - `odb_svc_service_trigger_manage.sql` - manual service control with `START`/`STOP`/`STATUS`
+    actions; service names resolved dynamically via `LIKE '<PDB>\_R%'`
+  - `odb_svc_service_trigger_check.sql` - compares legacy `SERVICE_TRIGGER` with the current
+    `odb_pdb_service_trigger` inside a PDB and outputs a migration verdict
+  - `odb_svc_service_trigger_check_all.sql` - overview of trigger and service state for all open
+    PDBs from `CDB$ROOT`; current trigger matched dynamically via `LIKE '%\_PDB\_SERVICE\_TRIGGER'`
+  - Service names derived from `CON_NAME` and `db_domain`: `<CON_NAME>_RW[.<db_domain>]` active
+    on PRIMARY, `<CON_NAME>_RO[.<db_domain>]` active on PHYSICAL STANDBY
+  - All scripts enforce container context via `WHENEVER SQLERROR EXIT SQL.SQLCODE` and
+    `RAISE_APPLICATION_ERROR`; must be executed as SYSDBA after `ALTER SESSION SET CONTAINER`
+
 ## [0.24.6] - 2026-05-03
 
 ### Fixed
