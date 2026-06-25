@@ -571,8 +571,10 @@ show_oracle_status_registry() {
                     export ORADBA_CACHED_PS="$process_list"
                     
                     # Get status using plugin system
+                    # || true: oradba_get_product_status returns exit code 1 for "stopped",
+                    # which with pipefail would kill this subshell before the temp file is written
                     if type -t oradba_get_product_status &>/dev/null; then
-                        status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]')
+                        status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]') || true
                         if [[ -z "$status" ]]; then
                             status="unknown"
                         fi
