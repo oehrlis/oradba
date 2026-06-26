@@ -76,7 +76,7 @@ CHECKS_INFO=0
 # Notes...: Increments CHECKS_PASSED counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_pass() {
-    ((CHECKS_PASSED++)) || true
+    CHECKS_PASSED=$((CHECKS_PASSED + 1))
     [[ "$QUIET" == "true" ]] && return # Don't show passes in quiet mode
     echo -e "  ${GREEN}[OK]${NC} $1"
 }
@@ -90,7 +90,7 @@ log_pass() {
 # Notes...: Increments CHECKS_FAILED counter; never suppressed (critical errors)
 # ------------------------------------------------------------------------------
 log_fail() {
-    ((CHECKS_FAILED++)) || true
+    CHECKS_FAILED=$((CHECKS_FAILED + 1))
     echo -e "  ${RED}[FAIL]${NC} $1"
 }
 
@@ -103,7 +103,7 @@ log_fail() {
 # Notes...: Increments CHECKS_WARNING counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_warn() {
-    ((CHECKS_WARNING++)) || true
+    CHECKS_WARNING=$((CHECKS_WARNING + 1))
     [[ "$QUIET" == "true" ]] && return # Don't show warnings in quiet mode
     echo -e "  ${YELLOW}[WARN]${NC} $1"
 }
@@ -117,7 +117,7 @@ log_warn() {
 # Notes...: Increments CHECKS_INFO counter; respects --quiet flag
 # ------------------------------------------------------------------------------
 log_info() {
-    ((CHECKS_INFO++)) || true
+    CHECKS_INFO=$((CHECKS_INFO + 1))
     [[ "$QUIET" == "true" ]] && return # Don't show info in quiet mode
     echo -e "  ${BLUE}[INFO]${NC} $1"
 }
@@ -764,7 +764,7 @@ check_oracle_versions() {
             if [[ "$line" =~ LOC=\"([^\"]+)\" ]] && [[ "$line" =~ TYPE=\"O\" ]]; then
                 local home="${BASH_REMATCH[1]}"
                 if [[ -d "$home" ]]; then
-                    ((homes_found++))
+                    homes_found=$((homes_found + 1))
                     log_info "$(printf '%-18s %s' "Oracle Home $homes_found:" "$home")"
 
                     # Get version if possible

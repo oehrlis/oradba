@@ -314,7 +314,7 @@ cmd_check() {
             fi
             # Check for .extension or content directories
             if [[ -f "${ext_dir}/.extension" ]] || [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || [[ -d "${ext_dir}/rcv" ]]; then
-                ((ext_count++))
+                ext_count=$((ext_count + 1))
             fi
         done
 
@@ -433,7 +433,7 @@ cmd_show_config() {
             fi
             # Check for .extension or content directories
             if [[ -f "${ext_dir}/.extension" ]] || [[ -d "${ext_dir}/bin" ]] || [[ -d "${ext_dir}/sql" ]] || [[ -d "${ext_dir}/rcv" ]]; then
-                ((ext_count++))
+                ext_count=$((ext_count + 1))
             fi
         done
         echo "  Discovered:        $ext_count"

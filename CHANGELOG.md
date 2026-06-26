@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.1] - 2026-06-26
+
+### Fixed
+
+- Zero-start `(( var++ ))` patterns in `oradba_check.sh`, `oraup.sh`, and
+  `oradba_setup.sh` added to CI scope but not yet cleaned (CF-001 follow-up)
+- Applied shfmt formatting to the same 4 files to pass CI format check
+
 ## [0.27.0] - 2026-06-26
 
 ### Added

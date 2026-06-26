@@ -528,7 +528,7 @@ show_oracle_status_registry() {
 
             # Use full path for listener home (not [SID] notation)
             printf "%-20s %-16s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
-            ((listener_count++))
+            listener_count=$((listener_count + 1))
         done < <(grep "[t]nslsnr" <<< "$process_list" | grep -v "datasafe\|oracle_cman_home")
 
         if [[ $listener_count -eq 0 ]]; then
