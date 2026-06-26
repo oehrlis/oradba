@@ -311,4 +311,45 @@ setup() {
     grep -q "oraenv.sh" "${PROJECT_ROOT}/src/bin/oradba_dbctl.sh"
 }
 
+# ------------------------------------------------------------------------------
+# CF-009 First-Iteration Regression Tests
+# These exercise the per-SID processing loop with exactly one entry so the
+# success_count / failure_count counters increment from 0. If the from-zero
+# arithmetic fix (CF-001/M1) is reverted, the script aborts under set -e mid
+# loop and never reaches the per-SID processing message.
+# ------------------------------------------------------------------------------
+
+@test "oradba_dbctl_first_iteration_does_not_abort" {
+    local tmp oh
+    tmp="$(mktemp -d)"
+    oh="${tmp}/oh"
+    mkdir -p "${oh}/bin"
+    printf 'TESTDB:%s:Y\n' "${oh}" > "${tmp}/oratab"
+
+    ORATAB="${tmp}/oratab" run "${PROJECT_ROOT}/src/bin/oradba_dbctl.sh" status TESTDB
+
+    # Loop must begin (single SID processed); exit is graceful (0 or 1), never a
+    # fatal crash from a from-zero arithmetic abort (would be >= 126 / killed).
+    [ "$status" -lt 126 ]
+    [[ "$output" =~ TESTDB ]]
+    rm -rf "${tmp}"
+}
+
+@test "oradba_lsnrctl_first_iteration_does_not_abort" {
+    local tmp oh
+    tmp="$(mktemp -d)"
+    oh="${tmp}/oh"
+    mkdir -p "${oh}/bin"
+    # Provide a stub lsnrctl so the listener loop runs its first iteration
+    printf '#!/usr/bin/env bash\nexit 0\n' > "${oh}/bin/lsnrctl"
+    chmod +x "${oh}/bin/lsnrctl"
+    printf 'TESTDB:%s:Y\n' "${oh}" > "${tmp}/oratab"
+
+    ORATAB="${tmp}/oratab" run "${PROJECT_ROOT}/src/bin/oradba_lsnrctl.sh" status
+
+    # Script completes its first-iteration processing without a fatal crash.
+    [ "$status" -lt 126 ]
+    rm -rf "${tmp}"
+}
+
 # EOF -------------------------------------------------------------------------

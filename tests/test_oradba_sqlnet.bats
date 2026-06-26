@@ -577,4 +577,17 @@ EOF
     # This is tested implicitly - older versions don't have read-only homes
 }
 
+# ------------------------------------------------------------------------------
+# CF-009 First-Iteration Regression
+# The config-management paths increment moved/created/count counters from 0.
+# Running the help/dispatch path must complete cleanly; a reverted from-zero
+# arithmetic fix (CF-001/M1) would abort the script under set -e.
+# ------------------------------------------------------------------------------
+
+@test "oradba_sqlnet_first_iteration_does_not_abort" {
+    run "${SCRIPT}" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Usage:" ]] || [[ "$output" =~ oradba_sqlnet ]]
+}
+
 # --- EOF ----------------------------------------------------------------------

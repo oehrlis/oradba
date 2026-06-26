@@ -5,7 +5,7 @@
 # Used by scripts/select_tests.sh for smart test selection.
 #
 # Architecture: Registry API + Plugin System + Environment Builder
-# Test Coverage: 1516 tests across 65 test files
+# Test Coverage: 1675 tests across 53 test files
 # ------------------------------------------------------------------------------
 
 # Tests that always run regardless of changes (core functionality)
@@ -26,6 +26,7 @@ mappings:
     - test_oracle_homes.bats
     - test_oradba_homes.bats
     - test_oraenv.bats
+    - test_oradba_home_discovery.bats
   src/lib/oradba_database_discovery.sh:
     - test_oradba_common.bats
     - test_oraenv.bats
@@ -33,6 +34,7 @@ mappings:
   src/lib/oradba_version_metadata.sh:
     - test_oradba_common.bats
     - test_oradba_version.bats
+    - test_oradba_version_metadata.bats
   src/lib/oradba_common.sh:
     - test_oradba_common.bats
     - test_oradba_aliases.bats
@@ -114,7 +116,23 @@ mappings:
   
   src/bin/oradba_dsctl.sh:
     - test_oradba_dsctl.bats
-  
+
+  # Admin / utility scripts (smoke tests - F-014)
+  src/bin/oradba_logrotate.sh:
+    - test_oradba_admin_scripts.bats
+
+  src/bin/sessionsql.sh:
+    - test_oradba_admin_scripts.bats
+
+  src/bin/oradba_validate.sh:
+    - test_oradba_admin_scripts.bats
+
+  src/bin/oradba_datasafe_debug.sh:
+    - test_oradba_admin_scripts.bats
+
+  src/bin/oradba_setup.sh:
+    - test_oradba_admin_scripts.bats
+
   # Environment Management Libraries (v0.19.0 architecture)
   src/lib/oradba_env_parser.sh:
     - test_oradba_env_parser.bats
@@ -135,9 +153,13 @@ mappings:
     - test_oradba_check.bats
     - test_oracle_homes.bats
     - test_oradba_env_validator_unit.bats
-  
+    - test_oradba_env_validator.bats
+
   src/lib/oradba_env_status.sh:
     - test_oradba_env_status.bats
+
+  src/lib/oradba_env_output.sh:
+    - test_oradba_env_output.bats
   
   src/lib/oradba_env_changes.sh:
     - test_oradba_env_changes.bats
