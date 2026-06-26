@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-06-26
+
+### Added
+
+- Behavioral test coverage for validator, env-builder, home-discovery, version-metadata, env-output (CF-008)
+- Smoke tests and testmap entries for 5 previously untested bin scripts (F-014)
+- First-iteration arithmetic regression tests per CF-001 script (CF-009 completion)
+- Error-path assertion ratio brought to >= 15% of total (F-013)
+- .testmap.yml updated with new entries for oradba_env_output.sh and 5 admin scripts
+
 ## [0.26.0] - 2026-06-26
 
 ### Security
 
-- DBCA response file created via mktemp with mode 600 and EXIT-trap cleanup; passwords no longer written to predictable /tmp path (CF-002)
+- DBCA response file created via mktemp with mode 600 and EXIT-trap cleanup;
+  passwords no longer written to predictable /tmp path (CF-002)
 - Installer now verifies companion .sha256 before extraction; fails closed when no checksum tool is available (CF-006)
 - SEPS wallet password file rejected unless mode 600 and owner-owned; recovered password no longer logged (CF-020)
 - RMAN catalog credentials redacted in debug logs (CF-021)

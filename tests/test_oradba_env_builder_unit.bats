@@ -261,7 +261,203 @@ teardown() {
 @test "builder: can initialize both builder and parser with same logger" {
     oradba_builder_init "mock_logger"
     oradba_parser_init "mock_logger"
-    
+
     [ "$ORADBA_BUILDER_LOGGER" = "mock_logger" ]
     [ "$ORADBA_PARSER_LOGGER" = "mock_logger" ]
+}
+
+# ==============================================================================
+# Behavioral Coverage (CF-008) - PATH / lib path / ROOH / ASM / product vars
+# ==============================================================================
+
+@test "builder: clean_path removes oracle/grid/instantclient entries" {
+    run bash -c "
+        export PATH='/usr/bin:/u01/app/oracle/product/19/bin:/opt/grid/bin:/opt/instantclient_19'
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_clean_path
+        echo \"\$PATH\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"/usr/bin"* ]]
+    [[ "$output" != *"/oracle/"* ]]
+    [[ "$output" != *"/grid/"* ]]
+    [[ "$output" != *"instantclient"* ]]
+}
+
+@test "builder: add_oracle_path fails for a non-existent home" {
+    run oradba_add_oracle_path "${BATS_TMPDIR}/no_such_home.$$" "database"
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: add_oracle_path prepends the home bin directory to PATH" {
+    local home="${BATS_TMPDIR}/oh_addpath.$$"
+    mkdir -p "${home}/bin"
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_add_oracle_path '${home}' 'database'
+        echo \"\$PATH\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${home}/bin"* ]]
+    rm -rf "${home}"
+}
+
+@test "builder: set_lib_path fails for a non-existent home" {
+    run oradba_set_lib_path "${BATS_TMPDIR}/no_such_libhome.$$" "database"
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: set_lib_path exports lib path containing the home lib dir" {
+    local home="${BATS_TMPDIR}/oh_libpath.$$"
+    mkdir -p "${home}/bin" "${home}/lib"
+    local libvar="LD_LIBRARY_PATH"
+    [[ "$(uname -s)" == "Darwin" ]] && libvar="DYLD_LIBRARY_PATH"
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_set_lib_path '${home}' 'database'
+        echo \"\${${libvar}}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${home}/lib"* ]]
+    rm -rf "${home}"
+}
+
+@test "builder: is_asm_instance recognises +ASM names" {
+    run oradba_is_asm_instance "+ASM"
+    [ "$status" -eq 0 ]
+    run oradba_is_asm_instance "+ASM1"
+    [ "$status" -eq 0 ]
+}
+
+@test "builder: is_asm_instance rejects a normal SID" {
+    run oradba_is_asm_instance "ORCL"
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: detect_rooh sets ORACLE_BASE and ORADBA_DBS for a non-ROOH home" {
+    local base="${BATS_TMPDIR}/rooh_base.$$"
+    local home="${base}/product/19/dbhome_1"
+    mkdir -p "${home}"
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_detect_rooh '${home}' || true
+        echo \"BASE=\${ORACLE_BASE}\"
+        echo \"DBS=\${ORADBA_DBS}\"
+        echo \"ROOH=\${ORADBA_ROOH}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"BASE=${base}"* ]]
+    [[ "$output" == *"DBS=${home}/dbs"* ]]
+    [[ "$output" == *"ROOH=0"* ]]
+    rm -rf "${base}"
+}
+
+@test "builder: detect_rooh honours orabasetab read-only flag" {
+    local base="${BATS_TMPDIR}/rooh_base_y.$$"
+    local home="${base}/product/19/dbhome_1"
+    mkdir -p "${home}/install"
+    printf '%s:%s:dbhome_1:Y\n' "${home}" "${base}" > "${home}/install/orabasetab"
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_detect_rooh '${home}'
+        echo \"rc=\$?\"
+        echo \"DBS=\${ORADBA_DBS}\"
+        echo \"ROOH=\${ORADBA_ROOH}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ROOH=1"* ]]
+    [[ "$output" == *"DBS=${base}/dbs"* ]]
+    rm -rf "${base}"
+}
+
+@test "builder: detect_rooh fails for a non-existent home" {
+    run oradba_detect_rooh "${BATS_TMPDIR}/no_such_rooh.$$"
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: set_oracle_vars exports core variables for a database home" {
+    local home="${BATS_TMPDIR}/oh_vars.$$"
+    mkdir -p "${home}/bin"
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_set_oracle_vars 'TESTDB' '${home}' 'RDBMS'
+        echo \"SID=\${ORACLE_SID}\"
+        echo \"HOME=\${ORACLE_HOME}\"
+        echo \"UNQ=\${ORACLE_UNQNAME}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"SID=TESTDB"* ]]
+    [[ "$output" == *"HOME=${home}"* ]]
+    [[ "$output" == *"UNQ=TESTDB"* ]]
+    rm -rf "${home}"
+}
+
+@test "builder: set_oracle_vars rejects missing SID" {
+    local home="${BATS_TMPDIR}/oh_vars_nosid.$$"
+    mkdir -p "${home}/bin"
+    run oradba_set_oracle_vars "" "${home}" "RDBMS"
+    [ "$status" -eq 1 ]
+    rm -rf "${home}"
+}
+
+@test "builder: set_oracle_vars rejects a non-existent home" {
+    run oradba_set_oracle_vars "TESTDB" "${BATS_TMPDIR}/no_such_oh.$$" "RDBMS"
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: set_asm_environment sets ASM privilege and GRID_HOME" {
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        export ORACLE_HOME='/opt/grid'
+        unset GRID_HOME
+        oradba_set_asm_environment
+        echo \"SYSASM=\${ORACLE_SYSASM}\"
+        echo \"GRID=\${GRID_HOME}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"SYSASM=TRUE"* ]]
+    [[ "$output" == *"GRID=/opt/grid"* ]]
+}
+
+@test "builder: set_product_environment sets GRID_HOME for GRID product" {
+    run bash -c "
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        export ORACLE_HOME='/opt/grid_home'
+        oradba_set_product_environment 'GRID'
+        echo \"GRID=\${GRID_HOME}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"GRID=/opt/grid_home"* ]]
+}
+
+# ==============================================================================
+# Integration: oradba_build_environment with a mock home tree
+# ==============================================================================
+
+@test "builder: build_environment fails for an empty target" {
+    run oradba_build_environment ""
+    [ "$status" -eq 1 ]
+}
+
+@test "builder: build_environment builds a complete environment from a mock home" {
+    local base="${BATS_TMPDIR}/bld_base.$$"
+    local home="${base}/product/19.0.0/dbhome_1"
+    mkdir -p "${home}/bin"
+    for b in sqlplus rman oracle; do
+        printf '#!/usr/bin/env bash\nexit 0\n' > "${home}/bin/${b}"
+        chmod +x "${home}/bin/${b}"
+    done
+    run bash -c "
+        export ORADBA_BASE='${ORADBA_BASE}'
+        export ORACLE_BASE='${base}'
+        source '${ORADBA_BASE}/lib/oradba_env_builder.sh'
+        oradba_build_environment '${home}'
+        echo \"rc=\$?\"
+        echo \"PATH=\$PATH\"
+        echo \"LOADED=\${ORADBA_ENV_LOADED}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${home}/bin"* ]]
+    [[ "$output" == *"LOADED=1"* ]]
+    rm -rf "${base}"
 }

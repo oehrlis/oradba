@@ -306,3 +306,27 @@ EOF
 @test "oradba_version.sh verifies actual installation" {
     skip "Requires full installation to test"
 }
+
+# ------------------------------------------------------------------------------
+# CF-009 First-Iteration Regression
+# The --verify path increments missing_count / modified_count counters starting
+# from 0. With a single checksummed file, the verification loop must complete
+# its first iteration cleanly. A reverted from-zero arithmetic fix (CF-001/M1)
+# would abort the script under set -e before reporting the result.
+# ------------------------------------------------------------------------------
+
+@test "oradba_version_reports_single_home_correctly" {
+    # Single-file installation with exactly one entry in the checksum manifest
+    mkdir -p "$TEST_INSTALL_DIR/bin"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "single content" > "$TEST_INSTALL_DIR/bin/only.sh"
+
+    cd "$TEST_INSTALL_DIR" || return 1
+    sha256sum bin/only.sh > .oradba.checksum
+    cd - > /dev/null || return 1
+
+    # First (and only) iteration of the verify loop must run and report success
+    run "$ORADBA_VERSION" --verify
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Installation integrity verified" ]]
+}

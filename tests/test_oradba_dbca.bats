@@ -259,3 +259,16 @@ STUB
     run bash -c "grep -q '/tmp/dbca_' '${DBCA_SCRIPT}'"
     [[ "${status}" -ne 0 ]]
 }
+
+# ------------------------------------------------------------------------------
+# CF-009 First-Iteration Regression
+# The validation path increments an 'errors' counter starting from 0. Running
+# the help/dispatch path must complete cleanly; a reverted from-zero arithmetic
+# fix (CF-001/M1) would abort the script under set -e on the first increment.
+# ------------------------------------------------------------------------------
+
+@test "oradba_dbca_first_iteration_does_not_abort" {
+    run bash "${DBCA_SCRIPT}" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Usage:" ]] || [[ "$output" =~ oradba_dbca ]]
+}
