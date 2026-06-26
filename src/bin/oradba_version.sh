@@ -95,14 +95,15 @@ get_checksum_exclusions() {
             [[ "$line" =~ ^[[:space:]]*# ]] && continue
 
             # Trim whitespace (bash built-in, no subshells)
-            line="${line#"${line%%[![:space:]]*}"}"; line="${line%"${line##*[![:space:]]}"}"
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
             [[ -z "$line" ]] && continue
 
             # Convert glob pattern to awk regex using parameter expansion
             local pattern="$line"
-            pattern="${pattern//./\\.}"  # Escape dots: . -> \.
-            pattern="${pattern//\*/.*}"  # Glob * -> regex .*
-            pattern="${pattern//\?/.}"   # Glob ? -> regex .
+            pattern="${pattern//./\\.}" # Escape dots: . -> \.
+            pattern="${pattern//\*/.*}" # Glob * -> regex .*
+            pattern="${pattern//\?/.}"  # Glob ? -> regex .
 
             # If pattern ends with /, match directory contents
             if [[ "$pattern" == */ ]]; then
@@ -197,7 +198,7 @@ check_integrity() {
                 # Skip if already reported (use :- to handle unset key with set -u)
                 if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MISSING"
-                    missing_count=$(( missing_count + 1 ))
+                    missing_count=$((missing_count + 1))
                     reported_files[$file]=1
                 fi
                 continue
@@ -215,7 +216,7 @@ check_integrity() {
                 # Skip if already reported
                 if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MISSING"
-                    missing_count=$(( missing_count + 1 ))
+                    missing_count=$((missing_count + 1))
                     reported_files[$file]=1
                 fi
             elif [[ "$line" =~ ^(.+):[[:space:]]*FAILED$ ]]; then
@@ -224,7 +225,7 @@ check_integrity() {
                 # Skip if already reported
                 if [[ -z "${reported_files[$file]:-}" ]]; then
                     echo "  \$ORADBA_BASE/${file}: MODIFIED"
-                    modified_count=$(( modified_count + 1 ))
+                    modified_count=$((modified_count + 1))
                     reported_files[$file]=1
                 fi
             fi
@@ -399,7 +400,7 @@ check_extension_checksums() {
         local ext_name
         ext_name=$(basename "${extension_dir}")
 
-        ((checked_count++))
+        checked_count=$((checked_count + 1))
 
         # Change to extension directory for relative paths
         cd "${extension_dir}" || continue
@@ -420,7 +421,7 @@ check_extension_checksums() {
             echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
         else
             echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
-            ((failed_count++))
+            failed_count=$((failed_count + 1))
 
             # Show details in verbose mode
             if [[ "${VERBOSE}" == "true" ]]; then

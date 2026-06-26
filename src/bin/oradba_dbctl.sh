@@ -131,9 +131,9 @@ get_databases() {
     # Parse oratab, filter out comments and dummy entries
     local entry_count=0
     grep -v '^#' "${oratab_file}" | grep -v '^$' | while IFS=: read -r sid home flag rest; do
-        ((entry_count++))
+        entry_count=$((entry_count + 1))
         oradba_log DEBUG "${SCRIPT_NAME}: get_databases() - Found entry ${entry_count}: SID=${sid}, HOME=${home}, FLAG=${flag}"
-        
+
         # Skip dummy entries
         if [[ "${flag}" == "D" ]]; then
             oradba_log DEBUG "${SCRIPT_NAME}: get_databases() - Skipping dummy entry: ${sid}"
@@ -142,7 +142,7 @@ get_databases() {
 
         echo "${sid}:${home}:${flag}"
     done
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: get_databases() - Processed ${entry_count} entries from oratab"
 }
 
@@ -204,7 +204,7 @@ start_database() {
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Set ORACLE_SID to '${sid}'"
-    
+
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Sourcing environment from oraenv.sh"
         source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
@@ -224,7 +224,7 @@ SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
     )
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Current status: '${status}'"
 
     if [[ "${status}" =~ OPEN ]]; then
@@ -243,7 +243,7 @@ EOF
 
     local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - STARTUP command completed with exit code: ${rc}"
-    
+
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Database ${sid} started successfully"
 
@@ -309,7 +309,7 @@ stop_database() {
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Set ORACLE_SID to '${sid}'"
-    
+
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Sourcing environment from oraenv.sh"
         source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
@@ -329,7 +329,7 @@ SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
     )
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Current status: '${status}'"
 
     if [[ ! "${status}" =~ (OPEN|MOUNTED) ]]; then
@@ -366,7 +366,7 @@ EXIT;
 EOF
         local abort_rc=$?
         oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - SHUTDOWN ABORT completed with exit code: ${abort_rc}"
-        
+
         if [[ ${abort_rc} -eq 0 ]]; then
             oradba_log INFO "Database ${sid} stopped with abort"
             oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Shutdown abort completed successfully"
@@ -396,7 +396,7 @@ show_status() {
     # Source environment for this SID
     export ORACLE_SID="${sid}"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Set ORACLE_SID to '${sid}'"
-    
+
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         # shellcheck source=oraenv.sh
         oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Sourcing environment from oraenv.sh"
@@ -418,7 +418,7 @@ SELECT status FROM v\$instance WHERE rownum = 1;
 EXIT;
 EOF
     )
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Query result: '${status}'"
 
     if [[ -z "${status}" ]] || [[ "${status}" =~ ERROR ]]; then
@@ -563,29 +563,29 @@ for sid in "${SIDS[@]}"; do
     case "${ACTION}" in
         start)
             if start_database "${sid}"; then
-                ((success_count++))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start database '${sid}'"
             fi
             ;;
         stop)
             if stop_database "${sid}"; then
-                ((success_count++))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop database '${sid}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting database '${sid}' (stop then start)"
             if stop_database "${sid}" && start_database "${sid}"; then
-                ((success_count++))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart database '${sid}'"
             fi
             ;;

@@ -42,13 +42,24 @@ jobs:
       
       - name: Verify VERSION file
         run: |
-          echo "VERSION file content: $(cat VERSION)"
-          echo "Detected version: ${{ steps.version.outputs.version }}"
+          TAG_VERSION="${{ steps.version.outputs.version }}"
+          FILE_VERSION="$(cat VERSION)"
+          if [ "${FILE_VERSION}" != "${TAG_VERSION}" ]; then
+            echo "ERROR: VERSION file (${FILE_VERSION}) does not match git tag (${TAG_VERSION})" >&2
+            exit 1
+          fi
+          echo "VERSION verified: ${FILE_VERSION}"
       
       - name: Install BATS and linting tools
+        env:
+          SHELLCHECK_VERSION: "0.10.0"
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats shellcheck
+          sudo apt-get install -y bats
+          curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ
+          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          shellcheck --version
           npm install -g markdownlint-cli
       
       - name: Run linting

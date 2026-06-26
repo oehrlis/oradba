@@ -935,3 +935,32 @@ EOF
     # The function succeeds even if no homes added
     [ "$status" -eq 0 ]
 }
+# ------------------------------------------------------------------------------
+# Regression Tests - M1 (v0.25.0)
+# Group 4 - cbcb942: empty alias must not clobber the description field.
+# ------------------------------------------------------------------------------
+
+@test "parse_oracle_home_preserves_description_with_empty_alias" {
+    # Entry with empty ALIAS field (position 5) but a DESCRIPTION (position 6).
+    # Format: NAME:HOME:TYPE:ORDER:ALIAS:DESC:VERSION
+    cat > "${ORADBA_BASE}/etc/oradba_homes.conf" << EOF
+OUD12::oud:50::My OUD Description:1234
+EOF
+    run parse_oracle_home "OUD12"
+    [ "$status" -eq 0 ]
+    # Output: NAME PATH TYPE ORDER ALIAS DESC VERSION
+    # Empty alias defaults to NAME; description must survive intact.
+    [[ "$output" == "OUD12  oud 50 OUD12 My OUD Description 1234" ]]
+}
+
+@test "list_oracle_homes_preserves_description_with_empty_alias" {
+    cat > "${ORADBA_BASE}/etc/oradba_homes.conf" << EOF
+OUD12::oud:50::My OUD Description:1234
+EOF
+    run list_oracle_homes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"My OUD Description"* ]]
+    # Output is pipe-delimited: NAME|PATH|TYPE|ORDER|ALIAS|DESC|VERSION
+    # Alias field must hold the NAME default, not the description text.
+    [[ "$output" == "OUD12||oud|50|OUD12|My OUD Description|1234" ]]
+}

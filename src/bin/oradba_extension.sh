@@ -14,7 +14,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Determine ORADBA_BASE
 if [[ -n "${ORADBA_BASE}" ]]; then
@@ -382,11 +382,11 @@ download_extension_from_github() {
         local selected_url=""
 
         # First try: explicit release assets
-        selected_url=$(echo "${release_json}" | \
-            grep -oE '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]*\.(tar\.gz|tgz)"' | \
-            sed -E 's/^.*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' | \
-            grep -vE '(\.sha256|\.sha512|checksums?)$' | \
-            head -1)
+        selected_url=$(echo "${release_json}" \
+            | grep -oE '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]*\.(tar\.gz|tgz)"' \
+            | sed -E 's/^.*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' \
+            | grep -vE '(\.sha256|\.sha512|checksums?)$' \
+            | head -1)
 
         if [[ -n "${selected_url}" ]]; then
             echo "${selected_url}"
@@ -394,10 +394,10 @@ download_extension_from_github() {
         fi
 
         # Fallback: GitHub source tarball from release metadata
-        selected_url=$(echo "${release_json}" | \
-            grep -oE '"tarball_url"[[:space:]]*:[[:space:]]*"[^"]*"' | \
-            sed -E 's/^.*"tarball_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' | \
-            head -1)
+        selected_url=$(echo "${release_json}" \
+            | grep -oE '"tarball_url"[[:space:]]*:[[:space:]]*"[^"]*"' \
+            | sed -E 's/^.*"tarball_url"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' \
+            | head -1)
         echo "${selected_url}"
         return 0
     }
@@ -600,7 +600,7 @@ update_extension() {
     # Save modified files and user-added files
     if [[ -f "${ext_path}/.extension.checksum" ]]; then
         echo "Checking for modified and user-added files..."
-        cd "${ext_path}" || return 1
+        cd "${ext_path:?ext_path must not be empty}" || return 1
 
         # Check each file against checksum to identify modifications
         while IFS= read -r line; do
@@ -630,12 +630,12 @@ update_extension() {
         find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" -o -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) | while read -r user_file; do
             # Remove leading ./
             user_file="${user_file#./}"
-            
+
             # Skip if file is in checksum
-            if grep -q " ${user_file}$" ".extension.checksum" 2>/dev/null; then
+            if grep -q " ${user_file}$" ".extension.checksum" 2> /dev/null; then
                 continue
             fi
-            
+
             # Skip files that are part of the new release content
             if [[ -f "${new_content_dir}/${user_file}" ]]; then
                 continue
@@ -1763,19 +1763,19 @@ cmd_disabled() {
 # ------------------------------------------------------------------------------
 cmd_enable() {
     local ext_name="$1"
-    
+
     if [[ -z "${ext_name}" ]]; then
         echo "ERROR: Extension name required" >&2
         echo "Usage: $(basename "$0") enable <extension-name>" >&2
         return 1
     fi
-    
+
     log_debug "cmd_enable invoked for '${ext_name}'"
-    
+
     # Find extension (search discovered extensions first)
     local extensions ext_path found=false
     mapfile -t extensions < <(get_all_extensions)
-    
+
     for path in "${extensions[@]}"; do
         local name
         name="$(get_extension_name "${path}")"
@@ -1785,7 +1785,7 @@ cmd_enable() {
             break
         fi
     done
-    
+
     # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
     if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
         local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
@@ -1795,12 +1795,12 @@ cmd_enable() {
             log_debug "Found undiscovered extension directory: ${potential_path}"
         fi
     fi
-    
+
     if [[ "${found}" != "true" ]]; then
         echo "ERROR: Extension '${ext_name}' not found" >&2
         return 1
     fi
-    
+
     # Update or create .extension file
     local metadata="${ext_path}/.extension"
     if [[ -f "${metadata}" ]]; then
@@ -1809,7 +1809,7 @@ cmd_enable() {
             echo "Extension '${ext_name}' is already enabled"
             return 0
         fi
-        
+
         # Update existing file
         if grep -q "^enabled:" "${metadata}"; then
             # Replace existing enabled line
@@ -1827,13 +1827,13 @@ name: ${ext_name}
 enabled: true
 EOF
     fi
-    
+
     echo -e "${GREEN}✓ Extension '${ext_name}' enabled successfully${NC}"
     echo ""
     echo "To apply changes, reload your environment:"
     echo "  source \${ORADBA_BASE}/bin/oraenv.sh \${ORACLE_SID}"
     echo ""
-    
+
     return 0
 }
 
@@ -1852,19 +1852,19 @@ EOF
 # ------------------------------------------------------------------------------
 cmd_disable() {
     local ext_name="$1"
-    
+
     if [[ -z "${ext_name}" ]]; then
         echo "ERROR: Extension name required" >&2
         echo "Usage: $(basename "$0") disable <extension-name>" >&2
         return 1
     fi
-    
+
     log_debug "cmd_disable invoked for '${ext_name}'"
-    
+
     # Find extension (search discovered extensions first)
     local extensions ext_path found=false
     mapfile -t extensions < <(get_all_extensions)
-    
+
     for path in "${extensions[@]}"; do
         local name
         name="$(get_extension_name "${path}")"
@@ -1874,7 +1874,7 @@ cmd_disable() {
             break
         fi
     done
-    
+
     # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
     if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
         local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
@@ -1884,12 +1884,12 @@ cmd_disable() {
             log_debug "Found undiscovered extension directory: ${potential_path}"
         fi
     fi
-    
+
     if [[ "${found}" != "true" ]]; then
         echo "ERROR: Extension '${ext_name}' not found" >&2
         return 1
     fi
-    
+
     # Update or create .extension file
     local metadata="${ext_path}/.extension"
     if [[ -f "${metadata}" ]]; then
@@ -1898,7 +1898,7 @@ cmd_disable() {
             echo "Extension '${ext_name}' is already disabled"
             return 0
         fi
-        
+
         # Update existing file
         if grep -q "^enabled:" "${metadata}"; then
             # Replace existing enabled line
@@ -1916,13 +1916,13 @@ name: ${ext_name}
 enabled: false
 EOF
     fi
-    
+
     echo -e "${GREEN}✓ Extension '${ext_name}' disabled successfully${NC}"
     echo ""
     echo "To apply changes, reload your environment:"
     echo "  source \${ORADBA_BASE}/bin/oraenv.sh \${ORACLE_SID}"
     echo ""
-    
+
     return 0
 }
 

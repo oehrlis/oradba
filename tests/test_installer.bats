@@ -733,3 +733,45 @@ teardown() {
 }
 
 # Test CI trigger - Fri Jan  9 14:30:29 CET 2026
+
+# ------------------------------------------------------------------------------
+# Regression Tests - M1 (v0.25.0)
+# Group 5 - bbf2540: ORACLE_BASE must be referenced safely under set -u.
+# ------------------------------------------------------------------------------
+
+# Extract the real determine_default_prefix() body from the installer so the
+# test exercises shipped code, not a copy.
+_extract_determine_default_prefix() {
+    sed -n '/^determine_default_prefix() {/,/^}/p' "${STANDALONE_INSTALLER}"
+}
+
+@test "installer_silent_succeeds_without_oracle_base_exported" {
+    # Run determine_default_prefix under strict mode with ORACLE_BASE unset.
+    # Reverting the ${ORACLE_BASE:-} guard makes this abort with "unbound variable".
+    local fn
+    fn="$(_extract_determine_default_prefix)"
+    run env -u ORACLE_BASE -u ORACLE_HOME bash -c "
+        set -euo pipefail
+        ORADBA_DEBUG=false
+        ${fn}
+        determine_default_prefix || true
+    "
+    [ "$status" -eq 0 ]
+    [[ ! "$output" =~ "unbound variable" ]]
+}
+
+@test "prompt_oracle_base_returns_0_when_oracle_base_unset" {
+    # determine_default_prefix is the installer's ORACLE_BASE resolver. With
+    # ORACLE_BASE exported it must succeed (exit 0) and emit the derived prefix.
+    local fn
+    fn="$(_extract_determine_default_prefix)"
+    run bash -c "
+        set -euo pipefail
+        ORADBA_DEBUG=false
+        export ORACLE_BASE=/opt/oracle
+        ${fn}
+        determine_default_prefix
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == "/opt/oracle/local/oradba" ]]
+}

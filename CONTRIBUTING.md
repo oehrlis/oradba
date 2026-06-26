@@ -142,13 +142,15 @@ Follow these essential rules for all shell scripts:
 #### Shebang and Basic Rules
 
 - **Always use**: `#!/usr/bin/env bash` (never `#!/bin/sh`)
-- **Strict mode**: Consider enabling for critical scripts:
+- **Strict mode**: Mandatory for all non-sourced scripts - place immediately after the shebang:
 
   ```bash
-  set -e          # Exit on error
-  set -u          # Exit on undefined variable
-  set -o pipefail # Exit on pipe failure
+  set -euo pipefail # Exit on error, undefined variable, or pipe failure
   ```
+
+  Under `set -e`, a from-zero post-increment such as `(( count++ ))` aborts the
+  script (it returns exit code 1 when `count` is 0). Always use the assignment
+  form instead: `count=$(( count + 1 ))`.
 
 - **ShellCheck compliance**: All code must pass `make lint` with no warnings
 - **Quote variables**: Always quote variables: `"${variable}"` not `$variable`

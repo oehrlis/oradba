@@ -67,7 +67,7 @@ DB_UNIQUE_NAME=""
 # Output..: Usage text to stdout
 # ------------------------------------------------------------------------------
 usage() {
-    cat <<EOF
+    cat << EOF
 Usage: ${SCRIPT_NAME} [OPTIONS]
 
 Create Oracle database using DBCA response file templates.
@@ -132,15 +132,15 @@ EOF
 show_templates() {
     oradba_log INFO "Available DBCA Templates:"
     echo ""
-    
+
     for version_dir in "${DBCA_TEMPLATE_DIR}"/*/; do
         local version
         version="$(basename "${version_dir}")"
         [[ "${version}" == "common" || "${version}" == "custom" ]] && continue
-        
+
         echo "Oracle ${version}:"
         if [[ -d "${version_dir}" ]]; then
-            find "${version_dir}" -maxdepth 1 -name '*.rsp' -type f 2>/dev/null | sort | while read -r template; do
+            find "${version_dir}" -maxdepth 1 -name '*.rsp' -type f 2> /dev/null | sort | while read -r template; do
                 local name
                 name=$(basename "${template}" .rsp)
                 local type=${name##*_}
@@ -162,14 +162,14 @@ show_templates() {
 substitute_variables() {
     local template_file="$1"
     local output_file="$2"
-    
+
     if [[ ! -f "${template_file}" ]]; then
         oradba_log ERROR "Template file not found: ${template_file}"
         return 1
     fi
-    
+
     oradba_log INFO "Generating response file from template: ${template_file}"
-    
+
     # Read template and substitute variables
     while IFS= read -r line || [[ -n "${line}" ]]; do
         # Substitute all variables
@@ -189,10 +189,10 @@ substitute_variables() {
         line="${line//\{\{ASM_DISKGROUP\}\}/${ASM_DISKGROUP:-DATA}}"
         line="${line//\{\{ASM_FRA_DISKGROUP\}\}/${ASM_FRA_DISKGROUP:-FRA}}"
         line="${line//\{\{NODELIST\}\}/${NODELIST:-}}"
-        
+
         echo "${line}"
     done < "${template_file}" > "${output_file}"
-    
+
     oradba_log INFO "Response file generated: ${output_file}"
     return 0
 }
@@ -206,44 +206,44 @@ substitute_variables() {
 # ------------------------------------------------------------------------------
 validate_prerequisites() {
     oradba_log INFO "Validating prerequisites..."
-    
+
     # Check Oracle Home
     if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
         oradba_log ERROR "ORACLE_HOME not set or invalid: ${ORACLE_HOME}"
         return 1
     fi
-    
+
     # Check Oracle Base
     if [[ -z "${ORACLE_BASE}" || ! -d "${ORACLE_BASE}" ]]; then
         oradba_log ERROR "ORACLE_BASE not set or invalid: ${ORACLE_BASE}"
         return 1
     fi
-    
+
     # Check dbca executable
     if [[ ! -x "${ORACLE_HOME}/bin/dbca" ]]; then
         oradba_log ERROR "DBCA not found or not executable: ${ORACLE_HOME}/bin/dbca"
         return 1
     fi
-    
+
     # Check if database already exists (basic check)
     if [[ -d "${ORACLE_HOME}/dbs" && -f "${ORACLE_HOME}/dbs/init${DB_SID}.ora" ]]; then
         oradba_log WARN "Database ${DB_SID} may already exist (init file found)"
         oradba_log WARN "Continuing anyway..."
     fi
-    
+
     # Check if oratab entry exists
-    if [[ -f "/etc/oratab" ]] && grep -q "^${DB_SID}:" /etc/oratab 2>/dev/null; then
+    if [[ -f "/etc/oratab" ]] && grep -q "^${DB_SID}:" /etc/oratab 2> /dev/null; then
         oradba_log WARN "Database ${DB_SID} found in /etc/oratab"
     fi
-    
+
     # Check disk space for data directory
     if [[ -n "${DATA_DIR}" ]]; then
         local data_dir_parent
         data_dir_parent=$(dirname "${DATA_DIR}")
         if [[ -d "${data_dir_parent}" ]]; then
             local avail_gb
-            avail_gb=$(df -BG "${data_dir_parent}" 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//')
-            if [[ -n "${avail_gb}" ]] && (( avail_gb < 10 )); then
+            avail_gb=$(df -BG "${data_dir_parent}" 2> /dev/null | awk 'NR==2 {print $4}' | sed 's/G//')
+            if [[ -n "${avail_gb}" ]] && ((avail_gb < 10)); then
                 oradba_log WARN "Low disk space in ${data_dir_parent}: ${avail_gb}GB available"
                 oradba_log WARN "Minimum 10GB recommended for database files"
             else
@@ -251,7 +251,7 @@ validate_prerequisites() {
             fi
         fi
     fi
-    
+
     oradba_log INFO "Prerequisites validated successfully"
     return 0
 }
@@ -265,10 +265,10 @@ validate_prerequisites() {
 # ------------------------------------------------------------------------------
 create_directories() {
     oradba_log INFO "Creating database directories..."
-    
+
     # Create data directory
     if [[ ! -d "${DATA_DIR}" ]]; then
-        if mkdir -p "${DATA_DIR}" 2>/dev/null; then
+        if mkdir -p "${DATA_DIR}" 2> /dev/null; then
             oradba_log INFO "Created data directory: ${DATA_DIR}"
         else
             oradba_log ERROR "Failed to create data directory: ${DATA_DIR}"
@@ -277,10 +277,10 @@ create_directories() {
     else
         oradba_log INFO "Data directory already exists: ${DATA_DIR}"
     fi
-    
+
     # Create FRA directory
     if [[ ! -d "${FRA_DIR}" ]]; then
-        if mkdir -p "${FRA_DIR}" 2>/dev/null; then
+        if mkdir -p "${FRA_DIR}" 2> /dev/null; then
             oradba_log INFO "Created FRA directory: ${FRA_DIR}"
         else
             oradba_log ERROR "Failed to create FRA directory: ${FRA_DIR}"
@@ -289,7 +289,7 @@ create_directories() {
     else
         oradba_log INFO "FRA directory already exists: ${FRA_DIR}"
     fi
-    
+
     oradba_log INFO "Directories created successfully"
     return 0
 }
@@ -303,19 +303,19 @@ create_directories() {
 # ------------------------------------------------------------------------------
 run_dbca() {
     local response_file="$1"
-    
+
     oradba_log INFO "Starting database creation..."
     oradba_log INFO "Database SID: ${DB_SID}"
     oradba_log INFO "Oracle Home: ${ORACLE_HOME}"
     oradba_log INFO "Response File: ${response_file}"
     echo ""
-    
+
     # Build DBCA command
     local dbca_cmd="${ORACLE_HOME}/bin/dbca -silent -createDatabase -responseFile ${response_file}"
-    
+
     oradba_log INFO "Executing DBCA..."
     oradba_log DEBUG "Command: ${dbca_cmd}"
-    
+
     # Run DBCA and capture output
     if "${ORACLE_HOME}"/bin/dbca -silent -createDatabase -responseFile "${response_file}" 2>&1 | tee -a "${ORADBA_LOG_FILE:-/dev/null}"; then
         echo ""
@@ -338,7 +338,7 @@ run_dbca() {
 # ------------------------------------------------------------------------------
 detect_domain() {
     local domain
-    domain=$(hostname -d 2>/dev/null)
+    domain=$(hostname -d 2> /dev/null)
     if [[ -z "${domain}" ]]; then
         domain="localdomain"
     fi
@@ -355,47 +355,47 @@ detect_domain() {
 parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -s|--sid)
+            -s | --sid)
                 DB_SID="$2"
                 shift 2
                 ;;
-            -h|--oracle-home)
+            -h | --oracle-home)
                 ORACLE_HOME="$2"
                 shift 2
                 ;;
-            -b|--oracle-base)
+            -b | --oracle-base)
                 ORACLE_BASE="$2"
                 shift 2
                 ;;
-            -v|--version)
+            -v | --version)
                 DB_VERSION="$2"
                 shift 2
                 ;;
-            -t|--template)
+            -t | --template)
                 DB_TEMPLATE="$2"
                 shift 2
                 ;;
-            -d|--data-dir)
+            -d | --data-dir)
                 DATA_DIR="$2"
                 shift 2
                 ;;
-            -r|--fra-dir)
+            -r | --fra-dir)
                 FRA_DIR="$2"
                 shift 2
                 ;;
-            -m|--memory)
+            -m | --memory)
                 MEMORY_MB="$2"
                 shift 2
                 ;;
-            -c|--charset)
+            -c | --charset)
                 CHARSET="$2"
                 shift 2
                 ;;
-            -n|--ncharset)
+            -n | --ncharset)
                 NCHARSET="$2"
                 shift 2
                 ;;
-            -p|--pdb-name)
+            -p | --pdb-name)
                 PDB_NAME="$2"
                 shift 2
                 ;;
@@ -427,7 +427,7 @@ parse_arguments() {
                 show_templates
                 exit 0
                 ;;
-            -q|--quiet)
+            -q | --quiet)
                 export ORADBA_LOG_LEVEL="WARN"
                 shift
                 ;;
@@ -440,7 +440,7 @@ parse_arguments() {
                 ;;
         esac
     done
-    
+
     return 0
 }
 
@@ -453,39 +453,39 @@ parse_arguments() {
 # ------------------------------------------------------------------------------
 validate_arguments() {
     local errors=0
-    
+
     # Check required arguments
     if [[ -z "${DB_SID}" ]]; then
         oradba_log ERROR "Database SID is required (--sid)"
-        ((errors++))
+        errors=$((errors + 1))
     fi
-    
+
     if [[ -z "${DB_VERSION}" ]]; then
         oradba_log ERROR "Oracle version is required (--version)"
-        ((errors++))
+        errors=$((errors + 1))
     fi
-    
+
     # Validate version
     if [[ -n "${DB_VERSION}" ]] && [[ ! "${DB_VERSION}" =~ ^(19c|26ai)$ ]]; then
         oradba_log ERROR "Invalid version: ${DB_VERSION} (must be 19c or 26ai)"
-        ((errors++))
+        errors=$((errors + 1))
     fi
-    
+
     # Validate template for version
     if [[ "${DB_VERSION}" == "19c" ]] && [[ "${DB_TEMPLATE}" == "free" ]]; then
         oradba_log ERROR "Template 'free' is not available for 19c"
-        ((errors++))
+        errors=$((errors + 1))
     fi
-    
+
     if [[ "${DB_VERSION}" == "26ai" ]] && [[ "${DB_TEMPLATE}" == "dataguard" ]]; then
         oradba_log ERROR "Template 'dataguard' is not available for 26ai"
-        ((errors++))
+        errors=$((errors + 1))
     fi
-    
-    if (( errors > 0 )); then
+
+    if ((errors > 0)); then
         return 1
     fi
-    
+
     return 0
 }
 
@@ -495,13 +495,13 @@ validate_arguments() {
 main() {
     # Initialize logging
     init_logging
-    
+
     oradba_log INFO "OraDBA DBCA - Automated Database Creation v${VERSION}"
     echo ""
-    
+
     # Parse arguments
     parse_arguments "$@"
-    
+
     # Validate arguments
     if ! validate_arguments; then
         oradba_log ERROR "Argument validation failed"
@@ -509,30 +509,30 @@ main() {
         oradba_log INFO "Use --help for usage information"
         exit 1
     fi
-    
+
     # Set defaults for unspecified values
     DB_DOMAIN="${DB_DOMAIN:-$(detect_domain)}"
     DB_UNIQUE_NAME="${DB_UNIQUE_NAME:-${DB_SID}}"
     DATA_DIR="${DATA_DIR:-${ORACLE_BASE}/oradata/${DB_SID}}"
     FRA_DIR="${FRA_DIR:-${ORACLE_BASE}/fast_recovery_area/${DB_SID}}"
-    
+
     # Prompt for passwords if not provided (only in interactive mode)
     if [[ -z "${SYS_PASSWORD}" ]] && [[ -t 0 ]]; then
         read -rs -p "Enter SYS password: " SYS_PASSWORD
         echo ""
     fi
-    
+
     if [[ -z "${SYSTEM_PASSWORD}" ]] && [[ -t 0 ]]; then
         read -rs -p "Enter SYSTEM password: " SYSTEM_PASSWORD
         echo ""
     fi
-    
+
     # Check if passwords are still empty
     if [[ -z "${SYS_PASSWORD}" ]] || [[ -z "${SYSTEM_PASSWORD}" ]]; then
         oradba_log ERROR "Passwords are required (use --sys-password and --system-password)"
         exit 1
     fi
-    
+
     # Display configuration
     oradba_log INFO "Configuration:"
     oradba_log INFO "  Database SID: ${DB_SID}"
@@ -548,19 +548,19 @@ main() {
         oradba_log INFO "  PDB Name: ${PDB_NAME}"
     fi
     echo ""
-    
+
     # Validate prerequisites
     if ! validate_prerequisites; then
         exit 1
     fi
     echo ""
-    
+
     # Create directories
     if ! create_directories; then
         exit 1
     fi
     echo ""
-    
+
     # Find template file
     local template_file
     if [[ -n "${CUSTOM_TEMPLATE}" ]]; then
@@ -578,16 +578,16 @@ main() {
             exit 1
         fi
     fi
-    
+
     # Generate response file
     local response_file
     response_file="/tmp/dbca_${DB_SID}_$$.rsp"
-    
+
     if ! substitute_variables "${template_file}" "${response_file}"; then
         exit 1
     fi
     echo ""
-    
+
     # Dry run or execute
     if [[ "${DRY_RUN}" == "true" ]]; then
         oradba_log INFO "Dry run mode - response file generated: ${response_file}"
@@ -613,13 +613,13 @@ main() {
             oradba_log ERROR "Response file preserved: ${response_file}"
             exit 1
         fi
-        
+
         # Cleanup response file on success
         if [[ -f "${response_file}" ]]; then
             rm -f "${response_file}"
         fi
     fi
-    
+
     echo ""
     oradba_log INFO "DBCA operation completed"
     return 0
