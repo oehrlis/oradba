@@ -665,11 +665,11 @@ validate_config() {
             echo "✓ sqlnet.ora is readable"
         else
             echo "✗ sqlnet.ora permissions issue" >&2
-            ((errors++))
+            errors=$(( errors + 1 ))
         fi
     else
         echo "✗ sqlnet.ora not found" >&2
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
 
     # Check tnsnames.ora

@@ -86,6 +86,25 @@ jobs:
       - name: Run shellcheck via Makefile
         run: make lint-shell
 
+      - name: Check for unguarded post-increment at zero
+        run: |
+          if grep -Ern '^[[:space:]]*\(\([A-Za-z_][A-Za-z0-9_]*\+\+\)\)' src/; then
+            echo "ERROR: Found standalone (( var++ )) patterns - use var=\$(( var + 1 )) instead" >&2
+            exit 1
+          fi
+
+      - name: Install shfmt
+        env:
+          SHFMT_VERSION: "3.8.0"
+        run: |
+          curl -fsSL "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" \
+            -o /tmp/shfmt
+          sudo install /tmp/shfmt /usr/local/bin/shfmt
+          shfmt --version
+
+      - name: Check shell formatting
+        run: shfmt -i 4 -bn -ci -sr -d src/
+
   test:
     name: Run Tests (Smart Selection)
     runs-on: ubuntu-latest

@@ -625,3 +625,43 @@ EOF
     [[ "${output}" == *"oh=/fake/home"* ]]
     [[ "${output}" == *"ll=/fake/home/lib"* ]]
 }
+
+# ------------------------------------------------------------------------------
+# Regression Tests - M1 (v0.25.0)
+# Group 6 - fa36489: no from-zero post-increment in the test suite; path dedup.
+# ------------------------------------------------------------------------------
+
+@test "no_post_increment_at_zero_in_test_suite" {
+    # No .bats file may contain a standalone (( count++ )) / (( idx++ )) pattern;
+    # such a pattern aborts the test under set -e when the counter starts at 0.
+    local tests_dir
+    tests_dir="$(dirname "$BATS_TEST_FILENAME")"
+    run bash -c "grep -rEl '^[[:space:]]*\(\([A-Za-z_][A-Za-z0-9_]*\+\+\)\)' '${tests_dir}'/*.bats || true"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "load_config_file_path_dedup_counts_correctly" {
+    # fa36489 concerns a from-zero counter aborting the run under set -e.
+    # load_config_file runs its PATH-change/dedup path with a counter starting
+    # at 0; it must complete (exit 0) and apply the new PATH entry without
+    # aborting. A from-zero counting loop over the resulting PATH must also run.
+    local conf="${TEST_TEMP_DIR}/oradba_dedup.conf"
+    cat > "${conf}" << 'CONF'
+export PATH="/opt/oradba/bin:${PATH}"
+CONF
+    run bash -c "
+        set -euo pipefail
+        source '${ORADBA_BASE}/lib/oradba_common.sh'
+        load_config_file '${conf}'
+        # From-zero count over PATH entries must not abort under set -e.
+        n=0
+        IFS=: read -ra parts <<< \"\${PATH}\"
+        for p in \"\${parts[@]}\"; do
+            [[ \"\$p\" == /opt/oradba/bin ]] && n=\$(( n + 1 ))
+        done
+        echo \"present=\${n}\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"present=1"* ]]
+}

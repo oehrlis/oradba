@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-06-26
+
+### Fixed
+
+- Zero-start `(( counter++ ))` pattern replaced with `var=$(( var + 1 ))` in 9 scripts and 1 library (CF-001)
+- Added full `set -euo pipefail` to `oradba_homes.sh` and `oradba_extension.sh` with simultaneous increment guards (CF-005)
+- Removed duplicate `plugin_check_listener_status()` definition from `plugin_interface.sh` (CF-003)
+- Release pipeline now asserts VERSION file matches git tag before build (CF-010)
+- `make test-full` no longer treats bats exit code 1 as success (CF-027)
+
+### Added
+
+- 12 named regression tests for the six recent shipped defects (CF-009)
+- CI lint step checking for unguarded `(( var++ ))` patterns (TD-13)
+- `shfmt -d` format check in CI lint job (TD-13)
+
 ## [0.24.11] - 2026-06-25
 
 ### Fixed

@@ -457,29 +457,29 @@ validate_arguments() {
     # Check required arguments
     if [[ -z "${DB_SID}" ]]; then
         oradba_log ERROR "Database SID is required (--sid)"
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
     
     if [[ -z "${DB_VERSION}" ]]; then
         oradba_log ERROR "Oracle version is required (--version)"
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
     
     # Validate version
     if [[ -n "${DB_VERSION}" ]] && [[ ! "${DB_VERSION}" =~ ^(19c|26ai)$ ]]; then
         oradba_log ERROR "Invalid version: ${DB_VERSION} (must be 19c or 26ai)"
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
     
     # Validate template for version
     if [[ "${DB_VERSION}" == "19c" ]] && [[ "${DB_TEMPLATE}" == "free" ]]; then
         oradba_log ERROR "Template 'free' is not available for 19c"
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
     
     if [[ "${DB_VERSION}" == "26ai" ]] && [[ "${DB_TEMPLATE}" == "dataguard" ]]; then
         oradba_log ERROR "Template 'dataguard' is not available for 26ai"
-        ((errors++))
+        errors=$(( errors + 1 ))
     fi
     
     if (( errors > 0 )); then

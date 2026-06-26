@@ -467,29 +467,29 @@ for listener in "${LISTENERS[@]}"; do
     case "${ACTION}" in
         start)
             if start_listener "${listener}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started listener '${listener}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start listener '${listener}'"
             fi
             ;;
         stop)
             if stop_listener "${listener}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped listener '${listener}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop listener '${listener}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting listener '${listener}' (stop then start)"
             if stop_listener "${listener}" && start_listener "${listener}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted listener '${listener}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart listener '${listener}'"
             fi
             ;;

@@ -14,7 +14,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -o pipefail
+set -euo pipefail
 
 # Determine ORADBA_BASE
 if [[ -n "${ORADBA_BASE}" ]]; then
@@ -600,7 +600,7 @@ update_extension() {
     # Save modified files and user-added files
     if [[ -f "${ext_path}/.extension.checksum" ]]; then
         echo "Checking for modified and user-added files..."
-        cd "${ext_path}" || return 1
+        cd "${ext_path:?ext_path must not be empty}" || return 1
 
         # Check each file against checksum to identify modifications
         while IFS= read -r line; do

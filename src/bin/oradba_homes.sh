@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -178,7 +179,7 @@ list_homes() {
     if [[ -n "$filter_type" ]]; then
         homes_output=$(list_oracle_homes "$filter_type")
     else
-        homes_output=$(list_oracle_homes)
+        homes_output=$(list_oracle_homes "")
     fi
 
     if [[ -z "$homes_output" ]]; then
@@ -237,7 +238,7 @@ list_homes() {
 # Purpose.: Show detailed information about an Oracle Home
 # ------------------------------------------------------------------------------
 show_home() {
-    local name="$1"
+    local name="${1:-}"
 
     if [[ -z "$name" ]]; then
         oradba_log ERROR "Oracle Home name or path required"
@@ -291,7 +292,7 @@ show_home() {
 
     if [[ -d "$h_path" ]]; then
         status="available"
-        detected_type=$(detect_product_type "$h_path")
+        detected_type=$(detect_product_type "$h_path") || detected_type="unknown"
         # Get actual version if AUTO
         if [[ "${h_version}" == "AUTO" ]]; then
             detected_version=$(detect_oracle_version "$h_path" "$detected_type")
@@ -464,7 +465,7 @@ add_home() {
     # Auto-detect product type if not specified
     if [[ -z "$ptype" ]]; then
         if [[ -d "$path" ]]; then
-            ptype=$(detect_product_type "$path")
+            ptype=$(detect_product_type "$path") || ptype="unknown"
             oradba_log INFO "Auto-detected product type: $ptype"
         elif [[ -t 0 ]]; then
             read -p "Product type (database/oud/client/iclient/java/weblogic/oms/emagent/datasafe): " ptype
@@ -588,7 +589,7 @@ EOF
 # Purpose.: Remove an Oracle Home from configuration
 # ------------------------------------------------------------------------------
 remove_home() {
-    local name="$1"
+    local name="${1:-}"
 
     if [[ -z "$name" ]]; then
         oradba_log ERROR "Oracle Home name required"
@@ -699,7 +700,7 @@ generate_home_name() {
             # Find next available dsconN number
             if [[ -f "$config_file" ]]; then
                 while grep -q "^dscon${counter}:" "$config_file" 2>/dev/null; do
-                    ((counter++))
+                    counter=$(( counter + 1 ))
                 done
             fi
 
@@ -775,12 +776,13 @@ discover_homes() {
     if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
         # Use common auto_discover_oracle_homes() function
         # Pass silent mode to suppress verbose output
+        local discover_rc=0
         if [[ "$silent" == "true" ]]; then
-            auto_discover_oracle_homes "${base_dir}/product" "true"
+            auto_discover_oracle_homes "${base_dir}/product" "true" || discover_rc=$?
         else
-            auto_discover_oracle_homes "${base_dir}/product"
+            auto_discover_oracle_homes "${base_dir}/product" || discover_rc=$?
         fi
-        return $?
+        return "${discover_rc}"
     fi
     
     # Otherwise, do a dry-run style discovery (show what would be added)
@@ -821,9 +823,9 @@ discover_homes() {
             fi
         fi
 
-        # Detect product type
+        # Detect product type (returns non-zero for unknown; tolerate under set -e)
         local ptype
-        ptype=$(detect_product_type "$dir")
+        ptype=$(detect_product_type "$dir") || ptype="unknown"
 
         # Skip unknown types
         [[ "$ptype" == "unknown" ]] && continue
@@ -858,7 +860,7 @@ discover_homes() {
         
         [[ "$is_valid_home" == "false" ]] && continue
 
-        ((found_count++))
+        found_count=$(( found_count + 1 ))
 
         # Generate name from path and product type
         local home_name
@@ -907,7 +909,7 @@ discover_homes() {
 # Purpose.: Validate Oracle Homes configuration
 # ------------------------------------------------------------------------------
 validate_homes() {
-    local name="$1"
+    local name="${1:-}"
     local error_count=0
     local warn_count=0
 
@@ -934,7 +936,7 @@ validate_homes() {
         homes_to_check=$(parse_oracle_home "$name")
         field_sep=" "  # parse_oracle_home uses space separator
     else
-        homes_to_check=$(list_oracle_homes)
+        homes_to_check=$(list_oracle_homes "")
         field_sep="|"  # list_oracle_homes uses pipe separator
     fi
 
@@ -948,17 +950,17 @@ validate_homes() {
         # Check if path exists
         if [[ ! -d "$h_path" ]]; then
             echo "  ✗ ERROR: Directory does not exist: $h_path"
-            ((error_count++))
+            error_count=$(( error_count + 1 ))
         else
             echo "  ✓ Directory exists: $h_path"
 
             # Verify detected type matches configured type
             local detected
-            detected=$(detect_product_type "$h_path")
+            detected=$(detect_product_type "$h_path") || detected="unknown"
 
             if [[ "$detected" != "$h_type" ]]; then
                 echo "  ⚠ WARNING: Detected type ($detected) differs from configured ($h_type)"
-                ((warn_count++))
+                warn_count=$(( warn_count + 1 ))
             else
                 echo "  ✓ Product type verified: $h_type"
             fi
@@ -1079,14 +1081,14 @@ import_config() {
     local valid_lines=0
 
     while IFS= read -r line; do
-        ((line_num++))
+        line_num=$(( line_num + 1 ))
 
         # Skip comments and empty lines
         if [[ "$line" =~ ^#.*$ || -z "$line" ]]; then
             continue
         fi
 
-        ((valid_lines++))
+        valid_lines=$(( valid_lines + 1 ))
 
         # Check field count (expect at least 3 fields: NAME:HOME:TYPE)
         local field_count
@@ -1094,7 +1096,7 @@ import_config() {
 
         if [[ $field_count -lt 3 ]]; then
             oradba_log ERROR "Line $line_num: Invalid format (expected NAME:HOME:TYPE:ORDER[:ALIAS][:DESC][:VERSION])"
-            ((errors++))
+            errors=$(( errors + 1 ))
             continue
         fi
 
@@ -1105,13 +1107,13 @@ import_config() {
         # Check name is not empty and alphanumeric
         if [[ -z "$h_name" ]] || [[ ! "$h_name" =~ ^[A-Za-z0-9_]+$ ]]; then
             oradba_log ERROR "Line $line_num: Invalid NAME '$h_name' (use only letters, numbers, underscores)"
-            ((errors++))
+            errors=$(( errors + 1 ))
         fi
 
         # Check path is absolute
         if [[ ! "$h_path" == /* ]]; then
             oradba_log ERROR "Line $line_num: Invalid path '$h_path' (must be absolute path)"
-            ((errors++))
+            errors=$(( errors + 1 ))
         fi
 
         # Check type is valid
@@ -1119,7 +1121,7 @@ import_config() {
             database|oud|client|iclient|java|weblogic|oms|emagent|datasafe) ;;
             *)
                 oradba_log ERROR "Line $line_num: Invalid product type '$h_type'"
-                ((errors++))
+                errors=$(( errors + 1 ))
                 ;;
         esac
     done < "$temp_file"
@@ -1213,16 +1215,16 @@ dedupe_homes() {
         
         if [[ "$name_seen" == "true" ]]; then
             echo "  Removed duplicate NAME: $name"
-            ((removed_count++))
+            removed_count=$(( removed_count + 1 ))
         elif [[ "$path_seen" == "true" ]]; then
             echo "  Removed duplicate PATH: $path (name: $name)"
-            ((removed_count++))
+            removed_count=$(( removed_count + 1 ))
         else
             # Keep this entry
             echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$temp_file"
             seen_names+=("$name")
             seen_paths+=("$path")
-            ((kept_count++))
+            kept_count=$(( kept_count + 1 ))
         fi
     done < "$homes_file"
     

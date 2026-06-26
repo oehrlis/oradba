@@ -200,7 +200,7 @@ oradba_init_change_tracking() {
     for file in "${config_files[@]}"; do
         if [[ -f "$file" ]]; then
             oradba_store_file_signature "$file"
-            ((count++))
+            count=$(( count + 1 ))
         fi
     done
     

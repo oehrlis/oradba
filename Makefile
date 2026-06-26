@@ -134,22 +134,20 @@ test: ## Run smart test selection (only tests affected by changes)
 
 .PHONY: test-full
 test-full: ## Run all tests (no smart selection)
-	@echo -e "$(COLOR_BLUE)Running full test suite (1516 tests, 70+ conditional skips expected)...$(COLOR_RESET)"
-	@if [ -n "$(BATS)" ]; then \
-		$(BATS) $(TEST_DIR)/*.bats; test_exit=$$?; \
-		if [ $$test_exit -eq 0 ]; then \
-			echo -e "$(COLOR_GREEN)All tests passed!$(COLOR_RESET)"; \
-		elif [ $$test_exit -eq 1 ]; then \
-			echo -e "$(COLOR_YELLOW)Tests completed with skipped tests (exit code 1 is normal with conditional skips)$(COLOR_RESET)"; \
-			exit 0; \
-		else \
-			echo -e "$(COLOR_RED)Tests failed with exit code $$test_exit$(COLOR_RESET)"; \
-			exit $$test_exit; \
-		fi; \
-	else \
+	@echo -e "$(COLOR_BLUE)Running full test suite (skips are expected and do not fail the build)...$(COLOR_RESET)"
+	@if [ -z "$(BATS)" ]; then \
 		echo -e "$(COLOR_RED)Error: bats not found. Install with: brew install bats-core$(COLOR_RESET)"; \
 		exit 1; \
 	fi
+	@# Parse the TAP report: skipped tests are "ok N # skip", real failures are
+	@# "not ok N". Fail the target only when at least one "not ok" line appears.
+	@$(BATS) --formatter tap --report-formatter tap --output $(TEST_DIR)/results $(TEST_DIR)/*.bats; \
+	failures="$$(grep -c '^not ok' $(TEST_DIR)/results/report.tap || true)"; \
+	if [ "$$failures" -gt 0 ]; then \
+		echo -e "$(COLOR_RED)Tests failed: $$failures failing test(s)$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	echo -e "$(COLOR_GREEN)All tests passed (failures: 0)$(COLOR_RESET)"
 
 .PHONY: test-unit
 test-unit: ## Run unit tests only
@@ -625,6 +623,13 @@ release-check: ## Check if ready for release
 		else \
 			echo -e "$(COLOR_GREEN)✓ Version tag available$(COLOR_RESET)"; \
 		fi; \
+	fi
+	@file_version="$$(cat VERSION)"; \
+	if [ "$$file_version" != "$(VERSION)" ]; then \
+		echo -e "$(COLOR_RED)✗ VERSION file ($$file_version) does not match make VERSION ($(VERSION))$(COLOR_RESET)"; \
+		exit 1; \
+	else \
+		echo -e "$(COLOR_GREEN)✓ VERSION file matches: $$file_version$(COLOR_RESET)"; \
 	fi
 	@$(MAKE) check
 	@echo ""

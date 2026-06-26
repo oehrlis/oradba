@@ -399,7 +399,7 @@ check_extension_checksums() {
         local ext_name
         ext_name=$(basename "${extension_dir}")
 
-        ((checked_count++))
+        checked_count=$(( checked_count + 1 ))
 
         # Change to extension directory for relative paths
         cd "${extension_dir}" || continue
@@ -420,7 +420,7 @@ check_extension_checksums() {
             echo -e "  ${GREEN}✓${NC} Extension '${ext_name}': verified (${file_count} files)"
         else
             echo -e "  ${RED}✗${NC} Extension '${ext_name}': FAILED"
-            ((failed_count++))
+            failed_count=$(( failed_count + 1 ))
 
             # Show details in verbose mode
             if [[ "${VERBOSE}" == "true" ]]; then

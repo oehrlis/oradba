@@ -285,24 +285,6 @@ plugin_get_required_binaries() {
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# Function: plugin_check_listener_status
-# Purpose.: Check listener status for products with listener components
-# Args....: $1 - Installation path (ORACLE_HOME)
-# Returns.: 0 if running, 1 if stopped, 2 if unavailable
-# Output..: Status string (running|stopped|unavailable)
-# Notes...: Category-specific: mandatory for database and listener-based products
-#           Separate from plugin_check_status (instance status)
-#           Listener lifecycle is managed per Oracle Home, not per instance
-#           See plugin-standards.md for detailed specification
-# ------------------------------------------------------------------------------
-plugin_check_listener_status() {
-    local home_path="$1"
-    # Default: not applicable for non-listener products
-    echo "unavailable"
-    return 2
-}
-
-# ------------------------------------------------------------------------------
 # Optional Plugin Functions
 # ------------------------------------------------------------------------------
 # NOTE: Optional functions have default implementations but can be overridden:

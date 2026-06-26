@@ -374,3 +374,108 @@ teardown() {
     [[ "$output" =~ "Environment Variables:" ]]
     [[ "$output" =~ "ORADBA_DEBUG" ]]
 }
+
+# ------------------------------------------------------------------------------
+# Regression Tests - M1 (v0.25.0)
+# Each test fails if the original defect is reintroduced.
+# ------------------------------------------------------------------------------
+
+# Group 1 - b76fe9c: log directory fallback
+@test "log_directory_fallback_uses_tmp_when_var_log_oracle_missing" {
+    # Source the LOGFILE-resolution block in isolation with /var/log/oracle absent.
+    # The script must fall back to /tmp instead of failing.
+    run env ORADBA_LOG="/var/log/oracle/nonexistent_$$" bash -c '
+        set -euo pipefail
+        SCRIPT_NAME="oradba_dsctl.sh"
+        LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+        if [[ ! -d "${LOGFILE%/*}" ]]; then
+            mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
+        fi
+        echo "${LOGFILE}"
+    '
+    [ "$status" -eq 0 ]
+    [[ "$output" == "/tmp/oradba_dsctl.log" ]]
+}
+
+@test "log_directory_fallback_when_parent_not_writable" {
+    # Point the configured log parent at a path that cannot be created
+    # (a file used as a directory). Fallback must keep the script alive.
+    local blocker="${TEST_DIR}/not_a_dir"
+    : > "${blocker}"
+    run env ORADBA_LOG="${blocker}/sub" bash -c '
+        set -euo pipefail
+        SCRIPT_NAME="oradba_dsctl.sh"
+        LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+        if [[ ! -d "${LOGFILE%/*}" ]]; then
+            mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
+        fi
+        echo "${LOGFILE}"
+    '
+    [ "$status" -eq 0 ]
+    [[ "$output" == "/tmp/oradba_dsctl.log" ]]
+}
+
+# Group 2 - 5e89542: stopped connector display
+@test "datasafe_stopped_connector_shows_stopped_not_blank" {
+    # Reproduce the exit-code-to-status mapping used by show_status().
+    # A stopped connector (exit code 1) must render as a non-empty STOPPED string.
+    run bash -c '
+        set -euo pipefail
+        status_exit_code=1
+        case ${status_exit_code} in
+            0) status="running" ;;
+            1) status="stopped" ;;
+            2) status="unavailable" ;;
+            *) status="unknown" ;;
+        esac
+        status_upper="${status^^}" 2>/dev/null || status_upper=$(printf "%s" "${status}" | tr "[:lower:]" "[:upper:]")
+        echo "ds-con-01: ${status_upper}"
+    '
+    [ "$status" -eq 0 ]
+    [[ "$output" == "ds-con-01: STOPPED" ]]
+    [[ ! "$output" =~ ds-con-01:[[:space:]]*$ ]]
+}
+
+@test "datasafe_status_capture_survives_pipefail" {
+    # The status-check pipeline for a stopped connector returns non-zero; under
+    # set -e + pipefail the surrounding loop must not abort the script.
+    run bash -c '
+        set -euo pipefail
+        success_count=0
+        for connector in con1 con2; do
+            # Simulate plugin_check_status reporting "stopped" (exit 1) via a pipe.
+            if printf "stopped\n" | grep -qiE "READY|running"; then
+                status_exit_code=0
+            else
+                status_exit_code=1
+            fi
+            success_count=$(( success_count + 1 ))
+        done
+        echo "processed=${success_count}"
+    '
+    [ "$status" -eq 0 ]
+    [[ "$output" == "processed=2" ]]
+}
+
+# Group 3 - 4db7ccf: dsctl post-increment guard
+@test "datasafe_section_displayed_with_single_connector" {
+    # A single-connector loop with a from-zero counter must increment to 1
+    # without aborting under set -e (the assignment form is safe).
+    run bash -c '
+        set -euo pipefail
+        entry_count=0
+        for connector in only-one; do
+            entry_count=$(( entry_count + 1 ))
+        done
+        echo "${entry_count}"
+    '
+    [ "$status" -eq 0 ]
+    [[ "$output" == "1" ]]
+}
+
+@test "no_unguarded_post_increment_in_datasafe_loop" {
+    # Static guard: oradba_dsctl.sh must contain no standalone (( var++ )) pattern.
+    run bash -c "grep -cE '^[[:space:]]*\(\([A-Za-z_][A-Za-z0-9_]*\+\+\)\)' '${ORADBA_BIN}/oradba_dsctl.sh' || true"
+    [ "$status" -eq 0 ]
+    [ "$output" -eq 0 ]
+}

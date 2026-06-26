@@ -145,7 +145,7 @@ get_connectors() {
     # Get all datasafe installations from registry
     local entry_count=0
     while IFS='|' read -r ptype name home version flags order alias desc; do
-        ((entry_count++))
+        entry_count=$(( entry_count + 1 ))
         oradba_log DEBUG "${SCRIPT_NAME}: get_connectors() - Found entry ${entry_count}: NAME=${name}, HOME=${home}, FLAGS=${flags}"
         
         # Convert flags format - look for Y flag for autostart
@@ -683,29 +683,29 @@ for connector in "${CONNECTORS[@]}"; do
     case "${ACTION}" in
         start)
             if start_connector "${connector}" "${connector_home}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started connector '${connector}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start connector '${connector}'"
             fi
             ;;
         stop)
             if stop_connector "${connector}" "${connector_home}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped connector '${connector}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop connector '${connector}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting connector '${connector}' (stop then start)"
             if stop_connector "${connector}" "${connector_home}" && start_connector "${connector}" "${connector_home}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted connector '${connector}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart connector '${connector}'"
             fi
             ;;

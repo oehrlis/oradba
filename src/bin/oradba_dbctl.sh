@@ -131,7 +131,7 @@ get_databases() {
     # Parse oratab, filter out comments and dummy entries
     local entry_count=0
     grep -v '^#' "${oratab_file}" | grep -v '^$' | while IFS=: read -r sid home flag rest; do
-        ((entry_count++))
+        entry_count=$(( entry_count + 1 ))
         oradba_log DEBUG "${SCRIPT_NAME}: get_databases() - Found entry ${entry_count}: SID=${sid}, HOME=${home}, FLAG=${flag}"
         
         # Skip dummy entries
@@ -563,29 +563,29 @@ for sid in "${SIDS[@]}"; do
     case "${ACTION}" in
         start)
             if start_database "${sid}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start database '${sid}'"
             fi
             ;;
         stop)
             if stop_database "${sid}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop database '${sid}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting database '${sid}' (stop then start)"
             if stop_database "${sid}" && start_database "${sid}"; then
-                ((success_count++))
+                success_count=$(( success_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted database '${sid}'"
             else
-                ((failure_count++))
+                failure_count=$(( failure_count + 1 ))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart database '${sid}'"
             fi
             ;;
