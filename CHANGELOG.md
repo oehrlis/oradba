@@ -283,7 +283,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `## See Also` and `## Navigation` sections (tagged `.unlisted .unnumbered`)
     are removed from all markdown files in the `prepare_docs()` step via `sed`
   - These sections are MkDocs web-navigation constructs; in PDF they appeared as
-    orphaned paragraphs with broken relative links; estimated saving: ~0.5–1 page
+    orphaned paragraphs with broken relative links; estimated saving: ~0.5-1 page
 - **API Documentation: `make docs-api` Target**
   - `scripts/generate_api_docs.py` wired into the build system; parses all
     function headers in `src/lib/` and `src/bin/` and generates categorised
@@ -311,7 +311,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PDF Build: Reduce code block font size and page margins**
   - `doc/metadata.yml`: added `monofontoptions: [Scale=0.85]` — Courier New now
     renders at 85% of body size (~8.5pt), significantly reducing line-wrap in
-    code blocks; estimated saving: 15–25 pages across the document
+    code blocks; estimated saving: 15-25 pages across the document
   - `doc/metadata.yml`: left/right margins reduced from 2.54 cm to 2.0 cm,
     widening the text column by ~1 cm per side; combined with the font scale
     this is the primary fix for code block overflow
