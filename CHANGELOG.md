@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- DBCA response file created via mktemp with mode 600 and EXIT-trap cleanup; passwords no longer written to predictable /tmp path (CF-002)
+- DBCA response file created via mktemp with mode 600 and EXIT-trap cleanup;
+  passwords no longer written to predictable /tmp path (CF-002)
 - Installer now verifies companion .sha256 before extraction; fails closed when no checksum tool is available (CF-006)
 - SEPS wallet password file rejected unless mode 600 and owner-owned; recovered password no longer logged (CF-020)
 - RMAN catalog credentials redacted in debug logs (CF-021)
