@@ -204,10 +204,10 @@ install_logrotate() {
             chmod 644 "${target}"
             chown root:root "${target}"
             print_message "${GREEN}" "  ✓ Installed ${basename}"
-            installed=$(( installed + 1 ))
+            installed=$((installed + 1))
         else
             print_message "${RED}" "  ✗ Failed to install ${basename}"
-            failed=$(( failed + 1 ))
+            failed=$((failed + 1))
         fi
     done
 
@@ -249,7 +249,7 @@ uninstall_logrotate() {
             basename=$(basename "${config}")
             if rm -f "${config}"; then
                 print_message "${GREEN}" "  ✓ Removed ${basename}"
-                removed=$(( removed + 1 ))
+                removed=$((removed + 1))
             else
                 print_message "${RED}" "  ✗ Failed to remove ${basename}"
             fi
@@ -283,7 +283,7 @@ list_logrotate() {
     for config in "${TARGET_DIR}"/oradba* "${TARGET_DIR}"/oracle-*; do
         if [[ -f "${config}" ]]; then
             ls -lh "${config}"
-            found=$(( found + 1 ))
+            found=$((found + 1))
         fi
     done
 
@@ -320,7 +320,7 @@ test_logrotate() {
             print_message "${YELLOW}" "=== Testing ${basename} ==="
             logrotate -d "${config}" 2>&1 | tail -30
             echo ""
-            found=$(( found + 1 ))
+            found=$((found + 1))
         fi
     done
 
@@ -642,7 +642,7 @@ run_user() {
     # Check if any config files exist
     local config_count=0
     for config in "${CUSTOM_DIR}"/oracle-*.logrotate; do
-        [[ -f "${config}" ]] && config_count=$(( config_count + 1 ))
+        [[ -f "${config}" ]] && config_count=$((config_count + 1))
     done
 
     if [[ ${config_count} -eq 0 ]]; then

@@ -260,7 +260,7 @@ show_home() {
         while IFS=: read -r h_name h_path h_type h_order h_alias h_desc h_version; do
             [[ "${h_name}" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${h_name}" ]] && continue
-            
+
             if [[ "${h_path}" == "${name}" ]]; then
                 found_name="$h_name"
                 break
@@ -415,7 +415,7 @@ add_home() {
             while IFS=: read -r sid _home _flag; do
                 [[ "$sid" =~ ^[[:space:]]*# ]] && continue
                 [[ -z "$sid" ]] && continue
-                
+
                 # SID creates lowercase alias
                 local sid_alias="${sid,,}"
                 if [[ "$sid_alias" == "$alias_name" ]]; then
@@ -575,9 +575,9 @@ EOF
     echo ""
 
     # Regenerate SID lists and aliases in current shell
-    if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
-        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
-        generate_oracle_home_aliases 2>/dev/null
+    if command -v generate_sid_lists &> /dev/null && command -v generate_oracle_home_aliases &> /dev/null; then
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null
+        generate_oracle_home_aliases 2> /dev/null
         oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 
@@ -635,9 +635,9 @@ remove_home() {
     echo ""
 
     # Regenerate SID lists and aliases in current shell
-    if command -v generate_sid_lists &>/dev/null && command -v generate_oracle_home_aliases &>/dev/null; then
-        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2>/dev/null
-        generate_oracle_home_aliases 2>/dev/null
+    if command -v generate_sid_lists &> /dev/null && command -v generate_oracle_home_aliases &> /dev/null; then
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null
+        generate_oracle_home_aliases 2> /dev/null
         oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 
@@ -657,7 +657,7 @@ generate_home_name() {
     local dir_name="$1"
     local ptype="$2"
     local home_name
-    
+
     # Special handling for java, iclient, datasafe products - use lowercase
     case "$ptype" in
         java)
@@ -673,7 +673,8 @@ generate_home_name() {
                 home_name="jdk${BASH_REMATCH[1]}"
             else
                 # No version number, use lowercase of original (2 param expansions + 1 tr)
-                home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                home_name="${dir_name//./_}"
+                home_name="${home_name//-/_}"
                 home_name=$(printf '%s' "${home_name}" | tr '[:upper:]' '[:lower:]')
             fi
             ;;
@@ -687,20 +688,21 @@ generate_home_name() {
                 home_name="iclient${version}"
             else
                 # Use lowercase of original (2 param expansions + 1 tr)
-                home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+                home_name="${dir_name//./_}"
+                home_name="${home_name//-/_}"
                 home_name=$(printf '%s' "${home_name}" | tr '[:upper:]' '[:lower:]')
             fi
             ;;
         datasafe)
             # Sequential naming for DataSafe: dscon1, dscon2, etc.
             local config_file
-            config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
+            config_file=$(get_oracle_homes_path 2> /dev/null) || config_file=""
             local counter=1
 
             # Find next available dsconN number
             if [[ -f "$config_file" ]]; then
-                while grep -q "^dscon${counter}:" "$config_file" 2>/dev/null; do
-                    counter=$(( counter + 1 ))
+                while grep -q "^dscon${counter}:" "$config_file" 2> /dev/null; do
+                    counter=$((counter + 1))
                 done
             fi
 
@@ -708,11 +710,12 @@ generate_home_name() {
             ;;
         *)
             # Other products: use uppercase (2 param expansions + 1 tr)
-            home_name="${dir_name//./_}"; home_name="${home_name//-/_}"
+            home_name="${dir_name//./_}"
+            home_name="${home_name//-/_}"
             home_name=$(printf '%s' "${home_name}" | tr '[:lower:]' '[:upper:]')
             ;;
     esac
-    
+
     echo "$home_name"
     return 0
 }
@@ -771,7 +774,7 @@ discover_homes() {
         echo "DRY RUN - No changes will be made"
         echo ""
     fi
-    
+
     # If auto-add is enabled, just call the common function
     if [[ "$auto_add" == "true" ]] && [[ "$dry_run" == "false" ]]; then
         # Use common auto_discover_oracle_homes() function
@@ -784,7 +787,7 @@ discover_homes() {
         fi
         return "${discover_rc}"
     fi
-    
+
     # Otherwise, do a dry-run style discovery (show what would be added)
     echo ""
     echo "Discovering Oracle Homes under: $base_dir"
@@ -800,24 +803,24 @@ discover_homes() {
     fi
 
     local found_count=0
-    local -a validated_homes=()  # Track validated Oracle Homes to avoid subdirectory detection
+    local -a validated_homes=() # Track validated Oracle Homes to avoid subdirectory detection
 
     # Find directories that look like Oracle Homes
     while IFS= read -r -d '' dir; do
         # Skip if too deep or symbolic links
         [[ -L "$dir" ]] && continue
-        
+
         # Skip if this is a subdirectory of an already-validated Oracle Home
-        if type -t is_subdirectory_of_oracle_home >/dev/null 2>&1; then
+        if type -t is_subdirectory_of_oracle_home > /dev/null 2>&1; then
             if is_subdirectory_of_oracle_home "$dir" "${validated_homes[@]}"; then
                 continue
             fi
         fi
-        
+
         # Skip common bundled components
         local dir_name
         dir_name=$(basename "$dir")
-        if type -t is_bundled_component >/dev/null 2>&1; then
+        if type -t is_bundled_component > /dev/null 2>&1; then
             if is_bundled_component "$dir_name"; then
                 continue
             fi
@@ -829,23 +832,23 @@ discover_homes() {
 
         # Skip unknown types
         [[ "$ptype" == "unknown" ]] && continue
-        
+
         # Validate using plugin system before counting as found
         local plugin_file="${ORADBA_PREFIX}/lib/plugins/${ptype}_plugin.sh"
         local is_valid_home=false
-        
+
         if [[ -f "$plugin_file" ]]; then
             # Source plugin and validate
             # shellcheck source=/dev/null
-            source "$plugin_file" 2>/dev/null || true
-            
-            if declare -f plugin_validate_home >/dev/null 2>&1; then
-                if plugin_validate_home "$dir" 2>/dev/null; then
+            source "$plugin_file" 2> /dev/null || true
+
+            if declare -f plugin_validate_home > /dev/null 2>&1; then
+                if plugin_validate_home "$dir" 2> /dev/null; then
                     is_valid_home=true
                     # Add to validated homes list to exclude its subdirectories
                     validated_homes+=("$dir")
                 else
-                    continue  # Validation failed
+                    continue # Validation failed
                 fi
             else
                 # No validation function - accept based on detect_product_type
@@ -857,10 +860,10 @@ discover_homes() {
             is_valid_home=true
             validated_homes+=("$dir")
         fi
-        
+
         [[ "$is_valid_home" == "false" ]] && continue
 
-        found_count=$(( found_count + 1 ))
+        found_count=$((found_count + 1))
 
         # Generate name from path and product type
         local home_name
@@ -871,10 +874,10 @@ discover_homes() {
             echo "  [EXISTS] $home_name ($ptype) - $dir"
             continue
         fi
-        
+
         # Check if path already exists (different name)
         local config_file
-        config_file=$(get_oracle_homes_path 2>/dev/null) || config_file=""
+        config_file=$(get_oracle_homes_path 2> /dev/null) || config_file=""
         if [[ -f "$config_file" ]] && grep -q ":${dir}:" "$config_file"; then
             local existing_name
             existing_name=$(grep ":${dir}:" "$config_file" | head -1 | cut -d':' -f1)
@@ -927,17 +930,17 @@ validate_homes() {
 
     # Validate specific home or all
     local homes_to_check
-    local field_sep=" "  # Default for parse_oracle_home
+    local field_sep=" " # Default for parse_oracle_home
     if [[ -n "$name" ]]; then
         if ! is_oracle_home "$name" 2> /dev/null; then
             oradba_log ERROR "Oracle Home '$name' not found"
             return 1
         fi
         homes_to_check=$(parse_oracle_home "$name")
-        field_sep=" "  # parse_oracle_home uses space separator
+        field_sep=" " # parse_oracle_home uses space separator
     else
         homes_to_check=$(list_oracle_homes "")
-        field_sep="|"  # list_oracle_homes uses pipe separator
+        field_sep="|" # list_oracle_homes uses pipe separator
     fi
 
     while read -r line; do
@@ -950,7 +953,7 @@ validate_homes() {
         # Check if path exists
         if [[ ! -d "$h_path" ]]; then
             echo "  ✗ ERROR: Directory does not exist: $h_path"
-            error_count=$(( error_count + 1 ))
+            error_count=$((error_count + 1))
         else
             echo "  ✓ Directory exists: $h_path"
 
@@ -960,7 +963,7 @@ validate_homes() {
 
             if [[ "$detected" != "$h_type" ]]; then
                 echo "  ⚠ WARNING: Detected type ($detected) differs from configured ($h_type)"
-                warn_count=$(( warn_count + 1 ))
+                warn_count=$((warn_count + 1))
             else
                 echo "  ✓ Product type verified: $h_type"
             fi
@@ -990,7 +993,7 @@ validate_homes() {
 export_config() {
     # Check if config file exists
     local homes_file
-    homes_file=$(get_oracle_homes_path 2>/dev/null) || {
+    homes_file=$(get_oracle_homes_path 2> /dev/null) || {
         oradba_log WARN "No Oracle Homes configuration found"
         return 1
     }
@@ -1081,14 +1084,14 @@ import_config() {
     local valid_lines=0
 
     while IFS= read -r line; do
-        line_num=$(( line_num + 1 ))
+        line_num=$((line_num + 1))
 
         # Skip comments and empty lines
         if [[ "$line" =~ ^#.*$ || -z "$line" ]]; then
             continue
         fi
 
-        valid_lines=$(( valid_lines + 1 ))
+        valid_lines=$((valid_lines + 1))
 
         # Check field count (expect at least 3 fields: NAME:HOME:TYPE)
         local field_count
@@ -1096,7 +1099,7 @@ import_config() {
 
         if [[ $field_count -lt 3 ]]; then
             oradba_log ERROR "Line $line_num: Invalid format (expected NAME:HOME:TYPE:ORDER[:ALIAS][:DESC][:VERSION])"
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
             continue
         fi
 
@@ -1107,21 +1110,21 @@ import_config() {
         # Check name is not empty and alphanumeric
         if [[ -z "$h_name" ]] || [[ ! "$h_name" =~ ^[A-Za-z0-9_]+$ ]]; then
             oradba_log ERROR "Line $line_num: Invalid NAME '$h_name' (use only letters, numbers, underscores)"
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
         fi
 
         # Check path is absolute
         if [[ ! "$h_path" == /* ]]; then
             oradba_log ERROR "Line $line_num: Invalid path '$h_path' (must be absolute path)"
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
         fi
 
         # Check type is valid
         case "$h_type" in
-            database|oud|client|iclient|java|weblogic|oms|emagent|datasafe) ;;
+            database | oud | client | iclient | java | weblogic | oms | emagent | datasafe) ;;
             *)
                 oradba_log ERROR "Line $line_num: Invalid product type '$h_type'"
-                errors=$(( errors + 1 ))
+                errors=$((errors + 1))
                 ;;
         esac
     done < "$temp_file"
@@ -1151,7 +1154,7 @@ import_config() {
 
     # Show summary
     local count
-    count=$(grep -v -c "^#\|^$" "$homes_file" 2>/dev/null || echo "0")
+    count=$(grep -v -c "^#\|^$" "$homes_file" 2> /dev/null || echo "0")
     echo "Imported $count Oracle Home(s)"
 
     return 0
@@ -1163,38 +1166,40 @@ import_config() {
 # ------------------------------------------------------------------------------
 dedupe_homes() {
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     # Check if config file exists
     if [[ ! -f "$homes_file" ]]; then
         oradba_log WARN "No Oracle Homes configuration found"
         return 0
     fi
-    
+
     echo ""
     echo "Removing Duplicate Entries"
     echo "================================================================================"
     echo ""
-    
+
     # Create temp file
     local temp_file="${homes_file}.dedup.$$"
     local seen_names=()
     local seen_paths=()
     local removed_count=0
     local kept_count=0
-    
+
     # Copy header/comments
     grep -E '^#|^$' "$homes_file" > "$temp_file"
-    
+
     # Process entries
     while IFS=':' read -r name path ptype order alias_name desc version; do
         # Skip comments and empty lines
         [[ -z "$name" ]] && continue
         [[ "$name" =~ ^[[:space:]]*# ]] && continue
-        
+
         # Trim whitespace (bash built-in, no subshells)
-        name="${name#"${name%%[![:space:]]*}"}"; name="${name%"${name##*[![:space:]]}"}"
-        path="${path#"${path%%[![:space:]]*}"}"; path="${path%"${path##*[![:space:]]}"}"
-        
+        name="${name#"${name%%[![:space:]]*}"}"
+        name="${name%"${name##*[![:space:]]}"}"
+        path="${path#"${path%%[![:space:]]*}"}"
+        path="${path%"${path##*[![:space:]]}"}"
+
         # Check for duplicate NAME
         local name_seen=false
         for seen in "${seen_names[@]}"; do
@@ -1203,7 +1208,7 @@ dedupe_homes() {
                 break
             fi
         done
-        
+
         # Check for duplicate PATH
         local path_seen=false
         for seen in "${seen_paths[@]}"; do
@@ -1212,22 +1217,22 @@ dedupe_homes() {
                 break
             fi
         done
-        
+
         if [[ "$name_seen" == "true" ]]; then
             echo "  Removed duplicate NAME: $name"
-            removed_count=$(( removed_count + 1 ))
+            removed_count=$((removed_count + 1))
         elif [[ "$path_seen" == "true" ]]; then
             echo "  Removed duplicate PATH: $path (name: $name)"
-            removed_count=$(( removed_count + 1 ))
+            removed_count=$((removed_count + 1))
         else
             # Keep this entry
             echo "${name}:${path}:${ptype}:${order}:${alias_name}:${desc}:${version}" >> "$temp_file"
             seen_names+=("$name")
             seen_paths+=("$path")
-            kept_count=$(( kept_count + 1 ))
+            kept_count=$((kept_count + 1))
         fi
     done < "$homes_file"
-    
+
     echo ""
     if [[ $removed_count -gt 0 ]]; then
         # Create backup
@@ -1241,7 +1246,7 @@ dedupe_homes() {
         echo "✓ No duplicates found ($kept_count entry/entries)"
     fi
     echo ""
-    
+
     return 0
 }
 

@@ -248,7 +248,7 @@ start_listener() {
     lsnrctl status "${listener_name}" > /dev/null 2>&1
     local status_rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_listener() - lsnrctl status exit code: ${status_rc}"
-    
+
     if [[ ${status_rc} -eq 0 ]]; then
         oradba_log INFO "Listener ${listener_name} is already running"
         oradba_log DEBUG "${SCRIPT_NAME}: start_listener() - Listener already running, skipping startup"
@@ -296,7 +296,7 @@ stop_listener() {
     lsnrctl status "${listener_name}" > /dev/null 2>&1
     local status_rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: stop_listener() - lsnrctl status exit code: ${status_rc}"
-    
+
     if [[ ${status_rc} -ne 0 ]]; then
         oradba_log INFO "Listener ${listener_name} is not running"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_listener() - Listener not running, skipping shutdown"
@@ -343,7 +343,7 @@ show_status() {
     lsnrctl status "${listener_name}" 2>&1 | grep -q "is not running"
     local not_running=$?
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - 'not running' check result: ${not_running}"
-    
+
     if [[ ${not_running} -eq 0 ]]; then
         echo "${listener_name}: NOT RUNNING"
         oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Listener is not running"
@@ -467,29 +467,29 @@ for listener in "${LISTENERS[@]}"; do
     case "${ACTION}" in
         start)
             if start_listener "${listener}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started listener '${listener}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start listener '${listener}'"
             fi
             ;;
         stop)
             if stop_listener "${listener}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped listener '${listener}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop listener '${listener}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting listener '${listener}' (stop then start)"
             if stop_listener "${listener}" && start_listener "${listener}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted listener '${listener}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart listener '${listener}'"
             fi
             ;;

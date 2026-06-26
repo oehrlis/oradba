@@ -242,7 +242,7 @@ migrate_config_files() {
 
             mv "${source_dir}/${file}" "${target_dir}/${file}"
             echo "✓ Moved ${file} to ${target_dir}"
-            moved=$(( moved + 1 ))
+            moved=$((moved + 1))
         fi
     done
 
@@ -296,7 +296,7 @@ create_symlinks() {
         if [[ -f "${target}" ]] || [[ "${file}" == "sqlnet.ora" ]] || [[ "${file}" == "tnsnames.ora" ]]; then
             ln -sf "${target}" "${link}"
             echo "✓ Created symlink: ${link} -> ${target}"
-            created=$(( created + 1 ))
+            created=$((created + 1))
         fi
     done
 
@@ -461,9 +461,9 @@ setup_all_tns_admin() {
         # Setup for this database
         echo "Processing ${sid}..."
         if setup_tns_admin "${sid}" "${home}"; then
-            count=$(( count + 1 ))
+            count=$((count + 1))
         else
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
         fi
         echo ""
         echo ""
@@ -665,11 +665,11 @@ validate_config() {
             echo "✓ sqlnet.ora is readable"
         else
             echo "✗ sqlnet.ora permissions issue" >&2
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
         fi
     else
         echo "✗ sqlnet.ora not found" >&2
-        errors=$(( errors + 1 ))
+        errors=$((errors + 1))
     fi
 
     # Check tnsnames.ora
@@ -719,7 +719,7 @@ backup_config() {
     for file in sqlnet.ora tnsnames.ora ldap.ora; do
         if [[ -f "${tns_admin}/${file}" ]]; then
             backup_file "${tns_admin}/${file}"
-            backup_count=$(( backup_count + 1 ))
+            backup_count=$((backup_count + 1))
         fi
     done
 

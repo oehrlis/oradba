@@ -21,15 +21,15 @@
 # Plugin Metadata (REQUIRED)
 # ------------------------------------------------------------------------------
 # shellcheck disable=SC2034
-plugin_name=""              # Product type identifier (database, datasafe, etc.)
+plugin_name="" # Product type identifier (database, datasafe, etc.)
 # shellcheck disable=SC2034
-plugin_version=""           # Plugin version (semantic versioning)
+plugin_version="" # Plugin version (semantic versioning)
 # shellcheck disable=SC2034
-plugin_interface_version="1.0.0"  # Plugin interface version (recommended)
+plugin_interface_version="1.0.0" # Plugin interface version (recommended)
 # shellcheck disable=SC2034
-plugin_description=""       # Human-readable description
+plugin_description="" # Human-readable description
 # shellcheck disable=SC2034
-plugin_status=""            # Optional: "EXPERIMENTAL" for stub/beta plugins
+plugin_status="" # Optional: "EXPERIMENTAL" for stub/beta plugins
 
 # ------------------------------------------------------------------------------
 # Universal Core Functions (REQUIRED)
@@ -129,7 +129,7 @@ plugin_build_base_path() {
 plugin_build_env() {
     local home_path="$1"
     local instance="${2:-}"
-    
+
     oradba_log ERROR "plugin_build_env not implemented in ${plugin_name}"
     return 2
 }
@@ -352,32 +352,32 @@ plugin_get_display_name() {
 plugin_get_version() {
     local home_path="$1"
     local version
-    
+
     # Validate home path exists
     [[ ! -d "${home_path}" ]] && return 2
-    
+
     # Try version file first
     local version_file="${home_path}/inventory/ContentsXML/comps.xml"
     if [[ -f "${version_file}" ]]; then
         local _ver_line
-        _ver_line=$(grep 'VER="' "${version_file}" 2>/dev/null | head -1)
+        _ver_line=$(grep 'VER="' "${version_file}" 2> /dev/null | head -1)
         [[ "${_ver_line}" =~ VER=\"([^\"]+)\" ]] && version="${BASH_REMATCH[1]}"
         if [[ -n "${version}" ]]; then
             echo "${version}"
             return 0
         fi
     fi
-    
+
     # Fallback to opatch if available
     if [[ -x "${home_path}/OPatch/opatch" ]]; then
-        version=$("${home_path}/OPatch/opatch" version 2>/dev/null | \
-                  grep -oE 'OPatch Version: [0-9.]+' | grep -oE '[0-9]+\.[0-9.]+' | head -1)
+        version=$("${home_path}/OPatch/opatch" version 2> /dev/null \
+            | grep -oE 'OPatch Version: [0-9.]+' | grep -oE '[0-9]+\.[0-9.]+' | head -1)
         if [[ -n "${version}" ]]; then
             echo "${version}"
             return 0
         fi
     fi
-    
+
     # No version found - not applicable
     return 1
 }

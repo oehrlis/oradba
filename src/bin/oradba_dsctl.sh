@@ -63,7 +63,7 @@ CONNECTORS=()
 LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
 # Ensure log directory exists; fall back to /tmp if creation fails
 if [[ ! -d "${LOGFILE%/*}" ]]; then
-    mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
+    mkdir -p "${LOGFILE%/*}" 2> /dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
 fi
 
 # ------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ get_connectors() {
     oradba_log DEBUG "${SCRIPT_NAME}: get_connectors() - Reading connectors from registry"
 
     # Check if registry API is available
-    if ! type -t oradba_registry_get_by_type &>/dev/null; then
+    if ! type -t oradba_registry_get_by_type &> /dev/null; then
         oradba_log ERROR "Registry API not available"
         return 1
     fi
@@ -145,9 +145,9 @@ get_connectors() {
     # Get all datasafe installations from registry
     local entry_count=0
     while IFS='|' read -r ptype name home version flags order alias desc; do
-        entry_count=$(( entry_count + 1 ))
+        entry_count=$((entry_count + 1))
         oradba_log DEBUG "${SCRIPT_NAME}: get_connectors() - Found entry ${entry_count}: NAME=${name}, HOME=${home}, FLAGS=${flags}"
-        
+
         # Convert flags format - look for Y flag for autostart
         # oradba_homes.conf has no flags; treat all datasafe entries as enabled
         local autostart="N"
@@ -156,8 +156,8 @@ get_connectors() {
         fi
 
         echo "${name}:${home}:${autostart}"
-    done < <(oradba_registry_get_by_type "datasafe" 2>/dev/null)
-    
+    done < <(oradba_registry_get_by_type "datasafe" 2> /dev/null)
+
     oradba_log DEBUG "${SCRIPT_NAME}: get_connectors() - Processed ${entry_count} entries from registry"
     return 0
 }
@@ -213,21 +213,21 @@ ask_justification() {
 get_cman_instance_name() {
     local connector_home="$1"
     local cman_home
-    
+
     # Adjust to oracle_cman_home if needed
-    if type -t plugin_adjust_environment &>/dev/null; then
+    if type -t plugin_adjust_environment &> /dev/null; then
         cman_home=$(plugin_adjust_environment "${connector_home}")
     else
         cman_home="${connector_home}/oracle_cman_home"
     fi
-    
+
     local cman_conf="${cman_home}/network/admin/cman.ora"
-    local instance_name="cust_cman"  # Default for DataSafe
-    
+    local instance_name="cust_cman" # Default for DataSafe
+
     if [[ -f "${cman_conf}" ]]; then
         # Extract first non-comment line with = sign (instance name)
         local extracted_name
-        extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+        extracted_name=$(grep -E '^[[:space:]]*[^#].*=' "${cman_conf}" 2> /dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
         if [[ -n "${extracted_name}" ]]; then
             instance_name="${extracted_name}"
             oradba_log DEBUG "${SCRIPT_NAME}: get_cman_instance_name() - Extracted instance name: ${instance_name}"
@@ -235,7 +235,7 @@ get_cman_instance_name() {
     else
         oradba_log DEBUG "${SCRIPT_NAME}: get_cman_instance_name() - cman.ora not found, using default: ${instance_name}"
     fi
-    
+
     echo "${instance_name}"
     return 0
 }
@@ -252,33 +252,33 @@ get_cman_instance_name() {
 setup_connector_environment() {
     local name="$1"
     local home="$2"
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Setting up environment for '${name}'"
-    
+
     # Adjust to oracle_cman_home if needed
     local cman_home
-    if type -t plugin_adjust_environment &>/dev/null; then
+    if type -t plugin_adjust_environment &> /dev/null; then
         cman_home=$(plugin_adjust_environment "${home}")
     else
         cman_home="${home}/oracle_cman_home"
     fi
-    
+
     # Set ORACLE_HOME
     export ORACLE_HOME="${cman_home}"
     oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set ORACLE_HOME=${ORACLE_HOME}"
-    
+
     # Set LD_LIBRARY_PATH
     export LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}"
     oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-    
+
     # Set TNS_ADMIN (DataSafe MUST use its own TNS_ADMIN)
     export TNS_ADMIN="${cman_home}/network/admin"
     oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set TNS_ADMIN=${TNS_ADMIN}"
-    
+
     # Set DATASAFE_HOME (base path without oracle_cman_home)
     export DATASAFE_HOME="${home}"
     oradba_log DEBUG "${SCRIPT_NAME}: setup_connector_environment() - Set DATASAFE_HOME=${DATASAFE_HOME}"
-    
+
     return 0
 }
 
@@ -294,15 +294,15 @@ start_connector() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Starting connector '${name}'"
-    
+
     # Set up environment for this connector
     setup_connector_environment "${name}" "${home}" || return 1
 
     oradba_log INFO "Starting connector ${name}..."
-    
+
     # Use ORACLE_HOME from environment (set by setup_connector_environment)
     local cmctl="${ORACLE_HOME}/bin/cmctl"
-    
+
     # Validate cmctl exists
     if [[ ! -x "${cmctl}" ]]; then
         oradba_log ERROR "cmctl not found or not executable: ${cmctl}"
@@ -312,20 +312,20 @@ start_connector() {
     # Check if connector is already running
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Checking current status"
     local status_exit_code=0
-    if type -t plugin_check_status &>/dev/null; then
-        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
+    if type -t plugin_check_status &> /dev/null; then
+        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
         status_exit_code=$?
     else
         # Fallback status check using cmctl (environment already set)
         local instance_name
         instance_name=$(get_cman_instance_name "${home}")
-        if "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+        if "${cmctl}" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
             status_exit_code=0
         else
             status_exit_code=1
         fi
     fi
-    
+
     # Convert exit code to status string for logging
     local status
     case ${status_exit_code} in
@@ -352,13 +352,13 @@ start_connector() {
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Executing cmctl startup command"
     local output
     output=$("${cmctl}" startup -c "${instance_name}" 2>&1)
-    
+
     local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - cmctl startup completed with exit code: ${rc}"
-    
+
     # Log output to logfile
     echo "${output}" >> "${LOGFILE}" 2>&1
-    
+
     if [[ ${rc} -eq 0 ]]; then
         oradba_log INFO "Connector ${name} started successfully"
         return 0
@@ -381,7 +381,7 @@ stop_connector() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Stopping connector '${name}'"
-    
+
     # Set up environment for this connector
     setup_connector_environment "${name}" "${home}" || return 1
 
@@ -390,20 +390,20 @@ stop_connector() {
     # Check if connector is running first
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
     local status_exit_code=0
-    if type -t plugin_check_status &>/dev/null; then
-        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
+    if type -t plugin_check_status &> /dev/null; then
+        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
         status_exit_code=$?
     else
         # Fallback status check using cmctl (environment already set)
         local instance_name
         instance_name=$(get_cman_instance_name "${home}")
-        if "${ORACLE_HOME}/bin/cmctl" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+        if "${ORACLE_HOME}/bin/cmctl" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
             status_exit_code=0
         else
             status_exit_code=1
         fi
     fi
-    
+
     # Convert exit code to status string for logging
     local status
     case ${status_exit_code} in
@@ -422,9 +422,9 @@ stop_connector() {
     fi
 
     # Use plugin_stop if available for proper shutdown
-    if type -t plugin_stop &>/dev/null; then
+    if type -t plugin_stop &> /dev/null; then
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Using plugin_stop with timeout ${SHUTDOWN_TIMEOUT}s"
-        
+
         if plugin_stop "${home}" "${name}" "${SHUTDOWN_TIMEOUT}"; then
             oradba_log INFO "Connector ${name} stopped successfully"
             return 0
@@ -435,10 +435,10 @@ stop_connector() {
     else
         # Fallback to old method if plugin_stop not available
         oradba_log WARN "${SCRIPT_NAME}: stop_connector() - plugin_stop not available, using fallback method"
-        
+
         # Use ORACLE_HOME from environment (set by setup_connector_environment)
         local cmctl="${ORACLE_HOME}/bin/cmctl"
-        
+
         # Validate cmctl exists
         if [[ ! -x "${cmctl}" ]]; then
             oradba_log ERROR "cmctl not found or not executable: ${cmctl}"
@@ -487,32 +487,32 @@ show_status() {
     local name="$1"
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Checking status for connector '${name}'"
-    
+
     # Set up environment for this connector
     setup_connector_environment "${name}" "${home}" || return 1
 
     # Get connector status via exit code
     local status_exit_code
-    if type -t plugin_check_status &>/dev/null; then
-        plugin_check_status "${home}" "${name}" >/dev/null 2>&1
+    if type -t plugin_check_status &> /dev/null; then
+        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
         status_exit_code=$?
     else
         # Fallback status check using cmctl (environment already set)
         local cmctl="${ORACLE_HOME}/bin/cmctl"
-        
+
         if [[ ! -x "${cmctl}" ]]; then
             status_exit_code=2
         else
             local instance_name
             instance_name=$(get_cman_instance_name "${home}")
-            if "${cmctl}" show services -c "${instance_name}" 2>/dev/null | grep -qiE "Services Summary|READY|running"; then
+            if "${cmctl}" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
                 status_exit_code=0
             else
                 status_exit_code=1
             fi
         fi
     fi
-    
+
     # Convert exit code to status string: 0=running, 1=stopped, 2=unavailable
     local status
     case ${status_exit_code} in
@@ -521,12 +521,12 @@ show_status() {
         2) status="unavailable" ;;
         *) status="unknown" ;;
     esac
-    
+
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Status: '${status}' (exit: ${status_exit_code})"
 
     # Format status for output
     local status_upper
-    status_upper="${status^^}" 2>/dev/null || status_upper=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
+    status_upper="${status^^}" 2> /dev/null || status_upper=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
     echo "${name}: ${status_upper}"
 }
 
@@ -646,11 +646,11 @@ else
     # Explicit connectors provided - get their homes from registry
     oradba_log INFO "Processing specified connectors: ${CONNECTORS[*]}"
     oradba_log DEBUG "${SCRIPT_NAME}: ${#CONNECTORS[@]} explicit connector(s) provided by user"
-    
+
     declare -A CONNECTOR_HOMES
     for connector in "${CONNECTORS[@]}"; do
         # Look up home path from registry
-        if type -t oradba_registry_get_by_name &>/dev/null; then
+        if type -t oradba_registry_get_by_name &> /dev/null; then
             entry=$(oradba_registry_get_by_name "${connector}")
             if [[ -n "${entry}" ]]; then
                 # shellcheck disable=SC2034
@@ -676,36 +676,36 @@ oradba_log DEBUG "${SCRIPT_NAME}: Starting to process ${#CONNECTORS[@]} connecto
 
 for connector in "${CONNECTORS[@]}"; do
     oradba_log DEBUG "${SCRIPT_NAME}: Processing connector '${connector}' with action '${ACTION}'"
-    
+
     # Get connector home
     connector_home="${CONNECTOR_HOMES[${connector}]}"
-    
+
     case "${ACTION}" in
         start)
             if start_connector "${connector}" "${connector_home}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully started connector '${connector}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to start connector '${connector}'"
             fi
             ;;
         stop)
             if stop_connector "${connector}" "${connector_home}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully stopped connector '${connector}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to stop connector '${connector}'"
             fi
             ;;
         restart)
             oradba_log DEBUG "${SCRIPT_NAME}: Restarting connector '${connector}' (stop then start)"
             if stop_connector "${connector}" "${connector_home}" && start_connector "${connector}" "${connector_home}"; then
-                success_count=$(( success_count + 1 ))
+                success_count=$((success_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Successfully restarted connector '${connector}'"
             else
-                failure_count=$(( failure_count + 1 ))
+                failure_count=$((failure_count + 1))
                 oradba_log DEBUG "${SCRIPT_NAME}: Failed to restart connector '${connector}'"
             fi
             ;;

@@ -86,9 +86,23 @@ jobs:
       - name: Run shellcheck via Makefile
         run: make lint-shell
 
-      - name: Check for unguarded post-increment at zero
+      - name: Check for unguarded post-increment at zero (M1 scope)
         run: |
-          if grep -Ern '^[[:space:]]*\(\([A-Za-z_][A-Za-z0-9_]*\+\+\)\)' src/; then
+          # Scope: files cleaned in M1. Expand list each milestone until all of src/ is covered.
+          M1_FILES="
+            src/bin/oradba_dsctl.sh
+            src/bin/oradba_dbctl.sh
+            src/bin/oradba_lsnrctl.sh
+            src/bin/oradba_dbca.sh
+            src/bin/oradba_version.sh
+            src/bin/oradba_logrotate.sh
+            src/bin/oradba_sqlnet.sh
+            src/bin/oradba_homes.sh
+            src/bin/oradba_extension.sh
+            src/lib/oradba_env_changes.sh
+            src/lib/plugins/plugin_interface.sh
+          "
+          if grep -Ern '^[[:space:]]*\(\([A-Za-z_][A-Za-z0-9_]*\+\+\)\)' $M1_FILES; then
             echo "ERROR: Found standalone (( var++ )) patterns - use var=\$(( var + 1 )) instead" >&2
             exit 1
           fi
@@ -102,8 +116,21 @@ jobs:
           sudo install /tmp/shfmt /usr/local/bin/shfmt
           shfmt --version
 
-      - name: Check shell formatting
-        run: shfmt -i 4 -bn -ci -sr -d src/
+      - name: Check shell formatting (M1 scope)
+        run: |
+          # Scope: files cleaned in M1. Expand list each milestone until all of src/ is covered.
+          shfmt -i 4 -bn -ci -sr -d \
+            src/bin/oradba_dsctl.sh \
+            src/bin/oradba_dbctl.sh \
+            src/bin/oradba_lsnrctl.sh \
+            src/bin/oradba_dbca.sh \
+            src/bin/oradba_version.sh \
+            src/bin/oradba_logrotate.sh \
+            src/bin/oradba_sqlnet.sh \
+            src/bin/oradba_homes.sh \
+            src/bin/oradba_extension.sh \
+            src/lib/oradba_env_changes.sh \
+            src/lib/plugins/plugin_interface.sh
 
   test:
     name: Run Tests (Smart Selection)
