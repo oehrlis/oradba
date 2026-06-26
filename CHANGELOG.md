@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.1] - 2026-06-26
+
+### Fixed
+
+- Zero-start `(( var++ ))` patterns in `oradba_install.sh` (5 occurrences) and
+  `oraenv.sh` (2 occurrences); shfmt applied to both files (CF-001 follow-up)
+
 ## [0.28.0] - 2026-06-26
 
 ### Changed

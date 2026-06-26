@@ -587,7 +587,7 @@ _oraenv_display_selection_menu() {
                     home_type=$(get_oracle_home_type "$home" 2> /dev/null || echo "")
                 fi
                 printf "  [%d] %-20s (%s)\n" "$counter" "$home" "${home_type}"
-                ((counter++))
+                counter=$((counter + 1))
             done
         fi
 
@@ -597,7 +597,7 @@ _oraenv_display_selection_menu() {
             echo "Database SIDs:"
             for sid in "${sids_ref[@]}"; do
                 printf "  [%d] %s\n" "$counter" "$sid"
-                ((counter++))
+                counter=$((counter + 1))
             done
         fi
         echo ""

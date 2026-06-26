@@ -616,7 +616,7 @@ check_optional_tools() {
         echo "  Many oradba aliases (sqh, rman, etc.) provide enhanced"
         echo "  readline support with rlwrap. Install for better CLI experience."
         echo "  Install: yum install rlwrap | apt install rlwrap | brew install rlwrap"
-        ((warnings++)) || true # Prevent set -e from exiting on arithmetic
+        warnings=$((warnings + 1))
         echo ""
     fi
 
@@ -626,7 +626,7 @@ check_optional_tools() {
     else
         log_warn "less not found (optional)"
         echo "  Some scripts use 'less' for paging output."
-        ((warnings++)) || true # Prevent set -e from exiting on arithmetic
+        warnings=$((warnings + 1))
     fi
 
     # Check for crontab (optional for save_cron alias)
@@ -635,7 +635,7 @@ check_optional_tools() {
     else
         log_warn "crontab not found (optional)"
         echo "  The 'save_cron' alias requires crontab to backup cron jobs."
-        ((warnings++)) || true # Prevent set -e from exiting on arithmetic
+        warnings=$((warnings + 1))
     fi
 
     echo ""
@@ -1908,7 +1908,7 @@ extract_local_tarball() {
         while IFS= read -r candidate; do
             [[ -z "$candidate" ]] && continue
             selected_tarball="$candidate"
-            ((match_count++)) || true
+            match_count=$((match_count + 1))
         done < <(find "$tarball" -maxdepth 1 -type f -name "oradba-*.tar.gz" 2> /dev/null | sort)
 
         # Fallback: any .tar.gz file
@@ -1916,7 +1916,7 @@ extract_local_tarball() {
             while IFS= read -r candidate; do
                 [[ -z "$candidate" ]] && continue
                 selected_tarball="$candidate"
-                ((match_count++)) || true
+                match_count=$((match_count + 1))
             done < <(find "$tarball" -maxdepth 1 -type f -name "*.tar.gz" 2> /dev/null | sort)
         fi
 
