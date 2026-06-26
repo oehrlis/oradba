@@ -1178,8 +1178,11 @@ dedupe_homes() {
     echo "================================================================================"
     echo ""
 
-    # Create temp file
-    local temp_file="${homes_file}.dedup.$$"
+    # Create temp file via mktemp (exclusive create, mode 600); the trap
+    # removes it on any abnormal exit before it is moved into place.
+    local temp_file
+    temp_file="$(mktemp "${homes_file}.dedup.XXXXXX")"
+    trap 'rm -f "${temp_file:-}" 2> /dev/null' RETURN
     local seen_names=()
     local seen_paths=()
     local removed_count=0

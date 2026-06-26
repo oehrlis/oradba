@@ -59,6 +59,15 @@ DRY_RUN="false"
 DB_DOMAIN=""
 DB_UNIQUE_NAME=""
 
+# Per-run temp directory holding the password-bearing response file; cleaned
+# up by the EXIT trap below on every exit path including failure.
+_DBCA_TMPDIR=""
+_dbca_cleanup() {
+    [[ -n "${_DBCA_TMPDIR:-}" ]] && rm -rf "${_DBCA_TMPDIR}"
+    return 0
+}
+trap _dbca_cleanup EXIT
+
 # ------------------------------------------------------------------------------
 # Function: usage
 # Purpose.: Display usage information
@@ -579,13 +588,17 @@ main() {
         fi
     fi
 
-    # Generate response file
-    local response_file
-    response_file="/tmp/dbca_${DB_SID}_$$.rsp"
+    # Generate response file inside a private mktemp directory. The temp dir
+    # is held in a script-level variable so the EXIT trap can clean it up on
+    # every exit path, including failures (the response file holds passwords).
+    _DBCA_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/oradba_dbca.XXXXXX")"
+    chmod 700 "${_DBCA_TMPDIR}"
+    local response_file="${_DBCA_TMPDIR}/dbca_${DB_SID}.rsp"
 
     if ! substitute_variables "${template_file}" "${response_file}"; then
         exit 1
     fi
+    chmod 600 "${response_file}"
     echo ""
 
     # Dry run or execute
@@ -610,13 +623,7 @@ main() {
             oradba_log INFO "  3. Check CDB/PDB status: show pdbs"
         else
             oradba_log ERROR "Failed to create database ${DB_SID}"
-            oradba_log ERROR "Response file preserved: ${response_file}"
             exit 1
-        fi
-
-        # Cleanup response file on success
-        if [[ -f "${response_file}" ]]; then
-            rm -f "${response_file}"
         fi
     fi
 

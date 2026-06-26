@@ -47,6 +47,29 @@ This policy covers the `oradba` toolset:
 
 - Scripts run with the invoking user's privileges; no setuid/setgid bits
 - No credentials are stored or transmitted by oradba scripts
-- Installer verifies SHA256 checksums for downloaded payload
 - `shellcheck` linting enforced in CI at `-S warning` level
 - `set -euo pipefail` on all executable scripts
+
+### Verified install flow
+
+- When installing from a GitHub release, the installer downloads the companion
+  `.sha256` file and verifies the tarball before extraction. Verification uses
+  `shasum -a 256 -c` (macOS/BSD) and falls back to `sha256sum -c` (Linux).
+- If neither checksum tool is available, the installer fails closed and aborts
+  rather than installing an unverified payload.
+
+### Wallet password file requirements
+
+- `get_seps_pwd.sh` can read a wallet password from `${WALLET_DIR}/.wallet_pwd`.
+- This file must be mode `600` and owned by the current user; otherwise the
+  script refuses to read it and exits non-zero.
+- The base64 layer in `.wallet_pwd` is obfuscation only, not encryption - the
+  file permissions are the security control.
+- Recovered passwords are never written to logs; only quiet mode emits the value
+  to stdout for script consumption.
+
+### Temp-file handling
+
+- Scripts that write secret-bearing temporary files (DBCA response files, RMAN
+  scripts) use `mktemp` for exclusive creation under a private directory and clean
+  up via `EXIT`/`RETURN` traps on all exit paths, including failure.

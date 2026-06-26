@@ -714,7 +714,11 @@ cmd_create() {
     local template_file=""
     local use_github=false
     local temp_dir=""
+    local extract_dir=""
     local ext_version="0.1.0"
+    # Safety net: remove all temp dirs on any function exit path, in addition
+    # to the explicit cleanups below.
+    trap 'rm -rf "${temp_dir:-}" "${extract_dir:-}" 2> /dev/null' RETURN
     log_debug "cmd_create invoked with args: '$*'"
 
     # Parse arguments
@@ -844,7 +848,6 @@ cmd_create() {
     echo "Extracting template..."
 
     # Create temporary extraction directory
-    local extract_dir
     extract_dir=$(mktemp -d)
 
     # First, check what's in the tarball
@@ -982,6 +985,10 @@ cmd_add() {
     local do_update=false
     local temp_dir=""
     local tarball_path=""
+    local extract_dir=""
+    # Safety net: remove all temp dirs on any function exit path, in addition
+    # to the explicit cleanups below.
+    trap 'rm -rf "${temp_dir:-}" "${extract_dir:-}" 2> /dev/null' RETURN
     log_debug "cmd_add invoked with args: '$*'"
 
     # Parse arguments
@@ -1100,7 +1107,6 @@ cmd_add() {
     echo ""
 
     # Extract to temporary location for inspection
-    local extract_dir
     extract_dir=$(mktemp -d)
 
     echo "Extracting tarball..."

@@ -142,6 +142,48 @@ teardown() {
     grep -q "printf.*\[%d\]" "$ORAENV_SCRIPT"
 }
 
+# ------------------------------------------------------------------------------
+# CF-022 regression: eval breakout via crafted oratab/discovery entry
+# ------------------------------------------------------------------------------
+
+@test "oraenv_rejects_oratab_entry_with_shell_injection_chars" {
+    local pwned_marker="${TEST_TEMP_DIR}/oradba_pwned_test"
+    rm -f "$pwned_marker"
+
+    # Source oraenv functions, then drive the gather routine through the
+    # instance-discovery path with a stub that returns a malicious SID.
+    run bash -c "
+        export ORATAB_FILE='$MOCK_ORATAB'
+        export ORADBA_AUTO_DISCOVER_INSTANCES=true
+        source '$ORAENV_SCRIPT' FREE --silent > /dev/null 2>&1 || true
+
+        # Override discovery to inject a shell-breakout SID
+        discover_running_oracle_instances() {
+            printf '%s\n' 'x\")\$(touch $pwned_marker)#:/opt/oracle:N'
+        }
+        export -f discover_running_oracle_instances 2>/dev/null || true
+
+        declare -a _sids _homes
+        # Empty oratab path so only discovery is consulted
+        _oraenv_gather_available_entries '${TEST_TEMP_DIR}/none_oratab' _sids _homes 2>&1 || true
+        printf 'SIDS=%s\n' \"\${_sids[*]:-}\"
+    "
+
+    # The injected command must NOT have executed
+    [[ ! -e "$pwned_marker" ]]
+    # The malicious SID must have been skipped (warning), processing continues
+    [[ "$output" =~ "invalid SID characters" || ! "$output" =~ "touch" ]]
+}
+
+@test "oraenv.sh source uses namerefs instead of eval over array fields" {
+    # No eval should remain operating on the SID/home array variables
+    run bash -c "grep -nE 'eval[[:space:]]+\"\\\$\\{(sids_var|homes_var)\\}' '$ORAENV_SCRIPT'"
+    [[ "$status" -ne 0 ]]
+    # nameref binding must be present
+    run bash -c "grep -q 'local -n _sids_ref' '$ORAENV_SCRIPT'"
+    [[ "$status" -eq 0 ]]
+}
+
 @test "oraenv.sh handles empty oratab gracefully" {
     # Create empty oratab
     echo "# Empty oratab" > "${TEST_TEMP_DIR}/empty_oratab"

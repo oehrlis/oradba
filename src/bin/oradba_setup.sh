@@ -17,6 +17,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
@@ -312,7 +317,7 @@ cmd_check() {
                 ((ext_count++))
             fi
         done
-        
+
         if [[ $ext_count -gt 0 ]]; then
             echo "  ✓ Discovered extensions: $ext_count"
             for ext_dir in "${ORADBA_LOCAL_BASE}"/*; do

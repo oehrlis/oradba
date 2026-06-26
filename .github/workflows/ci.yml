@@ -86,9 +86,9 @@ jobs:
       - name: Run shellcheck via Makefile
         run: make lint-shell
 
-      - name: Check for unguarded post-increment at zero (M1 scope)
+      - name: Check for unguarded post-increment at zero (M1+M2 scope)
         run: |
-          # Scope: files cleaned in M1. Expand list each milestone until all of src/ is covered.
+          # Scope: files cleaned in M1 and M2. Expand list each milestone until all of src/ is covered.
           M1_FILES="
             src/bin/oradba_dsctl.sh
             src/bin/oradba_dbctl.sh
@@ -99,6 +99,13 @@ jobs:
             src/bin/oradba_sqlnet.sh
             src/bin/oradba_homes.sh
             src/bin/oradba_extension.sh
+            src/bin/oradba_install.sh
+            src/bin/get_seps_pwd.sh
+            src/bin/oraenv.sh
+            src/bin/oradba_validate.sh
+            src/bin/oraup.sh
+            src/bin/oradba_setup.sh
+            src/bin/oradba_check.sh
             src/lib/oradba_env_changes.sh
             src/lib/plugins/plugin_interface.sh
           "
@@ -116,9 +123,9 @@ jobs:
           sudo install /tmp/shfmt /usr/local/bin/shfmt
           shfmt --version
 
-      - name: Check shell formatting (M1 scope)
+      - name: Check shell formatting (M1+M2 scope)
         run: |
-          # Scope: files cleaned in M1. Expand list each milestone until all of src/ is covered.
+          # Scope: files cleaned in M1 and M2. Expand list each milestone until all of src/ is covered.
           shfmt -i 4 -bn -ci -sr -d \
             src/bin/oradba_dsctl.sh \
             src/bin/oradba_dbctl.sh \
@@ -129,6 +136,13 @@ jobs:
             src/bin/oradba_sqlnet.sh \
             src/bin/oradba_homes.sh \
             src/bin/oradba_extension.sh \
+            src/bin/oradba_install.sh \
+            src/bin/get_seps_pwd.sh \
+            src/bin/oraenv.sh \
+            src/bin/oradba_validate.sh \
+            src/bin/oraup.sh \
+            src/bin/oradba_setup.sh \
+            src/bin/oradba_check.sh \
             src/lib/oradba_env_changes.sh \
             src/lib/plugins/plugin_interface.sh
 

@@ -42,13 +42,14 @@ SCRIPT_LOG="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
 # Create log directory if it doesn't exist
 LOG_DIR="$(dirname "${SCRIPT_LOG}")"
 if [[ ! -d "${LOG_DIR}" ]]; then
-    if ! mkdir -p "${LOG_DIR}" 2>/dev/null; then
+    if ! mkdir -p "${LOG_DIR}" 2> /dev/null; then
         # If we can't create the default log directory, use temp directory
         SCRIPT_LOG="${TMPDIR:-/tmp}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
     fi
 fi
 
-TEMP_DIR="${TMPDIR:-/tmp}/oradba_rman_$$"
+TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/oradba_rman.XXXXXX")"
+trap 'if [[ "${OPT_NO_CLEANUP:-false}" != "true" ]]; then rm -rf "${TEMP_DIR}"; fi' EXIT
 FAILED_SIDS=()
 SUCCESSFUL_SIDS=()
 PARALLEL_METHOD="background" # background or gnu_parallel
@@ -320,7 +321,7 @@ process_template() {
         if [[ "${OPT_DRY_RUN}" == "true" ]]; then
             oradba_log DEBUG "Input file missing in dry-run mode, creating dummy template"
             # Create a minimal dummy template for dry-run processing
-            cat > "${input_file}" <<'EOF'
+            cat > "${input_file}" << 'EOF'
 # Dummy RMAN template for dry-run mode
 RUN {
     <ALLOCATE_CHANNELS>
@@ -510,7 +511,7 @@ EOF
     # Escape newlines in multi-line values for sed
     local channel_block_escaped="${channel_block//$'\n'/\\n}"
     local release_block_escaped="${release_block//$'\n'/\\n}"
-    
+
     if [[ "${spfile_backup_enabled}" == "true" ]]; then
         # SPFILE backup enabled - substitute the tag with the command
         sed -e "s@<SPFILE_BACKUP>@${spfile_backup_clause}@g" \
@@ -538,7 +539,7 @@ EOF
             -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
             -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
             "${input_file}" > "${output_file}"
-        
+
         # Check if sed succeeded
         if [[ $? -ne 0 ]]; then
             oradba_log ERROR "Template processing failed for: ${input_file}"
@@ -571,7 +572,7 @@ EOF
             -e "s@<CUSTOM_PARAM_2>@${custom_param_2}@g" \
             -e "s@<CUSTOM_PARAM_3>@${custom_param_3}@g" \
             "${input_file}" > "${output_file}"
-        
+
         # Check if sed succeeded
         if [[ $? -ne 0 ]]; then
             oradba_log ERROR "Template processing failed for: ${input_file}"
@@ -721,10 +722,14 @@ execute_rman_for_sid() {
     local rman_cmd="${ORACLE_HOME}/bin/rman"
     local rman_args="target /"
 
-    # Add catalog if configured
+    # Catalog credentials are placed inside the script body (connect catalog)
+    # rather than on the command line, so they never appear in ps output.
+    # The debug log redacts the user/password, keeping only host/service.
     if [[ -n "${RMAN_CATALOG}" ]]; then
-        rman_args+=" catalog ${RMAN_CATALOG}"
-        oradba_log DEBUG "  Using RMAN catalog: ${RMAN_CATALOG}"
+        local catalog_redacted="${RMAN_CATALOG/#*@/***@}"
+        oradba_log DEBUG "  Using RMAN catalog at ${catalog_redacted}"
+        printf 'connect catalog %s;\n' "${RMAN_CATALOG}" | cat - "${processed_script}" > "${processed_script}.cat" \
+            && mv "${processed_script}.cat" "${processed_script}"
     fi
 
     # Dry run mode - enhanced with save and display
@@ -744,6 +749,10 @@ execute_rman_for_sid() {
     fi
 
     # Execute RMAN and capture output
+    if [[ ! -x "${rman_cmd}" ]]; then
+        echo "ERROR: rman not found at ${rman_cmd}" >&2
+        return 1
+    fi
     oradba_log INFO "  Executing RMAN script..."
     "${rman_cmd}" ${rman_args} @"${processed_script}" log="${sid_log}" 2>&1 | tee -a "${SCRIPT_LOG}"
     local rman_exit_code=${PIPESTATUS[0]}
@@ -970,7 +979,7 @@ main() {
                 ;;
             --parallel)
                 case "$2" in
-                    background|gnu)
+                    background | gnu)
                         OPT_PARALLEL="$2"
                         ;;
                     *)
@@ -1044,11 +1053,8 @@ main() {
         exit 1
     fi
 
-    # Create temporary directory
-    mkdir -p "${TEMP_DIR}" || {
-        echo "ERROR: Cannot create temporary directory: ${TEMP_DIR}" >&2
-        exit 3
-    }
+    # Temporary directory already created via mktemp (mode 700) at startup;
+    # cleanup is handled by the EXIT trap unless --no-cleanup is set.
 
     # Initialize log
     oradba_log INFO "=========================================="

@@ -17,6 +17,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Script directory and name
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -183,8 +188,23 @@ validate_environment() {
 load_wallet_password() {
     # Try to load from encoded file
     if [[ -f "${WALLET_DIR}/.wallet_pwd" ]]; then
-        WALLET_PASSWORD=$(base64 -d "${WALLET_DIR}/.wallet_pwd" 2> /dev/null)
-        oradba_log DEBUG "Loaded wallet password from ${WALLET_DIR}/.wallet_pwd"
+        local wallet_pwd_file="${WALLET_DIR}/.wallet_pwd"
+
+        # Refuse to read unless file is 600 and owned by current user.
+        # BSD/macOS stat uses -f, GNU/Linux uses -c.
+        local file_perms
+        file_perms="$(stat -c '%a' "${wallet_pwd_file}" 2> /dev/null || stat -f '%OLp' "${wallet_pwd_file}" 2> /dev/null)"
+        local file_owner
+        file_owner="$(stat -c '%u' "${wallet_pwd_file}" 2> /dev/null || stat -f '%u' "${wallet_pwd_file}" 2> /dev/null)"
+        if [[ "${file_perms}" != "600" ]] || [[ "${file_owner}" != "$(id -u)" ]]; then
+            echo "ERROR: ${wallet_pwd_file} must be mode 600 and owned by current user" >&2
+            return 1
+        fi
+
+        # The base64 layer is obfuscation only, not encryption - the file
+        # permission check above is what protects the secret.
+        WALLET_PASSWORD=$(base64 -d "${wallet_pwd_file}" 2> /dev/null)
+        oradba_log DEBUG "Loaded wallet password from ${wallet_pwd_file}"
     fi
 
     # Prompt if not loaded
@@ -239,8 +259,7 @@ search_wallet() {
             if [[ "${QUIET}" == "true" ]]; then
                 echo "${password}"
             else
-                should_log INFO && oradba_log INFO "Match found for connect string '${CONNECT_STRING}':"
-                should_log INFO && oradba_log INFO "  Password: ${password}"
+                should_log INFO && oradba_log INFO "Password recovered for connect string '${CONNECT_STRING}'."
             fi
             return 0
         fi

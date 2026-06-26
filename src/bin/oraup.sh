@@ -15,6 +15,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_BASE:-$(dirname "$SCRIPT_DIR")}"
@@ -105,7 +110,7 @@ EOF
 # Notes...: Call once at start, reuse results to avoid repeated ps -ef calls
 # ------------------------------------------------------------------------------
 get_process_list() {
-    ps -ef 2>/dev/null || true
+    ps -ef 2> /dev/null || true
 }
 
 # ------------------------------------------------------------------------------
@@ -169,11 +174,13 @@ EOF
     )
 
     # Clean up output (strip whitespace/control chars via parameter expansion)
-    mode="${mode//[$'\n'$'\r']/}"; mode="${mode#"${mode%%[![:space:]]*}"}"; mode="${mode%"${mode##*[![:space:]]}"}"
+    mode="${mode//[$'\n'$'\r']/}"
+    mode="${mode#"${mode%%[![:space:]]*}"}"
+    mode="${mode%"${mode##*[![:space:]]}"}"
 
     # Check if we got a valid result
     if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
-        printf '%s\n' "${mode,,}" 2>/dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
+        printf '%s\n' "${mode,,}" 2> /dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
     else
         # If v$instance query failed, try v$database for open_mode
         mode=$(
@@ -183,10 +190,12 @@ SELECT open_mode FROM v\$database;
 EXIT;
 EOF
         )
-        mode="${mode//[$'\n'$'\r']/}"; mode="${mode#"${mode%%[![:space:]]*}"}"; mode="${mode%"${mode##*[![:space:]]}"}"
+        mode="${mode//[$'\n'$'\r']/}"
+        mode="${mode#"${mode%%[![:space:]]*}"}"
+        mode="${mode%"${mode##*[![:space:]]}"}"
 
         if [[ -n "$mode" ]] && [[ "$mode" != "ERROR"* ]] && [[ "$mode" != "ORA-"* ]] && [[ "$mode" != "SP2-"* ]]; then
-            printf '%s\n' "${mode,,}" 2>/dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
+            printf '%s\n' "${mode,,}" 2> /dev/null || printf '%s\n' "${mode}" | tr '[:upper:]' '[:lower:]'
         else
             echo "started"
         fi
@@ -205,17 +214,17 @@ should_show_listener_section() {
     local process_list="$1"
     shift
     local -a db_homes=("$@")
-    
+
     # If we have database SIDs, always show (backward compatible)
     if [[ ${#db_homes[@]} -gt 0 ]]; then
         return 0
     fi
-    
+
     # Check for running listeners using cached process list
     if grep "[t]nslsnr" <<< "$process_list" | grep -qv "datasafe\|oracle_cman_home"; then
         return 0
     fi
-    
+
     return 1
 }
 
@@ -228,28 +237,28 @@ should_show_listener_section() {
 # ------------------------------------------------------------------------------
 show_oracle_status_registry() {
     local -a installations=("$@")
-    
+
     oradba_log DEBUG "oraup.sh: show_oracle_status_registry called with ${#installations[@]} installations"
-    
+
     # OPTIMIZATION: Get process list once for batch process detection
     local process_list
     process_list=$(get_process_list)
     oradba_log DEBUG "oraup.sh: Captured process list for batch detection ($(echo "$process_list" | wc -l) lines)"
-    
+
     # Separate by type and source
-    local -a database_sids=()      # Real SIDs from oratab (with flags)
-    local -a database_homes=()     # Database homes from oracle_homes.conf or dummy entries
+    local -a database_sids=()  # Real SIDs from oratab (with flags)
+    local -a database_homes=() # Database homes from oracle_homes.conf or dummy entries
     local -a datasafe_homes=()
     local -a other_homes=()
-    
+
     for install in "${installations[@]}"; do
         local ptype flags name
         ptype=$(oradba_registry_get_field "$install" "type")
         flags=$(oradba_registry_get_field "$install" "flags")
         name=$(oradba_registry_get_field "$install" "name")
-        
+
         oradba_log DEBUG "oraup.sh: Processing installation: name=${name}, type=${ptype}, flags=${flags}"
-        
+
         if [[ "$ptype" == "database" ]]; then
             # Distinguish between real SIDs and homes
             if [[ -n "$flags" && "$flags" != "D" ]]; then
@@ -269,33 +278,33 @@ show_oracle_status_registry() {
             oradba_log DEBUG "oraup.sh: Classified as other home (${ptype}): ${name}"
         fi
     done
-    
+
     # =========================================================================
     # SECTION 1: Oracle Homes (database homes + other homes, not datasafe)
     # =========================================================================
     # Show database homes from oracle_homes.conf, dummy entries, and other products
     local -a all_homes=("${database_homes[@]}" "${other_homes[@]}")
-    
+
     oradba_log DEBUG "oraup.sh: Section 1 - Oracle Homes: ${#all_homes[@]} total homes"
-    
+
     if [[ ${#all_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Oracle Homes"
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "TYPE" "STATUS" "ORACLE_HOME"
         echo "------------------------------------------------------------------------------------------"
-        
+
         for home_obj in "${all_homes[@]}"; do
             local name home ptype status flags
             name=$(oradba_registry_get_field "$home_obj" "name")
             home=$(oradba_registry_get_field "$home_obj" "home")
             ptype=$(oradba_registry_get_field "$home_obj" "type")
             flags=$(oradba_registry_get_field "$home_obj" "flags")
-            
+
             # Check if directory exists
             if [[ ! -d "$home" ]]; then
                 status="missing"
-            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
+            elif [[ -z "$(ls -A "$home" 2> /dev/null)" ]]; then
                 status="empty"
             elif [[ "$flags" == "D" ]]; then
                 # Dummy entry - find the real SID it aliases
@@ -316,11 +325,11 @@ show_oracle_status_registry() {
             else
                 status="available"
             fi
-            
+
             printf "%-20s %-16s %-13s %s\n" "$name" "$ptype" "$status" "$home"
         done
     fi
-    
+
     # =========================================================================
     # SECTION 2: Database Instances (only real SIDs from oratab)
     # =========================================================================
@@ -330,28 +339,28 @@ show_oracle_status_registry() {
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "SID" "FLAG" "STATUS" "ORACLE_HOME"
         echo "------------------------------------------------------------------------------------------"
-        
+
         for db_obj in "${database_sids[@]}"; do
             local sid home flags
             sid=$(oradba_registry_get_field "$db_obj" "name")
             home=$(oradba_registry_get_field "$db_obj" "home")
             flags=$(oradba_registry_get_field "$db_obj" "flags")
-            
+
             # Get status using cached process list
             local status
             status=$(get_db_status "$sid" "$process_list")
-            
+
             # Get open mode if instance is up
             if [[ "$status" == "up" ]]; then
                 local mode
                 mode=$(get_db_mode "$sid" "$home")
                 status="$mode"
             fi
-            
+
             printf "%-20s %-16s %-13s %s\n" "$sid" "$flags" "$status" "$home"
         done
     fi
-    
+
     # =========================================================================
     # SECTION 3: Listener Status
     # =========================================================================
@@ -359,49 +368,49 @@ show_oracle_status_registry() {
     # Skip if only non-database products (DataSafe, Client, Java, etc.)
     local total_databases=$((${#database_sids[@]}))
     local has_database_listeners=false
-    
+
     # Check if any database listeners are actually running (using cached process list)
     if grep "[t]nslsnr" <<< "$process_list" | grep -qv "datasafe\|oracle_cman_home"; then
         has_database_listeners=true
     fi
-    
+
     oradba_log DEBUG "oraup.sh: Listener section check: total_databases=${total_databases}, has_database_listeners=${has_database_listeners}"
-    
+
     if [[ $total_databases -gt 0 ]] || [[ "$has_database_listeners" == "true" ]]; then
         oradba_log DEBUG "oraup.sh: Displaying listener section"
         echo ""
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
         echo "------------------------------------------------------------------------------------------"
-        
+
         # Check for running listeners (using cached process list)
         local listener_count=0
         while read -r listener_line; do
             local listener_name listener_home
             # Extract listener name (second-to-last field before -inherit flag)
             listener_name=$(echo "$listener_line" | awk '{print $(NF-1)}')
-            
+
             # Extract Oracle Home from ps output (full path to tnslsnr binary)
             # ps output format: /path/to/oracle_home/bin/tnslsnr LISTENER -inherit
             listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
-            
+
             # Get detailed listener status and ports
             # Use lsnrctl from the listener's ORACLE_HOME to ensure compatibility
             local lsnr_status="down"
             local port_display=""
-            
+
             # Try to use plugin for status check if available
             local plugin_file="${ORADBA_BASE}/lib/plugins/database_plugin.sh"
             local use_plugin=false
-            
+
             if [[ -f "${plugin_file}" ]]; then
                 # shellcheck source=/dev/null
-                source "${plugin_file}" 2>/dev/null
-                if declare -f plugin_check_listener_status >/dev/null 2>&1; then
+                source "${plugin_file}" 2> /dev/null
+                if declare -f plugin_check_listener_status > /dev/null 2>&1; then
                     use_plugin=true
                 fi
             fi
-            
+
             if [[ "$use_plugin" == "true" ]]; then
                 # Use plugin to check listener status
                 local plugin_status
@@ -414,38 +423,44 @@ show_oracle_status_registry() {
                         unavailable) lsnr_status="unavailable" ;;
                     esac
                 fi
-                
+
                 # Still extract ports using traditional method
                 if [[ "$lsnr_status" == "up" ]] && [[ -x "${listener_home}/bin/lsnrctl" ]]; then
                     local lsnr_output
                     lsnr_output=$(ORACLE_HOME="${listener_home}" \
-                                  LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
-                                  "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
-                    
+                        LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                        "${listener_home}/bin/lsnrctl" status "$listener_name" 2> /dev/null)
+
                     # Extract ports (keeping existing logic)
                     local endpoints
                     endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
-                    
+
                     if [[ -n "$endpoints" ]]; then
                         local -a tcp_ports=()
                         local -a tcps_ports=()
-                        
+
                         while IFS= read -r endpoint; do
                             local protocol="" port=""
                             [[ "${endpoint}" =~ PROTOCOL=([a-zA-Z0-9_]+) ]] && protocol="${BASH_REMATCH[1]}"
                             [[ "${endpoint}" =~ PORT=([0-9]+) ]] && port="${BASH_REMATCH[1]}"
                             case "${protocol^^}" in
                                 TCPS) [[ -n "${port}" ]] && tcps_ports+=("${port}") ;;
-                                TCP)  [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
+                                TCP) [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
                             esac
                         done <<< "$endpoints"
-                        
+
                         # Format: tcp_port/tcps_port or just tcp_port
                         local tcp_str=""
                         local tcps_str=""
-                        [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(IFS=','; echo "${tcp_ports[*]}")
-                        [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(IFS=','; echo "${tcps_ports[*]}")
-                        
+                        [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(
+                            IFS=','
+                            echo "${tcp_ports[*]}"
+                        )
+                        [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(
+                            IFS=','
+                            echo "${tcps_ports[*]}"
+                        )
+
                         if [[ -n "$tcp_str" && -n "$tcps_str" ]]; then
                             port_display="${tcp_str}/${tcps_str}"
                         elif [[ -n "$tcp_str" ]]; then
@@ -462,37 +477,43 @@ show_oracle_status_registry() {
                     # Set full environment for lsnrctl execution from listener's home
                     # Need ORACLE_HOME and LD_LIBRARY_PATH for lsnrctl to work correctly
                     lsnr_output=$(ORACLE_HOME="${listener_home}" \
-                                  LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
-                                  "${listener_home}/bin/lsnrctl" status "$listener_name" 2>/dev/null)
-                    
+                        LD_LIBRARY_PATH="${listener_home}/lib:${LD_LIBRARY_PATH}" \
+                        "${listener_home}/bin/lsnrctl" status "$listener_name" 2> /dev/null)
+
                     if echo "$lsnr_output" | grep -qi "STATUS of the LISTENER"; then
                         lsnr_status="up"
-                        
+
                         # Extract all ports from Listening Endpoints
                         # Build compact display: tcp_ports/tcps_ports (e.g., 1521/2345 or just 1521)
                         local endpoints
                         endpoints=$(echo "$lsnr_output" | grep -A 20 "Listening Endpoints Summary" | grep "PROTOCOL=")
-                        
+
                         if [[ -n "$endpoints" ]]; then
                             local -a tcp_ports=()
                             local -a tcps_ports=()
-                            
+
                             while IFS= read -r endpoint; do
                                 local protocol="" port=""
                                 [[ "${endpoint}" =~ PROTOCOL=([a-zA-Z0-9_]+) ]] && protocol="${BASH_REMATCH[1]}"
                                 [[ "${endpoint}" =~ PORT=([0-9]+) ]] && port="${BASH_REMATCH[1]}"
                                 case "${protocol^^}" in
                                     TCPS) [[ -n "${port}" ]] && tcps_ports+=("${port}") ;;
-                                    TCP)  [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
+                                    TCP) [[ -n "${port}" ]] && tcp_ports+=("${port}") ;;
                                 esac
                             done <<< "$endpoints"
-                            
+
                             # Format: tcp_port/tcps_port or just tcp_port
                             local tcp_str=""
                             local tcps_str=""
-                            [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(IFS=','; echo "${tcp_ports[*]}")
-                            [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(IFS=','; echo "${tcps_ports[*]}")
-                            
+                            [[ ${#tcp_ports[@]} -gt 0 ]] && tcp_str=$(
+                                IFS=','
+                                echo "${tcp_ports[*]}"
+                            )
+                            [[ ${#tcps_ports[@]} -gt 0 ]] && tcps_str=$(
+                                IFS=','
+                                echo "${tcps_ports[*]}"
+                            )
+
                             if [[ -n "$tcp_str" && -n "$tcps_str" ]]; then
                                 port_display="${tcp_str}/${tcps_str}"
                             elif [[ -n "$tcp_str" ]]; then
@@ -504,29 +525,29 @@ show_oracle_status_registry() {
                     fi
                 fi
             fi
-            
+
             # Use full path for listener home (not [SID] notation)
             printf "%-20s %-16s %-13s %s\n" "$listener_name" "$port_display" "$lsnr_status" "$listener_home"
             ((listener_count++))
         done < <(grep "[t]nslsnr" <<< "$process_list" | grep -v "datasafe\|oracle_cman_home")
-        
+
         if [[ $listener_count -eq 0 ]]; then
             echo "  No database listeners running"
         fi
     fi
-    
+
     # =========================================================================
     # SECTION 4: Data Safe Connectors
     # =========================================================================
     oradba_log DEBUG "oraup.sh: Section 4 - Data Safe Connectors: ${#datasafe_homes[@]} connectors"
-    
+
     if [[ ${#datasafe_homes[@]} -gt 0 ]]; then
         echo ""
         echo "Data Safe Connectors"
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "DATASAFE_BASE_HOME"
         echo "------------------------------------------------------------------------------------------"
-        
+
         # OPTIMIZATION: Parallel status checks for multiple connectors
         # Use arrays to store results in order
         local -a ds_names=()
@@ -535,23 +556,23 @@ show_oracle_status_registry() {
         local -a ds_ports=()
         local -a ds_pids=()
         local -a ds_temp_files=()
-        
+
         # Launch all status checks in parallel
         for ds_obj in "${datasafe_homes[@]}"; do
             local name home
             name=$(oradba_registry_get_field "$ds_obj" "name")
             home=$(oradba_registry_get_field "$ds_obj" "home")
-            
+
             ds_names+=("$name")
             ds_homes+=("$home")
-            
+
             # Check basic conditions first (synchronously for quick failures)
             if [[ ! -d "$home" ]]; then
                 ds_statuses+=("unavailable")
                 ds_ports+=("n/a")
                 ds_pids+=("")
                 ds_temp_files+=("")
-            elif [[ -z "$(ls -A "$home" 2>/dev/null)" ]]; then
+            elif [[ -z "$(ls -A "$home" 2> /dev/null)" ]]; then
                 ds_statuses+=("empty")
                 ds_ports+=("n/a")
                 ds_pids+=("")
@@ -561,56 +582,56 @@ show_oracle_status_registry() {
                 local temp_file
                 temp_file=$(mktemp)
                 ds_temp_files+=("$temp_file")
-                
+
                 # Background job to get status and port
                 (
                     local status="unknown"
                     local port_display="n/a"
-                    
+
                     # Export cached process list for plugin to use
                     export ORADBA_CACHED_PS="$process_list"
-                    
+
                     # Get status using plugin system
                     # || true: oradba_get_product_status returns exit code 1 for "stopped",
                     # which with pipefail would kill this subshell before the temp file is written
-                    if type -t oradba_get_product_status &>/dev/null; then
+                    if type -t oradba_get_product_status &> /dev/null; then
                         status=$(oradba_get_product_status "datasafe" "$name" "$home" 2>&1 | grep -v "^\\[" | tr '[:upper:]' '[:lower:]') || true
                         if [[ -z "$status" ]]; then
                             status="unknown"
                         fi
                     fi
-                    
+
                     # Get metadata (port only, no versions)
-                    if type -t execute_plugin_function_v2 &>/dev/null; then
+                    if type -t execute_plugin_function_v2 &> /dev/null; then
                         local metadata
-                        execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2>/dev/null || true
+                        execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2> /dev/null || true
                         if [[ -n "${metadata}" ]]; then
                             local port
                             port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
-                            
+
                             if [[ -n "${port}" ]]; then
                                 port_display="${port}"
                             fi
                         fi
                     fi
-                    
+
                     # Write results to temp file (pipe-delimited: status|port)
                     echo "${status}|${port_display}" > "$temp_file"
                 ) &
-                
+
                 ds_pids+=("$!")
-                ds_statuses+=("")  # Placeholder
-                ds_ports+=("")     # Placeholder
+                ds_statuses+=("") # Placeholder
+                ds_ports+=("")    # Placeholder
             fi
-            
+
         done
 
         # Wait for all background jobs and collect results
         for idx in "${!ds_pids[@]}"; do
             local pid="${ds_pids[$idx]}"
             if [[ -n "$pid" ]]; then
-                wait "$pid" 2>/dev/null || true
-                
+                wait "$pid" 2> /dev/null || true
+
                 # Read results from temp file
                 local temp_file="${ds_temp_files[$idx]}"
                 if [[ -f "$temp_file" ]]; then
@@ -626,7 +647,7 @@ show_oracle_status_registry() {
                 fi
             fi
         done
-        
+
         # Display results in original order
         for idx in "${!ds_names[@]}"; do
             printf "%-20s %-16s %-13s %s\n" \
@@ -636,7 +657,7 @@ show_oracle_status_registry() {
                 "${ds_homes[$idx]}"
         done
     fi
-    
+
     echo ""
     echo "=========================================================================================="
     echo ""
@@ -655,11 +676,11 @@ show_oracle_status() {
     echo "=========================================================================================="
 
     # Use registry API if available (Phase 1 - Bug #85 fix)
-    if type -t oradba_registry_get_all &>/dev/null; then
+    if type -t oradba_registry_get_all &> /dev/null; then
         # Get all installations from unified registry
         local -a all_installations
         mapfile -t all_installations < <(oradba_registry_get_all)
-        
+
         if [[ ${#all_installations[@]} -eq 0 ]]; then
             echo ""
             echo "  ℹ No Oracle installations found"
@@ -676,7 +697,7 @@ show_oracle_status() {
             echo ""
             return 0
         fi
-        
+
         # Process installations using registry
         show_oracle_status_registry "${all_installations[@]}"
         return 0

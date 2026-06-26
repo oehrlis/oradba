@@ -223,3 +223,39 @@ teardown() {
         skip "shellcheck not available"
     fi
 }
+
+# ------------------------------------------------------------------------------
+# CF-002 regression: response file must not use a predictable /tmp path
+# ------------------------------------------------------------------------------
+
+@test "dbca_response_file_not_in_predictable_tmp_path" {
+    # Provide a dummy dbca executable so validate_prerequisites passes
+    cat > "${ORACLE_HOME}/bin/dbca" << 'STUB'
+#!/usr/bin/env bash
+exit 0
+STUB
+    chmod +x "${ORACLE_HOME}/bin/dbca"
+
+    # Ensure no stale predictable file is present before the run
+    rm -f /tmp/dbca_*.rsp 2> /dev/null || true
+
+    run "${DBCA_SCRIPT}" --sid DRYSID --version 19c --template general \
+        --sys-password testpw --system-password testpw --dry-run
+
+    # Dry run must succeed
+    [[ "${status}" -eq 0 ]]
+    # The reported response file must live under a per-run mktemp directory
+    [[ "${output}" =~ oradba_dbca\. ]]
+    [[ ! "${output}" =~ /tmp/dbca_DRYSID_ ]]
+
+    # No predictable /tmp/dbca_<SID>_<PID>.rsp file may be left behind
+    run bash -c 'ls /tmp/dbca_*_*.rsp 2>/dev/null'
+    [[ "${status}" -ne 0 ]]
+}
+
+@test "oradba_dbca.sh source creates response file via mktemp" {
+    run bash -c "grep -q 'mktemp -d' '${DBCA_SCRIPT}'"
+    [[ "${status}" -eq 0 ]]
+    run bash -c "grep -q '/tmp/dbca_' '${DBCA_SCRIPT}'"
+    [[ "${status}" -ne 0 ]]
+}
