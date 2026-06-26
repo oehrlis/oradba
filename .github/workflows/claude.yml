@@ -1,14 +1,18 @@
-name: Claude Code
+name: Claude Code Agent
 
 on:
   issue_comment:
     types: [created]
   pull_request_review_comment:
     types: [created]
-  issues:
-    types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
 
 jobs:
   claude:
@@ -19,32 +23,133 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Run Claude Code
+      - name: Install shell tooling
+        run: |
+          # shellcheck
+          SHELLCHECK_VERSION="0.10.0"
+          curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ
+          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          # shfmt
+          SHFMT_VERSION="3.8.0"
+          curl -fsSL "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" \
+            -o shfmt && chmod +x shfmt && sudo mv shfmt /usr/local/bin/shfmt
+          # bats
+          sudo apt-get update -qq && sudo apt-get install -y -qq bats
+
+      - name: Run Claude Code Agent
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # Tool allowlist: read/write framework files + quality tools + PR workflow.
+          # Does NOT allow installer execution or privileged actions.
+          claude_args: >-
+            --allowedTools
+            "Bash(shellcheck:*)"
+            "Bash(shfmt:*)"
+            "Bash(bats --count:*)"
+            "Bash(bats -f:*)"
+            "Bash(make lint:*)"
+            "Bash(make lint-shell:*)"
+            "Bash(make lint-scripts:*)"
+            "Bash(make test:*)"
+            "Bash(make check:*)"
+            "Bash(git log:*)"
+            "Bash(git diff:*)"
+            "Bash(git show:*)"
+            "Bash(git status:*)"
+            "Bash(git add:*)"
+            "Bash(git commit:*)"
+            "Bash(git checkout:*)"
+            "Bash(git push:*)"
+            "Bash(git branch:*)"
+            "Bash(find:*)"
+            "Bash(grep:*)"
+            "Bash(wc:*)"
+            "Bash(rg:*)"
+            "Bash(gh issue:*)"
+            "Bash(gh pr:*)"
+            "Read" "Write" "Edit" "Glob" "Grep"
 
-          # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr *)'
+          system_prompt: |
+            You are an automated agent working on the **oradba Bash framework**
+            (current: v0.24.11, target: v1.0.0). You fix bugs and implement
+            change requests following the repo conventions below.
 
+            ## Workflow
+
+            For bug reports:
+            1. Read the issue and reproduce the symptom by reading the relevant code.
+            2. Identify the root cause with file:line evidence.
+            3. Create a branch: `fix/<short-description>` from main.
+            4. Apply the minimal fix. No refactoring beyond the fix scope.
+            5. Run `make lint-shell` (or shellcheck on changed files) - must pass.
+            6. Run relevant bats tests: `bats tests/test_<relevant>.bats`.
+            7. Update CHANGELOG.md under [Unreleased] > Fixed.
+            8. Commit with `fix(scope): description` and open a PR.
+            9. Comment on the issue with the PR link and a one-line summary.
+
+            For change requests / feature issues:
+            1. Confirm scope with a brief comment before implementing.
+            2. Create a branch: `feat/<short-description>` from main.
+            3. Implement. Follow all conventions below.
+            4. Run `make lint-shell` and any related bats tests.
+            5. Update CHANGELOG.md under [Unreleased] > Added or Changed.
+            6. Commit with `feat(scope): description` and open a PR.
+
+            ## Hard constraints
+
+            - NEVER execute the installer (`oradba_install.sh`) or any script that
+              mutates the system state (installs Oracle software, modifies /etc).
+            - NEVER run bats beyond individual test files (no `bats tests/ -r`).
+            - NEVER hardcode passwords, wallet PINs, or API keys.
+            - NEVER modify `.github/workflows/` unless the issue explicitly requests it.
+            - NEVER force-push or reset main/master.
+            - If a fix is ambiguous or risky, comment on the issue asking for
+              clarification instead of guessing.
+
+            ## Bash conventions
+
+            - `#!/usr/bin/env bash`, `set -euo pipefail` on every script.
+            - OraDBA header: Name, Author, Description, Version, Change History.
+            - Config cascade: code defaults -> env file -> conf file -> CLI args.
+            - All output via LogMessage wrapper - no bare echo/printf.
+            - Required flags: `--dry-run` | `--delete` | `--yes` | `--help`.
+            - Secrets via `op read "op://vault/item/field"` - never hardcoded.
+            - macOS/BSD target: `sed -i ''`, no `grep -P`, no GNU `date` flags.
+            - Error output to stderr: `echo "ERROR: ..." >&2`.
+            - ShellCheck must pass without warnings.
+            - shfmt-conformant formatting.
+            - Functions: snake_case; constants: UPPER_CASE.
+
+            ## Git / commit
+
+            - Conventional Commits: `type(scope): description`.
+            - Types: feat | fix | docs | refactor | chore | test | ci.
+            - No "Co-Authored-By: Claude" lines.
+            - One logical change per commit.
+
+            ## Quality gate before opening a PR
+
+            - [ ] shellcheck passes on all changed .sh files
+            - [ ] shfmt -d shows no diff on changed files
+            - [ ] Relevant bats tests pass
+            - [ ] CHANGELOG.md updated
+            - [ ] No hardcoded secrets or paths introduced
