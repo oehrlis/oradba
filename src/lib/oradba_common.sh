@@ -188,15 +188,15 @@ oradba_log() {
     # Default log level is INFO if not set
     local min_level="${ORADBA_LOG_LEVEL:-INFO}"
     case "${level}" in
-        trace|TRACE)     level_upper="TRACE"   ;;
-        debug|DEBUG)     level_upper="DEBUG"   ;;
-        info|INFO)       level_upper="INFO"    ;;
-        warn|WARN)       level_upper="WARN"    ;;
-        error|ERROR)     level_upper="ERROR"   ;;
-        success|SUCCESS) level_upper="SUCCESS" ;;
-        failure|FAILURE) level_upper="FAILURE" ;;
-        section|SECTION) level_upper="SECTION" ;;
-        *)               level_upper="${level}" ;;
+        trace | TRACE) level_upper="TRACE" ;;
+        debug | DEBUG) level_upper="DEBUG" ;;
+        info | INFO) level_upper="INFO" ;;
+        warn | WARN) level_upper="WARN" ;;
+        error | ERROR) level_upper="ERROR" ;;
+        success | SUCCESS) level_upper="SUCCESS" ;;
+        failure | FAILURE) level_upper="FAILURE" ;;
+        section | SECTION) level_upper="SECTION" ;;
+        *) level_upper="${level}" ;;
     esac
 
     # Legacy DEBUG=1 support - if DEBUG is set, enable DEBUG level
@@ -211,12 +211,12 @@ oradba_log() {
 
     # Recompute normalized minimum level after compatibility overrides
     case "${min_level}" in
-        trace|TRACE)     min_level_upper="TRACE" ;;
-        debug|DEBUG)     min_level_upper="DEBUG" ;;
-        info|INFO)       min_level_upper="INFO"  ;;
-        warn|WARN)       min_level_upper="WARN"  ;;
-        error|ERROR)     min_level_upper="ERROR" ;;
-        *)               min_level_upper="${min_level}" ;;
+        trace | TRACE) min_level_upper="TRACE" ;;
+        debug | DEBUG) min_level_upper="DEBUG" ;;
+        info | INFO) min_level_upper="INFO" ;;
+        warn | WARN) min_level_upper="WARN" ;;
+        error | ERROR) min_level_upper="ERROR" ;;
+        *) min_level_upper="${min_level}" ;;
     esac
 
     # Convert levels to numeric values for comparison
@@ -570,10 +570,10 @@ get_oracle_version() {
     elif [[ -x "${ORACLE_HOME}/sqlplus" ]]; then
         sqlplus_bin="${ORACLE_HOME}/sqlplus"
     fi
-    
+
     if [[ -n "${sqlplus_bin}" ]]; then
         local _sql_ver
-        _sql_ver=$("${sqlplus_bin}" -version 2>/dev/null | grep -E 'Release [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        _sql_ver=$("${sqlplus_bin}" -version 2> /dev/null | grep -E 'Release [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
         if [[ "${_sql_ver}" =~ Release[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) ]]; then
             echo "${BASH_REMATCH[1]}"
         fi
@@ -581,14 +581,14 @@ get_oracle_version() {
     else
         # No sqlplus - try plugin-based detection (instant client basic, datasafe, etc.)
         oradba_log DEBUG "sqlplus not found, trying plugin-based version detection"
-        
+
         # Try to use ORADBA_CURRENT_HOME_TYPE if set, otherwise detect
         local product_type="${ORADBA_CURRENT_HOME_TYPE:-}"
         if [[ -z "${product_type}" ]]; then
             product_type=$(detect_product_type "${ORACLE_HOME}")
             oradba_log DEBUG "Detected product type: ${product_type}"
         fi
-        
+
         local version_code
         if version_code=$(detect_oracle_version "${ORACLE_HOME}" "${product_type}"); then
             # Convert XXYZ format back to X.Y.Z.W format for display
@@ -641,7 +641,6 @@ load_rman_catalog_connection() {
     return 0
 }
 
-
 # ------------------------------------------------------------------------------
 # Function: validate_directory
 # Purpose.: Validate directory exists and optionally create it
@@ -674,7 +673,6 @@ validate_directory() {
     return 0
 }
 
-
 # Set environment variables for an Oracle Home
 # Arguments:
 #   $1 - Oracle Home name or alias
@@ -702,34 +700,34 @@ set_oracle_home_environment() {
 
     # Resolve alias to actual name if needed
     actual_name=$(resolve_oracle_home_name "${name}")
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.resolve_name"
     fi
-    
+
     # Get ORACLE_HOME if not provided
     if [[ -z "${oracle_home}" ]]; then
         oracle_home=$(get_oracle_home_path "${actual_name}") || return 1
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.resolve_path"
     fi
 
     # Get product type from config first, fall back to detection
-    if product_type=$(get_oracle_home_type "${actual_name}" 2>/dev/null) && [[ -n "${product_type}" ]] && [[ "${product_type}" != "unknown" ]]; then
+    if product_type=$(get_oracle_home_type "${actual_name}" 2> /dev/null) && [[ -n "${product_type}" ]] && [[ "${product_type}" != "unknown" ]]; then
         # Successfully got type from config
         :
     else
         # Fallback to filesystem detection
         product_type=$(detect_product_type "${oracle_home}")
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.detect_type"
     fi
 
     # Apply product-specific adjustments via plugin system
     local adjusted_home="${oracle_home}"
     local datasafe_install_dir=""
-    
+
     if [[ "${product_type}" == "datasafe" ]]; then
         # Load datasafe plugin for oracle_cman_home adjustment
         local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
@@ -748,25 +746,25 @@ set_oracle_home_environment() {
             fi
         fi
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.adjust_product_home"
     fi
 
     # Set base environment
     export ORACLE_HOME="${adjusted_home}"
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
-    
+
     # Set library path using plugin system (Phase 4+)
-    if command -v oradba_set_lib_path &>/dev/null; then
+    if command -v oradba_set_lib_path &> /dev/null; then
         oradba_log DEBUG "Calling oradba_set_lib_path for ${product_type}: ${adjusted_home}"
         oradba_set_lib_path "${adjusted_home}" "${product_type}"
     else
         oradba_log WARN "oradba_set_lib_path not available - library path not set via plugin system"
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.set_lib_path"
     fi
-    
+
     # Set DataSafe-specific variables if applicable
     if [[ -n "${datasafe_install_dir}" ]]; then
         export DATASAFE_HOME="${oracle_home}"
@@ -775,23 +773,23 @@ set_oracle_home_environment() {
             export DATASAFE_CONFIG="${adjusted_home}/config"
         fi
     fi
-    
+
     # Set home tracking variables for PS1
     export ORADBA_CURRENT_HOME="${actual_name}"
-    alias_name=$(get_oracle_home_alias "${actual_name}" 2>/dev/null || echo "${actual_name}")
+    alias_name=$(get_oracle_home_alias "${actual_name}" 2> /dev/null || echo "${actual_name}")
     export ORADBA_CURRENT_HOME_ALIAS="${alias_name}"
-    
+
     # Create alias for this Oracle Home (consistent with SID aliases)
     # Always use actual name in alias target, not the alias itself
     # shellcheck disable=SC2139  # We want the alias to expand now
     alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.create_alias"
     fi
 
     # Clean old Oracle paths from PATH before adding new ones (Phase 4+)
     # Skip when deferred (oraenv already called _oraenv_unset_old_env)
-    if [[ "${defer_path_config}" != "true" ]] && command -v oradba_clean_path &>/dev/null; then
+    if [[ "${defer_path_config}" != "true" ]] && command -v oradba_clean_path &> /dev/null; then
         oradba_clean_path
     fi
 
@@ -838,14 +836,14 @@ set_oracle_home_environment() {
             export PATH="${ORACLE_HOME}/bin:${PATH}"
             ;;
     esac
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.apply_base_path"
     fi
 
     # Add client path for non-client products if configured
     # Check if the product needs external client tools
     case "${product_type}" in
-        datasafe|oud|weblogic|oms|emagent|java)
+        datasafe | oud | weblogic | oms | emagent | java) ;;
             # Source env_builder if available to use helper functions
     esac
 
@@ -854,22 +852,22 @@ set_oracle_home_environment() {
         # Add Java path for products that need it if configured
         # This happens BEFORE client path so Java takes precedence
         case "${product_type}" in
-            datasafe|oud|weblogic|oms|emagent)
+            datasafe | oud | weblogic | oms | emagent)
                 # Source env_builder if available to use helper functions
                 if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
                     # Only source if not already loaded
-                    if ! command -v oradba_add_java_path &>/dev/null; then
+                    if ! command -v oradba_add_java_path &> /dev/null; then
                         # shellcheck source=/dev/null
-                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2> /dev/null
                     fi
 
                     # Add Java path if function is available
-                    if command -v oradba_add_java_path &>/dev/null; then
+                    if command -v oradba_add_java_path &> /dev/null; then
                         # Convert to uppercase for function call
                         local product_upper
                         product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
                         # Pass ORACLE_HOME for auto-detection of $ORACLE_HOME/java
-                        oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2>/dev/null || true
+                        oradba_add_java_path "${product_upper}" "${ORACLE_HOME}" 2> /dev/null || true
                     fi
                 fi
                 ;;
@@ -878,33 +876,33 @@ set_oracle_home_environment() {
         # Add client path for non-client products if configured
         # Check if the product needs external client tools
         case "${product_type}" in
-            datasafe|oud|weblogic|oms|emagent)
+            datasafe | oud | weblogic | oms | emagent)
                 # Source env_builder if available to use helper functions
                 if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
                     # Only source if not already loaded
-                    if ! command -v oradba_add_client_path &>/dev/null; then
+                    if ! command -v oradba_add_client_path &> /dev/null; then
                         # shellcheck source=/dev/null
-                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2>/dev/null
+                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2> /dev/null
                     fi
 
                     # Add client path if function is available
-                    if command -v oradba_add_client_path &>/dev/null; then
+                    if command -v oradba_add_client_path &> /dev/null; then
                         # Convert to uppercase for function call
                         local product_upper
                         product_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
-                        oradba_add_client_path "${product_upper}" 2>/dev/null || true
+                        oradba_add_client_path "${product_upper}" 2> /dev/null || true
                     fi
                 fi
                 ;;
         esac
 
         # Deduplicate PATH after all additions
-        if command -v oradba_dedupe_path &>/dev/null; then
+        if command -v oradba_dedupe_path &> /dev/null; then
             PATH="$(oradba_dedupe_path "${PATH}")"
             export PATH
         fi
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.finalize_path"
     fi
 
@@ -925,13 +923,13 @@ set_oracle_home_environment() {
 cleanup_previous_sid_config() {
     if [[ -n "${ORADBA_PREV_SID_VARS:-}" ]]; then
         oradba_log DEBUG "Cleaning up variables from previous SID configuration"
-        
+
         # Unset each variable that was set by previous SID config
         local var
         for var in ${ORADBA_PREV_SID_VARS}; do
             # Skip critical Oracle and OraDBA variables
             case "$var" in
-                ORACLE_SID|ORACLE_HOME|ORACLE_BASE|ORADBA_*|PATH|LD_LIBRARY_PATH|TNS_ADMIN|NLS_LANG)
+                ORACLE_SID | ORACLE_HOME | ORACLE_BASE | ORADBA_* | PATH | LD_LIBRARY_PATH | TNS_ADMIN | NLS_LANG)
                     continue
                     ;;
                 *)
@@ -940,7 +938,7 @@ cleanup_previous_sid_config() {
                     ;;
             esac
         done
-        
+
         # Clear the tracking variable
         unset ORADBA_PREV_SID_VARS
     fi
@@ -959,32 +957,32 @@ cleanup_previous_sid_config() {
 # ------------------------------------------------------------------------------
 capture_sid_config_vars() {
     local sid_config="$1"
-    
+
     [[ ! -f "$sid_config" ]] && return 1
-    
+
     # Get current exported variables (variable names only)
     local vars_before
     vars_before=$(compgen -e | sort)
-    
+
     # Source the SID config
     set -a
     # shellcheck source=/dev/null
     source "$sid_config"
     set +a
-    
+
     # Get variables after loading config
     local vars_after
     vars_after=$(compgen -e | sort)
-    
+
     # Find new variables (difference)
     local new_vars
     new_vars=$(comm -13 <(echo "$vars_before") <(echo "$vars_after") | tr '\n' ' ')
-    
+
     # Store for cleanup on next SID switch
     export ORADBA_PREV_SID_VARS="$new_vars"
-    
+
     oradba_log DEBUG "Captured SID-specific variables: ${new_vars:-<none>}"
-    
+
     return 0
 }
 
@@ -1008,17 +1006,17 @@ load_config_file() {
 
     if [[ -f "${file_path}" ]]; then
         oradba_log DEBUG "Loading config: ${file_path}"
-        
+
         # Save PATH before sourcing to detect and remove duplicates
         local path_before="${PATH}"
-        
+
         # shellcheck source=/dev/null
         source "${file_path}"
-        
+
         # Deduplicate PATH if it changed
         if [[ "${PATH}" != "${path_before}" ]]; then
             # Use oradba_dedupe_path if available (Phase 2), otherwise use awk
-            if command -v oradba_dedupe_path &>/dev/null; then
+            if command -v oradba_dedupe_path &> /dev/null; then
                 PATH="$(oradba_dedupe_path "${PATH}")"
             else
                 # Fallback deduplication using awk (portable)
@@ -1026,7 +1024,7 @@ load_config_file() {
             fi
             export PATH
         fi
-        
+
         return 0
     else
         if [[ "${required}" == "true" ]]; then
@@ -1059,7 +1057,7 @@ load_config() {
     # Clean up variables from previous SID configuration
     # This ensures environment isolation when switching between SIDs
     cleanup_previous_sid_config
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.cleanup_previous_sid_config"
     fi
 
@@ -1073,7 +1071,7 @@ load_config() {
         set +a
         return 1
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.oradba_core.conf"
     fi
 
@@ -1081,19 +1079,19 @@ load_config() {
     if ! load_config_file "${config_dir}/oradba_standard.conf"; then
         oradba_log WARN "Standard configuration not found: ${config_dir}/oradba_standard.conf"
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.oradba_standard.conf"
     fi
 
     # 3. Load customer configuration (optional)
     load_config_file "${config_dir}/oradba_customer.conf"
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.oradba_customer.conf"
     fi
 
     # 4. Load default SID configuration (optional)
     load_config_file "${config_dir}/sid._DEFAULT_.conf"
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.sid._DEFAULT_.conf"
     fi
 
@@ -1132,7 +1130,7 @@ load_config() {
             fi
         fi
     fi
-    if command -v _oraenv_profile_mark &>/dev/null; then
+    if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "load_config.sid.${sid:-none}.conf"
     fi
 
@@ -1193,7 +1191,6 @@ create_sid_config() {
         return 1
     fi
 }
-
 
 # ------------------------------------------------------------------------------
 # SQLPATH Management Functions (#11)
@@ -1452,27 +1449,27 @@ is_plugin_debug_enabled() {
     if [[ "${ORADBA_PLUGIN_DEBUG:-false}" == "true" ]]; then
         return 0
     fi
-    
+
     # Check if ORADBA_LOG_LEVEL is DEBUG or TRACE
     local log_level="${ORADBA_LOG_LEVEL:-INFO}"
     local log_level_upper
     case "${log_level}" in
-        trace|TRACE) log_level_upper="TRACE" ;;
-        debug|DEBUG) log_level_upper="DEBUG" ;;
-        info|INFO)   log_level_upper="INFO"  ;;
-        warn|WARN)   log_level_upper="WARN"  ;;
-        error|ERROR) log_level_upper="ERROR" ;;
-        *)           log_level_upper="${log_level}" ;;
+        trace | TRACE) log_level_upper="TRACE" ;;
+        debug | DEBUG) log_level_upper="DEBUG" ;;
+        info | INFO) log_level_upper="INFO" ;;
+        warn | WARN) log_level_upper="WARN" ;;
+        error | ERROR) log_level_upper="ERROR" ;;
+        *) log_level_upper="${log_level}" ;;
     esac
     if [[ "${log_level_upper}" == "DEBUG" ]] || [[ "${log_level_upper}" == "TRACE" ]]; then
         return 0
     fi
-    
+
     # Legacy DEBUG=1 support
     if [[ "${DEBUG:-0}" == "1" ]]; then
         return 0
     fi
-    
+
     return 1
 }
 
@@ -1488,12 +1485,12 @@ is_plugin_trace_enabled() {
     local log_level="${ORADBA_LOG_LEVEL:-INFO}"
     local log_level_upper
     case "${log_level}" in
-        trace|TRACE) log_level_upper="TRACE" ;;
-        debug|DEBUG) log_level_upper="DEBUG" ;;
-        info|INFO)   log_level_upper="INFO"  ;;
-        warn|WARN)   log_level_upper="WARN"  ;;
-        error|ERROR) log_level_upper="ERROR" ;;
-        *)           log_level_upper="${log_level}" ;;
+        trace | TRACE) log_level_upper="TRACE" ;;
+        debug | DEBUG) log_level_upper="DEBUG" ;;
+        info | INFO) log_level_upper="INFO" ;;
+        warn | WARN) log_level_upper="WARN" ;;
+        error | ERROR) log_level_upper="ERROR" ;;
+        *) log_level_upper="${log_level}" ;;
     esac
     if [[ "${log_level_upper}" == "TRACE" ]]; then
         return 0
@@ -1516,7 +1513,7 @@ is_plugin_trace_enabled() {
 # ------------------------------------------------------------------------------
 sanitize_sensitive_data() {
     local text="$1"
-    
+
     # Apply all sanitization patterns in a single sed command for efficiency
     echo "$text" | sed -E \
         -e 's/(PASSWORD|PWD|PASSWD)="[^"]*"/\1="***"/g' \
@@ -1557,13 +1554,13 @@ execute_plugin_function_v2() {
     fi
 
     local plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
-    if [[ ! -f "${plugin_file}" ]]; then
-        plugin_file="${oradba_base}/lib/plugins/${product_type}_plugin.sh"
-        [[ ! -f "${plugin_file}" ]] && { oradba_log DEBUG "Plugin not found: ${product_type}_plugin.sh"; return 1; }
-    fi
+    [[ ! -f "${plugin_file}" ]] && {
+        oradba_log DEBUG "Plugin not found: ${product_type}_plugin.sh"
+        return 1
+    }
 
     local plugin_function="plugin_${function_name}"
-    
+
     # Debug logging: Log plugin call details
     if is_plugin_debug_enabled; then
         local sanitized_args="plugin=${product_type}, function=${function_name}"
@@ -1575,33 +1572,33 @@ execute_plugin_function_v2() {
         fi
         oradba_log DEBUG "Plugin call: ${sanitized_args}"
     fi
-    
+
     local output
     local stderr_output
-    
+
     # Create temp files for capturing stderr
     local temp_stderr
-    temp_stderr=$(mktemp 2>/dev/null)
-    
+    temp_stderr=$(mktemp 2> /dev/null)
+
     # Verify mktemp succeeded - fail safely if not
     if [[ -z "${temp_stderr}" ]] || [[ ! -f "${temp_stderr}" ]]; then
         oradba_log ERROR "Failed to create temporary file for plugin stderr capture"
         return 2
     fi
-    
+
     # Set up trap to ensure cleanup happens (use single quotes to defer expansion)
     # shellcheck disable=SC2064
     trap "rm -f '${temp_stderr}' 2>/dev/null" RETURN
-    
+
     # Handle no-arg functions vs functions that take oracle_home
     if [[ "${oracle_home}" == "NOARGS" ]]; then
         # No-arg function (e.g., plugin_get_config_section)
-        
+
         # Debug logging: Log environment snapshot
         if is_plugin_debug_enabled; then
             oradba_log DEBUG "Plugin env (no-arg): ORACLE_HOME=${ORACLE_HOME:-<unset>}, LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<unset>}"
         fi
-        
+
         output=$(
             # Set minimal Oracle environment from current context
             export ORACLE_HOME="${ORACLE_HOME:-}"
@@ -1613,7 +1610,7 @@ execute_plugin_function_v2() {
             unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}" 2>"${temp_stderr}" || exit 1
+            source "${plugin_file}" 2> "${temp_stderr}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout
@@ -1624,20 +1621,20 @@ execute_plugin_function_v2() {
             if [[ -n "${plugin_interface_version:-}" ]] && [[ "${plugin_interface_version}" != "1.0.0" ]]; then
                 echo "WARNING: Plugin ${product_type} declares interface_version=${plugin_interface_version} (expected 1.0.0) — compatibility not guaranteed" >&2
             fi
-            if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+            if ! declare -F "${plugin_function}" > /dev/null 2>&1; then
                 exit 1
             fi
-            "${plugin_function}" 2>>"${temp_stderr}"
+            "${plugin_function}" 2>> "${temp_stderr}"
         )
     else
         # Function takes oracle_home as argument
-        
+
         # Debug logging: Log environment snapshot
         if is_plugin_debug_enabled; then
             local lib_path="${LD_LIBRARY_PATH:-${oracle_home}/lib}"
             oradba_log DEBUG "Plugin env: ORACLE_HOME=${oracle_home}, LD_LIBRARY_PATH=${lib_path}, TNS_ADMIN=<unset>, PATH=${PATH:-<unset>}"
         fi
-        
+
         output=$(
             ORACLE_HOME="${oracle_home}"
             export ORACLE_HOME
@@ -1652,7 +1649,7 @@ execute_plugin_function_v2() {
             unset plugin_status
             # Note: Don't use set -euo pipefail here - plugins need flexibility
             # shellcheck disable=SC1090
-            source "${plugin_file}" 2>"${temp_stderr}" || exit 1
+            source "${plugin_file}" 2> "${temp_stderr}" || exit 1
             # Check if plugin is experimental
             if [[ -n "${plugin_status:-}" ]] && [[ "${plugin_status}" == "EXPERIMENTAL" ]]; then
                 # Log to stderr so it doesn't pollute stdout
@@ -1663,23 +1660,23 @@ execute_plugin_function_v2() {
             if [[ -n "${plugin_interface_version:-}" ]] && [[ "${plugin_interface_version}" != "1.0.0" ]]; then
                 echo "WARNING: Plugin ${product_type} declares interface_version=${plugin_interface_version} (expected 1.0.0) — compatibility not guaranteed" >&2
             fi
-            if ! declare -F "${plugin_function}" >/dev/null 2>&1; then
+            if ! declare -F "${plugin_function}" > /dev/null 2>&1; then
                 exit 1
             fi
             if [[ -n "${extra_arg}" ]]; then
-                "${plugin_function}" "${oracle_home}" "${extra_arg}" 2>>"${temp_stderr}"
+                "${plugin_function}" "${oracle_home}" "${extra_arg}" 2>> "${temp_stderr}"
             else
-                "${plugin_function}" "${oracle_home}" 2>>"${temp_stderr}"
+                "${plugin_function}" "${oracle_home}" 2>> "${temp_stderr}"
             fi
         )
     fi
     local exit_code=$?
-    
+
     # Read stderr output if available (trap will clean up)
     if [[ -f "${temp_stderr}" ]]; then
-        stderr_output=$(<"${temp_stderr}")
+        stderr_output=$(< "${temp_stderr}")
     fi
-    
+
     # Trace logging: Log raw stdout/stderr
     if is_plugin_trace_enabled; then
         if [[ -n "${output}" ]]; then
@@ -1689,7 +1686,7 @@ execute_plugin_function_v2() {
             oradba_log TRACE "Plugin stderr: $(sanitize_sensitive_data "${stderr_output}")"
         fi
     fi
-    
+
     # Debug logging: Log exit code
     if is_plugin_debug_enabled; then
         oradba_log DEBUG "Plugin exit: code=${exit_code}, plugin=${product_type}, function=${function_name}"

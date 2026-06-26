@@ -51,7 +51,8 @@ mappings:
     - test_registry.bats
     - test_plugin_debug.bats
     - test_plugin_isolation.bats
-  
+    - test_oradba_plugin_isolation.bats
+
   src/lib/oradba_aliases.sh:
     - test_oradba_aliases.bats
   
@@ -168,6 +169,7 @@ mappings:
   src/lib/plugins/plugin_interface.sh:
     - test_plugin_interface.bats
     - test_plugin_isolation.bats
+    - test_oradba_plugin_isolation.bats
     - test_plugin_return_values.bats
     - test_plugin_return_values_real.bats
     - test_database_plugin.bats
@@ -177,7 +179,7 @@ mappings:
     - test_oud_plugin.bats
     - test_java_plugin.bats
     - test_oradba_env_status.bats
-  
+
   src/lib/plugins/database_plugin.sh:
     - test_database_plugin.bats
     - test_plugin_interface.bats

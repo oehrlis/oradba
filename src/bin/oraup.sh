@@ -399,30 +399,21 @@ show_oracle_status_registry() {
             local lsnr_status="down"
             local port_display=""
 
-            # Try to use plugin for status check if available
-            local plugin_file="${ORADBA_BASE}/lib/plugins/database_plugin.sh"
+            # Try to use plugin for status check via wrapper (tiered isolation, DECISION 2)
+            local plugin_status=""
             local use_plugin=false
-
-            if [[ -f "${plugin_file}" ]]; then
-                # shellcheck source=/dev/null
-                source "${plugin_file}" 2> /dev/null
-                if declare -f plugin_check_listener_status > /dev/null 2>&1; then
-                    use_plugin=true
-                fi
+            if execute_plugin_function_v2 "database" "check_listener_status" "${listener_home}" "plugin_status" 2> /dev/null; then
+                use_plugin=true
+                lsnr_status="${plugin_status}"
+                # Map plugin status to display status
+                case "${lsnr_status}" in
+                    running) lsnr_status="up" ;;
+                    stopped) lsnr_status="down" ;;
+                    unavailable) lsnr_status="unavailable" ;;
+                esac
             fi
 
-            if [[ "$use_plugin" == "true" ]]; then
-                # Use plugin to check listener status
-                local plugin_status
-                if plugin_status=$(plugin_check_listener_status "${listener_home}"); then
-                    lsnr_status="$plugin_status"
-                    # Map plugin status to display status
-                    case "$lsnr_status" in
-                        running) lsnr_status="up" ;;
-                        stopped) lsnr_status="down" ;;
-                        unavailable) lsnr_status="unavailable" ;;
-                    esac
-                fi
+            if [[ "${use_plugin}" == "true" ]]; then
 
                 # Still extract ports using traditional method
                 if [[ "$lsnr_status" == "up" ]] && [[ -x "${listener_home}/bin/lsnrctl" ]]; then

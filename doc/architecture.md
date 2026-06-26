@@ -1080,6 +1080,44 @@ sequenceDiagram
 - **Comprehensive Plugin Tests**: 108+ plugin tests validate all product types
 - **Self-Extracting Installer**: Single-file distribution with embedded payload
 
+## Plugin Isolation Model
+
+### DECISION 2 (CF-004): Tiered Isolation for Plugin Calls
+
+All state-changing plugin calls from CLI scripts and libraries must route
+exclusively through `execute_plugin_function_v2`. This wrapper runs the plugin
+in an isolated subshell, preventing environment variable leakage into the
+parent shell.
+
+**State-changing functions (must use wrapper):**
+
+- `plugin_detect_installation` - auto-discovers installations, sets globals
+- `plugin_check_status` - checks service/instance status, may modify env state
+- `plugin_check_listener_status` - checks listener status, may modify env state
+
+**Audited exception list (direct calls permitted):**
+
+The following two functions are pure path-builders with no observable
+side-effects. Wrapping them in a subshell adds fork overhead with no safety
+gain. They are explicitly audited and documented here as the complete exception
+list:
+
+| Function | Plugin files | Rationale |
+| --- | --- | --- |
+| `build_bin_path` | all product plugins | Returns `${oracle_home}/bin`-style path only; no env mutation |
+| `build_lib_path` | all product plugins | Returns `${oracle_home}/lib`-style path only; no env mutation |
+
+Direct calls to these functions are permitted only after a single audited
+`source` of the plugin file, as shown in `src/lib/oradba_env_builder.sh`.
+Any new function added to this exception list requires a code-review annotation
+and an update to this section.
+
+**Enforcement:**
+
+The static regression test `tests/test_oradba_plugin_isolation.bats` (Test 3)
+enforces this rule by grepping `src/bin/` and `src/lib/` for direct calls to
+the three state-changing functions. It must pass as part of the CI quality gate.
+
 ## References
 
 - [development.md](development.md) - Development guide

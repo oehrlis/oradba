@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-06-26
+
+### Changed
+
+- Plugin state-changing calls (`plugin_detect_installation`, `plugin_check_status`,
+  `plugin_check_listener_status`) now route exclusively through
+  `execute_plugin_function_v2`; tiered isolation model documented (DECISION 2, CF-004)
+- Pure path-builders (`build_bin_path`, `build_lib_path`) retained as direct calls
+  with audited exception list in `doc/architecture.md`
+
+### Fixed
+
+- Dead no-op fallback branch removed from `oradba_common.sh` (ARCH-011)
+
 ## [0.27.1] - 2026-06-26
 
 ### Fixed

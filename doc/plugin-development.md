@@ -1129,6 +1129,22 @@ ls -la "${BATS_TEST_TMPDIR}"
 ✅ **Handle errors gracefully**: Return appropriate error codes
 ✅ **Use plugin_get_version**: For consistency across plugins
 
+### Caller Isolation Rule (DECISION 2, CF-004)
+
+State-changing plugin functions (`plugin_detect_installation`,
+`plugin_check_status`, `plugin_check_listener_status`) must **only** be called
+from outside the plugin via `execute_plugin_function_v2`. This wrapper runs
+the plugin in an isolated subshell so that environment variables cannot leak
+into the caller's shell.
+
+Only the two pure path-builders `build_bin_path` and `build_lib_path` are
+explicitly exempted from this rule (audited exception list in
+[architecture.md](architecture.md#plugin-isolation-model)).
+
+When writing new plugins, design functions to be side-effect free where
+possible. If your function must mutate environment variables, document it
+clearly and ensure callers use the wrapper.
+
 ### DON'T
 
 ❌ **Don't modify global state**: Except PATH/LD_LIBRARY_PATH as designed

@@ -57,6 +57,12 @@ else
     print_warning "ORADBA_BASE not set, using derived: ${ORADBA_BASE}"
 fi
 
+# Source oradba_common.sh to enable execute_plugin_function_v2 (tiered isolation)
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
+    # shellcheck source=../lib/oradba_common.sh
+    source "${ORADBA_BASE}/lib/oradba_common.sh" 2> /dev/null || true
+fi
+
 # Parse arguments
 DATASAFE_BASE="${1:-}"
 INSTANCE_NAME="${2:-}"
@@ -88,8 +94,8 @@ echo "Checking datasafe plugin location:"
 PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
 if [[ -f "${PLUGIN_FILE}" ]]; then
     print_success "Found: ${PLUGIN_FILE}"
-    print_info "  Size: $(stat -f%z "${PLUGIN_FILE}" 2>/dev/null || stat -c%s "${PLUGIN_FILE}" 2>/dev/null) bytes"
-    print_info "  Modified: $(stat -f%Sm "${PLUGIN_FILE}" 2>/dev/null || stat -c%y "${PLUGIN_FILE}" 2>/dev/null)"
+    print_info "  Size: $(stat -f%z "${PLUGIN_FILE}" 2> /dev/null || stat -c%s "${PLUGIN_FILE}" 2> /dev/null) bytes"
+    print_info "  Modified: $(stat -f%Sm "${PLUGIN_FILE}" 2> /dev/null || stat -c%y "${PLUGIN_FILE}" 2> /dev/null)"
 else
     print_error "Not found: ${PLUGIN_FILE}"
     PLUGIN_FILE=""
@@ -99,7 +105,7 @@ fi
 if [[ -n "${PLUGIN_FILE}" ]]; then
     echo ""
     echo "Testing plugin loading:"
-    if bash -c "source '${PLUGIN_FILE}' 2>/dev/null && declare -F plugin_check_status >/dev/null" ; then
+    if bash -c "source '${PLUGIN_FILE}' 2>/dev/null && declare -F plugin_validate_home >/dev/null"; then
         print_success "Plugin loads successfully"
     else
         print_error "Plugin failed to load or missing functions"
@@ -163,7 +169,7 @@ if [[ -n "${HOMES_CONF}" ]]; then
     print_success "Found oradba_homes.conf: ${HOMES_CONF}"
     echo ""
     echo "DataSafe entries in oradba_homes.conf:"
-    if grep -E "^[^#]*:datasafe:" "${HOMES_CONF}" 2>/dev/null; then
+    if grep -E "^[^#]*:datasafe:" "${HOMES_CONF}" 2> /dev/null; then
         print_success "DataSafe entries found"
     else
         print_warning "No DataSafe entries found in oradba_homes.conf"
@@ -176,7 +182,7 @@ fi
 echo ""
 echo "Running cmctl processes:"
 # shellcheck disable=SC2009
-if ps -ef | grep "[c]mctl" 2>/dev/null; then
+if ps -ef | grep "[c]mctl" 2> /dev/null; then
     print_success "Found cmctl processes"
 else
     print_warning "No cmctl processes found"
@@ -186,7 +192,7 @@ fi
 echo ""
 echo "Running cmadmin/cmgw processes:"
 # shellcheck disable=SC2009
-if ps -ef | grep -E "[c]madmin|[c]mgw" 2>/dev/null; then
+if ps -ef | grep -E "[c]madmin|[c]mgw" 2> /dev/null; then
     print_success "Found DataSafe processes"
 else
     print_warning "No cmadmin/cmgw processes found"
@@ -197,10 +203,10 @@ fi
 # ------------------------------------------------------------------------------
 if [[ -n "${DATASAFE_BASE}" ]]; then
     print_header "5. Testing Specific DataSafe Instance"
-    
+
     print_info "DataSafe Base Path: ${DATASAFE_BASE}"
     print_info "Instance Name: ${INSTANCE_NAME:-<not provided>}"
-    
+
     # Check if base path exists
     if [[ -d "${DATASAFE_BASE}" ]]; then
         print_success "Base path exists"
@@ -208,7 +214,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
         print_error "Base path does not exist"
         exit 1
     fi
-    
+
     # Check for oracle_cman_home
     CMAN_HOME="${DATASAFE_BASE}/oracle_cman_home"
     if [[ -d "${CMAN_HOME}" ]]; then
@@ -218,7 +224,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
         CMAN_HOME="${DATASAFE_BASE}"
         print_warning "Using base path as cman_home: ${CMAN_HOME}"
     fi
-    
+
     # Check for cmctl
     CMCTL="${CMAN_HOME}/bin/cmctl"
     if [[ -x "${CMCTL}" ]]; then
@@ -226,7 +232,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     else
         print_error "cmctl not found or not executable: ${CMCTL}"
     fi
-    
+
     # Check for required directories
     echo ""
     echo "Required directories:"
@@ -237,7 +243,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
             print_error "${dir}/ not found"
         fi
     done
-    
+
     # Check for cman.ora
     CMAN_CONF="${CMAN_HOME}/network/admin/cman.ora"
     echo ""
@@ -246,11 +252,11 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
         echo ""
         echo "cman.ora content:"
         cat "${CMAN_CONF}"
-        
+
         # Try to extract instance name
         echo ""
         echo "Extracting instance name from cman.ora:"
-        EXTRACTED_INSTANCE=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${CMAN_CONF}" 2>/dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
+        EXTRACTED_INSTANCE=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${CMAN_CONF}" 2> /dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
         if [[ -n "${EXTRACTED_INSTANCE}" ]]; then
             print_success "Extracted instance name: ${EXTRACTED_INSTANCE}"
             if [[ -z "${INSTANCE_NAME}" ]]; then
@@ -264,16 +270,16 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     else
         print_error "cman.ora not found: ${CMAN_CONF}"
     fi
-    
+
     # Test cmctl commands
     if [[ -x "${CMCTL}" ]]; then
         echo ""
         print_header "6. Testing cmctl Commands"
-        
+
         # Set environment for cmctl
         export ORACLE_HOME="${CMAN_HOME}"
         export LD_LIBRARY_PATH="${CMAN_HOME}/lib:${LD_LIBRARY_PATH:-}"
-        
+
         # Test: cmctl show version
         echo ""
         echo "Command: cmctl show version -c ${INSTANCE_NAME}"
@@ -284,14 +290,14 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
             print_error "cmctl show version failed"
             echo "${output}"
         fi
-        
+
         # Test: cmctl show services
         echo ""
         echo "Command: cmctl show services -c ${INSTANCE_NAME}"
         if output=$("${CMCTL}" show services -c "${INSTANCE_NAME}" 2>&1); then
             print_success "cmctl show services succeeded"
             echo "${output}"
-            
+
             # Check for READY status
             if echo "${output}" | grep -qiE "READY|running|started"; then
                 print_success "Service appears to be RUNNING (found READY/running/started)"
@@ -305,50 +311,47 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
             echo "${output}"
         fi
     fi
-    
+
     # Test plugin functions directly
     print_header "7. Testing Plugin Functions Directly"
-    
+
     # Detect plugin file location
     PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
     if [[ ! -f "${PLUGIN_FILE}" ]]; then
         PLUGIN_FILE=""
     fi
-    
+
     if [[ -n "${PLUGIN_FILE}" ]]; then
-        # Create minimal oradba_log stub
-        oradba_log() {
-            local level="$1"
-            shift
-            echo "[${level}] $*" >&2
-        }
-        
-        echo "Sourcing plugin: ${PLUGIN_FILE}"
-        # shellcheck disable=SC1090
-        if source "${PLUGIN_FILE}" 2>/dev/null; then
-            print_success "Plugin sourced successfully"
-            
-            # Test plugin_check_status
-            echo ""
-            echo "Testing: plugin_check_status '${DATASAFE_BASE}' '${INSTANCE_NAME}'"
-            plugin_check_status "${DATASAFE_BASE}" "${INSTANCE_NAME}" >/dev/null 2>&1
+        # Test check_status via execute_plugin_function_v2 (tiered isolation, DECISION 2)
+        echo ""
+        echo "Testing: check_status via execute_plugin_function_v2 'datasafe' '${DATASAFE_BASE}' '${INSTANCE_NAME}'"
+        if type -t execute_plugin_function_v2 > /dev/null 2>&1; then
+            execute_plugin_function_v2 "datasafe" "check_status" "${DATASAFE_BASE}" "" "${INSTANCE_NAME}" > /dev/null 2>&1
             exit_code=$?
             case ${exit_code} in
                 0)
-                    print_success "plugin_check_status returned: 0 (running/available)"
+                    print_success "check_status returned: 0 (running/available)"
                     ;;
                 1)
-                    print_success "plugin_check_status returned: 1 (stopped/N/A)"
+                    print_success "check_status returned: 1 (stopped/N/A)"
                     ;;
                 2)
-                    print_error "plugin_check_status returned: 2 (unavailable/error)"
+                    print_error "check_status returned: 2 (unavailable/error)"
                     ;;
                 *)
-                    print_error "plugin_check_status returned unexpected code: ${exit_code}"
+                    print_error "check_status returned unexpected code: ${exit_code}"
                     ;;
             esac
-            echo "Note: plugin_check_status communicates status via exit code only (no output)"
-            
+            echo "Note: check_status communicates status via exit code only (no output)"
+        else
+            print_warning "execute_plugin_function_v2 not available (oradba_common.sh not loaded)"
+        fi
+
+        # Source plugin for remaining function tests (validate_home, adjust_environment)
+        # shellcheck disable=SC1090
+        if source "${PLUGIN_FILE}" 2> /dev/null; then
+            print_success "Plugin sourced for validate_home/adjust_environment tests"
+
             # Test plugin_validate_home
             echo ""
             echo "Testing: plugin_validate_home '${DATASAFE_BASE}'"
@@ -357,38 +360,38 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
             else
                 print_error "plugin_validate_home failed"
             fi
-            
+
             # Test plugin_adjust_environment
             echo ""
             echo "Testing: plugin_adjust_environment '${DATASAFE_BASE}'"
             adjusted=$(plugin_adjust_environment "${DATASAFE_BASE}")
             print_info "Adjusted ORACLE_HOME: ${adjusted}"
-            
+
         else
             print_error "Failed to source plugin"
         fi
     fi
-    
+
     # Test OraDBA functions
     print_header "8. Testing OraDBA Functions"
-    
+
     # Source required libraries - try installed path first, then dev path
     if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
         # shellcheck disable=SC1091
-        if ! source "${ORADBA_BASE}/lib/oradba_common.sh" 2>/dev/null; then
+        if ! source "${ORADBA_BASE}/lib/oradba_common.sh" 2> /dev/null; then
             print_warning "Failed to source oradba_common.sh from ${ORADBA_BASE}/lib — OraDBA function tests may be incomplete"
         fi
     fi
 
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
         # shellcheck disable=SC1091
-        if ! source "${ORADBA_BASE}/lib/oradba_env_status.sh" 2>/dev/null; then
+        if ! source "${ORADBA_BASE}/lib/oradba_env_status.sh" 2> /dev/null; then
             print_warning "Failed to source oradba_env_status.sh from ${ORADBA_BASE}/lib — status checks may be incomplete"
         fi
     fi
-    
+
     # Test oradba_check_datasafe_status
-    if declare -F oradba_check_datasafe_status >/dev/null 2>&1; then
+    if declare -F oradba_check_datasafe_status > /dev/null 2>&1; then
         echo ""
         echo "Testing: oradba_check_datasafe_status '${DATASAFE_BASE}' '${INSTANCE_NAME}'"
         if status_output=$(oradba_check_datasafe_status "${DATASAFE_BASE}" "${INSTANCE_NAME}" 2>&1); then
@@ -400,9 +403,9 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     else
         print_warning "oradba_check_datasafe_status function not available"
     fi
-    
+
     # Test oradba_get_product_status
-    if declare -F oradba_get_product_status >/dev/null 2>&1; then
+    if declare -F oradba_get_product_status > /dev/null 2>&1; then
         echo ""
         echo "Testing: oradba_get_product_status 'datasafe' '${INSTANCE_NAME}' '${DATASAFE_BASE}'"
         if status_output=$(oradba_get_product_status "datasafe" "${INSTANCE_NAME}" "${DATASAFE_BASE}" 2>&1); then
@@ -434,13 +437,13 @@ echo "     - Check LD_LIBRARY_PATH includes oracle_cman_home/lib"
 echo "     - Ensure instance name in cman.ora is correct"
 echo ""
 echo "  3. Status detection issues:"
-echo "     - plugin_check_status returns exit codes: 0=running, 1=stopped, 2=unavailable"
+echo "     - check_status returns exit codes: 0=running, 1=stopped, 2=unavailable"
 echo "     - Check that instance_name parameter is being passed"
 echo "     - Verify cmctl can connect to the service"
 echo "     - Check for TNS errors in cmctl output"
 echo ""
 echo "  4. Plugin functions fail:"
-echo "     - Review plugin_check_status exit code handling"
+echo "     - Review check_status exit code handling"
 echo "     - Ensure regex patterns match actual cmctl output"
 echo "     - Check process-based detection fallback"
 echo ""

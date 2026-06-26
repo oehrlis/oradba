@@ -314,22 +314,11 @@ start_connector() {
         return 1
     fi
 
-    # Check if connector is already running
+    # Check if connector is already running (tiered isolation, DECISION 2)
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Checking current status"
     local status_exit_code=0
-    if type -t plugin_check_status &> /dev/null; then
-        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
-        status_exit_code=$?
-    else
-        # Fallback status check using cmctl (environment already set)
-        local instance_name
-        instance_name=$(get_cman_instance_name "${home}")
-        if "${cmctl}" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
-            status_exit_code=0
-        else
-            status_exit_code=1
-        fi
-    fi
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
+    status_exit_code=$?
 
     # Convert exit code to status string for logging
     local status
@@ -392,22 +381,11 @@ stop_connector() {
 
     oradba_log INFO "Stopping connector ${name}..."
 
-    # Check if connector is running first
+    # Check if connector is running first (tiered isolation, DECISION 2)
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
     local status_exit_code=0
-    if type -t plugin_check_status &> /dev/null; then
-        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
-        status_exit_code=$?
-    else
-        # Fallback status check using cmctl (environment already set)
-        local instance_name
-        instance_name=$(get_cman_instance_name "${home}")
-        if "${ORACLE_HOME}/bin/cmctl" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
-            status_exit_code=0
-        else
-            status_exit_code=1
-        fi
-    fi
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
+    status_exit_code=$?
 
     # Convert exit code to status string for logging
     local status
@@ -496,27 +474,10 @@ show_status() {
     # Set up environment for this connector
     setup_connector_environment "${name}" "${home}" || return 1
 
-    # Get connector status via exit code
+    # Get connector status via exit code (tiered isolation, DECISION 2)
     local status_exit_code
-    if type -t plugin_check_status &> /dev/null; then
-        plugin_check_status "${home}" "${name}" > /dev/null 2>&1
-        status_exit_code=$?
-    else
-        # Fallback status check using cmctl (environment already set)
-        local cmctl="${ORACLE_HOME}/bin/cmctl"
-
-        if [[ ! -x "${cmctl}" ]]; then
-            status_exit_code=2
-        else
-            local instance_name
-            instance_name=$(get_cman_instance_name "${home}")
-            if "${cmctl}" show services -c "${instance_name}" 2> /dev/null | grep -qiE "Services Summary|READY|running"; then
-                status_exit_code=0
-            else
-                status_exit_code=1
-            fi
-        fi
-    fi
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
+    status_exit_code=$?
 
     # Convert exit code to status string: 0=running, 1=stopped, 2=unavailable
     local status
