@@ -14,6 +14,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Script directory and setup
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"

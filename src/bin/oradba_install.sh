@@ -22,7 +22,7 @@ set -euo pipefail
 # Variables
 INSTALLER_VERSION="__VERSION__"
 TEMP_DIR=""
-ORADBA_DEBUG="${ORADBA_DEBUG:-false}"  # Debug mode (can be set via env or --debug flag)
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}" # Debug mode (can be set via env or --debug flag)
 
 # Colors for output
 RED='\033[0;31m'
@@ -190,7 +190,7 @@ log_debug() {
 # ------------------------------------------------------------------------------
 check_archived_version() {
     local version="$1"
-    
+
     # Check if version starts with 0. (any 0.x.x version is pre-1.0)
     if [[ "$version" =~ ^0\. ]]; then
         echo ""
@@ -203,7 +203,7 @@ check_archived_version() {
         echo ""
         return 0
     fi
-    
+
     return 1
 }
 
@@ -281,8 +281,8 @@ backup_modified_files() {
         elif command -v shasum > /dev/null 2>&1; then
             current_hash=$(shasum -a 256 "$fullpath" 2> /dev/null | awk '{print $1}')
         else
-            log_warn "Cannot verify checksums - no checksum tool available"
-            return 0
+            log_error "Cannot verify checksums - no checksum tool available (shasum or sha256sum required)"
+            return 1
         fi
 
         # If file is modified, create backup
@@ -339,7 +339,7 @@ preserve_runtime_files() {
         if [[ -f "$src" ]] || [[ -L "$src" ]]; then
             local dest="${temp_preserve_dir}/${file}"
             mkdir -p "$(dirname "$dest")"
-            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
             log_info "Preserved runtime file: ${file}"
         fi
     done
@@ -351,10 +351,10 @@ preserve_runtime_files() {
             local rel_path="${src#"${install_dir}"/}"
             local dest="${temp_preserve_dir}/${rel_path}"
             mkdir -p "$(dirname "$dest")"
-            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
             log_info "Preserved sensitive runtime file: ${rel_path}"
         done < <(find "${install_dir}/etc" -maxdepth 1 -type f \
-            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) 2>/dev/null)
+            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) 2> /dev/null)
     fi
 
     # Preserve sensitive runtime files from bundled extensions (extensions/*/etc/)
@@ -364,11 +364,11 @@ preserve_runtime_files() {
             local rel_path="${src#"${install_dir}"/}"
             local dest="${temp_preserve_dir}/${rel_path}"
             mkdir -p "$(dirname "$dest")"
-            cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+            cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
             log_info "Preserved extension sensitive file: ${rel_path}"
         done < <(find "${install_dir}/extensions" -type f \
             \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) \
-            -path "*/etc/*" 2>/dev/null)
+            -path "*/etc/*" 2> /dev/null)
     fi
 
     return 0
@@ -397,10 +397,10 @@ restore_runtime_files() {
         local dest="${install_dir}/${rel_path}"
 
         mkdir -p "$(dirname "$dest")"
-        cp -P "$src" "$dest" 2>/dev/null || cp "$src" "$dest"
+        cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
         log_info "Restored runtime file: ${rel_path}"
         restored_any=true
-    done < <(find "$temp_preserve_dir" -type f 2>/dev/null)
+    done < <(find "$temp_preserve_dir" -type f 2> /dev/null)
 
     if [[ "$restored_any" == "true" ]]; then
         log_info "Runtime files restored after installation copy"
@@ -1046,8 +1046,8 @@ GITHUB_VERSION=""
 DUMMY_ORACLE_HOME="" # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
-UPDATE_PROFILE="auto" # auto, yes, no
-ENABLE_ORATAB_DISCOVERY=false # Flag for --auto-discover-oratab (database homes only)
+UPDATE_PROFILE="auto"          # auto, yes, no
+ENABLE_ORATAB_DISCOVERY=false  # Flag for --auto-discover-oratab (database homes only)
 ENABLE_PRODUCT_DISCOVERY=false # Flag for --auto-discover-products (all Oracle products)
 SILENT_MODE=false
 
@@ -1582,7 +1582,7 @@ extract_embedded_payload() {
     sync
     # Longer delay for Docker/containerized environments where filesystem sync can be slower
     sleep 1
-    
+
     # Verify critical files exist and are readable (especially installer script)
     local max_retries=5
     local retry_count=0
@@ -1595,7 +1595,7 @@ extract_embedded_payload() {
             sleep 0.5
         fi
     done
-    
+
     # Final verification
     if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
         log_error "Extraction completed but critical files not accessible"
@@ -1830,21 +1830,21 @@ ORATAB_HEADER
         # 1. Explicitly requested via --dummy-home OR
         # 2. No /etc/oratab exists AND no Oracle products found
         local should_add_dummy=false
-        
+
         if [[ -n "$DUMMY_ORACLE_HOME" ]]; then
             # Explicitly requested
             should_add_dummy=true
         elif [[ ! -f "/etc/oratab" ]]; then
             # No system oratab - check if any Oracle products exist
             local has_oracle_products=false
-            
+
             # Check common product locations
             if [[ -n "${dummy_base}" ]]; then
                 for check_dir in "${dummy_base}/product" "/u01/app/oracle/product" "/opt/oracle/product"; do
                     if [[ -d "${check_dir}" ]]; then
                         # Count directories that look like Oracle products
                         local product_count
-                        product_count=$(find "${check_dir}" -maxdepth 2 -type f \( -name "oracle" -o -name "sqlplus" -o -name "cmctl" -o -name "java" \) 2>/dev/null | wc -l)
+                        product_count=$(find "${check_dir}" -maxdepth 2 -type f \( -name "oracle" -o -name "sqlplus" -o -name "cmctl" -o -name "java" \) 2> /dev/null | wc -l)
                         if [[ ${product_count:-0} -gt 0 ]]; then
                             has_oracle_products=true
                             break
@@ -1852,7 +1852,7 @@ ORATAB_HEADER
                     fi
                 done
             fi
-            
+
             # Only add dummy if no Oracle products found
             if [[ "${has_oracle_products}" == "false" ]]; then
                 should_add_dummy=true
@@ -1959,7 +1959,7 @@ extract_local_tarball() {
         sync
         # Longer delay for Docker/containerized environments where filesystem sync can be slower
         sleep 1
-        
+
         # Verify critical files exist and are readable (especially installer script)
         local max_retries=5
         local retry_count=0
@@ -1972,14 +1972,14 @@ extract_local_tarball() {
                 sleep 0.5
             fi
         done
-        
+
         # Final verification
         if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
             log_error "Extraction completed but critical files not accessible"
             log_error "This may indicate filesystem sync issues in containerized environments"
             return 1
         fi
-        
+
         log_info "Local tarball extracted successfully"
         return 0
     else
@@ -2011,7 +2011,7 @@ extract_github_release() {
         local latest_version
         local api_response
         api_response=$(curl -sL https://api.github.com/repos/oehrlis/oradba/releases/latest)
-        
+
         # Check for API errors (rate limiting, etc.)
         if echo "$api_response" | grep -q '"message".*"API rate limit exceeded"'; then
             log_error "GitHub API rate limit exceeded"
@@ -2022,7 +2022,7 @@ extract_github_release() {
             log_info "  4. Install specific version: $0 --github --version 0.19.0"
             return 1
         fi
-        
+
         latest_version=$(echo "$api_response" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
         if [[ -n "$latest_version" ]]; then
             download_url="https://github.com/oehrlis/oradba/releases/latest/download/oradba-${latest_version}.tar.gz"
@@ -2034,13 +2034,13 @@ extract_github_release() {
         fi
     else
         log_info "Fetching version ${version} from GitHub..."
-        
+
         # Normalize version: strip leading 'v' if present
         version="${version#v}"
-        
+
         # Check if this is an archived version
         check_archived_version "$version"
-        
+
         download_url="https://github.com/oehrlis/oradba/releases/download/v${version}/oradba-${version}.tar.gz"
         tarball_name="oradba-${version}.tar.gz"
     fi
@@ -2080,6 +2080,42 @@ extract_github_release() {
     tarball_size=$(du -h "$tarball_path" 2> /dev/null | cut -f1)
     log_info "Download completed: ${tarball_size}"
 
+    # Verify integrity against the companion .sha256 BEFORE extracting. The
+    # checksum file lists the bare tarball name, so verification runs from
+    # the directory that holds the tarball.
+    local checksum_url="${download_url}.sha256"
+    local checksum_path="${tarball_path}.sha256"
+    log_info "Downloading checksum: ${checksum_url}"
+    if [[ "$download_cmd" == "curl" ]]; then
+        if ! curl -L -f -o "$checksum_path" "$checksum_url" 2> /dev/null; then
+            log_error "Failed to download checksum file - cannot verify integrity"
+            return 1
+        fi
+    else
+        if ! wget -q -O "$checksum_path" "$checksum_url" 2> /dev/null; then
+            log_error "Failed to download checksum file - cannot verify integrity"
+            return 1
+        fi
+    fi
+
+    log_info "Verifying tarball checksum..."
+    if command -v shasum > /dev/null 2>&1; then
+        if ! (cd "$TEMP_DIR" && shasum -a 256 -c "$(basename "$checksum_path")" > /dev/null 2>&1); then
+            log_error "checksum verification failed"
+            return 1
+        fi
+    elif command -v sha256sum > /dev/null 2>&1; then
+        if ! (cd "$TEMP_DIR" && sha256sum -c "$(basename "$checksum_path")" > /dev/null 2>&1); then
+            log_error "checksum verification failed"
+            return 1
+        fi
+    else
+        log_error "no checksum tool available (shasum or sha256sum required)"
+        return 1
+    fi
+    log_info "Checksum verification passed"
+    rm -f "$checksum_path"
+
     # Extract downloaded tarball
     log_info "Extracting downloaded tarball..."
     if tar -xzf "$tarball_path" -C "$TEMP_DIR" 2> /dev/null; then
@@ -2087,7 +2123,7 @@ extract_github_release() {
         sync
         # Longer delay for Docker/containerized environments where filesystem sync can be slower
         sleep 1
-        
+
         # Verify critical files exist and are readable (especially installer script)
         local max_retries=5
         local retry_count=0
@@ -2100,14 +2136,14 @@ extract_github_release() {
                 sleep 0.5
             fi
         done
-        
+
         # Final verification
         if [[ ! -f "$TEMP_DIR/bin/oradba_install.sh" ]] || [[ ! -r "$TEMP_DIR/bin/oradba_install.sh" ]]; then
             log_error "Extraction completed but critical files not accessible"
             log_error "This may indicate filesystem sync issues in containerized environments"
             return 1
         fi
-        
+
         rm -f "$tarball_path" # Clean up downloaded file
         log_info "GitHub release extracted successfully"
         return 0

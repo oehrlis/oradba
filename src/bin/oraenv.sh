@@ -116,16 +116,16 @@ _ORAENV_PROFILE_LAST_MS=0
 # Notes...: Uses python3 first, then perl Time::HiRes, then date seconds fallback
 # ------------------------------------------------------------------------------
 _oraenv_now_ms() {
-    if command -v python3 &>/dev/null; then
-        python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null && return 0
+    if command -v python3 &> /dev/null; then
+        python3 -c 'import time; print(int(time.time() * 1000))' 2> /dev/null && return 0
     fi
 
-    if command -v perl &>/dev/null; then
-        perl -MTime::HiRes=time -e 'print int(time()*1000)' 2>/dev/null && return 0
+    if command -v perl &> /dev/null; then
+        perl -MTime::HiRes=time -e 'print int(time()*1000)' 2> /dev/null && return 0
     fi
 
     # Coarse fallback (seconds -> milliseconds)
-    echo "$(( $(date +%s) * 1000 ))"
+    echo "$(($(date +%s) * 1000))"
 }
 
 # ------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ _oraenv_profile_dump_effective_flags() {
 # Purpose.: Parse command line arguments for oraenv.sh
 # Args....: $@ - All command line arguments
 # Returns.: 0 on success, 1 on error
-# Output..: Sets global variables: REQUESTED_SID, SHOW_ENV, SHOW_STATUS, 
+# Output..: Sets global variables: REQUESTED_SID, SHOW_ENV, SHOW_STATUS,
 #           ORAENV_INTERACTIVE, ORAENV_STATUS_ONLY
 # Notes...: Detects TTY for interactive mode, processes --silent, --fast-silent,
 #           --status, --force, and --help flags
@@ -397,32 +397,46 @@ _oraenv_gather_available_entries() {
     local sids_count=0
     local homes_count=0
 
-    # Initialize output arrays by variable name (portable to Bash 3.2)
-    eval "${sids_var}=()"
-    eval "${homes_var}=()"
-    
+    # Bind namerefs to the caller-provided array variables (Bash 4.3+).
+    # Replaces the previous eval-based array manipulation, which let crafted
+    # oratab/registry fields break out of the quoting.
+    local -n _sids_ref="${sids_var}"
+    local -n _homes_ref="${homes_var}"
+
+    # Initialize output arrays
+    _sids_ref=()
+    _homes_ref=()
+
     # Try registry API first (Phase 1)
-    if type -t oradba_registry_get_databases &>/dev/null; then
+    if type -t oradba_registry_get_databases &> /dev/null; then
         # Get database SIDs from registry
         while IFS= read -r sid; do
             [[ -z "${sid}" ]] && continue
-            eval "${sids_var}+=(\"${sid}\")"
-        done < <(oradba_registry_get_databases 2>/dev/null | cut -d'|' -f2)
-        
+            if [[ ! "${sid}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                oradba_log WARN "Skipping entry with invalid SID characters: ${sid}"
+                continue
+            fi
+            _sids_ref+=("${sid}")
+        done < <(oradba_registry_get_databases 2> /dev/null | cut -d'|' -f2)
+
         # Get non-database homes from registry
         local all_entries
-        all_entries=$(oradba_registry_get_all 2>/dev/null)
+        all_entries=$(oradba_registry_get_all 2> /dev/null)
         if [[ -n "${all_entries}" ]]; then
             while IFS='|' read -r ptype name home version flags order alias desc; do
                 # Skip database types (already in sids)
                 [[ "${ptype}" == "database" ]] && continue
-                eval "${homes_var}+=(\"${name}\")"
+                if [[ ! "${name}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                    oradba_log WARN "Skipping entry with invalid home name characters: ${name}"
+                    continue
+                fi
+                _homes_ref+=("${name}")
             done <<< "${all_entries}"
         fi
     fi
 
-    eval "sids_count=\${#${sids_var}[@]}"
-    eval "homes_count=\${#${homes_var}[@]}"
+    sids_count=${#_sids_ref[@]}
+    homes_count=${#_homes_ref[@]}
     local total_entries=$((sids_count + homes_count))
 
     # If no non-database homes are registered, try product discovery
@@ -433,20 +447,24 @@ _oraenv_gather_available_entries() {
         done
 
         # Refresh homes list after product discovery
-        eval "${homes_var}=()"
+        _homes_ref=()
         if command -v oradba_registry_get_all &> /dev/null; then
             local all_entries
-            all_entries=$(oradba_registry_get_all 2>/dev/null)
+            all_entries=$(oradba_registry_get_all 2> /dev/null)
             if [[ -n "${all_entries}" ]]; then
                 while IFS='|' read -r ptype name home version flags order alias desc; do
-                    [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                    eval "${homes_var}+=(\"${name}\")"
+                    [[ "${ptype}" == "database" ]] && continue # Skip database types
+                    if [[ ! "${name}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                        oradba_log WARN "Skipping entry with invalid home name characters: ${name}"
+                        continue
+                    fi
+                    _homes_ref+=("${name}")
                 done <<< "${all_entries}"
             fi
         fi
 
-        eval "sids_count=\${#${sids_var}[@]}"
-        eval "homes_count=\${#${homes_var}[@]}"
+        sids_count=${#_sids_ref[@]}
+        homes_count=${#_homes_ref[@]}
         total_entries=$((sids_count + homes_count))
     fi
 
@@ -455,70 +473,82 @@ _oraenv_gather_available_entries() {
         # Try auto-discovery for running instances
         if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" == "true" ]] && command -v discover_running_oracle_instances &> /dev/null; then
             local discovered_oratab
-            discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
-            
+            discovered_oratab=$(discover_running_oracle_instances 2> /dev/null)
+
             if [[ -n "$discovered_oratab" ]]; then
                 oradba_log INFO "Auto-discovered running Oracle instances (not in oratab)"
-                
+
                 # Extract SIDs from discovered entries (filter empty lines)
-                eval "${sids_var}=()"
+                _sids_ref=()
                 while IFS= read -r sid; do
                     [[ -z "${sid}" ]] && continue
-                    eval "${sids_var}+=(\"${sid}\")"
+                    if [[ ! "${sid}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                        oradba_log WARN "Skipping entry with invalid SID characters: ${sid}"
+                        continue
+                    fi
+                    _sids_ref+=("${sid}")
                 done < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
             fi
         fi
-        
+
         # Try oratab auto-discovery (database homes from /etc/oratab)
         if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && command -v auto_discover_oracle_homes &> /dev/null; then
             oradba_log INFO "Auto-discovering database homes from oratab..."
-            auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true"  # silent mode
-            
+            auto_discover_oracle_homes "${ORADBA_DISCOVERY_PATHS}" "true" # silent mode
+
             # Refresh homes list after discovery
-            eval "${homes_var}=()"
+            _homes_ref=()
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries
-                all_entries=$(oradba_registry_get_all 2>/dev/null)
+                all_entries=$(oradba_registry_get_all 2> /dev/null)
                 if [[ -n "${all_entries}" ]]; then
                     while IFS='|' read -r ptype name home version flags order alias desc; do
-                        [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                        eval "${homes_var}+=(\"${name}\")"
+                        [[ "${ptype}" == "database" ]] && continue # Skip database types
+                        if [[ ! "${name}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                            oradba_log WARN "Skipping entry with invalid home name characters: ${name}"
+                            continue
+                        fi
+                        _homes_ref+=("${name}")
                     done <<< "${all_entries}"
                 fi
             fi
         fi
-        
+
         # Try product discovery (all Oracle products: db, datasafe, java, iclient, oud)
         if [[ "${ORADBA_AUTO_DISCOVER_PRODUCTS:-false}" == "true" ]] && [[ -x "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" ]]; then
             oradba_log INFO "Auto-discovering all Oracle products (db, datasafe, java, iclient, oud)..."
             "${_ORAENV_BASE_DIR}/bin/oradba_homes.sh" discover --auto-add --silent 2>&1 | grep -v "^$" | while read -r line; do
                 oradba_log INFO "  $line"
             done
-            
+
             # Refresh homes list after product discovery
-            eval "${homes_var}=()"
+            _homes_ref=()
             if command -v oradba_registry_get_all &> /dev/null; then
                 local all_entries
-                all_entries=$(oradba_registry_get_all 2>/dev/null)
+                all_entries=$(oradba_registry_get_all 2> /dev/null)
                 if [[ -n "${all_entries}" ]]; then
                     while IFS='|' read -r ptype name home version flags order alias desc; do
-                        [[ "${ptype}" == "database" ]] && continue  # Skip database types
-                        eval "${homes_var}+=(\"${name}\")"
+                        [[ "${ptype}" == "database" ]] && continue # Skip database types
+                        if [[ ! "${name}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
+                            oradba_log WARN "Skipping entry with invalid home name characters: ${name}"
+                            continue
+                        fi
+                        _homes_ref+=("${name}")
                     done <<< "${all_entries}"
                 fi
             fi
         fi
-        
+
         # Check if any entries were found after auto-discovery
-        eval "sids_count=\${#${sids_var}[@]}"
-        eval "homes_count=\${#${homes_var}[@]}"
+        sids_count=${#_sids_ref[@]}
+        homes_count=${#_homes_ref[@]}
         total_entries=$((sids_count + homes_count))
         if [[ $total_entries -eq 0 ]]; then
             oradba_log ERROR "No Oracle instances or homes found"
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -536,12 +566,9 @@ _oraenv_gather_available_entries() {
 _oraenv_display_selection_menu() {
     local sids_var="$1"
     local homes_var="$2"
-    local -a sids_ref=()
-    local -a homes_ref=()
+    local -n sids_ref="${sids_var}"
+    local -n homes_ref="${homes_var}"
 
-    eval "sids_ref=(\"\${${sids_var}[@]}\")"
-    eval "homes_ref=(\"\${${homes_var}[@]}\")"
-    
     # Display list to stderr so it appears before the prompt
     {
         echo ""
@@ -594,12 +621,9 @@ _oraenv_parse_user_selection() {
     local total_entries="$2"
     local sids_var="$3"
     local homes_var="$4"
-    local -a sids_ref=()
-    local -a homes_ref=()
+    local -n sids_ref="${sids_var}"
+    local -n homes_ref="${homes_var}"
 
-    eval "sids_ref=(\"\${${sids_var}[@]}\")"
-    eval "homes_ref=(\"\${${homes_var}[@]}\")"
-    
     # Check if user entered a number
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ $selection -ge 1 ]] && [[ $selection -le $total_entries ]]; then
         # User entered a valid number
@@ -634,7 +658,7 @@ _oraenv_prompt_sid() {
     # Gather available SIDs and Oracle Homes
     local -a sids
     local -a homes
-    
+
     if ! _oraenv_gather_available_entries "$oratab_file" sids homes; then
         return 1
     fi
@@ -670,26 +694,26 @@ _oraenv_prompt_sid() {
 # Returns.: None (modifies PATH, exports JAVA_HOME and ORACLE_CLIENT_HOME)
 # Output..: Applies Java and client path settings based on user configuration
 # Notes...: Should be called AFTER config files are loaded to honor user settings.
-#           Handles both ORADBA_JAVA_PATH_FOR_NON_JAVA and 
+#           Handles both ORADBA_JAVA_PATH_FOR_NON_JAVA and
 #           ORADBA_CLIENT_PATH_FOR_NON_CLIENT settings.
 # ------------------------------------------------------------------------------
 _oraenv_apply_path_configs() {
     local product_type="$1"
     local oracle_home="${2:-${ORACLE_HOME}}"
-    
+
     # Add Java path for products that need it (e.g., DataSafe, OUD, WebLogic)
     # This happens AFTER config files are loaded so user settings are honored
-    if command -v oradba_add_java_path &>/dev/null; then
+    if command -v oradba_add_java_path &> /dev/null; then
         oradba_add_java_path "${product_type}" "${oracle_home}"
     fi
-    
+
     # Add client path for non-client products (e.g., DataSafe, OUD, WebLogic)
-    if command -v oradba_add_client_path &>/dev/null; then
+    if command -v oradba_add_client_path &> /dev/null; then
         oradba_add_client_path "${product_type}"
     fi
-    
+
     # Final PATH deduplication after all configs and path additions
-    if command -v oradba_dedupe_path &>/dev/null; then
+    if command -v oradba_dedupe_path &> /dev/null; then
         local final_path
         final_path="$(oradba_dedupe_path "$PATH")"
         export PATH="$final_path"
@@ -709,7 +733,7 @@ _oraenv_apply_path_configs() {
 # ------------------------------------------------------------------------------
 _oraenv_handle_oracle_home() {
     local requested_sid="$1"
-    
+
     oradba_log DEBUG "Setting environment for Oracle Home: $requested_sid"
 
     # Unset previous Oracle environment
@@ -746,18 +770,18 @@ _oraenv_handle_oracle_home() {
         # Get product type for TNS_ADMIN and path configurations
         local product_type
         product_type=$(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")
-        
+
         # Set TNS_ADMIN based on product type
         if [[ "${product_type}" == "datasafe" ]]; then
             # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
             # Load and call plugin_set_environment
             local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
             if [[ -f "${plugin_file}" ]]; then
-                if ! type -t plugin_set_environment &>/dev/null; then
+                if ! type -t plugin_set_environment &> /dev/null; then
                     # shellcheck source=/dev/null
                     source "${plugin_file}"
                 fi
-                if type -t plugin_set_environment &>/dev/null; then
+                if type -t plugin_set_environment &> /dev/null; then
                     # For Oracle Homes, ORACLE_HOME is already set correctly
                     # Need to determine base path for plugin_set_environment
                     local base_path="${ORACLE_HOME}"
@@ -773,7 +797,7 @@ _oraenv_handle_oracle_home() {
             _oraenv_apply_tns_admin "${product_type}"
         fi
         _oraenv_profile_mark "apply_tns_admin"
-        
+
         # Set NLS_LANG if not set
         export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
@@ -807,12 +831,12 @@ _oraenv_lookup_oratab_entry() {
     local requested_sid="$1"
     local oratab_file="$2"
     local oratab_entry=""
-    
+
     # Try registry API first (Phase 1)
-    if type -t oradba_registry_get_by_name &>/dev/null; then
+    if type -t oradba_registry_get_by_name &> /dev/null; then
         local registry_entry
-        registry_entry=$(oradba_registry_get_by_name "$requested_sid" 2>/dev/null)
-        
+        registry_entry=$(oradba_registry_get_by_name "$requested_sid" 2> /dev/null)
+
         if [[ -n "${registry_entry}" ]]; then
             # Parse registry format: type|name|home|version|flags|order|alias|desc
             local ptype name home flags
@@ -824,12 +848,12 @@ _oraenv_lookup_oratab_entry() {
             oradba_log DEBUG "Found entry in registry: ${requested_sid} -> ${home}"
         fi
     fi
-    
+
     # Fallback to direct oratab parsing if registry didn't find it
     if [[ -z "${oratab_entry}" ]]; then
         oratab_entry=$(parse_oratab "$requested_sid" "$oratab_file")
     fi
-    
+
     echo "${oratab_entry}"
 }
 
@@ -849,37 +873,37 @@ _oraenv_auto_discover_instances() {
     local requested_sid="$1"
     local oratab_file="$2"
     local oratab_entry=""
-    
+
     # Check if auto-discovery is enabled
     if [[ "${ORADBA_AUTO_DISCOVER_INSTANCES:-true}" != "true" ]]; then
         return 1
     fi
-    
+
     # Check if oratab is empty
     local entry_count
-    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2>/dev/null) || entry_count=0
-    
+    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$oratab_file" 2> /dev/null) || entry_count=0
+
     if [[ "$entry_count" -ne 0 ]]; then
         return 1
     fi
-    
+
     # Attempt discovery
     local discovered_oratab
-    discovered_oratab=$(discover_running_oracle_instances 2>/dev/null)
-    
+    discovered_oratab=$(discover_running_oracle_instances 2> /dev/null)
+
     if [[ -z "$discovered_oratab" ]]; then
         return 1
     fi
-    
+
     oradba_log INFO "Auto-discovered running Oracle instances (not in oratab)"
-    
+
     # Persist discovered instances to oratab
     if command -v persist_discovered_instances &> /dev/null; then
         persist_discovered_instances "$discovered_oratab" "$oratab_file"
     else
         oradba_log INFO "These are temporary entries - add them to $oratab_file if needed"
     fi
-    
+
     # If no SID was requested, use first discovered instance
     if [[ -z "$requested_sid" ]]; then
         oratab_entry=$(echo "$discovered_oratab" | head -n1)
@@ -895,7 +919,7 @@ _oraenv_auto_discover_instances() {
             oradba_log INFO "Found discovered instance: ${oratab_entry%%:*}"
         fi
     fi
-    
+
     echo "${oratab_entry}"
 }
 
@@ -914,10 +938,10 @@ _oraenv_apply_product_adjustments() {
     local oracle_home="$1"
     local adjusted_home="${oracle_home}"
     local datasafe_install_dir=""
-    
+
     # Check if this is a DataSafe installation using plugin
     if [[ -d "${oracle_home}/oracle_cman_home" ]]; then
-            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
             # shellcheck source=/dev/null
             source "${plugin_file}"
@@ -926,7 +950,7 @@ _oraenv_apply_product_adjustments() {
             oradba_log DEBUG "DataSafe detected: ORACLE_HOME adjusted via plugin"
         fi
     fi
-    
+
     # Output: adjusted_home|datasafe_install_dir
     echo "${adjusted_home}|${datasafe_install_dir}"
 }
@@ -980,18 +1004,18 @@ _oraenv_setup_environment_variables() {
     local oracle_home="$2"
     local oratab_entry="$3"
     local datasafe_install_dir="$4"
-    
+
     # Set new environment (use actual SID from oratab to preserve case)
     export ORACLE_SID="$actual_sid"
     export ORACLE_HOME="$oracle_home"
-    
+
     # Get product type
     local product_type="database"
-    if command -v get_oracle_home_type &>/dev/null; then
-        product_type=$(get_oracle_home_type "$actual_sid" 2>/dev/null || echo "database")
+    if command -v get_oracle_home_type &> /dev/null; then
+        product_type=$(get_oracle_home_type "$actual_sid" 2> /dev/null || echo "database")
     fi
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
-    
+
     # Set DataSafe-specific variables if applicable
     if [[ -n "$datasafe_install_dir" ]]; then
         export DATASAFE_HOME="$oracle_home"
@@ -1009,44 +1033,45 @@ _oraenv_setup_environment_variables() {
     fi
 
     # Clean old Oracle paths before adding new ones
-    if command -v oradba_clean_path &>/dev/null; then
+    if command -v oradba_clean_path &> /dev/null; then
         oradba_clean_path
     fi
-    
+
     # Set library path using plugin system
-    if command -v oradba_set_lib_path &>/dev/null; then
+    if command -v oradba_set_lib_path &> /dev/null; then
         oradba_set_lib_path "$ORACLE_HOME" "$product_type"
     fi
-    
+
     # Set PATH
     export PATH="${ORACLE_HOME}/bin:${PATH}"
-    
+
     # Set TNS_ADMIN based on product type
     if [[ "${product_type}" == "datasafe" ]]; then
         # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
         # Call plugin_set_environment to set connector-specific TNS_ADMIN
-            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
         if [[ -f "${plugin_file}" ]]; then
             # Plugin already sourced in _oraenv_apply_product_adjustments, but ensure it's loaded
-            if ! type -t plugin_set_environment &>/dev/null; then
+            if ! type -t plugin_set_environment &> /dev/null; then
                 # shellcheck source=/dev/null
                 source "${plugin_file}"
             fi
-            if type -t plugin_set_environment &>/dev/null; then
+            if type -t plugin_set_environment &> /dev/null; then
                 # Pass the base path (before adjustment), plugin will handle oracle_cman_home
                 plugin_set_environment "${datasafe_install_dir:-${ORACLE_HOME}}"
                 oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
             fi
         fi
     fi
-    
+
     # Set NLS_LANG if not set
     export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
 
     # Set startup flag from oratab
     local startup_flag
     local _oe_rest="${oratab_entry#*:}"
-    startup_flag="${_oe_rest#*:}"; startup_flag="${startup_flag%%:*}"
+    startup_flag="${_oe_rest#*:}"
+    startup_flag="${startup_flag%%:*}"
     export ORACLE_STARTUP="${startup_flag:-N}"
 }
 
@@ -1089,7 +1114,7 @@ _oraenv_load_configurations() {
             oradba_log DEBUG "Silent mode optimization: ORADBA_CONFIGURE_SQLPATH disabled"
         fi
     fi
-    
+
     # Load hierarchical configuration
     # This reloads all configs in order: core -> standard -> customer -> default -> sid-specific
     # Later configs override earlier settings, including aliases
@@ -1154,13 +1179,13 @@ _oraenv_set_environment() {
     if [[ -z "$oratab_entry" ]]; then
         oratab_entry=$(_oraenv_auto_discover_instances "$requested_sid" "$oratab_file")
         _oraenv_profile_mark "auto_discover_sid_entry"
-        
+
         # Still no entry found after discovery attempt - try syncing database homes
         if [[ -z "$oratab_entry" ]]; then
             # Auto-sync database homes from oratab and retry lookup only when opt-in discovery is enabled
-            if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && type -t oradba_registry_sync_oratab &>/dev/null; then
+            if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && type -t oradba_registry_sync_oratab &> /dev/null; then
                 oradba_log DEBUG "Home not found, syncing database homes from oratab (ORADBA_AUTO_DISCOVER_ORATAB=true)"
-                oradba_registry_sync_oratab >/dev/null 2>&1
+                oradba_registry_sync_oratab > /dev/null 2>&1
 
                 # Retry Oracle Home lookup after sync
                 if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then
@@ -1170,7 +1195,7 @@ _oraenv_set_environment() {
             else
                 oradba_log DEBUG "Home not found; skipping oratab sync (ORADBA_AUTO_DISCOVER_ORATAB=${ORADBA_AUTO_DISCOVER_ORATAB:-false})"
             fi
-            
+
             # Still not found - report error
             oradba_log ERROR "ORACLE_SID '$requested_sid' not found in $oratab_file"
             return 1

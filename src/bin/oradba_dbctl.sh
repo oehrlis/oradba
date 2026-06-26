@@ -19,6 +19,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Source OraDBA libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -213,6 +218,11 @@ start_database() {
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1
     fi
+
+    command -v sqlplus > /dev/null 2>&1 || {
+        echo "ERROR: sqlplus not found in PATH" >&2
+        exit 1
+    }
 
     # Check if database is already running
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Checking current database status"

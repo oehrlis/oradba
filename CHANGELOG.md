@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-06-26
+
+### Security
+
+- DBCA response file created via mktemp with mode 600 and EXIT-trap cleanup; passwords no longer written to predictable /tmp path (CF-002)
+- Installer now verifies companion .sha256 before extraction; fails closed when no checksum tool is available (CF-006)
+- SEPS wallet password file rejected unless mode 600 and owner-owned; recovered password no longer logged (CF-020)
+- RMAN catalog credentials redacted in debug logs (CF-021)
+- oraenv.sh eval over oratab/homes fields replaced with bash 4.3 namerefs + allowlist validation (CF-022)
+- Predictable PID-based temp paths replaced with mktemp exclusive create + EXIT-trap cleanup (CF-023)
+
+### Added
+
+- Bash 4+ startup guard in scripts using bash 4 features (CF-011)
+- Oracle CLI existence pre-flight checks in oradba_dbctl.sh, oradba_rman.sh, oradba_lsnrctl.sh (CF-013)
+- Security regression tests: eval breakout, wallet permission, DBCA temp file (CF-009)
+
 ## [0.25.0] - 2026-06-26
 
 ### Fixed

@@ -16,6 +16,11 @@
 
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "ERROR: bash 4.0+ required (found ${BASH_VERSION}); on macOS: brew install bash" >&2
+    exit 1
+fi
+
 # Determine ORADBA_BASE
 if [[ -n "${ORADBA_BASE:-}" ]]; then
     BASE_DIR="${ORADBA_BASE}"

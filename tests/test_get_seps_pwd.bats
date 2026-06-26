@@ -222,3 +222,31 @@ teardown() {
 @test "get_seps_pwd.sh masks passwords in debug output" {
     skip "Password masking is implementation detail"
 }
+
+# ------------------------------------------------------------------------------
+# CF-020 regression: wallet password file permission enforcement
+# ------------------------------------------------------------------------------
+
+@test "get_seps_pwd_rejects_world_readable_wallet_pwd" {
+    # Provide a fake mkstore so validate_environment passes
+    local stub_bin="${TEST_DIR}/bin"
+    mkdir -p "$stub_bin"
+    cat > "${stub_bin}/mkstore" << 'STUB'
+#!/usr/bin/env bash
+exit 0
+STUB
+    chmod +x "${stub_bin}/mkstore"
+
+    # Create a world-readable .wallet_pwd (mode 644, NOT 600)
+    printf 'secret' | base64 > "${TEST_WALLET_DIR}/.wallet_pwd"
+    chmod 644 "${TEST_WALLET_DIR}/.wallet_pwd"
+
+    run env PATH="${stub_bin}:${PATH}" "$GET_SEPS_PWD" -s ORCL -w "$TEST_WALLET_DIR"
+    [[ "$status" -ne 0 ]]
+    [[ "$output" =~ "mode 600" ]]
+}
+
+@test "get_seps_pwd source enforces 600 on wallet_pwd file" {
+    run bash -c "grep -q 'must be mode 600' '$GET_SEPS_PWD'"
+    [[ "$status" -eq 0 ]]
+}

@@ -23,7 +23,7 @@ set -euo pipefail
 # Script metadata
 # shellcheck disable=SC2034  # Used in usage() function
 SCRIPT_NAME="$(basename "$0")"
-ORADBA_DEBUG="${ORADBA_DEBUG:-false}"  # Debug mode
+ORADBA_DEBUG="${ORADBA_DEBUG:-false}" # Debug mode
 ORACLE_HOME="${ORACLE_HOME:-}"
 ORACLE_BASE="${ORACLE_BASE:-}"
 ORACLE_SID="${ORACLE_SID:-}"
@@ -367,6 +367,15 @@ check_system_tools() {
             log_debug "Tool missing: ${tool}"
         fi
     done
+
+    # Check bash major version (OraDBA scripts require bash 4.0+)
+    if ((BASH_VERSINFO[0] >= 4)); then
+        log_pass "bash ${BASH_VERSION} - version 4.0+ required"
+    else
+        log_fail "bash ${BASH_VERSION} too old - 4.0+ required (on macOS: brew install bash)"
+        tools_ok=false
+        log_debug "Bash version too old: ${BASH_VERSION}"
+    fi
 
     # Check for shasum or sha256sum
     if command -v sha256sum > /dev/null 2>&1; then
