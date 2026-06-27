@@ -209,6 +209,16 @@ oradba_log() {
         min_level="DEBUG"
     fi
 
+    # ORADBA_DEBUG=true support - map to DEBUG level
+    if [[ "${ORADBA_DEBUG:-false}" == "true" ]] && [[ "${min_level}" != "DEBUG" ]] && [[ "${min_level}" != "TRACE" ]]; then
+        min_level="DEBUG"
+    fi
+
+    # ORADBA_TRACE=true support - map to TRACE level
+    if [[ "${ORADBA_TRACE:-false}" == "true" ]] && [[ "${min_level}" != "TRACE" ]]; then
+        min_level="TRACE"
+    fi
+
     # Recompute normalized minimum level after compatibility overrides
     case "${min_level}" in
         trace | TRACE) min_level_upper="TRACE" ;;
