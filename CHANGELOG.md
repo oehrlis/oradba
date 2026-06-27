@@ -11,10 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `src/bin/oraenv.sh`: pressing Enter at the interactive SID/home selection menu
+  now defaults to the first entry instead of returning "No selection made" (#208)
+- `src/lib/oradba_common.sh`: `ORADBA_DEBUG=true` and `ORADBA_TRACE=true` now
+  correctly activate DEBUG and TRACE log levels in `oradba_log()`; previously only
+  `ORADBA_LOG_LEVEL` and the legacy `DEBUG=1` were recognized (#209)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now falls back to
+  `oradba_homes.conf` when a name is not found in oratab, fixing env setup for
+  non-database Oracle Homes such as `icli23` (iclient type) (#207)
 - `scripts/build_pdf.sh`: enable Mermaid diagram rendering in CI via
   `--security-opt seccomp=unconfined` and `--shm-size=2g` on `docker run`;
   add `.puppeteer.json` with `--no-sandbox` so Chromium (used by mmdc)
   can launch inside the nested GitHub Actions container
+
+### Documentation
+
+- `src/doc/troubleshooting.md`: rewrite Debug Mode section - `ORADBA_LOG_LEVEL`
+  documented as primary method, `ORADBA_DEBUG/TRACE` as shortcut vars, add log
+  level reference table, fix all `oraenv.sh` examples to use `source`, remove
+  non-existent `--debug` flag, add "Must Always Be Sourced" note (#210)
 
 ## [1.0.0-rc.1] - 2026-06-27
 
