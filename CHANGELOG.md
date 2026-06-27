@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now falls back to
   `oradba_homes.conf` when a name is not found in oratab, fixing env setup for
   non-database Oracle Homes such as `icli23` (iclient type) (#207)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now sets
+  `ORADBA_CURRENT_HOME_TYPE` (in addition to `ORADBA_PRODUCT_TYPE`) so that
+  environment status display shows the correct product type (e.g. `iclient`)
+  instead of the hardcoded `database` fallback (#212)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now sets
+  `ORADBA_CURRENT_HOME` to the registry home name and `ORADBA_CURRENT_HOME_ALIAS`
+  to the alias from `oradba_homes.conf`; PS1 prompt now shows the alias (e.g.
+  `icli23`) instead of the raw `ORACLE_HOME` path (#211)
 - `scripts/build_pdf.sh`: enable Mermaid diagram rendering in CI via
   `--security-opt seccomp=unconfined` and `--shm-size=2g` on `docker run`;
   add `.puppeteer.json` with `--no-sandbox` so Chromium (used by mmdc)

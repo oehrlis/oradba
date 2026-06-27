@@ -78,35 +78,14 @@ _oradba_builder_log() {
 # ------------------------------------------------------------------------------
 oradba_dedupe_path() {
     local input_path="$1"
-    local -a seen_paths
-    local -a result_paths
-    local dir
-    
-    # Split on colon and process each directory
-    IFS=':' read -ra dirs <<< "$input_path"
-    for dir in "${dirs[@]}"; do
-        # Skip empty entries
-        [[ -z "$dir" ]] && continue
-        
-        # Check if we've seen this path before
-        local already_seen=0
-        for seen in "${seen_paths[@]}"; do
-            if [[ "$dir" == "$seen" ]]; then
-                already_seen=1
-                break
-            fi
-        done
-        
-        # Add if not seen
-        if [[ $already_seen -eq 0 ]]; then
-            seen_paths+=("$dir")
-            result_paths+=("$dir")
-        fi
-    done
-    
-    # Join with colons
-    local IFS=':'
-    echo "${result_paths[*]}"
+    [[ -z "${input_path}" ]] && return 0
+    # O(n) deduplication via awk — replaces the former O(n²) nested bash loop (#213)
+    awk -v p="${input_path}" 'BEGIN {
+        n = split(p, a, ":")
+        for (i = 1; i <= n; i++)
+            if (a[i] != "" && !seen[a[i]]++) out = (out ? out ":" : "") a[i]
+        print out
+    }'
 }
 
 # Require parser functions
@@ -891,37 +870,49 @@ oradba_build_environment() {
     local oracle_sid=""
     local oracle_home=""
     local product_type=""
-    
+    local home_name=""
+    local home_alias=""
+
     [[ -z "$target" ]] && return 1
-    
+
     # Determine if target is SID or ORACLE_HOME
     if [[ -d "$target" ]]; then
         # Target is a path (ORACLE_HOME)
         oracle_home="$target"
-        
-        # Get metadata from oradba_homes.conf
-        product_type=$(oradba_get_product_type "$oracle_home")
-        
-        # Set SID to dummy SID if available
-        oracle_sid=$(oradba_get_home_metadata "$oracle_home" "Dummy_SID" 2>/dev/null)
-        oracle_sid="${oracle_sid:-dummy}"
-        
+
+        # Get metadata from oradba_homes.conf (single lookup for all fields)
+        local _path_entry
+        _path_entry=$(oradba_find_home "$oracle_home" 2>/dev/null || true)
+        if [[ -n "$_path_entry" ]]; then
+            local _pname _ppath _ptype _porder _palias
+            IFS='|' read -r _pname _ppath _ptype _porder _palias _ _ <<< "$_path_entry"
+            home_name="$_pname"
+            home_alias="${_palias:-$_pname}"
+            [[ -n "$_ptype" ]] && product_type="${_ptype}"
+        fi
+        # Fallback: filesystem-based type detection if not found in homes.conf
+        [[ -z "$product_type" ]] && product_type=$(oradba_get_product_type "$oracle_home")
+
+        # Set SID to alias name (for non-empty oracle_sid requirement in oradba_set_oracle_vars)
+        oracle_sid=$(oradba_get_home_metadata "$oracle_home" "Dummy_SID" 2>/dev/null || true)
+        oracle_sid="${oracle_sid:-${home_alias:-dummy}}"
+
     else
         # Target is SID
         oracle_sid="$target"
-        
+
         # Check if ASM instance
         if oradba_is_asm_instance "$oracle_sid"; then
             product_type="GRID"
         fi
-        
+
         # Find in oratab
         local oratab_entry
         oratab_entry=$(oradba_find_sid "$oracle_sid")
         if [[ $? -eq 0 ]]; then
             IFS='|' read -r sid home _flag <<< "$oratab_entry"
             oracle_home="$home"
-            
+
             # Determine product type
             if [[ -z "$product_type" ]]; then
                 product_type=$(oradba_get_product_type "$oracle_home")
@@ -933,10 +924,13 @@ oradba_build_environment() {
                 home_entry=$(oradba_find_home "$oracle_sid" 2>/dev/null)
                 if [[ -n "$home_entry" ]]; then
                     # Format: NAME|PATH|TYPE|ORDER|ALIAS|DESCRIPTION|VERSION
-                    local _hname _hpath _htype
-                    IFS='|' read -r _hname _hpath _htype _ _ _ _ <<< "$home_entry"
+                    local _hname _hpath _htype _horder _halias
+                    IFS='|' read -r _hname _hpath _htype _horder _halias _ _ <<< "$home_entry"
                     oracle_home="$_hpath"
-                    oracle_sid=""
+                    home_name="$_hname"
+                    home_alias="${_halias:-$_hname}"
+                    # Use alias as oracle_sid placeholder (oradba_set_oracle_vars requires non-empty)
+                    oracle_sid="${home_alias:-$home_name}"
                     [[ -n "$_htype" && -z "$product_type" ]] && product_type="$_htype"
                 fi
             fi
@@ -1017,9 +1011,13 @@ oradba_build_environment() {
     # Set tracking variables
     export ORADBA_ENV_LOADED=1
     export ORADBA_CURRENT_SID="$oracle_sid"
-    export ORADBA_CURRENT_HOME="$oracle_home"
+    # Use registry home name for PS1 display; fall back to path if name not found
+    export ORADBA_CURRENT_HOME="${home_name:-$oracle_home}"
+    export ORADBA_CURRENT_HOME_ALIAS="${home_alias:-}"
     export ORADBA_PRODUCT_TYPE="$product_type"
-    
+    # ORADBA_CURRENT_HOME_TYPE is read by display/status functions (oraenv.sh, oradba_env_output.sh)
+    export ORADBA_CURRENT_HOME_TYPE="$product_type"
+
     return 0
 }
 
