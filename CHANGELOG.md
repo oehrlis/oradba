@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - TBD (target: 2026-07-10)
+
 ## [1.0.0-rc.1] - 2026-06-27
 
 ### Changed
@@ -16,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registry API (`oradba_registry_get_*`, `oradba_registry_discover_all`),
   `ORADBA_BASE`, `ORADBA_LOAD_PDB_ALIASES`
 - v1.0.0 readiness checklist complete in `doc/v1.0.0-readiness.md`
+- RC soak window: 2026-06-27 to 2026-07-10 (adjusted; owner on vacation from 2026-07-12)
 
 ## [0.32.2] - 2026-06-27
 
