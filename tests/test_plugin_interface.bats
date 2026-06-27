@@ -46,6 +46,8 @@ teardown() {
 # ==============================================================================
 # Plugin Interface Compliance Tests
 # ==============================================================================
+# CF-003 regression: plugin_interface.sh must export plugin_check_listener_status
+# as part of the 8-function plugin contract enforced since M3.
 
 # Required interface functions that all plugins must implement
 REQUIRED_FUNCTIONS=(

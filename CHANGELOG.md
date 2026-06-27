@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-06-27
+
+### Changed
+
+- All blocking CFs (CF-001 to CF-010, CF-015, CF-017, CF-018, CF-034) verified closed
+- Public API surface frozen: `oradba_build_environment`, `execute_plugin_function_v2`,
+  registry API (`oradba_registry_get_*`, `oradba_registry_discover_all`),
+  `ORADBA_BASE`, `ORADBA_LOAD_PDB_ALIASES`
+- v1.0.0 readiness checklist complete in `doc/v1.0.0-readiness.md`
+
 ## [0.32.2] - 2026-06-27
 
 ### Fixed
