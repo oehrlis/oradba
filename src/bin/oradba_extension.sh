@@ -288,8 +288,9 @@ download_github_release() {
     fi
 
     # Extract version tag
-    local tag_name
-    tag_name=$(echo "${release_info}" | grep -o '"tag_name": "[^"]*"' | head -1 | cut -d'"' -f4)
+    local tag_name tarball_url _re
+    _re='"tag_name":[[:space:]]*"([^"]*)"'
+    [[ "${release_info}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
 
     if [[ -z "${tag_name}" ]]; then
         echo "ERROR: Could not find release tag" >&2
@@ -298,18 +299,18 @@ download_github_release() {
 
     echo "Found latest release: ${tag_name}"
 
-    # Extract tarball URL (look for extension-template-*.tar.gz asset)
-    local tarball_url
-    tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    # Extract tarball URL: prefer extension-template asset, fallback to any .tar.gz, then source tarball
+    _re='"browser_download_url":[[:space:]]*"([^"]*extension-template-[^"]*.tar.gz)"'
+    [[ "${release_info}" =~ ${_re} ]] && tarball_url="${BASH_REMATCH[1]}"
 
     if [[ -z "${tarball_url}" ]]; then
-        # Fallback: look for any .tar.gz asset
-        tarball_url=$(echo "${release_info}" | grep -o '"browser_download_url": "[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+        _re='"browser_download_url":[[:space:]]*"([^"]*.tar.gz)"'
+        [[ "${release_info}" =~ ${_re} ]] && tarball_url="${BASH_REMATCH[1]}"
     fi
 
     if [[ -z "${tarball_url}" ]]; then
-        # Last fallback: use source tarball_url from release
-        tarball_url=$(echo "${release_info}" | grep -o '"tarball_url": "[^"]*"' | head -1 | cut -d'"' -f4)
+        _re='"tarball_url":[[:space:]]*"([^"]*)"'
+        [[ "${release_info}" =~ ${_re} ]] && tarball_url="${BASH_REMATCH[1]}"
     fi
 
     if [[ -z "${tarball_url}" ]]; then
@@ -364,7 +365,7 @@ download_extension_from_github() {
     local output_file="$3"
 
     # Normalize repo name (remove github.com prefix if present)
-    repo=$(echo "${repo}" | sed 's|^https\?://github.com/||')
+    [[ "${repo}" =~ ^https?://github\.com/(.+) ]] && repo="${BASH_REMATCH[1]}"
 
     # Validate repo format (should be owner/repo)
     if [[ ! "${repo}" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
@@ -460,10 +461,13 @@ download_extension_from_github() {
                 tags_info=$(wget -qO- "${api_url}" 2> /dev/null)
             fi
 
-            if [[ -n "${tags_info}" ]] && ! echo "${tags_info}" | grep -q '"message".*"Not Found"'; then
+            if [[ -n "${tags_info}" ]] && [[ ! "${tags_info}" =~ '"message"'.*'"Not Found"' ]]; then
                 # Get first (latest) tag
-                tag_name=$(echo "${tags_info}" | grep '"name"' | cut -d'"' -f4 | head -1)
-                download_url=$(echo "${tags_info}" | grep '"tarball_url"' | cut -d'"' -f4 | head -1)
+                local _re
+                _re='"name":[[:space:]]*"([^"]*)"'
+                [[ "${tags_info}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
+                _re='"tarball_url":[[:space:]]*"([^"]*)"'
+                [[ "${tags_info}" =~ ${_re} ]] && download_url="${BASH_REMATCH[1]}"
 
                 if [[ -n "${download_url}" ]]; then
                     echo "Found latest tag: ${tag_name}"
@@ -500,7 +504,8 @@ download_extension_from_github() {
         else
             # Release found
             download_url=$(select_release_archive_url "${release_info}")
-            tag_name=$(echo "${release_info}" | grep '"tag_name"' | cut -d'"' -f4 | head -1)
+            local _re='"tag_name":[[:space:]]*"([^"]*)"'
+            [[ "${release_info}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
 
             if [[ -z "${download_url}" ]]; then
                 echo "ERROR: Could not find download URL for latest release" >&2
@@ -607,16 +612,14 @@ update_extension() {
             [[ "${line}" =~ ^# ]] && continue
             [[ -z "${line}" ]] && continue
 
-            local checksum
-            local filename
-            checksum=$(echo "${line}" | awk '{print $1}')
-            filename=$(echo "${line}" | awk '{print $2}')
+            local checksum filename
+            read -r checksum filename <<< "${line}"
 
             [[ -f "${filename}" ]] || continue
 
             # Calculate current checksum
             local current_checksum
-            current_checksum=$(sha256sum "${filename}" 2> /dev/null | awk '{print $1}')
+            read -r current_checksum _ < <(sha256sum "${filename}" 2> /dev/null)
 
             # If modified, create .save file
             if [[ "${current_checksum}" != "${checksum}" ]]; then
