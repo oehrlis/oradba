@@ -189,17 +189,22 @@ get_extension_property() {
 parse_extension_metadata() {
     local metadata_file="$1"
     local key="$2"
+    local line value
 
-    if [[ ! -f "${metadata_file}" ]]; then
-        return 1
-    fi
+    [[ ! -f "${metadata_file}" ]] && return 1
 
-    # Simple key-value parser for YAML-like format
-    # Handles: "key: value" or "key:value"
-    local value
-    value=$(grep "^${key}:" "${metadata_file}" 2> /dev/null | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-    echo "${value}"
+    # Pure-bash key-value parser: no subshells, no grep/cut/sed forks (#214)
+    # Skips comment lines (# ...) and blank lines.
+    # Handles: "key: value" or "key:value"; read strips leading/trailing whitespace.
+    while IFS= read -r line; do
+        [[ "${line}" =~ ^[[:blank:]]*# ]] && continue
+        if [[ "${line}" == "${key}:"* ]]; then
+            read -r value <<< "${line#"${key}:"}"
+            echo "${value}"
+            return 0
+        fi
+    done < "${metadata_file}"
+    echo ""
 }
 
 # ------------------------------------------------------------------------------
@@ -509,16 +514,38 @@ load_extension() {
     local load_env="false"
     local load_aliases="false"
     
-    # Read provides section if metadata exists
+    # Read provides section if metadata exists — single-pass, no subshells (#214)
     if [[ -f "${metadata}" ]]; then
-        # Check each provides flag
-        provides_bin=$(grep -A5 "^provides:" "${metadata}" | grep "bin:" | awk '{print $2}' | head -1)
-        provides_sql=$(grep -A5 "^provides:" "${metadata}" | grep "sql:" | awk '{print $2}' | head -1)
-        provides_rcv=$(grep -A5 "^provides:" "${metadata}" | grep "rcv:" | awk '{print $2}' | head -1)
-        load_env=$(parse_extension_metadata "${metadata}" "load_env")
-        load_aliases=$(parse_extension_metadata "${metadata}" "load_aliases")
-        
-        # Default to true if not specified
+        local _in_provides=0 _line _val
+        while IFS= read -r _line; do
+            # Skip comments and blank lines
+            [[ "${_line}" =~ ^[[:blank:]]*# ]] && continue
+            [[ -z "${_line// }" ]] && continue
+
+            if [[ "${_line}" == "provides:"* ]]; then
+                _in_provides=1
+            elif [[ "${_line:0:1}" == " " || "${_line:0:1}" == $'\t' ]]; then
+                # Indented line — part of the current block
+                if [[ ${_in_provides} -eq 1 ]]; then
+                    _val="${_line#*:}"
+                    case "${_line}" in
+                        *"bin:"*) read -r provides_bin <<< "${_val}" ;;
+                        *"sql:"*) read -r provides_sql <<< "${_val}" ;;
+                        *"rcv:"*) read -r provides_rcv <<< "${_val}" ;;
+                    esac
+                fi
+            else
+                # Top-level key — exit provides block and handle known keys
+                _in_provides=0
+                _val="${_line#*:}"
+                case "${_line}" in
+                    "load_env:"*)     read -r load_env     <<< "${_val}" ;;
+                    "load_aliases:"*) read -r load_aliases <<< "${_val}" ;;
+                esac
+            fi
+        done < "${metadata}"
+
+        # Default to true/false if not set by metadata
         provides_bin="${provides_bin:-true}"
         provides_sql="${provides_sql:-true}"
         provides_rcv="${provides_rcv:-true}"

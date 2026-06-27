@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
+### Performance
+
+- `src/lib/oradba_env_builder.sh`: replace `oradba_dedupe_path()` O(n²) nested
+  bash loop with a single `awk` invocation (O(n)); function is called 5-6 times
+  per startup via command substitution, saving ~2-3 s on macOS (#213)
+- `src/lib/extensions.sh`: rewrite `parse_extension_metadata()` to use a pure-bash
+  `while/read` loop instead of a `grep|head|cut|sed` pipeline (4 subshell forks per
+  call); replace the 3 `grep|awk` pipeline chains in `load_extension()` provides
+  block with a single-pass `while/read` state machine — comment lines (`#`) are
+  skipped; combined saving ~1-1.5 s on macOS (#214)
+
 ### Fixed
 
 - `src/bin/oraenv.sh`: pressing Enter at the interactive SID/home selection menu
