@@ -114,8 +114,8 @@ echo "  Checking for latest release from ${EXTENSION_REPO}..."
 RELEASE_INFO=$(get_latest_extension_release)
 
 if [[ -n "${RELEASE_INFO}" ]] && [[ "${RELEASE_INFO}" != "{}" ]]; then
-    LATEST_VERSION=$(echo "${RELEASE_INFO}" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*": *"\(.*\)".*/\1/')
-    TARBALL_URL=$(echo "${RELEASE_INFO}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4)
+    LATEST_VERSION=$(echo "${RELEASE_INFO}" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*": *"\(.*\)".*/\1/' || true)
+    TARBALL_URL=$(echo "${RELEASE_INFO}" | grep -o '"browser_download_url": "[^"]*extension-template-[^"]*\.tar\.gz"' | head -1 | cut -d'"' -f4 || true)
 
     if [[ -n "${LATEST_VERSION}" ]]; then
         echo "  Latest version: ${LATEST_VERSION}"

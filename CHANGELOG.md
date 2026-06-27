@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.32.2] - 2026-06-27
+
+### Fixed
+
+- `build_installer.sh`: add `|| true` to grep pipelines in extension-release
+  parsing block; prevents pipefail exit when GitHub API returns rate-limit
+  response with no `tag_name` field
+
 ## [0.32.1] - 2026-06-27
 
 ### Fixed
