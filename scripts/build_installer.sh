@@ -25,7 +25,7 @@ cd "$(dirname "$SCRIPT_DIR")"
 # Variables
 VERSION=$(cat VERSION 2> /dev/null || echo "0.1.0")
 # Support dev/test builds with suffix (e.g., ORADBA_BUILD_SUFFIX="-dev" make build)
-if [[ -n "${ORADBA_BUILD_SUFFIX}" ]]; then
+if [[ -n "${ORADBA_BUILD_SUFFIX:-}" ]]; then
     VERSION="${VERSION}${ORADBA_BUILD_SUFFIX}"
 fi
 BUILD_DIR="build"
@@ -73,7 +73,7 @@ rm -f "$TEMP_TAR_DIR/etc/sid.dummy.conf"
 cp VERSION README.md LICENSE CHANGELOG.md "$TEMP_TAR_DIR/"
 
 # If build suffix is set, update VERSION file in tarball
-if [[ -n "${ORADBA_BUILD_SUFFIX}" ]]; then
+if [[ -n "${ORADBA_BUILD_SUFFIX:-}" ]]; then
     echo "${VERSION}" > "$TEMP_TAR_DIR/VERSION"
 fi
 
@@ -104,6 +104,7 @@ get_latest_extension_release() {
 DOWNLOAD_EXTENSION=false
 CACHED_VERSION=""
 LATEST_VERSION=""
+TARBALL_URL=""
 
 if [[ -f "${EXTENSION_VERSION_FILE}" ]]; then
     CACHED_VERSION=$(cat "${EXTENSION_VERSION_FILE}" 2> /dev/null || echo "")
