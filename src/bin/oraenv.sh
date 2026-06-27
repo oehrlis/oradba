@@ -751,6 +751,24 @@ _oraenv_handle_oracle_home() {
 
     oradba_log DEBUG "Setting environment for Oracle Home: $requested_sid"
 
+    # Resolve home name to its actual path before calling oradba_build_environment.
+    # oradba_build_environment handles directory paths reliably; name-based lookup
+    # inside that function may use a different homes-file resolver. parse_oracle_home
+    # is already proven to work at this point (is_oracle_home called it successfully).
+    local _build_target="$requested_sid"
+    if command -v parse_oracle_home &>/dev/null; then
+        local _home_info
+        _home_info=$(parse_oracle_home "$requested_sid" 2>/dev/null)
+        if [[ -n "$_home_info" ]]; then
+            local _ohname _ohpath
+            read -r _ohname _ohpath _ <<< "$_home_info"
+            if [[ -n "$_ohpath" && -d "$_ohpath" ]]; then
+                _build_target="$_ohpath"
+                oradba_log DEBUG "Resolved home '$requested_sid' -> '$_build_target'"
+            fi
+        fi
+    fi
+
     # Unset previous Oracle environment
     _oraenv_unset_old_env
 
@@ -758,7 +776,7 @@ _oraenv_handle_oracle_home() {
     # and fall back to set_oracle_home_environment when env-builder is not loaded.
     if command -v oradba_build_environment &> /dev/null; then
         # CF-017 / DECISION 1: delegate to oradba_env_builder
-        if ! oradba_build_environment "$requested_sid"; then
+        if ! oradba_build_environment "$_build_target"; then
             oradba_log ERROR "Failed to build Oracle Home environment for: $requested_sid"
             return 1
         fi
