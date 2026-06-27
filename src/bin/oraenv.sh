@@ -951,7 +951,15 @@ _oraenv_auto_discover_instances() {
         oradba_log INFO "Auto-selecting first discovered instance: ${oratab_entry%%:*}"
     else
         # Try to find requested SID in discovered instances (case-insensitive)
-        oratab_entry=$(echo "$discovered_oratab" | awk -F: -v sid="$requested_sid" 'tolower($1) == tolower(sid) {print; exit}')
+        local _oratab_line _first_field
+        oratab_entry=""
+        while IFS= read -r _oratab_line; do
+            _first_field="${_oratab_line%%:*}"
+            if [[ "${_first_field,,}" == "${requested_sid,,}" ]]; then
+                oratab_entry="${_oratab_line}"
+                break
+            fi
+        done <<< "${discovered_oratab}"
 
         if [[ -z "$oratab_entry" ]]; then
             oradba_log DEBUG "SID '$requested_sid' not found in discovered instances"
@@ -1310,8 +1318,12 @@ _oraenv_set_environment() {
 _oraenv_unset_old_env() {
     # Remove old ORACLE_HOME from PATH
     if [[ -n "${ORACLE_HOME}" ]]; then
-        PATH=$(echo "$PATH" | sed -e "s|${ORACLE_HOME}/bin:||g" -e "s|:${ORACLE_HOME}/bin||g")
-        LD_LIBRARY_PATH=$(echo "${LD_LIBRARY_PATH:-}" | sed -e "s|${ORACLE_HOME}/lib:||g" -e "s|:${ORACLE_HOME}/lib||g")
+        local _oh_bin="${ORACLE_HOME}/bin" _oh_lib="${ORACLE_HOME}/lib"
+        PATH="${PATH//${_oh_bin}:/}"
+        PATH="${PATH//:${_oh_bin}/}"
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH//${_oh_lib}:/}"
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH//:${_oh_lib}/}"
     fi
 
     # Clear product-specific environment from previous home

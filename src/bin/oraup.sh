@@ -390,7 +390,7 @@ show_oracle_status_registry() {
             # Extract listener name and Oracle Home from ps output
             # ps output format: /path/to/oracle_home/bin/tnslsnr LISTENER -inherit
             read -ra _lsnr_fields <<< "$listener_line"
-            listener_name="${_lsnr_fields[${#_lsnr_fields[@]}-2]}"
+            listener_name="${_lsnr_fields[${#_lsnr_fields[@]} - 2]}"
             listener_home=""
             for _f in "${_lsnr_fields[@]}"; do
                 if [[ "${_f}" == */tnslsnr ]]; then

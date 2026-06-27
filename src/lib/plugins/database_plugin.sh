@@ -34,13 +34,19 @@ plugin_detect_installation() {
     
     # Check running pmon processes
     while read -r pmon_line; do
-        local sid pid
+        local sid pid _env_line
         [[ "${pmon_line}" =~ pmon_([a-zA-Z0-9_]+) ]] || continue
         sid="${BASH_REMATCH[1]}"
-        pid=$(echo "${pmon_line}" | awk '{print $2}')
+        read -r _ pid _ <<< "${pmon_line}"
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             local home
-            home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+            home=""
+            while IFS= read -r _env_line; do
+                if [[ "${_env_line}" == ORACLE_HOME=* ]]; then
+                    home="${_env_line#ORACLE_HOME=}"
+                    break
+                fi
+            done < <(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null)
             if [[ -n "${home}" ]] && [[ -d "${home}" ]]; then
                 homes+=("${home}")
             fi
@@ -108,11 +114,17 @@ plugin_check_status() {
     if [[ -z "${sid}" ]]; then
         # No SID specified, check if any pmon from this home
         while read -r pmon_line; do
-            local pid
-            pid=$(echo "${pmon_line}" | awk '{print $2}')
+            local pid _env_line
+            read -r _ pid _ <<< "${pmon_line}"
             if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
                 local proc_home
-                proc_home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+                proc_home=""
+                while IFS= read -r _env_line; do
+                    if [[ "${_env_line}" == ORACLE_HOME=* ]]; then
+                        proc_home="${_env_line#ORACLE_HOME=}"
+                        break
+                    fi
+                done < <(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null)
                 if [[ "${proc_home}" == "${home_path}" ]]; then
                     return 0
                 fi
@@ -225,13 +237,19 @@ plugin_discover_instances() {
     
     # Find all running instances from this home
     while read -r pmon_line; do
-        local sid pid
+        local sid pid _env_line
         [[ "${pmon_line}" =~ pmon_([a-zA-Z0-9_]+) ]] || continue
         sid="${BASH_REMATCH[1]}"
-        pid=$(echo "${pmon_line}" | awk '{print $2}')
+        read -r _ pid _ <<< "${pmon_line}"
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             local proc_home
-            proc_home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+            proc_home=""
+            while IFS= read -r _env_line; do
+                if [[ "${_env_line}" == ORACLE_HOME=* ]]; then
+                    proc_home="${_env_line#ORACLE_HOME=}"
+                    break
+                fi
+            done < <(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null)
             if [[ "${proc_home}" == "${home_path}" ]]; then
                 echo "${sid}|running|"
             fi

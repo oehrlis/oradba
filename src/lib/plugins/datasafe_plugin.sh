@@ -41,7 +41,7 @@ plugin_detect_installation() {
     # shellcheck disable=SC2009
     while read -r cmctl_line; do
         local pid
-        pid=$(echo "${cmctl_line}" | awk '{print $2}')
+        read -r _ pid _ <<< "${cmctl_line}"
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             # Get ORACLE_HOME from process environment
             local home
@@ -263,7 +263,8 @@ plugin_get_version() {
     
     # Parse version from output using sed for portability
     # Expected format: "Oracle Connection Manager Version 23.4.0.0.0"
-    version=$(echo "${version_output}" | sed -n 's/.*Version[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    version=""
+    [[ "${version_output}" =~ Version[[:space:]]*([0-9][0-9.]*) ]] && version="${BASH_REMATCH[1]}"
     if [[ -n "${version}" ]]; then
         echo "${version}"
         return 0
@@ -274,7 +275,8 @@ plugin_get_version() {
                      LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
                      "${cmctl}" version 2>/dev/null)
     
-    version=$(echo "${version_output}" | sed -n 's/.*Version[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
+    version=""
+    [[ "${version_output}" =~ Version[[:space:]]*([0-9][0-9.]*) ]] && version="${BASH_REMATCH[1]}"
     if [[ -n "${version}" ]]; then
         echo "${version}"
         return 0
@@ -317,8 +319,10 @@ plugin_get_connector_version() {
     
     # Parse version from output using sed for portability
     # Expected format: "On-premises connector software version : 220517.00"
-    connector_version=$(echo "${version_output}" | sed -n 's/.*connector software version[[:space:]]*:[[:space:]]*\([0-9][0-9.]*\).*/\1/p' | head -1)
-    if [[ -z "${connector_version}" ]] && [[ "${version_output}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+    connector_version=""
+    if [[ "${version_output}" =~ [Cc]onnector[[:space:]]+software[[:space:]]+version[[:space:]]*:[[:space:]]*([0-9][0-9.]*) ]]; then
+        connector_version="${BASH_REMATCH[1]}"
+    elif [[ "${version_output}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
         connector_version="${version_output}"
     fi
     
@@ -690,7 +694,8 @@ plugin_get_connection_count() {
     # Parse connection count from output
     # Expected format: "Number of connections: 12."
     local connection_count
-    connection_count=$(echo "${tunnel_output}" | grep -i "Number of connections:" | sed -n 's/.*Number of connections:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)
+    connection_count=""
+    [[ "${tunnel_output}" =~ [Nn]umber[[:space:]]+of[[:space:]]+connections:[[:space:]]*([0-9]+) ]] && connection_count="${BASH_REMATCH[1]}"
     
     if [[ -n "${connection_count}" ]]; then
         echo "${connection_count}"
@@ -752,16 +757,18 @@ plugin_get_cman_status() {
     #   Uptime                    0 days 20 hr. 7 min. 6 sec
     #   Num of gateways started   12
     
-    local start_date uptime gateways
-    
-    # Extract start date
-    start_date=$(echo "${status_output}" | grep -i "^Start date" | sed -n 's/^Start date[[:space:]]*\(.*\)$/\1/p' | head -1)
-    
-    # Extract uptime
-    uptime=$(echo "${status_output}" | grep -i "^Uptime" | sed -n 's/^Uptime[[:space:]]*\(.*\)$/\1/p' | head -1)
-    
-    # Extract number of gateways
-    gateways=$(echo "${status_output}" | grep -i "^Num of gateways started" | sed -n 's/^Num of gateways started[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)
+    local start_date uptime gateways _sline
+
+    # Extract status fields in a single pass (replaces 9 echo|grep|sed subshells)
+    while IFS= read -r _sline; do
+        if [[ -z "${start_date}" && "${_sline}" =~ ^[Ss]tart[[:space:]]+[Dd]ate[[:space:]]+(.*) ]]; then
+            start_date="${BASH_REMATCH[1]}"
+        elif [[ -z "${uptime}" && "${_sline}" =~ ^[Uu]ptime[[:space:]]+(.*) ]]; then
+            uptime="${BASH_REMATCH[1]}"
+        elif [[ -z "${gateways}" && "${_sline}" =~ ^[Nn]um[[:space:]]+of[[:space:]]+gateways[[:space:]]+started[[:space:]]+([0-9]+) ]]; then
+            gateways="${BASH_REMATCH[1]}"
+        fi
+    done <<< "${status_output}"
     
     # Output key=value pairs (only if values found)
     if [[ -n "${start_date}" ]]; then
