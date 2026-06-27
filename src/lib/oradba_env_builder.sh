@@ -927,10 +927,23 @@ oradba_build_environment() {
                 product_type=$(oradba_get_product_type "$oracle_home")
             fi
         else
-            return 1
+            # Not found in oratab — try oradba_homes.conf (Oracle Home names/aliases)
+            if command -v oradba_find_home &>/dev/null; then
+                local home_entry
+                home_entry=$(oradba_find_home "$oracle_sid" 2>/dev/null)
+                if [[ -n "$home_entry" ]]; then
+                    # Format: NAME|PATH|TYPE|ORDER|ALIAS|DESCRIPTION|VERSION
+                    local _hname _hpath _htype
+                    IFS='|' read -r _hname _hpath _htype _ _ _ _ <<< "$home_entry"
+                    oracle_home="$_hpath"
+                    oracle_sid=""
+                    [[ -n "$_htype" && -z "$product_type" ]] && product_type="$_htype"
+                fi
+            fi
+            [[ -z "$oracle_home" ]] && return 1
         fi
     fi
-    
+
     # Validate we have required info
     [[ -z "$oracle_home" ]] && return 1
     [[ ! -d "$oracle_home" ]] && return 1
