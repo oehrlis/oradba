@@ -756,9 +756,9 @@ _oraenv_handle_oracle_home() {
     # inside that function may use a different homes-file resolver. parse_oracle_home
     # is already proven to work at this point (is_oracle_home called it successfully).
     local _build_target="$requested_sid"
-    if command -v parse_oracle_home &>/dev/null; then
+    if command -v parse_oracle_home &> /dev/null; then
         local _home_info
-        _home_info=$(parse_oracle_home "$requested_sid" 2>/dev/null)
+        _home_info=$(parse_oracle_home "$requested_sid" 2> /dev/null)
         if [[ -n "$_home_info" ]]; then
             local _ohname _ohpath
             read -r _ohname _ohpath _ <<< "$_home_info"
