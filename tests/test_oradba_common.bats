@@ -452,9 +452,10 @@ EOF
     touch "$readonly_oratab"
     chmod 444 "$readonly_oratab"
     
-    # Set up fallback location
+    # Set up fallback location (function falls back to ${ORADBA_BASE}/etc/oratab)
+    export ORADBA_BASE="${TEST_TEMP_DIR}"
     export ORADBA_PREFIX="${TEST_TEMP_DIR}"
-    mkdir -p "${ORADBA_PREFIX}/etc"
+    mkdir -p "${TEST_TEMP_DIR}/etc"
     
     # Run persistence - should fallback to local oratab
     run persist_discovered_instances "$discovered_instances" "$readonly_oratab"
