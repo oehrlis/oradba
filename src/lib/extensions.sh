@@ -159,8 +159,8 @@ get_extension_property() {
         local safe_ext_name="${ext_name//-/_}"
         safe_ext_name="${safe_ext_name//[^a-zA-Z0-9_]/}"
         local safe_ext_name_upper property_upper
-        safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
-        property_upper=$(printf '%s' "${property}" | tr '[:lower:]' '[:upper:]')
+        safe_ext_name_upper="${safe_ext_name^^}"
+        property_upper="${property^^}"
         local config_var="ORADBA_EXT_${safe_ext_name_upper}_${property_upper}"
         value="${!config_var}"
     fi
@@ -189,17 +189,22 @@ get_extension_property() {
 parse_extension_metadata() {
     local metadata_file="$1"
     local key="$2"
+    local line value
 
-    if [[ ! -f "${metadata_file}" ]]; then
-        return 1
-    fi
+    [[ ! -f "${metadata_file}" ]] && return 1
 
-    # Simple key-value parser for YAML-like format
-    # Handles: "key: value" or "key:value"
-    local value
-    value=$(grep "^${key}:" "${metadata_file}" 2> /dev/null | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-    echo "${value}"
+    # Pure-bash key-value parser: no subshells, no grep/cut/sed forks (#214)
+    # Skips comment lines (# ...) and blank lines.
+    # Handles: "key: value" or "key:value"; read strips leading/trailing whitespace.
+    while IFS= read -r line; do
+        [[ "${line}" =~ ^[[:blank:]]*# ]] && continue
+        if [[ "${line}" == "${key}:"* ]]; then
+            read -r value <<< "${line#"${key}:"}"
+            echo "${value}"
+            return 0
+        fi
+    done < "${metadata_file}"
+    echo ""
 }
 
 # ------------------------------------------------------------------------------
@@ -350,7 +355,7 @@ remove_extension_paths() {
 # Notes...: Uses oradba_dedupe_path() from oradba_env_builder.sh if available
 # ------------------------------------------------------------------------------
 deduplicate_path() {
-    if command -v oradba_dedupe_path >/dev/null 2>&1; then
+    if command -v oradba_dedupe_path > /dev/null 2>&1; then
         local deduped_path
         deduped_path="$(oradba_dedupe_path "${PATH}")"
         export PATH="${deduped_path}"
@@ -388,7 +393,7 @@ deduplicate_path() {
 deduplicate_sqlpath() {
     [[ -z "${SQLPATH}" ]] && return 0
 
-    if command -v oradba_dedupe_path >/dev/null 2>&1; then
+    if command -v oradba_dedupe_path > /dev/null 2>&1; then
         local deduped_sqlpath
         deduped_sqlpath="$(oradba_dedupe_path "${SQLPATH}")"
         export SQLPATH="${deduped_sqlpath}"
@@ -508,17 +513,39 @@ load_extension() {
     local provides_rcv="true"
     local load_env="false"
     local load_aliases="false"
-    
-    # Read provides section if metadata exists
+
+    # Read provides section if metadata exists — single-pass, no subshells (#214)
     if [[ -f "${metadata}" ]]; then
-        # Check each provides flag
-        provides_bin=$(grep -A5 "^provides:" "${metadata}" | grep "bin:" | awk '{print $2}' | head -1)
-        provides_sql=$(grep -A5 "^provides:" "${metadata}" | grep "sql:" | awk '{print $2}' | head -1)
-        provides_rcv=$(grep -A5 "^provides:" "${metadata}" | grep "rcv:" | awk '{print $2}' | head -1)
-        load_env=$(parse_extension_metadata "${metadata}" "load_env")
-        load_aliases=$(parse_extension_metadata "${metadata}" "load_aliases")
-        
-        # Default to true if not specified
+        local _in_provides=0 _line _val
+        while IFS= read -r _line; do
+            # Skip comments and blank lines
+            [[ "${_line}" =~ ^[[:blank:]]*# ]] && continue
+            [[ -z "${_line// /}" ]] && continue
+
+            if [[ "${_line}" == "provides:"* ]]; then
+                _in_provides=1
+            elif [[ "${_line:0:1}" == " " || "${_line:0:1}" == $'\t' ]]; then
+                # Indented line — part of the current block
+                if [[ ${_in_provides} -eq 1 ]]; then
+                    _val="${_line#*:}"
+                    case "${_line}" in
+                        *"bin:"*) read -r provides_bin <<< "${_val}" ;;
+                        *"sql:"*) read -r provides_sql <<< "${_val}" ;;
+                        *"rcv:"*) read -r provides_rcv <<< "${_val}" ;;
+                    esac
+                fi
+            else
+                # Top-level key — exit provides block and handle known keys
+                _in_provides=0
+                _val="${_line#*:}"
+                case "${_line}" in
+                    "load_env:"*) read -r load_env <<< "${_val}" ;;
+                    "load_aliases:"*) read -r load_aliases <<< "${_val}" ;;
+                esac
+            fi
+        done < "${metadata}"
+
+        # Default to true/false if not set by metadata
         provides_bin="${provides_bin:-true}"
         provides_sql="${provides_sql:-true}"
         provides_rcv="${provides_rcv:-true}"
@@ -527,7 +554,7 @@ load_extension() {
     fi
 
     # Normalize booleans to lowercase (printf -v sets var directly, no subshells)
-    _ext_bool_lower() { case "$2" in TRUE|True|YES|Yes) printf -v "$1" 'true' ;; FALSE|False|NO|No) printf -v "$1" 'false' ;; *) printf -v "$1" '%s' "$2" ;; esac; }
+    _ext_bool_lower() { case "$2" in TRUE | True | YES | Yes) printf -v "$1" 'true' ;; FALSE | False | NO | No) printf -v "$1" 'false' ;; *) printf -v "$1" '%s' "$2" ;; esac }
     _ext_bool_lower provides_bin "${provides_bin}"
     _ext_bool_lower provides_sql "${provides_sql}"
     _ext_bool_lower provides_rcv "${provides_rcv}"
@@ -565,7 +592,7 @@ load_extension() {
 
     # Export extension path variables for reference
     local safe_ext_name_upper
-    safe_ext_name_upper=$(printf '%s' "${safe_ext_name}" | tr '[:lower:]' '[:upper:]')
+    safe_ext_name_upper="${safe_ext_name^^}"
     local var_name="ORADBA_EXT_${safe_ext_name_upper}_PATH"
     export "${var_name}=${ext_path}"
 
@@ -755,7 +782,7 @@ validate_extension() {
     if [[ ! -f "${ext_path}/.extension" ]]; then
         echo "⚠ Warning: No .extension metadata file found"
         echo "  Extension will work but won't have version/priority info"
-        warnings=$(( warnings + 1 ))
+        warnings=$((warnings + 1))
     else
         echo "✓ Metadata file present"
 
@@ -766,11 +793,11 @@ validate_extension() {
 
         [[ -n "${name}" ]] && echo "  Name: ${name}" || {
             echo "  ⚠ Warning: 'name' not set in metadata"
-            warnings=$(( warnings + 1 ))
+            warnings=$((warnings + 1))
         }
         [[ -n "${version}" ]] && echo "  Version: ${version}" || {
             echo "  ⚠ Warning: 'version' not set in metadata"
-            warnings=$(( warnings + 1 ))
+            warnings=$((warnings + 1))
         }
     fi
 
@@ -778,7 +805,7 @@ validate_extension() {
     if [[ ! -d "${ext_path}/bin" ]] && [[ ! -d "${ext_path}/sql" ]] && [[ ! -d "${ext_path}/rcv" ]]; then
         echo "⚠ Warning: No bin/, sql/, or rcv/ directories found"
         echo "  Extension has no content to load"
-        warnings=$(( warnings + 1 ))
+        warnings=$((warnings + 1))
     fi
 
     # Check directories

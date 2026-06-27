@@ -9,12 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
+### Performance
+
+- `src/lib/oradba_env_builder.sh`: replace `oradba_dedupe_path()` O(n²) nested
+  bash loop with a single `awk` invocation (O(n)); function is called 5-6 times
+  per startup via command substitution, saving ~2-3 s on macOS (#213)
+- `src/lib/extensions.sh`: rewrite `parse_extension_metadata()` to use a pure-bash
+  `while/read` loop instead of a `grep|head|cut|sed` pipeline (4 subshell forks per
+  call); replace the 3 `grep|awk` pipeline chains in `load_extension()` provides
+  block with a single-pass `while/read` state machine — comment lines (`#`) are
+  skipped; combined saving ~1-1.5 s on macOS (#214)
+- `src/lib/oradba_env_builder.sh`: replace `oradba_dedupe_path()` awk invocation
+  with a bash 4+ `declare -A` associative-array lookup (O(n), zero external forks);
+  replace 6 `$(printf | tr)` subshells for case conversion with `${var,,}` / `${var^^}`
+  bash 4+ parameter expansion — net ~200-400 ms further saving on macOS (#216)
+- `src/lib/extensions.sh`: replace 3 `$(printf | tr)` subshells in
+  `get_extension_property()` and `load_extension()` with `${var^^}` bash 4+
+  parameter expansion (#216)
+
 ### Fixed
 
+- `src/bin/oraenv.sh`: pressing Enter at the interactive SID/home selection menu
+  now defaults to the first entry instead of returning "No selection made" (#208)
+- `src/lib/oradba_common.sh`: `ORADBA_DEBUG=true` and `ORADBA_TRACE=true` now
+  correctly activate DEBUG and TRACE log levels in `oradba_log()`; previously only
+  `ORADBA_LOG_LEVEL` and the legacy `DEBUG=1` were recognized (#209)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now falls back to
+  `oradba_homes.conf` when a name is not found in oratab, fixing env setup for
+  non-database Oracle Homes such as `icli23` (iclient type) (#207)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now sets
+  `ORADBA_CURRENT_HOME_TYPE` (in addition to `ORADBA_PRODUCT_TYPE`) so that
+  environment status display shows the correct product type (e.g. `iclient`)
+  instead of the hardcoded `database` fallback (#212)
+- `src/lib/oradba_env_builder.sh`: `oradba_build_environment()` now sets
+  `ORADBA_CURRENT_HOME` to the registry home name and `ORADBA_CURRENT_HOME_ALIAS`
+  to the alias from `oradba_homes.conf`; PS1 prompt now shows the alias (e.g.
+  `icli23`) instead of the raw `ORACLE_HOME` path (#211)
 - `scripts/build_pdf.sh`: enable Mermaid diagram rendering in CI via
   `--security-opt seccomp=unconfined` and `--shm-size=2g` on `docker run`;
   add `.puppeteer.json` with `--no-sandbox` so Chromium (used by mmdc)
   can launch inside the nested GitHub Actions container
+
+### Documentation
+
+- `src/doc/troubleshooting.md`: rewrite Debug Mode section - `ORADBA_LOG_LEVEL`
+  documented as primary method, `ORADBA_DEBUG/TRACE` as shortcut vars, add log
+  level reference table, fix all `oraenv.sh` examples to use `source`, remove
+  non-existent `--debug` flag, add "Must Always Be Sourced" note (#210)
 
 ## [1.0.0-rc.1] - 2026-06-27
 
