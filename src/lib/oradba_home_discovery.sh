@@ -287,9 +287,10 @@ list_oracle_homes() {
 get_oracle_home_path() {
     local name="$1"
     local home_info
-
     home_info=$(parse_oracle_home "${name}") || return 1
-    echo "${home_info}" | awk '{print $2}'
+    # format: f1 f2 f3 f4 f5 ...  strip f1, print f2
+    local _rest="${home_info#* }"
+    printf '%s\n' "${_rest%% *}"
 }
 
 # ------------------------------------------------------------------------------
@@ -303,9 +304,13 @@ get_oracle_home_path() {
 get_oracle_home_alias() {
     local name="$1"
     local home_info
-
     home_info=$(parse_oracle_home "${name}") || return 1
-    echo "${home_info}" | awk '{print $5}'
+    # format: f1 f2 f3 f4 f5 ...  drop f1-f4, print f5
+    local _r="${home_info#* }" # drop f1
+    _r="${_r#* }"              # drop f2
+    _r="${_r#* }"              # drop f3
+    _r="${_r#* }"              # drop f4
+    printf '%s\n' "${_r%% *}"  # field 5
 }
 
 # ------------------------------------------------------------------------------
@@ -319,9 +324,11 @@ get_oracle_home_alias() {
 get_oracle_home_type() {
     local name="$1"
     local home_info
-
     home_info=$(parse_oracle_home "${name}") || return 1
-    echo "${home_info}" | awk '{print $3}'
+    # format: f1 f2 f3 ...  drop f1-f2, print f3
+    local _r="${home_info#* }" # drop f1
+    _r="${_r#* }"              # drop f2
+    printf '%s\n' "${_r%% *}"  # field 3
 }
 
 # ------------------------------------------------------------------------------
@@ -601,7 +608,7 @@ derive_oracle_base() {
         local test_path="${oracle_home}"
         while [[ "${test_path}" != "${parent_dir}" ]] && [[ "${test_path}" != "/" ]]; do
             test_path="$(dirname "${test_path}")"
-    depth=$(( depth + 1 ))
+            depth=$((depth + 1))
             if [[ ${depth} -gt 5 ]]; then
                 break 2
             fi
@@ -834,7 +841,7 @@ EOF
 
             [[ "${is_valid_home}" == "false" ]] && continue
 
-    found_count=$(( found_count + 1 ))
+            found_count=$((found_count + 1))
 
             # Generate home name from path and product type
             local dir_name home_name
@@ -873,7 +880,7 @@ EOF
                     local counter=1
                     if [[ -f "${config_file}" ]]; then
                         while grep -q "^dscon${counter}:" "${config_file}" 2> /dev/null; do
-    counter=$(( counter + 1 ))
+                            counter=$((counter + 1))
                         done
                     fi
                     home_name="dscon${counter}"
@@ -963,7 +970,7 @@ EOF
             fi
 
             if [[ "${already_exists}" == "true" ]]; then
-    skipped_count=$(( skipped_count + 1 ))
+                skipped_count=$((skipped_count + 1))
                 continue
             fi
 
@@ -973,7 +980,7 @@ EOF
             echo "${home_name}:${dir}:${ptype}:${order}::Auto-discovered ${ptype}:AUTO" >> "${config_file}"
 
             [[ "${silent}" != "true" ]] && echo "  [ADD] ${home_name} (${ptype}) - ${dir}"
-    added_count=$(( added_count + 1 ))
+            added_count=$((added_count + 1))
 
         done < <(find "${base_dir}" -maxdepth 3 -type d -print0 2> /dev/null)
     done

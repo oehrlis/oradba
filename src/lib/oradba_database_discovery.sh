@@ -159,6 +159,14 @@ generate_sid_lists() {
 # Output..: Creates shell aliases for each PDB and exports ORADBA_PDBLIST
 # ------------------------------------------------------------------------------
 generate_pdb_aliases() {
+    # Gate 1: feature flag (default: disabled)
+    [[ "${ORADBA_LOAD_PDB_ALIASES:-false}" == "true" ]] || return 0
+
+    # Gate 2: per-SID session guard (skip if already done for this SID)
+    local _guard="ORADBA_PDB_ALIASES_DONE_${ORACLE_SID:-UNKNOWN}"
+    [[ -n "${!_guard:-}" ]] && return 0
+    declare -g "${_guard}=1"
+
     # Skip if disabled
     if [[ "${ORADBA_NO_PDB_ALIASES}" == "true" ]]; then
         oradba_log DEBUG "PDB aliases disabled (ORADBA_NO_PDB_ALIASES=true)"
@@ -306,7 +314,7 @@ discover_running_oracle_instances() {
         # Output discovered instance in oratab format
         echo "${sid}:${oracle_home}:N"
         seen_sids[$sid]=1
-    discovered_count=$(( discovered_count + 1 ))
+        discovered_count=$((discovered_count + 1))
 
         oradba_log INFO "Auto-discovered Oracle instance: $sid ($oracle_home)"
 
@@ -370,7 +378,7 @@ persist_discovered_instances() {
             else
                 echo "${sid}:${oracle_home}:${startup_flag}" >> "$oratab_file"
                 oradba_log INFO "Added $sid to $oratab_file"
-    added_count=$(( added_count + 1 ))
+                added_count=$((added_count + 1))
             fi
         done <<< "$discovered_oratab"
 
@@ -415,7 +423,7 @@ persist_discovered_instances() {
             else
                 echo "${sid}:${oracle_home}:${startup_flag}" >> "$local_oratab"
                 oradba_log INFO "Added $sid to local oratab: $local_oratab"
-    added_count=$(( added_count + 1 ))
+                added_count=$((added_count + 1))
             fi
         done <<< "$discovered_oratab"
 

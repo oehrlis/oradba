@@ -77,22 +77,9 @@ elif [[ ! -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
     oradba_log DEBUG "Extension system library not found: ${_ORAENV_BASE_DIR}/lib/extensions.sh"
 fi
 
-# Source new environment management libraries (Phase 1 - v0.19.0)
+# Lazy-loading of phase libraries is handled by _oraenv_ensure_lib() below.
+# Do NOT source oradba_env_parser/builder/validator/config here (CF-014).
 export ORADBA_BASE="${_ORAENV_BASE_DIR}"
-if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_parser.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/oradba_env_parser.sh"
-fi
-if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_builder.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/oradba_env_builder.sh"
-fi
-if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh"
-fi
-
-# Source configuration management library (Phase 2)
-if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_env_config.sh" ]]; then
-    source "${_ORAENV_BASE_DIR}/lib/oradba_env_config.sh"
-fi
 
 # Global variables - declared at script level so they persist across functions
 # shellcheck disable=SC2034  # Used across functions in _oraenv_parse_args and _oraenv_main
@@ -107,6 +94,27 @@ REQUESTED_SID=""
 _ORAENV_PROFILE_ENABLED=false
 _ORAENV_PROFILE_START_MS=0
 _ORAENV_PROFILE_LAST_MS=0
+
+# ------------------------------------------------------------------------------
+# Function: _oraenv_ensure_lib
+# Purpose.: Source a library file exactly once, guarded by a loaded flag.
+# Args....: $1 - flag variable name (e.g. _ORAENV_ENV_PARSER_LOADED)
+#           $2 - library file path
+# Returns.: 0 on success, 1 if file not found
+# Notes...: Called lazily from the function that first needs the library.
+# ------------------------------------------------------------------------------
+_oraenv_ensure_lib() {
+    local _flag="$1"
+    local _lib="$2"
+    [[ -n "${!_flag:-}" ]] && return 0
+    if [[ -f "${_lib}" ]]; then
+        # shellcheck source=/dev/null
+        source "${_lib}"
+        declare -g "${_flag}=1"
+        return 0
+    fi
+    return 1
+}
 
 # ------------------------------------------------------------------------------
 # Function: _oraenv_now_ms
@@ -736,6 +744,7 @@ _oraenv_apply_path_configs() {
 # ------------------------------------------------------------------------------
 _oraenv_handle_oracle_home() {
     local requested_sid="$1"
+    _oraenv_ensure_lib _ORAENV_ENV_BUILDER_LOADED "${_ORAENV_BASE_DIR}/lib/oradba_env_builder.sh"
 
     oradba_log DEBUG "Setting environment for Oracle Home: $requested_sid"
 
@@ -1100,6 +1109,8 @@ _oraenv_setup_environment_variables() {
 # ------------------------------------------------------------------------------
 _oraenv_load_configurations() {
     local identifier="$1"
+    _oraenv_ensure_lib _ORAENV_ENV_VALIDATOR_LOADED "${_ORAENV_BASE_DIR}/lib/oradba_env_validator.sh"
+    _oraenv_ensure_lib _ORAENV_ENV_CONFIG_LOADED "${_ORAENV_BASE_DIR}/lib/oradba_env_config.sh"
     local original_load_aliases="${ORADBA_LOAD_ALIASES:-true}"
     local original_configure_sqlpath="${ORADBA_CONFIGURE_SQLPATH:-true}"
     local restore_load_aliases=false
@@ -1110,6 +1121,7 @@ _oraenv_load_configurations() {
     if [[ "${ORAENV_FAST_SILENT}" == "true" ]]; then
         export ORADBA_LOAD_ALIASES="false"
         export ORADBA_CONFIGURE_SQLPATH="false"
+        export ORADBA_LOAD_PDB_ALIASES="false"
         restore_load_aliases=true
         restore_configure_sqlpath=true
         oradba_log DEBUG "Fast silent mode: aliases and SQLPATH disabled for startup"
@@ -1174,6 +1186,7 @@ _oraenv_load_configurations() {
 _oraenv_set_environment() {
     local requested_sid="$1"
     local oratab_file="$2"
+    _oraenv_ensure_lib _ORAENV_ENV_PARSER_LOADED "${_ORAENV_BASE_DIR}/lib/oradba_env_parser.sh"
 
     # Check if this is an Oracle Home (not a database SID)
     if command -v is_oracle_home &> /dev/null && is_oracle_home "$requested_sid"; then

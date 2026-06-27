@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-06-27
+
+### Changed
+
+- Path-specific libraries sourced lazily on first use; duplicate config load
+  removed from `oraenv.sh` (CF-014)
+- `generate_pdb_aliases` gated by `ORADBA_LOAD_PDB_ALIASES` (default false)
+  with per-SID session guard; `--fast-silent` skips PDB alias generation (CF-015)
+
+### Fixed
+
+- Hot-path fork reduction: path deduplication, log timestamp gating, and
+  cached tool-existence checks (CF-016)
+
 ## [0.30.0] - 2026-06-27
 
 ### Changed

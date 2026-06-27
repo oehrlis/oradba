@@ -341,17 +341,36 @@ EOF
     fi
 
     # Filter out SQL*Plus noise (errors, warnings, empty lines)
-    result=$(echo "$result" | grep -v "^SP2-\|^ORA-\|^ERROR\|^no rows selected\|^Connected to:")
+    local filtered=""
+    while IFS= read -r _line; do
+        case "${_line}" in
+            SP2-* | ORA-* | ERROR* | "no rows selected"* | "Connected to:"*)
+                continue
+                ;;
+            *)
+                filtered="${filtered}${filtered:+$'\n'}${_line}"
+                ;;
+        esac
+    done <<< "${result}"
+    result="${filtered}"
 
     # Process based on format
     case "$format" in
         raw)
-            # Return raw output, trimmed
-            echo "$result" | sed '/^[[:space:]]*$/d'
+            # Return raw output, filter empty lines
+            while IFS= read -r _line; do
+                [[ -z "${_line// /}" ]] && continue
+                printf '%s\n' "${_line}"
+            done <<< "${result}"
             ;;
         delimited)
-            # Return pipe-delimited output, clean lines only
-            echo "$result" | grep "|" | head -1
+            # Return pipe-delimited output, first matching line
+            while IFS= read -r _line; do
+                if [[ "${_line}" == *"|"* ]]; then
+                    printf '%s\n' "${_line}"
+                    break
+                fi
+            done <<< "${result}"
             ;;
     esac
 
@@ -1284,7 +1303,7 @@ show_sqlpath() {
         else
             printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
         fi
-    count=$(( count + 1 ))
+        count=$((count + 1))
     done
 }
 
@@ -1312,7 +1331,7 @@ show_path() {
         else
             printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
         fi
-    count=$(( count + 1 ))
+        count=$((count + 1))
     done
 }
 
@@ -1349,7 +1368,7 @@ show_config() {
         status="[✗ MISSING - REQUIRED]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_core.conf" "${status}"
-    count=$(( count + 1 ))
+    count=$((count + 1))
 
     # 2. Standard configuration (required)
     config_file="${config_dir}/oradba_standard.conf"
@@ -1359,7 +1378,7 @@ show_config() {
         status="[✗ MISSING - REQUIRED]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_standard.conf" "${status}"
-    count=$(( count + 1 ))
+    count=$((count + 1))
 
     # 3. Customer configuration (optional)
     config_file="${config_dir}/oradba_customer.conf"
@@ -1369,7 +1388,7 @@ show_config() {
         status="[- not configured]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_customer.conf (optional)" "${status}"
-    count=$(( count + 1 ))
+    count=$((count + 1))
 
     # 4. Default SID configuration (optional)
     config_file="${config_dir}/sid._DEFAULT_.conf"
@@ -1379,7 +1398,7 @@ show_config() {
         status="[- not configured]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "sid._DEFAULT_.conf (optional)" "${status}"
-    count=$(( count + 1 ))
+    count=$((count + 1))
 
     # 5. SID-specific configuration (optional)
     if [[ "${sid}" != "<not set>" ]]; then
