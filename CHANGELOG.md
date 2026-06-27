@@ -26,6 +26,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/lib/extensions.sh`: replace 3 `$(printf | tr)` subshells in
   `get_extension_property()` and `load_extension()` with `${var^^}` bash 4+
   parameter expansion (#216)
+- `src/bin/oradba_validate.sh`, `src/bin/oradba_extension.sh`,
+  `src/bin/oraup.sh`, `src/bin/oraenv.sh`: eliminate 8 `$(echo|awk/sed)`
+  forks in loop contexts — replace with `IFS read`, bash array field scan,
+  and `while IFS=:` redirect; savings scale linearly with file/listener/DB
+  count (~30 ms/fork on macOS) (#218)
+- `src/bin/oraenv.sh`: replace `echo|awk` oratab lookup and `echo|sed`
+  PATH/LD_LIBRARY_PATH cleanup with `while IFS=: read` + bash 4+ `${var,,}`
+  case-folding and parameter expansion `${var//pat:/}` (#218)
+- `src/lib/oradba_common.sh`: replace `echo|awk|sed` PATH deduplication
+  fallback with bash 4+ `declare -A` associative-array loop (#218)
+- `src/lib/plugins/database_plugin.sh`: replace `echo|awk` PID extraction
+  and `tr|grep|cut` ORACLE_HOME parsing from `/proc/environ` with `IFS read`
+  and `[[ == ORACLE_HOME=* ]]` glob — 6 fork pairs eliminated (#218)
+- `src/lib/plugins/datasafe_plugin.sh`: replace `echo|awk` PID, `echo|sed`
+  version/connector-version/connection-count extraction, and 9-subshell
+  `echo|grep|sed` status-field chain with `IFS read` and `[[ =~ ]]+BASH_REMATCH`
+  — single while loop replaces 3 separate grep+sed passes (#218)
+- `src/bin/oradba_extension.sh`: replace 7 `echo|grep|cut` JSON field
+  extractions and `echo|sed` URL normalisation with `[[ =~ ]]+BASH_REMATCH`
+  regex captures; replace `echo|grep` Not-Found guard with native `[[ =~ ]]`
+  (#218)
 
 ### Fixed
 
