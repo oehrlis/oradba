@@ -31,7 +31,7 @@ Current Version: See [GitHub Releases](https://github.com/oehrlis/oradba/release
 
 - **Modular Library System**: Clean separation of concerns with 6 specialized libraries
   - Environment Parser - Extract and parse Oracle environment metadata
-  - Environment Builder - Construct complete Oracle environment variables
+  - Environment Builder - Documented single public path for Oracle environment construction
   - Environment Validator - Multi-level validation (basic/standard/full)
   - Configuration Manager - Section-based hierarchical configuration
   - Status Checker - Real-time service and database status monitoring

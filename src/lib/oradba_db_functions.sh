@@ -78,14 +78,36 @@ EOF
 # ------------------------------------------------------------------------------
 # Function: get_database_open_mode
 # Purpose.: Get the current database open mode
-# Returns.: Open mode string or empty if not accessible
+# Returns.: Canonical open mode string (OPEN|MOUNTED|NOMOUNT|STARTED|SHUTDOWN)
+#           or empty if not accessible
 # ------------------------------------------------------------------------------
 get_database_open_mode() {
-    sqlplus -s / as sysdba << 'EOF' 2> /dev/null
+    # Prefer canonical function if available
+    if type -t oradba_check_db_status > /dev/null 2>&1 && [[ -n "${ORACLE_SID:-}" ]] && [[ -n "${ORACLE_HOME:-}" ]]; then
+        oradba_check_db_status "${ORACLE_SID}" "${ORACLE_HOME}"
+        return $?
+    fi
+
+    # Fallback: direct sqlplus query with normalization
+    local status
+    status=$(
+        sqlplus -s / as sysdba << 'EOF' 2> /dev/null
 SET HEADING OFF FEEDBACK OFF VERIFY OFF PAGESIZE 0 TRIMSPOOL ON
 SELECT status FROM v$instance;
 EXIT;
 EOF
+    )
+    # Normalize to canonical vocabulary
+    status="${status//[[:space:]]/}"
+    status=$(printf '%s' "$status" | tr '[:lower:]' '[:upper:]')
+    case "$status" in
+        OPEN*) status="OPEN" ;;
+        MOUNT*) status="MOUNTED" ;;
+        STARTED) status="STARTED" ;;
+        NOMOUNT) status="NOMOUNT" ;;
+        *) status="SHUTDOWN" ;;
+    esac
+    echo "$status"
 }
 
 # ------------------------------------------------------------------------------
@@ -298,7 +320,7 @@ show_database_status() {
     local oracle_base
     oracle_base=$(oradba_env_output_resolve_oracle_base "${ORACLE_HOME}")
     local product_type="database"
-    
+
     # Check if this is a dummy SID BEFORE attempting connection
     if is_dummy_sid; then
         # Dummy database - show environment only, no SQL queries
@@ -348,12 +370,12 @@ show_database_status() {
 
     # Parse instance info (skip version field - we'll get it from Oracle Home instead)
     IFS='|' read -r instance_name db_status startup_time _ _ sga_target pga_target fra_size <<< "$instance_info"
-    
+
     # Get Oracle Home version instead of database version for consistency
     # Oracle Home version includes RU/patch level (e.g., 23.26.0.0.0)
     # Database version from v$instance shows base version (e.g., 23.0.0.0.0)
     local version
-    version=$(get_oracle_version 2>/dev/null || echo "Unknown")
+    version=$(get_oracle_version 2> /dev/null || echo "Unknown")
 
     # Start output
     echo ""

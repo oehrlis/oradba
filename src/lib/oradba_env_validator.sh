@@ -37,10 +37,10 @@ declare ORADBA_VALIDATOR_LOGGER="${ORADBA_VALIDATOR_LOGGER:-}"
 # ------------------------------------------------------------------------------
 oradba_validator_init() {
     local logger="${1:-}"
-    
+
     # Store logger function reference
     ORADBA_VALIDATOR_LOGGER="$logger"
-    
+
     return 0
 }
 
@@ -59,13 +59,13 @@ _oradba_validator_log() {
         "$ORADBA_VALIDATOR_LOGGER" "$@"
         return 0
     fi
-    
+
     # Priority 2: Fall back to oradba_log if available (backward compatibility)
-    if declare -f oradba_log &>/dev/null; then
+    if declare -f oradba_log &> /dev/null; then
         oradba_log "$@"
         return 0
     fi
-    
+
     # Priority 3: No-op (silent)
     return 0
 }
@@ -79,10 +79,10 @@ _oradba_validator_log() {
 # shellcheck disable=SC2120  # Optional argument pattern
 oradba_validate_oracle_home() {
     local oracle_home="${1-${ORACLE_HOME:-}}"
-    
+
     [[ -z "$oracle_home" ]] && return 1
     [[ ! -d "$oracle_home" ]] && return 1
-    
+
     return 0
 }
 
@@ -94,18 +94,18 @@ oradba_validate_oracle_home() {
 # ------------------------------------------------------------------------------
 oradba_validate_sid() {
     local sid="$1"
-    
+
     [[ -z "$sid" ]] && return 1
-    
+
     # SID must start with letter or +ASM
     [[ "$sid" =~ ^[a-zA-Z+] ]] || return 1
-    
+
     # SID can contain alphanumeric and underscore
     [[ "$sid" =~ ^[a-zA-Z+][a-zA-Z0-9_]*$ ]] || return 1
-    
+
     # SID length (typically max 8 chars for old Oracle, but allow longer)
     [[ ${#sid} -le 30 ]] || return 1
-    
+
     return 0
 }
 
@@ -122,22 +122,22 @@ oradba_check_oracle_binaries() {
     local product_type="${1:-RDBMS}"
     local missing=0
     local binaries=()
-    
+
     # Convert to lowercase for plugin matching (case lookup, no subshell)
     local plugin_type
     case "${product_type}" in
-        RDBMS|rdbms|GRID|grid)     plugin_type="database"  ;;
-        DATABASE|database)         plugin_type="database"  ;;
-        WLS|wls|WEBLOGIC|weblogic) plugin_type="weblogic"  ;;
-        *)                         plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+        RDBMS | rdbms | GRID | grid) plugin_type="database" ;;
+        DATABASE | database) plugin_type="database" ;;
+        WLS | wls | WEBLOGIC | weblogic) plugin_type="weblogic" ;;
+        *) plugin_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
     esac
 
     # Map old types to plugin names (already handled above for common ones)
     case "$plugin_type" in
-        rdbms|grid) plugin_type="database" ;;
+        rdbms | grid) plugin_type="database" ;;
         wls) plugin_type="weblogic" ;;
     esac
-    
+
     # Use v2 wrapper for isolated plugin execution (Phase 3)
     # Note: plugin_get_required_binaries takes no arguments, so use NOARGS
     local binary_list
@@ -146,14 +146,14 @@ oradba_check_oracle_binaries() {
         read -ra binaries <<< "$binary_list"
         _oradba_validator_log DEBUG "Plugin ${plugin_type}: required binaries = ${binary_list}"
     fi
-    
+
     # Fallback to basic checks if plugin not available
     if [[ ${#binaries[@]} -eq 0 ]]; then
         _oradba_validator_log DEBUG "Using fallback binary checks for ${product_type}"
         local product_type_upper
         product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
         case "${product_type_upper}" in
-            RDBMS|DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
+            RDBMS | DATABASE) binaries=("sqlplus" "tnsping" "lsnrctl") ;;
             CLIENT) binaries=("sqlplus" "tnsping") ;;
             ICLIENT) binaries=("sqlplus") ;;
             GRID) binaries=("crsctl" "asmcmd" "srvctl") ;;
@@ -162,25 +162,25 @@ oradba_check_oracle_binaries() {
             *) binaries=("sqlplus") ;;
         esac
     fi
-    
+
     # Check each binary
     for bin in "${binaries[@]}"; do
         if ! command -v "$bin" &> /dev/null; then
             echo "WARNING: $bin not found in PATH" >&2
-            missing=$(( missing + 1 ))
+            missing=$((missing + 1))
         fi
     done
-    
+
     # Special check for Instant Client library path
     local product_type_upper
     product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     if [[ "${product_type_upper}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
         if [[ -z "${LD_LIBRARY_PATH}" ]]; then
             echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
-            missing=$(( missing + 1 ))
+            missing=$((missing + 1))
         fi
     fi
-    
+
     [[ $missing -eq 0 ]] && return 0
     return 1
 }
@@ -193,14 +193,14 @@ oradba_check_oracle_binaries() {
 # ------------------------------------------------------------------------------
 oradba_check_db_running() {
     local sid="${1:-${ORACLE_SID}}"
-    
+
     [[ -z "$sid" ]] && return 1
-    
+
     # Check for pmon process
     if pgrep -f "ora_pmon_${sid}" &> /dev/null; then
         return 0
     fi
-    
+
     return 1
 }
 
@@ -215,58 +215,49 @@ oradba_get_db_version() {
     if ! command -v sqlplus &> /dev/null; then
         return 1
     fi
-    
+
     # Get version from sqlplus -V
     local version
-    version=$(sqlplus -V 2>/dev/null | grep -o "Release [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*" | cut -d' ' -f2)
-    
+    version=$(sqlplus -V 2> /dev/null | grep -o "Release [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*" | cut -d' ' -f2)
+
     if [[ -n "$version" ]]; then
         echo "$version"
         return 0
     fi
-    
+
     return 1
 }
 
+# Ensure oradba_check_db_status is available (from oradba_env_status.sh)
+if ! type -t oradba_check_db_status > /dev/null 2>&1; then
+    _oradba_validator_base_dir="${ORADBA_BASE:-}"
+    if [[ -z "${_oradba_validator_base_dir}" ]]; then
+        _oradba_validator_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        _oradba_validator_base_dir="$(cd "${_oradba_validator_script_dir}/.." && pwd)"
+    fi
+    if [[ -f "${_oradba_validator_base_dir}/lib/oradba_env_status.sh" ]]; then
+        # shellcheck source=oradba_env_status.sh
+        source "${_oradba_validator_base_dir}/lib/oradba_env_status.sh"
+    fi
+    unset _oradba_validator_base_dir _oradba_validator_script_dir
+fi
+
 # ------------------------------------------------------------------------------
 # Function: oradba_get_db_status
-# Purpose.: Get database open mode
+# Purpose.: Get database open mode (compatibility shim - delegates to oradba_check_db_status)
 # Args....: None (uses current environment)
-# Returns.: 0 on success
-# Output..: Status (OPEN|MOUNTED|NOMOUNT|DOWN)
+# Returns.: 0 on success, 1 if database not running
+# Output..: Status (OPEN|MOUNTED|NOMOUNT|STARTED|SHUTDOWN)
+# Notes...: Delegates to oradba_check_db_status for canonical status vocabulary.
+#           Previously returned DOWN; now returns SHUTDOWN for consistency.
 # ------------------------------------------------------------------------------
 oradba_get_db_status() {
-    [[ -z "$ORACLE_SID" ]] && echo "DOWN" && return 1
-    
-    # Check if database is running
+    [[ -z "$ORACLE_SID" ]] && echo "SHUTDOWN" && return 1
     if ! oradba_check_db_running "$ORACLE_SID"; then
-        echo "DOWN"
+        echo "SHUTDOWN"
         return 1
     fi
-    
-    # Query database status
-    if command -v sqlplus &> /dev/null; then
-        local status
-        status=$(sqlplus -s / as sysdba <<EOF 2>/dev/null
-SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF
-SELECT status FROM v\$instance;
-EXIT;
-EOF
-)
-        status="${status//[[:space:]]/}"
-        status=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
-        
-        case "$status" in
-            OPEN|MOUNTED|STARTED)
-                echo "$status"
-                return 0
-                ;;
-        esac
-    fi
-    
-    # If we can't determine, assume NOMOUNT if pmon is running
-    echo "NOMOUNT"
-    return 0
+    oradba_check_db_status "$ORACLE_SID" "${ORACLE_HOME:-}"
 }
 
 # ------------------------------------------------------------------------------
@@ -281,11 +272,11 @@ oradba_validate_environment() {
     local errors=0
     local warnings=0
     local product_type="${ORADBA_PRODUCT_TYPE:-RDBMS}"
-    
+
     echo "Validating Oracle environment..."
     echo "Product Type: $product_type"
     echo ""
-    
+
     # For non-database products, do minimal validation
     # Convert to uppercase for comparison
     local product_upper
@@ -298,62 +289,62 @@ oradba_validate_environment() {
             echo "✗ ERROR: ORACLE_HOME is not valid" >&2
             return 1
         fi
-        
+
         if [[ "$PATH" =~ $ORACLE_HOME ]]; then
             echo "✓ ORACLE_HOME is in PATH"
         else
             echo "⚠ WARNING: ORACLE_HOME not in PATH" >&2
         fi
-        
+
         echo ""
         echo "=== Summary ==="
         echo "Product validation complete for $product_type"
         echo "Note: Detailed validation is only available for database products"
         return 0
     fi
-    
+
     # Level 1: Basic validation (always performed)
     echo "=== Basic Validation ==="
-    
+
     # Check ORACLE_HOME
     if oradba_validate_oracle_home; then
         echo "✓ ORACLE_HOME is valid: $ORACLE_HOME"
     else
         echo "✗ ERROR: ORACLE_HOME is not valid" >&2
-        errors=$(( errors + 1 ))
+        errors=$((errors + 1))
         return 1
     fi
-    
+
     # Check ORACLE_SID format
     if [[ -n "$ORACLE_SID" ]]; then
         if oradba_validate_sid "$ORACLE_SID"; then
             echo "✓ ORACLE_SID is valid:  $ORACLE_SID"
         else
             echo "✗ ERROR: ORACLE_SID format is invalid" >&2
-            errors=$(( errors + 1 ))
+            errors=$((errors + 1))
         fi
     fi
-    
+
     # Check PATH
     if [[ "$PATH" =~ $ORACLE_HOME ]]; then
         echo "✓ ORACLE_HOME is in PATH"
     else
         echo "⚠ WARNING: ORACLE_HOME not in PATH" >&2
-        warnings=$(( warnings + 1 ))
+        warnings=$((warnings + 1))
     fi
-    
+
     # Level 2: Standard validation (check binaries and basic functionality)
     if [[ "$level" == "standard" ]] || [[ "$level" == "full" ]]; then
         echo ""
         echo "=== Standard Validation ==="
-        
+
         # Product-specific binary checks
         if oradba_check_oracle_binaries "$product_type"; then
             echo "✓ All required binaries found"
         else
-            warnings=$(( warnings + 1 ))
+            warnings=$((warnings + 1))
         fi
-        
+
         # Version detection for RDBMS/CLIENT/ICLIENT
         if [[ "$product_type" =~ ^(RDBMS|CLIENT|ICLIENT)$ ]]; then
             local version
@@ -362,10 +353,10 @@ oradba_validate_environment() {
                 echo "✓ Oracle version: $version"
             else
                 echo "⚠ WARNING: Could not detect Oracle version" >&2
-                warnings=$(( warnings + 1 ))
+                warnings=$((warnings + 1))
             fi
         fi
-        
+
         # Check Grid status for GRID product type
         if [[ "$product_type" == "GRID" ]]; then
             if command -v crsctl &> /dev/null; then
@@ -373,21 +364,21 @@ oradba_validate_environment() {
                     echo "✓ Grid Infrastructure is running"
                 else
                     echo "⚠ WARNING: Grid Infrastructure is not running" >&2
-                    warnings=$(( warnings + 1 ))
+                    warnings=$((warnings + 1))
                 fi
             fi
         fi
     fi
-    
+
     # Level 3: Full validation (RDBMS-specific database connectivity)
     if [[ "$level" == "full" ]] && [[ "$product_type" == "RDBMS" ]]; then
         echo ""
         echo "=== Full Validation ==="
-        
+
         # Check if database is running
         if oradba_check_db_running "$ORACLE_SID"; then
             echo "✓ Database process is running"
-            
+
             # Check database status
             local db_status
             db_status=$(oradba_get_db_status)
@@ -397,26 +388,26 @@ oradba_validate_environment() {
                     ;;
                 MOUNTED)
                     echo "⚠ Database is MOUNTED" >&2
-                    warnings=$(( warnings + 1 ))
+                    warnings=$((warnings + 1))
                     ;;
                 NOMOUNT)
                     echo "⚠ WARNING: Database is in NOMOUNT state" >&2
-                    warnings=$(( warnings + 1 ))
+                    warnings=$((warnings + 1))
                     ;;
-                DOWN)
+                SHUTDOWN)
                     echo "⚠ WARNING: Database is not running" >&2
-                    warnings=$(( warnings + 1 ))
+                    warnings=$((warnings + 1))
                     ;;
             esac
         else
             echo "⚠ INFO: Database is not running" >&2
         fi
     fi
-    
+
     echo ""
     echo "=== Summary ==="
     echo "Errors: $errors, Warnings: $warnings"
-    
+
     [[ $errors -eq 0 ]] && return 0
     return 1
 }

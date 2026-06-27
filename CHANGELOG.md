@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-06-27
+
+### Changed
+
+- `oraenv.sh` environment construction delegates to `oradba_build_environment`;
+  inline environment-building blocks retired (CF-017, DECISION 1)
+- Single canonical DB open-mode function with vocabulary {OPEN, MOUNTED, NOMOUNT,
+  STARTED, SHUTDOWN} and documented exit-code contract (CF-018)
+
+### Added
+
+- Environment parity and DB open-mode tests in `test_oradba_env_migration.bats`
+
 ## [0.29.0] - 2026-06-27
 
 ### Changed

@@ -78,7 +78,7 @@ source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
 | `oradba_aliases.sh`              | Dynamic shell alias generation for Oracle environments                             |
 | `extensions.sh`                  | OraDBA extension system: discovery and loading                                     |
 | `oradba_env_parser.sh`           | Parse oratab and oradba_homes.conf configurations                                  |
-| `oradba_env_builder.sh`          | Build Oracle environment variables                                                 |
+| `oradba_env_builder.sh`          | Documented single public path for Oracle environment construction                  |
 | `oradba_env_validator.sh`        | Validate Oracle installations and environments                                     |
 | `oradba_env_config.sh`           | Configuration file management                                                      |
 | `oradba_env_status.sh`           | Environment and service status display                                             |

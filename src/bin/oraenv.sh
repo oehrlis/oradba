@@ -728,9 +728,11 @@ _oraenv_apply_path_configs() {
 # Returns.: 0 on success, 1 on error
 # Output..: Exports ORACLE_HOME, ORACLE_BASE, ORACLE_SID (empty for non-DB),
 #           and other Oracle environment variables
-# Notes...: Uses set_oracle_home_environment() from Oracle Homes management.
-#           Unsets previous environment, derives ORACLE_BASE, loads hierarchical
-#           configuration, and logs environment details.
+# Notes...: Delegates environment construction to oradba_build_environment
+#           (oradba_env_builder.sh); falls back to set_oracle_home_environment
+#           when env-builder is not loaded. oraenv-specific config loading,
+#           TNS_ADMIN, and path configs are applied after environment building.
+#           CF-017 / DECISION 1
 # ------------------------------------------------------------------------------
 _oraenv_handle_oracle_home() {
     local requested_sid="$1"
@@ -740,81 +742,89 @@ _oraenv_handle_oracle_home() {
     # Unset previous Oracle environment
     _oraenv_unset_old_env
 
-    # Set Oracle Home environment using Oracle Homes management
-    if command -v set_oracle_home_environment &> /dev/null; then
+    # Build Oracle Home environment - prefer oradba_build_environment (env-builder)
+    # and fall back to set_oracle_home_environment when env-builder is not loaded.
+    if command -v oradba_build_environment &> /dev/null; then
+        # CF-017 / DECISION 1: delegate to oradba_env_builder
+        if ! oradba_build_environment "$requested_sid"; then
+            oradba_log ERROR "Failed to build Oracle Home environment for: $requested_sid"
+            return 1
+        fi
+        _oraenv_profile_mark "oradba_build_environment"
+    elif command -v set_oracle_home_environment &> /dev/null; then
+        # Fallback: legacy env-builder path
         # Defer expensive Java/client path helper work until after config is loaded
         # (so helper settings from config are applied only once)
-        set_oracle_home_environment "$requested_sid" "" "true"
-        if [[ $? -ne 0 ]]; then
+        if ! set_oracle_home_environment "$requested_sid" "" "true"; then
             oradba_log ERROR "Failed to set Oracle Home environment for: $requested_sid"
             return 1
         fi
         _oraenv_profile_mark "set_oracle_home_environment"
-
-        # Set ORACLE_SID to empty for non-database homes
-        export ORACLE_SID=""
-
-        # Set ORACLE_BASE if not already set
-        if [[ -z "${ORACLE_BASE}" ]]; then
-            local derived_base
-            derived_base="$(derive_oracle_base "$ORACLE_HOME")"
-            export ORACLE_BASE="${derived_base}"
-        fi
-
-        # Load hierarchical configuration and extensions for this Oracle Home
-        # This allows ORADBA_TNS_ADMIN to be set from config files
-        oradba_log DEBUG "LD_LIBRARY_PATH before load_config: ${LD_LIBRARY_PATH:-<empty>}"
-        _oraenv_load_configurations "$requested_sid"
-        _oraenv_profile_mark "load_configurations_oracle_home"
-        oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
-
-        # Get product type for TNS_ADMIN and path configurations
-        local product_type
-        product_type=$(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")
-
-        # Set TNS_ADMIN based on product type
-        if [[ "${product_type}" == "datasafe" ]]; then
-            # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
-            # Load and call plugin_set_environment
-            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-            if [[ -f "${plugin_file}" ]]; then
-                if ! type -t plugin_set_environment &> /dev/null; then
-                    # shellcheck source=/dev/null
-                    source "${plugin_file}"
-                fi
-                if type -t plugin_set_environment &> /dev/null; then
-                    # For Oracle Homes, ORACLE_HOME is already set correctly
-                    # Need to determine base path for plugin_set_environment
-                    local base_path="${ORACLE_HOME}"
-                    # If ORACLE_HOME ends with oracle_cman_home, use parent as base
-                    if [[ "${ORACLE_HOME}" =~ /oracle_cman_home$ ]]; then
-                        base_path="${ORACLE_HOME%/oracle_cman_home}"
-                    fi
-                    plugin_set_environment "${base_path}"
-                    oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
-                fi
-            fi
-        else
-            _oraenv_apply_tns_admin "${product_type}"
-        fi
-        _oraenv_profile_mark "apply_tns_admin"
-
-        # Set NLS_LANG if not set
-        export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
-
-        # Apply Java/client path configurations
-        _oraenv_apply_path_configs "${product_type}" "${ORACLE_HOME}"
-        _oraenv_profile_mark "apply_path_configs"
-
-        oradba_log DEBUG "Oracle Home environment set: $requested_sid"
-        oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
-        oradba_log DEBUG "Product Type: ${product_type}"
-
-        return 0
     else
         oradba_log ERROR "Oracle Homes functions not available"
         return 1
     fi
+
+    # Set ORACLE_SID to empty for non-database homes
+    export ORACLE_SID=""
+
+    # Set ORACLE_BASE if not already set
+    if [[ -z "${ORACLE_BASE:-}" ]]; then
+        local derived_base
+        derived_base="$(derive_oracle_base "$ORACLE_HOME")"
+        export ORACLE_BASE="${derived_base}"
+    fi
+
+    # Load hierarchical configuration and extensions for this Oracle Home
+    # This allows ORADBA_TNS_ADMIN to be set from config files
+    oradba_log DEBUG "LD_LIBRARY_PATH before load_config: ${LD_LIBRARY_PATH:-<empty>}"
+    _oraenv_load_configurations "$requested_sid"
+    _oraenv_profile_mark "load_configurations_oracle_home"
+    oradba_log DEBUG "LD_LIBRARY_PATH after load_config: ${LD_LIBRARY_PATH:-<empty>}"
+
+    # Get product type for TNS_ADMIN and path configurations
+    local product_type
+    product_type=$(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")
+
+    # Set TNS_ADMIN based on product type
+    if [[ "${product_type}" == "datasafe" ]]; then
+        # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
+        # Load and call plugin_set_environment
+        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+        if [[ -f "${plugin_file}" ]]; then
+            if ! type -t plugin_set_environment &> /dev/null; then
+                # shellcheck source=/dev/null
+                source "${plugin_file}"
+            fi
+            if type -t plugin_set_environment &> /dev/null; then
+                # For Oracle Homes, ORACLE_HOME is already set correctly
+                # Need to determine base path for plugin_set_environment
+                local base_path="${ORACLE_HOME}"
+                # If ORACLE_HOME ends with oracle_cman_home, use parent as base
+                if [[ "${ORACLE_HOME}" =~ /oracle_cman_home$ ]]; then
+                    base_path="${ORACLE_HOME%/oracle_cman_home}"
+                fi
+                plugin_set_environment "${base_path}"
+                oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
+            fi
+        fi
+    else
+        _oraenv_apply_tns_admin "${product_type}"
+    fi
+    _oraenv_profile_mark "apply_tns_admin"
+
+    # Set NLS_LANG if not set
+    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
+
+    # Apply Java/client path configurations
+    _oraenv_apply_path_configs "${product_type}" "${ORACLE_HOME}"
+    _oraenv_profile_mark "apply_path_configs"
+
+    oradba_log DEBUG "Oracle Home environment set: $requested_sid"
+    oradba_log DEBUG "ORACLE_HOME: $ORACLE_HOME"
+    oradba_log DEBUG "Product Type: ${product_type}"
+
+    return 0
 }
 
 # ------------------------------------------------------------------------------
