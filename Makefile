@@ -284,6 +284,20 @@ validate: ## Validate configuration files
 	@bash -n $(ETC_DIR)/*.bashrc 2>/dev/null || true
 	@echo -e "$(COLOR_GREEN)✓ Configuration files validated$(COLOR_RESET)"
 
+.PHONY: validate-docs-counts
+validate-docs-counts: ## Verify .testmap.yml bats count annotation matches actual count
+	@echo -e "$(COLOR_BLUE)Validating docs test counts...$(COLOR_RESET)"
+	@actual=$$(find $(TEST_DIR) -name '*.bats' | wc -l | tr -d ' '); \
+	annotated=$$(grep -E '^# Test Coverage:' .testmap.yml | grep -oE '[0-9]+ test files' | grep -oE '^[0-9]+' || echo "0"); \
+	echo "  Actual BATS files: $$actual"; \
+	echo "  Annotated in .testmap.yml: $$annotated"; \
+	if [ "$$actual" != "$$annotated" ]; then \
+		echo -e "$(COLOR_RED)ERROR: .testmap.yml annotation ($$annotated) does not match actual count ($$actual)$(COLOR_RESET)" >&2; \
+		echo -e "$(COLOR_RED)Update the '# Test Coverage:' comment in .testmap.yml$(COLOR_RESET)" >&2; \
+		exit 1; \
+	fi; \
+	echo -e "$(COLOR_GREEN)✓ Test count annotation matches: $$actual test files$(COLOR_RESET)"
+
 # ==============================================================================
 # Build and Distribution
 # ==============================================================================
@@ -571,7 +585,7 @@ tools: ## Show installed development tools
 	@echo "          npm install -g markdownlint-cli"
 
 .PHONY: setup-dev
-setup-dev: ## Setup development environment
+setup-dev: ## Setup development environment (tools + git hooks)
 	@echo -e "$(COLOR_BLUE)Setting up development environment...$(COLOR_RESET)"
 	@if [ "$$(uname)" = "Darwin" ] && command -v brew >/dev/null; then \
 		echo "Installing development tools via Homebrew..."; \
@@ -582,6 +596,8 @@ setup-dev: ## Setup development environment
 		echo "  - shfmt: https://github.com/mvdan/sh"; \
 		echo "  - bats: https://github.com/bats-core/bats-core"; \
 	fi
+	@git config core.hooksPath .githooks
+	@echo -e "$(COLOR_GREEN)Dev hooks configured: .githooks/$(COLOR_RESET)"
 	@echo -e "$(COLOR_GREEN)✓ Development environment setup complete$(COLOR_RESET)"
 
 # ==============================================================================

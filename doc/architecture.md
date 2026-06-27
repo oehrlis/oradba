@@ -151,7 +151,7 @@ These Mermaid diagrams are interactive and render automatically in VS Code, GitH
 **Key Features**:
 
 - Single API for all Oracle installations regardless of source
-- Consistent colon-delimited format: `type:name:home:version:flags:order:alias:desc`
+- Consistent pipe-delimited format (`REGISTRY_FIELD_SEP="|"`): `type|name|home|version|flags|order|alias|desc`
 - Efficient querying by name, type, or all entries
 - Product type detection with plugin integration
 - Automatic synchronization with oratab

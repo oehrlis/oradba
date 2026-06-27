@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-06-27
+
+### Changed
+
+- Release workflow fails with exit 1 when release notes file is missing (CF-026)
+- Registry API documented in `doc/api.md`: pipe delimiter, 8-field schema (CF-024)
+- `make validate-docs-counts` added; `.testmap.yml` count annotation auto-verified
+  (CF-025)
+
+### Added
+
+- `.githooks/pre-push` runs `make lint`; `make setup-dev` wires the hook (RF-13)
+- `doc/v1.0.0-readiness.md` with explicit v1.0.0 release criteria (RF-14)
+- `doc/releases/v0.24.5.md` retroactive release note (CF-026)
+- `build_installer.sh` strict mode: `set -euo pipefail` (RF-07)
+
 ## [0.31.0] - 2026-06-27
 
 ### Changed

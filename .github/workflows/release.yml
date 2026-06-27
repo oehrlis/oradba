@@ -104,33 +104,9 @@ jobs:
             echo "Using detailed release notes from $RELEASE_NOTES_FILE"
             cp "$RELEASE_NOTES_FILE" release_notes.md
           else
-            echo "Release notes file not found, generating generic notes"
-            cat > release_notes.md <<EOF
-          # oradba v${VERSION}
-          
-          Oracle Database Administration Toolset
-          
-          ## Installation
-          
-          \`\`\`bash
-          curl -o oradba_install.sh -L https://github.com/\${{ github.repository }}/releases/download/v${VERSION}/oradba_install.sh
-          chmod +x oradba_install.sh
-          sudo ./oradba_install.sh
-          \`\`\`
-          
-          ## What's Changed
-          
-          See [CHANGELOG.md](https://github.com/\${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-          
-          ## Assets
-          
-          - **oradba_install.sh**: Self-contained installer with embedded payload
-          - **oradba_check.sh**: Standalone prerequisites checker (can be run before installation)
-          - **oradba-${VERSION}.tar.gz**: Distribution tarball with version-substituted installer
-          - **oradba-sql-${VERSION}.tar.gz**: SQL scripts bundle packaged as `oradba/sql`
-          - **oradba-sql-${VERSION}.tar.gz.sha256**: SHA256 checksum for the SQL scripts bundle
-          - **oradba-user-guide.pdf**: Complete user documentation (PDF)
-          EOF
+            echo "ERROR: Release notes file not found: $RELEASE_NOTES_FILE" >&2
+            echo "Create doc/releases/v${VERSION}.md before tagging a release." >&2
+            exit 1
           fi
       
       - name: Verify release assets exist

@@ -22,16 +22,19 @@ OraDBA v0.19.0+ uses a modular architecture with clearly separated concerns:
 
 ### 1. Registry API (`oradba_registry.sh`)
 
-Unified interface for Oracle installation discovery and management. Single source of truth combining `oratab` and `oradba_homes.conf`.
+Unified interface for Oracle installation discovery and management. Single source of truth
+combining `oratab` and `oradba_homes.conf`. Uses pipe-delimited 8-field format with `REGISTRY_FIELD_SEP="|"`.
 
-**Key Functions:**
+**Key Functions (4 core functions):**
 
-- `oradba_registry_get_all` - Get all installations
+- `oradba_registry_get_all` - Get all installations (oratab + oradba_homes.conf)
 - `oradba_registry_get_by_name` - Get by NAME (SID/home name)
 - `oradba_registry_get_by_type` - Get by product type
-- `oradba_registry_get_by_home` - Get by ORACLE_HOME path
-- `oradba_registry_get_status` - Check service status
-- `oradba_registry_validate_entry` - Validate entry
+- `oradba_registry_get_databases` - Get database installations only
+- `oradba_registry_get_field` - Extract a single field from an entry by index
+- `oradba_registry_sync_oratab` - Sync registry entries back to oratab
+- `oradba_registry_discover_all` - Auto-discover all installations
+- `oradba_registry_validate` - Validate registry entry completeness
 
 ### 2. Plugin System (6 product-specific plugins)
 
@@ -79,35 +82,38 @@ installations from both `oratab` and `oradba_homes.conf`.
 
 ### Output Format
 
-All Registry API functions return colon-delimited entries:
+Registry API functions return pipe-delimited entries (field separator: `|`).
+The separator constant is exported as `REGISTRY_FIELD_SEP="|"`.
 
 ```text
-NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION
+type|name|home|version|flags|order|alias|desc
 ```
 
-**Fields:**
+**Fields (8 total):**
 
-- `NAME` - Entry name (SID for databases, home name for others)
-- `ORACLE_HOME` - Installation path
-- `PRODUCT_TYPE` - One of: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`
-- `VERSION` - Oracle/product version or "N/A"
-- `AUTO_START` - Auto-start flag (Y/N) or "N/A"
-- `DESCRIPTION` - Optional description
+- `type` - Product type: `database`, `client`, `iclient`, `datasafe`, `oud`, `java`
+- `name` - Entry name (SID for databases, home name for others)
+- `home` - Oracle Home installation path
+- `version` - Oracle/product version string or empty
+- `flags` - Operational flags (auto-start, etc.)
+- `order` - Display/priority order
+- `alias` - Short alias for the entry
+- `desc` - Human-readable description
 
 **Example entries:**
 
 ```bash
 # Database (from oratab)
-FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
+database|FREE|/opt/oracle/product/23ai/dbhomeFree|23.6.0.0.0|Y|10|free|Oracle 23ai Free
 
 # Instant Client (from oradba_homes.conf)
-iclient21:/opt/oracle/product/instantclient_21_15:iclient:21.15.0.0.0:N/A:Oracle Instant Client 21.15
+iclient|iclient21|/opt/oracle/product/instantclient_21_15|21.15.0.0.0||20|ic21|Oracle Instant Client 21.15
 
 # Java (from oradba_homes.conf)
-jdk17:/opt/oracle/product/jdk-17:java:17.0.12:N/A:Oracle JDK 17
+java|jdk17|/opt/oracle/product/jdk-17|17.0.12||30|jdk17|Oracle JDK 17
 
 # Data Safe Connector (from oradba_homes.conf)
-datasafe-conn:/u01/app/oracle/ds-conn:datasafe:N/A:N/A:Data Safe Connector
+datasafe|datasafe-conn|/u01/app/oracle/ds-conn|||40|dsconn|Data Safe Connector
 ```
 
 ### Core Functions
@@ -129,7 +135,7 @@ oradba_registry_get_all
 - Colon-delimited entries (one per line) for all installations
 - Exit code 0 on success
 
-**Output:** Multiple lines in format `NAME:ORACLE_HOME:PRODUCT_TYPE:VERSION:AUTO_START:DESCRIPTION`
+**Output:** Multiple lines in format `type|name|home|version|flags|order|alias|desc`
 
 **Example:**
 
@@ -138,13 +144,13 @@ oradba_registry_get_all
 oradba_registry_get_all
 
 # Output:
-# FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
-# iclient21:/opt/oracle/instantclient_21_15:iclient:21.15.0.0.0:N/A:Instant Client
-# jdk17:/opt/oracle/jdk-17:java:17.0.12:N/A:Oracle JDK 17
-# datasafe-conn:/u01/app/oracle/ds-conn:datasafe:N/A:N/A:Data Safe Connector
+# database|FREE|/opt/oracle/product/23ai/dbhomeFree|23.6.0.0.0|Y|10|free|Oracle 23ai Free
+# iclient|iclient21|/opt/oracle/instantclient_21_15|21.15.0.0.0||20|ic21|Instant Client
+# java|jdk17|/opt/oracle/jdk-17|17.0.12||30|jdk17|Oracle JDK 17
+# datasafe|datasafe-conn|/u01/app/oracle/ds-conn|||40|dsconn|Data Safe Connector
 
 # Parse and process all entries
-while IFS=: read -r name home type version auto_start desc; do
+while IFS='|' read -r type name home version flags order alias desc; do
     echo "Found $type: $name at $home"
 done < <(oradba_registry_get_all)
 ```
@@ -174,10 +180,10 @@ oradba_registry_get_by_name <name>
 # Get specific database
 entry=$(oradba_registry_get_by_name "FREE")
 echo "$entry"
-# Output: FREE:/opt/oracle/product/23ai/dbhomeFree:database:23.6.0.0.0:Y:Oracle 23ai Free
+# Output: database|FREE|/opt/oracle/product/23ai/dbhomeFree|23.6.0.0.0|Y|10|free|Oracle 23ai Free
 
 # Parse fields
-IFS=: read -r name home type version auto_start desc <<< "$entry"
+IFS='|' read -r type name home version flags order alias desc <<< "$entry"
 echo "Oracle Home: $home"
 echo "Product Type: $type"
 echo "Version: $version"
@@ -215,11 +221,11 @@ oradba_registry_get_by_type <product_type>
 # Get all Java installations
 oradba_registry_get_by_type "java"
 # Output:
-# jdk17:/opt/oracle/jdk-17:java:17.0.12:N/A:Oracle JDK 17
-# jdk11:/opt/oracle/jdk-11:java:11.0.21:N/A:Oracle JDK 11
+# java|jdk17|/opt/oracle/jdk-17|17.0.12||30|jdk17|Oracle JDK 17
+# java|jdk11|/opt/oracle/jdk-11|11.0.21||31|jdk11|Oracle JDK 11
 
 # Get all databases
-oradba_registry_get_by_type "database" | while IFS=: read -r name home type version auto_start desc; do
+oradba_registry_get_by_type "database" | while IFS='|' read -r type name home version flags order alias desc; do
     echo "Database: $name (version $version)"
 done
 
@@ -228,118 +234,32 @@ count=$(oradba_registry_get_by_type "database" | wc -l)
 echo "Found $count database(s)"
 ```
 
-#### oradba_registry_get_by_home
+#### oradba_registry_get_field
 
-Get entry by ORACLE_HOME path.
-
-**Syntax:**
-
-```bash
-oradba_registry_get_by_home <oracle_home>
-```
-
-**Arguments:**
-
-- `$1` - ORACLE_HOME path to search for (must match exactly)
-
-**Returns:**
-
-- Colon-delimited entry if found
-- Exit code 0 if found, 1 if not found
-
-**Example:**
-
-```bash
-# Find entry by path
-entry=$(oradba_registry_get_by_home "/opt/oracle/product/23ai/dbhomeFree")
-IFS=: read -r name home type version auto_start desc <<< "$entry"
-echo "Entry name: $name"
-echo "Type: $type"
-
-# Reverse lookup - find name from current ORACLE_HOME
-if [[ -n "${ORACLE_HOME}" ]]; then
-    entry=$(oradba_registry_get_by_home "${ORACLE_HOME}")
-    IFS=: read -r name _ _ _ _ _ <<< "$entry"
-    echo "Current environment is for: $name"
-fi
-```
-
-#### oradba_registry_get_status
-
-Get service status for an entry (delegates to appropriate plugin).
+Extract a single named field from a pipe-delimited registry entry.
 
 **Syntax:**
 
 ```bash
-oradba_registry_get_status <name>
+oradba_registry_get_field <entry> <field_index>
 ```
 
 **Arguments:**
 
-- `$1` - NAME to check status for
+- `$1` - Pipe-delimited registry entry string
+- `$2` - Field index (1=type, 2=name, 3=home, 4=version, 5=flags, 6=order, 7=alias, 8=desc)
 
 **Returns:**
 
-- Status string from plugin's check_status function
-- Possible values: `RUNNING`, `STOPPED`, `UNKNOWN`, `N/A`
+- Prints the requested field value
 - Exit code 0 on success
 
 **Example:**
 
 ```bash
-# Check database status
-status=$(oradba_registry_get_status "FREE")
-echo "Database FREE is: $status"
-# Output: Database FREE is: RUNNING
-
-# Check DataSafe connector status
-status=$(oradba_registry_get_status "datasafe-conn")
-echo "Connector status: $status"
-
-# Check all databases
-oradba_registry_get_by_type "database" | while IFS=: read -r name home _; do
-    status=$(oradba_registry_get_status "$name")
-    echo "$name: $status"
-done
-```
-
-#### oradba_registry_validate_entry
-
-Validate an entry using appropriate plugin.
-
-**Syntax:**
-
-```bash
-oradba_registry_validate_entry <name>
-```
-
-**Arguments:**
-
-- `$1` - NAME to validate
-
-**Returns:**
-
-- Exit code 0 if valid, 1 if invalid
-- Validation messages on stderr
-
-**Example:**
-
-```bash
-# Validate database home
-if oradba_registry_validate_entry "FREE"; then
-    echo "FREE is valid"
-else
-    echo "FREE validation failed"
-fi
-
-# Validate all entries
-oradba_registry_get_all | while IFS=: read -r name home type _; do
-    if oradba_registry_validate_entry "$name" 2>/dev/null; then
-        echo "✓ $name ($type)"
-    else
-        echo "✗ $name ($type) - INVALID"
-    fi
-done
+entry=$(oradba_registry_get_by_name "FREE")
+home=$(oradba_registry_get_field "$entry" 3)
+echo "Oracle Home: $home"
 ```
 
 ---

@@ -16,7 +16,7 @@
 #              at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
-set -e
+set -euo pipefail
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -202,7 +202,7 @@ echo "Generating checksums..."
     find bin lib sql rcv etc templates doc -type f 2> /dev/null | sort | while read -r file; do
         # Skip user-modifiable configuration files
         case "$file" in
-            etc/oradba_homes.conf|etc/oradba_customer.conf|etc/oradba_local.conf|etc/sid.*.conf)
+            etc/oradba_homes.conf | etc/oradba_customer.conf | etc/oradba_local.conf | etc/sid.*.conf)
                 continue
                 ;;
         esac
