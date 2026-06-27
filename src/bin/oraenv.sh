@@ -633,6 +633,9 @@ _oraenv_parse_user_selection() {
     local -n sids_ref="${sids_var}"
     local -n homes_ref="${homes_var}"
 
+    # Default to first entry on empty input
+    [[ -z "$selection" ]] && selection="1"
+
     # Check if user entered a number
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ $selection -ge 1 ]] && [[ $selection -le $total_entries ]]; then
         # User entered a valid number
@@ -689,7 +692,7 @@ _oraenv_prompt_sid() {
 
     # Prompt for selection
     local selection
-    read -p "Enter name or number [1-${total_entries}]: " selection
+    read -rp "Enter name or number [1-${total_entries}] (default: 1): " selection
 
     # Parse and return user selection
     _oraenv_parse_user_selection "$selection" "$total_entries" sids homes
