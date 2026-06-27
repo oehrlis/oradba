@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   call); replace the 3 `grep|awk` pipeline chains in `load_extension()` provides
   block with a single-pass `while/read` state machine — comment lines (`#`) are
   skipped; combined saving ~1-1.5 s on macOS (#214)
+- `src/lib/oradba_env_builder.sh`: replace `oradba_dedupe_path()` awk invocation
+  with a bash 4+ `declare -A` associative-array lookup (O(n), zero external forks);
+  replace 6 `$(printf | tr)` subshells for case conversion with `${var,,}` / `${var^^}`
+  bash 4+ parameter expansion — net ~200-400 ms further saving on macOS (#216)
+- `src/lib/extensions.sh`: replace 3 `$(printf | tr)` subshells in
+  `get_extension_property()` and `load_extension()` with `${var^^}` bash 4+
+  parameter expansion (#216)
 
 ### Fixed
 

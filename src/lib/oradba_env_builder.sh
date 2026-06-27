@@ -79,13 +79,20 @@ _oradba_builder_log() {
 oradba_dedupe_path() {
     local input_path="$1"
     [[ -z "${input_path}" ]] && return 0
-    # O(n) deduplication via awk — replaces the former O(n²) nested bash loop (#213)
-    awk -v p="${input_path}" 'BEGIN {
-        n = split(p, a, ":")
-        for (i = 1; i <= n; i++)
-            if (a[i] != "" && !seen[a[i]]++) out = (out ? out ":" : "") a[i]
-        print out
-    }'
+    # O(n) deduplication via bash 4+ associative array — zero external forks (#216)
+    local -A seen
+    local -a result
+    local dir
+    IFS=':' read -ra dirs <<< "${input_path}"
+    for dir in "${dirs[@]}"; do
+        [[ -z "${dir}" ]] && continue
+        if [[ -z "${seen["${dir}"]+x}" ]]; then
+            seen["${dir}"]=1
+            result+=("${dir}")
+        fi
+    done
+    local IFS=':'
+    echo "${result[*]}"
 }
 
 # Require parser functions
@@ -163,7 +170,7 @@ oradba_add_oracle_path() {
         RDBMS|rdbms|GRID|grid)     product_type="database"  ;;
         DATABASE|database)         product_type="database"  ;;
         WLS|wls|WEBLOGIC|weblogic) product_type="weblogic"  ;;
-        *)                         product_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+        *)                         product_type="${product_type,,}" ;;
     esac
 
     # Use v2 wrapper for isolated plugin execution (Phase 3)
@@ -235,7 +242,7 @@ oradba_set_lib_path() {
         RDBMS|rdbms|GRID|grid)     product_type="database"  ;;
         DATABASE|database)         product_type="database"  ;;
         WLS|wls|WEBLOGIC|weblogic) product_type="weblogic"  ;;
-        *)                         product_type=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]') ;;
+        *)                         product_type="${product_type,,}" ;;
     esac
 
     # Use v2 wrapper for isolated plugin execution (Phase 3)
@@ -556,7 +563,7 @@ oradba_resolve_client_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}"
             
             # Check if it's a client type or database (databases have client tools)
             if [[ "${ptype_upper}" == "CLIENT" ]] || [[ "${ptype_upper}" == "ICLIENT" ]] || [[ "${ptype_upper}" == "DATABASE" ]]; then
@@ -577,7 +584,7 @@ oradba_resolve_client_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}"
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
@@ -742,7 +749,7 @@ oradba_resolve_java_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}"
             
             # Check if it's a Java type
             if [[ "${ptype_upper}" == "JAVA" ]]; then
@@ -773,7 +780,7 @@ oradba_resolve_java_home() {
             
             # Convert type to uppercase for comparison
             local ptype_upper
-            ptype_upper=$(printf '%s' "${ptype}" | tr '[:lower:]' '[:upper:]')
+            ptype_upper="${ptype^^}"
             
             # Match by name or alias
             if [[ "${name}" == "${setting}" ]] || [[ "${alias}" == "${setting}" ]]; then
