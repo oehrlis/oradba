@@ -489,14 +489,14 @@ _oraenv_gather_available_entries() {
 
                 # Extract SIDs from discovered entries (filter empty lines)
                 _sids_ref=()
-                while IFS= read -r sid; do
+                while IFS=: read -r sid _; do
                     [[ -z "${sid}" ]] && continue
                     if [[ ! "${sid}" =~ ^[A-Za-z0-9_.+-]+$ ]]; then
                         oradba_log WARN "Skipping entry with invalid SID characters: ${sid}"
                         continue
                     fi
                     _sids_ref+=("${sid}")
-                done < <(echo "$discovered_oratab" | awk -F: 'NF>0 {print $1}')
+                done <<< "$discovered_oratab"
             fi
         fi
 

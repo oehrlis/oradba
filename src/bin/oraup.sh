@@ -386,13 +386,18 @@ show_oracle_status_registry() {
         # Check for running listeners (using cached process list)
         local listener_count=0
         while read -r listener_line; do
-            local listener_name listener_home
-            # Extract listener name (second-to-last field before -inherit flag)
-            listener_name=$(echo "$listener_line" | awk '{print $(NF-1)}')
-
-            # Extract Oracle Home from ps output (full path to tnslsnr binary)
+            local listener_name listener_home _lsnr_fields _f
+            # Extract listener name and Oracle Home from ps output
             # ps output format: /path/to/oracle_home/bin/tnslsnr LISTENER -inherit
-            listener_home=$(echo "$listener_line" | awk '{for(i=1;i<=NF;i++) if($i ~ /tnslsnr$/) print $i}' | sed 's|/bin/tnslsnr$||')
+            read -ra _lsnr_fields <<< "$listener_line"
+            listener_name="${_lsnr_fields[${#_lsnr_fields[@]}-2]}"
+            listener_home=""
+            for _f in "${_lsnr_fields[@]}"; do
+                if [[ "${_f}" == */tnslsnr ]]; then
+                    listener_home="${_f%/bin/tnslsnr}"
+                    break
+                fi
+            done
 
             # Get detailed listener status and ports
             # Use lsnrctl from the listener's ORACLE_HOME to ensure compatibility
@@ -597,8 +602,10 @@ show_oracle_status_registry() {
                         local metadata
                         execute_plugin_function_v2 "datasafe" "get_metadata" "${home}" "metadata" "" 2> /dev/null || true
                         if [[ -n "${metadata}" ]]; then
-                            local port
-                            port=$(echo "${metadata}" | awk -F= '$1=="port" {print $2; exit}')
+                            local port _mk _mv
+                            while IFS='=' read -r _mk _mv; do
+                                [[ "${_mk}" == "port" ]] && port="${_mv}" && break
+                            done <<< "${metadata}"
 
                             if [[ -n "${port}" ]]; then
                                 port_display="${port}"

@@ -607,16 +607,14 @@ update_extension() {
             [[ "${line}" =~ ^# ]] && continue
             [[ -z "${line}" ]] && continue
 
-            local checksum
-            local filename
-            checksum=$(echo "${line}" | awk '{print $1}')
-            filename=$(echo "${line}" | awk '{print $2}')
+            local checksum filename
+            read -r checksum filename <<< "${line}"
 
             [[ -f "${filename}" ]] || continue
 
             # Calculate current checksum
             local current_checksum
-            current_checksum=$(sha256sum "${filename}" 2> /dev/null | awk '{print $1}')
+            read -r current_checksum _ < <(sha256sum "${filename}" 2>/dev/null)
 
             # If modified, create .save file
             if [[ "${current_checksum}" != "${checksum}" ]]; then

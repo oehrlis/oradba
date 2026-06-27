@@ -358,8 +358,7 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
         [[ -z "$line" || "$line" =~ ^# ]] && continue
 
         # Parse checksum line: hash filename
-        expected_hash=$(echo "$line" | awk '{print $1}')
-        file_path=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
+        read -r expected_hash file_path <<< "$line"
         full_path="${ORADBA_BASE}/${file_path}"
 
         # Skip if already checked (handles duplicates in checksum file)
@@ -371,9 +370,9 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
 
         if [[ -f "$full_path" ]]; then
             if command -v sha256sum > /dev/null 2>&1; then
-                actual_hash=$(sha256sum "$full_path" 2> /dev/null | awk '{print $1}')
+                read -r actual_hash _ < <(sha256sum "$full_path" 2>/dev/null)
             elif command -v shasum > /dev/null 2>&1; then
-                actual_hash=$(shasum -a 256 "$full_path" 2> /dev/null | awk '{print $1}')
+                read -r actual_hash _ < <(shasum -a 256 "$full_path" 2>/dev/null)
             else
                 continue
             fi
