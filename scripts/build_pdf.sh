@@ -6,7 +6,7 @@
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.02.11
-# Revision...: 
+# Revision...:
 # Purpose....: Build PDF documentation from markdown files using pandoc
 # Notes......: Reads order from mkdocs.yml navigation structure
 # Reference..: https://github.com/oehrlis/oradba
@@ -27,7 +27,7 @@ readonly DIST_DIR="${PROJECT_ROOT}/dist"
 readonly OUTPUT_PDF="${DIST_DIR}/oradba-user-guide.pdf"
 readonly DOC_METADATA="${PROJECT_ROOT}/doc/metadata.yml"
 readonly PANDOC_IMAGE="${PANDOC_IMAGE:-oehrlis/pandoc:latest-full}"
-readonly DOC_VERSION="${DOC_VERSION:-$(cat "${PROJECT_ROOT}/VERSION" 2>/dev/null || echo "0.0.0")}"
+readonly DOC_VERSION="${DOC_VERSION:-$(cat "${PROJECT_ROOT}/VERSION" 2> /dev/null || echo "0.0.0")}"
 readonly TMP_DOCS_DIR="${DIST_DIR}/.tmp_docs"
 readonly MKDOCS_CONFIG="${PROJECT_ROOT}/mkdocs.yml"
 
@@ -116,7 +116,7 @@ prepare_docs() {
     done
 
     if [[ -d "${DOCS_DIR}/images" ]]; then
-        cp -r "${DOCS_DIR}/images" "${TMP_DOCS_DIR}/" 2>/dev/null || true
+        cp -r "${DOCS_DIR}/images" "${TMP_DOCS_DIR}/" 2> /dev/null || true
     fi
 }
 
@@ -157,7 +157,7 @@ EOF
     fi
 
     if command -v yq > /dev/null 2>&1; then
-        yq -r '.nav[] | .. | select(tag == "!!str")' "${MKDOCS_CONFIG}" 2>/dev/null | grep '\.md$' || true
+        yq -r '.nav[] | .. | select(tag == "!!str")' "${MKDOCS_CONFIG}" 2> /dev/null | grep '\.md$' || true
         return 0
     fi
 
@@ -189,20 +189,34 @@ build_pdf() {
         sed "s/__VERSION__/${DOC_VERSION}/g" "${DOC_METADATA}" > "${TMP_DOCS_DIR}/metadata.yml"
 
         log_info "Running pandoc in Docker (${PANDOC_IMAGE}) — version ${DOC_VERSION}..."
+        # In CI, Chromium (used by mmdc for Mermaid rendering) requires
+        # --no-sandbox. Pass a puppeteer config and relax seccomp so the
+        # browser process can launch inside the nested Docker container.
+        _DOCKER_EXTRA_ARGS=()
+        if [[ "${CI:-false}" == "true" ]]; then
+            _DOCKER_EXTRA_ARGS+=(
+                "--shm-size=2g"
+                "--security-opt" "seccomp=unconfined"
+                "-e" "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true"
+                "-e" "MERMAID_FILTER_PUPPETEER_CONFIG=/workdir/.puppeteer.json"
+            )
+            log_info "CI mode: adding Chromium sandbox flags to Docker run"
+        fi
         (
-            cd "${TMP_DOCS_DIR}" && \
-            docker run --rm \
-                --user "$(id -u):$(id -g)" \
-                -v "${PWD}:/workdir" \
-                -w /workdir \
-                "${PANDOC_IMAGE}" \
-                "${ordered_files[@]}" -o oradba-user-guide.pdf \
-                --metadata-file=metadata.yml \
-                --toc --toc-depth=2 \
-                --pdf-engine=xelatex \
-                --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
-                -N 2> >(
-                    awk '
+            cd "${TMP_DOCS_DIR}" \
+                && docker run --rm \
+                    --user "$(id -u):$(id -g)" \
+                    -v "${PWD}:/workdir" \
+                    -w /workdir \
+                    "${_DOCKER_EXTRA_ARGS[@]}" \
+                    "${PANDOC_IMAGE}" \
+                    "${ordered_files[@]}" -o oradba-user-guide.pdf \
+                    --metadata-file=metadata.yml \
+                    --toc --toc-depth=2 \
+                    --pdf-engine=xelatex \
+                    --lua-filter /usr/local/share/pandoc/filters/mermaid.lua \
+                    -N 2> >(
+                        awk '
                       BEGIN { suppress_next = 0 }
                       /Command \\underbar has changed\. Check if/  { suppress_next = 1; next }
                       /Command \\underline has changed\. Check if/ { suppress_next = 1; next }
@@ -210,7 +224,7 @@ build_pdf() {
                       /Missing character/ { suppress_next = 0; next }
                       { suppress_next = 0; print > "/dev/stderr" }
                     '
-                ) || true
+                    ) || true
         )
     else
         log_error "No markdown files found in ${TMP_DOCS_DIR}"
@@ -218,7 +232,7 @@ build_pdf() {
     fi
 
     if [[ -f "${TMP_DOCS_DIR}/oradba-user-guide.pdf" ]]; then
-        mv "${TMP_DOCS_DIR}/oradba-user-guide.pdf" "${OUTPUT_PDF}" 2>/dev/null || true
+        mv "${TMP_DOCS_DIR}/oradba-user-guide.pdf" "${OUTPUT_PDF}" 2> /dev/null || true
     fi
 
     if [[ -f "${OUTPUT_PDF}" ]]; then
