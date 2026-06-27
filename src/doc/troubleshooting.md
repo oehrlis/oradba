@@ -271,24 +271,66 @@ points, and system interactions.
 
 ### Activation Methods
 
-Debug support can be enabled in two ways:
+Three activation methods are available, listed from most to least recommended.
 
-#### Environment Variable (Global)
+#### 1. `ORADBA_LOG_LEVEL` (Primary, Always Works)
+
+The primary method. Accepted values are `TRACE`, `DEBUG`, `INFO`, `WARN`, and `ERROR`.
 
 ```bash
-# Enable for all OraDBA scripts
-export ORADBA_DEBUG=true
-
-# Alternative method (legacy)
 export ORADBA_LOG_LEVEL=DEBUG
+source /opt/oracle/local/oradba/bin/oraenv.sh icli23
+
+export ORADBA_LOG_LEVEL=TRACE
+source /opt/oracle/local/oradba/bin/oraenv.sh icli23
 ```
 
-#### Command Line Flag (Per Script)
+#### 2. `ORADBA_DEBUG=true` / `ORADBA_TRACE=true` (Shortcut Variables, v1.0.0+)
+
+Convenience shortcuts that map to the corresponding `ORADBA_LOG_LEVEL` values.
+`ORADBA_TRACE=true` sets the finest log level (numeric value `-1` in `oradba_log()`).
 
 ```bash
-# Enable for individual script runs
-script_name.sh --debug [other options]
-script_name.sh -d [other options]
+export ORADBA_DEBUG=true
+source /opt/oracle/local/oradba/bin/oraenv.sh icli23
+
+export ORADBA_TRACE=true
+source /opt/oracle/local/oradba/bin/oraenv.sh icli23
+```
+
+#### 3. `DEBUG=1` (Legacy, Still Supported)
+
+The original activation method - retained for backwards compatibility.
+
+```bash
+export DEBUG=1
+source /opt/oracle/local/oradba/bin/oraenv.sh icli23
+```
+
+### Log Level Reference
+
+| Value | Shortcut variable | Description |
+| --- | --- | --- |
+| `TRACE` | `ORADBA_TRACE=true` | Finest detail, all internal calls |
+| `DEBUG` | `ORADBA_DEBUG=true` | Standard debug output |
+| `INFO` | - | Default, informational messages only |
+| `WARN` | - | Warnings and errors only |
+| `ERROR` | - | Errors only |
+
+### Important: `oraenv.sh` Must Always Be Sourced
+
+`oraenv.sh` sets environment variables in the current shell and **must always be sourced** -
+never executed directly. Use `source` or `.`:
+
+```bash
+# Correct - runs in current shell, environment variables are set
+source /opt/oracle/local/oradba/bin/oraenv.sh ORACLE_SID
+
+# Also correct - POSIX syntax
+. /opt/oracle/local/oradba/bin/oraenv.sh ORACLE_SID
+
+# Wrong - creates a subshell, environment changes are lost
+/opt/oracle/local/oradba/bin/oraenv.sh ORACLE_SID
 ```
 
 ### Script Categories with Debug Support
@@ -299,16 +341,18 @@ Core system and infrastructure management:
 
 ```bash
 # Environment status and configuration
-ORADBA_DEBUG=true oraup.sh
-oraenv.sh --debug ORCL
+export ORADBA_LOG_LEVEL=DEBUG
+source /opt/oracle/local/oradba/bin/oraenv.sh ORCL
 
 # Installation and system validation
-ORADBA_DEBUG=true oradba_check.sh
-oradba_validate.sh --debug
+export ORADBA_DEBUG=true
+oradba_check.sh
+oradba_validate.sh
 
 # Extension management
-oradba_extension.sh --debug list
-ORADBA_DEBUG=true oradba_extension.sh install example
+export ORADBA_LOG_LEVEL=DEBUG
+oradba_extension.sh list
+oradba_extension.sh install example
 ```
 
 #### Phase 2: Management Tools (v0.19.6+)
@@ -317,16 +361,17 @@ Oracle database and listener management:
 
 ```bash
 # Database control operations
-ORADBA_DEBUG=true oradba_dbctl.sh start ORCL
-oradba_dbctl.sh --debug status
+export ORADBA_LOG_LEVEL=DEBUG
+oradba_dbctl.sh start ORCL
+oradba_dbctl.sh status
 
 # Listener management
-oradba_lsnrctl.sh --debug start LISTENER
-ORADBA_DEBUG=true oradba_lsnrctl.sh status
+oradba_lsnrctl.sh start LISTENER
+oradba_lsnrctl.sh status
 
 # Service orchestration
-oradba_services.sh --debug restart
-ORADBA_DEBUG=true oradba_services.sh start
+oradba_services.sh restart
+oradba_services.sh start
 ```
 
 #### Phase 3: Job Automation (v0.19.7+)
@@ -335,86 +380,21 @@ Backup and monitoring operations:
 
 ```bash
 # RMAN operation monitoring
-ORADBA_DEBUG=true rman_jobs.sh
-rman_jobs.sh --debug -w -i 10
+export ORADBA_LOG_LEVEL=DEBUG
+rman_jobs.sh
+rman_jobs.sh -w -i 10
 
 # DataPump export monitoring
-exp_jobs.sh --debug -o "%EXP%" -w
-ORADBA_DEBUG=true exp_jobs.sh --all
+exp_jobs.sh -o "%EXP%" -w
+exp_jobs.sh --all
 
 # DataPump import monitoring
-imp_jobs.sh --debug -w -i 5
-ORADBA_DEBUG=true imp_jobs.sh ORCL
+imp_jobs.sh -w -i 5
+imp_jobs.sh ORCL
 
 # Long operations monitoring (core script)
-longops.sh --debug -o "RMAN%" -w
-ORADBA_DEBUG=true longops.sh --all ORCL FREE
-```
-
-### Debug Output Information
-
-When debug mode is enabled, you'll see detailed information about:
-
-**Infrastructure Scripts:**
-
-- Library and plugin loading
-- Oracle Home detection and validation
-- Registry API operations
-- Environment variable resolution
-- Configuration file processing
-
-**Management Tools:**
-
-- Database startup/shutdown sequences
-- Listener operations and port detection
-- Service orchestration and dependency management
-- Oracle environment setup and validation
-- SQL operation execution and error handling
-
-**Job Automation:**
-
-- Wrapper script argument processing
-- Filter application and SQL query construction
-- Database connection establishment
-- Monitoring loop iterations and timing
-- Environment sourcing per SID
-
-### Common Debug Patterns
-
-**Environment Issues:**
-
-```bash
-# Debug Oracle environment setup
-ORADBA_DEBUG=true oraenv.sh ORCL
-# Shows: registry lookup, plugin application, path construction
-
-# Debug home detection
-ORADBA_DEBUG=true oraup.sh
-# Shows: oratab parsing, home classification, plugin discovery
-```
-
-**Database Operations:**
-
-```bash
-# Debug database startup
-oradba_dbctl.sh --debug start ORCL
-# Shows: environment setup, SQL execution, timeout handling
-
-# Debug service coordination
-oradba_services.sh --debug restart
-# Shows: startup order, listener/database dependencies
-```
-
-**Monitoring Operations:**
-
-```bash
-# Debug backup monitoring
-rman_jobs.sh --debug -w
-# Shows: argument filtering, longops.sh invocation, SQL query construction
-
-# Debug with operation filter
-longops.sh --debug -o "RMAN%" -a
-# Shows: filter construction, environment sourcing, query execution
+longops.sh -o "RMAN%" -w
+longops.sh --all ORCL FREE
 ```
 
 ### Debug Output Format
@@ -431,24 +411,19 @@ For scripts using `oradba_log`:
 [DEBUG] timestamp script_name.sh: message content
 ```
 
-### Legacy Debug Support
+TRACE-level output uses the same format with `TRACE` as the level label:
 
-**Note:** The following method is deprecated but still supported:
-
-```bash
-# Legacy method (still works)
-export DEBUG=1
-
-# Run any script
-source oraenv.sh FREE
+```text
+[TRACE] timestamp script_name.sh: message content
 ```
 
 ### Performance Considerations
 
 - Debug mode has minimal performance impact when disabled
 - Debug output can be verbose - use judiciously in production
+- TRACE output is significantly more verbose than DEBUG - avoid in production
 - Log files may grow larger when debug is enabled globally
-- Consider per-script activation for focused troubleshooting
+- Consider using `ORADBA_LOG_LEVEL=DEBUG` per session rather than globally
 
 ## Verification Steps
 
