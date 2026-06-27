@@ -45,7 +45,7 @@ plugin_detect_installation() {
     done
     
     # Deduplicate and print
-    printf '%s\n' "${homes[@]}" | sort -u
+    printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     return 0
 }
 

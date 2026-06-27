@@ -108,7 +108,7 @@ plugin_detect_installation() {
     
     # Deduplicate and print only if we found valid homes
     if [[ ${#homes[@]} -gt 0 ]]; then
-        printf '%s\n' "${homes[@]}" | sort -u
+        printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     fi
     
     return 0
@@ -254,7 +254,7 @@ plugin_get_metadata() {
     if [[ $? -eq 0 ]] && [[ -d "${instance_base}" ]]; then
         local instance_count=0
         while IFS= read -r -d '' instance_dir; do
-            ((instance_count++))
+            instance_count=$(( instance_count + 1 ))
         done < <(find "${instance_base}" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null)
         echo "instances=${instance_count}"
     else

@@ -35,7 +35,7 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     source "${ORADBA_BASE}/lib/oradba_common.sh"
     oradba_log DEBUG "${SCRIPT_NAME}: Sourced oradba_common.sh successfully"
 else
-    echo "ERROR: Cannot find oradba_common.sh library"
+    echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 1
 fi
 
@@ -210,7 +210,7 @@ ask_justification() {
 
     echo ""
     echo "=========================================="
-    echo "WARNING: About to ${action} ALL listeners"
+    echo "WARNING: About to ${action} ALL listeners" >&2
     echo "=========================================="
     echo "This will affect ${count} listener(s)"
     echo ""

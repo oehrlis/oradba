@@ -17,6 +17,9 @@
 
 set -euo pipefail
 
+# Portability: macOS does not ship GNU realpath; provide a fallback
+command -v realpath > /dev/null 2>&1 || realpath() { (cd "$1" && pwd) 2> /dev/null || echo "$1"; }
+
 # Script directory and name
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"

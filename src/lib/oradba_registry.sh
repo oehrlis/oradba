@@ -46,66 +46,66 @@ oradba_registry_get_all() {
     local -a installations=()
     local oratab_found=false
     local homes_found=false
-    
+
     # 1. Parse oratab (if exists)
     local oratab_path
-    oratab_path=$(get_oratab_path 2>/dev/null) || oratab_path="/etc/oratab"
-    
+    oratab_path=$(get_oratab_path 2> /dev/null) || oratab_path="/etc/oratab"
+
     if [[ -f "${oratab_path}" ]] && [[ -r "${oratab_path}" ]]; then
         oratab_found=true
         while IFS=: read -r sid home flags; do
             # Skip comments and empty lines
             [[ "${sid}" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${sid}" ]] && continue
-            
+
             # Detect product type and version
             local ptype="database"
             local version="AUTO"
-            
-            if type -t detect_product_type &>/dev/null; then
-                ptype=$(detect_product_type "${home}" 2>/dev/null) || ptype="database"
+
+            if type -t detect_product_type &> /dev/null; then
+                ptype=$(detect_product_type "${home}" 2> /dev/null) || ptype="database"
             fi
-            
+
             # Format: type|name|home|version|flags|order|alias|desc
             printf "%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s\n" \
                 "${ptype}" "${sid}" "${home}" "${version}" "${flags:-}" "10" "" "From oratab"
         done < "${oratab_path}"
     fi
-    
+
     # 2. Parse oradba_homes.conf (if exists)
     local homes_path
-    homes_path=$(get_oracle_homes_path 2>/dev/null) || homes_path="${ORADBA_PREFIX}/etc/oradba_homes.conf"
-    
+    homes_path=$(get_oracle_homes_path 2> /dev/null) || homes_path="${ORADBA_BASE}/etc/oradba_homes.conf"
+
     if [[ -f "${homes_path}" ]] && [[ -r "${homes_path}" ]]; then
         homes_found=true
         while IFS=: read -r name path ptype order alias desc version; do
             # Skip comments and empty lines
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${name}" ]] && continue
-            
+
             # Use detected type if not specified or unknown
             if [[ -z "${ptype}" ]] || [[ "${ptype}" == "unknown" ]]; then
-                if type -t detect_product_type &>/dev/null; then
-                    ptype=$(detect_product_type "${path}" 2>/dev/null) || ptype="unknown"
+                if type -t detect_product_type &> /dev/null; then
+                    ptype=$(detect_product_type "${path}" 2> /dev/null) || ptype="unknown"
                 fi
             fi
-            
+
             # Format: type|name|home|version|flags|order|alias|desc
             printf "%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s\n" \
                 "${ptype}" "${name}" "${path}" "${version:-AUTO}" "" "${order:-50}" "${alias:-}" "${desc:-From oradba_homes.conf}"
         done < "${homes_path}"
     fi
-    
+
     # 3. Auto-discover if enabled and no entries found
     if [[ "${oratab_found}" == "false" ]] && [[ "${homes_found}" == "false" ]]; then
         if [[ "${ORADBA_AUTO_DISCOVER:-true}" == "true" ]]; then
             oradba_log DEBUG "No registry files found, attempting auto-discovery"
-            if type -t oradba_registry_discover_all &>/dev/null; then
+            if type -t oradba_registry_discover_all &> /dev/null; then
                 oradba_registry_discover_all
             fi
         fi
     fi
-    
+
     return 0
 }
 
@@ -118,9 +118,9 @@ oradba_registry_get_all() {
 # ------------------------------------------------------------------------------
 oradba_registry_get_by_name() {
     local search_name="$1"
-    
+
     [[ -z "${search_name}" ]] && return 1
-    
+
     local found=false
     while IFS="${REGISTRY_FIELD_SEP}" read -r ptype name home version flags order alias desc; do
         if [[ "${name}" == "${search_name}" ]] || [[ "${alias}" == "${search_name}" ]]; then
@@ -129,7 +129,7 @@ oradba_registry_get_by_name() {
             found=true
         fi
     done < <(oradba_registry_get_all)
-    
+
     [[ "${found}" == "true" ]] && return 0 || return 1
 }
 
@@ -142,16 +142,16 @@ oradba_registry_get_by_name() {
 # ------------------------------------------------------------------------------
 oradba_registry_get_by_type() {
     local search_type="$1"
-    
+
     [[ -z "${search_type}" ]] && return 1
-    
+
     while IFS="${REGISTRY_FIELD_SEP}" read -r ptype name home version flags order alias desc; do
         if [[ "${ptype}" == "${search_type}" ]]; then
             printf "%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s${REGISTRY_FIELD_SEP}%s\n" \
                 "${ptype}" "${name}" "${home}" "${version}" "${flags}" "${order}" "${alias}" "${desc}"
         fi
     done < <(oradba_registry_get_all)
-    
+
     return 0
 }
 
@@ -176,12 +176,12 @@ oradba_registry_get_databases() {
 oradba_registry_get_field() {
     local install_obj="$1"
     local field_name="$2"
-    
+
     [[ -z "${install_obj}" ]] && return 1
     [[ -z "${field_name}" ]] && return 1
-    
+
     IFS="${REGISTRY_FIELD_SEP}" read -r ptype name home version flags order alias desc <<< "${install_obj}"
-    
+
     case "${field_name}" in
         type) echo "${ptype}" ;;
         name) echo "${name}" ;;
@@ -190,10 +190,10 @@ oradba_registry_get_field() {
         flags) echo "${flags}" ;;
         order) echo "${order}" ;;
         alias) echo "${alias}" ;;
-        desc|description) echo "${desc}" ;;
+        desc | description) echo "${desc}" ;;
         *) return 1 ;;
     esac
-    
+
     return 0
 }
 
@@ -210,20 +210,20 @@ oradba_registry_sync_oratab() {
     local force="${1:-false}"
     local homes_added=0
     local -A seen_homes=()
-    
+
     # Get paths
     local oratab_path
-    oratab_path=$(get_oratab_path 2>/dev/null) || oratab_path="/etc/oratab"
-    
+    oratab_path=$(get_oratab_path 2> /dev/null) || oratab_path="/etc/oratab"
+
     local homes_path
-    homes_path=$(get_oracle_homes_path 2>/dev/null) || homes_path="${ORADBA_PREFIX}/etc/oradba_homes.conf"
-    
+    homes_path=$(get_oracle_homes_path 2> /dev/null) || homes_path="${ORADBA_BASE}/etc/oradba_homes.conf"
+
     # Check if oratab exists
     if [[ ! -f "${oratab_path}" ]] || [[ ! -r "${oratab_path}" ]]; then
         oradba_log DEBUG "oratab not found or not readable: ${oratab_path}"
         return 0
     fi
-    
+
     # Ensure oradba_homes.conf exists
     if [[ ! -f "${homes_path}" ]]; then
         oradba_log DEBUG "Creating oradba_homes.conf: ${homes_path}"
@@ -237,9 +237,9 @@ oradba_registry_sync_oratab() {
 # ------------------------------------------------------------------------------
 EOF
     fi
-    
+
     oradba_log DEBUG "Syncing database homes from ${oratab_path} to ${homes_path}"
-    
+
     # Read oratab and extract unique homes
     while IFS=: read -r sid home flags; do
         # Skip comments and empty lines
@@ -247,65 +247,65 @@ EOF
         [[ -z "${sid}" ]] && continue
         [[ -z "${home}" ]] && continue
         [[ ! -d "${home}" ]] && continue
-        
+
         # Skip dummy entries (unless forced)
         if [[ "${flags}" == *"D"* ]] && [[ "${force}" != "true" ]]; then
             continue
         fi
-        
+
         # Deduplicate by home path
         if [[ -n "${seen_homes[${home}]:-}" ]]; then
             oradba_log DEBUG "Skipping duplicate home: ${home} (already seen for ${seen_homes[${home}]})"
             continue
         fi
         seen_homes["${home}"]="${sid}"
-        
+
         # Check if home already exists in oradba_homes.conf
-        if grep -q "^[^:]*:${home}:" "${homes_path}" 2>/dev/null; then
+        if grep -q "^[^:]*:${home}:" "${homes_path}" 2> /dev/null; then
             oradba_log DEBUG "Home already registered: ${home}"
             continue
         fi
-        
+
         # Detect product type
         local ptype="database"
-        if type -t detect_product_type &>/dev/null; then
-            ptype=$(detect_product_type "${home}" 2>/dev/null) || ptype="database"
+        if type -t detect_product_type &> /dev/null; then
+            ptype=$(detect_product_type "${home}" 2> /dev/null) || ptype="database"
         fi
-        
+
         # Create a generic name from the home path if not the first SID
         local home_name="${sid}"
         local home_desc="Database home (from oratab)"
-        
+
         # Use a more generic name for the home (use last directory component)
         if [[ "${ptype}" == "database" ]]; then
             home_name=$(basename "${home}")
             home_desc="Database home for ${sid} (from oratab)"
         fi
-        
+
         # Avoid duplicate names - check if name already exists
-        if grep -q "^${home_name}:" "${homes_path}" 2>/dev/null; then
+        if grep -q "^${home_name}:" "${homes_path}" 2> /dev/null; then
             # Name exists, append counter
             local counter=2
-            while grep -q "^${home_name}${counter}:" "${homes_path}" 2>/dev/null; do
-                ((counter++))
+            while grep -q "^${home_name}${counter}:" "${homes_path}" 2> /dev/null; do
+    counter=$(( counter + 1 ))
             done
             home_name="${home_name}${counter}"
         fi
-        
+
         # Add to oradba_homes.conf
         # Format: NAME:ORACLE_HOME:PRODUCT_TYPE:ORDER:ALIAS_NAME:DESCRIPTION:VERSION
         echo "${home_name}:${home}:${ptype}:10::${home_desc}:AUTO" >> "${homes_path}"
-        ((homes_added++))
-        
+    homes_added=$(( homes_added + 1 ))
+
         oradba_log DEBUG "Added home: ${home_name} -> ${home} (${ptype})"
     done < "${oratab_path}"
-    
+
     if [[ ${homes_added} -gt 0 ]]; then
         oradba_log INFO "Added ${homes_added} database home(s) from oratab to oradba_homes.conf"
     else
         oradba_log DEBUG "No new database homes to add from oratab"
     fi
-    
+
     echo "${homes_added}"
     return 0
 }
@@ -320,13 +320,13 @@ EOF
 oradba_registry_discover_all() {
     # shellcheck disable=SC2034
     local -a discovered=()
-    
+
     oradba_log DEBUG "Auto-discovery not yet implemented"
     # Future enhancement: Implement comprehensive auto-discovery
     # - Scan additional common locations beyond current discovery
     # - Use oraInventory if available for version information
     # - Support custom discovery paths via configuration
-    
+
     return 0
 }
 
@@ -339,33 +339,33 @@ oradba_registry_discover_all() {
 oradba_registry_validate() {
     local errors=0
     local -A seen_names=()
-    
+
     while IFS="${REGISTRY_FIELD_SEP}" read -r ptype name home version flags order alias desc; do
         # Check for duplicate names
         if [[ -n "${seen_names[${name}]:-}" ]]; then
             oradba_log WARN "Duplicate installation name: ${name}"
-            ((errors++))
+    errors=$(( errors + 1 ))
         fi
         seen_names["${name}"]=1
-        
+
         # Check home exists
         if [[ ! -d "${home}" ]]; then
             oradba_log WARN "Installation home not found: ${home} (${name})"
-            ((errors++))
+    errors=$(( errors + 1 ))
         fi
-        
+
         # Check product type is valid
         case "${ptype}" in
-            database|datasafe|client|iclient|java|oud|weblogic|grid|oms|emagent) ;;
+            database | datasafe | client | iclient | java | oud | weblogic | grid | oms | emagent) ;;
             *) oradba_log WARN "Unknown product type: ${ptype} (${name})" && ((errors++)) ;;
         esac
     done < <(oradba_registry_get_all)
-    
+
     if [[ ${errors} -gt 0 ]]; then
         oradba_log ERROR "Registry validation failed with ${errors} error(s)"
         return 1
     fi
-    
+
     oradba_log DEBUG "Registry validation passed"
     return 0
 }

@@ -19,15 +19,9 @@ if ((BASH_VERSINFO[0] < 4)); then
     exit 1
 fi
 
-# Script directory and setup
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ORADBA_BASE="${ORADBA_PREFIX:-$(dirname "${SCRIPT_DIR}")}"
-
-# Source common library for oratab detection
-if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
-    # shellcheck source=../lib/oradba_common.sh
-    source "${ORADBA_BASE}/lib/oradba_common.sh"
-fi
+# shellcheck source=../lib/oradba_bootstrap.sh
+source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
 
 # Detect pre-Oracle installation mode
 PRE_ORACLE_MODE=false

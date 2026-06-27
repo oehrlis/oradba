@@ -89,7 +89,7 @@ plugin_detect_installation() {
     
     # Deduplicate and print
     if [[ ${#homes[@]} -gt 0 ]]; then
-        printf '%s\n' "${homes[@]}" | sort -u
+        printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     fi
     
     return 0

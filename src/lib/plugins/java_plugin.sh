@@ -69,7 +69,7 @@ plugin_detect_installation() {
     
     # Deduplicate and print
     if [[ ${#java_homes[@]} -gt 0 ]]; then
-        printf '%s\n' "${java_homes[@]}" | sort -u
+        printf '%s\n' "${java_homes[@]}" | LC_ALL=C sort -u
     fi
     
     return 0

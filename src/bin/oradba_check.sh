@@ -541,9 +541,9 @@ check_disk_space() {
 
     if command -v df > /dev/null 2>&1; then
         local available_mb
-        available_mb=$(df -Pm "$check_dir" 2> /dev/null | awk 'NR==2 {print $4}')
+        available_mb=$(df -k "$check_dir" 2> /dev/null | awk 'NR==2 {printf "%.0f", $4/1024}')
 
-        log_debug "df -Pm result: available='${available_mb} MB'"
+        log_debug "df -k result: available='${available_mb} MB'"
 
         if [[ -n "$available_mb" ]] && [[ "$available_mb" =~ ^[0-9]+$ ]]; then
             log_info "$(printf '%-14s %s' 'Available:' "${available_mb} MB")"

@@ -57,8 +57,8 @@ QUICK HELP
 
 DOCUMENTATION
     Online:  https://oehrlis.github.io/oradba/
-    PDF:     ${ORADBA_PREFIX}/doc/oradba-user-guide.pdf (if available)
-    Local:   ${ORADBA_PREFIX}/doc/
+    PDF:     ${ORADBA_BASE}/doc/oradba-user-guide.pdf (if available)
+    Local:   ${ORADBA_BASE}/doc/
 
 EXAMPLES
     oradba help aliases      # Show alias help
@@ -75,7 +75,7 @@ EOF
 # Purpose.: Display comprehensive alias reference documentation
 # Args....: None
 # Returns.: None (outputs to stdout)
-# Output..: Alias help from ${ORADBA_PREFIX}/doc/alias_help.txt with navigation info
+# Output..: Alias help from ${ORADBA_BASE}/doc/alias_help.txt with navigation info
 # Notes...: Shows full alias list with usage; provides links to online docs and alih/alig commands
 # ------------------------------------------------------------------------------
 show_alias_help() {
@@ -83,8 +83,8 @@ show_alias_help() {
     echo "Quick alias reference (comprehensive list):"
     echo ""
 
-    if [[ -f "${ORADBA_PREFIX}/doc/alias_help.txt" ]]; then
-        cat "${ORADBA_PREFIX}/doc/alias_help.txt"
+    if [[ -f "${ORADBA_BASE}/doc/alias_help.txt" ]]; then
+        cat "${ORADBA_BASE}/doc/alias_help.txt"
     else
         echo "Alias help file not found."
     fi
@@ -105,10 +105,10 @@ show_alias_help() {
 # ------------------------------------------------------------------------------
 show_scripts_help() {
     echo -e "${COLOR_BOLD}OraDBA Scripts${COLOR_RESET}\n"
-    echo "Available scripts in ${ORADBA_BIN_DIR:-${ORADBA_PREFIX}/bin}:"
+    echo "Available scripts in ${ORADBA_BIN_DIR:-${ORADBA_BASE}/bin}:"
     echo ""
 
-    local bin_dir="${ORADBA_BIN_DIR:-${ORADBA_PREFIX}/bin}"
+    local bin_dir="${ORADBA_BIN_DIR:-${ORADBA_BASE}/bin}"
     if [[ -d "$bin_dir" ]]; then
         echo "Core Scripts:"
         for script in "$bin_dir"/*.sh; do
@@ -128,7 +128,7 @@ show_scripts_help() {
     echo "  script.sh --help    # Show detailed help for any script"
     echo ""
     echo -e "${COLOR_BLUE}SQL Scripts:${COLOR_RESET}"
-    echo "  Location: ${ORADBA_PREFIX}/sql/"
+    echo "  Location: ${ORADBA_BASE}/sql/"
     echo "  Help: oh.sql help   (within SQL*Plus)"
     echo ""
     echo -e "${COLOR_BLUE}For more information:${COLOR_RESET}"
@@ -164,7 +164,7 @@ show_variables_help() {
 
     echo ""
     echo -e "${COLOR_BLUE}Key Variables:${COLOR_RESET}"
-    echo "  ORADBA_PREFIX        Installation directory"
+    echo "  ORADBA_BASE          Installation directory (ORADBA_PREFIX is deprecated)"
     echo "  ORADBA_DEBUG         Debug mode (true/false)"
     echo "  ORADBA_LOAD_ALIASES  Load aliases (true/false)"
     echo "  ORACLE_SID           Current database instance"
@@ -187,7 +187,7 @@ show_config_help() {
     echo "Configuration files (loaded in order, later overrides earlier):"
     echo ""
 
-    local etc_dir="${ORADBA_ETC:-${ORADBA_PREFIX}/etc}"
+    local etc_dir="${ORADBA_ETC:-${ORADBA_BASE}/etc}"
     local config_files=(
         "oradba_core.conf:Core system settings"
         "oradba_standard.conf:Standard environment and aliases"
@@ -209,7 +209,7 @@ show_config_help() {
     echo ""
     echo -e "${COLOR_BOLD}Oracle Environment Registries:${COLOR_RESET}"
     echo ""
-    
+
     # Check oratab
     local oratab_file="${ORATAB_FILE:-/etc/oratab}"
     if [[ -f "$oratab_file" ]]; then
@@ -217,7 +217,7 @@ show_config_help() {
     else
         printf "  ${COLOR_YELLOW}○${COLOR_RESET} %-30s %s\n" "$oratab_file" "Traditional SID registry (not found)"
     fi
-    
+
     # Check oradba_homes.conf
     local homes_file="${etc_dir}/oradba_homes.conf"
     if [[ -f "$homes_file" ]]; then
@@ -250,7 +250,7 @@ show_config_help() {
 # ------------------------------------------------------------------------------
 show_sql_help() {
     echo -e "${COLOR_BOLD}OraDBA SQL Scripts${COLOR_RESET}\n"
-    echo "SQL*Plus scripts location: ${ORADBA_PREFIX}/sql/"
+    echo "SQL*Plus scripts location: ${ORADBA_BASE}/sql/"
     echo ""
     echo -e "${COLOR_GREEN}Quick Start:${COLOR_RESET}"
     echo "  sq              # Connect as SYSDBA"
@@ -262,7 +262,7 @@ show_sql_help() {
     echo "  sessionsql.sql  Session-aware SQL*Plus setup"
     echo ""
     echo -e "${COLOR_BLUE}For more scripts:${COLOR_RESET}"
-    echo "  ls ${ORADBA_PREFIX}/sql/"
+    echo "  ls ${ORADBA_BASE}/sql/"
     echo "  https://oehrlis.github.io/oradba/08-sql-scripts/"
 }
 

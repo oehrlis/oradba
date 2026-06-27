@@ -17,6 +17,9 @@
 #            at http://www.apache.org/licenses/
 # ------------------------------------------------------------------------------
 
+# Portability: timeout(1) is not available on all systems; no-op fallback
+command -v timeout > /dev/null 2>&1 || timeout() { shift; "$@"; }
+
 # ------------------------------------------------------------------------------
 # Plugin Metadata
 # ------------------------------------------------------------------------------
@@ -55,7 +58,7 @@ plugin_detect_installation() {
     done < <(ps -ef | grep "[c]mctl")
     
     # Deduplicate and print
-    printf '%s\n' "${homes[@]}" | sort -u
+    printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     return 0
 }
 

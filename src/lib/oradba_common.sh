@@ -782,7 +782,7 @@ set_oracle_home_environment() {
     # Create alias for this Oracle Home (consistent with SID aliases)
     # Always use actual name in alias target, not the alias itself
     # shellcheck disable=SC2139  # We want the alias to expand now
-    alias "${alias_name}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${actual_name}"
+    alias "${alias_name}"=". ${ORADBA_BASE}/bin/oraenv.sh ${actual_name}"
     if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.create_alias"
     fi
@@ -854,11 +854,11 @@ set_oracle_home_environment() {
         case "${product_type}" in
             datasafe | oud | weblogic | oms | emagent)
                 # Source env_builder if available to use helper functions
-                if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                if [[ -f "${ORADBA_BASE}/lib/oradba_env_builder.sh" ]]; then
                     # Only source if not already loaded
                     if ! command -v oradba_add_java_path &> /dev/null; then
                         # shellcheck source=/dev/null
-                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2> /dev/null
+                        source "${ORADBA_BASE}/lib/oradba_env_builder.sh" 2> /dev/null
                     fi
 
                     # Add Java path if function is available
@@ -878,11 +878,11 @@ set_oracle_home_environment() {
         case "${product_type}" in
             datasafe | oud | weblogic | oms | emagent)
                 # Source env_builder if available to use helper functions
-                if [[ -f "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" ]]; then
+                if [[ -f "${ORADBA_BASE}/lib/oradba_env_builder.sh" ]]; then
                     # Only source if not already loaded
                     if ! command -v oradba_add_client_path &> /dev/null; then
                         # shellcheck source=/dev/null
-                        source "${ORADBA_PREFIX}/lib/oradba_env_builder.sh" 2> /dev/null
+                        source "${ORADBA_BASE}/lib/oradba_env_builder.sh" 2> /dev/null
                     fi
 
                     # Add client path if function is available
@@ -962,7 +962,7 @@ capture_sid_config_vars() {
 
     # Get current exported variables (variable names only)
     local vars_before
-    vars_before=$(compgen -e | sort)
+    vars_before=$(compgen -e | LC_ALL=C sort)
 
     # Source the SID config
     set -a
@@ -972,11 +972,11 @@ capture_sid_config_vars() {
 
     # Get variables after loading config
     local vars_after
-    vars_after=$(compgen -e | sort)
+    vars_after=$(compgen -e | LC_ALL=C sort)
 
     # Find new variables (difference)
     local new_vars
-    new_vars=$(comm -13 <(echo "$vars_before") <(echo "$vars_after") | tr '\n' ' ')
+    new_vars=$(LC_ALL=C comm -13 <(echo "$vars_before") <(echo "$vars_after") | tr '\n' ' ')
 
     # Store for cleanup on next SID switch
     export ORADBA_PREV_SID_VARS="$new_vars"
@@ -1050,7 +1050,7 @@ load_config_file() {
 # ------------------------------------------------------------------------------
 load_config() {
     local sid="${1:-${ORACLE_SID}}"
-    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_BASE}/etc}"
 
     oradba_log DEBUG "Loading OraDBA configuration for SID: ${sid:-<none>}"
 
@@ -1112,7 +1112,7 @@ load_config() {
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 # Use word boundary regex pattern for proper matching
                 if [[ " ${ORADBA_REALSIDLIST} " =~ (^|[[:space:]])${sid}($|[[:space:]]) ]]; then
-                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example" >&2
+                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
                         # Source the newly created config file with variable tracking
@@ -1152,9 +1152,9 @@ load_config() {
 create_sid_config() {
     local sid="$1"
     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
-    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_BASE}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
-    local example_config="${ORADBA_PREFIX}/templates/etc/sid.ORACLE_SID.conf.example"
+    local example_config="${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example"
     [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
 
     # Check if config directory is writable
@@ -1214,13 +1214,13 @@ configure_sqlpath() {
     sqlpath_parts+=(".")
 
     # 2. OraDBA SQL scripts
-    if [[ -d "${ORADBA_PREFIX}/sql" ]]; then
-        sqlpath_parts+=("${ORADBA_PREFIX}/sql")
+    if [[ -d "${ORADBA_BASE}/sql" ]]; then
+        sqlpath_parts+=("${ORADBA_BASE}/sql")
     fi
 
     # 3. SID-specific SQL directory (if exists and enabled)
-    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID}" ]] && [[ -d "${ORADBA_PREFIX}/sql/${ORACLE_SID}" ]]; then
-        sqlpath_parts+=("${ORADBA_PREFIX}/sql/${ORACLE_SID}")
+    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID}" ]] && [[ -d "${ORADBA_BASE}/sql/${ORACLE_SID}" ]]; then
+        sqlpath_parts+=("${ORADBA_BASE}/sql/${ORACLE_SID}")
     fi
 
     # 4. Oracle RDBMS admin scripts (catproc.sql, etc.)
@@ -1284,7 +1284,7 @@ show_sqlpath() {
         else
             printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
         fi
-        ((count++))
+    count=$(( count + 1 ))
     done
 }
 
@@ -1312,7 +1312,7 @@ show_path() {
         else
             printf "%2d. %-60s [✗ not found]\n" "${count}" "${path}"
         fi
-        ((count++))
+    count=$(( count + 1 ))
     done
 }
 
@@ -1327,7 +1327,7 @@ show_path() {
 # ------------------------------------------------------------------------------
 show_config() {
     local sid="${ORACLE_SID:-<not set>}"
-    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_PREFIX}/etc}"
+    local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_BASE}/etc}"
 
     echo "OraDBA Configuration Hierarchy:"
     echo "================================"
@@ -1349,7 +1349,7 @@ show_config() {
         status="[✗ MISSING - REQUIRED]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_core.conf" "${status}"
-    ((count++))
+    count=$(( count + 1 ))
 
     # 2. Standard configuration (required)
     config_file="${config_dir}/oradba_standard.conf"
@@ -1359,7 +1359,7 @@ show_config() {
         status="[✗ MISSING - REQUIRED]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_standard.conf" "${status}"
-    ((count++))
+    count=$(( count + 1 ))
 
     # 3. Customer configuration (optional)
     config_file="${config_dir}/oradba_customer.conf"
@@ -1369,7 +1369,7 @@ show_config() {
         status="[- not configured]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "oradba_customer.conf (optional)" "${status}"
-    ((count++))
+    count=$(( count + 1 ))
 
     # 4. Default SID configuration (optional)
     config_file="${config_dir}/sid._DEFAULT_.conf"
@@ -1379,7 +1379,7 @@ show_config() {
         status="[- not configured]"
     fi
     printf "%2d. %-50s %s\n" "${count}" "sid._DEFAULT_.conf (optional)" "${status}"
-    ((count++))
+    count=$(( count + 1 ))
 
     # 5. SID-specific configuration (optional)
     if [[ "${sid}" != "<not set>" ]]; then
@@ -1700,6 +1700,25 @@ execute_plugin_function_v2() {
 
     return ${exit_code}
 }
+
+# ------------------------------------------------------------------------------
+# CF-007: Canonical install-root variable
+# ORADBA_BASE is canonical. If ORADBA_PREFIX is set in environment and
+# ORADBA_BASE is not yet set, honour ORADBA_PREFIX as a one-time fallback.
+# This block runs once at source time.
+# ------------------------------------------------------------------------------
+if [[ -z "${ORADBA_BASE:-}" ]]; then
+    if [[ -n "${ORADBA_PREFIX:-}" ]]; then
+        echo "WARNING: ORADBA_PREFIX is deprecated; use ORADBA_BASE instead" >&2
+        export ORADBA_BASE="${ORADBA_PREFIX}"
+    else
+        # Derive from this library's location: lib/ -> parent = install root
+        export ORADBA_BASE
+        ORADBA_BASE="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    fi
+fi
+# Keep ORADBA_PREFIX in sync as a read-only alias for one-release compatibility
+export ORADBA_PREFIX="${ORADBA_PREFIX:-${ORADBA_BASE}}"
 
 # ------------------------------------------------------------------------------
 # Load sub-libraries (extracted from oradba_common.sh for cohesion)

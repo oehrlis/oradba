@@ -19,7 +19,6 @@
 [[ -n "${ORADBA_DATABASE_DISCOVERY_LOADED:-}" ]] && return 0
 readonly ORADBA_DATABASE_DISCOVERY_LOADED=1
 
-
 # ------------------------------------------------------------------------------
 # Function: parse_oratab
 # Purpose.: Parse oratab file to get Oracle home path for a SID
@@ -41,7 +40,6 @@ parse_oratab() {
     # Case-insensitive search for SID
     grep -i "^${sid}:" "$oratab_file" | grep -v "^#" | head -1
 }
-
 
 # ------------------------------------------------------------------------------
 # Function: generate_sid_lists
@@ -88,7 +86,7 @@ generate_sid_lists() {
             local sid_lower
             sid_lower=$(printf '%s' "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
             # shellcheck disable=SC2139
-            alias "${sid_lower}"=". ${ORADBA_PREFIX}/bin/oraenv.sh ${oratab_sid}"
+            alias "${sid_lower}"=". ${ORADBA_BASE}/bin/oraenv.sh ${oratab_sid}"
         fi
 
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
@@ -98,17 +96,17 @@ generate_sid_lists() {
     # Use one-time sync guard to avoid repeating costly sync in same shell session
     if [[ "${ORADBA_AUTO_DISCOVER_ORATAB:-false}" == "true" ]] && [[ "${ORADBA_REGISTRY_SYNC_DONE:-false}" != "true" ]]; then
         # Source registry module if not already loaded
-        if ! type -t oradba_registry_sync_oratab &>/dev/null; then
+        if ! type -t oradba_registry_sync_oratab &> /dev/null; then
             local registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
             [[ ! -f "${registry_lib}" ]] && registry_lib="${ORADBA_BASE}/lib/oradba_registry.sh"
             if [[ -f "${registry_lib}" ]]; then
                 # shellcheck source=/dev/null
-                source "${registry_lib}" 2>/dev/null
+                source "${registry_lib}" 2> /dev/null
             fi
         fi
-        if type -t oradba_registry_sync_oratab &>/dev/null; then
+        if type -t oradba_registry_sync_oratab &> /dev/null; then
             local homes_added
-            homes_added=$(oradba_registry_sync_oratab 2>/dev/null)
+            homes_added=$(oradba_registry_sync_oratab 2> /dev/null)
             if [[ -n "${homes_added}" ]] && [[ ${homes_added} -gt 0 ]]; then
                 echo "INFO: Automatically added ${homes_added} database home(s) from oratab to oradba_homes.conf" >&2
             fi
@@ -120,22 +118,22 @@ generate_sid_lists() {
 
     # Add Oracle Home names and aliases to ORADBA_SIDLIST
     local homes_config
-    homes_config=$(get_oracle_homes_path 2>/dev/null) || homes_config=""
+    homes_config=$(get_oracle_homes_path 2> /dev/null) || homes_config=""
     if [[ -f "${homes_config}" ]]; then
         while IFS=: read -r name _path _type _order alias_name _desc _version; do
             # Skip empty lines and comments
             [[ -z "${name}" ]] && continue
             [[ "${name}" =~ ^[[:space:]]*# ]] && continue
-            
+
             # Trim whitespace
             name="${name#"${name%%[![:space:]]*}"}"
             name="${name%"${name##*[![:space:]]}"}"
             alias_name="${alias_name#"${alias_name%%[![:space:]]*}"}"
             alias_name="${alias_name%"${alias_name##*[![:space:]]}"}"
-            
+
             # Add Oracle Home name to all_sids list
             all_sids="${all_sids}${all_sids:+ }${name}"
-            
+
             # Add alias if it exists and is different from name
             if [[ -n "${alias_name}" && "${alias_name}" != "${name}" && ! "${alias_name}" =~ [[:space:]] ]]; then
                 all_sids="${all_sids}${all_sids:+ }${alias_name}"
@@ -152,7 +150,6 @@ generate_sid_lists() {
 
     return 0
 }
-
 
 # ------------------------------------------------------------------------------
 # Function: generate_pdb_aliases
@@ -244,28 +241,28 @@ EOF
 discover_running_oracle_instances() {
     local current_user
     current_user=$(id -un)
-    
+
     oradba_log DEBUG "Discovering running Oracle instances for user: $current_user"
-    
+
     # Check for Oracle processes running as different user
     local other_user_processes
     other_user_processes=$(ps -eo user,comm | grep -E "(db_smon_|ora_pmon_|asm_smon_)" | grep -v "^${current_user}" | wc -l)
-    
+
     if [[ "$other_user_processes" -gt 0 ]]; then
         oradba_log WARN "Oracle processes detected running as different user(s)"
         oradba_log WARN "Auto-discovery only works for processes owned by: $current_user"
     fi
-    
+
     # Find Oracle smon/pmon processes for current user
     # Pattern matches: db_smon_FREE, ora_pmon_orcl, asm_smon_+ASM
     local discovered_count=0
-    local -A seen_sids  # Track SIDs to avoid duplicates
-    
+    local -A seen_sids # Track SIDs to avoid duplicates
+
     # Get processes for current user only
     while read -r pid comm; do
         local sid=""
         local oracle_home=""
-        
+
         # Extract SID from process name
         if [[ "$comm" =~ ^db_smon_(.+)$ ]]; then
             sid="${BASH_REMATCH[1]}"
@@ -277,15 +274,15 @@ discover_running_oracle_instances() {
         else
             continue
         fi
-        
+
         # Skip if we've already seen this SID
         [[ -n "${seen_sids[$sid]:-}" ]] && continue
-        
+
         # Determine ORACLE_HOME from /proc/<pid>/exe
         if [[ -d "/proc" && -L "/proc/$pid/exe" ]]; then
             local exe_path
-            exe_path=$(readlink "/proc/$pid/exe" 2>/dev/null)
-            
+            exe_path=$(readlink "/proc/$pid/exe" 2> /dev/null)
+
             # Extract ORACLE_HOME (everything before /bin/oracle)
             if [[ "$exe_path" =~ ^(.+)/bin/oracle$ ]]; then
                 oracle_home="${BASH_REMATCH[1]}"
@@ -294,27 +291,27 @@ discover_running_oracle_instances() {
                 oracle_home="${BASH_REMATCH[1]}"
             fi
         fi
-        
+
         # If we couldn't determine ORACLE_HOME, try ps environment
         if [[ -z "$oracle_home" ]] && [[ -r "/proc/$pid/environ" ]]; then
-            oracle_home=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | grep "^ORACLE_HOME=" | cut -d= -f2)
+            oracle_home=$(tr '\0' '\n' < "/proc/$pid/environ" 2> /dev/null | grep "^ORACLE_HOME=" | cut -d= -f2)
         fi
-        
+
         # If still no ORACLE_HOME, skip this instance
         if [[ -z "$oracle_home" || ! -d "$oracle_home" ]]; then
             oradba_log WARN "Could not determine ORACLE_HOME for SID: $sid (PID: $pid)"
             continue
         fi
-        
+
         # Output discovered instance in oratab format
         echo "${sid}:${oracle_home}:N"
         seen_sids[$sid]=1
-        ((discovered_count++))
-        
+    discovered_count=$(( discovered_count + 1 ))
+
         oradba_log INFO "Auto-discovered Oracle instance: $sid ($oracle_home)"
-        
-    done < <(ps -U "$current_user" -o pid,comm --no-headers 2>/dev/null | grep -E "(db_smon_|ora_pmon_|asm_smon_)")
-    
+
+    done < <(ps -U "$current_user" -o pid,comm --no-headers 2> /dev/null | grep -E "(db_smon_|ora_pmon_|asm_smon_)")
+
     if [[ $discovered_count -gt 0 ]]; then
         oradba_log INFO "Discovered $discovered_count running Oracle instance(s)"
         oradba_log INFO "These are temporary entries - review and add to oratab if needed"
@@ -324,7 +321,6 @@ discover_running_oracle_instances() {
         return 1
     fi
 }
-
 
 # Persist discovered instances to oratab
 # ------------------------------------------------------------------------------
@@ -343,41 +339,41 @@ discover_running_oracle_instances() {
 persist_discovered_instances() {
     local discovered_oratab="$1"
     local oratab_file="${2:-${ORATAB_FILE}}"
-    
+
     # Validate input
     if [[ -z "$discovered_oratab" ]]; then
         oradba_log DEBUG "No discovered instances to persist"
         return 1
     fi
-    
+
     # Check if oratab file exists
     if [[ ! -f "$oratab_file" ]]; then
         oradba_log WARN "Oratab file does not exist: $oratab_file"
         # Try to create it if we have permissions
-        if ! touch "$oratab_file" 2>/dev/null; then
+        if ! touch "$oratab_file" 2> /dev/null; then
             oradba_log WARN "Cannot create oratab file: $oratab_file (permission denied)"
-            oratab_file="${ORADBA_PREFIX}/etc/oratab"
+            oratab_file="${ORADBA_BASE}/etc/oratab"
         fi
     fi
-    
+
     # Try to write to target oratab
     if [[ -w "$oratab_file" ]]; then
         local added_count=0
-        
+
         # Add each discovered instance if not already present
         while IFS=: read -r sid oracle_home startup_flag; do
             [[ -z "$sid" ]] && continue
-            
+
             # Check for duplicate
-            if grep -q "^${sid}:" "$oratab_file" 2>/dev/null; then
+            if grep -q "^${sid}:" "$oratab_file" 2> /dev/null; then
                 oradba_log DEBUG "Instance $sid already in $oratab_file - skipping"
             else
                 echo "${sid}:${oracle_home}:${startup_flag}" >> "$oratab_file"
                 oradba_log INFO "Added $sid to $oratab_file"
-                ((added_count++))
+    added_count=$(( added_count + 1 ))
             fi
         done <<< "$discovered_oratab"
-        
+
         if [[ $added_count -gt 0 ]]; then
             oradba_log INFO "Successfully added $added_count instance(s) to $oratab_file"
             return 0
@@ -387,51 +383,51 @@ persist_discovered_instances() {
         fi
     else
         # Permission denied - fallback to local oratab
-        local local_oratab="${ORADBA_PREFIX}/etc/oratab"
-        
+        local local_oratab="${ORADBA_BASE}/etc/oratab"
+
         oradba_log WARN "Cannot write to system oratab: $oratab_file (permission denied)"
         oradba_log WARN "Falling back to local oratab: $local_oratab"
-        
+
         # Create local oratab if it doesn't exist
         if [[ ! -f "$local_oratab" ]]; then
-            if ! touch "$local_oratab" 2>/dev/null; then
+            if ! touch "$local_oratab" 2> /dev/null; then
                 oradba_log ERROR "Cannot create local oratab: $local_oratab"
                 return 1
             fi
             oradba_log INFO "Created local oratab: $local_oratab"
         fi
-        
+
         # Check if local oratab is writable
         if [[ ! -w "$local_oratab" ]]; then
             oradba_log ERROR "Local oratab is not writable: $local_oratab"
             return 1
         fi
-        
+
         local added_count=0
-        
+
         # Add entries to local oratab
         while IFS=: read -r sid oracle_home startup_flag; do
             [[ -z "$sid" ]] && continue
-            
+
             # Check for duplicate
-            if grep -q "^${sid}:" "$local_oratab" 2>/dev/null; then
+            if grep -q "^${sid}:" "$local_oratab" 2> /dev/null; then
                 oradba_log DEBUG "Instance $sid already in local oratab - skipping"
             else
                 echo "${sid}:${oracle_home}:${startup_flag}" >> "$local_oratab"
                 oradba_log INFO "Added $sid to local oratab: $local_oratab"
-                ((added_count++))
+    added_count=$(( added_count + 1 ))
             fi
         done <<< "$discovered_oratab"
-        
+
         if [[ $added_count -gt 0 ]]; then
             oradba_log WARN "Added $added_count instance(s) to local oratab"
             oradba_log WARN "ACTION REQUIRED: Manually sync entries from $local_oratab to $oratab_file"
             oradba_log WARN "Suggested command: sudo cat $local_oratab >> $oratab_file"
-            
+
             # Update ORATAB_FILE to point to local version for current session
             export ORATAB_FILE="$local_oratab"
             oradba_log INFO "ORATAB_FILE updated to: $local_oratab (current session only)"
-            
+
             return 0
         else
             oradba_log INFO "All discovered instances already exist in local oratab"
@@ -439,3 +435,7 @@ persist_discovered_instances() {
         fi
     fi
 }
+
+# Deprecation alias: oradba_ prefix is canonical; plain name kept for M5->M6 compat
+oradba_parse_oratab() { parse_oratab "$@"; }
+oradba_generate_sid_lists() { generate_sid_lists "$@"; }

@@ -17,17 +17,14 @@ set -euo pipefail
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ORADBA_PREFIX="$(dirname "$SCRIPT_DIR")"
+ORADBA_BASE="${ORADBA_BASE:-$(dirname "${SCRIPT_DIR}")}"
+export ORADBA_BASE
 
-# Set ORADBA_BASE for configuration
-export ORADBA_BASE="${ORADBA_BASE:-${ORADBA_PREFIX}}"
-
-# Source common library
-if [[ -f "${ORADBA_PREFIX}/lib/oradba_common.sh" ]]; then
+if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
     # shellcheck source=../lib/oradba_common.sh
-    source "${ORADBA_PREFIX}/lib/oradba_common.sh"
+    source "${ORADBA_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find common library at ${ORADBA_PREFIX}/lib/oradba_common.sh" >&2
+    echo "ERROR: Cannot find common library at ${ORADBA_BASE}/lib/oradba_common.sh" >&2
     exit 1
 fi
 
@@ -834,7 +831,7 @@ discover_homes() {
         [[ "$ptype" == "unknown" ]] && continue
 
         # Validate using plugin system before counting as found
-        local plugin_file="${ORADBA_PREFIX}/lib/plugins/${ptype}_plugin.sh"
+        local plugin_file="${ORADBA_BASE}/lib/plugins/${ptype}_plugin.sh"
         local is_valid_home=false
 
         if [[ -f "$plugin_file" ]]; then

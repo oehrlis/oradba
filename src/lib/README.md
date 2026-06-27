@@ -48,6 +48,43 @@ Validator, Config Manager, Status Display, and Change Tracker
 
 **Total Library Functions:** 133 functions across 10 libraries (10,586 lines of code)
 
+## Bootstrap Entry Point (v0.29.0+)
+
+`oradba_bootstrap.sh` is the standard entry point for bin scripts. It resolves
+`ORADBA_BASE` from its own location, handles the `ORADBA_PREFIX` deprecation
+alias, and sources `oradba_common.sh` (which loads all sub-libraries). It is
+idempotent and safe to source multiple times.
+
+**Bin scripts should source bootstrap instead of resolving paths ad hoc:**
+
+```bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/oradba_bootstrap.sh
+source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
+```
+
+### Library Descriptions
+
+<!-- markdownlint-disable MD013 MD060 -->
+| Library                          | Purpose                                                                            |
+|----------------------------------|------------------------------------------------------------------------------------|
+| `oradba_bootstrap.sh`            | Entry point for bin scripts; resolves `ORADBA_BASE`, sources `oradba_common.sh`   |
+| `oradba_common.sh`               | Core utilities: logging, config loading, alias generation, environment management  |
+| `oradba_registry.sh`             | Unified registry API for Oracle installations (oratab + oradba_homes.conf)        |
+| `oradba_database_discovery.sh`   | Oracle instance discovery; oratab alias generation                                 |
+| `oradba_home_discovery.sh`       | Oracle Home discovery, detection, and alias generation                             |
+| `oradba_db_functions.sh`         | Database connection checks and status queries                                      |
+| `oradba_version_metadata.sh`     | Version string parsing and metadata extraction                                     |
+| `oradba_aliases.sh`              | Dynamic shell alias generation for Oracle environments                             |
+| `extensions.sh`                  | OraDBA extension system: discovery and loading                                     |
+| `oradba_env_parser.sh`           | Parse oratab and oradba_homes.conf configurations                                  |
+| `oradba_env_builder.sh`          | Build Oracle environment variables                                                 |
+| `oradba_env_validator.sh`        | Validate Oracle installations and environments                                     |
+| `oradba_env_config.sh`           | Configuration file management                                                      |
+| `oradba_env_status.sh`           | Environment and service status display                                             |
+| `oradba_env_changes.sh`          | Configuration change tracking and auto-reload                                      |
+<!-- markdownlint-enable -->
+
 ## Usage
 
 ### Environment Library Usage

@@ -27,9 +27,10 @@ fi
 _ORAENV_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _ORAENV_BASE_DIR="$(dirname "$_ORAENV_SCRIPT_DIR")"
 
-# Set ORADBA_PREFIX for configuration loading
+# Set ORADBA_PREFIX for configuration loading (kept for compatibility)
 export ORADBA_PREFIX="${_ORAENV_BASE_DIR}"
-export ORADBA_CONFIG_DIR="${ORADBA_PREFIX}/etc"
+export ORADBA_BASE="${ORADBA_BASE:-${ORADBA_PREFIX}}"
+export ORADBA_CONFIG_DIR="${ORADBA_BASE}/etc"
 
 # Source common library first (provides load_config function)
 if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_common.sh" ]]; then
@@ -1317,8 +1318,8 @@ _oraenv_main() {
 
         # Set minimal environment for no-Oracle mode
         export ORACLE_SID="${REQUESTED_SID:-dummy}"
-        export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_PREFIX}/dummy}"
-        export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_PREFIX%/local/oradba}}"
+        export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_BASE}/dummy}"
+        export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_BASE%/local/oradba}}"
         export ORADBA_NO_ORACLE_MODE=true
 
         oradba_log INFO "Minimal Oracle environment set (no-Oracle mode):"

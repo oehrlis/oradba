@@ -295,7 +295,7 @@ sort_extensions_by_priority() {
     # Sort numerically by priority (descending), then alphabetically by name (ascending)
     # We reverse priority order because extensions are prepended to PATH
     # So lower priority (50) loads first, higher priority (10) loads last and ends up first in PATH
-    printf "%s\n" "${priorities[@]}" | sort -t: -k1,1rn -k2,2 | cut -d: -f3-
+    printf "%s\n" "${priorities[@]}" | LC_ALL=C sort -t: -k1,1rn -k2,2 | cut -d: -f3-
 }
 
 # ------------------------------------------------------------------------------
@@ -755,7 +755,7 @@ validate_extension() {
     if [[ ! -f "${ext_path}/.extension" ]]; then
         echo "⚠ Warning: No .extension metadata file found"
         echo "  Extension will work but won't have version/priority info"
-        ((warnings++))
+        warnings=$(( warnings + 1 ))
     else
         echo "✓ Metadata file present"
 
@@ -766,11 +766,11 @@ validate_extension() {
 
         [[ -n "${name}" ]] && echo "  Name: ${name}" || {
             echo "  ⚠ Warning: 'name' not set in metadata"
-            ((warnings++))
+            warnings=$(( warnings + 1 ))
         }
         [[ -n "${version}" ]] && echo "  Version: ${version}" || {
             echo "  ⚠ Warning: 'version' not set in metadata"
-            ((warnings++))
+            warnings=$(( warnings + 1 ))
         }
     fi
 
@@ -778,7 +778,7 @@ validate_extension() {
     if [[ ! -d "${ext_path}/bin" ]] && [[ ! -d "${ext_path}/sql" ]] && [[ ! -d "${ext_path}/rcv" ]]; then
         echo "⚠ Warning: No bin/, sql/, or rcv/ directories found"
         echo "  Extension has no content to load"
-        ((warnings++))
+        warnings=$(( warnings + 1 ))
     fi
 
     # Check directories

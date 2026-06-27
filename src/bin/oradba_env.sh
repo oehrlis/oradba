@@ -76,7 +76,7 @@ fi
 
 # Set ORATAB_FILE dynamically if not already set
 if [[ -z "${ORATAB_FILE}" ]]; then
-    ORATAB_FILE="$(get_oratab_path 2>/dev/null || echo "/etc/oratab")"
+    ORATAB_FILE="$(get_oratab_path 2> /dev/null || echo "/etc/oratab")"
     export ORATAB_FILE
 fi
 
@@ -136,7 +136,7 @@ resolve_datasafe_env() {
     if [[ -f "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh" ]]; then
         # shellcheck source=/dev/null
         source "${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-        if command -v plugin_adjust_environment &>/dev/null; then
+        if command -v plugin_adjust_environment &> /dev/null; then
             oracle_home=$(plugin_adjust_environment "${base_path}")
         fi
     fi
@@ -156,19 +156,19 @@ resolve_datasafe_env() {
     fi
 
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_builder.sh" ]]; then
-        if ! command -v oradba_resolve_java_home &>/dev/null; then
+        if ! command -v oradba_resolve_java_home &> /dev/null; then
             # shellcheck source=/dev/null
-            source "${ORADBA_BASE}/lib/oradba_env_builder.sh" 2>/dev/null || true
+            source "${ORADBA_BASE}/lib/oradba_env_builder.sh" 2> /dev/null || true
         fi
-        if command -v oradba_resolve_java_home &>/dev/null; then
-            java_home=$(oradba_resolve_java_home "${oracle_home}" 2>/dev/null || true)
+        if command -v oradba_resolve_java_home &> /dev/null; then
+            java_home=$(oradba_resolve_java_home "${oracle_home}" 2> /dev/null || true)
         fi
     fi
 
     if [[ -z "${java_home}" ]]; then
         local candidate
         for candidate in "${oracle_home}/java" "${oracle_home}/jre" "${oracle_home}/jdk" \
-                         "${base_path}/java" "${base_path}/jre" "${base_path}/jdk"; do
+            "${base_path}/java" "${base_path}/jre" "${base_path}/jdk"; do
             if [[ -x "${candidate}/bin/java" ]]; then
                 java_home="${candidate}"
                 break
@@ -207,7 +207,7 @@ resolve_default_tns_admin() {
 cmd_list() {
     local what="${1:-all}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     case "$what" in
         sids)
             echo "=== Oracle Database SIDs (from oratab) ==="
@@ -229,13 +229,13 @@ cmd_list() {
                 echo "  No oratab file found at: $ORATAB_FILE"
             fi
             ;;
-            
+
         homes)
             # Sync database homes from oratab first
-            if type -t oradba_registry_sync_oratab &>/dev/null; then
-                oradba_registry_sync_oratab >/dev/null 2>&1
+            if type -t oradba_registry_sync_oratab &> /dev/null; then
+                oradba_registry_sync_oratab > /dev/null 2>&1
             fi
-            
+
             echo "=== Oracle Homes (from oradba_homes.conf) ==="
             echo ""
             if [[ -f "$homes_file" ]]; then
@@ -247,13 +247,13 @@ cmd_list() {
                 echo "  No oradba_homes.conf file found"
             fi
             ;;
-            
-        all|*)
+
+        all | *)
             # Sync database homes from oratab first
-            if type -t oradba_registry_sync_oratab &>/dev/null; then
-                oradba_registry_sync_oratab >/dev/null 2>&1
+            if type -t oradba_registry_sync_oratab &> /dev/null; then
+                oradba_registry_sync_oratab > /dev/null 2>&1
             fi
-            
+
             # List SIDs
             echo "=== Oracle Database SIDs (from oratab) ==="
             echo ""
@@ -268,7 +268,7 @@ cmd_list() {
             else
                 echo "  No oratab file found at: $ORATAB_FILE"
             fi
-            
+
             echo ""
             # List Homes
             echo "=== Oracle Homes (from oradba_homes.conf) ==="
@@ -293,17 +293,17 @@ cmd_list() {
 cmd_show() {
     local target="${1:-${ORACLE_SID}}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     if [[ -z "$target" ]]; then
         echo "ERROR: No SID or Oracle Home specified and ORACLE_SID not set" >&2
         return 1
     fi
-    
+
     # Auto-sync database homes from oratab
-    if type -t oradba_registry_sync_oratab &>/dev/null; then
-        oradba_registry_sync_oratab >/dev/null 2>&1
+    if type -t oradba_registry_sync_oratab &> /dev/null; then
+        oradba_registry_sync_oratab > /dev/null 2>&1
     fi
-    
+
     # Try to find target in oradba_homes.conf first (by name or alias)
     local home_entry
     if [[ -f "$homes_file" ]]; then
@@ -316,7 +316,7 @@ cmd_show() {
             fi
         done < <(grep -v "^#\|^$" "$homes_file")
     fi
-    
+
     if [[ -n "$home_entry" ]]; then
         # Found in oradba_homes.conf - extract details
         IFS=':' read -r name path ptype _order alias_name desc version <<< "$home_entry"
@@ -324,33 +324,33 @@ cmd_show() {
         local tns_admin=""
         local datasafe_home=""
 
-        oracle_base="$(derive_oracle_base "${path}" 2>/dev/null || true)"
+        oracle_base="$(derive_oracle_base "${path}" 2> /dev/null || true)"
 
         if [[ "${ptype}" == "datasafe" ]]; then
             datasafe_home="${path}"
         else
             local saved_base="${ORACLE_BASE:-}"
             ORACLE_BASE="${oracle_base}"
-            if command -v load_config &>/dev/null; then
-                load_config "${name}" >/dev/null 2>&1 || true
+            if command -v load_config &> /dev/null; then
+                load_config "${name}" > /dev/null 2>&1 || true
             fi
             tns_admin="$(resolve_default_tns_admin "${path}")"
             ORACLE_BASE="${saved_base}"
         fi
-        
+
         if [[ ! -d "$path" ]]; then
             echo "Warning: Oracle Home does not exist"
         fi
 
         ORACLE_BASE="${oracle_base}" \
-        TNS_ADMIN="${tns_admin}" \
-        DATASAFE_HOME="${datasafe_home}" \
-        show_oracle_home_status "${ptype}" "${path}" "" "false"
+            TNS_ADMIN="${tns_admin}" \
+            DATASAFE_HOME="${datasafe_home}" \
+            show_oracle_home_status "${ptype}" "${path}" "" "false"
         return 0
     # Check if it's a SID in oratab
-    elif type -t parse_oratab &>/dev/null; then
+    elif type -t parse_oratab &> /dev/null; then
         local oratab_entry
-        oratab_entry=$(parse_oratab "$target" 2>/dev/null)
+        oratab_entry=$(parse_oratab "$target" 2> /dev/null)
         if [[ -n "$oratab_entry" ]]; then
             # Found in oratab - parse SID:HOME:FLAG format
             IFS=':' read -r sid path flag <<< "$oratab_entry"
@@ -358,16 +358,16 @@ cmd_show() {
             local tns_admin=""
             local detected_type="database"
 
-            if type -t detect_product_type &>/dev/null; then
+            if type -t detect_product_type &> /dev/null; then
                 detected_type=$(detect_product_type "$path")
             fi
 
-            oracle_base="$(derive_oracle_base "${path}" 2>/dev/null || true)"
+            oracle_base="$(derive_oracle_base "${path}" 2> /dev/null || true)"
             if [[ -d "$path" ]]; then
                 local saved_base="${ORACLE_BASE:-}"
                 ORACLE_BASE="${oracle_base}"
-                if command -v load_config &>/dev/null; then
-                    load_config "${sid}" >/dev/null 2>&1 || true
+                if command -v load_config &> /dev/null; then
+                    load_config "${sid}" > /dev/null 2>&1 || true
                 fi
                 tns_admin="$(resolve_default_tns_admin "${path}")"
                 ORACLE_BASE="${saved_base}"
@@ -376,12 +376,12 @@ cmd_show() {
             fi
 
             ORACLE_BASE="${oracle_base}" \
-            TNS_ADMIN="${tns_admin}" \
-            show_oracle_home_status "${detected_type}" "${path}" "${sid}" "false"
+                TNS_ADMIN="${tns_admin}" \
+                show_oracle_home_status "${detected_type}" "${path}" "${sid}" "false"
             return 0
         fi
     fi
-    
+
     # Check if it's a path (Oracle Home)
     if [[ -d "$target" ]]; then
         # It's an Oracle Home path
@@ -389,12 +389,12 @@ cmd_show() {
         local oracle_base=""
         local tns_admin=""
 
-        product=$(oradba_get_home_metadata "$target" "Product" 2>/dev/null)
+        product=$(oradba_get_home_metadata "$target" "Product" 2> /dev/null)
         if [[ -z "$product" ]] || [[ "$product" == "N/A" ]]; then
             product=$(oradba_get_product_type "$target")
         fi
 
-        oracle_base="$(derive_oracle_base "${target}" 2>/dev/null || true)"
+        oracle_base="$(derive_oracle_base "${target}" 2> /dev/null || true)"
         if [[ -n "${product}" ]] && [[ "${product}" != "datasafe" ]]; then
             local saved_base="${ORACLE_BASE:-}"
             ORACLE_BASE="${oracle_base}"
@@ -408,9 +408,9 @@ cmd_show() {
         fi
 
         ORACLE_BASE="${oracle_base}" \
-        TNS_ADMIN="${tns_admin}" \
-        DATASAFE_HOME="${datasafe_home}" \
-        show_oracle_home_status "${product}" "${target}" "" "false"
+            TNS_ADMIN="${tns_admin}" \
+            DATASAFE_HOME="${datasafe_home}" \
+            show_oracle_home_status "${product}" "${target}" "" "false"
     else
         # Not found anywhere
         echo "ERROR: Target '$target' not found in oradba_homes.conf or oratab" >&2
@@ -420,7 +420,7 @@ cmd_show() {
         echo "  - Oracle Homes from ${homes_file}" >&2
         return 1
     fi
-    
+
     echo ""
 }
 
@@ -432,18 +432,18 @@ cmd_validate() {
     local target="${1:-}"
     local level="${2:-standard}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     # Auto-sync database homes from oratab
-    if type -t oradba_registry_sync_oratab &>/dev/null; then
-        oradba_registry_sync_oratab >/dev/null 2>&1
+    if type -t oradba_registry_sync_oratab &> /dev/null; then
+        oradba_registry_sync_oratab > /dev/null 2>&1
     fi
-    
+
     # If target specified, try to resolve it
     local validate_home="$ORACLE_HOME"
     local validate_sid="${ORACLE_SID:-}"
     local target_name=""
     local product_type=""
-    
+
     if [[ -n "$target" ]]; then
         # Try oradba_homes.conf first
         local home_entry
@@ -457,14 +457,14 @@ cmd_validate() {
                 fi
             done < <(grep -v "^#\|^$" "$homes_file")
         fi
-        
+
         if [[ -n "$home_entry" ]]; then
             IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
             validate_home="$path"
             target_name="$name"
             product_type="$ptype"
-            validate_sid=""  # Oracle Homes don't have SID
-            
+            validate_sid="" # Oracle Homes don't have SID
+
             # Apply DataSafe adjustment via plugin if needed
             if [[ "$product_type" == "datasafe" ]]; then
                 local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
@@ -478,9 +478,9 @@ cmd_validate() {
                 fi
             fi
         # Try oratab for database SIDs
-        elif type -t parse_oratab &>/dev/null; then
+        elif type -t parse_oratab &> /dev/null; then
             local oratab_entry
-            oratab_entry=$(parse_oratab "$target" 2>/dev/null)
+            oratab_entry=$(parse_oratab "$target" 2> /dev/null)
             if [[ -n "$oratab_entry" ]]; then
                 IFS=':' read -r sid home _flag <<< "$oratab_entry"
                 validate_home="$home"
@@ -492,13 +492,13 @@ cmd_validate() {
             fi
         fi
     fi
-    
+
     if [[ -z "$validate_home" ]]; then
         echo "ERROR: No Oracle environment set (ORACLE_HOME not defined)" >&2
         echo "Run: source oraenv.sh <SID> or specify a target" >&2
         return 1
     fi
-    
+
     echo "=== Validating Oracle Environment ==="
     if [[ -n "$target_name" ]]; then
         echo "Target: $target_name"
@@ -507,14 +507,14 @@ cmd_validate() {
     echo "ORACLE_HOME: $validate_home"
     [[ -n "$product_type" ]] && echo "Product Type: $product_type"
     echo ""
-    
+
     # Temporarily set ORACLE_HOME and ORACLE_SID if validating a different target
     local saved_oracle_home="$ORACLE_HOME"
     local saved_oracle_sid="$ORACLE_SID"
     export ORACLE_HOME="$validate_home"
     [[ -n "$validate_sid" ]] && export ORACLE_SID="$validate_sid" || unset ORACLE_SID
-    
-    if command -v oradba_validate_environment &>/dev/null; then
+
+    if command -v oradba_validate_environment &> /dev/null; then
         oradba_validate_environment "$level"
         local result=$?
         export ORACLE_HOME="$saved_oracle_home"
@@ -535,27 +535,27 @@ cmd_validate() {
 cmd_status() {
     local target="${1:-}"
     local homes_file="${ORADBA_BASE}/etc/oradba_homes.conf"
-    
+
     # Auto-sync database homes from oratab
-    if type -t oradba_registry_sync_oratab &>/dev/null; then
-        oradba_registry_sync_oratab >/dev/null 2>&1
+    if type -t oradba_registry_sync_oratab &> /dev/null; then
+        oradba_registry_sync_oratab > /dev/null 2>&1
     fi
-    
+
     # If status library not loaded, inform user
-    if ! command -v oradba_get_product_status &>/dev/null; then
+    if ! command -v oradba_get_product_status &> /dev/null; then
         echo "Status checking not available (oradba_env_status.sh not found)"
         return 1
     fi
-    
+
     # Use current SID if none specified
     if [[ -z "$target" ]]; then
         target="${ORACLE_SID:-}"
         if [[ -z "$target" ]]; then
-            echo "ERROR: No SID specified and ORACLE_SID not set"
+            echo "ERROR: No SID specified and ORACLE_SID not set" >&2
             return 1
         fi
     fi
-    
+
     # Try to find target in oradba_homes.conf first
     local oracle_sid oracle_home product_type
     local home_entry
@@ -569,7 +569,7 @@ cmd_status() {
             fi
         done < <(grep -v "^#\|^$" "$homes_file")
     fi
-    
+
     if [[ -n "$home_entry" ]]; then
         # Found in oradba_homes.conf
         IFS=':' read -r name path ptype _order _alias _desc _version <<< "$home_entry"
@@ -577,21 +577,21 @@ cmd_status() {
         oracle_home="$path"
         product_type="$ptype"
     # Try oratab for database SIDs
-    elif type -t parse_oratab &>/dev/null; then
+    elif type -t parse_oratab &> /dev/null; then
         local oratab_entry
-        oratab_entry=$(parse_oratab "$target" 2>/dev/null)
-        
+        oratab_entry=$(parse_oratab "$target" 2> /dev/null)
+
         if [[ -z "$oratab_entry" ]]; then
-            echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf"
+            echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf" >&2
             return 1
         fi
-        
+
         # Parse oratab entry (format: SID:ORACLE_HOME:FLAG)
         local _oracle_flag
         IFS=':' read -r oracle_sid oracle_home _oracle_flag <<< "$oratab_entry"
-        
+
         # Detect product type
-        if type -t detect_product_type &>/dev/null; then
+        if type -t detect_product_type &> /dev/null; then
             product_type=$(detect_product_type "$oracle_home")
         else
             product_type="database"
@@ -600,7 +600,7 @@ cmd_status() {
         echo "ERROR: Target '$target' not found in oratab or oradba_homes.conf"
         return 1
     fi
-    
+
     local product_type_lower
     product_type_lower=$(printf '%s' "${product_type}" | tr '[:upper:]' '[:lower:]')
 
@@ -614,9 +614,9 @@ cmd_status() {
         ORACLE_HOME="${oracle_home}"
         ORACLE_SID="${oracle_sid}"
         ORADBA_CURRENT_HOME_TYPE="database"
-        ORACLE_BASE="$(derive_oracle_base "${oracle_home}" 2>/dev/null || true)"
-        if command -v load_config &>/dev/null; then
-            load_config "${oracle_sid}" >/dev/null 2>&1 || true
+        ORACLE_BASE="$(derive_oracle_base "${oracle_home}" 2> /dev/null || true)"
+        if command -v load_config &> /dev/null; then
+            load_config "${oracle_sid}" > /dev/null 2>&1 || true
         fi
         TNS_ADMIN="$(resolve_default_tns_admin "${oracle_home}")"
 
@@ -634,23 +634,23 @@ cmd_status() {
     local tns_admin=""
     local datasafe_home=""
 
-    oracle_base="$(derive_oracle_base "${oracle_home}" 2>/dev/null || true)"
+    oracle_base="$(derive_oracle_base "${oracle_home}" 2> /dev/null || true)"
     if [[ "${product_type_lower}" == "datasafe" ]]; then
         datasafe_home="${oracle_home}"
     else
         local saved_base="${ORACLE_BASE:-}"
         ORACLE_BASE="${oracle_base}"
-        if command -v load_config &>/dev/null; then
-            load_config "${oracle_sid}" >/dev/null 2>&1 || true
+        if command -v load_config &> /dev/null; then
+            load_config "${oracle_sid}" > /dev/null 2>&1 || true
         fi
         tns_admin="$(resolve_default_tns_admin "${oracle_home}")"
         ORACLE_BASE="${saved_base}"
     fi
 
     ORACLE_BASE="${oracle_base}" \
-    TNS_ADMIN="${tns_admin}" \
-    DATASAFE_HOME="${datasafe_home}" \
-    show_oracle_home_status "${product_type}" "${oracle_home}" "${oracle_sid}" "true"
+        TNS_ADMIN="${tns_admin}" \
+        DATASAFE_HOME="${datasafe_home}" \
+        show_oracle_home_status "${product_type}" "${oracle_home}" "${oracle_sid}" "true"
     return 0
 }
 
@@ -660,17 +660,17 @@ cmd_status() {
 # ------------------------------------------------------------------------------
 cmd_changes() {
     # If changes library not loaded, inform user
-    if ! command -v oradba_check_config_changes &>/dev/null; then
+    if ! command -v oradba_check_config_changes &> /dev/null; then
         echo "Change detection not available (oradba_env_changes.sh not found)"
         return 1
     fi
-    
+
     echo "=== Configuration Change Detection ==="
     echo ""
-    
+
     local changes
     changes=$(oradba_check_config_changes)
-    
+
     if [[ -n "$changes" ]]; then
         echo "Changed files detected:"
         echo "$changes"
@@ -708,7 +708,7 @@ EOF
 main() {
     local command="${1:-help}"
     shift || true
-    
+
     case "$command" in
         list)
             cmd_list "$@"
@@ -728,7 +728,7 @@ main() {
         version)
             cmd_version
             ;;
-        help|--help|-h)
+        help | --help | -h)
             usage
             ;;
         *)

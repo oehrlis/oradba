@@ -167,7 +167,7 @@ oradba_check_oracle_binaries() {
     for bin in "${binaries[@]}"; do
         if ! command -v "$bin" &> /dev/null; then
             echo "WARNING: $bin not found in PATH" >&2
-            ((missing++))
+            missing=$(( missing + 1 ))
         fi
     done
     
@@ -177,7 +177,7 @@ oradba_check_oracle_binaries() {
     if [[ "${product_type_upper}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
         if [[ -z "${LD_LIBRARY_PATH}" ]]; then
             echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
-            ((missing++))
+            missing=$(( missing + 1 ))
         fi
     fi
     
@@ -320,7 +320,7 @@ oradba_validate_environment() {
         echo "✓ ORACLE_HOME is valid: $ORACLE_HOME"
     else
         echo "✗ ERROR: ORACLE_HOME is not valid" >&2
-        ((errors++))
+        errors=$(( errors + 1 ))
         return 1
     fi
     
@@ -330,7 +330,7 @@ oradba_validate_environment() {
             echo "✓ ORACLE_SID is valid:  $ORACLE_SID"
         else
             echo "✗ ERROR: ORACLE_SID format is invalid" >&2
-            ((errors++))
+            errors=$(( errors + 1 ))
         fi
     fi
     
@@ -339,7 +339,7 @@ oradba_validate_environment() {
         echo "✓ ORACLE_HOME is in PATH"
     else
         echo "⚠ WARNING: ORACLE_HOME not in PATH" >&2
-        ((warnings++))
+        warnings=$(( warnings + 1 ))
     fi
     
     # Level 2: Standard validation (check binaries and basic functionality)
@@ -351,7 +351,7 @@ oradba_validate_environment() {
         if oradba_check_oracle_binaries "$product_type"; then
             echo "✓ All required binaries found"
         else
-            ((warnings++))
+            warnings=$(( warnings + 1 ))
         fi
         
         # Version detection for RDBMS/CLIENT/ICLIENT
@@ -362,7 +362,7 @@ oradba_validate_environment() {
                 echo "✓ Oracle version: $version"
             else
                 echo "⚠ WARNING: Could not detect Oracle version" >&2
-                ((warnings++))
+                warnings=$(( warnings + 1 ))
             fi
         fi
         
@@ -373,7 +373,7 @@ oradba_validate_environment() {
                     echo "✓ Grid Infrastructure is running"
                 else
                     echo "⚠ WARNING: Grid Infrastructure is not running" >&2
-                    ((warnings++))
+                    warnings=$(( warnings + 1 ))
                 fi
             fi
         fi
@@ -397,15 +397,15 @@ oradba_validate_environment() {
                     ;;
                 MOUNTED)
                     echo "⚠ Database is MOUNTED" >&2
-                    ((warnings++))
+                    warnings=$(( warnings + 1 ))
                     ;;
                 NOMOUNT)
                     echo "⚠ WARNING: Database is in NOMOUNT state" >&2
-                    ((warnings++))
+                    warnings=$(( warnings + 1 ))
                     ;;
                 DOWN)
                     echo "⚠ WARNING: Database is not running" >&2
-                    ((warnings++))
+                    warnings=$(( warnings + 1 ))
                     ;;
             esac
         else

@@ -1118,6 +1118,54 @@ The static regression test `tests/test_oradba_plugin_isolation.bats` (Test 3)
 enforces this rule by grepping `src/bin/` and `src/lib/` for direct calls to
 the three state-changing functions. It must pass as part of the CI quality gate.
 
+## Bootstrap and Library Loading
+
+### Canonical Install-Root Variable (v0.29.0+)
+
+`ORADBA_BASE` is the single authoritative variable for the OraDBA installation
+root. All path constructions inside `src/lib/` and `src/bin/` use `${ORADBA_BASE}/`.
+
+`ORADBA_PREFIX` is kept as a one-release backward-compatibility alias only. If
+it is set in the environment when `oradba_common.sh` or `oradba_bootstrap.sh`
+is first sourced, and `ORADBA_BASE` is not yet defined, `ORADBA_BASE` is derived
+from `ORADBA_PREFIX` and a deprecation warning is emitted to stderr:
+
+```bash
+WARNING: ORADBA_PREFIX is deprecated; use ORADBA_BASE instead
+```
+
+After M6, `ORADBA_PREFIX` will be removed.
+
+### Shared Bootstrap Loader
+
+`src/lib/oradba_bootstrap.sh` is the single entry point for bin scripts that
+need the OraDBA library stack. It:
+
+1. Resolves `ORADBA_BASE` from its own file location (`lib/` parent = install root)
+2. Handles the `ORADBA_PREFIX` deprecation alias (once, at load time)
+3. Sources `oradba_common.sh` (which transitively loads all sub-libraries)
+4. Is idempotent - guarded by `_ORADBA_BOOTSTRAP_LOADED`
+
+Bin scripts that previously contained ad-hoc path-resolution blocks now use:
+
+```bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/oradba_bootstrap.sh
+source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
+```
+
+Scripts converted in M5: `dbstatus.sh`, `oradba_validate.sh`.
+Remaining scripts (using non-standard patterns) are scheduled for M6.
+
+### Deprecation Policy
+
+<!-- markdownlint-disable MD013 MD060 -->
+| Release | Policy                                                                                       |
+|---------|----------------------------------------------------------------------------------------------|
+| v0.29.0 | `ORADBA_PREFIX` supported with deprecation warning; old function names supported with aliases |
+| v0.30.0 | `ORADBA_PREFIX` and unprefixed public function names removed                                 |
+<!-- markdownlint-enable -->
+
 ## References
 
 - [development.md](development.md) - Development guide

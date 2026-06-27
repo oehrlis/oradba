@@ -8,6 +8,32 @@ This directory contains the core executable scripts that provide OraDBA's primar
 functionality. These scripts are typically added to `PATH` during installation
 and can be executed directly from the shell.
 
+## Bin Script Conventions (v0.29.0+)
+
+All bin scripts follow these conventions:
+
+1. **Bootstrap loader** - Scripts source `../lib/oradba_bootstrap.sh` rather than
+   resolving `ORADBA_BASE` ad hoc. This ensures consistent library loading and
+   deprecation handling:
+
+   ```bash
+   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+   # shellcheck source=../lib/oradba_bootstrap.sh
+   source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
+   ```
+
+2. **Error output to stderr** - All `echo "ERROR:..."` and `echo "WARNING:..."`
+   messages use `>&2` redirection.
+
+3. **Portability** - Scripts use `df -k` (not `df -BG`/`df -Pm`), include
+   `realpath` fallbacks where needed, and prefix `sort`/`comm` with `LC_ALL=C`.
+
+4. **Standard flags** - Every script supports `--dry-run`, `--help`, and
+   where applicable `--yes`/`--force`.
+
+Scripts converted to bootstrap in M5: `dbstatus.sh`, `oradba_validate.sh`.
+Remaining scripts will be converted in M6.
+
 ## Available Scripts
 
 | Script                                   | Description                                                       |

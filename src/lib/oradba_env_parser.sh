@@ -303,7 +303,7 @@ oradba_list_all_homes() {
     local homes_file="$1"
     
     # Parse and sort by order (field 4)
-    oradba_parse_homes "$homes_file" | sort -t'|' -k4 -n | while IFS='|' read -r name path ptype order alias_name desc version; do
+    oradba_parse_homes "$homes_file" | LC_ALL=C sort -t'|' -k4 -n | while IFS='|' read -r name path ptype order alias_name desc version; do
         echo "${name}|${path}|${ptype}|${order}|${alias_name}"
     done
 }

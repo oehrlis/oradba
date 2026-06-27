@@ -18,16 +18,9 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ORADBA_BASE="$(dirname "$SCRIPT_DIR")"
-
-# Source common library
-if [[ ! -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
-    echo "ERROR: Cannot find oradba_common.sh library" >&2
-    exit 1
-fi
-source "${ORADBA_BASE}/lib/oradba_common.sh"
+# shellcheck source=../lib/oradba_bootstrap.sh
+source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
 
 # Source database functions library
 if [[ ! -f "${ORADBA_BASE}/lib/oradba_db_functions.sh" ]]; then

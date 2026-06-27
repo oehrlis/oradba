@@ -267,6 +267,11 @@ format_uptime() {
     # Try macOS format first, then Linux format
     startup_epoch=$(date -j -f "%Y-%m-%d %H:%M:%S" "$startup_time" "+%s" 2> /dev/null \
         || date -d "$startup_time" "+%s" 2> /dev/null || echo "0")
+    # Guard: if epoch is 0 or implausibly old (before 2000-01-01), skip calculation
+    if [[ "${startup_epoch}" -eq 0 ]] || [[ "${startup_epoch}" -lt 946684800 ]]; then
+        echo "unknown"
+        return
+    fi
     current_epoch=$(date "+%s")
     uptime_seconds=$((current_epoch - startup_epoch))
 
@@ -445,3 +450,6 @@ show_database_status() {
     oradba_env_output_divider
     echo ""
 }
+
+# Deprecation alias: oradba_ prefix is canonical; plain name kept for M5->M6 compat
+oradba_check_database_connection() { check_database_connection "$@"; }

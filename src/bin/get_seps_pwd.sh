@@ -34,7 +34,7 @@ readonly SCRIPT_BASE
 if [[ -f "${SCRIPT_BASE}/lib/oradba_common.sh" ]]; then
     source "${SCRIPT_BASE}/lib/oradba_common.sh"
 else
-    echo "ERROR: Cannot find oradba_common.sh library"
+    echo "ERROR: Cannot find oradba_common.sh library" >&2
     exit 1
 fi
 

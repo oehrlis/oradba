@@ -269,7 +269,7 @@ oradba_list_config_sections() {
     
     [[ ! -f "$config_file" ]] && return 1
     
-    grep -o '^\[[^]]*\]' "$config_file" | tr -d '[]' | sort -u
+    grep -o '^\[[^]]*\]' "$config_file" | tr -d '[]' | LC_ALL=C sort -u
     
     return 0
 }
@@ -292,7 +292,7 @@ oradba_validate_config_file() {
     }
     
     while IFS= read -r line; do
-        ((line_num++))
+        line_num=$(( line_num + 1 ))
         
         # Remove leading/trailing whitespace
         line="${line##*([[:space:]])}"
@@ -305,7 +305,7 @@ oradba_validate_config_file() {
         # Check for malformed section headers (starts with [ but doesn't end with ])
         if [[ "$line" =~ ^\[ ]] && [[ ! "$line" =~ ^\[[^]]+\]$ ]]; then
             echo "ERROR: Invalid section syntax at line $line_num: $line" >&2
-            ((errors++))
+            errors=$(( errors + 1 ))
             continue
         fi
         
@@ -331,7 +331,7 @@ oradba_validate_config_file() {
         
         # If we get here, syntax is invalid
         echo "ERROR: Invalid syntax at line $line_num: $line" >&2
-        ((errors++))
+        errors=$(( errors + 1 ))
     done < "$config_file"
     
     [[ $errors -eq 0 ]] && return 0

@@ -251,7 +251,7 @@ validate_prerequisites() {
         data_dir_parent=$(dirname "${DATA_DIR}")
         if [[ -d "${data_dir_parent}" ]]; then
             local avail_gb
-            avail_gb=$(df -BG "${data_dir_parent}" 2> /dev/null | awk 'NR==2 {print $4}' | sed 's/G//')
+            avail_gb=$(df -k "${data_dir_parent}" 2> /dev/null | awk 'NR==2 {printf "%.0f", $4/1024/1024}')
             if [[ -n "${avail_gb}" ]] && ((avail_gb < 10)); then
                 oradba_log WARN "Low disk space in ${data_dir_parent}: ${avail_gb}GB available"
                 oradba_log WARN "Minimum 10GB recommended for database files"

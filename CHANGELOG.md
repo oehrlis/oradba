@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-06-27
+
+### Changed
+
+- `ORADBA_BASE` is now the canonical install-root variable; `ORADBA_PREFIX` emits a
+  deprecation warning when set and acts as a fallback alias (CF-007)
+- Shared bootstrap loader `src/lib/oradba_bootstrap.sh` introduced; bin scripts that
+  previously resolved root ad hoc now source it (CF-032)
+- Oratab parsing centralised exclusively in `oradba_registry.sh`; all callers route
+  through registry API (CF-029)
+- Public functions prefixed with `oradba_`; old names retained as one-release
+  deprecation aliases (CF-030)
+
+### Fixed
+
+- Error messages in `get_seps_pwd.sh`, `oradba_dsctl.sh`, `oradba_dbctl.sh`,
+  `oradba_lsnrctl.sh` routed to stderr (CF-031)
+- `df -BG`/`df -Pm` replaced with portable `df -k` + awk (CF-012)
+- `sort`/`comm` calls prefixed with `LC_ALL=C` for locale safety (CF-033)
+- Shadowing `oradba_log` stub in `oradba_datasafe_debug.sh` guarded (CF-030)
+- Uptime computation guarded against implausible epoch values in
+  `oradba_db_functions.sh` (CF-033)
+- `(( var++ ))` patterns replaced with `var=$(( var + 1 ))` in all touched files
+- `timeout` portability fallback added to `datasafe_plugin.sh` (CF-012)
+- `realpath` portability fallback added to `sync_to_peers.sh` and
+  `sync_from_peers.sh` (CF-012)
+
 ## [0.28.1] - 2026-06-26
 
 ### Fixed

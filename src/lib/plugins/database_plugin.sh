@@ -48,7 +48,7 @@ plugin_detect_installation() {
     done < <(ps -ef | grep "[p]mon_")
     
     # Deduplicate and print
-    printf '%s\n' "${homes[@]}" | sort -u
+    printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     return 0
 }
 
