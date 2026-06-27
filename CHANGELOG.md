@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
+### Fixed
+
+- `scripts/build_pdf.sh`: enable Mermaid diagram rendering in CI via
+  `--security-opt seccomp=unconfined` and `--shm-size=2g` on `docker run`;
+  add `.puppeteer.json` with `--no-sandbox` so Chromium (used by mmdc)
+  can launch inside the nested GitHub Actions container
+
 ## [1.0.0-rc.1] - 2026-06-27
 
 ### Changed
