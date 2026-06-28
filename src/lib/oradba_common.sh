@@ -514,6 +514,24 @@ alias_exists() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: detect_basenv
+# Purpose.: Detect if TVD BasEnv / DB*Star is active in the current environment
+# Args....: None
+# Returns.: 0 if BasEnv detected, 1 if not
+# Output..: None
+# Notes...: Checks three markers in priority order:
+#           1. BE_HOME variable (set by basenv.sh at login - most reliable)
+#           2. $HOME/.BE_HOME file (present even before basenv.sh runs)
+#           3. $HOME/.TVDPERL_HOME file (always paired with .BE_HOME)
+# ------------------------------------------------------------------------------
+detect_basenv() {
+    [[ -n "${BE_HOME:-}" ]] && return 0
+    [[ -f "${HOME}/.BE_HOME" ]] && return 0
+    [[ -f "${HOME}/.TVDPERL_HOME" ]] && return 0
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: safe_alias
 # Purpose.: Create alias respecting coexistence mode with other Oracle environments
 # Args....: $1 - Alias name
