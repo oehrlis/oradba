@@ -30,7 +30,7 @@ graph TB
         PL4[iclient_plugin.sh]
         PL5[oud_plugin.sh]
         PL6[java_plugin.sh]
-        PL7["weblogic_plugin.sh (planned)"]
+        PL7["weblogic_plugin.sh (stub)"]
     end
     
     subgraph EnvLibs["Environment Management Libraries"]
@@ -40,6 +40,7 @@ graph TB
         E4[oradba_env_config.sh<br>Config Manager]
         E5[oradba_env_status.sh<br>Status Display]
         E6[oradba_env_changes.sh<br>Change Detection]
+        E7[oradba_env_output.sh<br>Output Formatter]
     end
     
     subgraph Core["Core Libraries"]
@@ -111,7 +112,7 @@ The OraDBA system architecture consists of:
 3. **Registry API** (v0.19.0+): Unified interface for Oracle installation metadata
 4. **Plugin System** (v0.19.0+): Product-specific plugins implementing universal
    core functions plus category-specific listener handling
-5. **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes
+5. **Environment Management Libraries**: Parser, Builder, Validator, Config, Status, Changes, Output Formatter
 6. **Core Libraries**: Common utilities, database operations, alias management
 7. **Configuration System**: 6-level hierarchical configuration
 8. **Oracle Layer**: Integration with Oracle Homes, instances, listeners, oratab
@@ -120,7 +121,7 @@ The OraDBA system architecture consists of:
 
 - **Registry API**: Single source of truth for Oracle installations (oratab + oradba_homes.conf)
 - **Plugin System**: Product-specific logic for database, datasafe, client,
-  iclient, oud, java (and planned weblogic), sharing a unified core interface with
+  iclient, oud, java (stubs: weblogic, oms, emagent), sharing a unified core interface with
   category-specific extensions
 - **Environment Libraries**: Modular, testable components for environment setup
 - **Hierarchical Config**: 6 levels from core defaults to runtime overrides

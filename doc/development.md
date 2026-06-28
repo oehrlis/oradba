@@ -894,6 +894,9 @@ npm install -g markdownlint-cli           # Markdown linting
 
 ### Installer Architecture
 
+See **[Installation Flow diagram](images/installation-flow.md)** for a visual overview of the 3-mode
+installation process (embedded, local, GitHub) with checksum verification and rollback support.
+
 The installer uses a two-component architecture:
 
 1. **Standalone Installer**: `src/bin/oradba_install.sh`
