@@ -563,14 +563,14 @@ make validate          # Validate configuration files
 
 **Test-Related Targets:**
 
-| Target                  | Tests Run                        | Duration  | Use Case                          |
-|-------------------------|----------------------------------|-----------|-----------------------------------|
-| `make test`             | Smart selection (~5-50)          | 1-3 min   | During development                |
-| `make test-full`        | 108+ plugin + 900+ core tests    | 8-10 min  | Before commits/releases           |
-| `make test-docker`      | 68 integration tests             | ~3 min    | Real database environment testing |
-| `make test-docker-keep` | 68 tests + keep container        | ~3 min    | Test debugging and inspection     |
-| `make pre-commit`       | Smart + lint                     | 2-4 min   | Pre-commit hook                   |
-| `make ci`               | Full suite + build               | 10-15 min | Complete validation               |
+| Target                  | Tests Run                         | Duration   | Use Case                              |
+|-------------------------|-----------------------------------|------------|---------------------------------------|
+| `make test`             | Smart selection (BATS unit tests) | 1-3 min    | During development                    |
+| `make test-full`        | 1200+ BATS unit tests             | 8-10 min   | Before commits/releases               |
+| `make test-docker`      | 96+ Docker integration tests      | ~10 min    | Real database environment (releases)  |
+| `make test-docker-keep` | 96+ tests + keep container        | ~10 min    | Test debugging and inspection         |
+| `make pre-commit`       | Smart + lint                      | 2-4 min    | Pre-commit hook                       |
+| `make ci`               | Full suite + build                | 10-15 min  | Complete validation                   |
 
 **Environment Variables:**
 

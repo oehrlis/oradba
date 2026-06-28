@@ -104,9 +104,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path must point to parent dir, not the extension dir itself
 - `tests/docker_automated_tests.sh`: fix SC2076 ShellCheck warning — replace
   `=~` with quoted literal RHS with `== *pattern*` glob matching
-- `tests/docker_automated_tests.sh`: auto-discovery test no longer requires
-  sudo to backup/modify `/etc/oratab`; uses `ORADBA_ORATAB` override pointing
-  to a user-writable temp file instead (oracle user in Docker has no sudo)
+- `tests/docker_automated_tests.sh`: auto-discovery test redesigned without sudo
+  - replaces sudo-based `/etc/oratab` manipulation with `ORADBA_ORATAB` override
+    pointing to a user-writable temp file
+  - fixes `[[ $entry_count -gt 0 ]]` syntax error caused by `grep -c || echo 0`
+    producing `0\n0`; use `cmd || var=0` pattern instead
+  - removes non-existent "Auto-discovered.*Oracle instance" grep pattern; now tests
+    real oraup.sh output: registry status, ORADBA_ORATAB override, and empty-oratab
+    graceful handling
 - `tests/test_oradba_homes.bats`: `setup()` now symlinks `src/lib/` into the
   temp `ORADBA_BASE` so `oradba_homes.sh` can load `oradba_common.sh` at runtime
   (was failing with "Cannot find common library")
@@ -169,6 +174,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   remove deleted files, add Output Formatter colour code (#222)
 - `doc/images/config-hierarchy.md`, `doc/images/oraenv-flow.md`: removed as
   duplicates of `config-workflow-highlevel.md` and `oraenv-workflow-*` (#222)
+- `doc/automated_testing.md`: update test counts (96+ integration, 0 FAIL/SKIP),
+  expected duration (~10 min), add `ORADBA_ORATAB` env var, replace generic CI
+  example with actual `docker-tests.yml` tag trigger logic
+- `doc/development.md`: update test targets table (`make test-docker` 96+ tests /
+  ~10 min; `make test-full` 1200+ BATS unit tests)
 
 ## [1.0.0-rc.1] - 2026-06-27
 

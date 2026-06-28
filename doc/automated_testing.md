@@ -5,9 +5,10 @@ automate the majority of tests documented in `manual_testing.md`.
 
 ## Test Coverage
 
-**Current Coverage**: ~75-85% of manual tests are now automated
+**Current Coverage**: ~90% of manual tests are now automated
 **Test Suites**: 26 test functions covering installation, configuration, and operations
-**Estimated Tests**: ~85 individual test cases
+**Integration Tests**: 96+ individual test cases (0 FAIL, 0 SKIP on Oracle 26ai Free)
+**Unit Tests**: 1200+ BATS tests (`make test-full`) with 0 failures
 **Platform**: Oracle 26ai Free Docker container
 
 See [Manual Tests Coverage](#manual-tests-coverage) section below for detailed breakdown.
@@ -21,7 +22,7 @@ Run automated tests in an Oracle 26ai Free Docker container:
 ./tests/run_docker_tests.sh
 ```
 
-**Expected Duration**: 5-8 minutes (includes container startup and ~85 tests)
+**Expected Duration**: ~10 minutes (includes container startup and 96+ integration tests)
 
 ## Test Architecture
 
@@ -79,6 +80,7 @@ Wrapper script that:
 **Environment Variables:**
 
 - `ORADBA_TEST_IMAGE` - Docker image to use (default: `container-registry.oracle.com/database/free:latest`)
+- `ORADBA_ORATAB` - Override oratab path (used by tests to avoid touching `/etc/oratab`)
 
 ### docker_automated_tests.sh
 
@@ -256,16 +258,16 @@ Test results are saved to `/tmp/oradba_test_results_YYYYMMDD_HHMMSS.log` with:
 TEST SUMMARY
 ================================================================================
 
-Total Tests:   85
-Passed:        78
+Total Tests:   96
+Passed:        96
 Failed:        0
-Skipped:       7
+Skipped:       0
 
-Pass Rate:     92%
+Pass Rate:     100%
 
 ✓ ALL TESTS PASSED
 
-Results saved to: /tmp/oradba_test_results_20260119_143022.log
+Results saved to: /tmp/oradba_test_results_20260628_191617.log
 ```
 
 ## Manual Tests Coverage
@@ -311,29 +313,36 @@ These automated tests cover approximately **75-85%** of the manual tests in
 
 ## Integration with CI/CD
 
-### GitHub Actions Example
+The Docker integration tests run automatically via `.github/workflows/docker-tests.yml`
+on every release tag and can be triggered manually via `workflow_dispatch`.
 
-```yaml
-name: OraDBA Tests
+**Trigger conditions:**
 
-on: [push, pull_request]
+- `push` on tags matching `v*` (final releases: `v1.0.0`, `v1.2.3`)
+- `push` on tags matching `*-rc.*` (release candidates: `1.0.0-rc.1`)
+- Manual: `workflow_dispatch` from the GitHub Actions UI
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Run Docker Tests
-        run: |
-          ./tests/run_docker_tests.sh
-      
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: /tmp/oradba_test_results_*.log
+**Workflow steps:**
+
+1. Checkout code
+2. Build distribution (`./scripts/build_installer.sh` → `dist/`)
+3. Pull Oracle 26ai Free Docker image
+4. Run `tests/run_docker_tests.sh --no-build` (handles DB wait, volume mount, result copy)
+5. Upload `tests/results/` as artifact (`docker-test-results-<tag>`, 30-day retention)
+
+**Rationale for tag-only trigger:** The Docker test takes ~10 minutes and requires
+pulling a large Oracle image. Running on every commit would be wasteful and is not
+suitable for PR CI. The BATS unit tests (`make test`) cover the fast feedback loop;
+Docker tests gate releases.
+
+### Manual Trigger
+
+```bash
+# Local
+make test-docker
+
+# Keep container for inspection after tests
+make test-docker-keep
 ```
 
 ## Customization

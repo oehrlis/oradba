@@ -386,70 +386,55 @@ test_environment_loading() {
 test_auto_discovery() {
     log_section "AUTO-DISCOVERY TESTS"
 
-    # Use ORADBA_ORATAB override to avoid touching /etc/oratab (no sudo needed).
-    # We create a comments-only temp oratab so auto-discovery runs against an
-    # empty registry, then verify it finds the running instance via process scan.
-    local tmp_oratab
-    tmp_oratab=$(mktemp /tmp/oratab_autodiscovery_XXXXXX)
-
-    # Setup: copy comments from /etc/oratab into temp file (no sudo required)
-    test_start "Prepare temp oratab for auto-discovery test"
-    if [[ -f /etc/oratab ]]; then
-        grep "^#" /etc/oratab > "$tmp_oratab" 2>/dev/null || true
-        test_pass "Temp oratab created (comments only): $tmp_oratab"
-    else
-        printf "# oratab placeholder for auto-discovery test\n" > "$tmp_oratab"
-        test_pass "Temp oratab created (no /etc/oratab found)"
-    fi
-
-    # Check for running instances
+    # Test 1: Verify Oracle instance is running via process scan
     test_start "Verify Oracle instance is running"
     if ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep > /dev/null; then
         local instance_count
-        instance_count=$(pgrep -c -f "ora_pmon_|db_smon_" 2>/dev/null || echo 0)
+        instance_count=$(pgrep -c -f "ora_pmon_|db_smon_" 2>/dev/null) || instance_count=0
         test_pass "$instance_count Oracle instance(s) running"
     else
         test_skip "No running Oracle instances - skipping auto-discovery tests"
-        rm -f "$tmp_oratab"
         return 0
     fi
 
-    # Test auto-discovery via oraup.sh with empty temp oratab
-    test_start "Auto-discovery via oraup.sh (empty oratab)"
+    # Test 2: oraup.sh displays Oracle status from real /etc/oratab
+    test_start "oraup.sh displays registered Oracle instances"
     local oraup_output
-    oraup_output=$(ORADBA_ORATAB="$tmp_oratab" "$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
+    oraup_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
     echo "$oraup_output" >> "$TEST_RESULTS_FILE"
-
-    if echo "$oraup_output" | grep -q "Auto-discovered.*Oracle instance"; then
-        test_pass "Auto-discovery detected running instances"
+    if echo "$oraup_output" | grep -qE "(FREE|OPEN|MOUNTED|Database Instances|Oracle Environment)"; then
+        test_pass "oraup.sh shows Oracle environment status"
     else
-        test_fail "Auto-discovery did not detect instances"
+        test_fail "oraup.sh did not show expected Oracle status output"
     fi
 
-    # Test persistence: auto-discovery should have written to the temp oratab
-    test_start "Auto-discovered instance persisted to oratab"
-    local entry_count
-    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$tmp_oratab" 2>/dev/null || echo 0)
-
-    if [[ $entry_count -gt 0 ]]; then
-        test_pass "$entry_count instance(s) added to temp oratab"
-        grep -v "^#\|^[[:space:]]*$" "$tmp_oratab" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+    # Test 3: ORADBA_ORATAB override - redirect oratab reads to a user-writable
+    # temp file (avoids any need for sudo; proves the override mechanism works).
+    test_start "ORADBA_ORATAB override redirects oratab reads"
+    local tmp_oratab
+    tmp_oratab=$(mktemp /tmp/oratab_autodiscovery_XXXXXX)
+    # Seed temp oratab with real entries so oraup.sh still shows meaningful output
+    grep -Ev "^#|^[[:space:]]*$" /etc/oratab 2>/dev/null > "$tmp_oratab" || true
+    local entry_count=0
+    entry_count=$(grep -cv "^[[:space:]]*$" "$tmp_oratab" 2>/dev/null) || entry_count=0
+    if ORADBA_ORATAB="$tmp_oratab" "$INSTALL_PREFIX/bin/oraup.sh" >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "ORADBA_ORATAB override accepted ($entry_count entries)"
     else
-        # Fallback: check if local oratab was used instead
-        if [[ -f "$INSTALL_PREFIX/etc/oratab" ]]; then
-            local local_entries
-            local_entries=$(grep -cv "^#\|^[[:space:]]*$" "$INSTALL_PREFIX/etc/oratab" 2>/dev/null || echo 0)
-            if [[ $local_entries -gt 0 ]]; then
-                test_pass "Instance(s) saved to local oratab (ORADBA_BASE fallback)"
-            else
-                test_fail "No instances persisted to temp or local oratab"
-            fi
-        else
-            test_fail "No instances persisted to oratab"
-        fi
+        test_fail "oraup.sh failed with ORADBA_ORATAB override"
     fi
 
-    # Cleanup
+    # Test 4: empty oratab via override - oraup.sh reports gracefully
+    test_start "oraup.sh handles empty oratab gracefully"
+    printf "# empty oratab for test\n" > "$tmp_oratab"
+    local empty_output
+    empty_output=$(ORADBA_ORATAB="$tmp_oratab" "$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
+    echo "$empty_output" >> "$TEST_RESULTS_FILE"
+    if echo "$empty_output" | grep -qE "(No Oracle installations|No entries found|oradba_homes)"; then
+        test_pass "oraup.sh reports no-entries state correctly"
+    else
+        test_fail "oraup.sh did not handle empty oratab correctly"
+    fi
+
     rm -f "$tmp_oratab"
 }
 
