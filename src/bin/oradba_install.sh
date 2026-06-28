@@ -2321,8 +2321,20 @@ cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
 # system-specific settings. It overrides settings from oradba_core.conf.
 
 # Coexistence mode (auto-detected during installation)
-# Values: basenv, standalone
+# Values:
+#   standalone     - Full behaviour: sets all Oracle vars, PATH, SQLPATH, aliases (default)
+#   basenv         - Minimal: oradba libraries and ORADBA_* vars only; BasEnv owns Oracle vars
+#   basenv-maximal - Maximal: like basenv plus non-conflicting oradba aliases
+#
+# BasEnv protected variables (oradba will NOT modify these in basenv* modes):
+#   ORACLE_SID, ORACLE_HOME, ORACLE_BASE, NLS_LANG, TNS_ADMIN, LD_LIBRARY_PATH
+#   BE_*, TVD_BASE, ETC_BASE, LOG_BASE, PS1, PS1BASH, PROMPT_COMMAND, PATH, SQLPATH
+#
+# See also: ${INSTALL_PREFIX}/etc/oradba_basenv.conf.example
 export ORADBA_COEXIST_MODE="${COEXIST_MODE}"
+
+# To enable maximal mode (non-conflicting oradba aliases in BasEnv sessions):
+# export ORADBA_COEXIST_MODE="basenv-maximal"
 
 # Oracle Base directory (derived from installation location)
 # Overrides the default in oradba_standard.conf
