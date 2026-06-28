@@ -58,25 +58,23 @@ Diese 9 Dateien existieren in `doc/images/`, werden aber nirgends referenziert:
 
 ### Phase 1 — Korrekturen (Quick Wins)
 
-- [ ] Fix A: `architecture-system.md` — weblogic `(planned)` → `(stub)`
-- [ ] Fix B: Alle Diagramme — "6 Environment Libraries" → "7 Environment Libraries" (oradba_env_output.sh ergänzen)
-- [ ] Fix C: `doc/architecture.md` — kaputten `![...](.md)` Link reparieren
+- [x] Fix A: `architecture-system.md` — weblogic `(planned)` → `(stub)`
+- [x] Fix B: Alle Diagramme — `oradba_env_output.sh` als 7. Env Library ergänzen (architecture-system.md + architecture.md)
+- [x] Fix C: `doc/architecture.md` — kaputten `![...](.md)` Link reparieren
+- [x] Fix D (bonus): `doc/architecture.md` embedded Diagramm — 6 Plugins → 9, 8 Funktionen → 13
 
-### Phase 2 — Verwaiste Diagramme einbetten
+### Phase 2 — Verwaiste Diagramme verlinken
 
-- [ ] `architecture-system.md` in `doc/architecture.md` einbetten (Sektion "System Overview")
-- [ ] `phase1-3-libraries.md` in `doc/architecture.md` einbetten (Sektion "Environment Libraries")
-- [ ] `config-sequence.md` in `doc/architecture.md` einbetten (Sektion "Configuration System")
-- [ ] `config-workflow-detailed.md` in `doc/architecture.md` einbetten (Sektion "Configuration System")
-- [ ] `oraenv-workflow-detailed.md` in `doc/architecture.md` einbetten (Sektion "oraenv")
-- [ ] `oraup-workflow-detailed.md` in `doc/architecture.md` einbetten (Sektion "oraup")
-- [ ] `installation-flow.md` in `doc/development.md` einbetten (Sektion "Installation")
+- [x] `architecture-system.md` + `phase1-3-libraries.md` — Link in "Interactive Architecture Diagrams"
+- [x] `config-sequence.md` + `config-workflow-detailed.md` — Link in "Interactive Architecture Diagrams"
+- [x] `oraenv-workflow-detailed.md` + `oraup-workflow-detailed.md` — Link in "Interactive Architecture Diagrams"
+- [x] `installation-flow.md` — Link in `doc/development.md` (Sektion "Build Process")
 
 ### Phase 3 — Bereinigung
 
-- [ ] `doc/images/config-hierarchy.md` löschen (Duplikat von config-workflow-highlevel)
-- [ ] `doc/images/oraenv-flow.md` löschen (Duplikat von oraenv-workflow-*)
-- [ ] `doc/images/README.md` aktualisieren nach Bereinigung
+- [x] `doc/images/config-hierarchy.md` gelöscht (Duplikat von config-workflow-highlevel)
+- [x] `doc/images/oraenv-flow.md` gelöscht (Duplikat von oraenv-workflow-*)
+- [x] `doc/images/README.md` aktualisiert (gelöschte Dateien entfernt, Output-Farbe ergänzt)
 
 ---
 

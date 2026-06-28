@@ -54,6 +54,7 @@ graph TB
         E4[oradba_env_config.sh<br/>Config Manager]
         E5[oradba_env_status.sh<br/>Status Display]
         E6[oradba_env_changes.sh<br/>Change Detection]
+        E7[oradba_env_output.sh<br/>Output Formatter]
     end
     
     subgraph Core["Core Libraries"]
@@ -123,7 +124,7 @@ graph TB
 - **Registry API** (v0.19.0+): Unified access to oratab and oradba_homes.conf with consistent interface
 - **Plugin System** (v0.19.0+): 9 product plugins (6 production: database, datasafe, client, iclient, oud,
   java; 3 stubs: weblogic, oms, emagent)
-- **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker
+- **Environment Management Libraries**: Parser, Builder, Validator, Config Manager, Status Display, Change Tracker, Output Formatter
 - **Core Libraries**: oradba_common.sh (logging/utilities), oradba_home_discovery.sh,
   oradba_database_discovery.sh, oradba_version_metadata.sh, oradba_db_functions.sh, oradba_aliases.sh
 - **Configuration System**: 6-level hierarchical configuration (core → standard → local → customer → SID → runtime)
@@ -133,10 +134,25 @@ graph TB
 
 For detailed visual documentation of workflows and component interactions, see the **[Architecture Diagrams Index](images/README.md)**:
 
-- **[Configuration System](images/config-workflow-highlevel.md)** - 5-layer hierarchy and loading flow
-- **[oraenv Workflow](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
-- **[oraup Workflow](images/oraup-workflow-highlevel.md)** - Status display with Registry API integration
+**System Architecture**
+
+- **[System Architecture Overview](images/architecture-system.md)** - Complete layered architecture (CLI, Registry, Plugins, Env Libraries, Config, Oracle)
+- **[Environment Management Libraries](images/phase1-3-libraries.md)** - Library architecture with entry points, registry, plugins, and all 7 env libraries
+
+**Registry, Plugins, and Configuration**
+
+- **[Registry API Flow](images/registry-api-flow.md)** - Registry API data flow and plugin integration
 - **[Plugin System](images/plugin-system.md)** - 13-function universal core interface and lifecycle
+- **[Configuration System (overview)](images/config-workflow-highlevel.md)** - 5-layer hierarchy and loading flow
+- **[Configuration System (detailed)](images/config-workflow-detailed.md)** - Function-level flow with variable export and cleanup logic
+- **[Configuration Loading Sequence](images/config-sequence.md)** - Sequence diagram: Parser, Builder, Validator interaction
+
+**Entry Point Workflows**
+
+- **[oraenv Workflow (overview)](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
+- **[oraenv Workflow (detailed)](images/oraenv-workflow-detailed.md)** - Function-level flow with library loading and registry queries
+- **[oraup Workflow (overview)](images/oraup-workflow-highlevel.md)** - Status display with Registry API integration
+- **[oraup Workflow (detailed)](images/oraup-workflow-detailed.md)** - Detailed status checking with field extractions
 
 These Mermaid diagrams are interactive and render automatically in VS Code, GitHub, and modern documentation sites.
 
@@ -457,8 +473,8 @@ graph TB
     
     subgraph Plugins["Plugin System"]
         PL1[Plugin Interface]
-        PL2[6 Product Plugins:<br/>database, datasafe, client<br/>iclient, oud, java]
-        PL3[8 Required Functions:<br/>detect, validate, adjust<br/>status, metadata, etc]
+        PL2[9 Product Plugins:<br/>database, datasafe, client<br/>iclient, oud, java<br/>weblogic★, oms★, emagent★]
+        PL3[13 Universal Core Functions:<br/>detect, validate, adjust<br/>status, metadata, etc]
     end
     
     subgraph Parser["Parser Library"]
@@ -502,7 +518,13 @@ graph TB
         P3D2[show_diff]
         P3D3[auto_reload]
     end
-    
+
+    subgraph Output["Output Formatter"]
+        P3E[oradba_env_output.sh]
+        P3E1[output_divider]
+        P3E2[output_kv]
+    end
+
     subgraph ConfigFiles["Configuration Files"]
         C1[oradba_core.conf<br/>System Defaults]
         C2[oradba_standard.conf<br/>Standard Settings]
@@ -515,6 +537,9 @@ graph TB
     subgraph Common["Common Libraries"]
         L1[oradba_common.sh<br/>Logging & Utilities]
         L2[oradba_aliases.sh<br/>Safe Alias Generation]
+        L3[oradba_home_discovery.sh<br/>Home Discovery]
+        L4[oradba_database_discovery.sh<br/>Database Discovery]
+        L5[oradba_version_metadata.sh<br/>Version & Metadata]
     end
     
     E1 --> E2
@@ -542,7 +567,8 @@ graph TB
     Builder --> ConfigMgr
     Builder --> Status
     Builder --> Changes
-    
+    Builder --> Output
+
     Validator --> P3A1
     Validator --> P3A2
     Validator --> P3A3
@@ -561,14 +587,18 @@ graph TB
     Changes --> P3D1
     Changes --> P3D2
     Changes --> P3D3
-    
+
+    Output --> P3E1
+    Output --> P3E2
+
     Parser --> L1
     Builder --> L1
     Validator --> L1
     Status --> L1
-    
+    Output --> L1
+
     E2 --> L2
-    
+
     style Entry fill:#E6E6FA
     style Registry fill:#98FB98
     style Plugins fill:#FFD700
@@ -578,6 +608,7 @@ graph TB
     style ConfigMgr fill:#F0E68C
     style Status fill:#FFE4B5
     style Changes fill:#FFA07A
+    style Output fill:#B0E0E6
     style ConfigFiles fill:#FFE4B5
     style Common fill:#DDA0DD
 ```
@@ -909,7 +940,7 @@ oradba/
 
 ### Registry API and Plugin Integration
 
-![Registry API Flow](images/registry-api-flow.md)
+**[Registry API Flow diagram](images/registry-api-flow.md)**
 
 The Registry API provides a unified interface for accessing Oracle installation metadata, integrating with the plugin system for product type detection and validation.
 
