@@ -1363,14 +1363,16 @@ _oraenv_set_environment() {
 #           Prevents PATH pollution when switching between Oracle environments.
 # ------------------------------------------------------------------------------
 _oraenv_unset_old_env() {
-    # Remove old ORACLE_HOME from PATH
-    if [[ -n "${ORACLE_HOME}" ]]; then
-        local _oh_bin="${ORACLE_HOME}/bin" _oh_lib="${ORACLE_HOME}/lib"
-        PATH="${PATH//${_oh_bin}:/}"
-        PATH="${PATH//:${_oh_bin}/}"
-        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
-        LD_LIBRARY_PATH="${LD_LIBRARY_PATH//${_oh_lib}:/}"
-        LD_LIBRARY_PATH="${LD_LIBRARY_PATH//:${_oh_lib}/}"
+    # In basenv coexistence mode BasEnv owns PATH/LD_LIBRARY_PATH — do not remove Oracle paths.
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        if [[ -n "${ORACLE_HOME}" ]]; then
+            local _oh_bin="${ORACLE_HOME}/bin" _oh_lib="${ORACLE_HOME}/lib"
+            PATH="${PATH//${_oh_bin}:/}"
+            PATH="${PATH//:${_oh_bin}/}"
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH//${_oh_lib}:/}"
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH//:${_oh_lib}/}"
+        fi
     fi
 
     # Clear product-specific environment from previous home
@@ -1412,6 +1414,21 @@ _oraenv_main() {
         return 1
     fi
 
+    # Track whether SID was explicitly provided on the command line.
+    # Used to distinguish automatic login (no SID) from explicit switches
+    # (e.g. "source oraenv.sh DATASAFE_SID") so coexistence behaviour stays correct.
+    local _sid_from_cli=false
+    [[ -n "${REQUESTED_SID}" ]] && _sid_from_cli=true
+
+    # basenv minimal mode with no explicit SID: oradba_core.conf has already added
+    # oradba/bin to PATH. BasEnv owns the Oracle environment — skip full setup.
+    # When a SID is explicitly provided (e.g. source oraenv.sh DATASAFE_SID), continue
+    # with the full setup so non-BasEnv environments can still be switched to.
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv" ]] && [[ "${_sid_from_cli}" == "false" ]]; then
+        oradba_log DEBUG "basenv minimal mode: PATH updated; full oraenv setup skipped (BasEnv owns Oracle env)"
+        return 0
+    fi
+
     # Find oratab file
     local oratab_file
     oratab_file=$(_oraenv_find_oratab)
@@ -1443,7 +1460,14 @@ _oraenv_main() {
 
     # Get ORACLE_SID if not provided
     if [[ -z "$REQUESTED_SID" ]]; then
-        REQUESTED_SID=$(_oraenv_prompt_sid "$oratab_file")
+        # basenv-maximal mode: BasEnv has already set ORACLE_SID — use it directly,
+        # no interactive menu needed. Fall through to normal prompt only if not set.
+        if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv-maximal" ]] && [[ -n "${ORACLE_SID:-}" ]]; then
+            REQUESTED_SID="${ORACLE_SID}"
+            oradba_log DEBUG "basenv-maximal mode: using BasEnv-set ORACLE_SID=${ORACLE_SID}"
+        else
+            REQUESTED_SID=$(_oraenv_prompt_sid "$oratab_file")
+        fi
         _oraenv_profile_mark "resolve_requested_sid"
         if [[ -z "$REQUESTED_SID" ]]; then
             oradba_log ERROR "No ORACLE_SID provided"
@@ -1458,11 +1482,19 @@ _oraenv_main() {
     _oraenv_profile_mark "set_environment"
 
     if [[ $result -eq 0 ]]; then
+        # In basenv-maximal login mode (SID taken from BasEnv, not from CLI),
+        # suppress status display — BasEnv has already shown the environment.
+        # When the user explicitly provides a SID, show status as normal.
+        local _effective_show_status="${SHOW_STATUS}"
+        if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv-maximal" ]] && [[ "${_sid_from_cli}" == "false" ]]; then
+            _effective_show_status="false"
+        fi
+
         # Handle different display modes
         if [[ "$ORAENV_STATUS_ONLY" == "true" ]] && [[ "${current_product_type}" == "database" ]] && command -v show_database_status &> /dev/null; then
             # --status flag: show only database status
             show_database_status
-        elif [[ "$SHOW_STATUS" == "true" ]] && [[ "${current_product_type}" == "database" ]] && command -v show_database_status &> /dev/null; then
+        elif [[ "${_effective_show_status}" == "true" ]] && [[ "${current_product_type}" == "database" ]] && command -v show_database_status &> /dev/null; then
             # Interactive mode with status
             show_database_status
             _oraenv_profile_mark "show_database_status"

@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `src/bin/oraenv.sh` `_oraenv_main()`: in `basenv` minimal mode, return early without
+  SID menu, environment setup, or status output when no explicit SID is passed on the
+  CLI. BasEnv already owns the full Oracle environment at login; oradba must not
+  re-initialize it.
+- `src/bin/oraenv.sh` `_oraenv_main()`: in `basenv-maximal` mode, use BasEnv's existing
+  `$ORACLE_SID` instead of showing the interactive SID selection menu at login.
+- `src/bin/oraenv.sh` `_oraenv_main()`: in `basenv-maximal` mode, suppress
+  `show_database_status` at automatic login (SID resolved from BasEnv's `$ORACLE_SID`);
+  status is already shown by BasEnv's own `oraenv.ksh`.
+- `src/bin/oraenv.sh` `_oraenv_unset_old_env()`: do not remove `$ORACLE_HOME/bin` or
+  `$ORACLE_HOME/lib` from `PATH`/`LD_LIBRARY_PATH` in basenv coexistence modes; BasEnv
+  owns those paths and `_oraenv_setup_environment_variables` correctly skips re-adding
+  them, leaving PATH empty of Oracle executables.
+- `src/lib/oradba_database_discovery.sh` `generate_sid_lists()`: use `safe_alias` instead
+  of bare `alias` for SID shortcut aliases; prevents overwriting BasEnv's own SID aliases
+  in `basenv` and `basenv-maximal` modes.
 - `src/bin/oradba_install.sh` `update_profile()`: automatically skip profile update
   when BasEnv is detected (`COEXIST_MODE=basenv*`); print the manual integration
   block instead. Prevents OraDBA from being inserted before BasEnv initializes,

@@ -81,12 +81,18 @@ generate_sid_lists() {
             real_sids="${real_sids}${real_sids:+ }${oratab_sid}"
         fi
 
-        # Create alias for this SID (lowercase) only when alias loading is enabled
+        # Create alias for this SID (lowercase) only when alias loading is enabled.
+        # Use safe_alias in basenv modes so BasEnv's SID-switching aliases are preserved.
         if [[ "${load_aliases}" == "true" ]]; then
             local sid_lower
             sid_lower=$(printf '%s' "${oratab_sid}" | tr '[:upper:]' '[:lower:]')
-            # shellcheck disable=SC2139
-            alias "${sid_lower}"=". ${ORADBA_BASE}/bin/oraenv.sh ${oratab_sid}"
+            if command -v safe_alias > /dev/null 2>&1; then
+                # shellcheck disable=SC2139
+                safe_alias "${sid_lower}" ". ${ORADBA_BASE}/bin/oraenv.sh ${oratab_sid}"
+            else
+                # shellcheck disable=SC2139
+                alias "${sid_lower}"=". ${ORADBA_BASE}/bin/oraenv.sh ${oratab_sid}"
+            fi
         fi
 
     done < <(grep -v "^#" "$oratab_file" | grep -v "^[[:space:]]*$")
