@@ -145,6 +145,28 @@ Create SID-specific configuration file from template
 
 ---
 
+### `detect_basenv` {: #detect-basenv }
+
+Detect if TVD BasEnv / DB\*Star is active in the current environment
+
+**Source:** `oradba_common.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 if BasEnv detected, 1 if not
+
+**Output:** None
+
+!!! info "Notes"
+    Checks three markers in priority order:
+    1. BE_HOME variable (set by basenv.sh at login - most reliable)
+    2. $HOME/.BE_HOME file (present even before basenv.sh runs)
+    3. $HOME/.TVDPERL_HOME file (always paired with .BE_HOME)
+
+---
+
 ### `execute_db_query` {: #execute-db-query }
 
 Execute SQL\*Plus query with standardized configuration and formatting

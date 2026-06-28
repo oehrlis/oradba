@@ -8,6 +8,27 @@ Command-line scripts and tools for OraDBA operations.
 
 ## Functions
 
+### `_oradba_path_contains` {: #-oradba-path-contains }
+
+Check whether a directory is present in a colon-separated path variable
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- $1 - Directory to search for
+- $2 - Name of the path variable to inspect (default: PATH)
+
+**Returns:** 0 if directory is found in the path variable, 1 otherwise
+
+**Output:** None
+
+!!! info "Notes"
+    Uses indirect variable expansion (${!pathvar}) to avoid subshells.
+    Used by SQLPATH guard in basenv coexistence mode.
+
+---
+
 ### `_oraenv_apply_path_configs` {: #-oraenv-apply-path-configs }
 
 Apply Java and client path configurations after environment setup
@@ -116,6 +137,24 @@ Display interactive selection menu for SIDs and Oracle Homes
 
 ---
 
+### `_oraenv_ensure_lib` {: #-oraenv-ensure-lib }
+
+Source a library file exactly once, guarded by a loaded flag.
+
+**Source:** `oraenv.sh`
+
+**Arguments:**
+
+- $1 - flag variable name (e.g. _ORAENV_ENV_PARSER_LOADED)
+- $2 - library file path
+
+**Returns:** 0 on success, 1 if file not found
+
+!!! info "Notes"
+    Called lazily from the function that first needs the library.
+
+---
+
 ### `_oraenv_find_oratab` {: #-oraenv-find-oratab }
 
 Locate the oratab file using standard search paths
@@ -174,9 +213,11 @@ Setup environment for an Oracle Home (non-database installation)
 **Output:** Exports ORACLE_HOME, ORACLE_BASE, ORACLE_SID (empty for non-DB),
 
 !!! info "Notes"
-    Uses set_oracle_home_environment() from Oracle Homes management.
-    Unsets previous environment, derives ORACLE_BASE, loads hierarchical
-    configuration, and logs environment details.
+    Delegates environment construction to oradba_build_environment
+    (oradba_env_builder.sh); falls back to set_oracle_home_environment
+    when env-builder is not loaded. oraenv-specific config loading,
+    TNS_ADMIN, and path configs are applied after environment building.
+    CF-017 / DECISION 1
 
 ---
 
@@ -4216,7 +4257,7 @@ Display comprehensive alias reference documentation
 
 **Returns:** None (outputs to stdout)
 
-**Output:** Alias help from ${ORADBA_PREFIX}/doc/alias_help.txt with navigation info
+**Output:** Alias help from ${ORADBA_BASE}/doc/alias_help.txt with navigation info
 
 !!! info "Notes"
     Shows full alias list with usage; provides links to online docs and alih/alig commands

@@ -32,7 +32,7 @@ Get the current database open mode
 
 **Source:** `oradba_db_functions.sh`
 
-**Returns:** Open mode string or empty if not accessible
+**Returns:** Canonical open mode string (OPEN|MOUNTED|NOMOUNT|STARTED|SHUTDOWN)
 
 ---
 

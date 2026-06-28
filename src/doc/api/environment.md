@@ -265,7 +265,7 @@ Check if Oracle database instance is running
 
 **Returns:** 0 if running, 1 if not running or cannot determine
 
-**Output:** Status string (OPEN|MOUNTED|NOMOUNT|SHUTDOWN|UNKNOWN)
+**Output:** Status string (OPEN|MOUNTED|NOMOUNT|STARTED|SHUTDOWN)
 
 ---
 
@@ -500,7 +500,7 @@ Get a specific variable value from config section
 
 ### `oradba_get_db_status` {: #oradba-get-db-status }
 
-Get database open mode
+Get database open mode (compatibility shim - delegates to oradba_check_db_status)
 
 **Source:** `oradba_env_validator.sh`
 
@@ -508,9 +508,13 @@ Get database open mode
 
 - None (uses current environment)
 
-**Returns:** 0 on success
+**Returns:** 0 on success, 1 if database not running
 
-**Output:** Status (OPEN|MOUNTED|NOMOUNT|DOWN)
+**Output:** Status (OPEN|MOUNTED|NOMOUNT|STARTED|SHUTDOWN)
+
+!!! info "Notes"
+    Delegates to oradba_check_db_status for canonical status vocabulary.
+    Previously returned DOWN; now returns SHUTDOWN for consistency.
 
 ---
 

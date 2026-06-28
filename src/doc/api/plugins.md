@@ -999,28 +999,6 @@ Check listener status for Data Safe (not applicable)
 
 ### `plugin_check_listener_status` {: #plugin-check-listener-status }
 
-Check listener status for products with listener components
-
-**Source:** `plugin_interface.sh`
-
-**Arguments:**
-
-- $1 - Installation path (ORACLE_HOME)
-
-**Returns:** 0 if running, 1 if stopped, 2 if unavailable
-
-**Output:** Status string (running|stopped|unavailable)
-
-!!! info "Notes"
-    Category-specific: mandatory for database and listener-based products
-    Separate from plugin_check_status (instance status)
-    Listener lifecycle is managed per Oracle Home, not per instance
-    See plugin-standards.md for detailed specification
-
----
-
-### `plugin_check_listener_status` {: #plugin-check-listener-status }
-
 Report listener status for this ORACLE_HOME
 
 **Source:** `plugin_interface.sh`

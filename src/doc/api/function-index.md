@@ -6,12 +6,14 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 
 - [`_oradba_builder_log`](environment.md#-oradba-builder-log) - Environment Management
 - [`_oradba_parser_log`](environment.md#-oradba-parser-log) - Environment Management
+- [`_oradba_path_contains`](scripts.md#-oradba-path-contains) - Scripts and Commands
 - [`_oradba_validator_log`](environment.md#-oradba-validator-log) - Environment Management
 - [`_oraenv_apply_path_configs`](scripts.md#-oraenv-apply-path-configs) - Scripts and Commands
 - [`_oraenv_apply_product_adjustments`](scripts.md#-oraenv-apply-product-adjustments) - Scripts and Commands
 - [`_oraenv_apply_tns_admin`](scripts.md#-oraenv-apply-tns-admin) - Scripts and Commands
 - [`_oraenv_auto_discover_instances`](scripts.md#-oraenv-auto-discover-instances) - Scripts and Commands
 - [`_oraenv_display_selection_menu`](scripts.md#-oraenv-display-selection-menu) - Scripts and Commands
+- [`_oraenv_ensure_lib`](scripts.md#-oraenv-ensure-lib) - Scripts and Commands
 - [`_oraenv_find_oratab`](scripts.md#-oraenv-find-oratab) - Scripts and Commands
 - [`_oraenv_gather_available_entries`](scripts.md#-oraenv-gather-available-entries) - Scripts and Commands
 - [`_oraenv_handle_oracle_home`](scripts.md#-oraenv-handle-oracle-home) - Scripts and Commands
@@ -108,6 +110,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`deduplicate_path`](extensions.md#deduplicate-path) - Extension System
 - [`deduplicate_sqlpath`](extensions.md#deduplicate-sqlpath) - Extension System
 - [`derive_oracle_base`](scripts.md#derive-oracle-base) - Scripts and Commands
+- [`detect_basenv`](common.md#detect-basenv) - Core Utilities
 - [`detect_domain`](scripts.md#detect-domain) - Scripts and Commands
 - [`detect_oracle_version`](scripts.md#detect-oracle-version) - Scripts and Commands
 - [`detect_product_type`](scripts.md#detect-product-type) - Scripts and Commands
@@ -360,7 +363,6 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
 - [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
 - [`plugin_build_lib_path`](plugins.md#plugin-build-lib-path) - Plugin Interface
-- [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
 - [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
 - [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
 - [`plugin_check_listener_status`](plugins.md#plugin-check-listener-status) - Plugin Interface
