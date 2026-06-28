@@ -585,6 +585,19 @@ teardown() {
     grep -q "update_profile()" "$STANDALONE_INSTALLER"
 }
 
+@test "update_profile skips and warns when COEXIST_MODE is basenv" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    # Guard must check for basenv* coexistence mode inside update_profile
+    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "COEXIST_MODE.*basenv"
+}
+
+@test "update_profile prints manual .bash_profile instructions in basenv mode" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    # The early-return block must mention TVD_BASE/oradba and oraenv.sh so the
+    # administrator knows what to add to .bash_profile after the BasEnv init line
+    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "TVD_BASE.*oradba.*oraenv"
+}
+
 @test "installer help shows --auto-discover-oratab flag" {
     [ -f "$STANDALONE_INSTALLER" ]
     bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "auto-discover-oratab"
