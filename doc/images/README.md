@@ -32,27 +32,27 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 ### Architecture & Core Systems
 
 <!-- markdownlint-disable MD013 -->
-| Diagram                    | Description                                               | File                                                         |
-|----------------------------|-----------------------------------------------------------|--------------------------------------------------------------|
-| **System Architecture**    | Complete layered architecture with Registry API & plugins | [architecture-system.md](architecture-system.md)             |
-| **Environment Libraries**  | Modular library system (7 env libraries + plugins)        | [phase1-3-libraries.md](phase1-3-libraries.md)               |
-| **Configuration (overview)** | 5-layer hierarchy (core→standard→local→customer→sid)    | [config-workflow-highlevel.md](config-workflow-highlevel.md) |
-| **Configuration (detailed)** | Internal function calls, variable export, cleanup       | [config-workflow-detailed.md](config-workflow-detailed.md)   |
-| **Configuration Sequence** | Library-based config loading sequence diagram             | [config-sequence.md](config-sequence.md)                     |
-| **Plugin System**          | Plugin lifecycle, 13-function interface, integration      | [plugin-system.md](plugin-system.md)                         |
-| **Registry API Flow**      | Unified installation metadata access                      | [registry-api-flow.md](registry-api-flow.md)                 |
+| Diagram                      | Description                                               | File                                                         |
+|------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|
+| **System Architecture**      | Complete layered architecture with Registry API & plugins | [architecture-system.md](architecture-system.md)             |
+| **Environment Libraries**    | Modular library system (7 env libraries + plugins)        | [phase1-3-libraries.md](phase1-3-libraries.md)               |
+| **Configuration (overview)** | 5-layer hierarchy (core→standard→local→customer→sid)      | [config-workflow-highlevel.md](config-workflow-highlevel.md) |
+| **Configuration (detailed)** | Internal function calls, variable export, cleanup         | [config-workflow-detailed.md](config-workflow-detailed.md)   |
+| **Configuration Sequence**   | Library-based config loading sequence diagram             | [config-sequence.md](config-sequence.md)                     |
+| **Plugin System**            | Plugin lifecycle, 13-function interface, integration      | [plugin-system.md](plugin-system.md)                         |
+| **Registry API Flow**        | Unified installation metadata access                      | [registry-api-flow.md](registry-api-flow.md)                 |
 <!-- markdownlint-enable MD013 -->
 
 ### Workflows & Operations
 
 <!-- markdownlint-disable MD013 -->
-| Diagram                  | Description                                      | File                                                         |
-|--------------------------|--------------------------------------------------|--------------------------------------------------------------|
-| **oraenv (overview)**    | Environment setup (interactive/non-interactive)  | [oraenv-workflow-highlevel.md](oraenv-workflow-highlevel.md) |
-| **oraenv (detailed)**    | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md)   |
-| **oraup (overview)**     | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
-| **oraup (detailed)**     | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
-| **Installation Flow**    | Self-extracting installer with integrity check   | [installation-flow.md](installation-flow.md)                 |
+| Diagram               | Description                                      | File                                                         |
+|-----------------------|--------------------------------------------------|--------------------------------------------------------------|
+| **oraenv (overview)** | Environment setup (interactive/non-interactive)  | [oraenv-workflow-highlevel.md](oraenv-workflow-highlevel.md) |
+| **oraenv (detailed)** | Complete function call flow                      | [oraenv-workflow-detailed.md](oraenv-workflow-detailed.md)   |
+| **oraup (overview)**  | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
+| **oraup (detailed)**  | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
+| **Installation Flow** | Self-extracting installer with integrity check   | [installation-flow.md](installation-flow.md)                 |
 <!-- markdownlint-enable MD013 -->
 
 **Viewing Mermaid Diagrams:**

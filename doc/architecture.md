@@ -134,12 +134,12 @@ graph TB
 
 For detailed visual documentation of workflows and component interactions, see the **[Architecture Diagrams Index](images/README.md)**:
 
-**System Architecture**
+#### System Architecture
 
 - **[System Architecture Overview](images/architecture-system.md)** - Complete layered architecture (CLI, Registry, Plugins, Env Libraries, Config, Oracle)
 - **[Environment Management Libraries](images/phase1-3-libraries.md)** - Library architecture with entry points, registry, plugins, and all 7 env libraries
 
-**Registry, Plugins, and Configuration**
+#### Registry, Plugins, and Configuration
 
 - **[Registry API Flow](images/registry-api-flow.md)** - Registry API data flow and plugin integration
 - **[Plugin System](images/plugin-system.md)** - 13-function universal core interface and lifecycle
@@ -147,7 +147,7 @@ For detailed visual documentation of workflows and component interactions, see t
 - **[Configuration System (detailed)](images/config-workflow-detailed.md)** - Function-level flow with variable export and cleanup logic
 - **[Configuration Loading Sequence](images/config-sequence.md)** - Sequence diagram: Parser, Builder, Validator interaction
 
-**Entry Point Workflows**
+#### Entry Point Workflows
 
 - **[oraenv Workflow (overview)](images/oraenv-workflow-highlevel.md)** - Environment setup (interactive/non-interactive)
 - **[oraenv Workflow (detailed)](images/oraenv-workflow-detailed.md)** - Function-level flow with library loading and registry queries
