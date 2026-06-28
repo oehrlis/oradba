@@ -212,8 +212,8 @@ start_database() {
 
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Sourcing environment from oraenv.sh"
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
-        oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Environment sourced, ORACLE_HOME=${ORACLE_HOME}"
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
+        oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Environment sourced, ORACLE_HOME=${ORACLE_HOME:-unset}"
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1
@@ -322,8 +322,8 @@ stop_database() {
 
     if [[ -f "${ORADBA_BIN}/oraenv.sh" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Sourcing environment from oraenv.sh"
-        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1
-        oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Environment sourced, ORACLE_HOME=${ORACLE_HOME}"
+        source "${ORADBA_BIN}/oraenv.sh" "${sid}" > /dev/null 2>&1 || true
+        oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Environment sourced, ORACLE_HOME=${ORACLE_HOME:-unset}"
     else
         oradba_log ERROR "Cannot source oraenv.sh for ${sid}"
         return 1

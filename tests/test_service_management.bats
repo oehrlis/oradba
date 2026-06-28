@@ -326,7 +326,13 @@ setup() {
     mkdir -p "${oh}/bin"
     printf 'TESTDB:%s:Y\n' "${oh}" > "${tmp}/oratab"
 
-    ORATAB="${tmp}/oratab" run "${PROJECT_ROOT}/src/bin/oradba_dbctl.sh" status TESTDB
+    # oradba_dbctl.sh reads ORATAB; oraenv.sh (sourced inside) reads ORATAB_FILE.
+    # Export both so the same fake oratab is used throughout the sourcing chain.
+    # Use bash -c with 2>&1 to capture any TESTDB output on either stream.
+    export ORATAB="${tmp}/oratab"
+    export ORATAB_FILE="${tmp}/oratab"
+    run bash -c "\"${PROJECT_ROOT}/src/bin/oradba_dbctl.sh\" status TESTDB 2>&1"
+    unset ORATAB ORATAB_FILE
 
     # Loop must begin (single SID processed); exit is graceful (0 or 1), never a
     # fatal crash from a from-zero arithmetic abort (would be >= 126 / killed).
