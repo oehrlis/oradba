@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
+### CI
+
+- `.github/workflows/`: update all GitHub Actions to Node-24-compatible
+  versions, eliminating "Node.js 20 is deprecated" runner warnings —
+  `actions/checkout` v4→v7, `actions/upload-artifact` v4→v7,
+  `actions/download-artifact` v4→v8, `actions/setup-node` v4→v6,
+  `actions/setup-python` v5→v6, `actions/dependency-review-action` v4→v5,
+  `actions/upload-pages-artifact` v3→v5, `actions/deploy-pages` v4→v5,
+  `dorny/paths-filter` v3→v4, `softprops/action-gh-release` v1→v3
+
 ### Performance
 
 - `src/lib/oradba_env_builder.sh`: replace `oradba_dedupe_path()` O(n²) nested
