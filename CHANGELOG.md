@@ -93,6 +93,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/docker_automated_tests.sh`: fix tests 77 and 79 — logrotate `--test`
   and sqlnet `--validate` exit non-zero in a fresh Docker environment (no configs
   installed); tests now accept this expected "no config yet" state as passing
+- `tests/docker_automated_tests.sh`: fix key SQL scripts list — `longops.sql`,
+  `session.sql`, `taa.sql` do not exist; replaced with `tal.sql`, `logins.sql`,
+  `sessionsql.sql` which are part of the actual oradba distribution
+- `tests/docker_automated_tests.sh`: fix SQL execution test guard — removed
+  dependency on non-existent `taa.sql`; now checks `command -v sqlplus` and
+  `ORACLE_SID` directly
+- `tests/docker_automated_tests.sh`: fix extension creation test — wrong flag
+  `--output` replaced with `--path /tmp` (correct oradba_extension.sh API);
+  path must point to parent dir, not the extension dir itself
+- `tests/docker_automated_tests.sh`: fix SC2076 ShellCheck warning — replace
+  `=~` with quoted literal RHS with `== *pattern*` glob matching
 - `tests/test_oradba_homes.bats`: `setup()` now symlinks `src/lib/` into the
   temp `ORADBA_BASE` so `oradba_homes.sh` can load `oradba_common.sh` at runtime
   (was failing with "Cannot find common library")

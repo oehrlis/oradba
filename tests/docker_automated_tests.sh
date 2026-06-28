@@ -771,7 +771,7 @@ test_enhanced_extensions() {
     # Remove if exists
     rm -rf "$ext_dir" 2>/dev/null || true
     
-    if "$ext_tool" create "$ext_name" --output "$ext_dir" >> "$TEST_RESULTS_FILE" 2>&1; then
+    if "$ext_tool" create "$ext_name" --path /tmp >> "$TEST_RESULTS_FILE" 2>&1; then
         if [[ -d "$ext_dir" ]]; then
             test_pass "Extension 'odb_test' created successfully"
             
@@ -1218,17 +1218,17 @@ test_sql_scripts() {
         return 0
     fi
     
-    # Test 2: Check for key SQL scripts
+    # Test 2: Check for key SQL scripts (files that actually ship with oradba)
     test_start "Key SQL scripts present"
-    local key_scripts=("afails.sql" "al.sql" "longops.sql" "session.sql" "taa.sql")
+    local key_scripts=("afails.sql" "al.sql" "tal.sql" "logins.sql" "sessionsql.sql")
     local found_count=0
-    
+
     for script in "${key_scripts[@]}"; do
         if [[ -f "$INSTALL_PREFIX/sql/$script" ]]; then
             ((found_count++))
         fi
     done
-    
+
     if [[ $found_count -eq ${#key_scripts[@]} ]]; then
         test_pass "All key SQL scripts present ($found_count/${#key_scripts[@]})"
     elif [[ $found_count -gt 0 ]]; then
@@ -1236,18 +1236,22 @@ test_sql_scripts() {
     else
         test_fail "No key SQL scripts found"
     fi
-    
+
     # Test 3: Test SQL script execution (simple query)
+    # Guard: sqlplus must be available and ORACLE_SID set (oraenv.sh was sourced earlier)
     test_start "SQL script execution test"
-    if [[ -f "$INSTALL_PREFIX/sql/taa.sql" && -n "$ORACLE_SID" ]]; then
-        # Try to execute a simple query
+    local current_sid="${ORACLE_SID:-}"
+    if [[ -z "$current_sid" ]]; then
+        current_sid=$(grep -v "^#" /etc/oratab 2>/dev/null | grep -v "^$" | head -1 | cut -d: -f1 || true)
+    fi
+    if command -v sqlplus &>/dev/null && [[ -n "$current_sid" ]]; then
         if echo "SELECT 'SQL_TEST_OK' FROM DUAL;" | sqlplus -s / as sysdba 2>&1 | grep -q "SQL_TEST_OK"; then
             test_pass "SQL execution works (SQLPlus functional)"
         else
             test_pass "SQLPlus command executed (database may not be accessible)"
         fi
     else
-        test_skip "SQL script test requires Oracle environment"
+        test_skip "SQL script test requires Oracle environment (sqlplus or ORACLE_SID missing)"
     fi
 }
 
@@ -1320,8 +1324,8 @@ test_log_management() {
     local logrotate_out
     logrotate_out=$("$INSTALL_PREFIX/bin/oradba_logrotate.sh" --test 2>&1) || true
     echo "$logrotate_out" >> "$TEST_RESULTS_FILE"
-    if [[ "$logrotate_out" =~ "No configurations found to test" ]] || \
-       [[ "$logrotate_out" =~ "Testing logrotate configurations" ]]; then
+    if [[ "$logrotate_out" == *"No configurations found to test"* ]] || \
+       [[ "$logrotate_out" == *"Testing logrotate configurations"* ]]; then
         test_pass "Dry-run executed (no configs installed yet)"
     else
         test_fail "Log rotation --test produced unexpected output"
@@ -1351,7 +1355,7 @@ test_sqlnet_configuration() {
     local sqlnet_out
     sqlnet_out=$("$INSTALL_PREFIX/bin/oradba_sqlnet.sh" --validate 2>&1) || true
     echo "$sqlnet_out" >> "$TEST_RESULTS_FILE"
-    if [[ "$sqlnet_out" =~ "Validating SQL" ]] || [[ "$sqlnet_out" =~ "sqlnet.ora" ]]; then
+    if [[ "$sqlnet_out" == *"Validating SQL"* ]] || [[ "$sqlnet_out" == *"sqlnet.ora"* ]]; then
         test_pass "SQLNet validate executed (sqlnet.ora not configured)"
     else
         test_fail "SQLNet --validate produced unexpected output"
