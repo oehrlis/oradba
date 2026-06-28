@@ -19,3 +19,14 @@ library patterns, and common shell infrastructure before creating anything new.
 - Config cascade: code defaults → env file → conf file → CLI args
 - Library loading via `source` with path resolved from `BASH_SOURCE[0]`
 - All output via a `LogMessage`-style wrapper, not bare echo/printf
+
+## Testing
+
+- `make test` — fast BATS unit tests (no Docker)
+- `make test-docker` — full Docker integration tests (~10 min); use for releases
+  or manual runs, not every commit; results in `tests/results/`
+
+## Known Open Issues
+
+- **#180** — Config loader requires `[SECTION]` headers; shipped configs use
+  plain shell exports. Tests check variable presence as workaround.

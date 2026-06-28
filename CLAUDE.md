@@ -38,6 +38,21 @@ creating anything new.
 - Oracle Data Safe          →  /oracle-datasafe
 - Oracle Security           →  /oracle-security
 
+## Testing
+
+- `make test` — fast local BATS unit tests (no Docker, no Oracle)
+- `make test-docker` — full Docker integration tests against Oracle 26ai Free
+  (~10 min, resource-intensive); run manually or trigger via GitHub Actions on
+  release tags — not suitable for every commit
+- Test results land in `tests/results/`; failed runs produce a `*_failed_*.log`
+
+## Known Open Issues
+
+- **#180** — Config loader (`oradba_apply_config_section`) requires `[SECTION]`
+  headers; shipped config files use plain shell exports. Planned fix: treat
+  files without sections as `[DEFAULT]`. Tests use variable-presence checks
+  as a workaround until the loader is fixed.
+
 ## Commands
 
 /idea-capture       ← capture a new idea quickly
