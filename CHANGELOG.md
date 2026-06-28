@@ -77,6 +77,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   documented as primary method, `ORADBA_DEBUG/TRACE` as shortcut vars, add log
   level reference table, fix all `oraenv.sh` examples to use `source`, remove
   non-existent `--debug` flag, add "Must Always Be Sourced" note (#210)
+- `doc/images/architecture-system.md`: correct weblogic plugin status from
+  `(planned)` to `(stub)`; extend stub list to weblogic/oms/emagent; add
+  `oradba_env_output.sh` as 7th Environment Management Library (#222)
+- `doc/architecture.md`: add `oradba_env_output.sh` node to all EnvLibs
+  subgraphs; update embedded plugin diagram (6→9 plugins, 8→13 universal
+  core functions); repair broken `![...](.md)` image syntax; expand
+  "Interactive Architecture Diagrams" section from 4 to 12 linked diagrams
+  grouped by category (#222)
+- `doc/development.md`: add link to `images/installation-flow.md` in Build
+  Process section (#222)
+- `doc/images/README.md`: rewrite index to reflect current 13-diagram set,
+  remove deleted files, add Output Formatter colour code (#222)
+- `doc/images/config-hierarchy.md`, `doc/images/oraenv-flow.md`: removed as
+  duplicates of `config-workflow-highlevel.md` and `oraenv-workflow-*` (#222)
 
 ## [1.0.0-rc.1] - 2026-06-27
 
