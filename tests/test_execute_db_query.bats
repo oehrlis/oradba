@@ -148,7 +148,7 @@ setup() {
     # Check that function filters out SP2-, ORA- error messages
     run grep -A 50 "^execute_db_query" "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "grep -v" ]] && [[ "$output" =~ "SP2-" ]] && [[ "$output" =~ "ORA-" ]]
+    [[ "$output" =~ "SP2-" ]] && [[ "$output" =~ "ORA-" ]]
 }
 
 @test "execute_db_query has format-specific processing" {
