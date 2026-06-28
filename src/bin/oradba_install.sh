@@ -319,7 +319,7 @@ backup_modified_files() {
 # Notes...: Protects runtime-managed files from payload overwrite:
 #           etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
 #           and sensitive runtime files in etc/ and extensions/*/etc/
-#           (*.b64, *.pem, *.key, *.crt)
+#           (`*.b64`, `*.pem`, `*.key`, `*.crt`)
 # ------------------------------------------------------------------------------
 preserve_runtime_files() {
     local install_dir="$1"
