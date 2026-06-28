@@ -1,0 +1,119 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: oradba_basenv.conf.example
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2026.06.28
+# Revision...: 0.1.0
+# Purpose....: Example integration snippet for BasEnv coexistence
+# Notes......: Copy to ${ETC_BASE}/basenv.conf or sid._DEFAULT_.conf
+# Reference..: https://github.com/oehrlis/oradba
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+# shellcheck shell=bash disable=SC2034,SC1091
+# Config file for sourceable shell scripts; unused warnings expected.
+
+# ==============================================================================
+# ORADBA BasEnv Integration
+# ==============================================================================
+#
+# This file demonstrates how to integrate OraDBA with TVD BasEnv / DB*Star
+# in a coexistence configuration where BasEnv maintains control of Oracle
+# environment variables (ORACLE_SID, ORACLE_HOME, ORACLE_BASE, etc.).
+#
+# Three integration modes are supported:
+#
+#   1. standalone      - No BasEnv detected; OraDBA has full control
+#   2. basenv          - BasEnv detected; minimal coexistence (auto-default)
+#   3. basenv-maximal  - BasEnv detected; extended aliases (opt-in)
+#
+# ==============================================================================
+# INSTALLATION
+# ==============================================================================
+#
+# Copy this file to:
+#
+#   - ${ETC_BASE}/basenv.conf
+#       (applied globally to all Oracle instances on this host)
+#   or
+#   - ${ETC_BASE}/sid._DEFAULT_.conf or ${ETC_BASE}/sid.<SID>.conf
+#       (applied to a specific SID or default to all SIDs)
+#
+# where ${ETC_BASE} is BasEnv's configuration directory (typically /etc/basenv
+# or /opt/basenv/etc).
+#
+# ==============================================================================
+# MINIMAL MODE (basenv) - Default
+# ==============================================================================
+#
+# In basenv mode, OraDBA is loaded but restricted to prevent conflicts with
+# BasEnv-managed Oracle variables. OraDBA libraries and ORADBA_* variables
+# are available; Oracle variables remain under BasEnv control.
+
+# Load OraDBA libraries and ORADBA_* variables
+# Oracle variables (ORACLE_SID, ORACLE_HOME, ORACLE_BASE, TNS_ADMIN, etc.)
+# remain under BasEnv control and are NOT modified by OraDBA
+if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "${TVD_BASE}/oradba/bin/oraenv.sh"
+fi
+
+# ==============================================================================
+# MAXIMAL MODE (basenv-maximal) - Optional Extension
+# ==============================================================================
+#
+# In basenv-maximal mode, OraDBA additionally loads safe, non-conflicting
+# aliases (sq_oradba, sdba, sora, etc.) that enhance the command-line
+# experience without overriding BasEnv's Oracle variable management.
+#
+# To enable basenv-maximal mode, set this in oradba_local.conf instead:
+#
+#   export ORADBA_COEXIST_MODE="basenv-maximal"
+#
+# This is not set by default to preserve the principle of minimal intrusion
+# and allow explicit opt-in by the administrator.
+
+# ==============================================================================
+# WHAT ORADBA DOES NOT TOUCH IN COEXISTENCE MODE
+# ==============================================================================
+#
+# When in basenv or basenv-maximal mode, OraDBA explicitly avoids:
+#
+#   ORACLE_SID        - Set and managed by BasEnv
+#   ORACLE_HOME        - Set and managed by BasEnv
+#   ORACLE_BASE        - Set and managed by BasEnv
+#   TNS_ADMIN          - Set and managed by BasEnv
+#   NLS_LANG           - Set and managed by BasEnv
+#   SQLPATH order      - BasEnv entries remain first
+#   PATH order         - Oracle executables remain under BasEnv control
+#   PS1                - Prompt customization not applied
+#   BE_* variables     - All BasEnv internal variables remain untouched
+#
+# These restrictions ensure that BasEnv's environment configuration remains
+# authoritative and OraDBA acts as a tool supplement rather than an environment
+# manager.
+
+# ==============================================================================
+# FURTHER CUSTOMIZATION
+# ==============================================================================
+#
+# For additional OraDBA configuration (debugging, logging, feature flags),
+# consult oradba_local.conf or oradba_core.conf for available variables.
+#
+# Common customization points:
+#
+#   ORADBA_LOAD_ALIASES=true      - Enable/disable alias loading
+#   DEBUG=1                        - Enable debug logging
+#   ORADBA_NO_ORACLE_MODE=false   - Set automatically; indicates no Oracle DB
+#
+# Example: Create oradba_local.conf with:
+#
+#   export ORADBA_COEXIST_MODE="basenv-maximal"
+#   export DEBUG=1
+#   export ORADBA_LOAD_ALIASES=true
+
+# ==============================================================================
+# EOF
+# ==============================================================================

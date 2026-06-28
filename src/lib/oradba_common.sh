@@ -514,6 +514,24 @@ alias_exists() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: detect_basenv
+# Purpose.: Detect if TVD BasEnv / DB*Star is active in the current environment
+# Args....: None
+# Returns.: 0 if BasEnv detected, 1 if not
+# Output..: None
+# Notes...: Checks three markers in priority order:
+#           1. BE_HOME variable (set by basenv.sh at login - most reliable)
+#           2. $HOME/.BE_HOME file (present even before basenv.sh runs)
+#           3. $HOME/.TVDPERL_HOME file (always paired with .BE_HOME)
+# ------------------------------------------------------------------------------
+detect_basenv() {
+    [[ -n "${BE_HOME:-}" ]] && return 0
+    [[ -f "${HOME}/.BE_HOME" ]] && return 0
+    [[ -f "${HOME}/.TVDPERL_HOME" ]] && return 0
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # Function: safe_alias
 # Purpose.: Create alias respecting coexistence mode with other Oracle environments
 # Args....: $1 - Alias name
@@ -537,7 +555,7 @@ safe_alias() {
     fi
 
     # In coexistence mode, skip if alias already exists
-    if [[ "${ORADBA_COEXIST_MODE}" == "basenv" ]]; then
+    if [[ "${ORADBA_COEXIST_MODE:-}" == "basenv"* ]]; then
         if alias_exists "${name}"; then
             # Silently skip (basenv has priority)
             oradba_log DEBUG "Skipping alias '${name}' (exists in basenv, coexist mode active)"
@@ -780,7 +798,10 @@ set_oracle_home_environment() {
     fi
 
     # Set base environment
-    export ORACLE_HOME="${adjusted_home}"
+    # In basenv coexistence mode, BasEnv owns ORACLE_HOME and PATH — skip those assignments
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        export ORACLE_HOME="${adjusted_home}"
+    fi
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
 
     # Set library path using plugin system (Phase 4+)
@@ -823,48 +844,51 @@ set_oracle_home_environment() {
     fi
 
     # Set product-specific environment variables
-    case "${product_type}" in
-        database)
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-        oud)
-            export PATH="${ORACLE_HOME}/oud/bin:${PATH}"
-            export INSTANCE_HOME="${ORACLE_HOME}/asinst_1"
-            ;;
-        client)
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-        iclient)
-            # Instant Client: Add ORACLE_HOME to PATH (no bin subdirectory)
-            export PATH="${ORACLE_HOME}:${PATH}"
-            ;;
-        weblogic)
-            export WL_HOME="${ORACLE_HOME}/wlserver"
-            export PATH="${WL_HOME}/server/bin:${PATH}"
-            ;;
-        oms)
-            ORACLE_HOSTNAME=$(hostname -f)
-            export ORACLE_HOSTNAME
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-        emagent)
-            export AGENT_HOME="${ORACLE_HOME}"
-            export PATH="${AGENT_HOME}/bin:${PATH}"
-            ;;
-        datasafe)
-            # ORACLE_HOME now points to oracle_cman_home, so just add bin
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-        java)
-            # Java/JDK installation
-            export JAVA_HOME="${ORACLE_HOME}"
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-        *)
-            oradba_log WARN "Unknown product type: ${product_type}"
-            export PATH="${ORACLE_HOME}/bin:${PATH}"
-            ;;
-    esac
+    # In basenv coexistence mode, BasEnv owns PATH — skip PATH modifications
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        case "${product_type}" in
+            database)
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+            oud)
+                export PATH="${ORACLE_HOME}/oud/bin:${PATH}"
+                export INSTANCE_HOME="${ORACLE_HOME}/asinst_1"
+                ;;
+            client)
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+            iclient)
+                # Instant Client: Add ORACLE_HOME to PATH (no bin subdirectory)
+                export PATH="${ORACLE_HOME}:${PATH}"
+                ;;
+            weblogic)
+                export WL_HOME="${ORACLE_HOME}/wlserver"
+                export PATH="${WL_HOME}/server/bin:${PATH}"
+                ;;
+            oms)
+                ORACLE_HOSTNAME=$(hostname -f)
+                export ORACLE_HOSTNAME
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+            emagent)
+                export AGENT_HOME="${ORACLE_HOME}"
+                export PATH="${AGENT_HOME}/bin:${PATH}"
+                ;;
+            datasafe)
+                # ORACLE_HOME now points to oracle_cman_home, so just add bin
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+            java)
+                # Java/JDK installation
+                export JAVA_HOME="${ORACLE_HOME}"
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+            *)
+                oradba_log WARN "Unknown product type: ${product_type}"
+                export PATH="${ORACLE_HOME}/bin:${PATH}"
+                ;;
+        esac
+    fi
     if command -v _oraenv_profile_mark &> /dev/null; then
         _oraenv_profile_mark "set_home.apply_base_path"
     fi

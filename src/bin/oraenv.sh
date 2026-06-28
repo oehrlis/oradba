@@ -56,6 +56,16 @@ fi
 # Load local configuration (created during installation, contains coexistence mode)
 load_config_file "${ORADBA_CONFIG_DIR}/oradba_local.conf"
 
+# Dynamic BasEnv coexistence detection (Step 2 of issue #93)
+# Auto-set minimal coexist mode when BasEnv is active but not yet configured.
+# basenv-maximal is never auto-set; user must opt-in via oradba_local.conf.
+if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+    if detect_basenv; then
+        export ORADBA_COEXIST_MODE="basenv"
+        oradba_log DEBUG "BasEnv detected at runtime - coexist mode set to basenv (minimal)"
+    fi
+fi
+
 # Set ORATAB_FILE dynamically if not already set
 if [[ -z "${ORATAB_FILE}" ]]; then
     ORATAB_FILE="$(get_oratab_path)"
@@ -114,6 +124,21 @@ _oraenv_ensure_lib() {
         return 0
     fi
     return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: _oradba_path_contains
+# Purpose.: Check whether a directory is present in a colon-separated path variable
+# Args....: $1 - Directory to search for
+#           $2 - Name of the path variable to inspect (default: PATH)
+# Returns.: 0 if directory is found in the path variable, 1 otherwise
+# Output..: None
+# Notes...: Uses indirect variable expansion (${!pathvar}) to avoid subshells.
+#           Used by SQLPATH guard in basenv coexistence mode.
+# ------------------------------------------------------------------------------
+_oradba_path_contains() {
+    local dir="$1" pathvar="${2:-PATH}"
+    [[ ":${!pathvar}:" == *":${dir}:"* ]]
 }
 
 # ------------------------------------------------------------------------------
@@ -795,14 +820,18 @@ _oraenv_handle_oracle_home() {
         return 1
     fi
 
-    # Set ORACLE_SID to empty for non-database homes
-    export ORACLE_SID=""
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        # Set ORACLE_SID to empty for non-database homes
+        export ORACLE_SID=""
 
-    # Set ORACLE_BASE if not already set
-    if [[ -z "${ORACLE_BASE:-}" ]]; then
-        local derived_base
-        derived_base="$(derive_oracle_base "$ORACLE_HOME")"
-        export ORACLE_BASE="${derived_base}"
+        # Set ORACLE_BASE if not already set
+        if [[ -z "${ORACLE_BASE:-}" ]]; then
+            local derived_base
+            derived_base="$(derive_oracle_base "$ORACLE_HOME")"
+            export ORACLE_BASE="${derived_base}"
+        fi
+    else
+        oradba_log DEBUG "basenv coexist: skipping ORACLE_SID/ORACLE_BASE assignment (BasEnv owns Oracle vars)"
     fi
 
     # Load hierarchical configuration and extensions for this Oracle Home
@@ -816,35 +845,39 @@ _oraenv_handle_oracle_home() {
     local product_type
     product_type=$(get_oracle_home_type "$requested_sid" 2> /dev/null || echo "unknown")
 
-    # Set TNS_ADMIN based on product type
-    if [[ "${product_type}" == "datasafe" ]]; then
-        # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
-        # Load and call plugin_set_environment
-        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-        if [[ -f "${plugin_file}" ]]; then
-            if ! type -t plugin_set_environment &> /dev/null; then
-                # shellcheck source=/dev/null
-                source "${plugin_file}"
-            fi
-            if type -t plugin_set_environment &> /dev/null; then
-                # For Oracle Homes, ORACLE_HOME is already set correctly
-                # Need to determine base path for plugin_set_environment
-                local base_path="${ORACLE_HOME}"
-                # If ORACLE_HOME ends with oracle_cman_home, use parent as base
-                if [[ "${ORACLE_HOME}" =~ /oracle_cman_home$ ]]; then
-                    base_path="${ORACLE_HOME%/oracle_cman_home}"
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        # Set TNS_ADMIN based on product type
+        if [[ "${product_type}" == "datasafe" ]]; then
+            # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
+            # Load and call plugin_set_environment
+            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+            if [[ -f "${plugin_file}" ]]; then
+                if ! type -t plugin_set_environment &> /dev/null; then
+                    # shellcheck source=/dev/null
+                    source "${plugin_file}"
                 fi
-                plugin_set_environment "${base_path}"
-                oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
+                if type -t plugin_set_environment &> /dev/null; then
+                    # For Oracle Homes, ORACLE_HOME is already set correctly
+                    # Need to determine base path for plugin_set_environment
+                    local base_path="${ORACLE_HOME}"
+                    # If ORACLE_HOME ends with oracle_cman_home, use parent as base
+                    if [[ "${ORACLE_HOME}" =~ /oracle_cman_home$ ]]; then
+                        base_path="${ORACLE_HOME%/oracle_cman_home}"
+                    fi
+                    plugin_set_environment "${base_path}"
+                    oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
+                fi
             fi
+        else
+            _oraenv_apply_tns_admin "${product_type}"
         fi
-    else
-        _oraenv_apply_tns_admin "${product_type}"
-    fi
-    _oraenv_profile_mark "apply_tns_admin"
+        _oraenv_profile_mark "apply_tns_admin"
 
-    # Set NLS_LANG if not set
-    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
+        # Set NLS_LANG if not set
+        export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
+    else
+        oradba_log DEBUG "basenv coexist: skipping TNS_ADMIN/NLS_LANG assignment (BasEnv owns Oracle vars)"
+    fi
 
     # Apply Java/client path configurations
     _oraenv_apply_path_configs "${product_type}" "${ORACLE_HOME}"
@@ -1020,6 +1053,12 @@ _oraenv_apply_tns_admin() {
         return 0
     fi
 
+    # In basenv coexist mode BasEnv owns TNS_ADMIN — skip all assignment
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv"* ]]; then
+        oradba_log DEBUG "basenv coexist: skipping TNS_ADMIN assignment in _oraenv_apply_tns_admin"
+        return 0
+    fi
+
     unset TNS_ADMIN
 
     if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
@@ -1054,10 +1093,6 @@ _oraenv_setup_environment_variables() {
     local oratab_entry="$3"
     local datasafe_install_dir="$4"
 
-    # Set new environment (use actual SID from oratab to preserve case)
-    export ORACLE_SID="$actual_sid"
-    export ORACLE_HOME="$oracle_home"
-
     # Get product type
     local product_type="database"
     if command -v get_oracle_home_type &> /dev/null; then
@@ -1065,7 +1100,7 @@ _oraenv_setup_environment_variables() {
     fi
     export ORADBA_CURRENT_HOME_TYPE="${product_type}"
 
-    # Set DataSafe-specific variables if applicable
+    # Set DataSafe-specific variables if applicable (oradba namespace - not guarded)
     if [[ -n "$datasafe_install_dir" ]]; then
         export DATASAFE_HOME="$oracle_home"
         export DATASAFE_INSTALL_DIR="$datasafe_install_dir"
@@ -1074,49 +1109,57 @@ _oraenv_setup_environment_variables() {
         fi
     fi
 
-    # Set ORACLE_BASE if not already set
-    if [[ -z "${ORACLE_BASE}" ]]; then
-        local derived_base
-        derived_base="$(derive_oracle_base "$ORACLE_HOME")"
-        export ORACLE_BASE="${derived_base}"
-    fi
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        # Set new environment (use actual SID from oratab to preserve case)
+        export ORACLE_SID="$actual_sid"
+        export ORACLE_HOME="$oracle_home"
 
-    # Clean old Oracle paths before adding new ones
-    if command -v oradba_clean_path &> /dev/null; then
-        oradba_clean_path
-    fi
+        # Set ORACLE_BASE if not already set
+        if [[ -z "${ORACLE_BASE}" ]]; then
+            local derived_base
+            derived_base="$(derive_oracle_base "$ORACLE_HOME")"
+            export ORACLE_BASE="${derived_base}"
+        fi
 
-    # Set library path using plugin system
-    if command -v oradba_set_lib_path &> /dev/null; then
-        oradba_set_lib_path "$ORACLE_HOME" "$product_type"
-    fi
+        # Clean old Oracle paths before adding new ones
+        if command -v oradba_clean_path &> /dev/null; then
+            oradba_clean_path
+        fi
 
-    # Set PATH
-    export PATH="${ORACLE_HOME}/bin:${PATH}"
+        # Set library path using plugin system
+        if command -v oradba_set_lib_path &> /dev/null; then
+            oradba_set_lib_path "$ORACLE_HOME" "$product_type"
+        fi
 
-    # Set TNS_ADMIN based on product type
-    if [[ "${product_type}" == "datasafe" ]]; then
-        # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
-        # Call plugin_set_environment to set connector-specific TNS_ADMIN
-        local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-        if [[ -f "${plugin_file}" ]]; then
-            # Plugin already sourced in _oraenv_apply_product_adjustments, but ensure it's loaded
-            if ! type -t plugin_set_environment &> /dev/null; then
-                # shellcheck source=/dev/null
-                source "${plugin_file}"
-            fi
-            if type -t plugin_set_environment &> /dev/null; then
-                # Pass the base path (before adjustment), plugin will handle oracle_cman_home
-                plugin_set_environment "${datasafe_install_dir:-${ORACLE_HOME}}"
-                oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
+        # Set PATH
+        export PATH="${ORACLE_HOME}/bin:${PATH}"
+
+        # Set TNS_ADMIN based on product type
+        if [[ "${product_type}" == "datasafe" ]]; then
+            # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
+            # Call plugin_set_environment to set connector-specific TNS_ADMIN
+            local plugin_file="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
+            if [[ -f "${plugin_file}" ]]; then
+                # Plugin already sourced in _oraenv_apply_product_adjustments, but ensure it's loaded
+                if ! type -t plugin_set_environment &> /dev/null; then
+                    # shellcheck source=/dev/null
+                    source "${plugin_file}"
+                fi
+                if type -t plugin_set_environment &> /dev/null; then
+                    # Pass the base path (before adjustment), plugin will handle oracle_cman_home
+                    plugin_set_environment "${datasafe_install_dir:-${ORACLE_HOME}}"
+                    oradba_log DEBUG "DataSafe TNS_ADMIN set via plugin: ${TNS_ADMIN}"
+                fi
             fi
         fi
+
+        # Set NLS_LANG if not set
+        export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
+    else
+        oradba_log DEBUG "basenv coexist: skipping Oracle variable assignment (ORACLE_SID/HOME/BASE/NLS_LANG/PATH/TNS_ADMIN) — BasEnv owns these"
     fi
 
-    # Set NLS_LANG if not set
-    export NLS_LANG="${NLS_LANG:-AMERICAN_AMERICA.AL32UTF8}"
-
-    # Set startup flag from oratab
+    # Set startup flag from oratab (always — oradba internal tracking only)
     local startup_flag
     local _oe_rest="${oratab_entry#*:}"
     startup_flag="${_oe_rest#*:}"
@@ -1176,13 +1219,17 @@ _oraenv_load_configurations() {
 
     # Configure SQLPATH for SQL script discovery (#11)
     if [[ "${ORADBA_CONFIGURE_SQLPATH}" != "false" ]]; then
-        configure_sqlpath
-        _oraenv_profile_mark "configure_sqlpath"
+        if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv"* ]] && _oradba_path_contains "${ORADBA_BASE}/sql" "SQLPATH"; then
+            oradba_log DEBUG "SQLPATH guard: BasEnv already manages SQLPATH (${ORADBA_BASE}/sql present), skipping configure_sqlpath"
+        else
+            configure_sqlpath
+            _oraenv_profile_mark "configure_sqlpath"
+        fi
     fi
 
     # Load extensions (skip in coexistence mode unless forced) (#15)
     oradba_log DEBUG "Checking extension loading conditions..."
-    if [[ "${ORADBA_COEXIST_MODE}" != "basenv" ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
         if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &> /dev/null; then
             oradba_log DEBUG "Loading enabled extension bin directories into PATH"
             load_extensions
@@ -1327,7 +1374,10 @@ _oraenv_unset_old_env() {
     fi
 
     # Clear product-specific environment from previous home
-    unset TNS_ADMIN
+    # In basenv coexist mode BasEnv owns TNS_ADMIN - do not unset it
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+        unset TNS_ADMIN
+    fi
     unset JAVA_HOME
     unset ORACLE_CLIENT_HOME
     unset DATASAFE_HOME
@@ -1373,9 +1423,12 @@ _oraenv_main() {
         oradba_log INFO "After installing Oracle, use: oradba_setup.sh link-oratab"
 
         # Set minimal environment for no-Oracle mode
-        export ORACLE_SID="${REQUESTED_SID:-dummy}"
-        export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_BASE}/dummy}"
-        export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_BASE%/local/oradba}}"
+        # In basenv coexistence mode, BasEnv owns Oracle vars — skip those assignments
+        if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+            export ORACLE_SID="${REQUESTED_SID:-dummy}"
+            export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_BASE}/dummy}"
+            export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_BASE%/local/oradba}}"
+        fi
         export ORADBA_NO_ORACLE_MODE=true
 
         oradba_log INFO "Minimal Oracle environment set (no-Oracle mode):"

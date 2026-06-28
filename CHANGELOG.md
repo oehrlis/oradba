@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
+### Added
+
+- **BasEnv coexistence mode** (`ORADBA_COEXIST_MODE`): oradba now detects TVD BasEnv/DB*Star
+  automatically and runs in non-invasive coexistence mode. Three modes: `standalone` (default),
+  `basenv` (minimal, auto-detected - libraries only, BasEnv owns Oracle vars), and
+  `basenv-maximal` (opt-in - adds non-conflicting aliases). See `doc/basenv_coexist.md`.
+- `detect_basenv()` library function in `oradba_common.sh` for runtime BasEnv detection.
+- `src/etc/oradba_basenv.conf.example`: integration snippet template for `${ETC_BASE}/basenv.conf`.
+- Bats tests for coexistence scenarios in `tests/test_basenv_coexist.bats`.
+
 ### CI
 
 - `.github/workflows/`: update all GitHub Actions to Node-24-compatible
