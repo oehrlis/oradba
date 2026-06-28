@@ -328,11 +328,15 @@ setup() {
 
     # oradba_dbctl.sh reads ORATAB; oraenv.sh (sourced inside) reads ORATAB_FILE.
     # Export both so the same fake oratab is used throughout the sourcing chain.
+    # ORADBA_LOG must point to a writable directory: without it the default
+    # /var/log/oracle does not exist in CI and the first oradba_log call fails
+    # (set -e aborts before "Processing specified databases: TESTDB" is printed).
     # Use bash -c with 2>&1 to capture any TESTDB output on either stream.
     export ORATAB="${tmp}/oratab"
     export ORATAB_FILE="${tmp}/oratab"
+    export ORADBA_LOG="${tmp}"
     run bash -c "\"${PROJECT_ROOT}/src/bin/oradba_dbctl.sh\" status TESTDB 2>&1"
-    unset ORATAB ORATAB_FILE
+    unset ORATAB ORATAB_FILE ORADBA_LOG
 
     # Loop must begin (single SID processed); exit is graceful (0 or 1), never a
     # fatal crash from a from-zero arithmetic abort (would be >= 126 / killed).
