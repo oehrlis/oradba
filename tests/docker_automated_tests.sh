@@ -497,14 +497,15 @@ test_oracle_homes() {
     
     if "$INSTALL_PREFIX/bin/oradba_homes.sh" export > "$export_file" 2>&1; then
         test_pass "Export successful: $export_file"
-        
+
         # Verify export format
+        test_start "Verify export contains registered home"
         if grep -q "^$test_home_name:" "$export_file"; then
             test_pass "Export contains registered home"
         else
             test_fail "Export missing registered home"
         fi
-        
+
         rm -f "$export_file"
     else
         test_fail "Export failed"

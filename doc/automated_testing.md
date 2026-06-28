@@ -8,7 +8,7 @@ automate the majority of tests documented in `manual_testing.md`.
 **Current Coverage**: ~90% of manual tests are now automated
 **Test Suites**: 26 test functions covering installation, configuration, and operations
 **Integration Tests**: 96+ individual test cases (0 FAIL, 0 SKIP on Oracle 26ai Free)
-**Unit Tests**: 1200+ BATS tests (`make test-full`) with 0 failures
+**Unit Tests**: 1711+ BATS tests (`make test-full`) with 0 failures
 **Platform**: Oracle 26ai Free Docker container
 
 See [Manual Tests Coverage](#manual-tests-coverage) section below for detailed breakdown.

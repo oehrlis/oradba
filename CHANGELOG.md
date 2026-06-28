@@ -104,6 +104,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path must point to parent dir, not the extension dir itself
 - `tests/docker_automated_tests.sh`: fix SC2076 ShellCheck warning — replace
   `=~` with quoted literal RHS with `== *pattern*` glob matching
+- `tests/docker_automated_tests.sh`: fix 101% pass rate — Oracle Homes export test
+  had one `test_start` but two `test_pass` calls in the success path (export OK +
+  grep verify); added missing `test_start "Verify export contains registered home"`
+  so PASSED = TOTAL = 101 → 100% pass rate
 - `tests/docker_automated_tests.sh`: auto-discovery test redesigned without sudo
   - replaces sudo-based `/etc/oratab` manipulation with `ORADBA_ORATAB` override
     pointing to a user-writable temp file
@@ -178,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expected duration (~10 min), add `ORADBA_ORATAB` env var, replace generic CI
   example with actual `docker-tests.yml` tag trigger logic
 - `doc/development.md`: update test targets table (`make test-docker` 96+ tests /
-  ~10 min; `make test-full` 1200+ BATS unit tests)
+  ~10 min; `make test-full` 1711+ BATS unit tests)
+- `doc/automated_testing.md`: correct unit test count from 1200+ to 1711+
 
 ## [1.0.0-rc.1] - 2026-06-27
 
