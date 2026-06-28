@@ -58,6 +58,9 @@ The standard co-installation layout places OraDBA as a peer of BasEnv under `TVD
 ./oradba_install.sh --prefix /opt/oracle/local/oradba
 ```
 
+If `--update-profile` is passed, the installer detects BasEnv and skips the
+automatic profile update with a warning, printing the block to add manually instead.
+
 ### Step 2 - Add OraDBA to .bash_profile
 
 `${ETC_BASE}/basenv.conf` and `${ETC_BASE}/sid.<SID>.conf` use BasEnv's own custom

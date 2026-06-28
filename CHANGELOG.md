@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `src/bin/oradba_install.sh` `update_profile()`: automatically skip profile update
+  when BasEnv is detected (`COEXIST_MODE=basenv*`); print the manual integration
+  block instead. Prevents OraDBA from being inserted before BasEnv initializes,
+  which would cause it to start in `standalone` mode.
 - `src/etc/oradba_basenv.conf.example`: corrected header and installation section -
   `${ETC_BASE}/basenv.conf` and `sid.<SID>.conf` use BasEnv's own custom parser and
   do not support bash `if` syntax; integration block must go in `~/.bash_profile`

@@ -854,6 +854,27 @@ update_profile() {
     echo "==========================================="
     echo ""
 
+    # BasEnv coexistence: automatic profile update is not supported.
+    # ${ETC_BASE}/basenv.conf and sid.<SID>.conf use BasEnv's own custom parser
+    # and do not support bash if/then syntax - adding an OraDBA block there
+    # causes a BEbliDoConfig parse error. OraDBA must be sourced from
+    # ~/.bash_profile AFTER the BasEnv initialization line; the correct
+    # insertion point cannot be determined automatically.
+    if [[ "${COEXIST_MODE:-standalone}" == "basenv"* ]]; then
+        log_warn "--update-profile is not supported in BasEnv coexistence mode"
+        log_info "Add the following block to ${profile_file} AFTER the BasEnv init line:"
+        echo ""
+        echo "  # Existing BasEnv initialization (already in ${profile_file}):"
+        echo "  # . /opt/oracle/local/dba/bin/basenv.sh"
+        echo ""
+        echo "  # Add OraDBA after - BE_HOME is now set, detection works correctly:"
+        echo "  if [[ -f \"\${TVD_BASE}/oradba/bin/oraenv.sh\" ]]; then"
+        echo "      source \"\${TVD_BASE}/oradba/bin/oraenv.sh\""
+        echo "  fi"
+        echo ""
+        return 0
+    fi
+
     # Check if already integrated
     if profile_has_oradba "$profile_file"; then
         log_info "OraDBA already integrated in: $profile_file"

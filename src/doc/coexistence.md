@@ -84,17 +84,15 @@ The correct load order is:
     └── source oraenv.sh     ← OraDBA detects BE_HOME, activates basenv mode
 ```
 
-Do **not** use `--update-profile` when installing alongside BasEnv - that flag
-adds OraDBA at the top of `.bash_profile` before BasEnv initializes, which
-causes OraDBA to start in `standalone` mode and override Oracle variables that
-BasEnv owns.
+`--update-profile` is automatically skipped when BasEnv is detected. The
+installer prints the block to add manually and exits the profile step cleanly.
 
 **Note on `${ETC_BASE}` config files:**
 
-| File | Format | Bash syntax |
-| --- | --- | --- |
-| `basenv.conf` | BasEnv custom parser | not supported |
-| `sid.<SID>.conf` | INI-style `[SID]` sections | not supported |
+| File                 | Format                         | Bash syntax   |
+|----------------------|--------------------------------|---------------|
+| `basenv.conf`        | BasEnv custom parser           | not supported |
+| `sid.<SID>.conf`     | INI-style `[SID]` sections     | not supported |
 | `sid._DEFAULT_.conf` | INI-style `[DEFAULT]` sections | not supported |
 
 None of these files can host the OraDBA integration block.
