@@ -256,6 +256,19 @@ oradba_extension.sh info mycompany    # Detailed info
 
 See [Extension System Guide](doc/extension-system.md) for complete documentation.
 
+## BasEnv Coexistence
+
+OraDBA detects [TVD BasEnv / DB*Star](https://www.accenture.com/us-en/services/data-ai/oracle-cloud) automatically
+and switches to a non-invasive coexistence mode. When BasEnv is present, OraDBA loads its libraries and
+`ORADBA_*` configuration only - Oracle environment variables (`ORACLE_SID`, `ORACLE_HOME`, `ORACLE_BASE`,
+`TNS_ADMIN`) remain under BasEnv control.
+
+Three modes are supported: `standalone` (default), `basenv` (auto-detected, minimal), and
+`basenv-maximal` (opt-in, adds non-conflicting aliases).
+
+See [doc/basenv_coexist.md](doc/basenv_coexist.md) for the full integration guide including installation
+steps, the protected-variable table, and troubleshooting.
+
 ## Troubleshooting
 
 If you experience issues with installation or environment setup:
