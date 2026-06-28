@@ -104,6 +104,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path must point to parent dir, not the extension dir itself
 - `tests/docker_automated_tests.sh`: fix SC2076 ShellCheck warning — replace
   `=~` with quoted literal RHS with `== *pattern*` glob matching
+- `tests/docker_automated_tests.sh`: auto-discovery test no longer requires
+  sudo to backup/modify `/etc/oratab`; uses `ORADBA_ORATAB` override pointing
+  to a user-writable temp file instead (oracle user in Docker has no sudo)
 - `tests/test_oradba_homes.bats`: `setup()` now symlinks `src/lib/` into the
   temp `ORADBA_BASE` so `oradba_homes.sh` can load `oradba_common.sh` at runtime
   (was failing with "Cannot find common library")

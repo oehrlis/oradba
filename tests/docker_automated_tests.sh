@@ -385,21 +385,23 @@ test_environment_loading() {
 
 test_auto_discovery() {
     log_section "AUTO-DISCOVERY TESTS"
-    
-    # Backup oratab
-    test_start "Backup oratab"
+
+    # Use ORADBA_ORATAB override to avoid touching /etc/oratab (no sudo needed).
+    # We create a comments-only temp oratab so auto-discovery runs against an
+    # empty registry, then verify it finds the running instance via process scan.
+    local tmp_oratab
+    tmp_oratab=$(mktemp /tmp/oratab_autodiscovery_XXXXXX)
+
+    # Setup: copy comments from /etc/oratab into temp file (no sudo required)
+    test_start "Prepare temp oratab for auto-discovery test"
     if [[ -f /etc/oratab ]]; then
-        if sudo cp /etc/oratab /etc/oratab.backup_autodiscovery 2>/dev/null; then
-            test_pass "oratab backed up"
-        else
-            test_skip "Cannot backup oratab (no sudo) - skipping auto-discovery tests"
-            return 0
-        fi
+        grep "^#" /etc/oratab > "$tmp_oratab" 2>/dev/null || true
+        test_pass "Temp oratab created (comments only): $tmp_oratab"
     else
-        test_skip "No oratab file - skipping auto-discovery tests"
-        return 0
+        printf "# oratab placeholder for auto-discovery test\n" > "$tmp_oratab"
+        test_pass "Temp oratab created (no /etc/oratab found)"
     fi
-    
+
     # Check for running instances
     test_start "Verify Oracle instance is running"
     if ps -ef | grep -E "(db_smon_|ora_pmon_)" | grep -v grep > /dev/null; then
@@ -408,63 +410,47 @@ test_auto_discovery() {
         test_pass "$instance_count Oracle instance(s) running"
     else
         test_skip "No running Oracle instances - skipping auto-discovery tests"
-        sudo mv /etc/oratab.backup_autodiscovery /etc/oratab 2>/dev/null
+        rm -f "$tmp_oratab"
         return 0
     fi
-    
-    # Clear oratab
-    test_start "Clear oratab for auto-discovery test"
-    if sudo bash -c 'grep "^#" /etc/oratab > /etc/oratab.tmp && mv /etc/oratab.tmp /etc/oratab' 2>/dev/null; then
-        test_pass "oratab cleared (comments preserved)"
-    else
-        test_fail "Failed to clear oratab"
-        sudo mv /etc/oratab.backup_autodiscovery /etc/oratab 2>/dev/null
-        return 1
-    fi
-    
-    # Test auto-discovery in oraup.sh
-    test_start "Auto-discovery via oraup.sh"
+
+    # Test auto-discovery via oraup.sh with empty temp oratab
+    test_start "Auto-discovery via oraup.sh (empty oratab)"
     local oraup_output
-    oraup_output=$("$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
-    
+    oraup_output=$(ORADBA_ORATAB="$tmp_oratab" "$INSTALL_PREFIX/bin/oraup.sh" 2>&1)
+    echo "$oraup_output" >> "$TEST_RESULTS_FILE"
+
     if echo "$oraup_output" | grep -q "Auto-discovered.*Oracle instance"; then
         test_pass "Auto-discovery detected running instances"
     else
         test_fail "Auto-discovery did not detect instances"
-        log_info "oraup.sh output:"
-        echo "$oraup_output" >> "$TEST_RESULTS_FILE"
     fi
-    
-    # Test persistence to oratab
+
+    # Test persistence: auto-discovery should have written to the temp oratab
     test_start "Auto-discovered instance persisted to oratab"
     local entry_count
-    entry_count=$(grep -cv "^#\|^[[:space:]]*$" /etc/oratab 2>/dev/null || echo 0)
-    
+    entry_count=$(grep -cv "^#\|^[[:space:]]*$" "$tmp_oratab" 2>/dev/null || echo 0)
+
     if [[ $entry_count -gt 0 ]]; then
-        test_pass "$entry_count instance(s) added to oratab"
-        log_info "oratab entries:"
-        grep -v "^#\|^[[:space:]]*$" /etc/oratab >> "$TEST_RESULTS_FILE" 2>/dev/null || true
+        test_pass "$entry_count instance(s) added to temp oratab"
+        grep -v "^#\|^[[:space:]]*$" "$tmp_oratab" >> "$TEST_RESULTS_FILE" 2>/dev/null || true
     else
-        # Check local oratab fallback
+        # Fallback: check if local oratab was used instead
         if [[ -f "$INSTALL_PREFIX/etc/oratab" ]]; then
+            local local_entries
             local_entries=$(grep -cv "^#\|^[[:space:]]*$" "$INSTALL_PREFIX/etc/oratab" 2>/dev/null || echo 0)
             if [[ $local_entries -gt 0 ]]; then
-                test_pass "Instance(s) saved to local oratab (fallback)"
+                test_pass "Instance(s) saved to local oratab (ORADBA_BASE fallback)"
             else
-                test_fail "No instances saved to system or local oratab"
+                test_fail "No instances persisted to temp or local oratab"
             fi
         else
-            test_fail "No instances saved to oratab"
+            test_fail "No instances persisted to oratab"
         fi
     fi
-    
-    # Restore oratab
-    test_start "Restore original oratab"
-    if sudo mv /etc/oratab.backup_autodiscovery /etc/oratab 2>/dev/null; then
-        test_pass "oratab restored"
-    else
-        test_fail "Failed to restore oratab"
-    fi
+
+    # Cleanup
+    rm -f "$tmp_oratab"
 }
 
 # ------------------------------------------------------------------------------
