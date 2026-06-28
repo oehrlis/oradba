@@ -70,6 +70,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `src/bin/oradba_homes.sh`: `show_home()` no longer exits non-zero when the
+  Oracle Home directory has more than 10 entries - `find | head -10` triggered
+  SIGPIPE under `set -o pipefail`; fixed with `|| true`
+- `src/bin/oradba_check.sh`: `check_oracle_versions()` no longer aborts with
+  `BASH_REMATCH[1]: unbound variable` under `set -u` - the second `=~` for
+  `TYPE="O"` was overwriting `BASH_REMATCH` from the LOC capture; fixed by
+  saving the capture before the second match
+- `src/bin/oradba_env.sh`: `cmd_status()` no longer fails with
+  `show_database_status: command not found` - `oradba_db_functions.sh` (which
+  defines the function) is now sourced at startup alongside the other Phase 3
+  libraries
+- `src/bin/oraup.sh`: listener table now has a `Listeners` section heading,
+  consistent with the `Oracle Homes` and `Database Instances` sections above it
+- `tests/docker_automated_tests.sh`: fix 9 tests that called non-existent
+  command options and silently reported PASS despite error output:
+  `oraup.sh --list/--status/--format/--output`, `oradba_env.sh info`,
+  `oradba_logrotate.sh --dry-run`, `oradba_sqlnet.sh show`,
+  `oradba_homes.sh show` (IFS parsing bug passing full table row as name),
+  config-sections test expecting INI `[SECTION]` headers that do not exist
+  (shell-style config; see issue #180 for the planned backward-compatible fix)
+
 - `tests/`: repair 4 pre-existing test failures tracked in #220:
   `test_oraup.bats` wrong grep pattern for `check_listener_status`;
   `test_execute_db_query.bats` stale `grep -v` assertion replaced with

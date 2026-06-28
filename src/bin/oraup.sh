@@ -379,6 +379,7 @@ show_oracle_status_registry() {
     if [[ $total_databases -gt 0 ]] || [[ "$has_database_listeners" == "true" ]]; then
         oradba_log DEBUG "oraup.sh: Displaying listener section"
         echo ""
+        echo "Listeners"
         echo "------------------------------------------------------------------------------------------"
         printf "%-20s %-16s %-13s %s\n" "NAME" "PORT (tcp/tcps)" "STATUS" "ORACLE_HOME"
         echo "------------------------------------------------------------------------------------------"

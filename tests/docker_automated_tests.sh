@@ -833,22 +833,22 @@ test_enhanced_oracle_homes() {
     
     # Test 3: Show details for discovered homes
     test_start "Show Oracle Home details"
-    # Try to find a home name from the list (look for DBHOMEFREE first)
-    local home_name
-    while IFS=: read -r _name _rest; do
+    # Parse home name from space-delimited list output (first word of data lines)
+    local home_name=""
+    while read -r _name _rest; do
         [[ "${_name}" =~ ^(DBHOMEFREE|FREE) ]] && home_name="${_name}" && break
     done <<< "${homes_output}"
     if [[ -z "$home_name" ]]; then
-        while IFS=: read -r _name _rest; do
-            [[ -n "${_name}" ]] && [[ ! "${_name}" =~ ^[[:space:]]*# ]] && home_name="${_name}" && break
+        while read -r _name _rest; do
+            [[ -n "${_name}" ]] && [[ ! "${_name}" =~ ^(#|NAME|=+|-+|Registered|Oracle) ]] && home_name="${_name}" && break
         done <<< "${homes_output}"
     fi
-    
+
     if [[ -n "$home_name" ]]; then
         if "$INSTALL_PREFIX/bin/oradba_homes.sh" show "$home_name" >> "$TEST_RESULTS_FILE" 2>&1; then
             test_pass "Oracle Home details shown for: $home_name"
         else
-            test_pass "Show command executed for: $home_name"
+            test_fail "Show command failed for: $home_name"
         fi
     else
         test_skip "No Oracle Home found for show test"
@@ -893,11 +893,11 @@ test_environment_management() {
     fi
     
     # Test 2: Environment info
-    test_start "Environment info"
-    if "$INSTALL_PREFIX/bin/oradba_env.sh" info >> "$TEST_RESULTS_FILE" 2>&1; then
-        test_pass "Environment info retrieved"
+    test_start "Environment version"
+    if "$INSTALL_PREFIX/bin/oradba_env.sh" version >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "Environment version retrieved"
     else
-        test_pass "Environment info command executed"
+        test_fail "Environment version command failed"
     fi
     
     # Test 3: Environment list
@@ -949,26 +949,30 @@ test_environment_management() {
 test_output_formats() {
     log_section "OUTPUT FORMAT TESTS"
     
-    # Test 1: Different status outputs
+    # Test 1: Different verbosity outputs
     test_start "Status output formats"
-    local tools=("oraup.sh" "oradba_homes.sh" "oradba_env.sh")
     local format_tests=0
-    
-    for tool in "${tools[@]}"; do
-        if [[ -f "$INSTALL_PREFIX/bin/$tool" ]]; then
-            # Try different format options
-            for format_option in "--format json" "--output table" "--list" "--status" "--verbose"; do
-                if "$INSTALL_PREFIX/bin/$tool" $format_option >> "$TEST_RESULTS_FILE" 2>&1; then
-                    ((format_tests++))
-                fi
-            done
+    local -a verbose_commands=(
+        "$INSTALL_PREFIX/bin/oraup.sh"
+        "$INSTALL_PREFIX/bin/oraup.sh --verbose"
+        "$INSTALL_PREFIX/bin/oradba_homes.sh list"
+        "$INSTALL_PREFIX/bin/oradba_homes.sh list --verbose"
+        "$INSTALL_PREFIX/bin/oradba_env.sh list"
+    )
+
+    for cmd in "${verbose_commands[@]}"; do
+        tool_bin="${cmd%% *}"
+        if [[ -f "$tool_bin" ]]; then
+            if $cmd >> "$TEST_RESULTS_FILE" 2>&1; then
+                ((format_tests++))
+            fi
         fi
     done
-    
+
     if [[ $format_tests -gt 0 ]]; then
         test_pass "$format_tests format options tested successfully"
     else
-        test_pass "Format testing completed (specific formats may not be supported)"
+        test_fail "All format option tests failed"
     fi
     
     # Test 2: List outputs with different options
@@ -977,7 +981,7 @@ test_output_formats() {
         "oradba_homes.sh list"
         "oradba_homes.sh list --verbose"
         "oradba_env.sh list"
-        "oraup.sh --list"
+        "oradba_env.sh list sids"
     )
     local list_success=0
     
@@ -992,14 +996,14 @@ test_output_formats() {
     if [[ $list_success -gt 0 ]]; then
         test_pass "$list_success list variations executed successfully"
     else
-        test_pass "List command variations tested"
+        test_fail "All list command variations failed"
     fi
     
     # Test 3: Status command variations
     test_start "Status command variations"
     local status_commands=(
         "oraup.sh"
-        "oraup.sh --status"
+        "oradba_env.sh status"
         "oradba_dbctl.sh status FREE"
         "oradba_lsnrctl.sh status"
     )
@@ -1017,7 +1021,7 @@ test_output_formats() {
     if [[ $status_success -gt 0 ]]; then
         test_pass "$status_success status variations executed successfully"
     else
-        test_pass "Status command variations tested"
+        test_fail "All status command variations failed"
     fi
 }
 
@@ -1158,7 +1162,7 @@ test_database_status() {
     # Test 3: Listener status (if running)
     if ps -ef | grep -v grep | grep "tnslsnr" > /dev/null 2>&1; then
         test_start "Listener status displayed"
-        if echo "$status_output" | grep -q "Listener Status"; then
+        if echo "$status_output" | grep -q "Listeners"; then
             test_pass "Listener status section present"
         else
             test_fail "Listener status section missing (listener is running)"
@@ -1310,12 +1314,12 @@ test_log_management() {
         test_pass "Help command executed"
     fi
     
-    # Test 3: Dry-run test (no actual rotation)
+    # Test 3: Test mode (no actual rotation)
     test_start "Log rotation dry-run test"
-    if "$INSTALL_PREFIX/bin/oradba_logrotate.sh" --dry-run >> "$TEST_RESULTS_FILE" 2>&1; then
+    if "$INSTALL_PREFIX/bin/oradba_logrotate.sh" --test >> "$TEST_RESULTS_FILE" 2>&1; then
         test_pass "Dry-run executed successfully"
     else
-        test_pass "Dry-run command attempted"
+        test_fail "Log rotation --test command failed"
     fi
 }
 
@@ -1335,12 +1339,12 @@ test_sqlnet_configuration() {
         return 0
     fi
     
-    # Test 2: Show current configuration
-    test_start "SQLNet show configuration"
-    if "$INSTALL_PREFIX/bin/oradba_sqlnet.sh" show >> "$TEST_RESULTS_FILE" 2>&1; then
-        test_pass "Show command executed successfully"
+    # Test 2: Validate current configuration
+    test_start "SQLNet validate configuration"
+    if "$INSTALL_PREFIX/bin/oradba_sqlnet.sh" --validate >> "$TEST_RESULTS_FILE" 2>&1; then
+        test_pass "SQLNet validate executed successfully"
     else
-        test_pass "Show command attempted"
+        test_fail "SQLNet --validate command failed"
     fi
     
     # Test 3: Check TNS_ADMIN setting
@@ -1461,21 +1465,23 @@ test_configuration_files() {
         test_fail "oradba_standard.conf not readable"
     fi
     
-    # Test 3: Check configuration sections
+    # Test 3: Check configuration file has expected variable declarations
+    # Note: Config files use shell-style exports (no [SECTION] headers).
+    # Section-based loading is tracked in Issue #180.
     test_start "Configuration file sections"
-    local sections_found=0
-    local expected_sections=("[DEFAULT]" "[RDBMS]" "[CLIENT]" "[GRID]")
-    
-    for section in "${expected_sections[@]}"; do
-        if grep -q "^${section}" "$INSTALL_PREFIX/etc/oradba_standard.conf" 2>/dev/null; then
-            ((sections_found++))
+    local vars_found=0
+    local expected_vars=("ORACLE_BASE" "NLS_LANG" "NLS_DATE_FORMAT" "SQLPATH" "ORACLE_PATH")
+
+    for var in "${expected_vars[@]}"; do
+        if grep -q "${var}" "$INSTALL_PREFIX/etc/oradba_standard.conf" 2>/dev/null; then
+            ((vars_found++))
         fi
     done
-    
-    if [[ $sections_found -ge 2 ]]; then
-        test_pass "$sections_found configuration sections found"
+
+    if [[ $vars_found -ge 3 ]]; then
+        test_pass "$vars_found expected configuration variables found (shell-style config)"
     else
-        test_fail "Only $sections_found sections found"
+        test_fail "Only $vars_found configuration variables found in oradba_standard.conf"
     fi
     
     # Test 4: Template files available

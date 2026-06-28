@@ -318,7 +318,7 @@ show_home() {
     if [[ -d "$h_path" ]]; then
         echo "Directory Contents:"
         echo "--------------------------------------------------------------------------------"
-        find "$h_path" -maxdepth 1 -ls 2> /dev/null | head -10
+        find "$h_path" -maxdepth 1 -ls 2> /dev/null | head -10 || true
         echo ""
     else
         echo "⚠ Warning: Oracle Home directory does not exist"

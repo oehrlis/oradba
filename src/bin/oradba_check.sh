@@ -761,8 +761,13 @@ check_oracle_versions() {
         # Parse inventory.xml for Oracle Homes
         local homes_found=0
         while IFS= read -r line; do
-            if [[ "$line" =~ LOC=\"([^\"]+)\" ]] && [[ "$line" =~ TYPE=\"O\" ]]; then
-                local home="${BASH_REMATCH[1]}"
+            if [[ "$line" =~ LOC=\"([^\"]+)\" ]]; then
+                local loc_path="${BASH_REMATCH[1]}"
+            else
+                local loc_path=""
+            fi
+            if [[ -n "$loc_path" ]] && [[ "$line" =~ TYPE=\"O\" ]]; then
+                local home="$loc_path"
                 if [[ -d "$home" ]]; then
                     homes_found=$((homes_found + 1))
                     log_info "$(printf '%-18s %s' "Oracle Home $homes_found:" "$home")"

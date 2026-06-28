@@ -59,6 +59,11 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_env_validator.sh" ]]; then
 fi
 
 # Source Phase 3 libraries (optional)
+if [[ -f "${ORADBA_BASE}/lib/oradba_db_functions.sh" ]]; then
+    # shellcheck source=../lib/oradba_db_functions.sh
+    source "${ORADBA_BASE}/lib/oradba_db_functions.sh"
+fi
+
 if [[ -f "${ORADBA_BASE}/lib/oradba_env_status.sh" ]]; then
     # shellcheck source=../lib/oradba_env_status.sh
     source "${ORADBA_BASE}/lib/oradba_env_status.sh"
