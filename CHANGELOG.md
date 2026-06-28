@@ -50,6 +50,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `tests/`: repair 4 pre-existing test failures tracked in #220:
+  `test_oraup.bats` wrong grep pattern for `check_listener_status`;
+  `test_execute_db_query.bats` stale `grep -v` assertion replaced with
+  `SP2-`/`ORA-` pattern match; `test_oradba_common.bats` add `ORADBA_BASE`
+  export alongside `ORADBA_PREFIX` for the fallback oratab path;
+  `test_service_management.bats` export `ORATAB_FILE` and `ORADBA_LOG`
+  (temp dir) so the dbctl CI test survives `set -euo pipefail` on Ubuntu (#221)
+- `src/bin/oradba_dbctl.sh`: add `|| true` to `source oraenv.sh` and the
+  `sqlplus` command substitution in `show_status()`, `start_database()`, and
+  `stop_database()` to prevent `set -e` from aborting the script when Oracle
+  is not installed (#221)
+- `.github/workflows/claude-code-review.yml`: add `continue-on-error: true` —
+  workflow fails when `CLAUDE_CODE_OAUTH_TOKEN` secret is not configured
 - `src/bin/oraenv.sh`: pressing Enter at the interactive SID/home selection menu
   now defaults to the first entry instead of returning "No selection made" (#208)
 - `src/lib/oradba_common.sh`: `ORADBA_DEBUG=true` and `ORADBA_TRACE=true` now
