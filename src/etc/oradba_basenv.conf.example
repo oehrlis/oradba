@@ -6,8 +6,11 @@
 # Editor.....: Stefan Oehrli
 # Date.......: 2026.06.28
 # Revision...: 0.1.0
-# Purpose....: Example integration snippet for BasEnv coexistence
-# Notes......: Copy to ${ETC_BASE}/basenv.conf or sid._DEFAULT_.conf
+# Purpose....: Reference snippet for BasEnv coexistence via .bash_profile
+# Notes......: Add the bash block from this file to ~/.bash_profile AFTER the
+#              BasEnv initialization line. Do NOT copy to ${ETC_BASE}/basenv.conf
+#              or sid.<SID>.conf - those files use BasEnv's own custom parser
+#              and do not support bash syntax (causes parse errors).
 # Reference..: https://github.com/oehrlis/oradba
 # License....: Apache License Version 2.0, January 2004 as shown
 #              at http://www.apache.org/licenses/
@@ -33,16 +36,23 @@
 # INSTALLATION
 # ==============================================================================
 #
-# Copy this file to:
+# IMPORTANT: ${ETC_BASE}/basenv.conf and ${ETC_BASE}/sid.<SID>.conf use
+# BasEnv's own custom parser and do NOT support bash syntax. Placing bash
+# if/then blocks there causes a parse error:
 #
-#   - ${ETC_BASE}/basenv.conf
-#       (applied globally to all Oracle instances on this host)
-#   or
-#   - ${ETC_BASE}/sid._DEFAULT_.conf or ${ETC_BASE}/sid.<SID>.conf
-#       (applied to a specific SID or default to all SIDs)
+#   ERROR : 2001002 => BELIB.pm : BEbliDoConfig : Parse error at line :
+#    if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
 #
-# where ${ETC_BASE} is BasEnv's configuration directory (typically /etc/basenv
-# or /opt/basenv/etc).
+# Add the integration block below to ~/.bash_profile AFTER the existing
+# BasEnv initialization line:
+#
+#   # Existing BasEnv init (already in .bash_profile)
+#   . /opt/oracle/local/dba/bin/basenv.sh
+#
+#   # Add OraDBA after - BE_HOME is now set, detection works correctly
+#   if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
+#       source "${TVD_BASE}/oradba/bin/oraenv.sh"
+#   fi
 #
 # ==============================================================================
 # MINIMAL MODE (basenv) - Default

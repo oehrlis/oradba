@@ -58,29 +58,34 @@ The standard co-installation layout places OraDBA as a peer of BasEnv under `TVD
 ./oradba_install.sh --prefix /opt/oracle/local/oradba
 ```
 
-### Step 2 - Add the integration snippet to BasEnv
+### Step 2 - Add OraDBA to .bash_profile
 
-Copy the snippet from `src/etc/oradba_basenv.conf.example` to BasEnv's configuration:
+`${ETC_BASE}/basenv.conf` and `${ETC_BASE}/sid.<SID>.conf` use BasEnv's own custom
+parser and do **not** support bash syntax. Adding a bash `if` block there causes:
 
-```bash
-# Global: applied to all instances on this host
-cp src/etc/oradba_basenv.conf.example ${ETC_BASE}/basenv.conf
-
-# Or instance-specific:
-cp src/etc/oradba_basenv.conf.example ${ETC_BASE}/sid._DEFAULT_.conf
+```text
+ERROR : 2001002 => BELIB.pm : BEbliDoConfig : Parse error at line :
+ if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
 ```
 
-The snippet sources `oraenv.sh` from `${TVD_BASE}/oradba/bin/oraenv.sh`:
+The correct integration point is `~/.bash_profile`, after the existing BasEnv
+initialization line:
 
 ```bash
+# Existing BasEnv init (already in .bash_profile)
+. /opt/oracle/local/dba/bin/basenv.sh
+
+# Add OraDBA after - BE_HOME is now set, detection works correctly
 if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
     source "${TVD_BASE}/oradba/bin/oraenv.sh"
 fi
 ```
 
-BasEnv calls this snippet after it has set up its own Oracle environment, so `BE_HOME` is
-already exported at the time OraDBA loads. `detect_basenv()` finds the marker and activates
-`basenv` mode automatically.
+`BE_HOME` is already exported by BasEnv at this point, so `detect_basenv()`
+finds the marker and activates `basenv` mode automatically.
+
+The file `src/etc/oradba_basenv.conf.example` is a reference showing the bash
+block to add - it cannot be copied directly into `${ETC_BASE}/`.
 
 ### Step 3 - Optional: enable maximal mode
 

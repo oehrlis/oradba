@@ -33,6 +33,7 @@ The complete OraDBA user documentation is available in multiple formats:
 | [Configuration System](configuration.md)             | 6-level configuration hierarchy     |
 | [Advanced Configuration](advanced-configuration.md)  | Multi-version, Grid, ROOH, products |
 | [Environment Management](environment.md)             | Registry API and Plugin System      |
+| [BasEnv Coexistence](coexistence.md)                 | Running OraDBA alongside TVD BasEnv |
 
 ### Commands & Features
 

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `src/doc/coexistence.md`: new user-facing guide for BasEnv coexistence covering
+  all three modes (`standalone`, `basenv`, `basenv-maximal`), correct `.bash_profile`
+  integration, mode switching, detection logic, and troubleshooting.
+
+### Fixed
+
+- `src/etc/oradba_basenv.conf.example`: corrected header and installation section -
+  `${ETC_BASE}/basenv.conf` and `sid.<SID>.conf` use BasEnv's own custom parser and
+  do not support bash `if` syntax; integration block must go in `~/.bash_profile`
+  after the BasEnv init line, not in any `${ETC_BASE}/` config file.
+- `doc/basenv_coexist.md`: updated Step 2 with the same correction; removed the
+  `cp oradba_basenv.conf.example ${ETC_BASE}/basenv.conf` instruction which caused
+  BasEnv parse errors (`BEbliDoConfig : Parse error`).
+- `src/doc/index.md`: added BasEnv Coexistence entry to the navigation table.
+
 ## [1.0.0] - TBD (target: 2026-07-10)
 
 ### Added
