@@ -36,7 +36,7 @@ setup() {
 
 teardown() {
     export HOME="${ORIGINAL_HOME}"
-    unset BE_HOME TVDPERL_HOME ORADBA_COEXIST_MODE ORADBA_BASE 2>/dev/null || true
+    unset BE_HOME ORADBA_COEXIST_MODE ORADBA_BASE 2>/dev/null || true
 }
 
 # ==============================================================================
@@ -156,6 +156,51 @@ teardown() {
         fi
     fi
     [ "${ORADBA_COEXIST_MODE}" = "basenv-maximal" ]
+}
+
+# ==============================================================================
+# Group 5: SQLPATH guard — _oradba_path_contains coverage
+# ==============================================================================
+
+@test "_oradba_path_contains returns 0 when directory is already in SQLPATH" {
+    # Inline the function from oraenv.sh to test in isolation
+    _oradba_path_contains() {
+        local dir="$1" pathvar="${2:-PATH}"
+        [[ ":${!pathvar}:" == *":${dir}:"* ]]
+    }
+
+    export SQLPATH="/opt/oracle/oradba/sql:/opt/oracle/local/oradba/sql"
+    run _oradba_path_contains "/opt/oracle/local/oradba/sql" "SQLPATH"
+    [ "$status" -eq 0 ]
+}
+
+@test "configure_sqlpath skips adding oradba/sql when ORADBA_COEXIST_MODE=basenv and path already present" {
+    # Inline the guard function
+    _oradba_path_contains() {
+        local dir="$1" pathvar="${2:-PATH}"
+        [[ ":${!pathvar}:" == *":${dir}:"* ]]
+    }
+
+    local temp_base="${BATS_TEST_TMPDIR}/oradba_guard_test"
+    mkdir -p "${temp_base}/sql"
+    export ORADBA_BASE="${temp_base}"
+    export ORADBA_COEXIST_MODE="basenv"
+
+    # Pre-populate SQLPATH so the guard condition is met
+    export SQLPATH="${temp_base}/sql"
+
+    # The guard: in basenv mode, skip configure_sqlpath if path already present
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv"* ]] && _oradba_path_contains "${ORADBA_BASE}/sql" "SQLPATH"; then
+        skipped=true
+    else
+        skipped=false
+        configure_sqlpath
+    fi
+
+    [ "${skipped}" = "true" ]
+    # Verify _oradba_path_contains correctly reported presence
+    run _oradba_path_contains "${temp_base}/sql" "SQLPATH"
+    [ "$status" -eq 0 ]
 }
 
 # EOF

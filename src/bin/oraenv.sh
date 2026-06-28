@@ -132,6 +132,7 @@ _oraenv_ensure_lib() {
 # Args....: $1 - Directory to search for
 #           $2 - Name of the path variable to inspect (default: PATH)
 # Returns.: 0 if directory is found in the path variable, 1 otherwise
+# Output..: None
 # Notes...: Uses indirect variable expansion (${!pathvar}) to avoid subshells.
 #           Used by SQLPATH guard in basenv coexistence mode.
 # ------------------------------------------------------------------------------
@@ -1422,9 +1423,12 @@ _oraenv_main() {
         oradba_log INFO "After installing Oracle, use: oradba_setup.sh link-oratab"
 
         # Set minimal environment for no-Oracle mode
-        export ORACLE_SID="${REQUESTED_SID:-dummy}"
-        export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_BASE}/dummy}"
-        export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_BASE%/local/oradba}}"
+        # In basenv coexistence mode, BasEnv owns Oracle vars — skip those assignments
+        if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
+            export ORACLE_SID="${REQUESTED_SID:-dummy}"
+            export ORACLE_HOME="${ORACLE_HOME:-${ORADBA_BASE}/dummy}"
+            export ORACLE_BASE="${ORACLE_BASE:-${ORADBA_BASE%/local/oradba}}"
+        fi
         export ORADBA_NO_ORACLE_MODE=true
 
         oradba_log INFO "Minimal Oracle environment set (no-Oracle mode):"

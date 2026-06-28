@@ -56,6 +56,7 @@
 # Oracle variables (ORACLE_SID, ORACLE_HOME, ORACLE_BASE, TNS_ADMIN, etc.)
 # remain under BasEnv control and are NOT modified by OraDBA
 if [[ -f "${TVD_BASE}/oradba/bin/oraenv.sh" ]]; then
+    # shellcheck source=/dev/null
     source "${TVD_BASE}/oradba/bin/oraenv.sh"
 fi
 

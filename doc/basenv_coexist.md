@@ -28,11 +28,13 @@ Detection result is cached in `ORADBA_COEXIST_MODE`. If the variable is already 
 
 ## Coexistence Modes
 
+<!-- markdownlint-disable MD013 -->
 | Mode | Trigger | OraDBA behaviour |
 | --- | --- | --- |
 | `standalone` | Default; no BasEnv detected | Full control: loads all libraries, sets Oracle vars, manages PATH/SQLPATH |
 | `basenv` | Auto-detected | Minimal: loads libraries and `ORADBA_*` vars only; BasEnv owns Oracle vars |
 | `basenv-maximal` | Opt-in via `oradba_local.conf` | Minimal + safe, non-conflicting aliases via `safe_alias()` |
+<!-- markdownlint-enable MD013 -->
 
 Set the mode explicitly in `${ETC_BASE}/oradba_local.conf` to override auto-detection:
 
