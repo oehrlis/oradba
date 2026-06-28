@@ -68,9 +68,10 @@ teardown() {
     grep -q "set_oracle_home_environment" "${ORADBA_BASE}/bin/oraenv.sh"
 }
 
-@test "CF-017: oradba_build_environment call in oraenv.sh uses requested_sid argument" {
-    # Verify the function is called with the SID argument
-    grep -q 'oradba_build_environment "\$requested_sid"' "${ORADBA_BASE}/bin/oraenv.sh"
+@test "CF-017: oradba_build_environment call in oraenv.sh uses resolved target argument" {
+    # oraenv.sh resolves requested_sid to _build_target (may be a path or SID)
+    # then passes _build_target to oradba_build_environment
+    grep -q 'oradba_build_environment "\$_build_target"' "${ORADBA_BASE}/bin/oraenv.sh"
 }
 
 # ==============================================================================

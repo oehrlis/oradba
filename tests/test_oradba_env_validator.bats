@@ -148,7 +148,7 @@ teardown() {
         oradba_get_db_status
     "
     [ "$status" -eq 1 ]
-    [[ "$output" == "DOWN" ]]
+    [[ "$output" == "SHUTDOWN" ]]
 }
 
 @test "get_db_status reports DOWN when database process is not running" {

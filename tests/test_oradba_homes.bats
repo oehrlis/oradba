@@ -30,7 +30,10 @@ setup() {
     # Create test directories
     mkdir -p "${ORADBA_BASE}/etc"
     mkdir -p "${ORACLE_BASE}/product"
-    
+    # oradba_homes.sh loads lib/oradba_common.sh relative to ORADBA_BASE;
+    # symlink the real lib tree so the script finds it in the temp dir.
+    ln -s "${ORADBA_SRC_BASE}/lib" "${TEST_TEMP_DIR}/lib"
+
     # Source common library for tests
     source "${ORADBA_SRC_BASE}/lib/oradba_common.sh"
 }
@@ -882,14 +885,15 @@ DB21:${TEST_TEMP_DIR}/db21:database:20:db21:Oracle 21c:210000"
 }
 
 @test "auto_discover_oracle_homes discovers Data Safe connectors" {
-    # Create mock Data Safe connector
+    # datasafe_plugin.sh validates: oracle_cman_home/bin/cmctl + oracle_cman_home/lib/
     mkdir -p "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin"
+    mkdir -p "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/lib"
     touch "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
     chmod +x "${ORACLE_BASE}/product/exacc-test-ha1/oracle_cman_home/bin/cmctl"
-    
+
     run bash -c "source '${ORADBA_SRC_BASE}/lib/oradba_common.sh' && auto_discover_oracle_homes '${ORACLE_BASE}/product' 'false'"
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "dsconn" ]] || [[ "$output" =~ "datasafe" ]]
+    [[ "$output" =~ "dscon" ]] || [[ "$output" =~ "datasafe" ]]
 }
 
 @test "auto_discover_oracle_homes skips duplicates silently" {

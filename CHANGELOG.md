@@ -90,6 +90,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `oradba_homes.sh show` (IFS parsing bug passing full table row as name),
   config-sections test expecting INI `[SECTION]` headers that do not exist
   (shell-style config; see issue #180 for the planned backward-compatible fix)
+- `tests/docker_automated_tests.sh`: fix tests 77 and 79 — logrotate `--test`
+  and sqlnet `--validate` exit non-zero in a fresh Docker environment (no configs
+  installed); tests now accept this expected "no config yet" state as passing
+- `tests/test_oradba_homes.bats`: `setup()` now symlinks `src/lib/` into the
+  temp `ORADBA_BASE` so `oradba_homes.sh` can load `oradba_common.sh` at runtime
+  (was failing with "Cannot find common library")
+- `tests/test_oradba_env_migration.bats`: CF-017 test corrected to grep for
+  `_build_target` (the resolved home path/SID variable) instead of `requested_sid`
+- `tests/test_oradba_env_validator.bats`: `get_db_status` DOWN test updated to
+  expect `SHUTDOWN` (vocabulary changed from DOWN to SHUTDOWN for consistency)
 
 - `tests/`: repair 4 pre-existing test failures tracked in #220:
   `test_oraup.bats` wrong grep pattern for `check_listener_status`;
