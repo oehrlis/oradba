@@ -598,6 +598,28 @@ teardown() {
     grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "TVD_BASE.*oradba.*oraenv"
 }
 
+@test "update_profile warning is conditional on UPDATE_PROFILE=yes in basenv mode" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    # The log_warn call must be inside an inner if block guarded by UPDATE_PROFILE==yes;
+    # the outer basenv block must NOT start with log_warn (info is always shown)
+    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | \
+        grep -q 'if \[\[ "\$UPDATE_PROFILE" == "yes" \]\]'
+}
+
+@test "update_profile info block is outside UPDATE_PROFILE guard in basenv mode" {
+    [ -f "$STANDALONE_INSTALLER" ]
+    # log_info about adding the block must appear AFTER the closing fi of the
+    # UPDATE_PROFILE guard, so it runs regardless of --update-profile
+    local block
+    block=$(grep -A 40 "update_profile()" "$STANDALONE_INSTALLER")
+    # The fi closing the UPDATE_PROFILE guard must come before log_info
+    echo "$block" | grep -n "fi" | head -1 | grep -q "^[0-9]"
+    local fi_line log_line
+    fi_line=$(echo "$block" | grep -n 'fi$' | head -1 | cut -d: -f1)
+    log_line=$(echo "$block" | grep -n 'log_info.*Add the following' | head -1 | cut -d: -f1)
+    [ -n "$fi_line" ] && [ -n "$log_line" ] && [ "$log_line" -gt "$fi_line" ]
+}
+
 @test "installer help shows --auto-discover-oratab flag" {
     [ -f "$STANDALONE_INSTALLER" ]
     bash "$STANDALONE_INSTALLER" --help 2>&1 | grep -q "auto-discover-oratab"

@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fail, redirects plugin stderr to `/dev/null` with a DEBUG message instead of
   returning an error, so sourcing oradba at login no longer produces a spurious error.
 
+- `src/bin/oradba_install.sh` `update_profile()`: in BasEnv coexistence mode the
+  manual-integration info block (`Add the following block to ... AFTER the BasEnv init
+  line`) was only printed when `--update-profile` was explicitly passed. The message now
+  always appears in coexist mode so the administrator always knows the correct manual
+  step. The `[WARN]` about `--update-profile` not being supported is still shown, but
+  only when the flag was actually specified. Two new BATS tests cover both behaviours.
+
 ## [1.0.0-rc.2] - 2026-06-29
 
 ### Added

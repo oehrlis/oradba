@@ -863,17 +863,17 @@ update_profile() {
     if [[ "${COEXIST_MODE:-standalone}" == "basenv"* ]]; then
         if [[ "$UPDATE_PROFILE" == "yes" ]]; then
             log_warn "--update-profile is not supported in BasEnv coexistence mode"
-            log_info "Add the following block to ${profile_file} AFTER the BasEnv init line:"
-            echo ""
-            echo "  # Existing BasEnv initialization (already in ${profile_file}):"
-            echo "  # . /opt/oracle/local/dba/bin/basenv.sh"
-            echo ""
-            echo "  # Add OraDBA after - BE_HOME is now set, detection works correctly:"
-            echo "  if [[ -f \"\${TVD_BASE}/oradba/bin/oraenv.sh\" ]]; then"
-            echo "      source \"\${TVD_BASE}/oradba/bin/oraenv.sh\""
-            echo "  fi"
-            echo ""
         fi
+        log_info "Add the following block to ${profile_file} AFTER the BasEnv init line:"
+        echo ""
+        echo "  # Existing BasEnv initialization (already in ${profile_file}):"
+        echo "  # . /opt/oracle/local/dba/bin/basenv.sh"
+        echo ""
+        echo "  # Add OraDBA after - BE_HOME is now set, detection works correctly:"
+        echo "  if [[ -f \"\${TVD_BASE}/oradba/bin/oraenv.sh\" ]]; then"
+        echo "      source \"\${TVD_BASE}/oradba/bin/oraenv.sh\""
+        echo "  fi"
+        echo ""
         return 0
     fi
 
