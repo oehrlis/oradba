@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   step. The `[WARN]` about `--update-profile` not being supported is still shown, but
   only when the flag was actually specified. Two new BATS tests cover both behaviours.
 
+- `src/etc/oradba_standard.conf`: `$etc` and `$log` short-directory variables are now
+  guarded by `ORADBA_COEXIST_MODE` and only exported in standalone mode. In BasEnv
+  coexistence mode BasEnv owns these variables (set from `ETC_BASE` / its log dir).
+  Overwriting them caused `rlwrap` to fail with `Cannot exec filter ... No such file or
+  directory` because `sqh`, `rmanh`, `rmanch`, and similar BasEnv aliases use
+  `$etc/sqlplus.filter` and `$etc/sqlplus.key` - which live in BasEnv's etc dir, not
+  oradba's. The same protection applies to `$log`. Two BATS tests added.
+
 ## [1.0.0-rc.2] - 2026-06-29
 
 ### Added

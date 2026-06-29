@@ -203,4 +203,26 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "oradba_standard.conf guards \$etc export in basenv coexistence mode" {
+    # $etc is also exported by BasEnv (from ETC_BASE).  oradba must not
+    # overwrite it in coexist mode or BasEnv aliases (sqh, rmanh, rmanch, ...)
+    # that reference $etc/sqlplus.filter for rlwrap will break.
+    local conf="${PROJECT_ROOT}/src/etc/oradba_standard.conf"
+    [ -f "$conf" ]
+    # The raw bare export must not exist
+    ! grep -q '^export etc=' "$conf"
+    # The guarded conditional export must exist
+    grep -q 'ORADBA_COEXIST_MODE.*basenv' "$conf"
+    grep -A 3 'ORADBA_COEXIST_MODE.*basenv' "$conf" | grep -q 'export etc='
+}
+
+@test "oradba_standard.conf guards \$log export in basenv coexistence mode" {
+    local conf="${PROJECT_ROOT}/src/etc/oradba_standard.conf"
+    [ -f "$conf" ]
+    # The raw bare export must not exist
+    ! grep -q '^export log=' "$conf"
+    # log must be inside the same coexist guard block as etc
+    grep -A 4 'ORADBA_COEXIST_MODE.*basenv' "$conf" | grep -q 'export log='
+}
+
 # EOF
