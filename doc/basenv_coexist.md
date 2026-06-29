@@ -58,8 +58,10 @@ The standard co-installation layout places OraDBA as a peer of BasEnv under `TVD
 ./oradba_install.sh --prefix /opt/oracle/local/oradba
 ```
 
-If `--update-profile` is passed, the installer detects BasEnv and skips the
-automatic profile update with a warning, printing the block to add manually instead.
+If `--update-profile` is passed, the installer detects BasEnv, skips the automatic
+profile update, and prints the manual integration block shown in Step 2. Without
+`--update-profile`, the installer silently skips the profile step in BasEnv coexistence
+mode — no warning is emitted.
 
 ### Step 2 - Add OraDBA to .bash_profile
 
@@ -100,6 +102,11 @@ export ORADBA_COEXIST_MODE="basenv-maximal"
 
 Reload the environment (via BasEnv's `db` command or a new login shell) to activate the change.
 
+### Updating OraDBA
+
+When reinstalling or upgrading OraDBA, `${INSTALL_PREFIX}/etc/oradba_local.conf` is preserved.
+Customisations such as `ORADBA_COEXIST_MODE="basenv-maximal"` survive the update unchanged.
+
 ## Protected Variables and Aliases
 
 In `basenv` and `basenv-maximal` mode, OraDBA does **not** modify the following:
@@ -117,7 +124,9 @@ In `basenv` and `basenv-maximal` mode, OraDBA does **not** modify the following:
 | `BE_*` variables | All BasEnv internal variables untouched |
 
 The `safe_alias()` function (used in `basenv-maximal` mode) skips any alias that already exists,
-so BasEnv-defined aliases always take precedence.
+so BasEnv-defined aliases always take precedence. All standard alias definitions in
+`oradba_standard.conf` use `safe_alias()`, ensuring no OraDBA alias can silently override an
+alias already defined by BasEnv.
 
 ## Verification
 
@@ -165,9 +174,10 @@ export ORADBA_COEXIST_MODE="basenv"
 
 ### Alias conflicts: OraDBA aliases override BasEnv aliases
 
-In `basenv` mode, OraDBA does **not** load aliases at all - this should not occur.
+In `basenv` mode, OraDBA does **not** load standard aliases - this should not occur.
 
-In `basenv-maximal` mode, `safe_alias()` skips existing aliases. If a conflict still appears,
+In `basenv-maximal` mode, all standard aliases from `oradba_standard.conf` use `safe_alias()`,
+which skips any alias that already exists in the current shell. If a conflict still appears,
 check whether `ORADBA_COEXIST_MODE` is set correctly after sourcing:
 
 ```bash

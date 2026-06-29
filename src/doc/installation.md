@@ -590,6 +590,8 @@ $PREFIX/bin/oradba_version.sh --info
 - **Configuration preservation** — Detects modified files, saves as `.save` extension
 - **Sensitive file preservation** — Keeps `etc/*.b64`, `*.pem`, `*.key`, `*.crt` and
   equivalent files in bundled extension `etc/` directories
+- **Local configuration** — `etc/oradba_local.conf` is never overwritten; user customisations
+  such as `ORADBA_COEXIST_MODE` survive reinstalls and upgrades
 - **Rollback on failure** — Restores previous version if update fails
 - **Version detection** — Skips update if already running latest version
 - **Selective replacement** — Only replaces core files, preserves customizations

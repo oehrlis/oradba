@@ -641,7 +641,7 @@ version_info() {
                     echo "  User:          ${value}"
                     ;;
                 coexist_mode)
-                    echo "  Coexist Mode:  ${value}"
+                    echo "  Coexist Mode:  ${ORADBA_COEXIST_MODE:-${value}}"
                     ;;
                 basenv_detected)
                     echo "  BasEnv:        ${value}"
