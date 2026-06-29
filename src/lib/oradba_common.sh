@@ -1639,19 +1639,21 @@ execute_plugin_function_v2() {
     local output
     local stderr_output
 
-    # Create temp files for capturing stderr
-    local temp_stderr
-    temp_stderr=$(mktemp 2> /dev/null)
+    # Create temp file for capturing stderr; fall back to /tmp if TMPDIR is not ready
+    # (macOS per-session TMPDIR may not exist during early login sourcing)
+    local temp_stderr=""
+    temp_stderr=$(mktemp 2>/dev/null) \
+        || temp_stderr=$(TMPDIR=/tmp mktemp 2>/dev/null) \
+        || true
 
-    # Verify mktemp succeeded - fail safely if not
-    if [[ -z "${temp_stderr}" ]] || [[ ! -f "${temp_stderr}" ]]; then
-        oradba_log ERROR "Failed to create temporary file for plugin stderr capture"
-        return 2
+    if [[ -n "${temp_stderr}" ]] && [[ -f "${temp_stderr}" ]]; then
+        # Set up trap to ensure cleanup happens (use single quotes to defer expansion)
+        # shellcheck disable=SC2064
+        trap "rm -f '${temp_stderr}' 2>/dev/null" RETURN
+    else
+        oradba_log DEBUG "Cannot create temp file for plugin stderr capture; stderr suppressed for plugin ${product_type}"
+        temp_stderr="/dev/null"
     fi
-
-    # Set up trap to ensure cleanup happens (use single quotes to defer expansion)
-    # shellcheck disable=SC2064
-    trap "rm -f '${temp_stderr}' 2>/dev/null" RETURN
 
     # Handle no-arg functions vs functions that take oracle_home
     if [[ "${oracle_home}" == "NOARGS" ]]; then

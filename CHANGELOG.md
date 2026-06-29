@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-06-29
+
+### Fixed
+
+- `src/lib/oradba_common.sh` `execute_plugin_function_v2()`: add `/tmp` fallback and
+  graceful degradation when `mktemp` fails during early login sourcing. On macOS the
+  per-session `$TMPDIR` directory (`/var/folders/...`) may not exist yet when the shell
+  profile is first sourced; the previous code logged `[ERROR]` and aborted the plugin
+  call. The function now tries `TMPDIR=/tmp mktemp` as a second attempt and, if both
+  fail, redirects plugin stderr to `/dev/null` with a DEBUG message instead of
+  returning an error, so sourcing oradba at login no longer produces a spurious error.
+
 ## [1.0.0-rc.2] - 2026-06-29
 
 ### Added
