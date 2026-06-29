@@ -43,6 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `cp oradba_basenv.conf.example ${ETC_BASE}/basenv.conf` instruction which caused
   BasEnv parse errors (`BEbliDoConfig : Parse error`).
 - `src/doc/index.md`: added BasEnv Coexistence entry to the navigation table.
+- `src/etc/oradba_standard.conf`: converted all 76 `alias` definitions to `safe_alias`;
+  prevents oradba from overwriting BasEnv aliases (`u`, `etc`, `log`, `sq`, `sqh`,
+  `lsnr`, `cdh`, `cdob` and all others) in `basenv` and `basenv-maximal` coexistence modes.
+- `src/bin/oradba_install.sh` `update_profile()`: suppress the BasEnv coexistence warning
+  unless `--update-profile` was explicitly passed; avoids a spurious `[WARN]` on every
+  install in BasEnv environments.
+- `src/bin/oradba_install.sh`: preserve `etc/oradba_local.conf` on re-install/update;
+  the file is now created only on first install — existing user customisations
+  (e.g. `ORADBA_COEXIST_MODE="basenv-maximal"`) are no longer silently overwritten.
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 

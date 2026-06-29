@@ -861,17 +861,19 @@ update_profile() {
     # ~/.bash_profile AFTER the BasEnv initialization line; the correct
     # insertion point cannot be determined automatically.
     if [[ "${COEXIST_MODE:-standalone}" == "basenv"* ]]; then
-        log_warn "--update-profile is not supported in BasEnv coexistence mode"
-        log_info "Add the following block to ${profile_file} AFTER the BasEnv init line:"
-        echo ""
-        echo "  # Existing BasEnv initialization (already in ${profile_file}):"
-        echo "  # . /opt/oracle/local/dba/bin/basenv.sh"
-        echo ""
-        echo "  # Add OraDBA after - BE_HOME is now set, detection works correctly:"
-        echo "  if [[ -f \"\${TVD_BASE}/oradba/bin/oraenv.sh\" ]]; then"
-        echo "      source \"\${TVD_BASE}/oradba/bin/oraenv.sh\""
-        echo "  fi"
-        echo ""
+        if [[ "$UPDATE_PROFILE" == "yes" ]]; then
+            log_warn "--update-profile is not supported in BasEnv coexistence mode"
+            log_info "Add the following block to ${profile_file} AFTER the BasEnv init line:"
+            echo ""
+            echo "  # Existing BasEnv initialization (already in ${profile_file}):"
+            echo "  # . /opt/oracle/local/dba/bin/basenv.sh"
+            echo ""
+            echo "  # Add OraDBA after - BE_HOME is now set, detection works correctly:"
+            echo "  if [[ -f \"\${TVD_BASE}/oradba/bin/oraenv.sh\" ]]; then"
+            echo "      source \"\${TVD_BASE}/oradba/bin/oraenv.sh\""
+            echo "  fi"
+            echo ""
+        fi
         return 0
     fi
 
@@ -2334,7 +2336,10 @@ elif [[ "$INSTALL_PREFIX" == */local/oradba ]]; then
     log_info "Derived ORACLE_BASE from installation path: ${derived_base}"
 fi
 
-cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
+# Create oradba_local.conf only on first install; preserve user customisations on update
+if [[ ! -f "$INSTALL_PREFIX/etc/oradba_local.conf" ]]; then
+    log_info "Creating oradba_local.conf..."
+    cat > "$INSTALL_PREFIX/etc/oradba_local.conf" << LOCALCONF
 # ------------------------------------------------------------------------------
 # OraDBA Local Configuration
 # ------------------------------------------------------------------------------
@@ -2370,6 +2375,9 @@ ORADBA_BASENV_DETECTED="${BASENV_DETECTED}"
 # To force OraDBA aliases even in coexistence mode, uncomment:
 # export ORADBA_FORCE=1
 LOCALCONF
+else
+    log_info "Preserving existing oradba_local.conf (user customisations kept)"
+fi
 
 # Create installation metadata
 log_info "Creating installation metadata..."
