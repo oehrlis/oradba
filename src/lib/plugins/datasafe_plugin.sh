@@ -207,7 +207,7 @@ plugin_check_status() {
 
         # Positive indicators — "Instance" alone excluded: "Instance is not running"
         # also contains that word and must NOT be treated as a positive hit.
-        if echo "${cmctl_status}" | grep -qiE "Services Summary|READY|started|is running"; then
+        if echo "${cmctl_status}" | grep -qiE "Services Summary|READY|already started|is running"; then
             oradba_log TRACE "${FUNCNAME[0]}: cmctl confirms RUNNING"
             return 0
         fi

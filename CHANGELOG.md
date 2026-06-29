@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Added `TRACE`-level logging throughout `plugin_check_status()` for
   observability. Updated test suite: ps-mock tests replaced with port-mock tests
   using function override.
+- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: fix false-RUNNING
+  result when cmctl reports "not yet started". The grep pattern `started` matched
+  both "already started" (running) and "not yet started" (stopped), causing
+  `plugin_check_status()` to return 0 immediately and never reach the port-based
+  secondary check added in rc.4. Changed pattern to `already started`.
 - `src/lib/oradba_common.sh` `execute_plugin_function_v2()`: always set
   `LD_LIBRARY_PATH="${oracle_home}/lib"` instead of guarding with
   `if [[ -z "${LD_LIBRARY_PATH:-}" ]]`. The conditional guard caused all
