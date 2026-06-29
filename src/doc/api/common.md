@@ -196,8 +196,13 @@ Execute a plugin function in an isolated subshell with minimal env
 **Output:** Stdout from plugin function (or stored in result variable)
 
 !!! info "Notes"
-    Adds subshell isolation (Phase 3) and minimal ORACLE_HOME/LD_LIBRARY_PATH
-    For no-arg functions (e.g., plugin_get_config_section), pass "NOARGS" as oracle_home
+    Adds subshell isolation (Phase 3) and always sets `LD_LIBRARY_PATH` to
+    `${oracle_home}/lib` for each plugin subshell. The path is set unconditionally
+    (not guarded by `[[ -z "${LD_LIBRARY_PATH:-}" ]]`) so that each connector's
+    plugin subshell uses the correct connector-specific library path even when
+    the calling shell already has `LD_LIBRARY_PATH` set from a different connector.
+    For no-arg functions (e.g., `plugin_get_config_section`), pass `"NOARGS"` as
+    `oracle_home`.
 
 ---
 

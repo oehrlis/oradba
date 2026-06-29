@@ -1642,8 +1642,8 @@ execute_plugin_function_v2() {
     # Create temp file for capturing stderr; fall back to /tmp if TMPDIR is not ready
     # (macOS per-session TMPDIR may not exist during early login sourcing)
     local temp_stderr=""
-    temp_stderr=$(mktemp 2>/dev/null) \
-        || temp_stderr=$(TMPDIR=/tmp mktemp 2>/dev/null) \
+    temp_stderr=$(mktemp 2> /dev/null) \
+        || temp_stderr=$(TMPDIR=/tmp mktemp 2> /dev/null) \
         || true
 
     if [[ -n "${temp_stderr}" ]] && [[ -f "${temp_stderr}" ]]; then
@@ -1696,17 +1696,14 @@ execute_plugin_function_v2() {
 
         # Debug logging: Log environment snapshot
         if is_plugin_debug_enabled; then
-            local lib_path="${LD_LIBRARY_PATH:-${oracle_home}/lib}"
-            oradba_log DEBUG "Plugin env: ORACLE_HOME=${oracle_home}, LD_LIBRARY_PATH=${lib_path}, TNS_ADMIN=<unset>, PATH=${PATH:-<unset>}"
+            oradba_log DEBUG "Plugin env: ORACLE_HOME=${oracle_home}, LD_LIBRARY_PATH=${oracle_home}/lib, TNS_ADMIN=<unset>, PATH=${PATH:-<unset>}"
         fi
 
         output=$(
             ORACLE_HOME="${oracle_home}"
             export ORACLE_HOME
-            if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
-                LD_LIBRARY_PATH="${oracle_home}/lib"
-                export LD_LIBRARY_PATH
-            fi
+            LD_LIBRARY_PATH="${oracle_home}/lib"
+            export LD_LIBRARY_PATH
             # Unset inherited environment variables to prevent cross-contamination
             # TNS_ADMIN: Each product should use its own ORACLE_HOME/network/admin
             # plugin_status: Prevent experimental status from leaking between plugins

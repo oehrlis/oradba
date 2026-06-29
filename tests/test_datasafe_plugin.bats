@@ -26,8 +26,8 @@ setup() {
 oradba_log() {
     local level="$1"
     shift
-    # Suppress debug logs in tests
-    [[ "${level}" == "DEBUG" ]] && return 0
+    # Suppress debug/trace logs in tests (too noisy; use ORADBA_LOG_LEVEL=TRACE externally)
+    [[ "${level}" == "DEBUG" || "${level}" == "TRACE" ]] && return 0
     echo "[${level}] $*" >&2
 }
 EOF
@@ -217,73 +217,48 @@ teardown() {
     done
 }
 
-@test "datasafe plugin detects running connector via cmadmin process" {
-    # Create mock DataSafe home WITHOUT cmctl (so it falls back to process detection)
-    local ds_home="${TEST_DIR}/test_homes/datasafe_proc_test"
+@test "datasafe plugin detects running connector via port check" {
+    # Scenario: no cmctl available; connector is detected via port-listening check.
+    # Oracle CMAN renames argv[0] so ps-grep is unreliable; port check is definitive.
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port_running_test"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
     mkdir -p "${ds_home}/oracle_cman_home/network/admin"
-    
-    # Create a non-executable cmctl or don't create it at all - ensures fallback to process check
-    # We'll just not create cmctl, so it's not executable
-    
-    # Mock ps command to simulate running cmadmin process
-    # Use absolute path that matches the base_path pattern
-    cat > "${TEST_DIR}/ps" <<MOCK_PS_SCRIPT
-#!/usr/bin/env bash
-# Check if we're looking for -ef
-if [[ "\$1" == "-ef" ]]; then
-    echo "oracle 12345 ${ds_home}/oracle_cman_home/bin/cmadmin cust_cman"
-fi
-MOCK_PS_SCRIPT
-    chmod +x "${TEST_DIR}/ps"
-    
-    # Temporarily override PATH to use our mock ps
-    local OLD_PATH="${PATH}"
-    export PATH="${TEST_DIR}:${PATH}"
-    
+
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1562)))
+CMAN_ORA
+
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+
+    # Mock: port is listening
+    _datasafe_port_listening() { return 0; }
+
     run plugin_check_status "${ds_home}" ""
-    
-    # Restore PATH
-    export PATH="${OLD_PATH}"
-    rm -f "${TEST_DIR}/ps"
-    
+
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
 
-@test "datasafe plugin detects running connector via cmgw process" {
-    # Create mock DataSafe home WITHOUT cmctl (so it falls back to process detection)
-    local ds_home="${TEST_DIR}/test_homes/datasafe_cmgw_test"
+@test "datasafe plugin detects stopped connector via port check" {
+    # Scenario: no cmctl available; port not listening confirms connector is stopped.
+    local ds_home="${TEST_DIR}/test_homes/datasafe_port_stopped_test"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
     mkdir -p "${ds_home}/oracle_cman_home/network/admin"
-    
-    # Don't create cmctl - ensures fallback to process check
-    
-    # Mock ps command to simulate running cmgw process
-    cat > "${TEST_DIR}/ps" <<MOCK_PS_SCRIPT
-#!/usr/bin/env bash
-# Check if we're looking for -ef
-if [[ "\$1" == "-ef" ]]; then
-    echo "oracle 12346 ${ds_home}/oracle_cman_home/bin/cmgw cmgw0"
-fi
-MOCK_PS_SCRIPT
-    chmod +x "${TEST_DIR}/ps"
-    
-    # Temporarily override PATH to use our mock ps
-    local OLD_PATH="${PATH}"
-    export PATH="${TEST_DIR}:${PATH}"
-    
+
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1562)))
+CMAN_ORA
+
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+
+    # Mock: port not listening
+    _datasafe_port_listening() { return 1; }
+
     run plugin_check_status "${ds_home}" ""
-    
-    # Cleanup
-    export PATH="${OLD_PATH}"
-    rm -f "${TEST_DIR}/ps"
-    
-    [ "$status" -eq 0 ]
+
+    [ "$status" -eq 1 ]
     [ -z "$output" ]
 }
 
@@ -1643,11 +1618,12 @@ SETUP_MOCK
 # Systemd / TNS-error resilience (regression for issue reported 2026-06-29)
 # ==============================================================================
 
-@test "plugin_check_status returns running when cmctl gets TNS error but cmadmin process exists" {
+@test "plugin_check_status returns running when cmctl gets TNS error but port is listening" {
     # Scenario: connector started by systemd oneshot; cmctl cannot reach the IPC
-    # socket from a different session (returns TNS-12541), but cmadmin is running.
-    # The cache is advisory-only: a fresh ps verification is always performed when
-    # the cache finds a match, so this test starts a real background process.
+    # socket from a different session (returns TNS-12541). Port check is used as
+    # the authoritative fallback — port listening means connector is running.
+    # Oracle CMAN renames argv[0], so ps-grep would not find it; port check is the
+    # correct detection mechanism.
     local ds_home="${TEST_DIR}/test_homes/datasafe_systemd_tns"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
@@ -1665,33 +1641,19 @@ exit 1
 CMCTL_MOCK
     chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
 
-    # Start a real background process so both the cache hint AND the fresh ps
-    # verification agree the connector is running (cache is now advisory-only)
-    cat > "${ds_home}/oracle_cman_home/bin/cmadmin" <<'CMADMIN_MOCK'
-#!/usr/bin/env bash
-exec sleep 999
-CMADMIN_MOCK
-    chmod +x "${ds_home}/oracle_cman_home/bin/cmadmin"
-    "${ds_home}/oracle_cman_home/bin/cmadmin" &
-    local cmadmin_pid=$!
-
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
 
-    # Provide cached process list (advisory; fresh ps also runs now)
-    export ORADBA_CACHED_PS="${ds_home}/oracle_cman_home/bin/cmadmin cust_cman -inherit"
+    # Mock: port is listening (connector is running)
+    _datasafe_port_listening() { return 0; }
 
     run plugin_check_status "${ds_home}"
-
-    # Clean up background process before asserting so it always runs
-    kill "${cmadmin_pid}" 2>/dev/null || true
-    wait "${cmadmin_pid}" 2>/dev/null || true
 
     [ "$status" -eq 0 ]
 }
 
-@test "plugin_check_status returns stopped when cmctl says not running AND no process found" {
-    # cmctl returns an explicit non-TNS "not running" message AND no process exists
-    # → the function should correctly return 1 (stopped)
+@test "plugin_check_status returns stopped when cmctl says not running AND port not listening" {
+    # cmctl returns an explicit non-TNS "not running" message AND port not listening
+    # → the port check confirms stopped and returns 1 immediately.
     local ds_home="${TEST_DIR}/test_homes/datasafe_explicit_stopped"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
@@ -1710,18 +1672,16 @@ CMCTL_MOCK
 
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
 
-    # Empty cached process list — no cmadmin/cmgw running
-    export ORADBA_CACHED_PS=""
+    # Mock: port not listening (connector is stopped)
+    _datasafe_port_listening() { return 1; }
 
     run plugin_check_status "${ds_home}"
     [ "$status" -eq 1 ]
 }
 
-@test "plugin_check_status process detection overrides TNS error even without ORADBA_CACHED_PS" {
-    # When ORADBA_CACHED_PS is not set, process detection falls back to ps -ef.
-    # This test verifies the logic path exists (cannot fake ps -ef output in unit
-    # test, so we verify that with no processes the function returns 1 via cmctl,
-    # not 0 via a spurious process match).
+@test "plugin_check_status returns stopped when cmctl TNS error and port not listening" {
+    # When cmctl gives a TNS error (IPC isolated) AND port is not listening,
+    # the connector is definitively stopped.
     local ds_home="${TEST_DIR}/test_homes/datasafe_tns_no_cache"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
@@ -1740,9 +1700,10 @@ CMCTL_MOCK
     chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
 
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
-    unset ORADBA_CACHED_PS
 
-    # No real cmadmin processes exist for this fake path → should return 1
+    # Mock: port not listening
+    _datasafe_port_listening() { return 1; }
+
     run plugin_check_status "${ds_home}"
     [ "$status" -eq 1 ]
 }

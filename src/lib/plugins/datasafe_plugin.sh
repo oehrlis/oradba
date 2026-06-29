@@ -18,7 +18,10 @@
 # ------------------------------------------------------------------------------
 
 # Portability: timeout(1) is not available on all systems; no-op fallback
-command -v timeout > /dev/null 2>&1 || timeout() { shift; "$@"; }
+command -v timeout > /dev/null 2>&1 || timeout() {
+    shift
+    "$@"
+}
 
 # ------------------------------------------------------------------------------
 # Plugin Metadata
@@ -36,7 +39,7 @@ export plugin_description="Oracle Data Safe On-Premises Connector plugin"
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     local -a homes=()
-    
+
     # Check running cmctl processes
     # shellcheck disable=SC2009
     while read -r cmctl_line; do
@@ -45,7 +48,7 @@ plugin_detect_installation() {
         if [[ -n "${pid}" ]] && [[ -d "/proc/${pid}" ]]; then
             # Get ORACLE_HOME from process environment
             local home
-            home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
+            home=$(tr '\0' '\n' < "/proc/${pid}/environ" 2> /dev/null | grep '^ORACLE_HOME=' | cut -d= -f2-)
             if [[ -n "${home}" ]] && [[ -d "${home}" ]]; then
                 # DataSafe base is parent of oracle_cman_home
                 if [[ "${home}" =~ /oracle_cman_home$ ]]; then
@@ -56,7 +59,7 @@ plugin_detect_installation() {
             fi
         fi
     done < <(ps -ef | grep "[c]mctl")
-    
+
     # Deduplicate and print
     printf '%s\n' "${homes[@]}" | LC_ALL=C sort -u
     return 0
@@ -70,18 +73,18 @@ plugin_detect_installation() {
 # ------------------------------------------------------------------------------
 plugin_validate_home() {
     local base_path="$1"
-    
+
     [[ ! -d "${base_path}" ]] && return 1
-    
+
     # Check for oracle_cman_home subdirectory
     [[ ! -d "${base_path}/oracle_cman_home" ]] && return 1
-    
+
     # Check for cmctl in oracle_cman_home/bin
     [[ ! -x "${base_path}/oracle_cman_home/bin/cmctl" ]] && return 1
-    
+
     # Check for lib directory
     [[ ! -d "${base_path}/oracle_cman_home/lib" ]] && return 1
-    
+
     return 0
 }
 
@@ -95,7 +98,7 @@ plugin_validate_home() {
 # ------------------------------------------------------------------------------
 plugin_adjust_environment() {
     local base_path="$1"
-    
+
     # If oracle_cman_home subdirectory exists, use it
     if [[ -d "${base_path}/oracle_cman_home" ]]; then
         echo "${base_path}/oracle_cman_home"
@@ -103,7 +106,7 @@ plugin_adjust_environment() {
         # Already pointing to oracle_cman_home or invalid
         echo "${base_path}"
     fi
-    
+
     return 0
 }
 
@@ -126,14 +129,40 @@ plugin_get_service_name() {
 
     if [[ -f "${cman_conf}" ]]; then
         local extracted_name
-        extracted_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*[[:space:]]*=' "${cman_conf}" 2>/dev/null | \
-                         grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
-                         head -1 | sed 's/[[:space:]]*=.*//' | tr -d ' ')
+        extracted_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*[[:space:]]*=' "${cman_conf}" 2> /dev/null \
+            | grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' \
+            | head -1 | sed 's/[[:space:]]*=.*//' | tr -d ' ')
         [[ -n "${extracted_name}" ]] && instance_name="${extracted_name}"
     fi
 
     echo "${instance_name}"
     return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: _datasafe_port_listening
+# Purpose.: Check if a TCP port is actively listening
+# Args....: $1 - port number
+# Returns.: 0 if listening, 1 if not listening, 2 if unable to determine
+# Notes...: Uses ss (Linux), lsof (macOS/Linux), or netstat as fallback.
+#           Defined as a named function so tests can override it easily.
+# ------------------------------------------------------------------------------
+_datasafe_port_listening() {
+    local port="$1"
+    if command -v ss > /dev/null 2>&1; then
+        ss -tnlp 2> /dev/null | grep -q ":${port}[[:space:]]" && return 0
+        # ss ran successfully but port not found
+        return 1
+    fi
+    if command -v lsof > /dev/null 2>&1; then
+        lsof -i "TCP:${port}" -sTCP:LISTEN -n -P > /dev/null 2>&1 && return 0
+        return 1
+    fi
+    if command -v netstat > /dev/null 2>&1; then
+        netstat -tnl 2> /dev/null | grep -q ":${port}[[:space:]]" && return 0
+        return 1
+    fi
+    return 2
 }
 
 # ------------------------------------------------------------------------------
@@ -143,97 +172,97 @@ plugin_get_service_name() {
 #           $2 - Connector name (optional)
 # Returns.: 0 if running, 1 if stopped, 2 if unavailable/error
 # Output..: None - status communicated via exit code only
-# Notes...: Multi-layered detection with fallback:
-#           1. cmctl show services -c <instance> (most accurate)
-#           2. Process-based detection (reliable fallback)
-#           3. Python setup.py (last resort)
-#           Supports ORADBA_CACHED_PS environment variable for batch detection
+# Notes...: Multi-layered detection:
+#           1. cmctl show services (authoritative when reachable)
+#           2. Port-based check (definitive; immune to CMAN argv[0] renaming)
+#           3. Python setup.py (last resort when no port configured)
+#           Oracle CMAN processes rename argv[0] to just 'cmadmin'/'cmgw' without
+#           the installation path, making ps-grep detection permanently unreliable.
 # ------------------------------------------------------------------------------
 plugin_check_status() {
     local base_path="$1"
-    local connector_name="${2:-}"
-    
-    # Adjust to oracle_cman_home if needed
+
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     local cmctl="${cman_home}/bin/cmctl"
-    local cmctl_status=""
     local cmctl_says_stopped=false
 
+    oradba_log TRACE "${FUNCNAME[0]}: base_path=${base_path} cman_home=${cman_home}"
+
     # Primary Method: cmctl show services (authoritative when reachable)
-    # Only used for positive confirmation or explicit "instance stopped" verdict.
-    # TNS errors mean cmctl could not REACH the admin socket (e.g. after a systemd
-    # oneshot start the IPC socket may not be accessible from another session), so
-    # we must NOT trust them as proof the connector is stopped - fall through to
-    # process detection instead.
+    # TNS errors mean cmctl cannot reach the IPC socket (e.g. systemd-isolated
+    # session); do NOT treat them as proof the connector is stopped.
     if [[ -x "${cmctl}" ]]; then
         local instance_name
         instance_name=$(plugin_get_service_name "${base_path}")
+        oradba_log TRACE "${FUNCNAME[0]}: cmctl show services -c ${instance_name}"
 
+        local cmctl_status
         cmctl_status=$(ORACLE_HOME="${cman_home}" \
-                       LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                       "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
+            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+            "${cmctl}" show services -c "${instance_name}" 2> /dev/null)
 
-        # Positive indicators: connector is reachable and running.
-        # "Instance" alone is intentionally excluded — "Instance is not running"
+        oradba_log TRACE "${FUNCNAME[0]}: cmctl output=[${cmctl_status:0:200}]"
+
+        # Positive indicators — "Instance" alone excluded: "Instance is not running"
         # also contains that word and must NOT be treated as a positive hit.
         if echo "${cmctl_status}" | grep -qiE "Services Summary|READY|started|is running"; then
+            oradba_log TRACE "${FUNCNAME[0]}: cmctl confirms RUNNING"
             return 0
         fi
 
-        # Explicit stopped indicator (only when no TNS error - TNS means unreachable,
-        # not stopped; "not running" / "stopped" in a non-TNS context means stopped)
-        if echo "${cmctl_status}" | grep -qiE "not running|stopped" &&
-           ! echo "${cmctl_status}" | grep -qiE "^TNS-"; then
+        # Explicit stopped verdict only when no TNS error prefix
+        if echo "${cmctl_status}" | grep -qiE "not running|stopped" \
+            && ! echo "${cmctl_status}" | grep -qiE "^TNS-"; then
             cmctl_says_stopped=true
+            oradba_log TRACE "${FUNCNAME[0]}: cmctl confirms STOPPED"
         fi
     fi
 
-    # Secondary Method: Process-based detection
-    # More reliable than cmctl when the connector was started by systemd (oneshot)
-    # because cmctl IPC may be inaccessible from an unrelated session.
-    # Use cached process list if available (ORADBA_CACHED_PS environment variable).
-    # shellcheck disable=SC2009
-    if [[ -n "${ORADBA_CACHED_PS:-}" ]]; then
-        # Cache is used as a fast-path hint only; always verify with a fresh ps
-        # before returning 0 to guard against stale snapshots (e.g. exported from
-        # oraup.sh into the parent shell after the connector was stopped).
-        if grep -q "${base_path}.*[c]madmin" <<< "${ORADBA_CACHED_PS}"; then
-            ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin" && return 0
-        fi
-        if grep -q "${base_path}.*[c]mgw" <<< "${ORADBA_CACHED_PS}"; then
-            ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw" && return 0
-        fi
-    else
-        if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
+    # Secondary Method: Port-based detection (definitive)
+    # A listening port is authoritative: open = connector running, closed = stopped.
+    # Overrides ps-grep detection, which is broken because Oracle CMAN renames
+    # argv[0] to just 'cmadmin' / 'cmgw' (no path) via prctl/argv manipulation.
+    local port
+    port=$(plugin_get_port "${base_path}" 2> /dev/null)
+    if [[ -n "${port}" ]]; then
+        oradba_log TRACE "${FUNCNAME[0]}: port check on :${port}"
+        local port_rc
+        _datasafe_port_listening "${port}"
+        port_rc=$?
+        if [[ "${port_rc}" -eq 0 ]]; then
+            oradba_log TRACE "${FUNCNAME[0]}: port ${port} listening - RUNNING"
             return 0
+        elif [[ "${port_rc}" -eq 1 ]]; then
+            oradba_log TRACE "${FUNCNAME[0]}: port ${port} not listening - STOPPED"
+            return 1
         fi
-        if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
-            return 0
-        fi
+        # port_rc 2: no ss/lsof/netstat available; fall through
+        oradba_log TRACE "${FUNCNAME[0]}: port check inconclusive (no ss/lsof/netstat)"
     fi
 
-    # Tertiary Method: Python setup.py (last resort)
+    # Tertiary Method: Python setup.py (reached only when no port configured)
     if [[ -f "${base_path}/setup.py" ]]; then
-        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
+        oradba_log TRACE "${FUNCNAME[0]}: setup.py status fallback"
+        local setup_output
+        setup_output=$(python3 "${base_path}/setup.py" status 2> /dev/null)
+        oradba_log TRACE "${FUNCNAME[0]}: setup.py output=[${setup_output:0:200}]"
+        if echo "${setup_output}" | grep -qi "already started"; then
             return 0
         fi
-        if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
+        if echo "${setup_output}" | grep -qi "not running\|stopped"; then
             return 1
         fi
     fi
 
-    # No process evidence found; trust cmctl's explicit stopped verdict if available
+    # Trust cmctl's explicit stopped verdict when no other evidence is available
     if [[ "${cmctl_says_stopped}" == "true" ]]; then
+        oradba_log TRACE "${FUNCNAME[0]}: falling back to cmctl stopped verdict"
         return 1
     fi
 
-    # cmctl unreachable (TNS error) and no processes found - connector is stopped
-    if [[ ! -x "${cmctl}" ]]; then
-        return 2
-    fi
-
+    [[ ! -x "${cmctl}" ]] && return 2
     return 1
 }
 
@@ -252,25 +281,25 @@ plugin_get_version() {
     local base_path="$1"
     local cman_home
     local version
-    
+
     # Validate base path exists
     [[ ! -d "${base_path}" ]] && return 2
-    
+
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     # Check if cmctl is available
     local cmctl="${cman_home}/bin/cmctl"
     [[ ! -x "${cmctl}" ]] && return 2
-    
+
     local instance_name
     instance_name=$(plugin_get_service_name "${base_path}")
-    
+
     # Get version using cmctl show version -c <instance>
     local version_output
     version_output=$(ORACLE_HOME="${cman_home}" \
-                     LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                     "${cmctl}" show version -c "${instance_name}" 2>/dev/null)
-    
+        LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+        "${cmctl}" show version -c "${instance_name}" 2> /dev/null)
+
     # Parse version from output using sed for portability
     # Expected format: "Oracle Connection Manager Version 23.4.0.0.0"
     version=""
@@ -279,19 +308,19 @@ plugin_get_version() {
         echo "${version}"
         return 0
     fi
-    
+
     # Fallback: try without instance name (older versions)
     version_output=$(ORACLE_HOME="${cman_home}" \
-                     LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                     "${cmctl}" version 2>/dev/null)
-    
+        LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+        "${cmctl}" version 2> /dev/null)
+
     version=""
     [[ "${version_output}" =~ Version[[:space:]]*([0-9][0-9.]*) ]] && version="${BASH_REMATCH[1]}"
     if [[ -n "${version}" ]]; then
         echo "${version}"
         return 0
     fi
-    
+
     # No version found - error
     return 2
 }
@@ -311,22 +340,22 @@ plugin_get_version() {
 plugin_get_connector_version() {
     local base_path="$1"
     local connector_version
-    
+
     # Validate base path exists
     [[ ! -d "${base_path}" ]] && return 2
-    
+
     # Check if setup.py exists
     [[ ! -f "${base_path}/setup.py" ]] && return 2
-    
+
     # Check if python3 is available
-    if ! command -v python3 &>/dev/null; then
+    if ! command -v python3 &> /dev/null; then
         return 2
     fi
-    
+
     # Get connector version using setup.py version command
     local version_output
-    version_output=$(cd "${base_path}" && python3 setup.py version 2>/dev/null)
-    
+    version_output=$(cd "${base_path}" && python3 setup.py version 2> /dev/null)
+
     # Parse version from output using sed for portability
     # Expected format: "On-premises connector software version : 220517.00"
     connector_version=""
@@ -335,12 +364,12 @@ plugin_get_connector_version() {
     elif [[ "${version_output}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
         connector_version="${version_output}"
     fi
-    
+
     if [[ -n "${connector_version}" ]]; then
         echo "${connector_version}"
         return 0
     fi
-    
+
     # No version found - error
     return 2
 }
@@ -362,7 +391,7 @@ plugin_get_metadata() {
     local connection_count
     local cman_status
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     # Get CMAN version (Oracle-supplied version)
     # Only output version if available (no sentinel strings)
     if cman_version=$(plugin_get_version "${base_path}"); then
@@ -370,7 +399,7 @@ plugin_get_metadata() {
         # Also output as 'version' for backward compatibility
         echo "version=${cman_version}"
     fi
-    
+
     # Get connector software version (on-premises connector version)
     # Only output version if available (no sentinel strings)
     if connector_version=$(plugin_get_connector_version "${base_path}"); then
@@ -385,28 +414,28 @@ plugin_get_metadata() {
     if port=$(plugin_get_port "${base_path}"); then
         echo "port=${port}"
     fi
-    
+
     # Get connection count if connector is running
     # Only output if successfully retrieved (no sentinel strings)
-    if connection_count=$(plugin_get_connection_count "${base_path}" 2>/dev/null); then
+    if connection_count=$(plugin_get_connection_count "${base_path}" 2> /dev/null); then
         echo "connections=${connection_count}"
     fi
-    
+
     # Get CMAN status details if connector is running
     # Only output if successfully retrieved (no sentinel strings)
-    if cman_status=$(plugin_get_cman_status "${base_path}" 2>/dev/null); then
+    if cman_status=$(plugin_get_cman_status "${base_path}" 2> /dev/null); then
         echo "${cman_status}"
     fi
-    
+
     echo "type=datasafe_connector"
-    
+
     # Check if cmctl is available
     if [[ -x "${cman_home}/bin/cmctl" ]]; then
         echo "cmctl=available"
     else
         echo "cmctl=unavailable"
     fi
-    
+
     return 0
 }
 
@@ -446,15 +475,15 @@ plugin_check_listener_status() {
 # ------------------------------------------------------------------------------
 plugin_discover_instances() {
     local base_path="$1"
-    
+
     # Extract connector name from path
     local connector_name
     connector_name=$(basename "${base_path}")
-    
+
     # Check status
     local status
     status=$(plugin_check_status "${base_path}")
-    
+
     echo "${connector_name}|${status}|"
     return 0
 }
@@ -489,16 +518,16 @@ plugin_build_base_path() {
 # ------------------------------------------------------------------------------
 plugin_build_env() {
     local base_path="$1"
-    
+
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     local bin_path
     bin_path=$(plugin_build_bin_path "${base_path}")
-    
+
     local lib_path
     lib_path=$(plugin_build_lib_path "${base_path}")
-    
+
     echo "ORACLE_BASE_HOME=${base_path}"
     echo "ORACLE_HOME=${cman_home}"
     [[ -n "${bin_path}" ]] && echo "PATH=${bin_path}"
@@ -544,11 +573,11 @@ plugin_build_bin_path() {
     local base_path="$1"
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     if [[ -d "${cman_home}/bin" ]]; then
         echo "${cman_home}/bin"
     fi
-    
+
     return 0
 }
 
@@ -564,11 +593,11 @@ plugin_build_lib_path() {
     local base_path="$1"
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     if [[ -d "${cman_home}/lib" ]]; then
         echo "${cman_home}/lib"
     fi
-    
+
     return 0
 }
 
@@ -609,20 +638,20 @@ plugin_get_required_binaries() {
 plugin_set_environment() {
     local base_path="$1"
     local cman_home
-    
+
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     # DataSafe MUST use its own TNS_ADMIN - cannot share with other connectors
     # Always override any inherited TNS_ADMIN to ensure correct cman.ora is read
     export TNS_ADMIN="${cman_home}/network/admin"
-    
-    if declare -f oradba_log >/dev/null 2>&1; then
+
+    if declare -f oradba_log > /dev/null 2>&1; then
         oradba_log DEBUG "DataSafe plugin_set_environment: TNS_ADMIN=${TNS_ADMIN}"
     fi
-    
+
     # Set DATASAFE_HOME for compatibility (base path without oracle_cman_home)
     export DATASAFE_HOME="${base_path}"
-    
+
     return 0
 }
 
@@ -638,21 +667,21 @@ plugin_set_environment() {
 plugin_get_port() {
     local base_path="$1"
     local cman_home cman_conf
-    
+
     cman_home=$(plugin_adjust_environment "${base_path}")
     cman_conf="${cman_home}/network/admin/cman.ora"
-    
+
     if [[ ! -f "${cman_conf}" ]]; then
         return 1
     fi
-    
+
     # Extract port from (address=(protocol=TCPS)(host=localhost)(port=1562))
     # Use grep with Perl regex for extraction, or awk as fallback
     local port
     local _port_line
-    _port_line=$(grep -o 'port=[0-9]*' "${cman_conf}" 2>/dev/null | head -1)
+    _port_line=$(grep -o 'port=[0-9]*' "${cman_conf}" 2> /dev/null | head -1)
     port="${_port_line#port=}"
-    
+
     if [[ -n "${port}" ]]; then
         echo "${port}"
         return 0
@@ -676,42 +705,42 @@ plugin_get_port() {
 plugin_get_connection_count() {
     local base_path="$1"
     local cman_home
-    
+
     # Validate base path exists
     [[ ! -d "${base_path}" ]] && return 2
-    
+
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     # Check if cmctl is available
     local cmctl="${cman_home}/bin/cmctl"
     [[ ! -x "${cmctl}" ]] && return 2
-    
+
     # Check if connector is running first
-    if ! plugin_check_status "${base_path}" "" &>/dev/null; then
+    if ! plugin_check_status "${base_path}" "" &> /dev/null; then
         # Connector not running - return N/A (exit code 1)
         return 1
     fi
-    
+
     local instance_name
     instance_name=$(plugin_get_service_name "${base_path}")
-    
+
     # Get tunnel information using cmctl show tunnels -c <instance>
     local tunnel_output
     tunnel_output=$(ORACLE_HOME="${cman_home}" \
-                    LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                    "${cmctl}" show tunnels -c "${instance_name}" 2>/dev/null)
-    
+        LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+        "${cmctl}" show tunnels -c "${instance_name}" 2> /dev/null)
+
     # Parse connection count from output
     # Expected format: "Number of connections: 12."
     local connection_count
     connection_count=""
     [[ "${tunnel_output}" =~ [Nn]umber[[:space:]]+of[[:space:]]+connections:[[:space:]]*([0-9]+) ]] && connection_count="${BASH_REMATCH[1]}"
-    
+
     if [[ -n "${connection_count}" ]]; then
         echo "${connection_count}"
         return 0
     fi
-    
+
     # No connection count found - could be connector running but no tunnels yet
     # Return 0 with count of 0 (valid state)
     echo "0"
@@ -736,37 +765,37 @@ plugin_get_connection_count() {
 plugin_get_cman_status() {
     local base_path="$1"
     local cman_home
-    
+
     # Validate base path exists
     [[ ! -d "${base_path}" ]] && return 2
-    
+
     cman_home=$(plugin_adjust_environment "${base_path}")
-    
+
     # Check if cmctl is available
     local cmctl="${cman_home}/bin/cmctl"
     [[ ! -x "${cmctl}" ]] && return 2
-    
+
     # Check if connector is running first
-    if ! plugin_check_status "${base_path}" "" &>/dev/null; then
+    if ! plugin_check_status "${base_path}" "" &> /dev/null; then
         # Connector not running - return N/A (exit code 1)
         return 1
     fi
-    
+
     local instance_name
     instance_name=$(plugin_get_service_name "${base_path}")
-    
+
     # Get status information using cmctl show status -c <instance>
     local status_output
     status_output=$(ORACLE_HOME="${cman_home}" \
-                    LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                    "${cmctl}" show status -c "${instance_name}" 2>/dev/null)
-    
+        LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+        "${cmctl}" show status -c "${instance_name}" 2> /dev/null)
+
     # Parse status information from output
     # Expected format:
     #   Start date                10-FEB-2026 15:20:38
     #   Uptime                    0 days 20 hr. 7 min. 6 sec
     #   Num of gateways started   12
-    
+
     local start_date uptime gateways _sline
 
     # Extract status fields in a single pass (replaces 9 echo|grep|sed subshells)
@@ -779,20 +808,20 @@ plugin_get_cman_status() {
             gateways="${BASH_REMATCH[1]}"
         fi
     done <<< "${status_output}"
-    
+
     # Output key=value pairs (only if values found)
     if [[ -n "${start_date}" ]]; then
         echo "cman_start_date=${start_date}"
     fi
-    
+
     if [[ -n "${uptime}" ]]; then
         echo "cman_uptime=${uptime}"
     fi
-    
+
     if [[ -n "${gateways}" ]]; then
         echo "cman_gateways=${gateways}"
     fi
-    
+
     # Return success if at least one value was found, otherwise error
     if [[ -n "${start_date}" || -n "${uptime}" || -n "${gateways}" ]]; then
         return 0
@@ -817,92 +846,92 @@ plugin_stop() {
     local base_path="$1"
     local connector_name="${2:-}"
     local timeout="${3:-180}"
-    
+
     local cman_home cman_conf instance_name
     cman_home=$(plugin_adjust_environment "${base_path}")
     cman_conf="${cman_home}/network/admin/cman.ora"
-    
+
     # Extract instance name from cman.ora
     # Format: instance_name = (configuration...)
-    instance_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*=' "${cman_conf}" 2>/dev/null | \
-                    grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' | \
-                    head -1 | cut -d'=' -f1 | tr -d ' ')
-    
+    instance_name=$(grep -E '^[A-Za-z][A-Za-z0-9_]*=' "${cman_conf}" 2> /dev/null \
+        | grep -vE '^(WALLET_LOCATION|SSL_VERSION|SSL_CLIENT_AUTHENTICATION)' \
+        | head -1 | cut -d'=' -f1 | tr -d ' ')
+
     if [[ -z "${instance_name}" ]]; then
-        if declare -f oradba_log >/dev/null 2>&1; then
+        if declare -f oradba_log > /dev/null 2>&1; then
             oradba_log ERROR "Cannot determine instance name from ${cman_conf}"
         fi
         return 1
     fi
-    
+
     # Set TNS_ADMIN to correct location
     export TNS_ADMIN="${cman_home}/network/admin"
-    
-    if declare -f oradba_log >/dev/null 2>&1; then
+
+    if declare -f oradba_log > /dev/null 2>&1; then
         oradba_log DEBUG "DataSafe plugin_stop: Executing cmctl shutdown -c ${instance_name}"
     fi
-    
+
     # Try cmctl shutdown with -c parameter
     local shutdown_output exit_code
-    shutdown_output=$(cd "${cman_home}" && \
-                      ORACLE_HOME="${cman_home}" \
-                      LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                      timeout "${timeout}" ./bin/cmctl shutdown -c "${instance_name}" 2>&1)
+    shutdown_output=$(cd "${cman_home}" \
+        && ORACLE_HOME="${cman_home}" \
+            LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+            timeout "${timeout}" ./bin/cmctl shutdown -c "${instance_name}" 2>&1)
     exit_code=$?
-    
-    if declare -f oradba_log >/dev/null 2>&1; then
+
+    if declare -f oradba_log > /dev/null 2>&1; then
         oradba_log DEBUG "DataSafe plugin_stop: cmctl exit code: ${exit_code}"
         oradba_log DEBUG "DataSafe plugin_stop: cmctl output: ${shutdown_output}"
     fi
-    
+
     # Wait a moment for shutdown to complete
     sleep 2
-    
+
     # Verify processes are actually stopped
     local cmadmin_pid
-    cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
-    
+    cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2> /dev/null || true)
+
     if [[ -n "${cmadmin_pid}" ]]; then
-        if declare -f oradba_log >/dev/null 2>&1; then
+        if declare -f oradba_log > /dev/null 2>&1; then
             oradba_log WARN "DataSafe plugin_stop: cmctl completed but processes still running, forcing kill"
         fi
-        
+
         # Force kill cmadmin (this will terminate child cmgw processes)
-        pkill -TERM -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true
+        pkill -TERM -f "${cman_home}/bin/cmadmin.*${instance_name}" 2> /dev/null || true
         sleep 2
-        
+
         # Check again
-        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
+        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2> /dev/null || true)
         if [[ -n "${cmadmin_pid}" ]]; then
             # Still running, use SIGKILL
-            if declare -f oradba_log >/dev/null 2>&1; then
+            if declare -f oradba_log > /dev/null 2>&1; then
                 oradba_log WARN "DataSafe plugin_stop: SIGTERM didn't work, using SIGKILL"
             fi
-            pkill -KILL -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true
+            pkill -KILL -f "${cman_home}/bin/cmadmin.*${instance_name}" 2> /dev/null || true
             sleep 1
         fi
-        
+
         # Final verification
-        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2>/dev/null || true)
+        cmadmin_pid=$(pgrep -f "${cman_home}/bin/cmadmin.*${instance_name}" 2> /dev/null || true)
         if [[ -n "${cmadmin_pid}" ]]; then
-            if declare -f oradba_log >/dev/null 2>&1; then
+            if declare -f oradba_log > /dev/null 2>&1; then
                 oradba_log ERROR "DataSafe plugin_stop: Failed to stop connector processes"
             fi
             return 1
         fi
     fi
-    
-    if declare -f oradba_log >/dev/null 2>&1; then
+
+    if declare -f oradba_log > /dev/null 2>&1; then
         oradba_log DEBUG "DataSafe plugin_stop: Connector stopped successfully"
     fi
-    
+
     return 0
 }
 
 # ------------------------------------------------------------------------------
 # Plugin loaded
 # ------------------------------------------------------------------------------
-if declare -f oradba_log >/dev/null 2>&1; then
+if declare -f oradba_log > /dev/null 2>&1; then
     oradba_log DEBUG "DataSafe plugin loaded (v${plugin_version})"
     oradba_log DEBUG "Consolidates oracle_cman_home logic (was in 8+ files)"
 fi

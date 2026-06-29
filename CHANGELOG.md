@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-06-29
+
 ### Fixed
 
 - `src/bin/oradba_dsctl.sh` `show_status()`: unset `ORADBA_CACHED_PS` before
@@ -17,11 +19,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parent shell when `oraup.sh` is sourced (e.g. via the `u` alias); previously
   the stale export caused subsequent `oradba_dsctl.sh status` calls in the same
   session to report RUNNING for stopped connectors
-- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: when
-  `ORADBA_CACHED_PS` finds a cmadmin/cmgw match, verify the process is actually
-  alive with a fresh `ps` before returning 0; the cache is now advisory-only,
-  preventing false RUNNING results when the snapshot was captured before the
-  connector stopped
+- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: replace broken
+  process-based (ps-grep) detection with port-based status check. Oracle CMAN
+  processes (`cmadmin`/`cmgw`) rename `argv[0]` to just the binary name without
+  the installation path at startup, making `ps -ef | grep "${path}.*cmadmin"` a
+  permanently unreliable detection method. The new secondary detection method calls
+  `plugin_get_port()` to read the configured port from `cman.ora`, then checks
+  whether that port is actively listening via `ss`/`lsof`/`netstat`. A listening
+  port is authoritative proof the connector is running; a closed port confirms it
+  is stopped. This is immune to `argv[0]` renaming, systemd IPC isolation, and
+  stale process caches. `setup.py` remains as a last resort only when no port is
+  configured. Added `_datasafe_port_listening()` helper (overrideable in tests).
+  Added `TRACE`-level logging throughout `plugin_check_status()` for
+  observability. Updated test suite: ps-mock tests replaced with port-mock tests
+  using function override.
+- `src/lib/oradba_common.sh` `execute_plugin_function_v2()`: always set
+  `LD_LIBRARY_PATH="${oracle_home}/lib"` instead of guarding with
+  `if [[ -z "${LD_LIBRARY_PATH:-}" ]]`. The conditional guard caused all
+  connectors after the first to use the first connector's library path when the
+  caller's shell had `LD_LIBRARY_PATH` already set (e.g. from a profile that
+  sources one connector's environment). Each plugin subshell now always starts
+  with the correct connector-specific library path.
 
 ## [1.0.0-rc.3] - 2026-06-29
 
