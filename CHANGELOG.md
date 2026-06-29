@@ -52,6 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/bin/oradba_install.sh`: preserve `etc/oradba_local.conf` on re-install/update;
   the file is now created only on first install — existing user customisations
   (e.g. `ORADBA_COEXIST_MODE="basenv-maximal"`) are no longer silently overwritten.
+- `src/bin/oradba_version.sh` `show_version()`: display the runtime `$ORADBA_COEXIST_MODE`
+  value instead of the static `.install_info` snapshot; the `version` command now correctly
+  reflects the active coexistence sub-mode (e.g. `basenv-maximal`) set in `oradba_local.conf`.
 
 ## [1.0.0] - TBD (target: 2026-07-10)
 
