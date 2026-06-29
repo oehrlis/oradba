@@ -34,6 +34,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `$etc/sqlplus.filter` and `$etc/sqlplus.key` - which live in BasEnv's etc dir, not
   oradba's. The same protection applies to `$log`. Two BATS tests added.
 
+- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: fix false "stopped"
+  detection when Data Safe connector is managed by systemd oneshot. When `cmctl show
+  services` cannot reach the CMAN admin socket from an unrelated session it returns a
+  `TNS-*` error; the old code treated any line matching `TNS-|stopped` as proof the
+  connector was down and returned 1 before ever checking whether `cmadmin`/`cmgw`
+  processes are running. New logic: positive cmctl indicators (`Services Summary`,
+  `READY`, `started`, `is running`) still trigger an immediate return 0; negative
+  cmctl indicators (`not running`, `stopped`) are remembered but only act as the
+  final verdict after process detection also finds nothing; TNS errors are ignored
+  entirely (they mean "unreachable", not "stopped") and fall straight through to
+  process detection. Also removed bare `Instance` from the positive pattern — it
+  appears in "Instance is not running" and caused a false positive. Side effect:
+  `oradba_dsctl.sh start` no longer tries to start an already-running connector
+  (which caused a misleading "started successfully" on first run and an error on
+  the second run). Three BATS tests added.
+
 ## [1.0.0-rc.2] - 2026-06-29
 
 ### Added

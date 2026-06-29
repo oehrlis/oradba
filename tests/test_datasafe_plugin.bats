@@ -1638,3 +1638,96 @@ SETUP_MOCK
     # Verify connector version is also output when available
     [[ "$output" == *"connector_version=1.5.2"* ]]
 }
+
+# ==============================================================================
+# Systemd / TNS-error resilience (regression for issue reported 2026-06-29)
+# ==============================================================================
+
+@test "plugin_check_status returns running when cmctl gets TNS error but cmadmin process exists" {
+    # Scenario: connector started by systemd oneshot; cmctl cannot reach the IPC
+    # socket from a different session (returns TNS-12541), but cmadmin is running.
+    # Old code did an early return 1 (stopped) on any TNS-* line; new code falls
+    # through to process detection and correctly returns 0 (running).
+    local ds_home="${TEST_DIR}/test_homes/datasafe_systemd_tns"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+
+    # Mock cmctl that fails with a TNS error (simulates systemd IPC isolation)
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+echo "TNS-12541: TNS:no listener"
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+
+    # Provide a fake process list containing cmadmin for this home
+    export ORADBA_CACHED_PS="${ds_home}/oracle_cman_home/bin/cmadmin cust_cman -inherit"
+
+    run plugin_check_status "${ds_home}"
+    [ "$status" -eq 0 ]
+}
+
+@test "plugin_check_status returns stopped when cmctl says not running AND no process found" {
+    # cmctl returns an explicit non-TNS "not running" message AND no process exists
+    # → the function should correctly return 1 (stopped)
+    local ds_home="${TEST_DIR}/test_homes/datasafe_explicit_stopped"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+echo "CMAN(cust_cman) is not running"
+exit 0
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+
+    # Empty cached process list — no cmadmin/cmgw running
+    export ORADBA_CACHED_PS=""
+
+    run plugin_check_status "${ds_home}"
+    [ "$status" -eq 1 ]
+}
+
+@test "plugin_check_status process detection overrides TNS error even without ORADBA_CACHED_PS" {
+    # When ORADBA_CACHED_PS is not set, process detection falls back to ps -ef.
+    # This test verifies the logic path exists (cannot fake ps -ef output in unit
+    # test, so we verify that with no processes the function returns 1 via cmctl,
+    # not 0 via a spurious process match).
+    local ds_home="${TEST_DIR}/test_homes/datasafe_tns_no_cache"
+    mkdir -p "${ds_home}/oracle_cman_home/bin"
+    mkdir -p "${ds_home}/oracle_cman_home/lib"
+    mkdir -p "${ds_home}/oracle_cman_home/network/admin"
+
+    cat > "${ds_home}/oracle_cman_home/network/admin/cman.ora" <<'CMAN_ORA'
+cust_cman = (configuration=(address=(protocol=tcp)(host=localhost)(port=1521)))
+CMAN_ORA
+
+    # cmctl fails with TNS error
+    cat > "${ds_home}/oracle_cman_home/bin/cmctl" <<'CMCTL_MOCK'
+#!/usr/bin/env bash
+echo "TNS-12541: TNS:no listener"
+exit 1
+CMCTL_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
+
+    source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
+    unset ORADBA_CACHED_PS
+
+    # No real cmadmin processes exist for this fake path → should return 1
+    run plugin_check_status "${ds_home}"
+    [ "$status" -eq 1 ]
+}

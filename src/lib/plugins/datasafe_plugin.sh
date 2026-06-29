@@ -157,73 +157,80 @@ plugin_check_status() {
     local cman_home
     cman_home=$(plugin_adjust_environment "${base_path}")
     
-    # Primary Method: cmctl show services command (most accurate)
     local cmctl="${cman_home}/bin/cmctl"
+    local cmctl_status=""
+    local cmctl_says_stopped=false
+
+    # Primary Method: cmctl show services (authoritative when reachable)
+    # Only used for positive confirmation or explicit "instance stopped" verdict.
+    # TNS errors mean cmctl could not REACH the admin socket (e.g. after a systemd
+    # oneshot start the IPC socket may not be accessible from another session), so
+    # we must NOT trust them as proof the connector is stopped - fall through to
+    # process detection instead.
     if [[ -x "${cmctl}" ]]; then
         local instance_name
         instance_name=$(plugin_get_service_name "${base_path}")
-        
-        # Use correct command: "show services -c <instance_name>"
-        local status
-        status=$(ORACLE_HOME="${cman_home}" \
-                 LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
-                 "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
-        
-        # Check for explicit stopped/not running messages FIRST (more specific)
-        # Use word boundaries to avoid matching "running" in "not running"
-        if echo "${status}" | grep -qiE "not running|stopped|TNS-|No services"; then
-            return 1
-        fi
-        
-        # Then check for service information in output (running state)
-        # Check for positive indicators: Services Summary, READY, started, or "is running"
-        if echo "${status}" | grep -qiE "Services Summary|Instance|READY|started|is running"; then
+
+        cmctl_status=$(ORACLE_HOME="${cman_home}" \
+                       LD_LIBRARY_PATH="${cman_home}/lib:${LD_LIBRARY_PATH:-}" \
+                       "${cmctl}" show services -c "${instance_name}" 2>/dev/null)
+
+        # Positive indicators: connector is reachable and running.
+        # "Instance" alone is intentionally excluded — "Instance is not running"
+        # also contains that word and must NOT be treated as a positive hit.
+        if echo "${cmctl_status}" | grep -qiE "Services Summary|READY|started|is running"; then
             return 0
         fi
+
+        # Explicit stopped indicator (only when no TNS error - TNS means unreachable,
+        # not stopped; "not running" / "stopped" in a non-TNS context means stopped)
+        if echo "${cmctl_status}" | grep -qiE "not running|stopped" &&
+           ! echo "${cmctl_status}" | grep -qiE "^TNS-"; then
+            cmctl_says_stopped=true
+        fi
     fi
-    
-    # Secondary Method: Process-based detection (reliable fallback)
-    # Check for running cmadmin or cmgw processes
-    # Use cached process list if available (ORADBA_CACHED_PS environment variable)
+
+    # Secondary Method: Process-based detection
+    # More reliable than cmctl when the connector was started by systemd (oneshot)
+    # because cmctl IPC may be inaccessible from an unrelated session.
+    # Use cached process list if available (ORADBA_CACHED_PS environment variable).
     # shellcheck disable=SC2009
     if [[ -n "${ORADBA_CACHED_PS:-}" ]]; then
-        # Use cached process list for batch detection (safer with here-string)
         if grep -q "${base_path}.*[c]madmin" <<< "${ORADBA_CACHED_PS}"; then
             return 0
         fi
-        
         if grep -q "${base_path}.*[c]mgw" <<< "${ORADBA_CACHED_PS}"; then
             return 0
         fi
     else
-        # Fall back to calling ps -ef directly
         if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then
             return 0
         fi
-        
         if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw"; then
             return 0
         fi
     fi
-    
+
     # Tertiary Method: Python setup.py (last resort)
     if [[ -f "${base_path}/setup.py" ]]; then
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "already started"; then
             return 0
         fi
-        
-        # Check for stopped status
         if python3 "${base_path}/setup.py" status 2>/dev/null | grep -qi "not running\|stopped"; then
             return 1
         fi
     fi
-    
-    # If no detection method worked, check if it's unavailable
+
+    # No process evidence found; trust cmctl's explicit stopped verdict if available
+    if [[ "${cmctl_says_stopped}" == "true" ]]; then
+        return 1
+    fi
+
+    # cmctl unreachable (TNS error) and no processes found - connector is stopped
     if [[ ! -x "${cmctl}" ]]; then
         return 2
     fi
-    
-    # Default to stopped if cmctl exists but we can't determine status
+
     return 1
 }
 
