@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `src/bin/oradba_dsctl.sh` `show_status()`: unset `ORADBA_CACHED_PS` before
+  calling the plugin so that `oradba_dsctl.sh status` always performs a fresh
+  process check, regardless of any stale snapshot inherited from the parent shell
+- `src/bin/oraup.sh` `show_oracle_status_registry()`: unset `ORADBA_CACHED_PS`
+  at the end of the function so the batch process snapshot does not persist in
+  the parent shell when `oraup.sh` is sourced (e.g. via the `u` alias); previously
+  the stale export caused subsequent `oradba_dsctl.sh status` calls in the same
+  session to report RUNNING for stopped connectors
+- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: when
+  `ORADBA_CACHED_PS` finds a cmadmin/cmgw match, verify the process is actually
+  alive with a fresh `ps` before returning 0; the cache is now advisory-only,
+  preventing false RUNNING results when the snapshot was captured before the
+  connector stopped
+
 ## [1.0.0-rc.3] - 2026-06-29
 
 ### Fixed

@@ -1646,8 +1646,8 @@ SETUP_MOCK
 @test "plugin_check_status returns running when cmctl gets TNS error but cmadmin process exists" {
     # Scenario: connector started by systemd oneshot; cmctl cannot reach the IPC
     # socket from a different session (returns TNS-12541), but cmadmin is running.
-    # Old code did an early return 1 (stopped) on any TNS-* line; new code falls
-    # through to process detection and correctly returns 0 (running).
+    # The cache is advisory-only: a fresh ps verification is always performed when
+    # the cache finds a match, so this test starts a real background process.
     local ds_home="${TEST_DIR}/test_homes/datasafe_systemd_tns"
     mkdir -p "${ds_home}/oracle_cman_home/bin"
     mkdir -p "${ds_home}/oracle_cman_home/lib"
@@ -1665,12 +1665,27 @@ exit 1
 CMCTL_MOCK
     chmod +x "${ds_home}/oracle_cman_home/bin/cmctl"
 
+    # Start a real background process so both the cache hint AND the fresh ps
+    # verification agree the connector is running (cache is now advisory-only)
+    cat > "${ds_home}/oracle_cman_home/bin/cmadmin" <<'CMADMIN_MOCK'
+#!/usr/bin/env bash
+exec sleep 999
+CMADMIN_MOCK
+    chmod +x "${ds_home}/oracle_cman_home/bin/cmadmin"
+    "${ds_home}/oracle_cman_home/bin/cmadmin" &
+    local cmadmin_pid=$!
+
     source "${TEST_DIR}/lib/plugins/datasafe_plugin.sh"
 
-    # Provide a fake process list containing cmadmin for this home
+    # Provide cached process list (advisory; fresh ps also runs now)
     export ORADBA_CACHED_PS="${ds_home}/oracle_cman_home/bin/cmadmin cust_cman -inherit"
 
     run plugin_check_status "${ds_home}"
+
+    # Clean up background process before asserting so it always runs
+    kill "${cmadmin_pid}" 2>/dev/null || true
+    wait "${cmadmin_pid}" 2>/dev/null || true
+
     [ "$status" -eq 0 ]
 }
 

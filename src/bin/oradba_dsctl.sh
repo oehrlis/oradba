@@ -471,6 +471,11 @@ show_status() {
     local home="$2"
     oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Checking status for connector '${name}'"
 
+    # Status must always reflect live process state; unset any cached PS so the
+    # plugin does a fresh ps rather than trusting a snapshot from a previous run
+    # (e.g. exported by oraup.sh / u alias into the parent shell).
+    unset ORADBA_CACHED_PS
+
     # Set up environment for this connector
     setup_connector_environment "${name}" "${home}" || return 1
 

@@ -196,11 +196,14 @@ plugin_check_status() {
     # Use cached process list if available (ORADBA_CACHED_PS environment variable).
     # shellcheck disable=SC2009
     if [[ -n "${ORADBA_CACHED_PS:-}" ]]; then
+        # Cache is used as a fast-path hint only; always verify with a fresh ps
+        # before returning 0 to guard against stale snapshots (e.g. exported from
+        # oraup.sh into the parent shell after the connector was stopped).
         if grep -q "${base_path}.*[c]madmin" <<< "${ORADBA_CACHED_PS}"; then
-            return 0
+            ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin" && return 0
         fi
         if grep -q "${base_path}.*[c]mgw" <<< "${ORADBA_CACHED_PS}"; then
-            return 0
+            ps -ef 2>/dev/null | grep -q "${base_path}.*[c]mgw" && return 0
         fi
     else
         if ps -ef 2>/dev/null | grep -q "${base_path}.*[c]madmin"; then

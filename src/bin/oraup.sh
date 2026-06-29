@@ -660,6 +660,12 @@ show_oracle_status_registry() {
     echo ""
     echo "=========================================================================================="
     echo ""
+
+    # Remove the batch-cached process snapshot from the shell environment so it
+    # does not persist after this function returns (sourced invocation via 'u'
+    # alias would otherwise export a stale ORADBA_CACHED_PS into the parent shell,
+    # causing subsequent oradba_dsctl.sh status calls to report wrong state).
+    unset ORADBA_CACHED_PS
 }
 
 # ------------------------------------------------------------------------------
