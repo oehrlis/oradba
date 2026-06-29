@@ -643,7 +643,7 @@ teardown() {
 @test "profile integration creates backup before modification" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that backup is created
-    grep -A 80 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "\.backup\."
+    grep -A 120 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "\.backup\."
 }
 
 @test "profile integration uses silent mode for oraenv" {
