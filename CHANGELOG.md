@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `tests/test_installer.bats`: increase `grep -A` window from 80 to 90 lines in the
+  "profile integration runs oraup on interactive shells" test; `oraup.sh` first appears
+  at line 83 of `update_profile()`, which was just outside the previous window.
+
 - `src/bin/oraenv.sh` `_oraenv_main()`: in `basenv` minimal mode, return early without
   SID menu, environment setup, or status output when no explicit SID is passed on the
   CLI. BasEnv already owns the full Oracle environment at login; oradba must not

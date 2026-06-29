@@ -552,7 +552,7 @@ teardown() {
 @test "profile integration runs oraup on interactive shells" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that profile integration conditionally runs oraup for interactive shells
-    grep -A 80 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "oraup"
+    grep -A 90 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "oraup"
 }
 
 @test "installer code has --update-profile flag" {
