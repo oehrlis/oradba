@@ -564,7 +564,7 @@ show_services() {
 
     local -a services=()
     mapfile -t services < <(systemctl list-unit-files "oracle_datasafe_*.service" \
-        --no-pager --no-legend 2>/dev/null | awk '{print $1}')
+        --no-pager --no-legend 2> /dev/null | awk '{print $1}')
 
     if [[ ${#services[@]} -eq 0 ]]; then
         oradba_log INFO "No oracle_datasafe_* service units found"
@@ -578,10 +578,10 @@ show_services() {
         local enabled state alias_name
 
         # enabled/disabled state
-        enabled=$(systemctl is-enabled "${svc}" 2>/dev/null || echo "unknown")
+        enabled=$(systemctl is-enabled "${svc}" 2> /dev/null || echo "unknown")
 
         # active state
-        state=$(systemctl is-active "${svc}" 2>/dev/null || echo "inactive")
+        state=$(systemctl is-active "${svc}" 2> /dev/null || echo "inactive")
 
         # Map service name back to registry alias
         # service = oracle_datasafe_<conn_dir>.service  ->  conn_dir = basename of home
@@ -594,7 +594,7 @@ show_services() {
                     alias_name="${_name}"
                     break
                 fi
-            done < <(oradba_registry_get_by_type "datasafe" 2>/dev/null)
+            done < <(oradba_registry_get_by_type "datasafe" 2> /dev/null)
         fi
         [[ -z "${alias_name}" ]] && alias_name="-"
 
