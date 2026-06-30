@@ -5,7 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-rc.5] - 2026-06-30
+
+### Fixed
+
+- `src/bin/oradba_dsctl.sh` `show_status()`, `start_connector()`, `stop_connector()`:
+  fix silent exit under `set -euo pipefail` when `execute_plugin_function_v2` returns
+  non-zero (e.g. connector is stopped). All three call sites now use the
+  `|| status_exit_code=$?` idiom so `set -e` does not abort the script before the
+  exit code is captured.
+
+### Added
+
+- `src/bin/oradba_dsctl.sh` `get_systemd_service_name()`: new helper that derives
+  the systemd service name from a connector home path
+  (`oracle_datasafe_<basename>.service`).
+- `src/bin/oradba_dsctl.sh` `start_connector()` and `stop_connector()`: systemd
+  delegation - when a service unit exists and `INVOCATION_ID` is not set (not
+  inside systemd), the functions delegate to `sudo systemctl start/stop` instead
+  of calling cmctl directly. This keeps systemd state consistent with the actual
+  connector state after manual `oradba_dsctl.sh start/stop` calls.
+- `src/bin/oradba_dsctl.sh` `show_services()`: new function that lists all installed
+  `oracle_datasafe_*` systemd service units with their enabled/active state and
+  registry alias.
+- `src/bin/oradba_dsctl.sh`: new `services` subcommand - lists all installed
+  connector service units; exits before connector processing (no registry lookup
+  needed).
+- `src/etc/oradba_standard.conf`: added `dssvc` alias for `oradba_dsctl.sh services`.
+- `src/doc/alias_help.txt`: documented `dssvc` alias in SERVICE MANAGEMENT section.
 
 ## [1.0.0-rc.4] - 2026-06-29
 
@@ -33,11 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Added `TRACE`-level logging throughout `plugin_check_status()` for
   observability. Updated test suite: ps-mock tests replaced with port-mock tests
   using function override.
-- `src/lib/plugins/datasafe_plugin.sh` `plugin_check_status()`: fix false-RUNNING
-  result when cmctl reports "not yet started". The grep pattern `started` matched
-  both "already started" (running) and "not yet started" (stopped), causing
-  `plugin_check_status()` to return 0 immediately and never reach the port-based
-  secondary check added in rc.4. Changed pattern to `already started`.
 - `src/lib/oradba_common.sh` `execute_plugin_function_v2()`: always set
   `LD_LIBRARY_PATH="${oracle_home}/lib"` instead of guarding with
   `if [[ -z "${LD_LIBRARY_PATH:-}" ]]`. The conditional guard caused all

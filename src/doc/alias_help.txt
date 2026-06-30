@@ -11,7 +11,6 @@
  GENERAL ALIASES
  -------------------------------------------------------------------------------
  alih            --> Online help for OraDBA aliases
- olih            --> Online help for OraDBA aliases (coexistence alias, use when basenv owns alih)
  version         --> Show OraDBA version information
  c               --> Clear screen
  m               --> More
@@ -21,7 +20,6 @@
  lsl             --> Show newest 20 files (ls -lrt | tail -n 20)
  psg             --> Grep in current process list (ps -ef | grep)
  alig            --> Alias grep (alias | grep -i)
- olig            --> Alias grep (alias | grep -i) (coexistence alias, use when basenv owns alig)
  save_cron       --> Save current crontab to file
 
  SQL*PLUS ALIASES
@@ -78,6 +76,7 @@
  orastop         --> Stop all Oracle services (databases + listeners)
  orarestart      --> Restart all Oracle services
  orastatus       --> Show status of all Oracle services
+ dssvc           --> List installed Data Safe connector systemd services
 
  DIAGNOSTIC TOOLS
  -------------------------------------------------------------------------------

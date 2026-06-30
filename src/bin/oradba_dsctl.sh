@@ -85,13 +85,14 @@ fi
 # ------------------------------------------------------------------------------
 usage() {
     cat << EOF
-Usage: ${SCRIPT_NAME} {start|stop|restart|status} [OPTIONS] [CONNECTOR1 CONNECTOR2 ...]
+Usage: ${SCRIPT_NAME} {start|stop|restart|status|services} [OPTIONS] [CONNECTOR1 CONNECTOR2 ...]
 
 Actions:
     start       Start Data Safe connector(s)
     stop        Stop Data Safe connector(s)
     restart     Restart Data Safe connector(s)
     status      Show status of Data Safe connector(s)
+    services    List installed oracle_datasafe_* systemd service units
 
 Options:
     -f, --force             Force operation without confirmation
@@ -109,6 +110,7 @@ Examples:
     ${SCRIPT_NAME} stop --force             # Stop all without confirmation
     ${SCRIPT_NAME} restart cman01           # Restart specific connector
     ${SCRIPT_NAME} status                   # Show status of all connectors
+    ${SCRIPT_NAME} services                 # List installed systemd service units
     ${SCRIPT_NAME} --debug start cman01     # Start with debug logging
     ORADBA_DEBUG=true ${SCRIPT_NAME} status # Status with debug logging
 
@@ -246,6 +248,20 @@ get_cman_instance_name() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: get_systemd_service_name
+# Purpose.: Derive the systemd service name for a connector home path
+# Args....: $1 - Connector home path (e.g. /appl/oracle/product/exacc-wob-vwg-ha3)
+# Returns.: 0 on success
+# Output..: Service name (e.g. oracle_datasafe_exacc-wob-vwg-ha3.service)
+# Notes...: Service name is oracle_datasafe_<basename(home)>.service
+# ------------------------------------------------------------------------------
+get_systemd_service_name() {
+    local home="$1"
+    local conn_dir="${home##*/}"
+    echo "oracle_datasafe_${conn_dir}.service"
+}
+
+# ------------------------------------------------------------------------------
 # Function: setup_connector_environment
 # Purpose.: Set up environment variables for a specific connector
 # Args....: $1 - Connector name, $2 - Connector home path
@@ -305,6 +321,23 @@ start_connector() {
 
     oradba_log INFO "Starting connector ${name}..."
 
+    # Delegate to systemd when a service unit exists and we are not already in systemd context.
+    # INVOCATION_ID is set by systemd for all processes running inside a service unit.
+    if [[ -z "${INVOCATION_ID:-}" ]] && command -v systemctl > /dev/null 2>&1; then
+        local svc_name
+        svc_name=$(get_systemd_service_name "${home}")
+        if systemctl cat "${svc_name}" > /dev/null 2>&1; then
+            oradba_log INFO "Delegating start of ${name} to systemd (${svc_name})"
+            if sudo systemctl start "${svc_name}"; then
+                oradba_log INFO "Connector ${name} started via systemd"
+                return 0
+            else
+                oradba_log ERROR "systemctl start ${svc_name} failed (exit: $?)"
+                return 1
+            fi
+        fi
+    fi
+
     # Use ORACLE_HOME from environment (set by setup_connector_environment)
     local cmctl="${ORACLE_HOME}/bin/cmctl"
 
@@ -317,8 +350,7 @@ start_connector() {
     # Check if connector is already running (tiered isolation, DECISION 2)
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Checking current status"
     local status_exit_code=0
-    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
-    status_exit_code=$?
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1 || status_exit_code=$?
 
     # Convert exit code to status string for logging
     local status
@@ -381,11 +413,27 @@ stop_connector() {
 
     oradba_log INFO "Stopping connector ${name}..."
 
+    # Delegate to systemd when a service unit exists and we are not already in systemd context.
+    # INVOCATION_ID is set by systemd for all processes running inside a service unit.
+    if [[ -z "${INVOCATION_ID:-}" ]] && command -v systemctl > /dev/null 2>&1; then
+        local svc_name
+        svc_name=$(get_systemd_service_name "${home}")
+        if systemctl cat "${svc_name}" > /dev/null 2>&1; then
+            oradba_log INFO "Delegating stop of ${name} to systemd (${svc_name})"
+            if sudo systemctl stop "${svc_name}"; then
+                oradba_log INFO "Connector ${name} stopped via systemd"
+                return 0
+            else
+                oradba_log ERROR "systemctl stop ${svc_name} failed (exit: $?)"
+                return 1
+            fi
+        fi
+    fi
+
     # Check if connector is running first (tiered isolation, DECISION 2)
     oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Checking current status"
     local status_exit_code=0
-    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
-    status_exit_code=$?
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1 || status_exit_code=$?
 
     # Convert exit code to status string for logging
     local status
@@ -480,9 +528,8 @@ show_status() {
     setup_connector_environment "${name}" "${home}" || return 1
 
     # Get connector status via exit code (tiered isolation, DECISION 2)
-    local status_exit_code
-    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1
-    status_exit_code=$?
+    local status_exit_code=0
+    execute_plugin_function_v2 "datasafe" "check_status" "${home}" "" "${name}" > /dev/null 2>&1 || status_exit_code=$?
 
     # Convert exit code to status string: 0=running, 1=stopped, 2=unavailable
     local status
@@ -499,6 +546,60 @@ show_status() {
     local status_upper
     status_upper="${status^^}" 2> /dev/null || status_upper=$(printf '%s' "${status}" | tr '[:lower:]' '[:upper:]')
     echo "${name}: ${status_upper}"
+}
+
+# ------------------------------------------------------------------------------
+# Function: show_services
+# Purpose.: List all installed oracle_datasafe_* systemd service units
+# Args....: None
+# Returns.: 0 on success, 1 if systemctl not available
+# Output..: Table of service name, state, and registry alias
+# Notes...: Maps connector directory back to registry alias where possible
+# ------------------------------------------------------------------------------
+show_services() {
+    if ! command -v systemctl > /dev/null 2>&1; then
+        oradba_log ERROR "systemctl not available"
+        return 1
+    fi
+
+    local -a services=()
+    mapfile -t services < <(systemctl list-unit-files "oracle_datasafe_*.service" \
+        --no-pager --no-legend 2>/dev/null | awk '{print $1}')
+
+    if [[ ${#services[@]} -eq 0 ]]; then
+        oradba_log INFO "No oracle_datasafe_* service units found"
+        return 0
+    fi
+
+    printf "%-55s %-10s %-20s %s\n" "SERVICE" "ENABLED" "STATE" "ALIAS"
+    printf "%-55s %-10s %-20s %s\n" "-------" "-------" "-----" "-----"
+
+    for svc in "${services[@]}"; do
+        local enabled state alias_name
+
+        # enabled/disabled state
+        enabled=$(systemctl is-enabled "${svc}" 2>/dev/null || echo "unknown")
+
+        # active state
+        state=$(systemctl is-active "${svc}" 2>/dev/null || echo "inactive")
+
+        # Map service name back to registry alias
+        # service = oracle_datasafe_<conn_dir>.service  ->  conn_dir = basename of home
+        local conn_dir="${svc#oracle_datasafe_}"
+        conn_dir="${conn_dir%.service}"
+        alias_name=""
+        if type -t oradba_registry_get_by_type > /dev/null 2>&1; then
+            while IFS='|' read -r _ptype _name home _rest; do
+                if [[ "${home##*/}" == "${conn_dir}" ]]; then
+                    alias_name="${_name}"
+                    break
+                fi
+            done < <(oradba_registry_get_by_type "datasafe" 2>/dev/null)
+        fi
+        [[ -z "${alias_name}" ]] && alias_name="-"
+
+        printf "%-55s %-10s %-20s %s\n" "${svc}" "${enabled}" "${state}" "${alias_name}"
+    done
 }
 
 # ------------------------------------------------------------------------------
@@ -531,7 +632,7 @@ shift
 oradba_log DEBUG "${SCRIPT_NAME}: Action specified: ${ACTION}"
 
 case "${ACTION}" in
-    start | stop | restart | status) ;;
+    start | stop | restart | status | services) ;;
     *) usage ;;
 esac
 
@@ -567,6 +668,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Handle services action (no connector processing needed)
+if [[ "${ACTION}" == "services" ]]; then
+    show_services
+    exit $?
+fi
 
 # Log action
 oradba_log INFO "========== Starting ${ACTION} operation =========="
