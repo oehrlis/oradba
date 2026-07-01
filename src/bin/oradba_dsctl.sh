@@ -332,8 +332,7 @@ start_connector() {
                 oradba_log INFO "Connector ${name} started via systemd"
                 return 0
             else
-                oradba_log ERROR "systemctl start ${svc_name} failed (exit: $?)"
-                return 1
+                oradba_log WARN "sudo systemctl start ${svc_name} failed - falling back to direct cmctl (systemd state may be out of sync)"
             fi
         fi
     fi
@@ -424,8 +423,7 @@ stop_connector() {
                 oradba_log INFO "Connector ${name} stopped via systemd"
                 return 0
             else
-                oradba_log ERROR "systemctl stop ${svc_name} failed (exit: $?)"
-                return 1
+                oradba_log WARN "sudo systemctl stop ${svc_name} failed - falling back to direct cmctl (systemd state may be out of sync)"
             fi
         fi
     fi

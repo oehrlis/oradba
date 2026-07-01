@@ -1537,9 +1537,10 @@ perform_update() {
     log_info "Current version: $current_version"
 
     # Determine new version from extracted tarball when available.
-    # For --github mode this function runs before the tarball is downloaded,
-    # so the VERSION file does not exist yet — skip the comparison and proceed
-    # to backup; the version is logged after extraction by the main flow.
+    # For --github and --local modes this function runs before the tarball is
+    # downloaded/extracted, so the VERSION file does not exist yet — skip the
+    # comparison and proceed to backup; the version is logged after extraction.
+    # For embedded mode INSTALLER_VERSION is the payload version (always correct).
     local version_known=false
     if [[ -f "$TEMP_DIR/VERSION" ]]; then
         new_version=$(cat "$TEMP_DIR/VERSION" 2> /dev/null || echo "$INSTALLER_VERSION")
@@ -1551,6 +1552,10 @@ perform_update() {
             new_version=$(cat "$extracted_version" 2> /dev/null || echo "$INSTALLER_VERSION")
             version_known=true
         fi
+    fi
+    # Embedded payload: INSTALLER_VERSION is the version being installed
+    if [[ "$version_known" == "false" && "$INSTALL_MODE" == "embedded" ]]; then
+        version_known=true
     fi
 
     if [[ "$version_known" == "true" ]]; then

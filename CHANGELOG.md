@@ -25,7 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   own version) as the "new version", always comparing equal and printing "Already
   running latest version". Fixed by skipping the version comparison when the VERSION
   file is not yet available (tarball not yet downloaded), proceeding to backup
-  instead. The actual upgrade banner is now printed after extraction.
+  instead. Embedded mode is exempt: `INSTALLER_VERSION` is always the payload version.
+  The actual upgrade banner is now printed after extraction.
+- `src/bin/oradba_install.sh` `perform_update()`: fix test failures for
+  "update skips when same version" and "update proceeds with --force". The version
+  comparison was incorrectly skipped for embedded mode because `INSTALL_MODE` was
+  not checked. Now explicitly set `version_known=true` for embedded mode so the
+  "Already running latest version" and "Force update enabled" paths work correctly.
+- `src/bin/oradba_dsctl.sh` `start_connector()` and `stop_connector()`: when
+  a service unit exists but `sudo systemctl start/stop` fails (e.g. sudo not
+  configured), log a warning and fall through to direct cmctl invocation instead
+  of returning an error. Connectors start/stop reliably without sudo; systemd state
+  may be out of sync if sudo is absent.
 
 ## [1.0.0-rc.5] - 2026-06-30
 
