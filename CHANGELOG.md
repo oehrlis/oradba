@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.6] - 2026-07-01
+
+### Fixed
+
+- `scripts/build_installer.sh`: SHA256 checksum files now contain bare filenames
+  (`oradba-1.0.0-rc.6.tar.gz`) instead of path-prefixed names (`dist/oradba-…`).
+  The path prefix caused `shasum -a 256 -c` / `sha256sum -c` to fail in `$TEMP_DIR`
+  because the `dist/` subdirectory does not exist there.
+- `src/bin/oradba_install.sh` `version_compare()`: rewrite to handle pre-release
+  suffixes correctly. Previously, `.`-based splitting turned `1.0.0-rc.5` into
+  parts `["1","0","0-rc","5"]` and the suffix-strip `%%-*` reduced part[2] to `"0"`
+  for every RC, making `1.0.0-rc.5 == 1.0.0-rc.2`. The new implementation separates
+  the release string (`1.0.0`) from the pre-release suffix (`rc.5`) before comparing,
+  and treats stable > RC and compares RC numbers numerically.
+- `src/bin/oradba_install.sh` `perform_update()`: fix misleading "New version:
+  1.0.0-rc.2" message when running `--update --github`. `perform_update` is called
+  before the tarball is downloaded; it used `INSTALLER_VERSION` (the old installer's
+  own version) as the "new version", always comparing equal and printing "Already
+  running latest version". Fixed by skipping the version comparison when the VERSION
+  file is not yet available (tarball not yet downloaded), proceeding to backup
+  instead. The actual upgrade banner is now printed after extraction.
+
 ## [1.0.0-rc.5] - 2026-06-30
 
 ### Fixed

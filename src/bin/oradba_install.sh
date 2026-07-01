@@ -1270,26 +1270,55 @@ version_compare() {
     v1="${v1#v}"
     v2="${v2#v}"
 
-    # Split versions into components
-    IFS='.' read -ra v1_parts <<< "$v1"
-    IFS='.' read -ra v2_parts <<< "$v2"
+    # Split into numeric release and pre-release suffix (e.g. "rc.5")
+    local v1_num v1_pre v2_num v2_pre
+    if [[ "$v1" == *-* ]]; then
+        v1_num="${v1%%-*}"
+        v1_pre="${v1#*-}"
+    else
+        v1_num="$v1"
+        v1_pre=""
+    fi
+    if [[ "$v2" == *-* ]]; then
+        v2_num="${v2%%-*}"
+        v2_pre="${v2#*-}"
+    else
+        v2_num="$v2"
+        v2_pre=""
+    fi
 
-    # Compare each component
+    # Compare numeric major.minor.patch parts
+    IFS='.' read -ra v1_parts <<< "$v1_num"
+    IFS='.' read -ra v2_parts <<< "$v2_num"
+
     for i in {0..2}; do
         local part1="${v1_parts[$i]:-0}"
         local part2="${v2_parts[$i]:-0}"
-
-        # Remove any non-numeric suffix
-        part1="${part1%%-*}"
-        part2="${part2%%-*}"
-
-        if ((part1 > part2)); then
-            return 1
-        elif ((part1 < part2)); then
-            return 2
-        fi
+        if ((part1 > part2)); then return 1; fi
+        if ((part1 < part2)); then return 2; fi
     done
 
+    # Numeric parts equal — stable release beats any pre-release
+    if [[ -z "$v1_pre" && -n "$v2_pre" ]]; then return 1; fi
+    if [[ -n "$v1_pre" && -z "$v2_pre" ]]; then return 2; fi
+    if [[ -z "$v1_pre" && -z "$v2_pre" ]]; then return 0; fi
+
+    # Both have pre-release — compare by numeric suffix when types match (rc.5 > rc.2)
+    local v1_pre_type="${v1_pre%%.*}"
+    local v2_pre_type="${v2_pre%%.*}"
+    local v1_pre_num="${v1_pre##*.}"
+    local v2_pre_num="${v2_pre##*.}"
+
+    if [[ "$v1_pre_type" == "$v2_pre_type" ]] \
+        && [[ "$v1_pre_num" =~ ^[0-9]+$ ]] && [[ "$v2_pre_num" =~ ^[0-9]+$ ]]; then
+        if ((v1_pre_num > v2_pre_num)); then return 1; fi
+        if ((v1_pre_num < v2_pre_num)); then return 2; fi
+        return 0
+    fi
+
+    # Fallback: lexicographic pre-release comparison
+    if [[ "$v1_pre" > "$v2_pre" ]]; then return 1; fi
+    if [[ "$v1_pre" < "$v2_pre" ]]; then return 2; fi
     return 0
 }
 
@@ -1505,43 +1534,51 @@ perform_update() {
 
     # Get current version
     current_version=$(get_installed_version "$install_dir")
+    log_info "Current version: $current_version"
 
-    # Try to get new version from extracted tarball (for GitHub/local installs)
+    # Determine new version from extracted tarball when available.
+    # For --github mode this function runs before the tarball is downloaded,
+    # so the VERSION file does not exist yet — skip the comparison and proceed
+    # to backup; the version is logged after extraction by the main flow.
+    local version_known=false
     if [[ -f "$TEMP_DIR/VERSION" ]]; then
         new_version=$(cat "$TEMP_DIR/VERSION" 2> /dev/null || echo "$INSTALLER_VERSION")
+        version_known=true
     elif [[ -n "$TEMP_DIR" ]]; then
-        # Look for VERSION file in extracted directory structure
         local extracted_version
         extracted_version=$(find "$TEMP_DIR" -name "VERSION" -type f 2> /dev/null | head -1)
         if [[ -n "$extracted_version" ]]; then
             new_version=$(cat "$extracted_version" 2> /dev/null || echo "$INSTALLER_VERSION")
+            version_known=true
         fi
     fi
 
-    log_info "Current version: $current_version"
-    log_info "New version: $new_version"
+    if [[ "$version_known" == "true" ]]; then
+        log_info "New version: $new_version"
 
-    # Compare versions
-    version_compare "$new_version" "$current_version"
-    local cmp_result=$?
+        version_compare "$new_version" "$current_version"
+        local cmp_result=$?
 
-    if [[ $cmp_result -eq 0 ]]; then
-        if [[ "$FORCE_UPDATE" != "true" ]]; then
-            log_info "Already running latest version ($current_version)"
-            log_info "Use --force to reinstall same version"
-            exit 0
+        if [[ $cmp_result -eq 0 ]]; then
+            if [[ "$FORCE_UPDATE" != "true" ]]; then
+                log_info "Already running latest version ($current_version)"
+                log_info "Use --force to reinstall same version"
+                exit 0
+            else
+                log_info "Force update enabled - reinstalling version $current_version"
+            fi
+        elif [[ $cmp_result -eq 2 ]]; then
+            log_warn "New version ($new_version) is older than installed ($current_version)"
+            if [[ "$FORCE_UPDATE" != "true" ]]; then
+                log_error "Use --force to downgrade"
+                exit 1
+            fi
+            log_info "Force downgrade enabled"
         else
-            log_info "Force update enabled - reinstalling version $current_version"
+            log_info "Upgrading from $current_version to $new_version"
         fi
-    elif [[ $cmp_result -eq 2 ]]; then
-        log_warn "New version ($new_version) is older than installed ($current_version)"
-        if [[ "$FORCE_UPDATE" != "true" ]]; then
-            log_error "Use --force to downgrade"
-            exit 1
-        fi
-        log_info "Force downgrade enabled"
     else
-        log_info "Upgrading from $current_version to $new_version"
+        log_info "New version: (will be determined after download)"
     fi
 
     # Create backup
@@ -2245,6 +2282,14 @@ esac
 if [[ -f "$TEMP_DIR/VERSION" ]]; then
     INSTALLER_VERSION=$(cat "$TEMP_DIR/VERSION" | tr -d '[:space:]')
     log_info "Detected version: $INSTALLER_VERSION"
+    # For update mode: now that version is known, log the upgrade
+    if [[ "$UPDATE_MODE" == "true" ]]; then
+        _prev_ver=$(get_installed_version "$INSTALL_PREFIX" 2> /dev/null || echo "unknown")
+        if [[ "$_prev_ver" != "$INSTALLER_VERSION" ]]; then
+            log_info "Upgrading from ${_prev_ver} to ${INSTALLER_VERSION}"
+        fi
+        unset _prev_ver
+    fi
 fi
 
 # Create installation directory

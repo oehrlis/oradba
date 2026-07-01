@@ -285,15 +285,15 @@ chmod +x "$CHECK_SCRIPT_OUTPUT"
 echo "Generating SHA256 checksums..."
 
 if command -v sha256sum &> /dev/null; then
-    sha256sum "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
-    sha256sum "$SQL_DIST_TARBALL" > "${SQL_DIST_TARBALL}.sha256"
-    sha256sum "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
-    sha256sum "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
+    (cd "$DIST_DIR" && sha256sum "${DIST_TARBALL##*/}") > "${DIST_TARBALL}.sha256"
+    (cd "$DIST_DIR" && sha256sum "${SQL_DIST_TARBALL##*/}") > "${SQL_DIST_TARBALL}.sha256"
+    (cd "$DIST_DIR" && sha256sum "${INSTALLER_OUTPUT##*/}") > "${INSTALLER_OUTPUT}.sha256"
+    (cd "$DIST_DIR" && sha256sum "${CHECK_SCRIPT_OUTPUT##*/}") > "${CHECK_SCRIPT_OUTPUT}.sha256"
 elif command -v shasum &> /dev/null; then
-    shasum -a 256 "$DIST_TARBALL" > "${DIST_TARBALL}.sha256"
-    shasum -a 256 "$SQL_DIST_TARBALL" > "${SQL_DIST_TARBALL}.sha256"
-    shasum -a 256 "$INSTALLER_OUTPUT" > "${INSTALLER_OUTPUT}.sha256"
-    shasum -a 256 "$CHECK_SCRIPT_OUTPUT" > "${CHECK_SCRIPT_OUTPUT}.sha256"
+    (cd "$DIST_DIR" && shasum -a 256 "${DIST_TARBALL##*/}") > "${DIST_TARBALL}.sha256"
+    (cd "$DIST_DIR" && shasum -a 256 "${SQL_DIST_TARBALL##*/}") > "${SQL_DIST_TARBALL}.sha256"
+    (cd "$DIST_DIR" && shasum -a 256 "${INSTALLER_OUTPUT##*/}") > "${INSTALLER_OUTPUT}.sha256"
+    (cd "$DIST_DIR" && shasum -a 256 "${CHECK_SCRIPT_OUTPUT##*/}") > "${CHECK_SCRIPT_OUTPUT}.sha256"
 else
     echo "Warning: Neither sha256sum nor shasum found - skipping checksum generation"
 fi
