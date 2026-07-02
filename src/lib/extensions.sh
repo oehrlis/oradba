@@ -162,7 +162,7 @@ get_extension_property() {
         safe_ext_name_upper="${safe_ext_name^^}"
         property_upper="${property^^}"
         local config_var="ORADBA_EXT_${safe_ext_name_upper}_${property_upper}"
-        value="${!config_var}"
+        value="${!config_var:-}"
     fi
 
     # Fall back to metadata file

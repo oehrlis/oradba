@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-rc.6] - 2026-07-01
+## [1.0.0-rc.6] - 2026-07-02
 
 ### Fixed
 
@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   configured), log a warning and fall through to direct cmctl invocation instead
   of returning an error. Connectors start/stop reliably without sudo; systemd state
   may be out of sync if sudo is absent.
+- `src/lib/extensions.sh` `get_extension_property()`: use `${!config_var:-}` (safe
+  indirect expansion with empty default) instead of `${!config_var}`. Under
+  `set -u`, indirect expansion fails with "unbound variable" when the env var
+  referenced by `config_var` (e.g. `ORADBA_EXT_ODB_DATASAFE_PRIORITY`) is not set.
+  This caused `sort_extensions_by_priority` to fail silently in process substitution,
+  leaving the sorted array empty and printing an empty table in
+  `oradba_extension.sh list`. It also caused `oradba_extension.sh info` to abort
+  with the error shown, and `version` / `oradba_version.sh -i` to show no extensions
+  (error suppressed by `2>/dev/null` in `show_installed_extensions`).
 
 ## [1.0.0-rc.5] - 2026-06-30
 
