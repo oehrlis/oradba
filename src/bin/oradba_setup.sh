@@ -340,7 +340,7 @@ cmd_check() {
                     # Check config override
                     local safe_ext_name="${ext_name//-/_}"
                     local config_var="ORADBA_EXT_${safe_ext_name^^}_ENABLED"
-                    if [[ "${!config_var}" == "false" ]]; then
+                    if [[ "${!config_var:-}" == "false" ]]; then
                         enabled="disabled"
                     fi
                     echo "    - ${ext_name} (${enabled})"

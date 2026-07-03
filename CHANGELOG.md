@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.7] - 2026-07-03
+
+### Fixed
+
+- `src/bin/oradba_setup.sh` `show_extensions()`: use `${!config_var:-}` instead of
+  `${!config_var}`. Under `set -u`, indirect expansion throws "unbound variable" when
+  the env var `ORADBA_EXT_<name>_ENABLED` is not exported. The `:-` default returns
+  an empty string; the `== "false"` disabled-check still works correctly.
+- `src/lib/oradba_common.sh` `verify_oracle_env()`: same fix — `${!var:-}` in the
+  missing-variable detection loop. Under `set -u`, the expansion crashed before the
+  `-z` check could add the variable to `missing_vars`.
+
+### Added
+
+- `tasks/corrections.jsonl`, `tasks/lessons.md`, `tasks/self-evolving-system.md`:
+  bootstrap of the `/evolve` knowledge-compounding system for recurring correction
+  patterns. Four patterns promoted to permanent rules in ai-toolkit.
+
 ## [1.0.0-rc.6] - 2026-07-02
 
 ### Fixed

@@ -53,6 +53,12 @@ creating anything new.
   files without sections as `[DEFAULT]`. Tests use variable-presence checks
   as a workaround until the loader is fixed.
 
+## Release Tagging
+
+- `doc/releases/v<VERSION>.md` must exist before tagging with `git tag v<VERSION>`
+- The GitHub Release workflow validates this file and fails without it
+- verify: `ls doc/releases/v$(cat VERSION).md`
+
 ## Commands
 
 /idea-capture       ← capture a new idea quickly

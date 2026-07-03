@@ -582,7 +582,7 @@ verify_oracle_env() {
     local missing_vars=()
 
     for var in "${required_vars[@]}"; do
-        if [[ -z "${!var}" ]]; then
+        if [[ -z "${!var:-}" ]]; then
             missing_vars+=("$var")
         fi
     done
