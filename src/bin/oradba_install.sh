@@ -365,7 +365,7 @@ preserve_runtime_files() {
         done < <(find "${install_dir}/etc" -maxdepth 1 \
             \( -type l \
             -o -type f \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
-                          -o -name "*_customer.conf" \) \
+            -o -name "*_customer.conf" \) \
             \) 2> /dev/null)
     fi
 
@@ -381,7 +381,7 @@ preserve_runtime_files() {
         done < <(find "${install_dir}/extensions" -path "*/etc/*" \
             \( -type l \
             -o -type f \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
-                          -o -name "*_customer.conf" \) \
+            -o -name "*_customer.conf" \) \
             \) 2> /dev/null)
     fi
 
