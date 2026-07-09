@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/bin/oradba_install.sh` `version_compare`: strip `-dev` suffix before
   comparing so `1.0.0-dev` is not treated as older than `1.0.0-rc.8-dev`
   (lexicographic `d` < `r` false-positive).
+- `src/bin/oradba_install.sh` `--update --github`: symlinks in `etc/` (e.g.
+  `oradba_customer.conf`, `oradba_homes.conf` pointing to dotfiles) were silently
+  deleted during the update. Root cause: the `--github` update path called the old
+  `preserve_configs()` which only handled a hardcoded plain-file list and ignored
+  symlinks. Fix: removed `preserve_configs`/`restore_configs` (dead code) and unified
+  both update paths to use `preserve_runtime_files`/`restore_runtime_files`, which
+  already has the `-type l` + `cp -P` logic from rc.8. Added `.install_info`,
+  `etc/oradba.conf`, `templates/etc/oratab.example` to the `runtime_files` array
+  so all previously-preserved files are still covered.
 
 ## [1.0.0-rc.8] - 2026-07-07
 

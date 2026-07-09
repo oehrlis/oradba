@@ -316,11 +316,13 @@ backup_modified_files() {
 #           $2 - Temporary preserve directory path
 # Returns.: 0 always
 # Output..: Logs preserved files
-# Notes...: Protects runtime-managed files from payload overwrite:
-#           etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
+# Notes...: Protects runtime-managed and user config files from payload overwrite:
+#           .install_info, etc/oradba.conf, etc/oradba_homes.conf,
+#           etc/oratab, etc/sid.dummy.conf, templates/etc/oratab.example
 #           sensitive runtime files in etc/ and extensions/*/etc/
 #           (`*.b64`, `*.pem`, `*.key`, `*.crt`, `*_customer.conf`)
 #           and ALL symlinks in etc/ (symlinks are always user-created)
+#           Single preserve path for both embedded and --github update flows.
 # ------------------------------------------------------------------------------
 preserve_runtime_files() {
     local install_dir="$1"
@@ -329,9 +331,12 @@ preserve_runtime_files() {
     mkdir -p "$temp_preserve_dir"
 
     local runtime_files=(
+        ".install_info"
+        "etc/oradba.conf"
         "etc/oradba_homes.conf"
         "etc/oratab"
         "etc/sid.dummy.conf"
+        "templates/etc/oratab.example"
     )
 
     local file
@@ -1440,83 +1445,6 @@ restore_from_backup() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: preserve_configs
-# Purpose.: Save user configuration files before update
-# Args....: $1 - Installation directory path
-#           $2 - Temporary config directory path
-# Returns.: 0
-# Output..: Preserved file list to stdout
-# Notes...: Preserves: .install_info, etc/oradba.conf, oratab.example
-#           Copies to temporary directory for restoration after update
-#           Used to maintain user customizations across updates
-# ------------------------------------------------------------------------------
-preserve_configs() {
-    local install_dir="$1"
-    local temp_config_dir="$2"
-
-    log_info "Preserving configuration files..."
-
-    mkdir -p "$temp_config_dir"
-
-    # Files to preserve
-    local preserve_files=(
-        ".install_info"
-        "etc/oradba.conf"
-        "templates/etc/oratab.example"
-    )
-
-    for file in "${preserve_files[@]}"; do
-        local src="${install_dir}/${file}"
-        if [[ -f "$src" ]]; then
-            local dest="${temp_config_dir}/${file}"
-            mkdir -p "$(dirname "$dest")"
-            cp "$src" "$dest"
-            log_info "Preserved: $file"
-        fi
-    done
-
-    return 0
-}
-
-# ------------------------------------------------------------------------------
-# Function: restore_configs
-# Purpose.: Restore preserved configuration files after update
-# Args....: $1 - Installation directory path
-#           $2 - Temporary config directory path
-# Returns.: 0
-# Output..: Restored file list to stdout
-# Notes...: Restores files preserved by preserve_configs function
-#           Creates parent directories as needed
-#           Removes temporary directory after restoration
-# ------------------------------------------------------------------------------
-restore_configs() {
-    local install_dir="$1"
-    local temp_config_dir="$2"
-
-    log_info "Restoring configuration files..."
-
-    if [[ ! -d "$temp_config_dir" ]]; then
-        log_warn "No preserved configurations found"
-        return 0
-    fi
-
-    # Restore preserved files
-    find "$temp_config_dir" -type f | while read -r src; do
-        local rel_path="${src#"${temp_config_dir}"/}"
-        local dest="${install_dir}/${rel_path}"
-
-        mkdir -p "$(dirname "$dest")"
-        cp "$src" "$dest"
-        log_info "Restored: $rel_path"
-    done
-
-    # Clean up temp directory
-    rm -rf "$temp_config_dir"
-
-    return 0
-}
-
-# ------------------------------------------------------------------------------
 # Function: perform_update
 # Purpose.: Execute update of existing OraDBA installation
 # Args....: None (uses global variables)
@@ -1607,9 +1535,9 @@ perform_update() {
         exit 1
     fi
 
-    # Preserve configurations
+    # Preserve configurations and runtime files (symlinks, oratab, etc.)
     config_dir=$(mktemp -d)
-    preserve_configs "$install_dir" "$config_dir"
+    preserve_runtime_files "$install_dir" "$config_dir"
 
     # Remove old installation (keep backup)
     log_info "Removing old installation..."
@@ -2497,7 +2425,8 @@ fi
 
 # Restore preserved configurations if updating
 if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$CONFIG_DIR" ]]; then
-    restore_configs "$INSTALL_PREFIX" "$CONFIG_DIR"
+    restore_runtime_files "$INSTALL_PREFIX" "$CONFIG_DIR"
+    rm -rf "$CONFIG_DIR"
 
     # Update install_info with new version and date (replace existing metadata lines)
     sed -i.bak "s|^install_date=.*|install_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)|" "$INSTALL_PREFIX/.install_info"
