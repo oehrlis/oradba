@@ -318,8 +318,9 @@ backup_modified_files() {
 # Output..: Logs preserved files
 # Notes...: Protects runtime-managed files from payload overwrite:
 #           etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
-#           and sensitive runtime files in etc/ and extensions/*/etc/
-#           (`*.b64`, `*.pem`, `*.key`, `*.crt`)
+#           sensitive runtime files in etc/ and extensions/*/etc/
+#           (`*.b64`, `*.pem`, `*.key`, `*.crt`, `*_customer.conf`)
+#           and ALL symlinks in etc/ (symlinks are always user-created)
 # ------------------------------------------------------------------------------
 preserve_runtime_files() {
     local install_dir="$1"
@@ -344,7 +345,10 @@ preserve_runtime_files() {
         fi
     done
 
-    # Preserve sensitive runtime files from core etc/
+    # Preserve sensitive and user-created files from core etc/.
+    # All symlinks are preserved (they are always user-created; the payload
+    # never ships symlinks). Regular-file patterns cover secrets and the
+    # *_customer.conf naming convention for local overrides.
     if [[ -d "${install_dir}/etc" ]]; then
         while IFS= read -r src; do
             [[ -z "${src}" ]] && continue
@@ -352,12 +356,15 @@ preserve_runtime_files() {
             local dest="${temp_preserve_dir}/${rel_path}"
             mkdir -p "$(dirname "$dest")"
             cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
-            log_info "Preserved sensitive runtime file: ${rel_path}"
-        done < <(find "${install_dir}/etc" -maxdepth 1 -type f \
-            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) 2> /dev/null)
+            log_info "Preserved runtime file: ${rel_path}"
+        done < <(find "${install_dir}/etc" -maxdepth 1 \
+            \( -type l \
+            -o -type f \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
+                          -o -name "*_customer.conf" \) \
+            \) 2> /dev/null)
     fi
 
-    # Preserve sensitive runtime files from bundled extensions (extensions/*/etc/)
+    # Preserve sensitive and user-created files from bundled extensions (extensions/*/etc/).
     if [[ -d "${install_dir}/extensions" ]]; then
         while IFS= read -r src; do
             [[ -z "${src}" ]] && continue
@@ -365,10 +372,12 @@ preserve_runtime_files() {
             local dest="${temp_preserve_dir}/${rel_path}"
             mkdir -p "$(dirname "$dest")"
             cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
-            log_info "Preserved extension sensitive file: ${rel_path}"
-        done < <(find "${install_dir}/extensions" -type f \
-            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) \
-            -path "*/etc/*" 2> /dev/null)
+            log_info "Preserved extension runtime file: ${rel_path}"
+        done < <(find "${install_dir}/extensions" -path "*/etc/*" \
+            \( -type l \
+            -o -type f \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
+                          -o -name "*_customer.conf" \) \
+            \) 2> /dev/null)
     fi
 
     return 0
@@ -400,7 +409,7 @@ restore_runtime_files() {
         cp -P "$src" "$dest" 2> /dev/null || cp "$src" "$dest"
         log_info "Restored runtime file: ${rel_path}"
         restored_any=true
-    done < <(find "$temp_preserve_dir" -type f 2> /dev/null)
+    done < <(find "$temp_preserve_dir" \( -type f -o -type l \) 2> /dev/null)
 
     if [[ "$restored_any" == "true" ]]; then
         log_info "Runtime files restored after installation copy"
@@ -2316,7 +2325,7 @@ backup_modified_files "$INSTALL_PREFIX"
 # the file first creates a new inode for the new version while the old fd stays
 # valid, preventing corruption of the running script.
 _SELF_GUARD=""
-if [[ "${BASH_SOURCE[0]:-}" == "${INSTALL_PREFIX}"/* ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${INSTALL_PREFIX}"/* ]] && [[ -f "${BASH_SOURCE[0]}" ]]; then
     _SELF_GUARD="${BASH_SOURCE[0]}.updating"
     mv "${BASH_SOURCE[0]}" "${_SELF_GUARD}"
 fi

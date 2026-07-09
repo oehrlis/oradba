@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.8] - 2026-07-07
+
+### Fixed
+
+- `src/bin/oradba_install.sh` self-guard: add `[[ -f "${BASH_SOURCE[0]}" ]]` check
+  before `mv … .updating`. During `--update --github` the old installation directory
+  is removed (`rm -rf`) before the new tarball is installed, so `BASH_SOURCE[0]`
+  no longer exists on disk when the self-guard runs; `mv` then fails with "No such
+  file or directory". The guard is only needed when the file still exists (fresh
+  install from within the prefix); skipping it when the file is already gone is safe.
+- `src/bin/oradba_install.sh` `preserve_runtime_files`: user-created symlinks in
+  `etc/` (e.g. `oradba_customer.conf`, `oradba_homes.conf`, `datasafe.conf` pointing
+  to external dotfiles) and `extensions/*/etc/` were silently deleted during
+  `--update`. The `find` for runtime files only matched `-type f`; added `-type l` so
+  all symlinks are preserved via `cp -P`. Also added `*_customer.conf` to the
+  regular-file preserve pattern.
+- `src/bin/oradba_install.sh` `restore_runtime_files`: `find -type f` missed
+  symlinks in the temp preserve directory; changed to `\( -type f -o -type l \)` so
+  symlinks are restored with `cp -P` (recreates the symlink, not a regular-file copy).
+- `src/bin/oradba_extension.sh` `update_extension`: user-added symlinks in extension
+  `etc/` directories were not detected by `find -type f`; changed scan to
+  `\( -type f -o -type l \)` and save to `cp -P` so symlink targets are preserved.
+  Restore changed from `cp -p` to `cp -P` to recreate symlinks rather than copy
+  through them.
+
+### Added
+
+- `src/etc/oradba_core.conf`: new `ORADBA_PS1_DIRTRIM` config variable (default: 0,
+  off). When set to a positive integer, exports `PROMPT_DIRTRIM` to trim the `\w`
+  prompt segment to the last N path components. Requires bash 4.0+; no-op on older
+  bash. Useful for long paths (e.g. OneDrive customer folders).
+- `src/etc/oradba_standard.conf`: apply `PROMPT_DIRTRIM` when `ORADBA_PS1_DIRTRIM > 0`.
+
 ## [1.0.0-rc.7] - 2026-07-03
 
 ### Fixed

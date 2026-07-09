@@ -629,8 +629,10 @@ update_extension() {
             fi
         done < ".extension.checksum"
 
-        # Find user-added files (exist but not in checksum or new content)
-        find . -type f \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" -o -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) | while read -r user_file; do
+        # Find user-added files and symlinks (exist but not in checksum or new content).
+        # -type l catches user symlinks (e.g. datasafe.conf -> /path/to/custom.conf);
+        # cp -P preserves the symlink itself rather than following it.
+        find . \( -type f -o -type l \) \( -name "*.conf" -o -name "*.sh" -o -name "*.sql" -o -name "*.rcv" -o -name "*.rman" -o -name "*.env" -o -name "*.properties" -o -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \) | while read -r user_file; do
             # Remove leading ./
             user_file="${user_file#./}"
 
@@ -644,10 +646,10 @@ update_extension() {
                 continue
             fi
 
-            # This is a user-added file, preserve it
+            # This is a user-added file or symlink, preserve it
             echo "  Preserving user-added file: ${user_file}"
             mkdir -p "$(dirname "${user_file}.save")"
-            cp "${user_file}" "${user_file}.save"
+            cp -P "${user_file}" "${user_file}.save"
         done
     fi
 
@@ -678,18 +680,18 @@ update_extension() {
         return 1
     fi
 
-    # Restore .save files to their original names
-    # Keep .save backups to match update expectations
-    if find "${ext_path}" -name "*.save" -type f | read; then
+    # Restore .save files to their original names (both regular files and symlinks).
+    # cp -P preserves symlinks when the .save entry itself is a symlink.
+    if find "${ext_path}" -name "*.save" \( -type f -o -type l \) | read; then
         echo "Restoring modified and user-added files..."
         cd "${ext_path}" || return 1
-        find . -name "*.save" -type f | while read -r save_file; do
+        find . -name "*.save" \( -type f -o -type l \) | while read -r save_file; do
             original_name="${save_file%.save}"
             if [[ -e "${original_name}" ]]; then
                 continue
             fi
             echo "  Restoring: ${original_name}"
-            cp -p "${save_file}" "${original_name}"
+            cp -P "${save_file}" "${original_name}"
         done
     fi
 
