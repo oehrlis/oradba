@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table with header and separator row, PRIORITY column via `get_extension_priority()`,
   `Enabled`/`Disabled` with green/yellow colour, checksum ✓/✗ suffix, and a
   `Total: N extension(s)` line. Section now renders before the integrity check.
+- `src/bin/oradba_version.sh` `show_installed_extensions`: set
+  `ORADBA_LOCAL_BASE` and `ORADBA_AUTO_DISCOVER_EXTENSIONS` defaults when
+  running standalone (env not loaded via `oradba_core.conf`). Without these
+  defaults `get_all_extensions` skips auto-discovery and returns nothing.
 
 ## [1.0.0-rc.8] - 2026-07-07
 

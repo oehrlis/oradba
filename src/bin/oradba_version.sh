@@ -500,6 +500,11 @@ show_installed_extensions() {
         return 0
     fi
 
+    # When running standalone (env not loaded via oradba_core.conf), discovery
+    # variables are unset. Provide the same defaults oradba_core.conf would set.
+    : "${ORADBA_LOCAL_BASE:=$(dirname "${BASE_DIR}")}"
+    : "${ORADBA_AUTO_DISCOVER_EXTENSIONS:=true}"
+
     # Get all extensions
     local extensions
     mapfile -t extensions < <(get_all_extensions 2> /dev/null)
