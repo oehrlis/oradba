@@ -1279,6 +1279,11 @@ version_compare() {
     v1="${v1#v}"
     v2="${v2#v}"
 
+    # Strip -dev suffix so dev builds compare as their base version
+    # e.g. "1.0.0-dev" compares as "1.0.0", "1.0.0-rc.8-dev" as "1.0.0-rc.8"
+    v1="${v1%-dev}"
+    v2="${v2%-dev}"
+
     # Split into numeric release and pre-release suffix (e.g. "rc.5")
     local v1_num v1_pre v2_num v2_pre
     if [[ "$v1" == *-* ]]; then
