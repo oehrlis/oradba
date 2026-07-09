@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-09
+
+### Fixed
+
+- `src/bin/oradba_version.sh` `show_installed_extensions`: reformat extension
+  listing to match `oradba_extension.sh list` output - NAME/VERSION/PRIORITY/STATUS
+  table with header and separator row, PRIORITY column via `get_extension_priority()`,
+  `Enabled`/`Disabled` with green/yellow colour, checksum ✓/✗ suffix, and a
+  `Total: N extension(s)` line. Section now renders before the integrity check.
+
 ## [1.0.0-rc.8] - 2026-07-07
 
 ### Fixed
