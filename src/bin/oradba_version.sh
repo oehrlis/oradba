@@ -488,8 +488,8 @@ check_extension_checksums() {
 # Purpose.: Display list of all installed extensions with status indicators
 # Args....: None (sources lib/extensions.sh)
 # Returns.: 0 (always succeeds)
-# Output..: Formatted extension list: name, version, enabled/disabled status, checksum status (✓/✗)
-# Notes...: Sorted by priority; shows checksum status for enabled extensions; uses extensions.sh library
+# Output..: Table NAME/VERSION/PRIORITY/STATUS matching oradba_extension.sh list format
+# Notes...: Sorted by priority; checksum indicator (✓/✗) for enabled extensions
 # ------------------------------------------------------------------------------
 show_installed_extensions() {
     # Source extensions library if available
@@ -510,26 +510,30 @@ show_installed_extensions() {
 
     echo ""
     echo "Installed Extensions:"
+    echo ""
+    printf "%-20s %-12s %-10s %-10s\n" "NAME" "VERSION" "PRIORITY" "STATUS"
+    printf "%-20s %-12s %-10s %-10s\n" "----" "-------" "--------" "------"
 
     # Sort by priority
     local sorted
     mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}" 2> /dev/null)
 
     for ext_path in "${sorted[@]}"; do
-        local name version enabled_status checksum_status
+        local name version priority enabled_status checksum_status
         name=$(get_extension_name "${ext_path}" 2> /dev/null)
         version=$(get_extension_version "${ext_path}" 2> /dev/null)
+        priority=$(get_extension_priority "${ext_path}" 2> /dev/null)
 
         # Check if enabled
         if is_extension_enabled "${name}" "${ext_path}" 2> /dev/null; then
-            enabled_status="enabled"
+            enabled_status="Enabled"
         else
-            enabled_status="disabled"
+            enabled_status="Disabled"
         fi
 
         # Check for checksum file and verify (only for enabled extensions)
         checksum_status=""
-        if [[ "${enabled_status}" == "enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
+        if [[ "${enabled_status}" == "Enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
             local checksum_file="${ext_path}/.extension.checksum"
 
             # Get exclusion patterns from .checksumignore
@@ -545,9 +549,16 @@ show_installed_extensions() {
             fi
         fi
 
-        printf "  %-20s %-10s [%s]" "${name}" "v${version}" "${enabled_status}"
-        echo -e "${checksum_status}"
+        printf "%-20s %-12s %-10s " "${name}" "${version}" "${priority}"
+        if [[ "${enabled_status}" == "Enabled" ]]; then
+            echo -e "${GREEN}${enabled_status}${NC}${checksum_status}"
+        else
+            echo -e "${YELLOW}${enabled_status}${NC}${checksum_status}"
+        fi
     done
+
+    echo ""
+    echo "Total: ${#extensions[@]} extension(s)"
 }
 
 # ------------------------------------------------------------------------------
