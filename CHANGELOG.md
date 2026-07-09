@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-07-09
 
+### Added
+
+- `src/etc/oradba_core.conf`: new `ORADBA_PS1_SHORT` config variable (default: `false`).
+  When `true`, PS1 uses `\W` (basename only) instead of `\w` (full tilde-path), keeping
+  the prompt short and copy-pasteable on deep paths.
+- `src/etc/oradba_standard.conf`: `oradba_build_ps1` function encapsulates PS1 building;
+  `ps1short` / `ps1long` aliases toggle path display mode at runtime without re-sourcing.
+- `src/etc/oradba_standard.conf`: `unset PROMPT_DIRTRIM` when `ORADBA_PS1_DIRTRIM=0` to
+  clear any value inherited from the shell environment.
+
 ### Fixed
 
 - `src/bin/oradba_version.sh` `show_installed_extensions`: reformat extension
