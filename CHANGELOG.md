@@ -19,15 +19,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `src/bin/oradba_version.sh` `show_installed_extensions`: reformat extension
-  listing to match `oradba_extension.sh list` output - NAME/VERSION/PRIORITY/STATUS
-  table with header and separator row, PRIORITY column via `get_extension_priority()`,
-  `Enabled`/`Disabled` with green/yellow colour, checksum ✓/✗ suffix, and a
-  `Total: N extension(s)` line. Section now renders before the integrity check.
+- `src/bin/oradba_version.sh` `show_installed_extensions`: compact bullet
+  format `- NAME VERSION [enabled|disabled] (priority)` with colour, rendered
+  before the integrity check. Header `Extensions (N):` gives the count at a glance.
+  Replaces the old table format (header/separator/Total rows) — output is now shorter
+  and matches the spirit of `oradba_extension.sh list`.
+- `src/bin/oradba_version.sh` `version_info`: compact `Installation:` block with
+  `printf "  %-14s%s\n"` alignment; date reformatted from ISO-8601 to
+  `YYYY-MM-DD HH:MM UTC`; label `Coexist Mode:` shortened to `Mode:`.
 - `src/bin/oradba_version.sh` `show_installed_extensions`: set
   `ORADBA_LOCAL_BASE` and `ORADBA_AUTO_DISCOVER_EXTENSIONS` defaults when
   running standalone (env not loaded via `oradba_core.conf`). Without these
   defaults `get_all_extensions` skips auto-discovery and returns nothing.
+- `src/bin/oradba_version.sh` `show_installed_extensions`: provide a no-op
+  `oradba_log` stub before sourcing `extensions.sh` so `discover_extensions()`
+  does not abort under `set -e` in a standalone invocation.
+- `src/bin/oradba_install.sh` `version_compare`: strip `-dev` suffix before
+  comparing so `1.0.0-dev` is not treated as older than `1.0.0-rc.8-dev`
+  (lexicographic `d` < `r` false-positive).
 
 ## [1.0.0-rc.8] - 2026-07-07
 

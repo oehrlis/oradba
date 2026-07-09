@@ -521,57 +521,32 @@ show_installed_extensions() {
         return 0
     fi
 
-    echo ""
-    echo "Installed Extensions:"
-    echo ""
-    printf "%-20s %-12s %-10s %-10s\n" "NAME" "VERSION" "PRIORITY" "STATUS"
-    printf "%-20s %-12s %-10s %-10s\n" "----" "-------" "--------" "------"
-
     # Sort by priority
     local sorted
     mapfile -t sorted < <(sort_extensions_by_priority "${extensions[@]}" 2> /dev/null)
 
+    echo ""
+    echo "Extensions (${#extensions[@]}):"
+
     for ext_path in "${sorted[@]}"; do
-        local name version priority enabled_status checksum_status
+        local name version priority enabled_status
         name=$(get_extension_name "${ext_path}" 2> /dev/null)
         version=$(get_extension_version "${ext_path}" 2> /dev/null)
         priority=$(get_extension_priority "${ext_path}" 2> /dev/null)
 
-        # Check if enabled
         if is_extension_enabled "${name}" "${ext_path}" 2> /dev/null; then
-            enabled_status="Enabled"
+            enabled_status="enabled"
         else
-            enabled_status="Disabled"
+            enabled_status="disabled"
         fi
 
-        # Check for checksum file and verify (only for enabled extensions)
-        checksum_status=""
-        if [[ "${enabled_status}" == "Enabled" ]] && [[ -f "${ext_path}/.extension.checksum" ]]; then
-            local checksum_file="${ext_path}/.extension.checksum"
-
-            # Get exclusion patterns from .checksumignore
-            local exclusions
-            exclusions=$(get_checksum_exclusions "${ext_path}")
-
-            # Verify checksums (apply exclusions from .checksumignore)
-            # Checksum format is: hash  filename - use awk to filter by filename field
-            if (cd "${ext_path}" && awk "!(${exclusions}) {print}" "${checksum_file}" | sha256sum -c - &> /dev/null); then
-                checksum_status=" ${GREEN}✓${NC}"
-            else
-                checksum_status=" ${RED}✗${NC}"
-            fi
-        fi
-
-        printf "%-20s %-12s %-10s " "${name}" "${version}" "${priority}"
-        if [[ "${enabled_status}" == "Enabled" ]]; then
-            echo -e "${GREEN}${enabled_status}${NC}${checksum_status}"
+        printf "  - %-16s %-10s " "${name}" "${version}"
+        if [[ "${enabled_status}" == "enabled" ]]; then
+            echo -e "[${GREEN}${enabled_status}${NC}] (${priority})"
         else
-            echo -e "${YELLOW}${enabled_status}${NC}${checksum_status}"
+            echo -e "[${YELLOW}${enabled_status}${NC}] (${priority})"
         fi
     done
-
-    echo ""
-    echo "Total: ${#extensions[@]} extension(s)"
 }
 
 # ------------------------------------------------------------------------------
@@ -649,26 +624,28 @@ version_info() {
 
     if [[ -f "${install_info}" ]]; then
         echo ""
-        echo "Installation Details:"
+        echo "Installation:"
         while IFS='=' read -r key value; do
             case "${key}" in
                 install_date)
-                    echo "  Installed:     ${value}"
+                    local fmt_date="${value/T/ }"
+                    fmt_date="${fmt_date%:??Z} UTC"
+                    printf "  %-14s%s\n" "Installed:" "${fmt_date}"
                     ;;
                 install_version)
-                    echo "  Version:       ${value}"
+                    printf "  %-14s%s\n" "Version:" "${value}"
                     ;;
                 install_method)
-                    echo "  Method:        ${value}"
+                    printf "  %-14s%s\n" "Method:" "${value}"
                     ;;
                 install_user)
-                    echo "  User:          ${value}"
+                    printf "  %-14s%s\n" "User:" "${value}"
                     ;;
                 coexist_mode)
-                    echo "  Coexist Mode:  ${ORADBA_COEXIST_MODE:-${value}}"
+                    printf "  %-14s%s\n" "Mode:" "${ORADBA_COEXIST_MODE:-${value}}"
                     ;;
                 basenv_detected)
-                    echo "  BasEnv:        ${value}"
+                    printf "  %-14s%s\n" "BasEnv:" "${value}"
                     ;;
             esac
         done < "${install_info}"
