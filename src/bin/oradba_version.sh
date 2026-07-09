@@ -492,7 +492,15 @@ check_extension_checksums() {
 # Notes...: Sorted by priority; checksum indicator (✓/✗) for enabled extensions
 # ------------------------------------------------------------------------------
 show_installed_extensions() {
-    # Source extensions library if available
+    # Source extensions library if available.
+    # extensions.sh requires oradba_common.sh (for oradba_log) to be sourced first.
+    # Provide a no-op stub so discover_extensions() does not abort under set -e
+    # when oradba_log is not yet defined (standalone invocation without full env).
+    if ! command -v oradba_log > /dev/null 2>&1; then
+        # shellcheck disable=SC2317
+        oradba_log() { :; }
+    fi
+
     if [[ -f "${BASE_DIR}/lib/extensions.sh" ]]; then
         # shellcheck source=../lib/extensions.sh
         source "${BASE_DIR}/lib/extensions.sh"
