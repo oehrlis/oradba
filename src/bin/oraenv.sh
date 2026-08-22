@@ -67,7 +67,7 @@ if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
 fi
 
 # Set ORATAB_FILE dynamically if not already set
-if [[ -z "${ORATAB_FILE}" ]]; then
+if [[ -z "${ORATAB_FILE:-}" ]]; then
     ORATAB_FILE="$(get_oratab_path)"
     export ORATAB_FILE
 fi
@@ -78,10 +78,10 @@ if [[ -f "${_ORAENV_BASE_DIR}/lib/oradba_db_functions.sh" ]]; then
 fi
 
 # Source extension system library (optional, only if enabled)
-if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && [[ -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
+if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-}" == "true" ]] && [[ -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
     source "${_ORAENV_BASE_DIR}/lib/extensions.sh"
     oradba_log DEBUG "Extension system library loaded (extensions.sh sourced)"
-elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" != "true" ]]; then
+elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-}" != "true" ]]; then
     oradba_log DEBUG "Extension discovery disabled (ORADBA_AUTO_DISCOVER_EXTENSIONS=${ORADBA_AUTO_DISCOVER_EXTENSIONS})"
 elif [[ ! -f "${_ORAENV_BASE_DIR}/lib/extensions.sh" ]]; then
     oradba_log DEBUG "Extension system library not found: ${_ORAENV_BASE_DIR}/lib/extensions.sh"
@@ -386,7 +386,7 @@ EOF
 # ------------------------------------------------------------------------------
 _oraenv_find_oratab() {
     # Check if ORATAB_FILE is set and exists
-    if [[ -n "${ORATAB_FILE}" ]] && [[ -f "${ORATAB_FILE}" ]]; then
+    if [[ -n "${ORATAB_FILE:-}" ]] && [[ -f "${ORATAB_FILE:-}" ]]; then
         echo "${ORATAB_FILE}"
         return 0
     fi
@@ -861,7 +861,7 @@ _oraenv_handle_oracle_home() {
                     # Need to determine base path for plugin_set_environment
                     local base_path="${ORACLE_HOME}"
                     # If ORACLE_HOME ends with oracle_cman_home, use parent as base
-                    if [[ "${ORACLE_HOME}" =~ /oracle_cman_home$ ]]; then
+                    if [[ "${ORACLE_HOME:-}" =~ /oracle_cman_home$ ]]; then
                         base_path="${ORACLE_HOME%/oracle_cman_home}"
                     fi
                     plugin_set_environment "${base_path}"
@@ -1061,13 +1061,13 @@ _oraenv_apply_tns_admin() {
 
     unset TNS_ADMIN
 
-    if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
+    if [[ -n "${ORADBA_TNS_ADMIN:-}" ]]; then
         export TNS_ADMIN="${ORADBA_TNS_ADMIN}"
         oradba_log DEBUG "Using configured TNS_ADMIN: ${TNS_ADMIN}"
-    elif [[ -n "${ORACLE_BASE}" ]]; then
+    elif [[ -n "${ORACLE_BASE:-}" ]]; then
         export TNS_ADMIN="${ORACLE_BASE}/network/admin"
         oradba_log DEBUG "Using ORACLE_BASE TNS_ADMIN: ${TNS_ADMIN}"
-    elif [[ -n "${ORACLE_HOME}" ]]; then
+    elif [[ -n "${ORACLE_HOME:-}" ]]; then
         export TNS_ADMIN="${ORACLE_HOME}/network/admin"
         oradba_log DEBUG "Using ORACLE_HOME TNS_ADMIN: ${TNS_ADMIN}"
     fi
@@ -1115,7 +1115,7 @@ _oraenv_setup_environment_variables() {
         export ORACLE_HOME="$oracle_home"
 
         # Set ORACLE_BASE if not already set
-        if [[ -z "${ORACLE_BASE}" ]]; then
+        if [[ -z "${ORACLE_BASE:-}" ]]; then
             local derived_base
             derived_base="$(derive_oracle_base "$ORACLE_HOME")"
             export ORACLE_BASE="${derived_base}"
@@ -1190,14 +1190,14 @@ _oraenv_load_configurations() {
 
     # Optional startup optimization for silent/non-interactive mode.
     # Backward compatible defaults keep current behavior unless explicitly disabled.
-    if [[ "${ORAENV_FAST_SILENT}" == "true" ]]; then
+    if [[ "${ORAENV_FAST_SILENT:-}" == "true" ]]; then
         export ORADBA_LOAD_ALIASES="false"
         export ORADBA_CONFIGURE_SQLPATH="false"
         export ORADBA_LOAD_PDB_ALIASES="false"
         restore_load_aliases=true
         restore_configure_sqlpath=true
         oradba_log DEBUG "Fast silent mode: aliases and SQLPATH disabled for startup"
-    elif [[ "${ORAENV_INTERACTIVE}" != "true" ]]; then
+    elif [[ "${ORAENV_INTERACTIVE:-}" != "true" ]]; then
         if [[ "${ORADBA_LOAD_ALIASES_IN_SILENT:-true}" != "true" ]]; then
             export ORADBA_LOAD_ALIASES="false"
             restore_load_aliases=true
@@ -1218,7 +1218,7 @@ _oraenv_load_configurations() {
     _oraenv_profile_mark "load_config (${identifier})"
 
     # Configure SQLPATH for SQL script discovery (#11)
-    if [[ "${ORADBA_CONFIGURE_SQLPATH}" != "false" ]]; then
+    if [[ "${ORADBA_CONFIGURE_SQLPATH:-}" != "false" ]]; then
         if [[ "${ORADBA_COEXIST_MODE:-standalone}" == "basenv"* ]] && _oradba_path_contains "${ORADBA_BASE}/sql" "SQLPATH"; then
             oradba_log DEBUG "SQLPATH guard: BasEnv already manages SQLPATH (${ORADBA_BASE}/sql present), skipping configure_sqlpath"
         else
@@ -1229,12 +1229,12 @@ _oraenv_load_configurations() {
 
     # Load extensions (skip in coexistence mode unless forced) (#15)
     oradba_log DEBUG "Checking extension loading conditions..."
-    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST}" == "true" ]]; then
-        if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]] && command -v load_extensions &> /dev/null; then
+    if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]] || [[ "${ORADBA_EXTENSIONS_IN_COEXIST:-}" == "true" ]]; then
+        if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-}" == "true" ]] && command -v load_extensions &> /dev/null; then
             oradba_log DEBUG "Loading enabled extension bin directories into PATH"
             load_extensions
             _oraenv_profile_mark "load_extensions"
-        elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" != "true" ]]; then
+        elif [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-}" != "true" ]]; then
             oradba_log DEBUG "Extension loading skipped: ORADBA_AUTO_DISCOVER_EXTENSIONS=${ORADBA_AUTO_DISCOVER_EXTENSIONS}"
         elif ! command -v load_extensions &> /dev/null; then
             oradba_log DEBUG "Extension loading skipped: load_extensions function not available (extensions.sh not sourced)"
@@ -1365,7 +1365,7 @@ _oraenv_set_environment() {
 _oraenv_unset_old_env() {
     # In basenv coexistence mode BasEnv owns PATH/LD_LIBRARY_PATH — do not remove Oracle paths.
     if [[ "${ORADBA_COEXIST_MODE:-standalone}" != "basenv"* ]]; then
-        if [[ -n "${ORACLE_HOME}" ]]; then
+        if [[ -n "${ORACLE_HOME:-}" ]]; then
             local _oh_bin="${ORACLE_HOME}/bin" _oh_lib="${ORACLE_HOME}/lib"
             PATH="${PATH//${_oh_bin}:/}"
             PATH="${PATH//:${_oh_bin}/}"
@@ -1418,7 +1418,7 @@ _oraenv_main() {
     # Used to distinguish automatic login (no SID) from explicit switches
     # (e.g. "source oraenv.sh DATASAFE_SID") so coexistence behaviour stays correct.
     local _sid_from_cli=false
-    [[ -n "${REQUESTED_SID}" ]] && _sid_from_cli=true
+    [[ -n "${REQUESTED_SID:-}" ]] && _sid_from_cli=true
 
     # basenv minimal mode with no explicit SID: oradba_core.conf has already added
     # oradba/bin to PATH. BasEnv owns the Oracle environment — skip full setup.

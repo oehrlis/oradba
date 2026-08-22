@@ -128,7 +128,7 @@ test_item() {
     TOTAL=$((TOTAL + 1))
 
     if eval "${test_command}" > /dev/null 2>&1; then
-        if [[ "${VERBOSE}" == "true" ]]; then
+        if [[ "${VERBOSE:-}" == "true" ]]; then
             echo -e "${GREEN}✓${NC} ${test_name}"
         fi
         oradba_log DEBUG "oradba_validate.sh: Test PASSED: ${test_name}"
@@ -136,7 +136,7 @@ test_item() {
         return 0
     else
         if [[ "${test_type}" == "optional" ]]; then
-            if [[ "${VERBOSE}" == "true" ]]; then
+            if [[ "${VERBOSE:-}" == "true" ]]; then
                 echo -e "${YELLOW}⚠${NC} ${test_name} (optional)"
             fi
             oradba_log DEBUG "oradba_validate.sh: Test WARNING (optional): ${test_name}"
@@ -169,7 +169,7 @@ $(date)
 EOF
 
 # Check basic installation
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo "Checking OraDBA Installation..."
     echo "-------------------------------------------------------------------------------"
 else
@@ -184,7 +184,7 @@ test_item "doc directory exists" "[[ -d '${ORADBA_BASE}/doc' ]]"
 test_item "sql directory exists" "[[ -d '${ORADBA_BASE}/sql' ]]"
 
 # Check core scripts
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Core Scripts..."
     echo "-------------------------------------------------------------------------------"
@@ -216,7 +216,7 @@ test_item "exp_jobs.sh exists" "[[ -f '${ORADBA_BASE}/bin/exp_jobs.sh' ]]" "opti
 test_item "longops.sh exists" "[[ -f '${ORADBA_BASE}/bin/longops.sh' ]]" "optional"
 
 # Check libraries
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Library Files..."
     echo "-------------------------------------------------------------------------------"
@@ -247,7 +247,7 @@ test_item "oradba_env_status.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_st
 test_item "oradba_env_changes.sh exists" "[[ -f '${ORADBA_BASE}/lib/oradba_env_changes.sh' ]]" "optional"
 
 # Plugin System (v0.19.0+)
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Plugin System..."
     echo "-------------------------------------------------------------------------------"
@@ -268,7 +268,7 @@ test_item "EM Agent plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/emagent_pl
 test_item "OMS plugin exists" "[[ -f '${ORADBA_BASE}/lib/plugins/oms_plugin.sh' ]]" "optional"
 
 # Check configuration files
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Configuration Files (Phase 1-4 System)..."
     echo "-------------------------------------------------------------------------------"
@@ -307,7 +307,7 @@ test_item "rlwrap_lsnrctl_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_
 test_item "rlwrap_adrci_completions exists" "[[ -f '${ORADBA_BASE}/etc/rlwrap_adrci_completions' ]]" "optional"
 
 # Check documentation
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Documentation..."
     echo "-------------------------------------------------------------------------------"
@@ -324,7 +324,7 @@ test_item "configuration.md exists" "[[ -f '${ORADBA_BASE}/doc/configuration.md'
 test_item "alias_help.txt exists" "[[ -f '${ORADBA_BASE}/doc/alias_help.txt' ]]"
 
 # Check SQL files
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking SQL Files..."
     echo "-------------------------------------------------------------------------------"
@@ -336,7 +336,7 @@ test_item "login.sql exists" "[[ -f '${ORADBA_BASE}/sql/login.sql' ]]"
 test_item "db_info.sql exists" "[[ -f '${ORADBA_BASE}/sql/db_info.sql' ]]" "optional"
 
 # Check installation metadata
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Installation Metadata..."
     echo "-------------------------------------------------------------------------------"
@@ -379,34 +379,34 @@ if [[ -f "${ORADBA_BASE}/.oradba.checksum" ]]; then
 
             if [[ "$expected_hash" != "$actual_hash" ]]; then
                 MODIFIED_COUNT=$((MODIFIED_COUNT + 1))
-                if [[ "${VERBOSE}" == "true" ]]; then
+                if [[ "${VERBOSE:-}" == "true" ]]; then
                     echo -e "${YELLOW}⚠${NC} Modified: ${file_path}"
                 fi
             fi
         else
             # File is missing
             MISSING_COUNT=$((MISSING_COUNT + 1))
-            if [[ "${VERBOSE}" == "true" ]]; then
+            if [[ "${VERBOSE:-}" == "true" ]]; then
                 echo -e "${RED}✗${NC} Missing: ${file_path}"
             fi
         fi
     done < "${ORADBA_BASE}/.oradba.checksum"
 
     if [[ $MODIFIED_COUNT -gt 0 || $MISSING_COUNT -gt 0 ]]; then
-        if [[ "${VERBOSE}" == "false" ]]; then
+        if [[ "${VERBOSE:-}" == "false" ]]; then
             [[ $MODIFIED_COUNT -gt 0 ]] && echo -e "${YELLOW}⚠${NC} $MODIFIED_COUNT file(s) modified since installation"
             [[ $MISSING_COUNT -gt 0 ]] && echo -e "${RED}✗${NC} $MISSING_COUNT file(s) missing"
         fi
         WARNINGS=$((WARNINGS + MODIFIED_COUNT + MISSING_COUNT))
     else
-        if [[ "${VERBOSE}" == "true" ]]; then
+        if [[ "${VERBOSE:-}" == "true" ]]; then
             echo -e "${GREEN}✓${NC} No files modified or missing"
         fi
     fi
 fi
 
 # Check if environment can be sourced
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Environment Setup..."
     echo "-------------------------------------------------------------------------------"
@@ -419,7 +419,7 @@ if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
     if bash -n "${ORADBA_BASE}/bin/oraenv.sh" 2> /dev/null; then
         TOTAL=$((TOTAL + 1))
         PASSED=$((PASSED + 1))
-        if [[ "${VERBOSE}" == "true" ]]; then
+        if [[ "${VERBOSE:-}" == "true" ]]; then
             echo -e "${GREEN}✓${NC} oraenv.sh has valid syntax"
         fi
     else
@@ -430,7 +430,7 @@ if [[ -f "${ORADBA_BASE}/bin/oraenv.sh" ]]; then
 fi
 
 # Check Oracle prerequisites (context-aware)
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
     echo "Checking Oracle Environment..."
     echo "-------------------------------------------------------------------------------"
@@ -442,7 +442,7 @@ if [[ "$PRE_ORACLE_MODE" == "true" ]]; then
     # Pre-Oracle mode: show informative message
     TOTAL=$((TOTAL + 1))
     PASSED=$((PASSED + 1))
-    if [[ "${VERBOSE}" == "true" ]]; then
+    if [[ "${VERBOSE:-}" == "true" ]]; then
         echo -e "${BLUE}ℹ${NC} Pre-Oracle installation detected"
         echo -e "${BLUE}ℹ${NC} Oracle Database not required for OraDBA functionality"
         echo -e "${BLUE}ℹ${NC} After installing Oracle, run: oradba_setup.sh link-oratab"
@@ -459,7 +459,7 @@ else
 fi
 
 # Print validation summary
-if [[ "${VERBOSE}" == "true" ]]; then
+if [[ "${VERBOSE:-}" == "true" ]]; then
     echo ""
 fi
 

@@ -312,7 +312,7 @@ format_uptime() {
 # ------------------------------------------------------------------------------
 show_database_status() {
     # Check if this is a non-database Oracle Home
-    if [[ -n "${ORADBA_CURRENT_HOME_TYPE}" ]] && [[ "${ORADBA_CURRENT_HOME_TYPE}" != "database" ]]; then
+    if [[ -n "${ORADBA_CURRENT_HOME_TYPE:-}" ]] && [[ "${ORADBA_CURRENT_HOME_TYPE:-}" != "database" ]]; then
         show_oracle_home_status
         return 0
     fi

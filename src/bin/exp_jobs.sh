@@ -33,7 +33,7 @@ fi
 
 # Enable debug logging function
 debug_log() {
-    if [[ "${DEBUG_ENABLED}" == "true" ]] || [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${DEBUG_ENABLED:-}" == "true" ]] || [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
         if command -v oradba_log >/dev/null 2>&1; then
             oradba_log DEBUG "${SCRIPT_NAME}: $*"
         else
@@ -45,7 +45,7 @@ debug_log() {
 # Check for debug activation early in script
 check_debug_activation() {
     # Check environment variable
-    [[ "${ORADBA_DEBUG}" == "true" ]] && DEBUG_ENABLED=true
+    [[ "${ORADBA_DEBUG:-}" == "true" ]] && DEBUG_ENABLED=true
     
     # Check command line arguments for --debug flag
     for arg in "$@"; do
@@ -59,8 +59,8 @@ check_debug_activation() {
     done
     
     # Log activation method
-    if [[ "${DEBUG_ENABLED}" == "true" ]]; then
-        if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${DEBUG_ENABLED:-}" == "true" ]]; then
+        if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
             debug_log "Debug mode activated via ORADBA_DEBUG environment variable"
         fi
         debug_log "Starting DataPump export monitoring wrapper script"
@@ -91,7 +91,7 @@ debug_log "Filtered arguments for longops.sh: ${filtered_args[*]}"
 debug_log "Executing: ${SCRIPT_DIR}/longops.sh --operation %EXP% ${filtered_args[*]}"
 
 # Execute longops.sh with export filter
-if [[ "${DEBUG_ENABLED}" == "true" ]]; then
+if [[ "${DEBUG_ENABLED:-}" == "true" ]]; then
     # Pass debug flag to longops.sh if debug is enabled
     exec "${SCRIPT_DIR}/longops.sh" --operation "%EXP%" --debug "${filtered_args[@]}"
 else

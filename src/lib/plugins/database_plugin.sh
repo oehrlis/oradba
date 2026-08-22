@@ -386,7 +386,7 @@ plugin_build_bin_path() {
     fi
     
     # If GRID_HOME exists and differs from ORACLE_HOME, add Grid bin
-    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME}" != "${oracle_home}" ]]; then
+    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME:-}" != "${oracle_home}" ]]; then
         if [[ -d "${GRID_HOME}/bin" ]]; then
             new_path="${new_path:+${new_path}:}${GRID_HOME}/bin"
         fi
@@ -419,7 +419,7 @@ plugin_build_lib_path() {
     fi
     
     # If GRID_HOME exists and differs, add Grid libraries
-    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME}" != "${oracle_home}" ]]; then
+    if [[ -n "${GRID_HOME:-}" ]] && [[ "${GRID_HOME:-}" != "${oracle_home}" ]]; then
         if [[ -d "${GRID_HOME}/lib" ]]; then
             lib_path="${lib_path:+${lib_path}:}${GRID_HOME}/lib"
         fi

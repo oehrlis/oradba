@@ -33,7 +33,7 @@ fi
 
 # Enable debug logging function
 debug_log() {
-    if [[ "${DEBUG_ENABLED}" == "true" ]] || [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${DEBUG_ENABLED:-}" == "true" ]] || [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
         if command -v oradba_log >/dev/null 2>&1; then
             oradba_log DEBUG "${SCRIPT_NAME}: $*"
         else
@@ -185,12 +185,12 @@ monitor_longops() {
     debug_log "Starting monitor_longops for SID: ${sid}"
     
     # Build WHERE clause based on filters
-    if [[ -n "${OPERATION_FILTER}" ]]; then
+    if [[ -n "${OPERATION_FILTER:-}" ]]; then
         where_clause="opname LIKE '${OPERATION_FILTER}'"
         debug_log "Applied operation filter: ${OPERATION_FILTER}"
     fi
 
-    if [[ "${SHOW_ALL}" != "true" ]]; then
+    if [[ "${SHOW_ALL:-}" != "true" ]]; then
         if [[ -n "${where_clause}" ]]; then
             where_clause="${where_clause} AND totalwork != 0 AND sofar <> totalwork"
         else
@@ -271,7 +271,7 @@ display_header() {
 
     echo "================================================================================"
     echo "Long Operations Monitor - ${sid} - ${timestamp}"
-    if [[ -n "${OPERATION_FILTER}" ]]; then
+    if [[ -n "${OPERATION_FILTER:-}" ]]; then
         echo "Filter: ${OPERATION_FILTER}"
     fi
     echo "================================================================================"
@@ -302,7 +302,7 @@ run_monitor() {
     fi
 
     # Watch mode - continuous monitoring
-    if [[ "${WATCH_MODE}" == "true" ]]; then
+    if [[ "${WATCH_MODE:-}" == "true" ]]; then
         debug_log "Starting watch mode with interval ${WATCH_INTERVAL} seconds"
         
         # Trap Ctrl+C for clean exit
@@ -384,7 +384,7 @@ run_monitor() {
 # ------------------------------------------------------------------------------
 main() {
     # Check for debug activation early
-    [[ "${ORADBA_DEBUG}" == "true" ]] && DEBUG_ENABLED=true
+    [[ "${ORADBA_DEBUG:-}" == "true" ]] && DEBUG_ENABLED=true
     
     debug_log "Starting longops.sh with arguments: $*"
     debug_log "Initial environment - ORACLE_SID: ${ORACLE_SID:-<not set>}, ORACLE_HOME: ${ORACLE_HOME:-<not set>}"

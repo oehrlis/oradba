@@ -16,7 +16,7 @@
 # ------------------------------------------------------------------------------
 
 # Prevent multiple sourcing
-[[ -n "${ORADBA_ENV_BUILDER_LOADED}" ]] && return 0
+[[ -n "${ORADBA_ENV_BUILDER_LOADED:-}" ]] && return 0
 readonly ORADBA_ENV_BUILDER_LOADED=1
 
 # ------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ oradba_dedupe_path() {
 }
 
 # Require parser functions
-if [[ -z "${ORADBA_ENV_PARSER_LOADED}" ]]; then
+if [[ -z "${ORADBA_ENV_PARSER_LOADED:-}" ]]; then
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_parser.sh" ]]; then
         # shellcheck source=./oradba_env_parser.sh
         source "${ORADBA_BASE}/lib/oradba_env_parser.sh"
@@ -107,7 +107,7 @@ if [[ -z "${ORADBA_ENV_PARSER_LOADED}" ]]; then
 fi
 
 # Require config functions (Phase 2)
-if [[ -z "${ORADBA_ENV_CONFIG_LOADED}" ]]; then
+if [[ -z "${ORADBA_ENV_CONFIG_LOADED:-}" ]]; then
     if [[ -f "${ORADBA_BASE}/lib/oradba_env_config.sh" ]]; then
         # shellcheck source=./oradba_env_config.sh
         source "${ORADBA_BASE}/lib/oradba_env_config.sh"
@@ -115,7 +115,7 @@ if [[ -z "${ORADBA_ENV_CONFIG_LOADED}" ]]; then
 fi
 
 # Require extensions library
-if [[ -z "${ORADBA_EXTENSIONS_LOADED}" ]]; then
+if [[ -z "${ORADBA_EXTENSIONS_LOADED:-}" ]]; then
     if [[ -f "${ORADBA_BASE}/lib/extensions.sh" ]]; then
         # shellcheck source=./extensions.sh
         source "${ORADBA_BASE}/lib/extensions.sh"
@@ -498,7 +498,7 @@ oradba_set_product_environment() {
         WLS)
             # WebLogic Server variables
             export WLS_HOME="${ORACLE_HOME}/wlserver"
-            if [[ -n "${WLS_DOMAIN_BASE}" ]]; then
+            if [[ -n "${WLS_DOMAIN_BASE:-}" ]]; then
                 export DOMAIN_HOME="${WLS_DOMAIN_BASE}/${ORACLE_SID}"
             fi
             ;;

@@ -51,7 +51,7 @@ get_diagnostic_dest() {
     local sid="${ORACLE_SID:-}"
 
     # Try to query database if ORACLE_SID is set and database is available
-    if [[ -n "${sid}" ]] && [[ -n "${ORACLE_HOME}" ]] && [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
+    if [[ -n "${sid}" ]] && [[ -n "${ORACLE_HOME:-}" ]] && [[ -x "${ORACLE_HOME}/bin/sqlplus" ]]; then
         # Query database for diagnostic_dest (suppress all errors)
         diag_dest=$(
             sqlplus -S / as sysdba << EOF 2>&1 | grep -v "^ERROR:" | grep -v "^SP2-" | grep -v "^ORA-" | head -1
@@ -103,7 +103,7 @@ has_rlwrap() {
 # ------------------------------------------------------------------------------
 oradba_tnsping() {
     # Only work if ORACLE_HOME is set
-    if [[ -z "${ORACLE_HOME}" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" ]]; then
         echo "Error: ORACLE_HOME not set" >&2
         return 1
     fi
@@ -140,7 +140,7 @@ oradba_tnsping() {
         fi
         
         # Show notice in verbose/debug mode
-        if [[ "${ORADBA_LOG_LEVEL}" == "DEBUG" ]] || [[ "${DEBUG}" == "1" ]] || [[ "${ORADBA_VERBOSE}" == "true" ]]; then
+        if [[ "${ORADBA_LOG_LEVEL:-}" == "DEBUG" ]] || [[ "${DEBUG:-}" == "1" ]] || [[ "${ORADBA_VERBOSE:-}" == "true" ]]; then
             echo "Notice: Using sqlplus -P (tnsping not available in Instant Client)" >&2
         fi
         
@@ -179,7 +179,7 @@ generate_sid_aliases() {
         local alertlog_file="${trace_dir}/alert_${sid}.log"
 
         # Override ORADBA_SID_ALERTLOG with queried path if different
-        if [[ -f "${alertlog_file}" ]] && [[ "${alertlog_file}" != "${ORADBA_SID_ALERTLOG}" ]]; then
+        if [[ -f "${alertlog_file}" ]] && [[ "${alertlog_file}" != "${ORADBA_SID_ALERTLOG:-}" ]]; then
             export ORADBA_SID_ALERTLOG="${alertlog_file}"
         fi
 
@@ -250,7 +250,7 @@ generate_sid_aliases() {
 # ------------------------------------------------------------------------------
 generate_base_aliases() {
     # OraDBA base directory alias
-    if [[ -n "${ORADBA_BASE}" ]] && [[ -d "${ORADBA_BASE}" ]]; then
+    if [[ -n "${ORADBA_BASE:-}" ]] && [[ -d "${ORADBA_BASE:-}" ]]; then
         create_dynamic_alias cdbase "cd ${ORADBA_BASE}" "true"
     fi
 }
@@ -263,7 +263,7 @@ generate_base_aliases() {
 generate_base_aliases
 
 # Generate aliases for current ORACLE_SID if set
-if [[ -n "${ORACLE_SID}" ]]; then
+if [[ -n "${ORACLE_SID:-}" ]]; then
     generate_sid_aliases
 fi
 

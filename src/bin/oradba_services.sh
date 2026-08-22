@@ -124,7 +124,7 @@ load_config() {
     oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Attempting to load config from: ${CONFIG_FILE}"
     
     # Copy example config if it doesn't exist
-    if [[ ! -f "${CONFIG_FILE}" ]]; then
+    if [[ ! -f "${CONFIG_FILE:-}" ]]; then
         local example_file="${ORADBA_BASE}/templates/etc/oradba_services.conf.example"
         oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Config file not found, checking for template: ${example_file}"
         
@@ -140,7 +140,7 @@ load_config() {
         fi
     fi
     
-    if [[ -f "${CONFIG_FILE}" ]]; then
+    if [[ -f "${CONFIG_FILE:-}" ]]; then
         oradba_log INFO "Loading configuration from ${CONFIG_FILE}"
         oradba_log DEBUG "${SCRIPT_NAME}: load_config() - Sourcing configuration file"
         # shellcheck source=/dev/null
@@ -174,19 +174,19 @@ start_listeners() {
     oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Base command: ${cmd}"
 
     # Add force flag if set
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         cmd="${cmd} --force"
         oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added --force flag"
     fi
 
     # Add listener options
-    if [[ -n "${LSNR_OPTIONS}" ]]; then
+    if [[ -n "${LSNR_OPTIONS:-}" ]]; then
         cmd="${cmd} ${LSNR_OPTIONS}"
         oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added listener options: ${LSNR_OPTIONS}"
     fi
 
     # Add specific listeners if configured
-    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+    if [[ -n "${SPECIFIC_LISTENERS:-}" ]]; then
         cmd="${cmd} ${SPECIFIC_LISTENERS}"
         oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Added specific listeners: ${SPECIFIC_LISTENERS}"
     fi
@@ -223,19 +223,19 @@ stop_listeners() {
     oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Base command: ${cmd}"
 
     # Add force flag if set
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         cmd="${cmd} --force"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added --force flag"
     fi
 
     # Add listener options
-    if [[ -n "${LSNR_OPTIONS}" ]]; then
+    if [[ -n "${LSNR_OPTIONS:-}" ]]; then
         cmd="${cmd} ${LSNR_OPTIONS}"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added listener options: ${LSNR_OPTIONS}"
     fi
 
     # Add specific listeners if configured
-    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+    if [[ -n "${SPECIFIC_LISTENERS:-}" ]]; then
         cmd="${cmd} ${SPECIFIC_LISTENERS}"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Added specific listeners: ${SPECIFIC_LISTENERS}"
     fi
@@ -272,19 +272,19 @@ start_databases() {
     oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Base command: ${cmd}"
 
     # Add force flag if set
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         cmd="${cmd} --force"
         oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added --force flag"
     fi
 
     # Add database options
-    if [[ -n "${DB_OPTIONS}" ]]; then
+    if [[ -n "${DB_OPTIONS:-}" ]]; then
         cmd="${cmd} ${DB_OPTIONS}"
         oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added database options: ${DB_OPTIONS}"
     fi
 
     # Add specific databases if configured
-    if [[ -n "${SPECIFIC_DBS}" ]]; then
+    if [[ -n "${SPECIFIC_DBS:-}" ]]; then
         cmd="${cmd} ${SPECIFIC_DBS}"
         oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Added specific databases: ${SPECIFIC_DBS}"
     fi
@@ -321,19 +321,19 @@ stop_databases() {
     oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Base command: ${cmd}"
 
     # Add force flag if set
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         cmd="${cmd} --force"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added --force flag"
     fi
 
     # Add database options
-    if [[ -n "${DB_OPTIONS}" ]]; then
+    if [[ -n "${DB_OPTIONS:-}" ]]; then
         cmd="${cmd} ${DB_OPTIONS}"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added database options: ${DB_OPTIONS}"
     fi
 
     # Add specific databases if configured
-    if [[ -n "${SPECIFIC_DBS}" ]]; then
+    if [[ -n "${SPECIFIC_DBS:-}" ]]; then
         cmd="${cmd} ${SPECIFIC_DBS}"
         oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Added specific databases: ${SPECIFIC_DBS}"
     fi
@@ -373,7 +373,7 @@ show_status() {
     echo "Listeners:"
     echo "----------"
     local lsnr_cmd="${ORADBA_BIN}/oradba_lsnrctl.sh status"
-    if [[ -n "${SPECIFIC_LISTENERS}" ]]; then
+    if [[ -n "${SPECIFIC_LISTENERS:-}" ]]; then
         lsnr_cmd="${lsnr_cmd} ${SPECIFIC_LISTENERS}"
         oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Added specific listeners to status check: ${SPECIFIC_LISTENERS}"
     fi
@@ -384,7 +384,7 @@ show_status() {
     echo "Databases:"
     echo "----------"
     local db_cmd="${ORADBA_BIN}/oradba_dbctl.sh status"
-    if [[ -n "${SPECIFIC_DBS}" ]]; then
+    if [[ -n "${SPECIFIC_DBS:-}" ]]; then
         db_cmd="${db_cmd} ${SPECIFIC_DBS}"
         oradba_log DEBUG "${SCRIPT_NAME}: show_status() - Added specific databases to status check: ${SPECIFIC_DBS}"
     fi
@@ -518,7 +518,7 @@ for arg in "$@"; do
 done
 
 # Check for ORADBA_DEBUG environment variable
-if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
     export ORADBA_LOG_LEVEL=DEBUG
     oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via ORADBA_DEBUG environment variable"
 fi

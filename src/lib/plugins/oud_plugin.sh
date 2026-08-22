@@ -40,7 +40,7 @@ get_oud_instance_base() {
     local home_path="${1:-}"
     
     # Priority 1: OUD_INSTANCE_BASE
-    if [[ -n "${OUD_INSTANCE_BASE:-}" ]] && [[ -d "${OUD_INSTANCE_BASE}" ]]; then
+    if [[ -n "${OUD_INSTANCE_BASE:-}" ]] && [[ -d "${OUD_INSTANCE_BASE:-}" ]]; then
         echo "${OUD_INSTANCE_BASE}"
         return 0
     fi

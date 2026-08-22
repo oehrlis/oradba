@@ -328,7 +328,7 @@ oradba_log() {
         _oradba_log_to_file "${ORADBA_LOG_FILE:-}" "${log_line}"
 
         # Dual logging: also write to session log if different from main log
-        if [[ -n "${ORADBA_SESSION_LOG:-}" ]] && [[ "${ORADBA_SESSION_LOG}" != "${ORADBA_LOG_FILE:-}" ]]; then
+        if [[ -n "${ORADBA_SESSION_LOG:-}" ]] && [[ "${ORADBA_SESSION_LOG:-}" != "${ORADBA_LOG_FILE:-}" ]]; then
             _oradba_log_to_file "${ORADBA_SESSION_LOG}" "${log_line}"
         fi
     fi
@@ -707,7 +707,7 @@ load_rman_catalog_connection() {
 
     # Validate catalog connection string format
     # Expected: user/password@tnsalias or user@tnsalias
-    if [[ ! "${ORADBA_RMAN_CATALOG}" =~ ^[a-zA-Z0-9_]+(@|/) ]]; then
+    if [[ ! "${ORADBA_RMAN_CATALOG:-}" =~ ^[a-zA-Z0-9_]+(@|/) ]]; then
         oradba_log WARN "Invalid RMAN catalog format: ${ORADBA_RMAN_CATALOG}"
         oradba_log WARN "Expected: user/password@tnsalias or user@tnsalias"
         export ORADBA_RMAN_CATALOG_CONNECTION=""
@@ -1100,7 +1100,7 @@ load_config_file() {
         source "${file_path}"
 
         # Deduplicate PATH if it changed
-        if [[ "${PATH}" != "${path_before}" ]]; then
+        if [[ "${PATH:-}" != "${path_before}" ]]; then
             # Use oradba_dedupe_path if available (Phase 2), otherwise use awk
             if command -v oradba_dedupe_path &> /dev/null; then
                 PATH="$(oradba_dedupe_path "${PATH}")"
@@ -1204,11 +1204,11 @@ load_config() {
             capture_sid_config_vars "${sid_config}"
         else
             # Config doesn't exist - check if we should auto-create it
-            if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG}" == "true" ]]; then
+            if [[ "${ORADBA_AUTO_CREATE_SID_CONFIG:-}" == "true" ]]; then
                 # Check if this is a real SID (not a dummy SID with startup flag 'D')
                 # Use word boundary regex pattern for proper matching
                 if [[ " ${ORADBA_REALSIDLIST} " =~ (^|[[:space:]])${sid}($|[[:space:]]) ]]; then
-                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example" >&2
+                    [[ "${ORADBA_DEBUG:-}" == "true" ]] && echo "[DEBUG] Auto-create enabled, config_dir=${config_dir}, template should be at: ${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example" >&2
                     oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is true, attempting to create config"
                     if create_sid_config "${sid}"; then
                         # Source the newly created config file with variable tracking
@@ -1219,7 +1219,7 @@ load_config() {
                     fi
                 else
                     oradba_log DEBUG "SID ${sid} is a dummy SID (not in ORADBA_REALSIDLIST), skipping auto-create"
-                    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Skipping auto-create for dummy SID: ${sid}" >&2
+                    [[ "${ORADBA_DEBUG:-}" == "true" ]] && echo "[DEBUG] Skipping auto-create for dummy SID: ${sid}" >&2
                 fi
             else
                 oradba_log DEBUG "ORADBA_AUTO_CREATE_SID_CONFIG is not true (value: '${ORADBA_AUTO_CREATE_SID_CONFIG}')"
@@ -1247,11 +1247,11 @@ load_config() {
 # ------------------------------------------------------------------------------
 create_sid_config() {
     local sid="$1"
-    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
+    [[ "${ORADBA_DEBUG:-}" == "true" ]] && echo "[DEBUG] create_sid_config called with SID=${sid}" >&2
     local config_dir="${ORADBA_CONFIG_DIR:-${ORADBA_BASE}/etc}"
     local sid_config="${config_dir}/sid.${sid}.conf"
     local example_config="${ORADBA_BASE}/templates/etc/sid.ORACLE_SID.conf.example"
-    [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
+    [[ "${ORADBA_DEBUG:-}" == "true" ]] && echo "[DEBUG] Will create: ${sid_config} from template: ${example_config}" >&2
 
     # Check if config directory is writable
     if [[ ! -w "${config_dir}" ]]; then
@@ -1315,7 +1315,7 @@ configure_sqlpath() {
     fi
 
     # 3. SID-specific SQL directory (if exists and enabled)
-    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID:-}" ]] && [[ -d "${ORADBA_BASE}/sql/${ORACLE_SID}" ]]; then
+    if [[ "${ORADBA_SID_SPECIFIC_SQL:-}" == "true" ]] && [[ -n "${ORACLE_SID:-}" ]] && [[ -d "${ORADBA_BASE}/sql/${ORACLE_SID}" ]]; then
         sqlpath_parts+=("${ORADBA_BASE}/sql/${ORACLE_SID}")
     fi
 
@@ -1330,7 +1330,7 @@ configure_sqlpath() {
     fi
 
     # 6. User custom SQL directory (create if needed)
-    if [[ "${ORADBA_CREATE_USER_SQL_DIR}" == "true" ]] && [[ ! -d "${HOME}/.oradba/sql" ]]; then
+    if [[ "${ORADBA_CREATE_USER_SQL_DIR:-}" == "true" ]] && [[ ! -d "${HOME}/.oradba/sql" ]]; then
         mkdir -p "${HOME}/.oradba/sql" 2> /dev/null && oradba_log DEBUG "Created user SQL directory: ${HOME}/.oradba/sql"
     fi
     if [[ -d "${HOME}/.oradba/sql" ]]; then
@@ -1344,7 +1344,7 @@ configure_sqlpath() {
     fi
 
     # 8. Preserve existing SQLPATH entries (optional)
-    if [[ -n "${SQLPATH:-}" ]] && [[ "${ORADBA_PRESERVE_SQLPATH}" == "true" ]]; then
+    if [[ -n "${SQLPATH:-}" ]] && [[ "${ORADBA_PRESERVE_SQLPATH:-}" == "true" ]]; then
         IFS=':' read -ra existing_paths <<< "${SQLPATH}"
         sqlpath_parts+=("${existing_paths[@]}")
     fi
@@ -1393,7 +1393,7 @@ show_sqlpath() {
 # Notes...: Shows [✓] for existing directories, [✗ not found] for missing ones
 # ------------------------------------------------------------------------------
 show_path() {
-    if [[ -z "${PATH}" ]]; then
+    if [[ -z "${PATH:-}" ]]; then
         echo "PATH is not set"
         return 1
     fi

@@ -349,18 +349,18 @@ check_extension_checksums() {
     fi
 
     # Check extensions in ORADBA_LOCAL_BASE if set and different
-    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]] && [[ "${ORADBA_LOCAL_BASE}" != "${BASE_DIR}/extensions" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]] && [[ -d "${ORADBA_LOCAL_BASE:-}" ]] && [[ "${ORADBA_LOCAL_BASE:-}" != "${BASE_DIR}/extensions" ]]; then
         while IFS= read -r -d '' checksum_file; do
             local checksum_dir
             checksum_dir=$(dirname "${checksum_file}")
 
             # Skip if this is the main OraDBA installation directory
-            if [[ "$(cd "${checksum_dir}" && pwd)" == "$(cd "${BASE_DIR}" && pwd)" ]]; then
+            if [[ "$(cd "${checksum_dir}" && pwd)" == "$(cd "${BASE_DIR:-}" && pwd)" ]]; then
                 continue
             fi
 
             # Skip if this is inside the main OraDBA directory (not an extension)
-            if [[ "${checksum_dir}" == "${BASE_DIR}"* ]] && [[ "${checksum_dir}" != "${BASE_DIR}/extensions"* ]]; then
+            if [[ "${checksum_dir}" == "${BASE_DIR:-}"* ]] && [[ "${checksum_dir}" != "${BASE_DIR}/extensions"* ]]; then
                 continue
             fi
 
@@ -429,7 +429,7 @@ check_extension_checksums() {
             failed_count=$((failed_count + 1))
 
             # Show details in verbose mode
-            if [[ "${VERBOSE}" == "true" ]]; then
+            if [[ "${VERBOSE:-}" == "true" ]]; then
                 echo "      Modified or missing files:"
                 while IFS= read -r line; do
                     if [[ "$line" =~ FAILED ]]; then
@@ -443,7 +443,7 @@ check_extension_checksums() {
 
         # Check for additional files not in checksum (only in verbose mode)
         # This runs regardless of checksum pass/fail status
-        if [[ "${VERBOSE}" == "true" ]]; then
+        if [[ "${VERBOSE:-}" == "true" ]]; then
             local checksummed_files
             checksummed_files=$(awk "!(${exclusions}) && !/^#/ {print \$2}" "${checksum_file}" | sort)
 
@@ -735,7 +735,7 @@ main() {
     done
 
     # If no action specified, show info
-    if [[ -z "${ACTION}" ]]; then
+    if [[ -z "${ACTION:-}" ]]; then
         version_info
         exit $?
     fi

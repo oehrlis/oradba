@@ -16,7 +16,7 @@
 # ------------------------------------------------------------------------------
 
 # Prevent multiple sourcing
-[[ -n "${ORADBA_ENV_CONFIG_LOADED}" ]] && return 0
+[[ -n "${ORADBA_ENV_CONFIG_LOADED:-}" ]] && return 0
 readonly ORADBA_ENV_CONFIG_LOADED=1
 
 # ------------------------------------------------------------------------------

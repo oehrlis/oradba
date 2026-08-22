@@ -217,13 +217,13 @@ validate_prerequisites() {
     oradba_log INFO "Validating prerequisites..."
 
     # Check Oracle Home
-    if [[ -z "${ORACLE_HOME}" || ! -d "${ORACLE_HOME}" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" || ! -d "${ORACLE_HOME:-}" ]]; then
         oradba_log ERROR "ORACLE_HOME not set or invalid: ${ORACLE_HOME}"
         return 1
     fi
 
     # Check Oracle Base
-    if [[ -z "${ORACLE_BASE}" || ! -d "${ORACLE_BASE}" ]]; then
+    if [[ -z "${ORACLE_BASE:-}" || ! -d "${ORACLE_BASE:-}" ]]; then
         oradba_log ERROR "ORACLE_BASE not set or invalid: ${ORACLE_BASE}"
         return 1
     fi
@@ -246,7 +246,7 @@ validate_prerequisites() {
     fi
 
     # Check disk space for data directory
-    if [[ -n "${DATA_DIR}" ]]; then
+    if [[ -n "${DATA_DIR:-}" ]]; then
         local data_dir_parent
         data_dir_parent=$(dirname "${DATA_DIR}")
         if [[ -d "${data_dir_parent}" ]]; then
@@ -276,7 +276,7 @@ create_directories() {
     oradba_log INFO "Creating database directories..."
 
     # Create data directory
-    if [[ ! -d "${DATA_DIR}" ]]; then
+    if [[ ! -d "${DATA_DIR:-}" ]]; then
         if mkdir -p "${DATA_DIR}" 2> /dev/null; then
             oradba_log INFO "Created data directory: ${DATA_DIR}"
         else
@@ -288,7 +288,7 @@ create_directories() {
     fi
 
     # Create FRA directory
-    if [[ ! -d "${FRA_DIR}" ]]; then
+    if [[ ! -d "${FRA_DIR:-}" ]]; then
         if mkdir -p "${FRA_DIR}" 2> /dev/null; then
             oradba_log INFO "Created FRA directory: ${FRA_DIR}"
         else
@@ -464,29 +464,29 @@ validate_arguments() {
     local errors=0
 
     # Check required arguments
-    if [[ -z "${DB_SID}" ]]; then
+    if [[ -z "${DB_SID:-}" ]]; then
         oradba_log ERROR "Database SID is required (--sid)"
         errors=$((errors + 1))
     fi
 
-    if [[ -z "${DB_VERSION}" ]]; then
+    if [[ -z "${DB_VERSION:-}" ]]; then
         oradba_log ERROR "Oracle version is required (--version)"
         errors=$((errors + 1))
     fi
 
     # Validate version
-    if [[ -n "${DB_VERSION}" ]] && [[ ! "${DB_VERSION}" =~ ^(19c|26ai)$ ]]; then
+    if [[ -n "${DB_VERSION:-}" ]] && [[ ! "${DB_VERSION:-}" =~ ^(19c|26ai)$ ]]; then
         oradba_log ERROR "Invalid version: ${DB_VERSION} (must be 19c or 26ai)"
         errors=$((errors + 1))
     fi
 
     # Validate template for version
-    if [[ "${DB_VERSION}" == "19c" ]] && [[ "${DB_TEMPLATE}" == "free" ]]; then
+    if [[ "${DB_VERSION:-}" == "19c" ]] && [[ "${DB_TEMPLATE:-}" == "free" ]]; then
         oradba_log ERROR "Template 'free' is not available for 19c"
         errors=$((errors + 1))
     fi
 
-    if [[ "${DB_VERSION}" == "26ai" ]] && [[ "${DB_TEMPLATE}" == "dataguard" ]]; then
+    if [[ "${DB_VERSION:-}" == "26ai" ]] && [[ "${DB_TEMPLATE:-}" == "dataguard" ]]; then
         oradba_log ERROR "Template 'dataguard' is not available for 26ai"
         errors=$((errors + 1))
     fi
@@ -526,18 +526,18 @@ main() {
     FRA_DIR="${FRA_DIR:-${ORACLE_BASE}/fast_recovery_area/${DB_SID}}"
 
     # Prompt for passwords if not provided (only in interactive mode)
-    if [[ -z "${SYS_PASSWORD}" ]] && [[ -t 0 ]]; then
+    if [[ -z "${SYS_PASSWORD:-}" ]] && [[ -t 0 ]]; then
         read -rs -p "Enter SYS password: " SYS_PASSWORD
         echo ""
     fi
 
-    if [[ -z "${SYSTEM_PASSWORD}" ]] && [[ -t 0 ]]; then
+    if [[ -z "${SYSTEM_PASSWORD:-}" ]] && [[ -t 0 ]]; then
         read -rs -p "Enter SYSTEM password: " SYSTEM_PASSWORD
         echo ""
     fi
 
     # Check if passwords are still empty
-    if [[ -z "${SYS_PASSWORD}" ]] || [[ -z "${SYSTEM_PASSWORD}" ]]; then
+    if [[ -z "${SYS_PASSWORD:-}" ]] || [[ -z "${SYSTEM_PASSWORD:-}" ]]; then
         oradba_log ERROR "Passwords are required (use --sys-password and --system-password)"
         exit 1
     fi
@@ -553,7 +553,7 @@ main() {
     oradba_log INFO "  Memory: ${MEMORY_MB} MB"
     oradba_log INFO "  Character Set: ${CHARSET}"
     oradba_log INFO "  National Character Set: ${NCHARSET}"
-    if [[ "${DB_TEMPLATE}" != "pluggable" ]]; then
+    if [[ "${DB_TEMPLATE:-}" != "pluggable" ]]; then
         oradba_log INFO "  PDB Name: ${PDB_NAME}"
     fi
     echo ""
@@ -572,7 +572,7 @@ main() {
 
     # Find template file
     local template_file
-    if [[ -n "${CUSTOM_TEMPLATE}" ]]; then
+    if [[ -n "${CUSTOM_TEMPLATE:-}" ]]; then
         template_file="${CUSTOM_TEMPLATE}"
         if [[ ! -f "${template_file}" ]]; then
             oradba_log ERROR "Custom template not found: ${template_file}"
@@ -602,7 +602,7 @@ main() {
     echo ""
 
     # Dry run or execute
-    if [[ "${DRY_RUN}" == "true" ]]; then
+    if [[ "${DRY_RUN:-}" == "true" ]]; then
         oradba_log INFO "Dry run mode - response file generated: ${response_file}"
         oradba_log INFO "Would execute: dbca -silent -createDatabase -responseFile ${response_file}"
         echo ""

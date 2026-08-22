@@ -167,12 +167,12 @@ check_root() {
 install_logrotate() {
     check_root "--install" || return 1
 
-    if [[ ! -d "${TEMPLATE_DIR}" ]]; then
+    if [[ ! -d "${TEMPLATE_DIR:-}" ]]; then
         print_message "${RED}" "ERROR: Template directory not found: ${TEMPLATE_DIR}"
         return 1
     fi
 
-    if [[ ! -d "${TARGET_DIR}" ]]; then
+    if [[ ! -d "${TARGET_DIR:-}" ]]; then
         print_message "${RED}" "ERROR: Target directory not found: ${TARGET_DIR}"
         print_message "${YELLOW}" "Is logrotate installed?"
         return 1
@@ -348,7 +348,7 @@ force_logrotate() {
     print_message "${YELLOW}" "This will rotate logs immediately!"
     echo ""
     read -p "Continue? (yes/no): " -r
-    if [[ ! "${REPLY}" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! "${REPLY:-}" =~ ^[Yy][Ee][Ss]$ ]]; then
         echo "Aborted"
         return 1
     fi
@@ -633,7 +633,7 @@ run_user() {
     local state_file="${user_state_dir}/logrotate.status"
 
     # Check if user-mode is set up
-    if [[ ! -d "${CUSTOM_DIR}" ]]; then
+    if [[ ! -d "${CUSTOM_DIR:-}" ]]; then
         print_message "${RED}" "ERROR: User-mode not initialized"
         print_message "${YELLOW}" "Run: ${SCRIPT_NAME} --install-user"
         return 1

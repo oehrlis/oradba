@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-08-22
+
+### Fixed
+
+- `src/etc/`, `src/lib/` and `src/bin/`: 291 `[[ ]]` tests on braced uppercase
+  variables now use `${VAR:-}`. This completes what 1.0.2 started and what its
+  release notes wrongly dismissed as "a refactor, not a hotfix" - it was the
+  blocker. With the listener fixed in 1.0.2 the boot path simply failed one
+  layer deeper, three more times:
+  - `src/etc/oradba_core.conf:30` - `${ORADBA_LOCAL_BASE}` aborted the caller
+    while it sourced its own configuration.
+  - `src/lib/oradba_env_parser.sh:19` and the other module include guards -
+    `[[ -n "${..._LOADED}" ]]` aborts on first load, when the variable is by
+    definition unset.
+  - `src/bin/oraenv.sh:1368` - `${ORACLE_HOME}`, one line above an existing
+    `${LD_LIBRARY_PATH:-}`. The pattern was known, just applied inconsistently.
+
+  Net effect: `oradba_services.sh start --force` now starts listener and
+  database unattended. Before this release it could not complete a single
+  unattended start on a host without a loaded oradba profile.
+
+### Verification
+
+- 1720 Bats tests, 7 failures - byte-identical to the `v1.0.1` baseline, so the
+  sweep introduces no regression. Those 7 are pre-existing and still open.
+- No new ShellCheck findings, `shfmt -i 4 -bn -ci -sr` clean.
+- Verified on an Oracle Linux 8 host with Oracle 19c under systemd: listener
+  and database come up, `oradba_services.sh` reports success.
+
 ## [1.0.2] - 2026-08-22
 
 ### Fixed

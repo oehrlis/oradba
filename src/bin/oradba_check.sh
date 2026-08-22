@@ -131,7 +131,7 @@ log_info() {
 # Notes...: Enable via ORADBA_DEBUG=true or --debug flag
 # ------------------------------------------------------------------------------
 log_debug() {
-    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
         echo -e "[DEBUG] $*" >&2
     fi
 }

@@ -92,7 +92,7 @@ print_header "2. Plugin System Status"
 echo "Checking datasafe plugin location:"
 
 PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-if [[ -f "${PLUGIN_FILE}" ]]; then
+if [[ -f "${PLUGIN_FILE:-}" ]]; then
     print_success "Found: ${PLUGIN_FILE}"
     print_info "  Size: $(stat -f%z "${PLUGIN_FILE}" 2> /dev/null || stat -c%s "${PLUGIN_FILE}" 2> /dev/null) bytes"
     print_info "  Modified: $(stat -f%Sm "${PLUGIN_FILE}" 2> /dev/null || stat -c%y "${PLUGIN_FILE}" 2> /dev/null)"
@@ -102,7 +102,7 @@ else
 fi
 
 # Check if plugin can be sourced
-if [[ -n "${PLUGIN_FILE}" ]]; then
+if [[ -n "${PLUGIN_FILE:-}" ]]; then
     echo ""
     echo "Testing plugin loading:"
     if bash -c "source '${PLUGIN_FILE}' 2>/dev/null && declare -F plugin_validate_home >/dev/null"; then
@@ -122,7 +122,7 @@ echo "Checking for OraDBA libraries:"
 
 # Check oradba_common.sh
 COMMON_LIB="${ORADBA_BASE}/lib/oradba_common.sh"
-if [[ -f "${COMMON_LIB}" ]]; then
+if [[ -f "${COMMON_LIB:-}" ]]; then
     print_success "Found: oradba_common.sh"
     if bash -c "source '${COMMON_LIB}' 2>/dev/null"; then
         print_info "  Can be sourced successfully"
@@ -135,7 +135,7 @@ fi
 
 # Check oradba_env_status.sh
 STATUS_LIB="${ORADBA_BASE}/lib/oradba_env_status.sh"
-if [[ -f "${STATUS_LIB}" ]]; then
+if [[ -f "${STATUS_LIB:-}" ]]; then
     print_success "Found: oradba_env_status.sh"
     if bash -c "source '${STATUS_LIB}' 2>/dev/null"; then
         print_info "  Can be sourced successfully"
@@ -165,7 +165,7 @@ for conf_path in "${HOMES_CONF_PATHS[@]}"; do
     fi
 done
 
-if [[ -n "${HOMES_CONF}" ]]; then
+if [[ -n "${HOMES_CONF:-}" ]]; then
     print_success "Found oradba_homes.conf: ${HOMES_CONF}"
     echo ""
     echo "DataSafe entries in oradba_homes.conf:"
@@ -201,14 +201,14 @@ fi
 # ------------------------------------------------------------------------------
 # SECTION 5: Specific DataSafe Instance Testing
 # ------------------------------------------------------------------------------
-if [[ -n "${DATASAFE_BASE}" ]]; then
+if [[ -n "${DATASAFE_BASE:-}" ]]; then
     print_header "5. Testing Specific DataSafe Instance"
 
     print_info "DataSafe Base Path: ${DATASAFE_BASE}"
     print_info "Instance Name: ${INSTANCE_NAME:-<not provided>}"
 
     # Check if base path exists
-    if [[ -d "${DATASAFE_BASE}" ]]; then
+    if [[ -d "${DATASAFE_BASE:-}" ]]; then
         print_success "Base path exists"
     else
         print_error "Base path does not exist"
@@ -217,7 +217,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
 
     # Check for oracle_cman_home
     CMAN_HOME="${DATASAFE_BASE}/oracle_cman_home"
-    if [[ -d "${CMAN_HOME}" ]]; then
+    if [[ -d "${CMAN_HOME:-}" ]]; then
         print_success "oracle_cman_home exists: ${CMAN_HOME}"
     else
         print_error "oracle_cman_home not found"
@@ -227,7 +227,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
 
     # Check for cmctl
     CMCTL="${CMAN_HOME}/bin/cmctl"
-    if [[ -x "${CMCTL}" ]]; then
+    if [[ -x "${CMCTL:-}" ]]; then
         print_success "cmctl is executable: ${CMCTL}"
     else
         print_error "cmctl not found or not executable: ${CMCTL}"
@@ -247,7 +247,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     # Check for cman.ora
     CMAN_CONF="${CMAN_HOME}/network/admin/cman.ora"
     echo ""
-    if [[ -f "${CMAN_CONF}" ]]; then
+    if [[ -f "${CMAN_CONF:-}" ]]; then
         print_success "cman.ora exists: ${CMAN_CONF}"
         echo ""
         echo "cman.ora content:"
@@ -257,9 +257,9 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
         echo ""
         echo "Extracting instance name from cman.ora:"
         EXTRACTED_INSTANCE=$(grep -E '^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=[[:space:]]*\(' "${CMAN_CONF}" 2> /dev/null | head -1 | cut -d'=' -f1 | tr -d ' ' || echo "")
-        if [[ -n "${EXTRACTED_INSTANCE}" ]]; then
+        if [[ -n "${EXTRACTED_INSTANCE:-}" ]]; then
             print_success "Extracted instance name: ${EXTRACTED_INSTANCE}"
-            if [[ -z "${INSTANCE_NAME}" ]]; then
+            if [[ -z "${INSTANCE_NAME:-}" ]]; then
                 INSTANCE_NAME="${EXTRACTED_INSTANCE}"
                 print_info "Using extracted instance name for testing"
             fi
@@ -272,7 +272,7 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
     fi
 
     # Test cmctl commands
-    if [[ -x "${CMCTL}" ]]; then
+    if [[ -x "${CMCTL:-}" ]]; then
         echo ""
         print_header "6. Testing cmctl Commands"
 
@@ -317,11 +317,11 @@ if [[ -n "${DATASAFE_BASE}" ]]; then
 
     # Detect plugin file location
     PLUGIN_FILE="${ORADBA_BASE}/lib/plugins/datasafe_plugin.sh"
-    if [[ ! -f "${PLUGIN_FILE}" ]]; then
+    if [[ ! -f "${PLUGIN_FILE:-}" ]]; then
         PLUGIN_FILE=""
     fi
 
-    if [[ -n "${PLUGIN_FILE}" ]]; then
+    if [[ -n "${PLUGIN_FILE:-}" ]]; then
         # Test check_status via execute_plugin_function_v2 (tiered isolation, DECISION 2)
         echo ""
         echo "Testing: check_status via execute_plugin_function_v2 'datasafe' '${DATASAFE_BASE}' '${INSTANCE_NAME}'"

@@ -215,7 +215,7 @@ oradba_init_change_tracking() {
 # Returns.: 0 on success
 # ------------------------------------------------------------------------------
 oradba_clear_change_tracking() {
-    if [[ -d "${ORADBA_CACHE_DIR}" ]]; then
+    if [[ -d "${ORADBA_CACHE_DIR:-}" ]]; then
         rm -f "${ORADBA_CACHE_DIR}"/*.sig 2> /dev/null
         echo "Cleared change tracking data"
     fi

@@ -80,7 +80,7 @@ if [[ -f "${ORADBA_BASE}/lib/oradba_env_changes.sh" ]]; then
 fi
 
 # Set ORATAB_FILE dynamically if not already set
-if [[ -z "${ORATAB_FILE}" ]]; then
+if [[ -z "${ORATAB_FILE:-}" ]]; then
     ORATAB_FILE="$(get_oratab_path 2> /dev/null || echo "/etc/oratab")"
     export ORATAB_FILE
 fi
@@ -194,9 +194,9 @@ resolve_default_tns_admin() {
     local oracle_home="$1"
     local tns_admin=""
 
-    if [[ -n "${ORADBA_TNS_ADMIN}" ]]; then
+    if [[ -n "${ORADBA_TNS_ADMIN:-}" ]]; then
         tns_admin="${ORADBA_TNS_ADMIN}"
-    elif [[ -n "${ORACLE_BASE}" ]]; then
+    elif [[ -n "${ORACLE_BASE:-}" ]]; then
         tns_admin="${ORACLE_BASE}/network/admin"
     elif [[ -n "${oracle_home}" ]]; then
         tns_admin="${oracle_home}/network/admin"

@@ -204,7 +204,7 @@ ask_justification() {
     local action="$1"
     local count="$2"
 
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         return 0
     fi
 
@@ -385,7 +385,7 @@ for arg in "$@"; do
 done
 
 # Check for ORADBA_DEBUG environment variable
-if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
     export ORADBA_LOG_LEVEL=DEBUG
     oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via ORADBA_DEBUG environment variable"
 fi
@@ -440,7 +440,7 @@ if [[ ${#LISTENERS[@]} -eq 0 ]]; then
     LISTENERS=("LISTENER")
 
     # For status, show all running listeners
-    if [[ "${ACTION}" == "status" ]]; then
+    if [[ "${ACTION:-}" == "status" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: Status action detected, checking for running listeners"
         mapfile -t running < <(get_running_listeners)
         if [[ ${#running[@]} -gt 0 ]]; then
@@ -456,7 +456,7 @@ else
     oradba_log DEBUG "${SCRIPT_NAME}: ${#LISTENERS[@]} explicit listener(s) provided by user"
 
     # Ask for justification if multiple listeners
-    if [[ ${#LISTENERS[@]} -gt 1 ]] && [[ "${ACTION}" != "status" ]]; then
+    if [[ ${#LISTENERS[@]} -gt 1 ]] && [[ "${ACTION:-}" != "status" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: Requesting justification for ${ACTION} operation on ${#LISTENERS[@]} listeners"
         if ! ask_justification "${ACTION}" "${#LISTENERS[@]}"; then
             oradba_log DEBUG "${SCRIPT_NAME}: User cancelled operation during justification prompt"
@@ -513,7 +513,7 @@ done
 oradba_log DEBUG "${SCRIPT_NAME}: Completed processing all listeners - Success: ${success_count}, Failures: ${failure_count}"
 
 # Summary
-if [[ "${ACTION}" != "status" ]]; then
+if [[ "${ACTION:-}" != "status" ]]; then
     oradba_log INFO "========== Operation completed =========="
     oradba_log INFO "Success: ${success_count}, Failures: ${failure_count}"
 

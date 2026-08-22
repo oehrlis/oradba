@@ -174,7 +174,7 @@ generate_pdb_aliases() {
     declare -g "${_guard}=1"
 
     # Skip if disabled
-    if [[ "${ORADBA_NO_PDB_ALIASES}" == "true" ]]; then
+    if [[ "${ORADBA_NO_PDB_ALIASES:-}" == "true" ]]; then
         oradba_log DEBUG "PDB aliases disabled (ORADBA_NO_PDB_ALIASES=true)"
         return 0
     fi

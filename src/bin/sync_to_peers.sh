@@ -68,7 +68,7 @@ load_config() {
     local config_files=()
 
     # Script-specific config
-    if [[ -f "${SCRIPT_CONF}" ]]; then
+    if [[ -f "${SCRIPT_CONF:-}" ]]; then
         # shellcheck source=/dev/null
         source "${SCRIPT_CONF}"
         config_files+=("${SCRIPT_CONF}")
@@ -85,7 +85,7 @@ load_config() {
     fi
 
     # CLI-specified config
-    if [[ -n "${CONFIG_FILE}" && -f "${CONFIG_FILE}" ]]; then
+    if [[ -n "${CONFIG_FILE:-}" && -f "${CONFIG_FILE:-}" ]]; then
         # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
         config_files+=("${CONFIG_FILE}")
@@ -164,8 +164,8 @@ EOF
 # ------------------------------------------------------------------------------
 should_log() {
     local level="$1"
-    [[ "${QUIET}" == "true" && "${level}" != "ERROR" ]] && return 1
-    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
+    [[ "${QUIET:-}" == "true" && "${level}" != "ERROR" ]] && return 1
+    [[ "${level}" == "DEBUG" && "${DEBUG:-}" != "true" ]] && return 1
     return 0
 }
 
@@ -207,13 +207,13 @@ parse_args() {
     SOURCE="$1"
 
     # Validate required argument
-    if [[ -z "${SOURCE}" ]]; then
+    if [[ -z "${SOURCE:-}" ]]; then
         echo "Error: Source file or folder is required." >&2
         usage
     fi
 
     # Check source exists
-    if [[ ! -e "${SOURCE}" ]]; then
+    if [[ ! -e "${SOURCE:-}" ]]; then
         should_log ERROR && oradba_log ERROR "Source '${SOURCE}' does not exist."
         exit 1
     fi
@@ -287,7 +287,7 @@ perform_sync() {
 # Notes...: Shows local host, successful peers, failed peers; only in verbose mode
 # ------------------------------------------------------------------------------
 show_summary() {
-    if [[ "${VERBOSE}" == "true" && "${QUIET}" != "true" ]]; then
+    if [[ "${VERBOSE:-}" == "true" && "${QUIET:-}" != "true" ]]; then
         local this_host
         this_host=$(hostname -s)
 

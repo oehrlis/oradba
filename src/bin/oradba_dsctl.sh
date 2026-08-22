@@ -181,7 +181,7 @@ ask_justification() {
     local action="$1"
     local count="$2"
 
-    if [[ "${FORCE_MODE}" == "true" ]]; then
+    if [[ "${FORCE_MODE:-}" == "true" ]]; then
         return 0
     fi
 
@@ -619,7 +619,7 @@ for arg in "$@"; do
 done
 
 # Check for ORADBA_DEBUG environment variable
-if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
     export ORADBA_LOG_LEVEL=DEBUG
     oradba_log DEBUG "${SCRIPT_NAME}: Debug mode enabled via ORADBA_DEBUG environment variable"
 fi
@@ -668,7 +668,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Handle services action (no connector processing needed)
-if [[ "${ACTION}" == "services" ]]; then
+if [[ "${ACTION:-}" == "services" ]]; then
     show_services
     exit $?
 fi
@@ -710,7 +710,7 @@ if [[ ${#CONNECTORS[@]} -eq 0 ]]; then
     oradba_log DEBUG "${SCRIPT_NAME}: Selected ${#CONNECTORS[@]} connectors for processing: ${CONNECTORS[*]}"
 
     # Ask for justification when operating on all
-    if [[ "${ACTION}" != "status" ]]; then
+    if [[ "${ACTION:-}" != "status" ]]; then
         oradba_log DEBUG "${SCRIPT_NAME}: Requesting justification for ${ACTION} operation on ${#CONNECTORS[@]} connectors"
         if ! ask_justification "${ACTION}" "${#CONNECTORS[@]}"; then
             oradba_log DEBUG "${SCRIPT_NAME}: User cancelled operation during justification prompt"
@@ -795,7 +795,7 @@ done
 oradba_log DEBUG "${SCRIPT_NAME}: Completed processing all connectors - Success: ${success_count}, Failures: ${failure_count}"
 
 # Summary
-if [[ "${ACTION}" != "status" ]]; then
+if [[ "${ACTION:-}" != "status" ]]; then
     oradba_log INFO "========== Operation completed =========="
     oradba_log INFO "Success: ${success_count}, Failures: ${failure_count}"
 

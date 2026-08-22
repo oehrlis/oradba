@@ -103,8 +103,8 @@ EOF
 # ------------------------------------------------------------------------------
 should_log() {
     local level="$1"
-    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
-    [[ "${QUIET}" == "true" ]] && return 1
+    [[ "${level}" == "DEBUG" && "${DEBUG:-}" != "true" ]] && return 1
+    [[ "${QUIET:-}" == "true" ]] && return 1
     return 0
 }
 
@@ -144,7 +144,7 @@ parse_args() {
     done
 
     # Validate required parameters
-    if [[ -z "${CONNECT_STRING}" ]]; then
+    if [[ -z "${CONNECT_STRING:-}" ]]; then
         echo "Error: Connect string (-s) is required." >&2
         usage
     fi
@@ -160,12 +160,12 @@ parse_args() {
 # ------------------------------------------------------------------------------
 validate_environment() {
     # Check wallet directory
-    if [[ ! -d "${WALLET_DIR}" ]]; then
+    if [[ ! -d "${WALLET_DIR:-}" ]]; then
         oradba_log ERROR "Wallet directory '${WALLET_DIR}' does not exist."
         exit 1
     fi
 
-    if [[ ! -r "${WALLET_DIR}" ]]; then
+    if [[ ! -r "${WALLET_DIR:-}" ]]; then
         oradba_log ERROR "Wallet directory '${WALLET_DIR}' is not readable."
         exit 1
     fi
@@ -208,7 +208,7 @@ load_wallet_password() {
     fi
 
     # Prompt if not loaded
-    if [[ -z "${WALLET_PASSWORD}" ]]; then
+    if [[ -z "${WALLET_PASSWORD:-}" ]]; then
         read -s -p "Enter wallet password: " WALLET_PASSWORD
         echo
     fi
@@ -246,7 +246,7 @@ search_wallet() {
             should_log INFO && oradba_log INFO "Found connect string '${CONNECT_STRING}' in wallet."
 
             # Check mode - just verify existence
-            if [[ "${CHECK}" == "true" ]]; then
+            if [[ "${CHECK:-}" == "true" ]]; then
                 should_log INFO && oradba_log INFO "Password exists for connect string '${CONNECT_STRING}'."
                 return 0
             fi
@@ -256,7 +256,7 @@ search_wallet() {
             password=$(get_entry "oracle.security.client.password${i}")
 
             # Output based on mode
-            if [[ "${QUIET}" == "true" ]]; then
+            if [[ "${QUIET:-}" == "true" ]]; then
                 echo "${password}"
             else
                 should_log INFO && oradba_log INFO "Password recovered for connect string '${CONNECT_STRING}'."

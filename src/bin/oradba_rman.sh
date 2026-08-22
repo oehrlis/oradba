@@ -41,7 +41,7 @@ SCRIPT_LOG="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
 
 # Create log directory if it doesn't exist
 LOG_DIR="$(dirname "${SCRIPT_LOG}")"
-if [[ ! -d "${LOG_DIR}" ]]; then
+if [[ ! -d "${LOG_DIR:-}" ]]; then
     if ! mkdir -p "${LOG_DIR}" 2> /dev/null; then
         # If we can't create the default log directory, use temp directory
         SCRIPT_LOG="${TMPDIR:-/tmp}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
@@ -49,7 +49,7 @@ if [[ ! -d "${LOG_DIR}" ]]; then
 fi
 
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/oradba_rman.XXXXXX")"
-trap 'if [[ "${OPT_NO_CLEANUP:-false}" != "true" ]]; then rm -rf "${TEMP_DIR}"; fi' EXIT
+trap 'if [[ "${OPT_NO_CLEANUP:-false}" != "true" ]]; then rm -rf "${TEMP_DIR:-}"; fi' EXIT
 FAILED_SIDS=()
 SUCCESSFUL_SIDS=()
 PARALLEL_METHOD="background" # background or gnu_parallel
@@ -228,7 +228,7 @@ export ORADBA_LOG_FILE="${SCRIPT_LOG}"
 #           Falls back to background if GNU parallel not available
 # ------------------------------------------------------------------------------
 check_parallel_method() {
-    if [[ "${OPT_PARALLEL}" == "gnu" ]]; then
+    if [[ "${OPT_PARALLEL:-}" == "gnu" ]]; then
         if command -v parallel > /dev/null 2>&1; then
             PARALLEL_METHOD="gnu_parallel"
             oradba_log INFO "Using GNU parallel for execution"
@@ -272,7 +272,7 @@ load_rman_config() {
         source "${config_file}"
 
         # Set backup path if specified in config (CLI overrides config)
-        if [[ -z "${OPT_BACKUP_PATH}" && -n "${RMAN_BACKUP_PATH}" ]]; then
+        if [[ -z "${OPT_BACKUP_PATH:-}" && -n "${RMAN_BACKUP_PATH:-}" ]]; then
             OPT_BACKUP_PATH="${RMAN_BACKUP_PATH}"
             oradba_log DEBUG "Using backup path from config: ${OPT_BACKUP_PATH}"
         fi
@@ -318,7 +318,7 @@ process_template() {
 
     # Check if input file exists, or create a dummy template for dry-run mode
     if [[ ! -f "${input_file}" ]]; then
-        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+        if [[ "${OPT_DRY_RUN:-}" == "true" ]]; then
             oradba_log DEBUG "Input file missing in dry-run mode, creating dummy template"
             # Create a minimal dummy template for dry-run processing
             cat > "${input_file}" << 'EOF'
@@ -407,11 +407,11 @@ EOF
 
     # Build SET commands block (Option 3: Hybrid approach)
     local set_commands=""
-    if [[ -n "${RMAN_SET_COMMANDS_FILE}" && -f "${RMAN_SET_COMMANDS_FILE}" ]]; then
+    if [[ -n "${RMAN_SET_COMMANDS_FILE:-}" && -f "${RMAN_SET_COMMANDS_FILE:-}" ]]; then
         # Use external file
         set_commands="@${RMAN_SET_COMMANDS_FILE}"
         oradba_log DEBUG "  Using SET commands file: ${RMAN_SET_COMMANDS_FILE}"
-    elif [[ -n "${RMAN_SET_COMMANDS_INLINE}" ]]; then
+    elif [[ -n "${RMAN_SET_COMMANDS_INLINE:-}" ]]; then
         # Use inline commands
         set_commands="${RMAN_SET_COMMANDS_INLINE}"
         oradba_log DEBUG "  Using inline SET commands"
@@ -453,7 +453,7 @@ EOF
     # Build SECTION SIZE clause (replaces full BACKUP command segment)
     # If set: "SECTION SIZE 10G" - otherwise empty for regular backup
     local section_size_clause=""
-    if [[ -n "${RMAN_SECTION_SIZE}" ]]; then
+    if [[ -n "${RMAN_SECTION_SIZE:-}" ]]; then
         section_size_clause="SECTION SIZE ${RMAN_SECTION_SIZE}"
         oradba_log DEBUG "  Section Size: ${RMAN_SECTION_SIZE}"
     fi
@@ -464,14 +464,14 @@ EOF
 
     # Build ARCHIVE PATTERN clause
     local archive_pattern_clause=""
-    if [[ -n "${RMAN_ARCHIVE_PATTERN}" ]]; then
+    if [[ -n "${RMAN_ARCHIVE_PATTERN:-}" ]]; then
         archive_pattern_clause="${RMAN_ARCHIVE_PATTERN}"
         oradba_log DEBUG "  Archive Pattern: ${RMAN_ARCHIVE_PATTERN}"
     fi
 
     # Build RESYNC CATALOG clause
     local resync_catalog_clause=""
-    if [[ "${RMAN_RESYNC_CATALOG}" == "true" && -n "${RMAN_CATALOG}" ]]; then
+    if [[ "${RMAN_RESYNC_CATALOG:-}" == "true" && -n "${RMAN_CATALOG:-}" ]]; then
         resync_catalog_clause="RESYNC CATALOG;"
         oradba_log DEBUG "  Catalog Resync: Enabled"
     else
@@ -633,7 +633,7 @@ execute_rman_for_sid() {
 
     # Validate ORACLE_HOME (skip in dry-run mode for test environments)
     if [[ -z "${ORACLE_HOME:-}" || ! -d "${ORACLE_HOME:-}" ]]; then
-        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+        if [[ "${OPT_DRY_RUN:-}" == "true" ]]; then
             oradba_log WARN "ORACLE_HOME not set or invalid for SID: ${sid} (dry-run mode)"
             # In dry-run mode, use a dummy ORACLE_HOME for validation
             export ORACLE_HOME="/opt/oracle/product/dummy"
@@ -647,7 +647,7 @@ execute_rman_for_sid() {
     if [[ -z "${ORADBA_ORA_ADMIN_SID:-}" && -n "${ORACLE_BASE:-}" ]]; then
         export ORADBA_ORA_ADMIN_SID="${ORACLE_BASE}/admin/${sid}"
         oradba_log DEBUG "Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
-    elif [[ -z "${ORADBA_ORA_ADMIN_SID:-}" && "${OPT_DRY_RUN}" == "true" ]]; then
+    elif [[ -z "${ORADBA_ORA_ADMIN_SID:-}" && "${OPT_DRY_RUN:-}" == "true" ]]; then
         # In dry-run mode without ORACLE_BASE, use a dummy path
         export ORADBA_ORA_ADMIN_SID="${ORADBA_BASE}/admin/${sid}"
         oradba_log DEBUG "Dry-run mode: Set ORADBA_ORA_ADMIN_SID to: ${ORADBA_ORA_ADMIN_SID}"
@@ -655,7 +655,7 @@ execute_rman_for_sid() {
 
     # Validate admin directory exists (create if needed in dry-run mode)
     if [[ -n "${ORADBA_ORA_ADMIN_SID:-}" && ! -d "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
-        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+        if [[ "${OPT_DRY_RUN:-}" == "true" ]]; then
             oradba_log DEBUG "Creating admin directory for dry-run: ${ORADBA_ORA_ADMIN_SID}"
             mkdir -p "${ORADBA_ORA_ADMIN_SID}/log" "${ORADBA_ORA_ADMIN_SID}/backup" || {
                 oradba_log WARN "Cannot create admin directory in dry-run mode: ${ORADBA_ORA_ADMIN_SID}"
@@ -672,7 +672,7 @@ execute_rman_for_sid() {
 
     # Determine log directory
     local log_dir
-    if [[ -n "${RMAN_LOG_DIR}" ]]; then
+    if [[ -n "${RMAN_LOG_DIR:-}" ]]; then
         log_dir="${RMAN_LOG_DIR}"
     elif [[ -n "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
         log_dir="${ORADBA_ORA_ADMIN_SID}/log"
@@ -700,7 +700,7 @@ execute_rman_for_sid() {
     elif [[ -f "${ORADBA_BASE}/rcv/${rcv_script}" ]]; then
         rman_script="${ORADBA_BASE}/rcv/${rcv_script}"
     else
-        if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+        if [[ "${OPT_DRY_RUN:-}" == "true" ]]; then
             oradba_log WARN "RMAN script not found: ${rcv_script} (dry-run mode, continuing)"
             # In dry-run mode, use the specified path even if file doesn't exist
             rman_script="${rcv_script}"
@@ -725,7 +725,7 @@ execute_rman_for_sid() {
     # Catalog credentials are placed inside the script body (connect catalog)
     # rather than on the command line, so they never appear in ps output.
     # The debug log redacts the user/password, keeping only host/service.
-    if [[ -n "${RMAN_CATALOG}" ]]; then
+    if [[ -n "${RMAN_CATALOG:-}" ]]; then
         local catalog_redacted="${RMAN_CATALOG/#*@/***@}"
         oradba_log DEBUG "  Using RMAN catalog at ${catalog_redacted}"
         printf 'connect catalog %s;\n' "${RMAN_CATALOG}" | cat - "${processed_script}" > "${processed_script}.cat" \
@@ -733,7 +733,7 @@ execute_rman_for_sid() {
     fi
 
     # Dry run mode - enhanced with save and display
-    if [[ "${OPT_DRY_RUN}" == "true" ]]; then
+    if [[ "${OPT_DRY_RUN:-}" == "true" ]]; then
         # Save processed script to log directory
         local saved_rcv="${log_dir}/${script_basename}_${TIMESTAMP}.rcv"
         cp "${processed_script}" "${saved_rcv}"
@@ -880,12 +880,12 @@ send_notification() {
         return 0
     fi
 
-    if [[ "${status}" == "SUCCESS" && "${RMAN_NOTIFY_ON_SUCCESS}" != "true" ]]; then
+    if [[ "${status}" == "SUCCESS" && "${RMAN_NOTIFY_ON_SUCCESS:-}" != "true" ]]; then
         oradba_log DEBUG "Success notifications disabled"
         return 0
     fi
 
-    if [[ "${status}" == "ERROR" && "${RMAN_NOTIFY_ON_ERROR}" != "true" ]]; then
+    if [[ "${status}" == "ERROR" && "${RMAN_NOTIFY_ON_ERROR:-}" != "true" ]]; then
         oradba_log DEBUG "Error notifications disabled"
         return 0
     fi
@@ -1030,25 +1030,25 @@ main() {
     done
 
     # Enable verbose mode for DEBUG level logging
-    if [[ "${OPT_VERBOSE}" == "true" ]]; then
+    if [[ "${OPT_VERBOSE:-}" == "true" ]]; then
         export ORADBA_LOG_LEVEL=DEBUG
     fi
 
     # Validate required arguments
-    if [[ -z "${OPT_SIDS}" ]]; then
+    if [[ -z "${OPT_SIDS:-}" ]]; then
         echo "ERROR: --sid is required" >&2
         usage
         exit 2
     fi
 
-    if [[ -z "${OPT_RCV_SCRIPT}" ]]; then
+    if [[ -z "${OPT_RCV_SCRIPT:-}" ]]; then
         echo "ERROR: --rcv is required" >&2
         usage
         exit 2
     fi
 
     # Validate RCV script exists (check direct path and ORADBA_BASE/rcv/)
-    if [[ ! -f "${OPT_RCV_SCRIPT}" ]] && [[ ! -f "${ORADBA_BASE}/rcv/${OPT_RCV_SCRIPT}" ]]; then
+    if [[ ! -f "${OPT_RCV_SCRIPT:-}" ]] && [[ ! -f "${ORADBA_BASE}/rcv/${OPT_RCV_SCRIPT}" ]]; then
         echo "ERROR: RCV script not found: ${OPT_RCV_SCRIPT}" >&2
         exit 1
     fi
@@ -1063,17 +1063,17 @@ main() {
     oradba_log INFO "Script:             ${OPT_RCV_SCRIPT}"
     oradba_log INFO "SIDs:               ${OPT_SIDS}"
     oradba_log INFO "Timestamp:          ${TIMESTAMP}"
-    [[ -n "${OPT_CHANNELS}" ]] && oradba_log INFO "Channels:           ${OPT_CHANNELS}"
-    [[ -n "${OPT_BACKUP_PATH}" ]] && oradba_log INFO "Backup Path:        ${OPT_BACKUP_PATH}"
-    [[ -n "${OPT_PLUGGABLE_DATABASE}" ]] && oradba_log INFO "Pluggable Databases: ${OPT_PLUGGABLE_DATABASE}"
-    [[ -n "${OPT_TABLESPACES}" ]] && oradba_log INFO "Tablespaces:        ${OPT_TABLESPACES}"
-    [[ -n "${OPT_DATAFILES}" ]] && oradba_log INFO "Datafiles:          ${OPT_DATAFILES}"
-    [[ -n "${OPT_FORMAT}" ]] && oradba_log INFO "Format:             ${OPT_FORMAT}"
-    [[ -n "${OPT_COMPRESSION}" ]] && oradba_log INFO "Compression:        ${OPT_COMPRESSION}"
-    [[ -n "${OPT_TAG}" ]] && oradba_log INFO "Tag:                ${OPT_TAG}"
-    [[ -n "${OPT_PARALLEL}" ]] && oradba_log INFO "Parallel:           ${OPT_PARALLEL}"
-    [[ -n "${OPT_NOTIFY_EMAIL}" ]] && oradba_log INFO "Notification Email: ${OPT_NOTIFY_EMAIL}"
-    [[ "${OPT_DRY_RUN}" == "true" ]] && oradba_log INFO "Mode:               DRY RUN"
+    [[ -n "${OPT_CHANNELS:-}" ]] && oradba_log INFO "Channels:           ${OPT_CHANNELS}"
+    [[ -n "${OPT_BACKUP_PATH:-}" ]] && oradba_log INFO "Backup Path:        ${OPT_BACKUP_PATH}"
+    [[ -n "${OPT_PLUGGABLE_DATABASE:-}" ]] && oradba_log INFO "Pluggable Databases: ${OPT_PLUGGABLE_DATABASE}"
+    [[ -n "${OPT_TABLESPACES:-}" ]] && oradba_log INFO "Tablespaces:        ${OPT_TABLESPACES}"
+    [[ -n "${OPT_DATAFILES:-}" ]] && oradba_log INFO "Datafiles:          ${OPT_DATAFILES}"
+    [[ -n "${OPT_FORMAT:-}" ]] && oradba_log INFO "Format:             ${OPT_FORMAT}"
+    [[ -n "${OPT_COMPRESSION:-}" ]] && oradba_log INFO "Compression:        ${OPT_COMPRESSION}"
+    [[ -n "${OPT_TAG:-}" ]] && oradba_log INFO "Tag:                ${OPT_TAG}"
+    [[ -n "${OPT_PARALLEL:-}" ]] && oradba_log INFO "Parallel:           ${OPT_PARALLEL}"
+    [[ -n "${OPT_NOTIFY_EMAIL:-}" ]] && oradba_log INFO "Notification Email: ${OPT_NOTIFY_EMAIL}"
+    [[ "${OPT_DRY_RUN:-}" == "true" ]] && oradba_log INFO "Mode:               DRY RUN"
     oradba_log INFO ""
 
     # Check parallel method
@@ -1092,7 +1092,7 @@ main() {
         fi
     else
         # Multiple SIDs - execute in parallel
-        if [[ "${PARALLEL_METHOD}" == "gnu_parallel" ]]; then
+        if [[ "${PARALLEL_METHOD:-}" == "gnu_parallel" ]]; then
             execute_parallel_gnu "${SID_ARRAY[@]}"
         else
             execute_parallel_background "${SID_ARRAY[@]}"
@@ -1130,7 +1130,7 @@ main() {
     fi
 
     # Cleanup temporary directory (unless --no-cleanup flag is set)
-    if [[ "${OPT_NO_CLEANUP}" == "true" ]]; then
+    if [[ "${OPT_NO_CLEANUP:-}" == "true" ]]; then
         oradba_log INFO "Temporary files preserved in: ${TEMP_DIR}"
     else
         rm -rf "${TEMP_DIR}"

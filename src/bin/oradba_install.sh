@@ -43,7 +43,7 @@ NC='\033[0m' # No Color
 determine_default_prefix() {
     # Priority 1: ORACLE_BASE is set
     if [[ -n "${ORACLE_BASE:-}" ]]; then
-        [[ "${ORADBA_DEBUG}" == "true" ]] && echo "[DEBUG] oradba_install.sh: Using ORACLE_BASE: ${ORACLE_BASE}/local/oradba" >&2
+        [[ "${ORADBA_DEBUG:-}" == "true" ]] && echo "[DEBUG] oradba_install.sh: Using ORACLE_BASE: ${ORACLE_BASE}/local/oradba" >&2
         echo "${ORACLE_BASE}/local/oradba"
         return 0
     fi
@@ -174,7 +174,7 @@ log_error() {
 # Notes...: Enable via ORADBA_DEBUG=true or --debug flag
 # ------------------------------------------------------------------------------
 log_debug() {
-    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
         echo -e "[DEBUG] $*" >&2
     fi
 }
@@ -1055,7 +1055,7 @@ run_preflight_checks() {
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [[ -f "${SCRIPT_DIR}/../VERSION" ]] && [[ -d "${SCRIPT_DIR}/../etc" ]] && [[ -d "${SCRIPT_DIR}/../lib" ]]; then
     SCRIPT_INSTALL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-    if [[ "$(pwd)" == "${SCRIPT_INSTALL_DIR}"* ]]; then
+    if [[ "$(pwd)" == "${SCRIPT_INSTALL_DIR:-}"* ]]; then
         log_error "Cannot run installer from within an OraDBA installation directory"
         log_error "Current directory: $(pwd)"
         log_error "Installation directory: ${SCRIPT_INSTALL_DIR}"
@@ -2258,7 +2258,7 @@ backup_modified_files "$INSTALL_PREFIX"
 # the file first creates a new inode for the new version while the old fd stays
 # valid, preventing corruption of the running script.
 _SELF_GUARD=""
-if [[ "${BASH_SOURCE[0]:-}" == "${INSTALL_PREFIX}"/* ]] && [[ -f "${BASH_SOURCE[0]}" ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${INSTALL_PREFIX:-}"/* ]] && [[ -f "${BASH_SOURCE[0]}" ]]; then
     _SELF_GUARD="${BASH_SOURCE[0]}.updating"
     mv "${BASH_SOURCE[0]}" "${_SELF_GUARD}"
 fi

@@ -30,7 +30,7 @@ fi
 # Debug support
 ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 log_debug() {
-    if [[ "${ORADBA_DEBUG}" == "true" ]]; then
+    if [[ "${ORADBA_DEBUG:-}" == "true" ]]; then
         echo -e "[DEBUG] $*" >&2
     fi
 }
@@ -1591,7 +1591,7 @@ cmd_discover() {
         return 0
     fi
 
-    if [[ -z "${ORADBA_LOCAL_BASE}" || ! -d "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ -z "${ORADBA_LOCAL_BASE:-}" || ! -d "${ORADBA_LOCAL_BASE:-}" ]]; then
         echo "Local base directory not found or not set."
         return 0
     fi
@@ -1640,7 +1640,7 @@ cmd_paths() {
     echo "  Enabled: ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}"
     if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}" == "true" ]]; then
         echo "  Base: ${ORADBA_LOCAL_BASE:-not set}"
-        if [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
+        if [[ -d "${ORADBA_LOCAL_BASE:-}" ]]; then
             echo "  Status: ${GREEN}exists${NC}"
         else
             echo "  Status: ${RED}not found${NC}"

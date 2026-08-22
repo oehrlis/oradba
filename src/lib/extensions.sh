@@ -69,7 +69,7 @@ discover_extensions() {
         dir_name="$(basename "${dir}")"
 
         # Skip oradba itself (the main OraDBA installation)
-        if [[ "${dir_name}" == "oradba" ]] || [[ "${dir}" == "${ORADBA_BASE}" ]]; then
+        if [[ "${dir_name}" == "oradba" ]] || [[ "${dir}" == "${ORADBA_BASE:-}" ]]; then
             oradba_log DEBUG "Skipping main OraDBA directory: ${dir_name}"
             continue
         fi
@@ -107,14 +107,14 @@ get_all_extensions() {
     local extensions=()
 
     # Auto-discover extensions if enabled
-    if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS}" == "true" ]]; then
+    if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-}" == "true" ]]; then
         while IFS= read -r ext; do
             [[ -n "${ext}" ]] && extensions+=("${ext}")
         done < <(discover_extensions)
     fi
 
     # Add manually configured extensions
-    if [[ -n "${ORADBA_EXTENSION_PATHS}" ]]; then
+    if [[ -n "${ORADBA_EXTENSION_PATHS:-}" ]]; then
         IFS=':' read -ra manual_exts <<< "${ORADBA_EXTENSION_PATHS}"
         for ext in "${manual_exts[@]}"; do
             [[ -n "${ext}" ]] && [[ -d "${ext}" ]] && extensions+=("${ext}")
@@ -315,7 +315,7 @@ sort_extensions_by_priority() {
 # Output..: Updates PATH and SQLPATH environment variables
 # ------------------------------------------------------------------------------
 remove_extension_paths() {
-    if [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]]; then
         # Remove all paths matching ORADBA_LOCAL_BASE/*/bin from PATH (except oradba itself)
         local cleaned_path=""
         IFS=':' read -ra path_parts <<< "${PATH}"
@@ -330,7 +330,7 @@ remove_extension_paths() {
         export PATH="${cleaned_path}"
 
         # Remove extension paths from SQLPATH (except oradba itself)
-        if [[ -n "${SQLPATH}" ]]; then
+        if [[ -n "${SQLPATH:-}" ]]; then
             local cleaned_sqlpath=""
             IFS=':' read -ra sqlpath_parts <<< "${SQLPATH}"
             for part in "${sqlpath_parts[@]}"; do
@@ -391,7 +391,7 @@ deduplicate_path() {
 # Notes...: Uses oradba_dedupe_path() from oradba_env_builder.sh if available
 # ------------------------------------------------------------------------------
 deduplicate_sqlpath() {
-    [[ -z "${SQLPATH}" ]] && return 0
+    [[ -z "${SQLPATH:-}" ]] && return 0
 
     if command -v oradba_dedupe_path > /dev/null 2>&1; then
         local deduped_sqlpath
@@ -433,11 +433,11 @@ load_extensions() {
     local ext_path
 
     # Save original PATH/SQLPATH on first run
-    if [[ -z "${ORADBA_ORIGINAL_PATH}" ]]; then
+    if [[ -z "${ORADBA_ORIGINAL_PATH:-}" ]]; then
         export ORADBA_ORIGINAL_PATH="${PATH}"
         oradba_log DEBUG "Saved original PATH"
     fi
-    if [[ -z "${ORADBA_ORIGINAL_SQLPATH}" ]] && [[ -n "${SQLPATH}" ]]; then
+    if [[ -z "${ORADBA_ORIGINAL_SQLPATH:-}" ]] && [[ -n "${SQLPATH:-}" ]]; then
         export ORADBA_ORIGINAL_SQLPATH="${SQLPATH}"
         oradba_log DEBUG "Saved original SQLPATH"
     fi
@@ -601,7 +601,7 @@ load_extension() {
     export "${base_var}=${ext_path}"
 
     # Optional etc/ hook sourcing (opt-in via global + metadata flags)
-    if [[ "${ORADBA_EXTENSIONS_SOURCE_ETC}" == "true" ]]; then
+    if [[ "${ORADBA_EXTENSIONS_SOURCE_ETC:-}" == "true" ]]; then
         if [[ "${load_env}" == "true" ]] && [[ -f "${ext_path}/etc/env.sh" ]]; then
             # shellcheck disable=SC1090
             if ! source "${ext_path}/etc/env.sh"; then

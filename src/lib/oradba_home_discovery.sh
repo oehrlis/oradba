@@ -721,7 +721,7 @@ auto_discover_oracle_homes() {
 
     # Check if ORACLE_BASE is set and use it as default discovery path
     if [[ -z "${discovery_paths}" ]]; then
-        if [[ -n "${ORACLE_BASE}" ]]; then
+        if [[ -n "${ORACLE_BASE:-}" ]]; then
             discovery_paths="${ORACLE_BASE}/product"
         else
             [[ "${silent}" != "true" ]] && oradba_log WARN "No discovery paths configured"

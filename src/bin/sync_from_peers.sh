@@ -70,7 +70,7 @@ load_config() {
     local config_files=()
 
     # Script-specific config
-    if [[ -f "${SCRIPT_CONF}" ]]; then
+    if [[ -f "${SCRIPT_CONF:-}" ]]; then
         # shellcheck source=/dev/null
         source "${SCRIPT_CONF}"
         config_files+=("${SCRIPT_CONF}")
@@ -87,7 +87,7 @@ load_config() {
     fi
 
     # CLI-specified config
-    if [[ -n "${CONFIG_FILE}" && -f "${CONFIG_FILE}" ]]; then
+    if [[ -n "${CONFIG_FILE:-}" && -f "${CONFIG_FILE:-}" ]]; then
         # shellcheck source=/dev/null
         source "${CONFIG_FILE}"
         config_files+=("${CONFIG_FILE}")
@@ -168,8 +168,8 @@ EOF
 # ------------------------------------------------------------------------------
 should_log() {
     local level="$1"
-    [[ "${QUIET}" == "true" && "${level}" != "ERROR" ]] && return 1
-    [[ "${level}" == "DEBUG" && "${DEBUG}" != "true" ]] && return 1
+    [[ "${QUIET:-}" == "true" && "${level}" != "ERROR" ]] && return 1
+    [[ "${level}" == "DEBUG" && "${DEBUG:-}" != "true" ]] && return 1
     return 0
 }
 
@@ -212,12 +212,12 @@ parse_args() {
     SOURCE="$1"
 
     # Validate required arguments
-    if [[ -z "${SOURCE}" ]]; then
+    if [[ -z "${SOURCE:-}" ]]; then
         echo "Error: Source file or folder is required." >&2
         usage
     fi
 
-    if [[ -z "${REMOTE_PEER}" ]]; then
+    if [[ -z "${REMOTE_PEER:-}" ]]; then
         echo "Error: Source peer (-p option) is required." >&2
         usage
     fi
@@ -271,7 +271,7 @@ perform_sync() {
     # Sync from local to other peers (excluding REMOTE_PEER and THIS_HOST)
     for host in "${PEER_HOSTS[@]}"; do
         # Skip self and source peer
-        if [[ "${host}" == "${this_host}" || "${host}" == "${REMOTE_PEER}" ]]; then
+        if [[ "${host}" == "${this_host}" || "${host}" == "${REMOTE_PEER:-}" ]]; then
             should_log DEBUG && oradba_log DEBUG "Skipping ${host}"
             continue
         fi
@@ -300,7 +300,7 @@ perform_sync() {
 # Notes...: Shows phase 1 source and phase 2 distribution results; only in verbose mode
 # ------------------------------------------------------------------------------
 show_summary() {
-    if [[ "${VERBOSE}" == "true" && "${QUIET}" != "true" ]]; then
+    if [[ "${VERBOSE:-}" == "true" && "${QUIET:-}" != "true" ]]; then
         local this_host
         this_host=$(hostname -s)
 

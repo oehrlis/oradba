@@ -16,7 +16,7 @@
 # ------------------------------------------------------------------------------
 
 # Prevent multiple sourcing
-[[ -n "${ORADBA_ENV_VALIDATOR_LOADED}" ]] && return 0
+[[ -n "${ORADBA_ENV_VALIDATOR_LOADED:-}" ]] && return 0
 readonly ORADBA_ENV_VALIDATOR_LOADED=1
 
 # ------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ oradba_check_oracle_binaries() {
     local product_type_upper
     product_type_upper=$(printf '%s' "${product_type}" | tr '[:lower:]' '[:upper:]')
     if [[ "${product_type_upper}" == "ICLIENT" || "$plugin_type" == "iclient" ]]; then
-        if [[ -z "${LD_LIBRARY_PATH}" ]]; then
+        if [[ -z "${LD_LIBRARY_PATH:-}" ]]; then
             echo "WARNING: LD_LIBRARY_PATH not set (needed for Instant Client)" >&2
             missing=$((missing + 1))
         fi

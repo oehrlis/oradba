@@ -83,12 +83,12 @@ check_oracle_user() {
 # Notes...: Checks ${ORADBA_BASE}/bin/oradba_services.sh
 # ------------------------------------------------------------------------------
 check_services_script() {
-    if [[ ! -f "${SERVICES_SCRIPT}" ]]; then
+    if [[ ! -f "${SERVICES_SCRIPT:-}" ]]; then
         oradba_log "ERROR" "Services script not found: ${SERVICES_SCRIPT}"
         exit 1
     fi
 
-    if [[ ! -x "${SERVICES_SCRIPT}" ]]; then
+    if [[ ! -x "${SERVICES_SCRIPT:-}" ]]; then
         oradba_log "ERROR" "Services script is not executable: ${SERVICES_SCRIPT}"
         exit 1
     fi

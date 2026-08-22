@@ -522,8 +522,23 @@ bug stays invisible. systemd starts through `su - oracle -c ...` with a minimal
 environment, and the same code aborts. **Testing a service script from an
 interactive session proves nothing about boot.**
 
-Variables the script initialises itself at the top - option parsing results,
-values read from `oradba_services.conf` - do not need the guard.
+The rule applies to **every** layer that gets sourced, not just the entry
+script: `src/etc/*.conf`, `src/lib/*.sh` and the module include guards. A
+config file is sourced into whatever shell the caller happens to be, so it can
+assume nothing. An include guard of the form
+
+```bash
+[[ -n "${ORADBA_ENV_PARSER_LOADED}" ]] && return 0
+```
+
+aborts the caller on the very first load, which is when the variable is by
+definition unset.
+
+Since 1.0.3 the guard is applied to every `[[ ]]` test on a braced uppercase
+variable across `src/etc/`, `src/lib/` and `src/bin/`. Adding `:-` to a
+variable the script sets itself is a harmless no-op; leaving it off one that
+the caller sets is a latent abort. Consistency is cheaper than case-by-case
+judgement here.
 
 ### Configuration
 
