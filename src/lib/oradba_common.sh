@@ -162,6 +162,38 @@ if [[ -z "${LOG_COLOR_DEBUG+x}" ]]; then
     fi
 fi # End of readonly variables guard
 
+# ------------------------------------------------------------------------------
+# Function: _oradba_log_to_file
+# Purpose.: Append a log line to a file without ever failing the caller
+# Args....: $1 - Target log file (may be empty, missing or unwritable)
+#           $2 - Log line to append
+# Returns.: 0 - Always successful
+# Output..: None
+# Notes...: Logging must never abort the script that logs. Under set -euo
+#           pipefail a failed append killed every control script that points
+#           ORADBA_LOG_FILE at a path nobody created - /var/log/oracle is the
+#           usual case, and it takes oradba_services, oradba_services_root,
+#           oradba_dbctl, oradba_lsnrctl, oradba_dsctl and oradba_rman with it.
+#           The directory is created on demand; if that is not possible the
+#           line is dropped and the stderr copy stays the only record.
+# ------------------------------------------------------------------------------
+_oradba_log_to_file() {
+    local target="$1"
+    local line="$2"
+    local dir
+
+    [[ -n "${target}" ]] || return 0
+
+    if [[ ! -e "${target}" ]]; then
+        dir="$(dirname "${target}")"
+        if [[ ! -d "${dir}" ]]; then
+            mkdir -p "${dir}" 2> /dev/null || return 0
+        fi
+    fi
+
+    echo "${line}" >> "${target}" 2> /dev/null || return 0
+}
+
 # Unified logging function with level-based filtering
 # Usage: oradba_log <LEVEL> <message>
 # ------------------------------------------------------------------------------
@@ -290,13 +322,11 @@ oradba_log() {
         fi
 
         # Optional file logging (without color codes)
-        if [[ -n "${ORADBA_LOG_FILE:-}" ]]; then
-            echo "${log_line}" >> "${ORADBA_LOG_FILE}"
-        fi
+        _oradba_log_to_file "${ORADBA_LOG_FILE:-}" "${log_line}"
 
         # Dual logging: also write to session log if different from main log
         if [[ -n "${ORADBA_SESSION_LOG:-}" ]] && [[ "${ORADBA_SESSION_LOG}" != "${ORADBA_LOG_FILE:-}" ]]; then
-            echo "${log_line}" >> "${ORADBA_SESSION_LOG}"
+            _oradba_log_to_file "${ORADBA_SESSION_LOG}" "${log_line}"
         fi
     fi
 }

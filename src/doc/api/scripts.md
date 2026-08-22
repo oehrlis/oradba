@@ -969,7 +969,7 @@ Verify Oracle OS user exists on system
 
 **Returns:** Exits with code 1 if user doesn't exist
 
-**Output:** Error message via log_message if user missing
+**Output:** Error message via oradba_log if user missing
 
 !!! info "Notes"
     Checks user defined by ${ORACLE_USER} environment variable
@@ -1106,7 +1106,7 @@ Verify script is running with root privileges
 
 **Returns:** Exits with code 1 if not root
 
-**Output:** Error message via log_message if not root
+**Output:** Error message via oradba_log if not root
 
 !!! info "Notes"
     Required for systemd/init.d service management
@@ -1125,7 +1125,7 @@ Validate oradba_services.sh exists and is executable
 
 **Returns:** Exits with code 1 if script missing or not executable
 
-**Output:** Error messages via log_message
+**Output:** Error messages via oradba_log
 
 !!! info "Notes"
     Checks ${ORADBA_BASE}/bin/oradba_services.sh
@@ -2528,6 +2528,25 @@ Get list of all currently running listeners
 
 ---
 
+### `get_systemd_service_name` {: #get-systemd-service-name }
+
+Derive the systemd service name for a connector home path
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- $1 - Connector home path (e.g. /appl/oracle/product/exacc-wob-vwg-ha3)
+
+**Returns:** 0 on success
+
+**Output:** Service name (e.g. oracle_datasafe_exacc-wob-vwg-ha3.service)
+
+!!! info "Notes"
+    Service name is oracle_datasafe_\<basename(home)\>.service
+
+---
+
 ### `get_tns_admin` {: #get-tns-admin }
 
 Determine TNS_ADMIN directory path
@@ -3690,28 +3709,6 @@ Write auto-discovered instances to oratab file with fallback
 
 ---
 
-### `preserve_configs` {: #preserve-configs }
-
-Save user configuration files before update
-
-**Source:** `oradba_install.sh`
-
-**Arguments:**
-
-- $1 - Installation directory path
-- $2 - Temporary config directory path
-
-**Returns:** 0
-
-**Output:** Preserved file list to stdout
-
-!!! info "Notes"
-    Preserves: .install_info, etc/oradba.conf, oratab.example
-    Copies to temporary directory for restoration after update
-    Used to maintain user customizations across updates
-
----
-
 ### `preserve_runtime_files` {: #preserve-runtime-files }
 
 Preserve runtime-generated files before installation overwrite
@@ -3728,10 +3725,13 @@ Preserve runtime-generated files before installation overwrite
 **Output:** Logs preserved files
 
 !!! info "Notes"
-    Protects runtime-managed files from payload overwrite:
-    etc/oradba_homes.conf, etc/oratab, etc/sid.dummy.conf
-    and sensitive runtime files in etc/ and extensions/*/etc/
-    (`*.b64`, `*.pem`, `*.key`, `*.crt`)
+    Protects runtime-managed and user config files from payload overwrite:
+    .install_info, etc/oradba.conf, etc/oradba_homes.conf,
+    etc/oratab, etc/sid.dummy.conf, templates/etc/oratab.example
+    sensitive runtime files in etc/ and extensions/*/etc/
+    (`*.b64`, `*.pem`, `*.key`, `*.crt`, `*_customer.conf`)
+    and ALL symlinks in etc/ (symlinks are always user-created)
+    Single preserve path for both embedded and --github update flows.
 
 ---
 
@@ -3877,28 +3877,6 @@ Resolve Oracle Home alias to actual NAME from oradba_homes.conf
 
 ---
 
-### `restore_configs` {: #restore-configs }
-
-Restore preserved configuration files after update
-
-**Source:** `oradba_install.sh`
-
-**Arguments:**
-
-- $1 - Installation directory path
-- $2 - Temporary config directory path
-
-**Returns:** 0
-
-**Output:** Restored file list to stdout
-
-!!! info "Notes"
-    Restores files preserved by preserve_configs function
-    Creates parent directories as needed
-    Removes temporary directory after restoration
-
----
-
 ### `restore_from_backup` {: #restore-from-backup }
 
 Restore installation from backup directory
@@ -3950,7 +3928,7 @@ Execute oradba_services.sh as Oracle user with sudo/su
 
 **Returns:** Exit code from services script
 
-**Output:** Status messages via log_message; service script output
+**Output:** Status messages via oradba_log; service script output
 
 !!! info "Notes"
     Uses 'su - ${ORACLE_USER}' to execute; passes --force flag
@@ -4303,10 +4281,10 @@ Display list of all installed extensions with status indicators
 
 **Returns:** 0 (always succeeds)
 
-**Output:** Formatted extension list: name, version, enabled/disabled status, checksum status (✓/✗)
+**Output:** Table NAME/VERSION/PRIORITY/STATUS matching oradba_extension.sh list format
 
 !!! info "Notes"
-    Sorted by priority; shows checksum status for enabled extensions; uses extensions.sh library
+    Sorted by priority; checksum indicator (✓/✗) for enabled extensions
 
 ---
 
@@ -4396,6 +4374,25 @@ List all available OraDBA scripts with descriptions
 
 !!! info "Notes"
     Extracts purpose from script headers; shows SQL script location; provides usage info
+
+---
+
+### `show_services` {: #show-services }
+
+List all installed oracle_datasafe_\* systemd service units
+
+**Source:** `oradba_dsctl.sh`
+
+**Arguments:**
+
+- None
+
+**Returns:** 0 on success, 1 if systemctl not available
+
+**Output:** Table of service name, state, and registry alias
+
+!!! info "Notes"
+    Maps connector directory back to registry alias where possible
 
 ---
 

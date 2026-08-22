@@ -8,6 +8,24 @@ Plugin interface for product-specific functionality (database, client, datasafe,
 
 ## Functions
 
+### `_datasafe_port_listening` {: #-datasafe-port-listening }
+
+Check if a TCP port is actively listening
+
+**Source:** `datasafe_plugin.sh`
+
+**Arguments:**
+
+- $1 - port number
+
+**Returns:** 0 if listening, 1 if not listening, 2 if unable to determine
+
+!!! info "Notes"
+    Uses ss (Linux), lsof (macOS/Linux), or netstat as fallback.
+    Defined as a named function so tests can override it easily.
+
+---
+
 ### `get_oud_instance_base` {: #get-oud-instance-base }
 
 Get OUD instance base directory following priority order
@@ -1097,28 +1115,6 @@ Check if database instance is running
 
 ---
 
-### `_datasafe_port_listening` {: #datasafe-port-listening }
-
-Check if the Data Safe connector's configured TCP port is actively listening
-
-**Source:** `datasafe_plugin.sh`
-
-**Arguments:**
-
-- $1 - Port number (e.g., `1562`)
-
-**Returns:** 0 if port is listening, 1 if not listening, 2 if unable to determine
-
-**Output:** None - result communicated via exit code only
-
-!!! info "Notes"
-    Tries `ss` (Linux), then `lsof` (macOS/Linux), then `netstat` as fallback.
-    Returns 2 only when none of those tools is available.
-    Defined as a named function so tests can override it with a simple
-    function stub; do not call it directly from outside the plugin.
-
----
-
 ### `plugin_check_status` {: #plugin-check-status }
 
 Check Data Safe connector status
@@ -1136,22 +1132,11 @@ Check Data Safe connector status
 
 !!! info "Notes"
     Multi-layered detection:
-
-    1. **cmctl show services** (`authoritative when reachable`) - positive
-       indicators (`Services Summary`, `READY`, `started`, `is running`) return
-       0 immediately; TNS errors are ignored (IPC unreachable ≠ stopped).
-    2. **Port-based check** (`definitive`) - calls `plugin_get_port()` to read
-       the configured port from `cman.ora`, then calls `_datasafe_port_listening()`
-       to check whether that port is actively listening. A listening port confirms
-       RUNNING; a closed port confirms STOPPED. This replaces the previous
-       ps-grep detection: Oracle CMAN processes rename `argv[0]` to just the
-       binary name without the path, making `ps -ef | grep "${path}.*cmadmin"`
-       permanently unreliable.
-    3. **Python `setup.py`** (`last resort`) - only reached when no port is
-       configured in `cman.ora`.
-
-    TRACE-level logging is emitted at each decision point when
-    `ORADBA_LOG_LEVEL=trace`.
+    1. cmctl show services (authoritative when reachable)
+    2. Port-based check (definitive; immune to CMAN argv[0] renaming)
+    3. Python setup.py (last resort when no port configured)
+    Oracle CMAN processes rename argv[0] to just 'cmadmin'/'cmgw' without
+    the installation path, making ps-grep detection permanently unreliable.
 
 ---
 

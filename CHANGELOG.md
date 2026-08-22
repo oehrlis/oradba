@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-22
+
+### Added
+
+- `src/doc/troubleshooting.md`: new section "Issue: systemd service does not
+  start the database", covering both failure signatures - the exit 127 from the
+  undefined function and the missing `${ORADBA_LOG}` directory - with check,
+  fix and a verification step that exercises the root wrapper independently of
+  systemd.
+- `src/doc/operations.md`: the service log table now states that
+  `${ORADBA_LOG}` defaults to `/var/log/oracle`, has to be created and owned by
+  the Oracle user at install time, and how the write path behaves from 1.0.1 on.
+- `doc/development.md`: new "Logging Invariants" section. Logging must never
+  abort the caller, file writes go through `_oradba_log_to_file` rather than a
+  direct append, and `log_message` is not part of the library. Names the six
+  scripts that set `ORADBA_LOG_FILE` themselves and therefore never reach the
+  fallback in `init_logging`.
+
+### Fixed
+
+- `src/lib/oradba_common.sh` `oradba_log`: file logging can no longer abort the
+  calling script. A new `_oradba_log_to_file` helper creates the target
+  directory on demand and drops the line silently when that is impossible,
+  leaving the stderr copy as the record. Previously the unguarded append killed
+  every control script that sets `ORADBA_LOG_FILE` to a path nobody created -
+  `/var/log/oracle` being the usual case - because they all run under
+  `set -euo pipefail`. Affected: `oradba_services.sh`,
+  `oradba_services_root.sh`, `oradba_dbctl.sh`, `oradba_lsnrctl.sh`,
+  `oradba_dsctl.sh` and `oradba_rman.sh`.
+- `src/bin/oradba_services_root.sh`: called the undefined `log_message` 13
+  times and died with exit 127 on the first call, in line 189, before
+  `check_root` was ever reached. The whole script body was therefore
+  unexercised. Renamed to `oradba_log`, which `oradba_common.sh` provides with
+  the same `<LEVEL> <message>` signature. `log_message` only ever existed in
+  `src/templates/init.d/oradba`, which defines it itself and is unaffected.
+  Found by a reboot test of a systemd-managed lab host, where
+  `oradba-services.service` failed to start the database.
+- `src/doc/api/`: API reference regenerated from the function headers. Picks up
+  the new `_oradba_log_to_file` entry and the `log_message` to `oradba_log`
+  rename, and clears pre-existing drift in `common.md`, `function-index.md`,
+  `index.md`, `plugins.md` and `scripts.md` that had accumulated since the last
+  regeneration.
+
 ## [1.0.0] - 2026-07-09
 
 ### Added

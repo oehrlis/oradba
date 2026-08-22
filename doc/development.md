@@ -475,6 +475,28 @@ if ! result=$(execute_db_query "$query" "raw"); then
 fi
 ```
 
+### Logging Invariants
+
+`oradba_log <LEVEL> <message>` is the single logging entry point. Two rules hold
+for every caller:
+
+- **Logging must never abort the caller.** Library and control scripts run under
+  `set -euo pipefail`, so any unguarded redirect inside a log path turns a
+  cosmetic problem into a fatal one. File writes go through
+  `_oradba_log_to_file`, which creates the target directory on demand and drops
+  the line silently when that fails. Never append to `${ORADBA_LOG_FILE}`
+  directly.
+- **`log_message` does not exist** in the library. It is defined only inside
+  `src/templates/init.d/oradba`, which is self-contained. Scripts that source
+  `oradba_common.sh` use `oradba_log`, with the same `<LEVEL> <message>`
+  signature.
+
+Scripts that set `ORADBA_LOG_FILE` themselves - `oradba_services.sh`,
+`oradba_services_root.sh`, `oradba_dbctl.sh`, `oradba_lsnrctl.sh`,
+`oradba_dsctl.sh`, `oradba_rman.sh` - bypass `init_logging` and therefore never
+get its writability fallback. That is why the guard lives in the write path
+rather than in the initialiser.
+
 ### Configuration
 
 OraDBA uses a hierarchical 6-level configuration system with priority-based overrides.

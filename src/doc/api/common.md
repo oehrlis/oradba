@@ -6,6 +6,32 @@ Core utility functions used throughout OraDBA including logging, PATH management
 
 ## Functions
 
+### `_oradba_log_to_file` {: #-oradba-log-to-file }
+
+Append a log line to a file without ever failing the caller
+
+**Source:** `oradba_common.sh`
+
+**Arguments:**
+
+- $1 - Target log file (may be empty, missing or unwritable)
+- $2 - Log line to append
+
+**Returns:** 0 - Always successful
+
+**Output:** None
+
+!!! info "Notes"
+    Logging must never abort the script that logs. Under set -euo
+    pipefail a failed append killed every control script that points
+    ORADBA_LOG_FILE at a path nobody created - /var/log/oracle is the
+    usual case, and it takes oradba_services, oradba_services_root,
+    oradba_dbctl, oradba_lsnrctl, oradba_dsctl and oradba_rman with it.
+    The directory is created on demand; if that is not possible the
+    line is dropped and the stderr copy stays the only record.
+
+---
+
 ### `add_to_sqlpath` {: #add-to-sqlpath }
 
 Add directory to SQLPATH if not already present
@@ -196,13 +222,8 @@ Execute a plugin function in an isolated subshell with minimal env
 **Output:** Stdout from plugin function (or stored in result variable)
 
 !!! info "Notes"
-    Adds subshell isolation (Phase 3) and always sets `LD_LIBRARY_PATH` to
-    `${oracle_home}/lib` for each plugin subshell. The path is set unconditionally
-    (not guarded by `[[ -z "${LD_LIBRARY_PATH:-}" ]]`) so that each connector's
-    plugin subshell uses the correct connector-specific library path even when
-    the calling shell already has `LD_LIBRARY_PATH` set from a different connector.
-    For no-arg functions (e.g., `plugin_get_config_section`), pass `"NOARGS"` as
-    `oracle_home`.
+    Adds subshell isolation (Phase 3) and minimal ORACLE_HOME/LD_LIBRARY_PATH
+    For no-arg functions (e.g., plugin_get_config_section), pass "NOARGS" as oracle_home
 
 ---
 

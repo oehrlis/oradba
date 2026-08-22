@@ -263,6 +263,68 @@ export TNS_ADMIN=$ORACLE_HOME/network/admin
 echo 'TNS_ADMIN=/custom/path' >> ~/.oradba_config
 ```
 
+### Issue: systemd service does not start the database
+
+**Symptom**: `oradba.service` (or a locally named unit such as
+`oradba-services.service`) reports `failed`, no `pmon` and no `tnslsnr` process
+is running after a reboot, and the journal shows one of:
+
+```text
+oradba_services_root.sh: line NNN: log_message: command not found
+... Main process exited, code=exited, status=127/n/a
+```
+
+```text
+oradba_common.sh: line NNN: /var/log/oracle/oradba_services.log: No such file or directory
+```
+
+**Likely Cause**: Both are logging failures, not Oracle failures. The first is a
+defect in OraDBA before 1.0.1, where `oradba_services_root.sh` called an
+undefined function and aborted with exit 127 before it reached its first check.
+The second is a missing log directory: the service scripts run under
+`set -euo pipefail`, so before 1.0.1 an append to a non-existent
+`${ORADBA_LOG}` killed the script.
+
+**Check**:
+
+```bash
+# Which OraDBA version is installed
+oradba_version.sh
+
+# Why the unit failed
+sudo systemctl status oradba.service --no-pager -l
+sudo journalctl -u oradba.service --no-pager -n 50
+
+# Does the log directory exist and is it writable by the Oracle user
+ls -ld /var/log/oracle
+sudo -u oracle test -w /var/log/oracle && echo writable || echo NOT writable
+```
+
+**Fix**:
+
+```bash
+# Preferred: upgrade to 1.0.1 or later. From 1.0.1 the log directory is created
+# on demand, and when that is impossible the log line is dropped instead of
+# aborting the script - stderr and the journal keep the record.
+
+# Create the log directory explicitly (still recommended at install time)
+sudo mkdir -p /var/log/oracle
+sudo chown oracle:oinstall /var/log/oracle
+sudo chmod 755 /var/log/oracle
+
+# Retry
+sudo systemctl restart oradba.service
+sudo systemctl status oradba.service --no-pager
+```
+
+**Verify** the wrapper independently of systemd. As a non-root user it must
+report the root check, not a `command not found`:
+
+```bash
+${ORADBA_BASE}/bin/oradba_services_root.sh status
+# expected: [ERROR] ... This script must be run as root
+```
+
 ## Debug Mode
 
 OraDBA provides comprehensive debug logging across all major script categories.

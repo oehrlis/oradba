@@ -4,7 +4,9 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 
 ---
 
+- [`_datasafe_port_listening`](plugins.md#-datasafe-port-listening) - Plugin Interface
 - [`_oradba_builder_log`](environment.md#-oradba-builder-log) - Environment Management
+- [`_oradba_log_to_file`](common.md#-oradba-log-to-file) - Core Utilities
 - [`_oradba_parser_log`](environment.md#-oradba-parser-log) - Environment Management
 - [`_oradba_path_contains`](scripts.md#-oradba-path-contains) - Scripts and Commands
 - [`_oradba_validator_log`](environment.md#-oradba-validator-log) - Environment Management
@@ -172,6 +174,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`get_process_list`](scripts.md#get-process-list) - Scripts and Commands
 - [`get_running_listeners`](scripts.md#get-running-listeners) - Scripts and Commands
 - [`get_script_dir`](common.md#get-script-dir) - Core Utilities
+- [`get_systemd_service_name`](scripts.md#get-systemd-service-name) - Scripts and Commands
 - [`get_tns_admin`](scripts.md#get-tns-admin) - Scripts and Commands
 - [`has_rlwrap`](aliases.md#has-rlwrap) - Alias Management
 - [`import_config`](scripts.md#import-config) - Scripts and Commands
@@ -483,7 +486,6 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`plugin_validate_home`](plugins.md#plugin-validate-home) - Plugin Interface
 - [`plugin_validate_home`](plugins.md#plugin-validate-home) - Plugin Interface
 - [`plugin_validate_home`](plugins.md#plugin-validate-home) - Plugin Interface
-- [`preserve_configs`](scripts.md#preserve-configs) - Scripts and Commands
 - [`preserve_runtime_files`](scripts.md#preserve-runtime-files) - Scripts and Commands
 - [`print_message`](scripts.md#print-message) - Scripts and Commands
 - [`process_template`](scripts.md#process-template) - Scripts and Commands
@@ -500,7 +502,6 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`resolve_datasafe_env`](scripts.md#resolve-datasafe-env) - Scripts and Commands
 - [`resolve_default_tns_admin`](scripts.md#resolve-default-tns-admin) - Scripts and Commands
 - [`resolve_oracle_home_name`](scripts.md#resolve-oracle-home-name) - Scripts and Commands
-- [`restore_configs`](scripts.md#restore-configs) - Scripts and Commands
 - [`restore_from_backup`](scripts.md#restore-from-backup) - Scripts and Commands
 - [`restore_runtime_files`](scripts.md#restore-runtime-files) - Scripts and Commands
 - [`run_as_oracle`](scripts.md#run-as-oracle) - Scripts and Commands
@@ -536,6 +537,7 @@ Alphabetical index of all OraDBA functions with links to detailed documentation.
 - [`show_oracle_status_registry`](scripts.md#show-oracle-status-registry) - Scripts and Commands
 - [`show_path`](common.md#show-path) - Core Utilities
 - [`show_scripts_help`](scripts.md#show-scripts-help) - Scripts and Commands
+- [`show_services`](scripts.md#show-services) - Scripts and Commands
 - [`show_sql_help`](scripts.md#show-sql-help) - Scripts and Commands
 - [`show_sqlpath`](common.md#show-sqlpath) - Core Utilities
 - [`show_status`](scripts.md#show-status) - Scripts and Commands

@@ -414,6 +414,21 @@ All service management operations are logged to:
 
 : Service Management Log File Locations
 
+`${ORADBA_LOG}` defaults to `/var/log/oracle`. Create it at install time and
+give the Oracle user write access, otherwise the service logs stay empty:
+
+```bash
+sudo mkdir -p /var/log/oracle
+sudo chown oracle:oinstall /var/log/oracle
+sudo chmod 755 /var/log/oracle
+```
+
+From OraDBA 1.0.1 a missing directory is created on demand, and if that is not
+possible the log line is dropped rather than aborting the script - stderr and
+the systemd journal remain the record. Before 1.0.1 a missing directory made
+every service script fail under `set -euo pipefail`. See
+[Troubleshooting](troubleshooting.md) if a unit fails to start the database.
+
 Log format:
 
 ```text

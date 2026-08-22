@@ -49,12 +49,12 @@ export ORADBA_LOG_FILE="${LOGFILE}"
 # Purpose.: Verify script is running with root privileges
 # Args....: None
 # Returns.: Exits with code 1 if not root
-# Output..: Error message via log_message if not root
+# Output..: Error message via oradba_log if not root
 # Notes...: Required for systemd/init.d service management
 # ------------------------------------------------------------------------------
 check_root() {
     if [[ $(id -u) -ne 0 ]]; then
-        log_message "ERROR" "This script must be run as root"
+        oradba_log "ERROR" "This script must be run as root"
         exit 1
     fi
 }
@@ -64,12 +64,12 @@ check_root() {
 # Purpose.: Verify Oracle OS user exists on system
 # Args....: None (uses global ORACLE_USER)
 # Returns.: Exits with code 1 if user doesn't exist
-# Output..: Error message via log_message if user missing
+# Output..: Error message via oradba_log if user missing
 # Notes...: Checks user defined by ${ORACLE_USER} environment variable
 # ------------------------------------------------------------------------------
 check_oracle_user() {
     if ! id "${ORACLE_USER}" > /dev/null 2>&1; then
-        log_message "ERROR" "User ${ORACLE_USER} does not exist"
+        oradba_log "ERROR" "User ${ORACLE_USER} does not exist"
         exit 1
     fi
 }
@@ -79,17 +79,17 @@ check_oracle_user() {
 # Purpose.: Validate oradba_services.sh exists and is executable
 # Args....: None (uses global SERVICES_SCRIPT)
 # Returns.: Exits with code 1 if script missing or not executable
-# Output..: Error messages via log_message
+# Output..: Error messages via oradba_log
 # Notes...: Checks ${ORADBA_BASE}/bin/oradba_services.sh
 # ------------------------------------------------------------------------------
 check_services_script() {
     if [[ ! -f "${SERVICES_SCRIPT}" ]]; then
-        log_message "ERROR" "Services script not found: ${SERVICES_SCRIPT}"
+        oradba_log "ERROR" "Services script not found: ${SERVICES_SCRIPT}"
         exit 1
     fi
 
     if [[ ! -x "${SERVICES_SCRIPT}" ]]; then
-        log_message "ERROR" "Services script is not executable: ${SERVICES_SCRIPT}"
+        oradba_log "ERROR" "Services script is not executable: ${SERVICES_SCRIPT}"
         exit 1
     fi
 }
@@ -99,13 +99,13 @@ check_services_script() {
 # Purpose.: Execute oradba_services.sh as Oracle user with sudo/su
 # Args....: $1 - Action (start|stop|restart|status)
 # Returns.: Exit code from services script
-# Output..: Status messages via log_message; service script output
+# Output..: Status messages via oradba_log; service script output
 # Notes...: Uses 'su - ${ORACLE_USER}' to execute; passes --force flag
 # ------------------------------------------------------------------------------
 run_as_oracle() {
     local action="$1"
 
-    log_message "INFO" "Executing ${action} as user ${ORACLE_USER}"
+    oradba_log "INFO" "Executing ${action} as user ${ORACLE_USER}"
 
     # Execute services script as oracle user
     su - "${ORACLE_USER}" -c "${SERVICES_SCRIPT} ${action} --force"
@@ -113,10 +113,10 @@ run_as_oracle() {
     local rc=$?
 
     if [[ ${rc} -eq 0 ]]; then
-        log_message "INFO" "Command completed successfully"
+        oradba_log "INFO" "Command completed successfully"
         return 0
     else
-        log_message "ERROR" "Command failed with exit code ${rc}"
+        oradba_log "ERROR" "Command failed with exit code ${rc}"
         return ${rc}
     fi
 }
@@ -186,8 +186,8 @@ case "${ACTION}" in
 esac
 
 # Perform checks
-log_message "INFO" "========== Oracle Services ${ACTION} =========="
-log_message "INFO" "Executed by: $(whoami), Host: $(hostname)"
+oradba_log "INFO" "========== Oracle Services ${ACTION} =========="
+oradba_log "INFO" "Executed by: $(whoami), Host: $(hostname)"
 
 check_root
 check_oracle_user
@@ -195,10 +195,10 @@ check_services_script
 
 # Execute action
 if run_as_oracle "${ACTION}"; then
-    log_message "INFO" "Oracle services ${ACTION} completed successfully"
+    oradba_log "INFO" "Oracle services ${ACTION} completed successfully"
     exit 0
 else
-    log_message "ERROR" "Oracle services ${ACTION} failed"
+    oradba_log "ERROR" "Oracle services ${ACTION} failed"
     exit 1
 fi
 
