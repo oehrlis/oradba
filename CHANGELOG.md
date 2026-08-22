@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-08-22
+
+### Fixed
+
+- `src/bin/oradba_lsnrctl.sh`, `oradba_check.sh`, `oradba_setup.sh`,
+  `oradba_sqlnet.sh`, `oradba_rman.sh`, `oradba_extension.sh`, `dbstatus.sh`
+  and `src/lib/oradba_common.sh`: 29 tests on environment variables now use
+  `${VAR:-}` instead of a bare `${VAR}`. Under `set -euo pipefail` a bare
+  reference aborts as soon as the caller's environment lacks the variable.
+  `oradba_lsnrctl.sh` died with `TNS_ADMIN: unbound variable`, which made
+  `oradba_services.sh start` fail and with it the systemd unit - on every boot,
+  while the same command worked by hand. Affected names: `TNS_ADMIN`,
+  `ORACLE_HOME`, `ORACLE_SID`, `ORACLE_BASE`, `SQLPATH`, `ORADBA_BASE`,
+  `ORADBA_LOCAL_BASE`, `ORADBA_EXTENSION_PATHS`, `ORADBA_RMAN_CATALOG`,
+  `ORADBA_CUSTOM_SQLPATH`, `ORADBA_SID_SPECIFIC_SQL`, `ORADBA_PRESERVE_SQLPATH`
+  and `ORADBA_ORA_ADMIN_SID`. Script-internal variables were deliberately left
+  untouched - they are initialised before use.
+- `src/lib/oradba_common.sh` `_oradba_log_to_file`: the 1.0.1 fix stopped the
+  abort but not the noise. `2> /dev/null` on the `echo` does not silence a
+  failing redirection, because the shell reports that before `echo` runs. The
+  write is now wrapped in a group so the message is suppressed as intended.
+  Symptom in 1.0.1: one `Permission denied` line per log call whenever
+  `${ORADBA_LOG}` was not writable.
+
+### Added
+
+- `doc/development.md`: section "Environment Variables Under `set -u`", with the
+  reason the boot path is where this class of defect surfaces and an interactive
+  test does not catch it.
+- `src/doc/troubleshooting.md`: third failure signature
+  (`TNS_ADMIN: unbound variable`) added to the systemd service section, with the
+  distinction between an interactive shell and `su - oracle` under systemd.
+
 ## [1.0.1] - 2026-08-22
 
 ### Added

@@ -122,12 +122,12 @@ main() {
     fi
 
     # Check required environment
-    if [[ -z "$ORACLE_HOME" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" ]]; then
         oradba_log ERROR "ORACLE_HOME is not set"
         exit 1
     fi
 
-    if [[ -z "$ORACLE_SID" ]]; then
+    if [[ -z "${ORACLE_SID:-}" ]]; then
         oradba_log ERROR "ORACLE_SID is not set. Use --sid option or set environment variable."
         exit 1
     fi

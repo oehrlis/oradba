@@ -497,6 +497,34 @@ Scripts that set `ORADBA_LOG_FILE` themselves - `oradba_services.sh`,
 get its writability fallback. That is why the guard lives in the write path
 rather than in the initialiser.
 
+### Environment Variables Under `set -u`
+
+Every script in `src/bin/` and every library in `src/lib/` runs under
+`set -euo pipefail`. A bare reference to a variable the script does not set
+itself aborts the run the moment the caller's environment lacks it:
+
+```bash
+# WRONG - aborts with "TNS_ADMIN: unbound variable" when the caller has no
+# oradba environment loaded, which is exactly the case under systemd
+if [[ -z "${TNS_ADMIN}" ]]; then
+
+# RIGHT - same semantics, no abort
+if [[ -z "${TNS_ADMIN:-}" ]]; then
+```
+
+`${VAR:-}` is behaviour-preserving for both `-z` and `-n`: an unset variable and
+an empty one were always meant to be treated alike here. The only thing that
+changes is that the script no longer dies.
+
+This matters most for the boot path. An interactive shell has sourced the oradba
+profile, so `ORACLE_HOME`, `ORACLE_SID` and `TNS_ADMIN` are all present and the
+bug stays invisible. systemd starts through `su - oracle -c ...` with a minimal
+environment, and the same code aborts. **Testing a service script from an
+interactive session proves nothing about boot.**
+
+Variables the script initialises itself at the top - option parsing results,
+values read from `oradba_services.conf` - do not need the guard.
+
 ### Configuration
 
 OraDBA uses a hierarchical 6-level configuration system with priority-based overrides.

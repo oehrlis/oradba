@@ -158,7 +158,7 @@ set_listener_env() {
     oradba_log DEBUG "${SCRIPT_NAME}: set_listener_env() - Updated PATH to include ${ORACLE_HOME}/bin"
 
     # Set TNS_ADMIN if not already set
-    if [[ -z "${TNS_ADMIN}" ]]; then
+    if [[ -z "${TNS_ADMIN:-}" ]]; then
         if [[ -d "${ORACLE_HOME}/network/admin" ]]; then
             export TNS_ADMIN="${ORACLE_HOME}/network/admin"
             oradba_log DEBUG "${SCRIPT_NAME}: set_listener_env() - Set TNS_ADMIN=${TNS_ADMIN}"

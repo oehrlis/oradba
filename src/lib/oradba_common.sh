@@ -191,7 +191,10 @@ _oradba_log_to_file() {
         fi
     fi
 
-    echo "${line}" >> "${target}" 2> /dev/null || return 0
+    # The 2> /dev/null must sit on a group, not on the echo: a failing
+    # redirection is reported by the shell before echo ever runs, so redirecting
+    # echo's own stderr does not silence it.
+    { echo "${line}" >> "${target}"; } 2> /dev/null || return 0
 }
 
 # Unified logging function with level-based filtering
@@ -635,7 +638,7 @@ verify_oracle_env() {
 #           for plugin-based detection (library filenames, JDBC JAR, etc.)
 # ------------------------------------------------------------------------------
 get_oracle_version() {
-    if [[ -z "${ORACLE_HOME}" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" ]]; then
         oradba_log ERROR "ORACLE_HOME not set"
         return 1
     fi
@@ -696,7 +699,7 @@ load_rman_catalog_connection() {
     oradba_log DEBUG "Checking RMAN catalog configuration"
 
     # Check if catalog is configured
-    if [[ -z "${ORADBA_RMAN_CATALOG}" ]]; then
+    if [[ -z "${ORADBA_RMAN_CATALOG:-}" ]]; then
         oradba_log DEBUG "No RMAN catalog configured (ORADBA_RMAN_CATALOG not set)"
         export ORADBA_RMAN_CATALOG_CONNECTION=""
         return 1
@@ -1312,17 +1315,17 @@ configure_sqlpath() {
     fi
 
     # 3. SID-specific SQL directory (if exists and enabled)
-    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID}" ]] && [[ -d "${ORADBA_BASE}/sql/${ORACLE_SID}" ]]; then
+    if [[ "${ORADBA_SID_SPECIFIC_SQL}" == "true" ]] && [[ -n "${ORACLE_SID:-}" ]] && [[ -d "${ORADBA_BASE}/sql/${ORACLE_SID}" ]]; then
         sqlpath_parts+=("${ORADBA_BASE}/sql/${ORACLE_SID}")
     fi
 
     # 4. Oracle RDBMS admin scripts (catproc.sql, etc.)
-    if [[ -n "${ORACLE_HOME}" ]] && [[ -d "${ORACLE_HOME}/rdbms/admin" ]]; then
+    if [[ -n "${ORACLE_HOME:-}" ]] && [[ -d "${ORACLE_HOME}/rdbms/admin" ]]; then
         sqlpath_parts+=("${ORACLE_HOME}/rdbms/admin")
     fi
 
     # 5. Oracle sqlplus admin scripts
-    if [[ -n "${ORACLE_HOME}" ]] && [[ -d "${ORACLE_HOME}/sqlplus/admin" ]]; then
+    if [[ -n "${ORACLE_HOME:-}" ]] && [[ -d "${ORACLE_HOME}/sqlplus/admin" ]]; then
         sqlpath_parts+=("${ORACLE_HOME}/sqlplus/admin")
     fi
 
@@ -1335,13 +1338,13 @@ configure_sqlpath() {
     fi
 
     # 7. Custom SQLPATH from config (append)
-    if [[ -n "${ORADBA_CUSTOM_SQLPATH}" ]]; then
+    if [[ -n "${ORADBA_CUSTOM_SQLPATH:-}" ]]; then
         IFS=':' read -ra custom_paths <<< "${ORADBA_CUSTOM_SQLPATH}"
         sqlpath_parts+=("${custom_paths[@]}")
     fi
 
     # 8. Preserve existing SQLPATH entries (optional)
-    if [[ -n "${SQLPATH}" ]] && [[ "${ORADBA_PRESERVE_SQLPATH}" == "true" ]]; then
+    if [[ -n "${SQLPATH:-}" ]] && [[ "${ORADBA_PRESERVE_SQLPATH}" == "true" ]]; then
         IFS=':' read -ra existing_paths <<< "${SQLPATH}"
         sqlpath_parts+=("${existing_paths[@]}")
     fi
@@ -1362,7 +1365,7 @@ configure_sqlpath() {
 # Notes...: Shows [✓] for existing directories, [✗ not found] for missing ones
 # ------------------------------------------------------------------------------
 show_sqlpath() {
-    if [[ -z "${SQLPATH}" ]]; then
+    if [[ -z "${SQLPATH:-}" ]]; then
         echo "SQLPATH is not set"
         return 1
     fi
@@ -1520,7 +1523,7 @@ add_to_sqlpath() {
     fi
 
     # Add to SQLPATH
-    if [[ -z "${SQLPATH}" ]]; then
+    if [[ -z "${SQLPATH:-}" ]]; then
         export SQLPATH="${new_path}"
     else
         export SQLPATH="${SQLPATH}:${new_path}"

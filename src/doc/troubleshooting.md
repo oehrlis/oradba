@@ -278,12 +278,24 @@ oradba_services_root.sh: line NNN: log_message: command not found
 oradba_common.sh: line NNN: /var/log/oracle/oradba_services.log: No such file or directory
 ```
 
-**Likely Cause**: Both are logging failures, not Oracle failures. The first is a
-defect in OraDBA before 1.0.1, where `oradba_services_root.sh` called an
-undefined function and aborted with exit 127 before it reached its first check.
-The second is a missing log directory: the service scripts run under
-`set -euo pipefail`, so before 1.0.1 an append to a non-existent
-`${ORADBA_LOG}` killed the script.
+```text
+oradba_lsnrctl.sh: line NNN: TNS_ADMIN: unbound variable
+[ERROR] Failed to start listeners (exit code: 1)
+```
+
+**Likely Cause**: None of these is an Oracle failure. The first is a defect in
+OraDBA before 1.0.1, where `oradba_services_root.sh` called an undefined
+function and aborted with exit 127 before it reached its first check. The second
+is a missing log directory: the service scripts run under `set -euo pipefail`,
+so before 1.0.1 an append to a non-existent `${ORADBA_LOG}` killed the script.
+
+The third is the same class one layer up. Before 1.0.2 several scripts tested
+environment variables such as `TNS_ADMIN`, `ORACLE_HOME` and `ORACLE_SID`
+without a `:-` default, which aborts under `set -u` when the variable is not in
+the environment at all. An interactive shell has them set from the oradba
+profile, so the defect stayed invisible there. systemd starts through
+`su - oracle` with a minimal environment and no profile - which is why a service
+script that works when you run it by hand can still fail on every boot.
 
 **Check**:
 

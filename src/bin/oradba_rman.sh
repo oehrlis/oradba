@@ -674,9 +674,9 @@ execute_rman_for_sid() {
     local log_dir
     if [[ -n "${RMAN_LOG_DIR}" ]]; then
         log_dir="${RMAN_LOG_DIR}"
-    elif [[ -n "${ORADBA_ORA_ADMIN_SID}" ]]; then
+    elif [[ -n "${ORADBA_ORA_ADMIN_SID:-}" ]]; then
         log_dir="${ORADBA_ORA_ADMIN_SID}/log"
-    elif [[ -n "${ORACLE_BASE}" ]]; then
+    elif [[ -n "${ORACLE_BASE:-}" ]]; then
         log_dir="${ORACLE_BASE}/admin/${sid}/log"
     else
         log_dir="${ORADBA_LOG:-/var/log/oracle}"

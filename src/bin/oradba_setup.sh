@@ -299,7 +299,7 @@ cmd_check() {
     echo ""
 
     # Check extensions
-    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
         echo "Extensions:"
         local ext_count=0
         local ext_dir
@@ -419,7 +419,7 @@ cmd_show_config() {
     echo "Extensions:"
     echo "  Auto-discover:     ${ORADBA_AUTO_DISCOVER_EXTENSIONS:-false}"
     echo "  Base directory:    ${ORADBA_LOCAL_BASE:-<not set>}"
-    if [[ -n "${ORADBA_LOCAL_BASE}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ -n "${ORADBA_LOCAL_BASE:-}" ]] && [[ -d "${ORADBA_LOCAL_BASE}" ]]; then
         local ext_count=0
         local ext_dir
         # Count directories with .extension or content directories (excluding oradba itself)

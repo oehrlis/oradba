@@ -580,7 +580,7 @@ check_oracle_environment() {
     log_header "Oracle Environment Variables"
 
     # ORACLE_HOME
-    if [[ -n "$ORACLE_HOME" ]]; then
+    if [[ -n "${ORACLE_HOME:-}" ]]; then
         if [[ -d "$ORACLE_HOME" ]]; then
             log_pass "ORACLE_HOME set and exists: $ORACLE_HOME"
             log_debug "ORACLE_HOME exists: ${ORACLE_HOME}"
@@ -594,7 +594,7 @@ check_oracle_environment() {
     fi
 
     # ORACLE_BASE
-    if [[ -n "$ORACLE_BASE" ]]; then
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
         if [[ -d "$ORACLE_BASE" ]]; then
             log_pass "ORACLE_BASE set and exists: $ORACLE_BASE"
             log_debug "ORACLE_BASE exists: ${ORACLE_BASE}"
@@ -608,7 +608,7 @@ check_oracle_environment() {
     fi
 
     # ORACLE_SID
-    if [[ -n "$ORACLE_SID" ]]; then
+    if [[ -n "${ORACLE_SID:-}" ]]; then
         log_pass "ORACLE_SID set: $ORACLE_SID"
         log_debug "ORACLE_SID set: ${ORACLE_SID}"
     else
@@ -617,7 +617,7 @@ check_oracle_environment() {
     fi
 
     # TNS_ADMIN
-    if [[ -n "$TNS_ADMIN" ]]; then
+    if [[ -n "${TNS_ADMIN:-}" ]]; then
         if [[ -d "$TNS_ADMIN" ]]; then
             log_pass "TNS_ADMIN set and exists: $TNS_ADMIN"
             log_debug "TNS_ADMIN exists: ${TNS_ADMIN}"
@@ -647,7 +647,7 @@ check_oracle_environment() {
 check_oracle_tools() {
     log_header "Oracle Tools"
 
-    if [[ -z "$ORACLE_HOME" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" ]]; then
         log_info "ORACLE_HOME not set - skipping Oracle tools check"
         log_debug "Skipping oracle tools: ORACLE_HOME not set"
         return 0
@@ -691,7 +691,7 @@ check_oracle_tools() {
 check_database_connectivity() {
     log_header "Database Connectivity"
 
-    if [[ -z "$ORACLE_HOME" ]] || [[ -z "$ORACLE_SID" ]]; then
+    if [[ -z "${ORACLE_HOME:-}" ]] || [[ -z "${ORACLE_SID:-}" ]]; then
         log_info "ORACLE_HOME or ORACLE_SID not set - skipping connectivity check"
         log_debug "Skipping connectivity: ORACLE_HOME='${ORACLE_HOME:-}', ORACLE_SID='${ORACLE_SID:-}'"
         return 0

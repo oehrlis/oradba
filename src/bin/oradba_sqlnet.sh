@@ -368,7 +368,7 @@ setup_tns_admin() {
         return 1
     fi
 
-    if [[ -z "${ORACLE_BASE}" ]]; then
+    if [[ -z "${ORACLE_BASE:-}" ]]; then
         echo "ERROR: ORACLE_BASE must be set" >&2
         return 1
     fi

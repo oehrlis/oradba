@@ -17,7 +17,7 @@
 set -euo pipefail
 
 # Determine ORADBA_BASE
-if [[ -n "${ORADBA_BASE}" ]]; then
+if [[ -n "${ORADBA_BASE:-}" ]]; then
     BASE_DIR="${ORADBA_BASE}"
 elif [[ -L "${BASH_SOURCE[0]}" ]]; then
     # Script is symlinked, resolve to actual location
@@ -1344,7 +1344,7 @@ cmd_list() {
         if [[ "${ORADBA_AUTO_DISCOVER_EXTENSIONS:-true}" == "true" ]]; then
             echo "  Local base: ${ORADBA_LOCAL_BASE:-not set}"
         fi
-        if [[ -n "${ORADBA_EXTENSION_PATHS}" ]]; then
+        if [[ -n "${ORADBA_EXTENSION_PATHS:-}" ]]; then
             echo "  Manual paths: ${ORADBA_EXTENSION_PATHS}"
         fi
         return 0
@@ -1649,7 +1649,7 @@ cmd_paths() {
 
     echo ""
     echo "Manual paths:"
-    if [[ -n "${ORADBA_EXTENSION_PATHS}" ]]; then
+    if [[ -n "${ORADBA_EXTENSION_PATHS:-}" ]]; then
         IFS=':' read -ra paths <<< "${ORADBA_EXTENSION_PATHS}"
         for path in "${paths[@]}"; do
             if [[ -d "${path}" ]]; then
@@ -1798,7 +1798,7 @@ cmd_enable() {
     done
 
     # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
-    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE:-}" ]]; then
         local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
         if [[ -d "${potential_path}" ]]; then
             ext_path="${potential_path}"
@@ -1887,7 +1887,7 @@ cmd_disable() {
     done
 
     # If not found in discovered extensions, check if directory exists in ORADBA_LOCAL_BASE
-    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE}" ]]; then
+    if [[ "${found}" != "true" ]] && [[ -n "${ORADBA_LOCAL_BASE:-}" ]]; then
         local potential_path="${ORADBA_LOCAL_BASE}/${ext_name}"
         if [[ -d "${potential_path}" ]]; then
             ext_path="${potential_path}"
