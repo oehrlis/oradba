@@ -113,3 +113,6 @@ doc/local-dev-notes.md
 .claude/skills/oracle-security
 .claude/skills/oracle-tde
 .github/copilot-instructions.md
+# aitk-managed — do not commit (symlinks into ai-toolkit)
+.claude/agents/
+.github/copilot-instructions.md
