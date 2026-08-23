@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-08-23
+
+### Fixed
+
+- `src/etc/oradba_core.conf`: `${ORADBA_LOCAL_BASE}` and `${ORACLE_BASE}` in
+  lines 30 and 31 were still unguarded. 1.0.3 claimed to have fixed them but
+  the change was lost before the commit, so the release did not actually
+  unblock the boot path - sourcing the configuration still aborted the caller
+  under `set -u`. This is the fix 1.0.3 was supposed to ship.
+- `src/etc/`: 15 further `[[ ]]` tests now use `${VAR:-}`. The 1.0.3 sweep
+  covered `src/lib/` and `src/bin/` with a pattern that matches any braced
+  uppercase variable, but `src/etc/` had only been processed with an earlier,
+  narrower pattern limited to `-z` and `-n`. Comparisons such as
+  `[[ "${ORADBA_RLWRAP_FILTER}" == "true" ]]` were therefore missed.
+
+### Verification
+
+- `src/etc/`, `src/lib/` and `src/bin/` verified at zero remaining unguarded
+  `[[ ]]` tests, checked against the tag content rather than against the
+  output of the patching step.
+- 1720 Bats tests, the same 7 pre-existing failures as the `v1.0.1` baseline.
+
 ## [1.0.3] - 2026-08-22
 
 ### Fixed
