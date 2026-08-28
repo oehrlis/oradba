@@ -321,8 +321,14 @@ backup_modified_files() {
 #           etc/oratab, etc/sid.dummy.conf, templates/etc/oratab.example
 #           sensitive runtime files in etc/ and extensions/*/etc/
 #           (`*.b64`, `*.pem`, `*.key`, `*.crt`, `*_customer.conf`)
+#           per-SID configs (`sid.*.conf`) EXCEPT the shipped sid._DEFAULT_.conf
 #           and ALL symlinks in etc/ (symlinks are always user-created)
 #           Single preserve path for both embedded and --github update flows.
+#           Framework configs (oradba_core.conf, oradba_standard.conf) are
+#           deliberately NOT preserved - the payload must win for those, and
+#           local overrides belong in *_customer.conf. sid._DEFAULT_.conf is the
+#           only shipped sid file, so every other sid.*.conf is user-created and
+#           was silently lost on --update before this was added.
 # ------------------------------------------------------------------------------
 preserve_runtime_files() {
     local install_dir="$1"
@@ -364,8 +370,9 @@ preserve_runtime_files() {
             log_info "Preserved runtime file: ${rel_path}"
         done < <(find "${install_dir}/etc" -maxdepth 1 \
             \( -type l \
-            -o -type f \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
-            -o -name "*_customer.conf" \) \
+            -o -type f ! -name "sid._DEFAULT_.conf" \
+            \( -name "*.b64" -o -name "*.pem" -o -name "*.key" -o -name "*.crt" \
+            -o -name "*_customer.conf" -o -name "sid.*.conf" \) \
             \) 2> /dev/null)
     fi
 
@@ -465,6 +472,10 @@ Other Options:
   --force                   Force update even if same version
   --update-profile          Update shell profile for automatic environment loading
   --no-update-profile       Don't update shell profile (default: prompt user)
+  --profile-user USER       Wire the profile of USER instead of the calling user
+                            and hand the installed tree to USER. Needed whenever
+                            the installer runs under sudo/become: ${HOME} is
+                            then /root and the Oracle user's profile is missed.
   --auto-discover-oratab    Auto-discover database homes from oratab on login
   --auto-discover-products  Auto-discover all Oracle products on login (db, datasafe, java, etc.)
   --debug                   Enable debug logging (shows detailed operation steps)
@@ -510,6 +521,9 @@ Examples:
   
   # Install with oratab auto-discovery enabled
   $0 --user-level --update-profile --auto-discover-oratab
+
+  # Installed as root (Ansible become), used by the oracle user:
+  $0 --prefix /u01/app/oracle/product/oradba --profile-user oracle --update-profile
   
   # Install with full product discovery enabled
   $0 --user-level --update-profile --auto-discover-products
@@ -786,6 +800,109 @@ check_permissions() {
     return 0
 }
 
+# ------------------------------------------------------------------------------
+# Function: resolve_profile_home
+# Purpose.: Resolve the home directory whose profile OraDBA should be wired into
+# Args....: None (uses PROFILE_USER)
+# Returns.: 0 if a home directory was resolved, 1 otherwise
+# Output..: Home directory path to stdout; diagnostics to stderr via log_*
+# Notes...: Without --profile-user this is ${HOME}, which is correct when the
+#           installer runs as the Oracle user - the intended way to install.
+#           When the installer runs under sudo/become (Ansible does), ${HOME} is
+#           /root and the Oracle user's profile is never touched, so oradba is
+#           installed but not available interactively. --profile-user names the
+#           real target. getent is used where present; macOS has no getent, so
+#           `eval echo ~user` is the fallback.
+# ------------------------------------------------------------------------------
+resolve_profile_home() {
+    if [[ -z "${PROFILE_USER}" ]]; then
+        echo "${HOME}"
+        return 0
+    fi
+
+    local resolved=""
+    if command -v getent > /dev/null 2>&1; then
+        resolved=$(getent passwd "${PROFILE_USER}" 2> /dev/null | cut -d: -f6)
+    fi
+    if [[ -z "${resolved}" ]]; then
+        # No getent (macOS) or user not in passwd via getent - try tilde expansion.
+        resolved=$(eval echo "~${PROFILE_USER}" 2> /dev/null)
+        # A failed expansion returns the literal "~user".
+        [[ "${resolved}" == "~${PROFILE_USER}" ]] && resolved=""
+    fi
+
+    if [[ -z "${resolved}" ]]; then
+        log_error "Cannot resolve home directory for --profile-user '${PROFILE_USER}': no such user"
+        return 1
+    fi
+    if [[ ! -d "${resolved}" ]]; then
+        log_error "Home directory for --profile-user '${PROFILE_USER}' does not exist: ${resolved}"
+        return 1
+    fi
+
+    echo "${resolved}"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: set_prefix_ownership
+# Purpose.: Hand the installed tree to the user who will actually run it
+# Args....: $1 - Installation prefix directory
+# Returns.: 0 on success or when nothing needs doing, 1 if ownership could not
+#           be set while it was required
+# Output..: Status via log_*
+# Notes...: Only acts when --profile-user is given AND the installer runs as
+#           root. Without this an Ansible `become: true` run leaves the whole
+#           prefix root-owned and the Oracle user cannot write its own logs -
+#           the same root cause as the root-owned /var/log/oracle. Never fails
+#           silently: if chown does not work, that is reported, because a silent
+#           skip looks exactly like a successful install.
+# ------------------------------------------------------------------------------
+set_prefix_ownership() {
+    local install_prefix="$1"
+
+    [[ -z "${PROFILE_USER}" ]] && return 0
+
+    if [[ "$(id -u)" != "0" ]]; then
+        # Not root: chown would fail anyway. Say so only when the prefix is not
+        # already owned by the target user, so the normal case stays quiet.
+        # `find -user` asks the question directly instead of parsing ls output.
+        if [[ -e "${install_prefix}" ]] &&
+            [[ -z "$(find "${install_prefix}" -maxdepth 0 -user "${PROFILE_USER}" 2> /dev/null)" ]]; then
+            log_warn "Cannot change ownership of ${install_prefix} to ${PROFILE_USER}: installer is not running as root"
+            log_warn "Run as root, or fix manually: chown -R ${PROFILE_USER} ${install_prefix}"
+        fi
+        return 0
+    fi
+
+    local group
+    group=$(id -gn "${PROFILE_USER}" 2> /dev/null || echo "")
+    local target="${PROFILE_USER}"
+    [[ -n "${group}" ]] && target="${PROFILE_USER}:${group}"
+
+    if chown -R "${target}" "${install_prefix}" 2> /dev/null; then
+        log_info "Ownership of ${install_prefix} set to ${target}"
+    else
+        log_error "Failed to set ownership of ${install_prefix} to ${target}"
+        log_error "Fix manually: chown -R ${target} ${install_prefix}"
+        return 1
+    fi
+
+    # The log directory is created by the running scripts, not by the payload.
+    # If it already exists and is root-owned, the Oracle user cannot write to it.
+    local log_dir="${ORADBA_LOG:-/var/log/oracle}"
+    if [[ -d "${log_dir}" ]]; then
+        if chown -R "${target}" "${log_dir}" 2> /dev/null; then
+            log_info "Ownership of ${log_dir} set to ${target}"
+        else
+            log_warn "Could not set ownership of ${log_dir} to ${target} - ${PROFILE_USER} may not be able to write logs"
+            log_warn "Fix manually: chown -R ${target} ${log_dir}"
+        fi
+    fi
+
+    return 0
+}
+
 # Detect user's shell profile file
 # ------------------------------------------------------------------------------
 # Function: detect_profile_file
@@ -799,21 +916,26 @@ check_permissions() {
 # ------------------------------------------------------------------------------
 detect_profile_file() {
     local profile=""
+    local home_dir
+
+    # ${HOME} is only correct when the installer runs as the user who will use
+    # oradba. --profile-user covers the sudo/become case.
+    home_dir=$(resolve_profile_home) || return 1
 
     # Priority 1: bash_profile (for login shells - sources bashrc if needed)
-    if [[ -f "${HOME}/.bash_profile" ]]; then
-        profile="${HOME}/.bash_profile"
+    if [[ -f "${home_dir}/.bash_profile" ]]; then
+        profile="${home_dir}/.bash_profile"
     # Priority 2: profile (generic POSIX for login shells)
-    elif [[ -f "${HOME}/.profile" ]]; then
-        profile="${HOME}/.profile"
+    elif [[ -f "${home_dir}/.profile" ]]; then
+        profile="${home_dir}/.profile"
     # Priority 3: zshrc (if using zsh)
-    elif [[ -f "${HOME}/.zshrc" ]]; then
-        profile="${HOME}/.zshrc"
+    elif [[ -f "${home_dir}/.zshrc" ]]; then
+        profile="${home_dir}/.zshrc"
     # Create bash_profile if none exist (will be loaded by login shells)
     # Note: .bashrc is not checked as it's only for non-login shells
     # and should be sourced by .bash_profile when needed
     else
-        profile="${HOME}/.bash_profile"
+        profile="${home_dir}/.bash_profile"
     fi
 
     echo "$profile"
@@ -1084,6 +1206,7 @@ DUMMY_ORACLE_HOME="" # For pre-Oracle installations
 UPDATE_MODE=false
 FORCE_UPDATE=false
 UPDATE_PROFILE="auto"          # auto, yes, no
+PROFILE_USER=""                # --profile-user: whose profile and prefix to own
 ENABLE_ORATAB_DISCOVERY=false  # Flag for --auto-discover-oratab (database homes only)
 ENABLE_PRODUCT_DISCOVERY=false # Flag for --auto-discover-products (all Oracle products)
 SILENT_MODE=false
@@ -1092,6 +1215,10 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --prefix)
             INSTALL_PREFIX="$2"
+            shift 2
+            ;;
+        --profile-user)
+            PROFILE_USER="$2"
             shift 2
             ;;
         --base)
@@ -2446,6 +2573,10 @@ fi
 
 # Profile integration (issue #24)
 update_profile "$INSTALL_PREFIX"
+
+# Hand the tree to the user who will run it. Must come after update_profile so a
+# profile file created above is chowned too.
+set_prefix_ownership "$INSTALL_PREFIX" || log_warn "Installation completed but ownership could not be set"
 
 # Installation complete
 # Get actual installed version for display
