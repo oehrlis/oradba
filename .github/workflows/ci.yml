@@ -35,13 +35,20 @@ jobs:
             scripts:
               - 'src/bin/**/*.sh'
               - 'src/lib/**/*.sh'
+              - 'src/etc/**'
               - 'scripts/**/*.sh'
               - 'tests/**/*.sh'
               - 'tests/**/*.bats'
             tests:
-              - 'src/bin/**/*.sh'
-              - 'src/lib/**/*.sh'
+              - 'src/bin/**'
+              - 'src/lib/**'
+              - 'src/etc/**'
+              - 'src/sql/**'
+              - 'src/rcv/**'
+              - 'src/templates/**'
+              - 'scripts/**'
               - 'tests/**'
+              - 'Makefile'
             markdown:
               - '**/*.md'
               - '.markdownlint.json'
@@ -149,9 +156,9 @@ jobs:
             src/lib/plugins/plugin_interface.sh
 
   test:
-    name: Run Tests (Smart Selection)
+    name: Run Tests (Full Suite)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     needs: [changes, lint]
     if: |
       always() && 
@@ -181,32 +188,25 @@ jobs:
           timeout 10s bash dist/oradba_install.sh --help >/dev/null 2>&1 && echo "✓ Help OK" || echo "✗ Help FAILED"
           timeout 10s bash dist/oradba_install.sh --show-version >/dev/null 2>&1 && echo "✓ Version OK" || echo "✗ Version FAILED"
       
-      - name: Select and run tests
+      - name: Run full test suite (gate)
         run: |
-          echo "::group::Detecting changed files"
-          # Use dorny/paths-filter output or git diff
-          if [ -n "${{ needs.changes.outputs.scripts }}" ]; then
-            echo "Scripts changed: ${{ needs.changes.outputs.scripts }}"
-          fi
-          echo "::endgroup::"
-          
-          echo "::group::Selecting tests to run"
-          chmod +x scripts/select_tests.sh
-          ./scripts/select_tests.sh --verbose > selected_tests.txt
-          test_count=$(wc -l < selected_tests.txt | tr -d ' ')
-          echo "Selected $test_count test file(s):"
-          cat selected_tests.txt
-          echo "::endgroup::"
-          
-          echo "::group::Running selected tests"
-          if [ -s selected_tests.txt ]; then
-            # Run with timeout for individual tests
-            cd tests && timeout 15m cat ../selected_tests.txt | xargs bats --tap
+          # Deliberately NOT smart selection. Smart selection ran green for four
+          # releases while seven tests were failing in files it did not select,
+          # and v1.0.4 selected nothing at all. `make test-full` is the single
+          # gate: it fails on any "not ok", on a missing TAP report, and on a
+          # non-zero bats exit. Skips do not fail the build.
+          make test-full
+
+      - name: Show TAP report on failure
+        if: failure()
+        run: |
+          if [ -f tests/results/report.tap ]; then
+            echo "::group::Failing tests"
+            grep '^not ok' tests/results/report.tap || true
+            echo "::endgroup::"
           else
-            echo "No tests selected, running all tests"
-            timeout 15m ./tests/run_tests.sh
+            echo "No TAP report was produced - bats did not run."
           fi
-          echo "::endgroup::"
 
   build:
     name: Build Installer

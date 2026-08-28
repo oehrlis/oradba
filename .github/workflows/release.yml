@@ -73,6 +73,34 @@ jobs:
           echo "Running complete test suite before release..."
           make test-full
           echo "All tests passed ✓"
+
+      - name: Verify the test gate actually ran
+        run: |
+          # Independent of the Makefile. Until v1.0.4 `make test-full` printed
+          # "All tests passed" and exited 0 whenever tests/results was absent,
+          # because bats never started and the grep on the missing TAP report
+          # left $failures empty. Seven failing tests reached three tags that
+          # way. This step re-derives the verdict from the written report, so a
+          # future change to the Makefile cannot silently pass the release.
+          report="tests/results/report.tap"
+          if [ ! -f "${report}" ]; then
+            echo "::error::No TAP report at ${report} - the test suite did not run. Refusing to release."
+            exit 1
+          fi
+          planned="$(grep -m1 -oE '^1\.\.[0-9]+' "${report}" | cut -d. -f3)"
+          if [ -z "${planned}" ] || [ "${planned}" -lt 1 ]; then
+            echo "::error::TAP report declares no tests (plan: '${planned:-none}'). Refusing to release."
+            exit 1
+          fi
+          failures="$(grep -c '^not ok' "${report}" || true)"
+          failures="${failures:-0}"
+          echo "TAP plan: ${planned} test(s), failures: ${failures}"
+          if [ "${failures}" -gt 0 ]; then
+            echo "::error::${failures} failing test(s) - refusing to release."
+            grep '^not ok' "${report}"
+            exit 1
+          fi
+          echo "Test gate verified against ${report} ✓"
       
       - name: Generate documentation
         run: |

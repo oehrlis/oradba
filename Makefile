@@ -140,11 +140,29 @@ test-full: ## Run all tests (no smart selection)
 		exit 1; \
 	fi
 	@# Parse the TAP report: skipped tests are "ok N # skip", real failures are
-	@# "not ok N". Fail the target only when at least one "not ok" line appears.
-	@$(BATS) --formatter tap --report-formatter tap --output $(TEST_DIR)/results $(TEST_DIR)/*.bats; \
-	failures="$$(grep -c '^not ok' $(TEST_DIR)/results/report.tap || true)"; \
+	@# "not ok N". Fail the target when a "not ok" line appears, when bats itself
+	@# fails to start, or when the report is missing. A missing report used to
+	@# make this target print "All tests passed" without running a single test
+	@# (tests/results is not tracked, so it never existed in a fresh clone).
+	@mkdir -p $(TEST_DIR)/results
+	@rm -f $(TEST_DIR)/results/report.tap
+	@set +e; \
+	$(BATS) --formatter tap --report-formatter tap --output $(TEST_DIR)/results $(TEST_DIR)/*.bats; \
+	bats_rc=$$?; \
+	set -e; \
+	if [ ! -f $(TEST_DIR)/results/report.tap ]; then \
+		echo -e "$(COLOR_RED)Test gate failed: bats produced no TAP report (exit $$bats_rc) - no test was executed$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	failures="$$(grep -c "^not ok" $(TEST_DIR)/results/report.tap || true)"; \
+	failures="$${failures:-0}"; \
 	if [ "$$failures" -gt 0 ]; then \
 		echo -e "$(COLOR_RED)Tests failed: $$failures failing test(s)$(COLOR_RESET)"; \
+		grep "^not ok" $(TEST_DIR)/results/report.tap; \
+		exit 1; \
+	fi; \
+	if [ "$$bats_rc" -ne 0 ]; then \
+		echo -e "$(COLOR_RED)Test gate failed: bats exited $$bats_rc with no failing test - treating as a broken run$(COLOR_RESET)"; \
 		exit 1; \
 	fi; \
 	echo -e "$(COLOR_GREEN)All tests passed (failures: 0)$(COLOR_RESET)"

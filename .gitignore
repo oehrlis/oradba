@@ -63,6 +63,7 @@ Thumbs.db
 
 # Test results
 test/test_results/
+tests/results/
 *.tap
 
 # External BATS test helper libraries (installed via git submodule or download)
