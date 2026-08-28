@@ -24,3 +24,11 @@ Last evolve run: 2026-07-03
 ## Next evolve
 
 Suggested after 10+ more sessions or when a new pattern appears 2+ times.
+
+## Evolve runs
+
+- 2026-08-28: run in `oradba`. 7 corrections reviewed (all already resolved),
+  4 lessons verified: 2 PASS, 1 N/A, **2 FAIL** with live defects (L1 in the
+  systemd entry point, L2 in `oraenv.sh`). 5 new lessons proposed (L5-L9),
+  2 rule promotions proposed for ai-toolkit.
+  Output: `tasks/evolve-promotions.md`.

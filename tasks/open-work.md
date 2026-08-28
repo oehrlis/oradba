@@ -37,6 +37,24 @@ Stand: 2026-08-28 (Session "Boot-Pfad-Gates schliessen", v1.0.5)
       `sid._DEFAULT_.conf` excluded so the payload still wins for the shipped one
 - [x] All seven long-standing test failures triaged and resolved
 
+## From /evolve (2026-08-28) - awaiting decision
+
+Full analysis: `tasks/evolve-promotions.md`. The verification sweep on the four
+existing lessons produced **two FAIL**, both live defects:
+
+- [ ] **L1 FAIL, P1**: `oradba_services_root.sh:111-113` captures `$?` on the
+      line *after* `su - oracle -c ...` under `set -euo pipefail`. If `su` fails
+      the script exits at the `su` line, so `local rc=$?` never runs and the
+      `if [[ ${rc} -eq 0 ]]` error handling below is unreachable - in the systemd
+      entry point, for the one case it exists for. `oradba_dbctl.sh:264-268` has
+      the same shape after a sqlplus heredoc [P1]
+- [ ] **L2 FAIL, P2**: `oraenv.sh:141` expands `${!pathvar}` without `:-`,
+      reachable from `:1222` with `"SQLPATH"`, which may be unset [P2]
+- [ ] Rule promotions proposed for `ai-toolkit/claude/rules/claude-code.md`
+      (0.8.0 -> 0.9.0) and `shell-scripts.md` (0.5.0 -> 0.6.0). Apply from
+      ai-toolkit, not from here [P2]
+- [ ] 7 remaining `grep -A<N>` function-window assertions [P3]
+
 ## Open - next session
 
 - [ ] **M6 / asset decision**: is oradba the canonical home for dbca-rsp, sqlnet,
