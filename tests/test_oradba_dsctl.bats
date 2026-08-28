@@ -281,32 +281,48 @@ teardown() {
     grep -q "datasafe" "${ORADBA_BIN}/oradba_dsctl.sh"
 }
 
+# ------------------------------------------------------------------------------
+# Function: dsctl_function_body
+# Purpose.: Print the body of a shell function from oradba_dsctl.sh
+# Args....: $1 - function name (without parentheses)
+# Returns.: 0 always
+# Output..: The function body, from its opening line to its closing brace
+# Notes...: Replaces `grep "^fn()" -A<N>`, which silently depends on the call
+#           sitting within N lines of the function header. Adding three lines of
+#           comment to show_status() pushed setup_connector_environment from
+#           line 10 to line 11 and the assertion had been failing ever since -
+#           a brittle test, not a defect.
+# ------------------------------------------------------------------------------
+dsctl_function_body() {
+    sed -n "/^${1}() {/,/^}/p" "${ORADBA_BIN}/oradba_dsctl.sh"
+}
+
 @test "setup_connector_environment sets ORACLE_HOME" {
-    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export ORACLE_HOME"
+    dsctl_function_body setup_connector_environment | grep -q "export ORACLE_HOME"
 }
 
 @test "setup_connector_environment sets LD_LIBRARY_PATH" {
-    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export LD_LIBRARY_PATH"
+    dsctl_function_body setup_connector_environment | grep -q "export LD_LIBRARY_PATH"
 }
 
 @test "setup_connector_environment sets TNS_ADMIN" {
-    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export TNS_ADMIN"
+    dsctl_function_body setup_connector_environment | grep -q "export TNS_ADMIN"
 }
 
 @test "setup_connector_environment sets DATASAFE_HOME" {
-    grep "setup_connector_environment" "${ORADBA_BIN}/oradba_dsctl.sh" -A20 | grep -q "export DATASAFE_HOME"
+    dsctl_function_body setup_connector_environment | grep -q "export DATASAFE_HOME"
 }
 
 @test "start_connector calls setup_connector_environment" {
-    grep "^start_connector()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
+    dsctl_function_body start_connector | grep -q "setup_connector_environment"
 }
 
 @test "stop_connector calls setup_connector_environment" {
-    grep "^stop_connector()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
+    dsctl_function_body stop_connector | grep -q "setup_connector_environment"
 }
 
 @test "show_status calls setup_connector_environment" {
-    grep "^show_status()" "${ORADBA_BIN}/oradba_dsctl.sh" -A10 | grep -q "setup_connector_environment"
+    dsctl_function_body show_status | grep -q "setup_connector_environment"
 }
 
 # ------------------------------------------------------------------------------

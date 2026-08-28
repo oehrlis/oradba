@@ -209,16 +209,30 @@ setup() {
     grep -A 5 "Check if any database listeners" "${ORAUP_SCRIPT}" | grep -q "process_list"
 }
 
-@test "datasafe_plugin.sh supports ORADBA_CACHED_PS environment variable" {
-    # Verify that DataSafe plugin can use cached process list
+@test "datasafe_plugin.sh determines status via a listening port" {
+    # 443fc0c (v1.0.0-rc.4) deliberately replaced the ORADBA_CACHED_PS / ps -ef
+    # detection with a port-based check because the ps detection was broken. It
+    # updated test_datasafe_plugin.bats and test_plugin_isolation.bats but not
+    # this file, so two assertions kept demanding the removed mechanism and had
+    # been red ever since. Assert the design that actually shipped.
     local DATASAFE_PLUGIN="${PROJECT_ROOT}/src/lib/plugins/datasafe_plugin.sh"
-    grep -q "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}"
+    grep -q "_datasafe_port_listening()" "${DATASAFE_PLUGIN}"
 }
 
-@test "datasafe_plugin.sh falls back to ps -ef when no cache" {
-    # Verify that plugin maintains backward compatibility
+@test "datasafe_plugin.sh port check tries ss, lsof and netstat" {
+    # The port probe must work on hosts that ship only one of the three tools.
     local DATASAFE_PLUGIN="${PROJECT_ROOT}/src/lib/plugins/datasafe_plugin.sh"
-    grep -A 5 "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}" | grep -q "ps -ef"
+    local body
+    body=$(sed -n '/^_datasafe_port_listening() {/,/^}/p' "${DATASAFE_PLUGIN}")
+    [[ "$body" == *"ss "* ]]
+    [[ "$body" == *"lsof"* ]]
+    [[ "$body" == *"netstat"* ]]
+}
+
+@test "datasafe_plugin.sh no longer reads the removed ORADBA_CACHED_PS" {
+    # Guard against reintroducing the detection that 443fc0c removed as broken.
+    local DATASAFE_PLUGIN="${PROJECT_ROOT}/src/lib/plugins/datasafe_plugin.sh"
+    ! grep -q "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}"
 }
 
 @test "oraup.sh Data Safe section displays only 4 columns" {

@@ -272,7 +272,14 @@ EOF
     [[ "$output" =~ "OraDBA Version Information" ]]
     [[ "$output" =~ "Version:" ]]
     [[ "$output" =~ "Install Path:" ]]
-    [[ "$output" =~ "Installation Details:" ]]
+    # Heading is "Installation:", not "Installation Details:" - renamed in
+    # 5cd54df (compact Installation/Extensions display) without updating this
+    # assertion, which is why the test had been red since v1.0.0.
+    [[ "$output" =~ "Installation:" ]]
+    # Assert the fields the compact block actually prints, so a future rename
+    # cannot pass on the heading alone.
+    [[ "$output" =~ "Installed:" ]]
+    [[ "$output" =~ "Method:" ]]
     [[ "$output" =~ "Installation integrity verified" ]]
 }
 

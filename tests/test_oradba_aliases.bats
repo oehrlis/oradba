@@ -398,8 +398,10 @@ teardown() {
     
     generate_sid_aliases
     
-    # Check sq alias contains rlwrap
-    run bash -c "alias sq"
+    # Query the alias in THIS shell. `bash -c "alias sq"` starts a new shell and
+    # aliases are not exported, so that form always failed regardless of the
+    # product - which is why this test was red for four releases.
+    run alias sq
     [ "$status" -eq 0 ]
     [[ "$output" =~ "rlwrap" ]]
     [[ "$output" =~ "sqlplus" ]]
@@ -430,8 +432,9 @@ teardown() {
     
     generate_sid_aliases
     
-    # Check sqh alias uses "/ as sysdba" not "/nolog"
-    run bash -c "alias sqh"
+    # Check sqh alias uses "/ as sysdba" not "/nolog". Queried in this shell for
+    # the same reason as above.
+    run alias sqh
     [ "$status" -eq 0 ]
     [[ "$output" =~ "sqlplus / as sysdba" ]]
     [[ ! "$output" =~ "/nolog" ]]

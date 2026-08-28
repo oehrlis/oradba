@@ -35,6 +35,22 @@ teardown() {
 # Build Script Tests
 # ============================================================================
 
+# ------------------------------------------------------------------------------
+# Function: installer_function_body
+# Purpose.: Print the body of a shell function from the standalone installer
+# Args....: $1 - function name (without parentheses)
+# Returns.: 0 always
+# Output..: The function body, from its opening line to its closing brace
+# Notes...: Replaces `grep "fn()" -A<N>`, which silently depends on the asserted
+#           line sitting within N lines of the function header. Adding four
+#           lines to detect_profile_file() pushed "bash_profile" past -A5 and
+#           broke an assertion that had nothing to do with the change. Windows
+#           of 5, 10, 15, 40, 80, 90 and 120 lines were all in use here.
+# ------------------------------------------------------------------------------
+installer_function_body() {
+    sed -n "/^${1}() {/,/^}/p" "$STANDALONE_INSTALLER"
+}
+
 @test "build_installer.sh exists and is executable" {
     [ -f "$BUILD_SCRIPT" ]
     [ -x "$BUILD_SCRIPT" ]
@@ -397,8 +413,33 @@ teardown() {
     grep -q "restore_from_backup()" "$STANDALONE_INSTALLER"
 }
 
-@test "installer has preserve_configs function" {
-    grep -q "preserve_configs()" "$STANDALONE_INSTALLER"
+@test "installer has preserve_runtime_files function" {
+    # Was asserted as preserve_configs() and had been failing since the function
+    # was renamed; the feature exists, the test name did not follow.
+    grep -q "preserve_runtime_files()" "$STANDALONE_INSTALLER"
+}
+
+@test "installer has restore_runtime_files function" {
+    grep -q "restore_runtime_files()" "$STANDALONE_INSTALLER"
+}
+
+@test "update preserves user sid configs but not the shipped default" {
+    # sid._DEFAULT_.conf is the only sid file in the payload, so every other
+    # sid.*.conf is user-created. They were silently dropped on --update.
+    run installer_function_body preserve_runtime_files
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'-name "sid.*.conf"'* ]]
+    [[ "$output" == *'! -name "sid._DEFAULT_.conf"'* ]]
+}
+
+@test "update does not preserve framework configs over a newer payload" {
+    # oradba_core.conf and oradba_standard.conf must be overwritten by the
+    # payload; local overrides belong in *_customer.conf. Guards against a
+    # regression that would restore an old shipped config over a new one.
+    run installer_function_body preserve_runtime_files
+    [ "$status" -eq 0 ]
+    [[ "$output" != *'oradba_core.conf'* ]]
+    [[ "$output" != *'oradba_standard.conf'* ]]
 }
 
 @test "installer has perform_update function" {
@@ -534,25 +575,25 @@ teardown() {
 @test "profile detection prefers bash_profile" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that bash_profile is first priority in detect_profile_file
-    grep -A 5 "detect_profile_file()" "$STANDALONE_INSTALLER" | grep -q "bash_profile"
+    installer_function_body detect_profile_file | grep -q "bash_profile"
 }
 
 @test "profile integration checks for duplicates" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Verify profile_has_oradba checks for existing integration
-    grep -A 10 "profile_has_oradba()" "$STANDALONE_INSTALLER" | grep -q "OraDBA Environment Integration"
+    installer_function_body profile_has_oradba | grep -q "OraDBA Environment Integration"
 }
 
 @test "profile integration sources oraenv.sh in silent mode" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that profile integration uses --silent flag
-    grep -A 80 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "oraenv.sh.*--silent"
+    installer_function_body update_profile | grep -q "oraenv.sh.*--silent"
 }
 
 @test "profile integration runs oraup on interactive shells" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that profile integration conditionally runs oraup for interactive shells
-    grep -A 90 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "oraup"
+    installer_function_body update_profile | grep -q "oraup"
 }
 
 @test "installer code has --update-profile flag" {
@@ -588,21 +629,21 @@ teardown() {
 @test "update_profile skips and warns when COEXIST_MODE is basenv" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Guard must check for basenv* coexistence mode inside update_profile
-    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "COEXIST_MODE.*basenv"
+    installer_function_body update_profile | grep -q "COEXIST_MODE.*basenv"
 }
 
 @test "update_profile prints manual .bash_profile instructions in basenv mode" {
     [ -f "$STANDALONE_INSTALLER" ]
     # The early-return block must mention TVD_BASE/oradba and oraenv.sh so the
     # administrator knows what to add to .bash_profile after the BasEnv init line
-    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "TVD_BASE.*oradba.*oraenv"
+    installer_function_body update_profile | grep -q "TVD_BASE.*oradba.*oraenv"
 }
 
 @test "update_profile warning is conditional on UPDATE_PROFILE=yes in basenv mode" {
     [ -f "$STANDALONE_INSTALLER" ]
     # The log_warn call must be inside an inner if block guarded by UPDATE_PROFILE==yes;
     # the outer basenv block must NOT start with log_warn (info is always shown)
-    grep -A 40 "update_profile()" "$STANDALONE_INSTALLER" | \
+    installer_function_body update_profile | \
         grep -q 'if \[\[ "\$UPDATE_PROFILE" == "yes" \]\]'
 }
 
@@ -611,7 +652,7 @@ teardown() {
     # log_info about adding the block must appear AFTER the closing fi of the
     # UPDATE_PROFILE guard, so it runs regardless of --update-profile
     local block
-    block=$(grep -A 40 "update_profile()" "$STANDALONE_INSTALLER")
+    block=$(installer_function_body update_profile)
     # The fi closing the UPDATE_PROFILE guard must come before log_info
     echo "$block" | grep -n "fi" | head -1 | grep -q "^[0-9]"
     local fi_line log_line
@@ -658,14 +699,14 @@ teardown() {
 @test "profile file detection supports multiple shells" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check for bashrc, profile, and zshrc fallbacks
-    grep -A 15 "detect_profile_file()" "$STANDALONE_INSTALLER" | grep -q "bashrc"
-    grep -A 15 "detect_profile_file()" "$STANDALONE_INSTALLER" | grep -q "\.profile"
+    installer_function_body detect_profile_file | grep -q "bashrc"
+    installer_function_body detect_profile_file | grep -q "\.profile"
 }
 
 @test "profile integration creates backup before modification" {
     [ -f "$STANDALONE_INSTALLER" ]
     # Check that backup is created
-    grep -A 120 "update_profile()" "$STANDALONE_INSTALLER" | grep -q "\.backup\."
+    installer_function_body update_profile | grep -q "\.backup\."
 }
 
 @test "profile integration uses silent mode for oraenv" {
