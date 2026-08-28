@@ -57,6 +57,9 @@ Stand: 2026-08-28 (Session "Boot-Pfad-Gates schliessen", v1.0.5)
       function's return code is reinterpreted, grep every caller.
 - [x] `make format-check` reported failure and success simultaneously and exited
       0. Fixed; it now names the files and fails.
+- [x] The release workflow did not install `shfmt`, so `make lint` failed there
+      once the formatting gate was part of it. Fixed, and all three workflows
+      that call `make lint` were audited rather than just the failing one.
 - [x] `make lint` did not run the shfmt check the workflow enforces. The file
       list now lives in the Makefile as `SHFMT_SCOPE`, the workflow calls
       `make format-check-scope`, and `lint` includes it.
