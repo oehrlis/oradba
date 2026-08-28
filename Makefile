@@ -39,6 +39,29 @@ DIST_DIR 	:= dist
 # Tools
 SHELLCHECK		:= $(shell command -v shellcheck 2>/dev/null)
 SHFMT 			:= $(shell command -v shfmt 2>/dev/null)
+
+# Files the CI formatting gate enforces. Kept here rather than in ci.yml so that
+# `make format-check-scope` and the workflow cannot drift apart - the workflow
+# calls this target. Expand until all of src/ is covered.
+SHFMT_SCOPE := \
+	src/bin/oradba_dsctl.sh \
+	src/bin/oradba_dbctl.sh \
+	src/bin/oradba_lsnrctl.sh \
+	src/bin/oradba_dbca.sh \
+	src/bin/oradba_version.sh \
+	src/bin/oradba_logrotate.sh \
+	src/bin/oradba_sqlnet.sh \
+	src/bin/oradba_homes.sh \
+	src/bin/oradba_extension.sh \
+	src/bin/oradba_install.sh \
+	src/bin/get_seps_pwd.sh \
+	src/bin/oraenv.sh \
+	src/bin/oradba_validate.sh \
+	src/bin/oraup.sh \
+	src/bin/oradba_setup.sh \
+	src/bin/oradba_check.sh \
+	src/lib/oradba_env_changes.sh \
+	src/lib/plugins/plugin_interface.sh
 MARKDOWNLINT	:= $(shell command -v markdownlint 2>/dev/null || command -v markdownlint-cli 2>/dev/null)
 BATS 			:= $(shell command -v bats 2>/dev/null)
 GIT 			:= $(shell command -v git 2>/dev/null)
@@ -231,7 +254,7 @@ test-docker-keep: build ## Run Docker tests and keep container for inspection
 	fi
 
 .PHONY: lint
-lint: lint-shell lint-scripts lint-markdown ## Run all linters
+lint: lint-shell format-check-scope lint-scripts lint-markdown ## Run all linters
 
 .PHONY: lint-shell
 lint-shell: ## Lint shell scripts with shellcheck
@@ -280,17 +303,36 @@ format: ## Format shell scripts with shfmt
 		echo -e "$(COLOR_YELLOW)Warning: shfmt not found. Install with: brew install shfmt$(COLOR_RESET)"; \
 	fi
 
+.PHONY: format-check-scope
+format-check-scope: ## Check formatting of the files the CI gate enforces
+	@echo -e "$(COLOR_BLUE)Checking script formatting (CI scope)...$(COLOR_RESET)"
+	@if [ -z "$(SHFMT)" ]; then \
+		echo -e "$(COLOR_RED)Error: shfmt not found. Install with: brew install shfmt$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@if $(SHFMT) -i 4 -bn -ci -sr -l $(SHFMT_SCOPE) | grep .; then \
+		echo -e "$(COLOR_RED)✗ The files listed above need formatting. Run: make format$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo -e "$(COLOR_GREEN)✓ CI-scope scripts properly formatted$(COLOR_RESET)"
+
 .PHONY: format-check
 format-check: ## Check if scripts are formatted correctly
 	@echo -e "$(COLOR_BLUE)Checking script formatting...$(COLOR_RESET)"
-	@if [ -n "$(SHFMT)" ]; then \
-		find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
-			xargs $(SHFMT) -i 4 -bn -ci -sr -d || \
-			(echo -e "$(COLOR_RED)✗ Scripts need formatting. Run: make format$(COLOR_RESET)" && exit 1); \
-		echo -e "$(COLOR_GREEN)✓ All scripts properly formatted$(COLOR_RESET)"; \
-	else \
-		echo -e "$(COLOR_YELLOW)Warning: shfmt not found$(COLOR_RESET)"; \
+	@# The `|| (echo ...; exit 1)` this used to have ran the error branch in a
+	@# subshell and then fell through to the success message, so the target
+	@# printed "needs formatting" AND "properly formatted" and exited 0. Same
+	@# class of defect as the test gate: a check that cannot fail.
+	@if [ -z "$(SHFMT)" ]; then \
+		echo -e "$(COLOR_RED)Error: shfmt not found. Install with: brew install shfmt$(COLOR_RESET)"; \
+		exit 1; \
 	fi
+	@if find $(BIN_DIR) $(LIB_DIR) $(SCRIPTS_DIR) -name "*.sh" -type f | \
+		xargs $(SHFMT) -i 4 -bn -ci -sr -l | grep .; then \
+		echo -e "$(COLOR_RED)✗ The files listed above need formatting. Run: make format$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo -e "$(COLOR_GREEN)✓ All scripts properly formatted$(COLOR_RESET)"
 
 .PHONY: check
 check: lint test ## Run all checks (lint + test)

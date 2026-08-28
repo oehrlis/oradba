@@ -15,6 +15,19 @@
 
 set -euo pipefail
 
+# ------------------------------------------------------------------------------
+# Base paths
+# ------------------------------------------------------------------------------
+# This script references ${ORADBA_BASE} and ${ORADBA_BIN_DIR} in five places and
+# runs under set -u, so without a default it aborted whenever it was called from
+# an environment that had not sourced the oradba profile. That never showed
+# interactively - the profile exports both - and the test suite only passed
+# because the developer's own shell leaked them in. Same defect class as the
+# boot-path cascade; derive them instead of assuming a caller.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ORADBA_BASE="${ORADBA_BASE:-$(dirname "${SCRIPT_DIR}")}"
+ORADBA_BIN_DIR="${ORADBA_BIN_DIR:-${ORADBA_BASE}/bin}"
+
 # Color definitions
 readonly COLOR_RESET='\033[0m'
 readonly COLOR_BOLD='\033[1m'

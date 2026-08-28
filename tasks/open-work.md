@@ -46,6 +46,21 @@ Stand: 2026-08-28 (Session "Boot-Pfad-Gates schliessen", v1.0.5)
 - [ ] **Phase 0 repo boundaries**: which repos stay separate, what gets merged.
       Own decision round [P3]
 
+### Found by the release gate on its first run
+
+- [x] `oradba_help.sh`: five unguarded `${ORADBA_BASE}` references under
+      `set -u`. Fixed. The local suite had passed only because the developer
+      shell exports 71 `ORADBA_*` variables.
+- [x] `oradba_homes.sh`: `add`/`remove` completed successfully and exited 1,
+      because `generate_sid_lists` returns non-zero without an oratab. Fixed at
+      both call sites. Same defect as in `oradba_standard.conf` - when a
+      function's return code is reinterpreted, grep every caller.
+- [x] `make format-check` reported failure and success simultaneously and exited
+      0. Fixed; it now names the files and fails.
+- [x] `make lint` did not run the shfmt check the workflow enforces. The file
+      list now lives in the Makefile as `SHFMT_SCOPE`, the workflow calls
+      `make format-check-scope`, and `lint` includes it.
+
 ### Found during this session, not fixed
 
 - [ ] `ORADBA_CACHED_PS` is dead: `oraup.sh:589` builds and exports a process
@@ -66,6 +81,24 @@ Stand: 2026-08-28 (Session "Boot-Pfad-Gates schliessen", v1.0.5)
 - [ ] `oradba_version.sh` pads output with spaces for column alignment
       (`Version:       1.0.4`), which conflicts with the no-alignment-padding
       convention. Cosmetic, but it is generated output [P3]
+- [ ] Formatting debt outside the CI scope: `make format-check` (the wide
+      variant) names six files that need `shfmt` - `oradba_env_config.sh`,
+      `oradba_aliases.sh`, `oradba_registry.sh`, `archive_github_releases.sh`,
+      `validate_test_environment.sh`, `validate_project.sh`. Mechanical to fix
+      with `make format`, but it touches files the suite covers, so it wants its
+      own verified change. Until then `SHFMT_SCOPE` stays narrower than the
+      repo [P3]
+- [ ] Three tests pass or fail depending on whether the runner is root:
+      `persist_discovered_instances handles permission denied gracefully`,
+      `log_directory_fallback_uses_tmp_when_var_log_oracle_missing` and
+      `oradba_rman.sh accepts --parallel gnu` fail as root (root can write
+      anywhere, so the negative case never triggers). They should skip with a
+      reason when running as root instead of failing [P3]
+- [ ] The local test suite runs against a leaked environment: 71 `ORADBA_*` and
+      `ORACLE_*` variables from the developer's own installation, plus a
+      populated `/etc/oratab`. That is what hid the two defects above. Consider a
+      `make test-clean` that runs the suite under `env -i` with only what a
+      clean host provides [P2]
 - [ ] `src/etc/sid._DEFAULT_.conf:20,22` expand `${ORACLE_SID}` bare. Only
       sourced once a SID is known, so not a live defect - but the only remaining
       instance of the pattern in `src/etc/` [P3]

@@ -573,8 +573,15 @@ EOF
 
     # Regenerate SID lists and aliases in current shell
     if command -v generate_sid_lists &> /dev/null && command -v generate_oracle_home_aliases &> /dev/null; then
-        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null
-        generate_oracle_home_aliases 2> /dev/null
+        # Both return non-zero for the legitimate case "no oratab entries".
+        # Under set -e that advisory return code aborted this function before it
+        # reached its own `return 0`, so `add`/`remove` did the work, printed
+        # "added successfully" and still exited 1. Invisible on any host that has
+        # a populated /etc/oratab, which is every developer machine and no clean
+        # CI runner. Same shape as the config-loading defect in
+        # oradba_standard.conf; the regeneration is a convenience, not the job.
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null || true
+        generate_oracle_home_aliases 2> /dev/null || true
         oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 
@@ -633,8 +640,15 @@ remove_home() {
 
     # Regenerate SID lists and aliases in current shell
     if command -v generate_sid_lists &> /dev/null && command -v generate_oracle_home_aliases &> /dev/null; then
-        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null
-        generate_oracle_home_aliases 2> /dev/null
+        # Both return non-zero for the legitimate case "no oratab entries".
+        # Under set -e that advisory return code aborted this function before it
+        # reached its own `return 0`, so `add`/`remove` did the work, printed
+        # "added successfully" and still exited 1. Invisible on any host that has
+        # a populated /etc/oratab, which is every developer machine and no clean
+        # CI runner. Same shape as the config-loading defect in
+        # oradba_standard.conf; the regeneration is a convenience, not the job.
+        generate_sid_lists "${ORATAB_FILE:-/etc/oratab}" 2> /dev/null || true
+        generate_oracle_home_aliases 2> /dev/null || true
         oradba_log DEBUG "Regenerated SID lists and aliases"
     fi
 

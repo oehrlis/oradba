@@ -867,8 +867,8 @@ set_prefix_ownership() {
         # Not root: chown would fail anyway. Say so only when the prefix is not
         # already owned by the target user, so the normal case stays quiet.
         # `find -user` asks the question directly instead of parsing ls output.
-        if [[ -e "${install_prefix}" ]] &&
-            [[ -z "$(find "${install_prefix}" -maxdepth 0 -user "${PROFILE_USER}" 2> /dev/null)" ]]; then
+        if [[ -e "${install_prefix}" ]] \
+            && [[ -z "$(find "${install_prefix}" -maxdepth 0 -user "${PROFILE_USER}" 2> /dev/null)" ]]; then
             log_warn "Cannot change ownership of ${install_prefix} to ${PROFILE_USER}: installer is not running as root"
             log_warn "Run as root, or fix manually: chown -R ${PROFILE_USER} ${install_prefix}"
         fi

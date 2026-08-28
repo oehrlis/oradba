@@ -131,29 +131,14 @@ jobs:
           sudo install /tmp/shfmt /usr/local/bin/shfmt
           shfmt --version
 
-      - name: Check shell formatting (M1+M2+M3 scope)
+      - name: Check shell formatting (CI scope)
         run: |
-          # Scope: files cleaned in M1 and M2. M3 is tests-only (no .sh changes),
-          # so the file list is unchanged. Expand each milestone until all of src/ is covered.
-          shfmt -i 4 -bn -ci -sr -d \
-            src/bin/oradba_dsctl.sh \
-            src/bin/oradba_dbctl.sh \
-            src/bin/oradba_lsnrctl.sh \
-            src/bin/oradba_dbca.sh \
-            src/bin/oradba_version.sh \
-            src/bin/oradba_logrotate.sh \
-            src/bin/oradba_sqlnet.sh \
-            src/bin/oradba_homes.sh \
-            src/bin/oradba_extension.sh \
-            src/bin/oradba_install.sh \
-            src/bin/get_seps_pwd.sh \
-            src/bin/oraenv.sh \
-            src/bin/oradba_validate.sh \
-            src/bin/oraup.sh \
-            src/bin/oradba_setup.sh \
-            src/bin/oradba_check.sh \
-            src/lib/oradba_env_changes.sh \
-            src/lib/plugins/plugin_interface.sh
+          # The file list lives in the Makefile (SHFMT_SCOPE) so that this gate
+          # and `make lint` cannot drift apart. A developer running `make lint`
+          # now gets the same verdict this step does - previously the workflow
+          # checked formatting and `make lint` did not, so a formatting-only
+          # break was invisible until push.
+          make format-check-scope
 
   test:
     name: Run Tests (Full Suite)

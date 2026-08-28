@@ -54,6 +54,26 @@ test that would have caught the whole boot-path cascade in one run.
   every other `sid.*.conf` was user data. They are now preserved, with the
   shipped default explicitly excluded so a new payload still wins for it.
 - `oradba_lsnrctl.sh`: two `read` calls without `-r` (SC2162).
+- `oradba_help.sh`: five live `${ORADBA_BASE}` references with no default, under
+  `set -euo pipefail`. Every `oradba help <topic>` aborted when called from an
+  environment that had not sourced the oradba profile. Invisible interactively,
+  because the profile exports it - and the test suite passed only because the
+  developer's own shell leaked it in. It now derives its base paths from
+  `BASH_SOURCE`, the pattern `oradba_homes.sh:20` already used.
+- `oradba_homes.sh`: `add` and `remove` did their work, printed "added
+  successfully" and still exited 1. Both call `generate_sid_lists`, which
+  returns non-zero for the legitimate case "no oratab entries"; under `set -e`
+  that advisory return code aborted the function before it reached its own
+  `return 0`. Invisible on any host with a populated `/etc/oratab`, which is
+  every developer machine and no clean CI runner. Same defect as the one fixed
+  in `oradba_standard.conf` above - the other call sites were not checked at the
+  time.
+- `make format-check` printed "✗ Scripts need formatting" **and** "✓ All scripts
+  properly formatted" and exited 0. The `|| (echo ...; exit 1)` ran the error
+  branch in a subshell and then fell through to the success message, so the
+  target could not fail. Same class as the test gate. It now names the offending
+  files and exits non-zero, and a missing `shfmt` is an error rather than a
+  warning that passes.
 
 ### Added
 
@@ -96,6 +116,11 @@ test that would have caught the whole boot-path cascade in one run.
 - CI runs the full suite instead of smart test selection. Selection ran green
   for four releases while seven tests failed in files it did not select, and for
   v1.0.4 it selected nothing at all.
+- The shfmt file list moved from `ci.yml` into the Makefile as `SHFMT_SCOPE`,
+  and the workflow calls `make format-check-scope`. `make lint` now runs that
+  same check, so a developer gets the verdict CI will give. Previously the
+  workflow enforced formatting and `make lint` did not, which is exactly how a
+  formatting-only break reached a push during this release.
 
 ### Testing
 
