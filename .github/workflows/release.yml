@@ -53,6 +53,7 @@ jobs:
       - name: Install BATS and linting tools
         env:
           SHELLCHECK_VERSION: "0.10.0"
+          SHFMT_VERSION: "3.8.0"
         run: |
           sudo apt-get update
           sudo apt-get install -y bats
@@ -60,6 +61,14 @@ jobs:
             | tar -xJ
           sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
           shellcheck --version
+          # shfmt is required because `make lint` now includes the formatting
+          # gate. Only the CI workflow installed it before, so `make lint` here
+          # failed on a missing tool - correctly, since a linter that is absent
+          # must not pass silently.
+          curl -fsSL "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" \
+            -o /tmp/shfmt
+          sudo install /tmp/shfmt /usr/local/bin/shfmt
+          shfmt --version
           npm install -g markdownlint-cli
       
       - name: Run linting
