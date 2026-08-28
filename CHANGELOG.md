@@ -5,6 +5,121 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-28
+
+Closes the gates that let four releases ship unverified, and adds the regression
+test that would have caught the whole boot-path cascade in one run.
+
+### Fixed
+
+- **The release gate never ran the tests.** `make test-full` invoked bats with
+  `--output tests/results`, a directory that is neither tracked nor in
+  `.gitignore` and therefore absent in every fresh checkout. bats aborted with
+  its help text, `grep -c '^not ok'` failed on the missing report, `$failures`
+  stayed empty, `[ "" -gt 0 ]` errored (exit 2, treated as false) and the target
+  fell through to `All tests passed (failures: 0)` with exit 0. This is the
+  reason seven failing tests reached three tagged releases. The target now
+  creates the directory, checks that a TAP report with a non-empty plan exists,
+  and fails on a non-zero bats exit even when no test reported `not ok`.
+- **CI skipped lint and tests for `src/etc/` changes.** Neither the `tests` nor
+  the `config` path filter covered `src/etc/**`, and `lint` is gated on
+  `scripts || tests`. v1.0.4 changed only `src/etc/`, `CHANGELOG.md`, `VERSION`
+  and `doc/releases/` - so the release that fixed the config defect ran through
+  CI without a single test or linter. Both filters now cover every shipped
+  source directory.
+- `src/etc/oradba_standard.conf`: `RLWRAP_OPTS` expanded a bare `$ORACLE_HOME`
+  _inside its own default value_. With `RLWRAP_OPTS` unset, bash expanded the
+  default and aborted under `set -u`. Same defect class as 1.0.1 to 1.0.4, still
+  live in v1.0.4.
+- `src/etc/oradba_standard.conf`: four guards tested for the existence of the
+  _file_ `oradba_common.sh` while calling `generate_sid_lists`,
+  `generate_oracle_home_aliases`, `generate_pdb_aliases` and
+  `load_rman_catalog_connection` - functions that live in other libraries. An
+  interactive shell had been through `oraenv.sh`, so the functions existed and
+  the wrong guard never showed. They now use `command -v`, the idiom the file
+  already used two lines below.
+- `src/etc/oradba_standard.conf`: the file documents `oradba_core.conf` as its
+  predecessor but never sourced the library providing `safe_alias`, so on the
+  boot path the first of 77 `safe_alias` calls aborted the config with
+  `safe_alias: command not found`. It now sources its own prerequisite, and
+  degrades to a no-op with an explicit message if the library is truly absent.
+- `src/etc/oradba_standard.conf`: `generate_sid_lists` returns non-zero for the
+  legitimate case "no oratab entries". Under `set -e` that advisory return code
+  aborted the entire configuration. The four enrichment calls now tolerate it.
+- `src/etc/oradba_standard.conf`: the SID-derived admin and diagnostic block
+  expanded `${ORACLE_SID}` bare. It is now guarded as a block, so no SID means
+  empty values rather than paths like `${ORACLE_BASE}/admin/`.
+- `oradba_install.sh`: `--update` silently discarded user-created
+  `sid.<SID>.conf` files. Only `sid._DEFAULT_.conf` ships in the payload, so
+  every other `sid.*.conf` was user data. They are now preserved, with the
+  shipped default explicitly excluded so a new payload still wins for it.
+- `oradba_lsnrctl.sh`: two `read` calls without `-r` (SC2162).
+
+### Added
+
+- `tests/test_boot_path.bats` - 11 regression tests for the non-interactive boot
+  path. Models what `systemd` hands to oradba via `su - oracle -c`: `HOME`,
+  `PATH`, `USER`, `LOGNAME` and `SHELL` set, everything Oracle-related unset.
+  Needs no Oracle and no container, because every defect in the cascade fires
+  while sourcing or parsing arguments, long before any Oracle contact. Red
+  against v1.0.0 (6 of 11 fail), green after these fixes. Runs under bash >= 4.0
+  and skips loudly otherwise, since `declare -A` fails on macOS bash 3.2 for
+  reasons that have nothing to do with the code under test.
+- `oradba_install.sh --profile-user USER` - wires that user's shell profile and
+  hands the installed tree to them. `${HOME}` is correct only when the installer
+  runs as the Oracle user; under `sudo`/Ansible `become: true` it is `/root`, so
+  oradba was installed but never available interactively. The target home is
+  resolved via `getent passwd`, with tilde expansion as a fallback for hosts
+  without `getent`.
+- `oradba_install.sh`: ownership handling for the above. When run as root with
+  `--profile-user`, the prefix and the log directory are handed to that user and
+  group. This also addresses the root-owned `/var/log/oracle` that the Oracle
+  user could not write to. Failures are reported with the corrective command,
+  never skipped silently.
+- Release workflow: a gate that re-derives the verdict from the written TAP
+  report - report present, plan non-empty, zero `not ok` - independently of the
+  Makefile, so a future change there cannot silently pass a release again.
+- Regression tests for config preservation during `--update`, covering both that
+  user `sid.*.conf` files survive and that framework configs do not override a
+  newer payload.
+
+### Changed
+
+- `oradba_dbctl.sh`, `oradba_dsctl.sh`, `oradba_lsnrctl.sh`: when stdin is not a
+  terminal and `--force` was not given, an all-targets operation now fails with
+  a message naming `--force`, instead of running `read` against a stream that
+  cannot answer and cancelling with "No justification provided" - which read
+  like a policy decision rather than a missing flag. A non-interactive stdin
+  deliberately does **not** imply `--force`: that would silently widen an
+  all-databases operation to every cron job and pipe. The `systemd` path is
+  unaffected, `oradba_services_root.sh` already passes `--force`.
+- CI runs the full suite instead of smart test selection. Selection ran green
+  for four releases while seven tests failed in files it did not select, and for
+  v1.0.4 it selected nothing at all.
+
+### Testing
+
+All seven failures that survived v1.0.1 through v1.0.4 are triaged and resolved.
+None was a product defect except the first:
+
+- `installer has preserve_configs function` - asserted a function renamed to
+  `preserve_runtime_files`. Investigating it surfaced the real `sid.*.conf` data
+  loss fixed above.
+- `generate_sid_aliases creates rlwrap aliases ...` and `sqh alias connects with
+  sysdba ...` - queried the alias via `run bash -c "alias sq"`. Aliases are not
+  exported, so a new shell can never see them; these two could not pass
+  regardless of the product. Now queried in the current shell.
+- `show_status calls setup_connector_environment` - `grep -A10` from the
+  function header. A three-line comment pushed the call to line 11. All seven
+  fixed-window greps in that file now extract the real function body instead.
+- `oradba_version.sh --info shows comprehensive information` - asserted the
+  heading `Installation Details:`, deliberately shortened to `Installation:` in
+  5cd54df without updating the test.
+- `datasafe_plugin.sh supports ORADBA_CACHED_PS ...` and `... falls back to
+  ps -ef ...` - asserted a mechanism that 443fc0c deliberately removed as broken
+  in favour of a port-based check, updating two test files but not this one.
+  Replaced with assertions of the design that actually shipped.
+
 ## [1.0.4] - 2026-08-23
 
 ### Fixed
