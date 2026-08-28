@@ -196,7 +196,8 @@ get_running_listeners() {
 # Function: ask_justification
 # Purpose.: Prompt for justification when operating on all listeners (safety check)
 # Args....: $1 - Action name (start/stop/restart), $2 - Count of affected listeners
-# Returns.: 0 if user confirms, 1 if cancelled or no justification
+# Returns.: 0 if user confirms, 1 if cancelled, no justification, or stdin
+#           is not a terminal and --force was not given
 # Output..: Warning banner, prompts for justification and confirmation
 # Notes...: Skipped if FORCE_MODE=true; requires "yes" confirmation to proceed
 # ------------------------------------------------------------------------------
@@ -208,13 +209,25 @@ ask_justification() {
         return 0
     fi
 
+    # Without a terminal there is nobody to answer the prompt. `read` would
+    # consume EOF, get an empty justification and cancel with "No justification
+    # provided" - which reads like a policy decision rather than a missing flag.
+    # systemd, cron and Ansible all land here. Fail with the flag named instead
+    # of implying --force: that would silently widen an all-listeners operation
+    # to every non-interactive caller.
+    if [[ ! -t 0 ]]; then
+        oradba_log ERROR "${SCRIPT_NAME}: refusing to ${action} all ${count} listener(s): stdin is not a terminal, so the required justification cannot be requested."
+        oradba_log ERROR "${SCRIPT_NAME}: pass --force to run unattended, or name the listeners explicitly."
+        return 1
+    fi
+
     echo ""
     echo "=========================================="
     echo "WARNING: About to ${action} ALL listeners" >&2
     echo "=========================================="
     echo "This will affect ${count} listener(s)"
     echo ""
-    read -p "Please provide justification for this operation: " justification
+    read -r -p "Please provide justification for this operation: " justification
 
     if [[ -z "${justification}" ]]; then
         oradba_log ERROR "Operation cancelled: No justification provided"
@@ -222,7 +235,7 @@ ask_justification() {
     fi
 
     oradba_log INFO "Justification for ${action} all listeners: ${justification}"
-    read -p "Continue with operation? (yes/no): " confirm
+    read -r -p "Continue with operation? (yes/no): " confirm
 
     if [[ "${confirm}" != "yes" ]]; then
         oradba_log INFO "Operation cancelled by user"

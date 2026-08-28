@@ -152,13 +152,15 @@ get_databases() {
 }
 
 # ------------------------------------------------------------------------------
-# Function: should_autostart
 # Function: ask_justification
 # Purpose.: Prompt for justification when operating on multiple databases
 # Args....: $1 - Action name (start/stop/restart), $2 - Database count
-# Returns.: 0 if confirmed, 1 if cancelled or no justification
+# Returns.: 0 if confirmed, 1 if cancelled, no justification, or stdin is not a
+#           terminal and --force was not given
 # Output..: Warning banner, prompts for justification and confirmation to stdout
-# Notes...: Skipped if FORCE_MODE=true; logs justification; requires 'yes' to proceed
+# Notes...: Skipped if FORCE_MODE=true; logs justification; requires 'yes' to
+#           proceed. On a non-interactive stdin it fails with a message naming
+#           --force rather than reading from a stream that cannot answer.
 # ------------------------------------------------------------------------------
 ask_justification() {
     local action="$1"
@@ -166,6 +168,18 @@ ask_justification() {
 
     if [[ "${FORCE_MODE:-}" == "true" ]]; then
         return 0
+    fi
+
+    # Without a terminal there is nobody to answer the prompt. `read` would
+    # consume EOF (or worse, an unrelated stream), get an empty justification
+    # and cancel with "No justification provided" - which reads like a policy
+    # decision rather than a missing flag. systemd, cron and Ansible all land
+    # here. Fail with the flag named instead of implying --force: that would
+    # silently widen an all-databases operation to every non-interactive caller.
+    if [[ ! -t 0 ]]; then
+        oradba_log ERROR "${SCRIPT_NAME}: refusing to ${action} all ${count} database(s): stdin is not a terminal, so the required justification cannot be requested."
+        oradba_log ERROR "${SCRIPT_NAME}: pass --force to run unattended, or name the databases explicitly."
+        return 1
     fi
 
     echo ""
