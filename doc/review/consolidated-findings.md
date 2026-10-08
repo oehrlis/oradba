@@ -54,7 +54,7 @@ Severity scale: Critical / High / Medium / Low. Blocker = must be resolved befor
 | 33 | CF-033 | Low | Bash / determinism | Fragile `grep`/`find` boolean idioms, missing `LC_ALL=C`, GNU `date -d` returns 0 on parse failure | No | S |
 | 34 | CF-034 | Medium | Release / process | No v1.0.0 readiness definition, no stabilisation gate, no deprecation-warning policy | Yes | M |
 
-<!-- markdownlint-enable MD060 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 

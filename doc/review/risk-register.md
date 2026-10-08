@@ -37,7 +37,7 @@ Owner-type: maintainer (code/architecture decision), release-eng (pipeline/proce
 | RISK-18 | Supply-chain: release artifacts silently altered by mutable Docker tags, unpinned third-party actions, or unverified build downloads | CF-028 / DEP-009, DEP-010, DEP-011, DEP-014, RF-10 | Low | Medium | Low | Pin Docker images by digest, third-party actions by commit SHA, packages by version; checksum-verify the extension-template download; pin a `ref:` per extensions.yml entry | release-eng | Medium until pinning is complete - pipeline holds contents:write |
 | RISK-19 | Process: v1.0.0 declared without an objective readiness bar; breaking changes ship without deprecation warnings | CF-034 / RF-01, RF-12, RF-14 | Medium | Medium | Medium | Author `doc/v1.0.0-readiness.md` with explicit criteria; add runtime deprecation warnings for v0.20.0 breaking renames; define the stability contract and a soak period | release-eng | Medium until the readiness doc and deprecation warnings exist |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 

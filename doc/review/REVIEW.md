@@ -472,7 +472,7 @@ Top 10 by impact x urgency:
 | 9    | CF-008 | Testing      | Add behavioral tests for validator/env-builder/home-discovery functions     | M3        |
 | 10   | CF-004 | Architecture | Enforce tiered plugin isolation per DECISION 2                              | M4        |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 
@@ -554,7 +554,7 @@ Findings that must be resolved before v1.0.0 can be tagged. Sourced from
 | CF-027 | Medium   | `make test-full` treats bats exit 1 as success, masking real failures             | M1               |
 | CF-034 | Medium   | No v1.0.0 readiness definition, stabilisation gate, or deprecation policy         | M8/M9            |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 
@@ -601,7 +601,7 @@ Full roadmap: [roadmap.md](roadmap.md) - 9 milestones, all decisions resolved.
 | M8        | v0.32.0                 | Release engineering and documentation                                                   | CF-019, CF-024                                           | M        |
 | M9        | v1.0.0-rc.1 then v1.0.0 | Stabilisation, 30-day RC soak, readiness checklist, API freeze                          | all remaining blockers verified                          | M + soak |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### Release strategy
 

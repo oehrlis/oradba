@@ -50,7 +50,7 @@ the final tag.
 | M8        | v0.32.0                 | Release engineering and documentation                                                   | M      | CF-019, CF-024                                           | TBD-8                  |
 | M9        | v1.0.0-rc.1 then v1.0.0 | Stabilisation, RC window, readiness checklist, API freeze                               | M      | all remaining blockers verified                          | TBD-9 + 30-day soak    |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 Non-blocker findings are scheduled into the milestone that shares their subsystem:
 CF-011/CF-012/CF-013 (dependency guards, portability) into M2/M5, CF-016 into M7, CF-018 into M6,
@@ -778,7 +778,7 @@ Mapping of executing/gating agents to milestones:
 | M8        | implement-milestone | review-release, review-docs         | verify-milestone |
 | M9        | implement-milestone | review-release                      | verify-milestone |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### Driver/loop done-signal
 

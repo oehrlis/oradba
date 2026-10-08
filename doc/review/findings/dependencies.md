@@ -53,7 +53,7 @@ build dependencies, validation completeness, portability, supply-chain
 | softprops/action-gh-release                        | release.yml (line 152)                                                                                                                                   | @v1 mutable tag                                        | n - not SHA-pinned                                                                             | Medium |
 | dorny/paths-filter                                 | ci.yml (line 31)                                                                                                                                         | @v3 mutable tag                                        | n - not SHA-pinned                                                                             | Medium |
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 
@@ -450,7 +450,7 @@ No change required at this time, documented for completeness.
 **Recommendation:** Prefer `--decode` (long form) consistently for clarity. The
 `oradba_install.sh:1571` already does this correctly.
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 

@@ -20,7 +20,7 @@ Three coexistence modes are available:
 | `standalone`     | Default; no BasEnv detected           | Full control: sets Oracle vars, PATH, SQLPATH, aliases                     |
 | `basenv`         | Auto-detected at install and runtime  | Minimal: loads libraries and `ORADBA_*` vars only; BasEnv owns Oracle vars |
 | `basenv-maximal` | Opt-in by editing `oradba_local.conf` | Minimal + safe, non-conflicting aliases via `safe_alias()`                 |
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-restore -->
 
 ## Installation
 

@@ -38,7 +38,7 @@ roadmap agent formalizes these - these are suggestions only.
 | TD-21 | Credential-handling debt: secrets reach disk/args/logs (DBCA response file, SEPS base64, RMAN catalog, --sys/--system flags) and predictable temp paths without exclusive create or EXIT traps | CF-002, CF-020, CF-021, CF-023 / SEC-01, SEC-02, SEC-05, SEC-07, SEC-08, BASH-016, BASH-018 | M      | High   | Credential exposure on shared/multi-tenant hosts; TOCTOU on generated scripts; this is the highest-severity acute class but the underlying pattern (no central secret/temp-file discipline) is debt | none (CF-002 itself is a release blocker)                                                  | v1.0.0                            |
 | TD-22 | No v1.0.0 readiness definition, stabilisation/RC gate, or deprecation-warning policy; build script not hardened to project strict-mode standard                                                | CF-034 / RF-01, RF-07, RF-12, RF-14                                                         | M      | Medium | No objective bar for declaring v1.0.0; breaking renames ship without migration warnings; same-day patch cadence with no soak                                                                        | depends on most other TD items being resolvable/tracked to define "ready"                  | v1.0.0                            |
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 

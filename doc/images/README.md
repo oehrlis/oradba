@@ -41,7 +41,7 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 | **Configuration Sequence**   | Library-based config loading sequence diagram             | [config-sequence.md](config-sequence.md)                     |
 | **Plugin System**            | Plugin lifecycle, 13-function interface, integration      | [plugin-system.md](plugin-system.md)                         |
 | **Registry API Flow**        | Unified installation metadata access                      | [registry-api-flow.md](registry-api-flow.md)                 |
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-restore -->
 
 ### Workflows & Operations
 
@@ -53,7 +53,7 @@ OraDBA uses a **Mermaid-first approach** for all diagrams:
 | **oraup (overview)**  | Status display (registry query, type separation) | [oraup-workflow-highlevel.md](oraup-workflow-highlevel.md)   |
 | **oraup (detailed)**  | Detailed status checking and formatting          | [oraup-workflow-detailed.md](oraup-workflow-detailed.md)     |
 | **Installation Flow** | Self-extracting installer with integrity check   | [installation-flow.md](installation-flow.md)                 |
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-restore -->
 
 **Viewing Mermaid Diagrams:**
 

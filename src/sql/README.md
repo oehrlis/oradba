@@ -126,7 +126,7 @@ Scripts for Splunk archive timestamp management.
 |--------|---------|
 | `aud_splunk_at_detection_setup.sql` | Archive timestamp via Audit Trail Detection (K-AT pattern) |
 | `aud_splunk_checkpoint_setup.sql` | Archive timestamp via Watchdog Checkpoint (K-WD pattern) |
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### Trail Volume Analysis Scripts
 
@@ -137,7 +137,7 @@ Scripts for comprehensive audit trail analysis and optimization.
 |--------|---------|
 | `aud_trail_analysis_aud.sql` | Comprehensive trail analysis: volume trend, noise candidates, policy coverage gaps |
 | `aud_trail_userhost_analysis_aud.sql` | User-host analysis for connection patterns and logon trigger regex design |
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### Utility Scripts
 
@@ -150,7 +150,7 @@ Session context and environment helpers.
 | `env_show_sqlpath.sql` | Show current SQLPATH directories with existence check |
 | `pdb.sql` | Switch session container to a given PDB (parameterized, default AUDITPDB1) |
 | `auditpdb.sql` | Switch session container directly to AUDITPDB1 |
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### TDE / Encryption Scripts
 

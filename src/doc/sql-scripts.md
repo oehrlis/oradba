@@ -391,7 +391,7 @@ Scripts for configuring Splunk archive timestamp management.
 
 : Audit Utility and Session Helper Scripts
 
-<!-- markdownlint-enable MD013 MD060 -->
+<!-- markdownlint-restore -->
 
 ### TDE (Transparent Data Encryption) Scripts
 

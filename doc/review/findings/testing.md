@@ -362,7 +362,7 @@ defined by: target function or script path, scenario description, and minimum as
 | (( count++ )) in tests      | fa36489 | `no_post_increment_at_zero_in_test_suite`                     | `tests/*.bats`                                   | Static lint: `grep -Ern "\(\(.*\+\+.*\)\)" tests/*.bats` - all matches must be inside an if/then body or use pre-increment | Zero standalone `(( var++ ))` with var potentially 0 on first iteration                                   |
 | (( count++ )) in tests      | fa36489 | `load_config_file_path_dedup_counts_correctly`                | `tests/test_oradba_common.bats:344`              | Re-run the PATH dedup test with initial `count=0` and pre-increment form                                                   | `[ "${count}" -eq 1 ]` passes regardless of bats subshell context                                         |
 
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 
@@ -383,7 +383,7 @@ defined by: target function or script path, scenario description, and minimum as
 **Untested bin scripts (no test file, no testmap entry):** oradba_logrotate.sh, sessionsql.sh,
 oradba_validate.sh, oradba_datasafe_debug.sh, oradba_setup.sh.
 
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-restore -->
 
 ----------------------------------------------------------------------------------------------------
 

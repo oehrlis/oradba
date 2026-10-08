@@ -551,10 +551,25 @@ version-bump-major: ## Bump major version (X.0.0)
 	echo -e "$(COLOR_GREEN)✓ Version bumped: $$current → $$new_major.0.0$(COLOR_RESET)"
 
 .PHONY: tag
-tag: ## Create git tag from VERSION file
-	@if [ -n "$(GIT)" ]; then \
-		$(GIT) tag -a "v$(VERSION)" -m "Release v$(VERSION)"; \
-		echo -e "$(COLOR_GREEN)✓ Created tag v$(VERSION)$(COLOR_RESET)"; \
+tag: ## Create git tag from VERSION file and push commit + tag (NO_PUSH=1 to skip push)
+	@if [ -z "$(GIT)" ]; then \
+		echo -e "$(COLOR_RED)Error: git not found$(COLOR_RESET)" >&2; exit 1; \
+	fi
+	@if $(GIT) rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
+		echo -e "$(COLOR_RED)Error: tag v$(VERSION) already exists$(COLOR_RESET)" >&2; exit 1; \
+	fi
+	@$(GIT) tag -a "v$(VERSION)" -m "Release v$(VERSION)"
+	@echo -e "$(COLOR_GREEN)✓ Created tag v$(VERSION)$(COLOR_RESET)"
+	@if [ -n "$(NO_PUSH)" ]; then \
+		echo -e "$(COLOR_YELLOW)NO_PUSH set - not pushed. A tag that is not pushed does not exist remotely.$(COLOR_RESET)"; \
+		echo -e "  To push: git push origin $$($(GIT) rev-parse --abbrev-ref HEAD) && git push origin v$(VERSION)"; \
+	elif ! $(GIT) remote get-url origin >/dev/null 2>&1; then \
+		echo -e "$(COLOR_YELLOW)No remote 'origin' configured - tag stays local$(COLOR_RESET)"; \
+	else \
+		BRANCH="$$($(GIT) rev-parse --abbrev-ref HEAD)"; \
+		$(GIT) push origin "$$BRANCH" && $(GIT) push origin "v$(VERSION)" \
+			&& echo -e "$(COLOR_GREEN)✓ Pushed: $$BRANCH + v$(VERSION)$(COLOR_RESET)" \
+			|| { echo -e "$(COLOR_RED)Push failed - tag is local only. Run: git push origin $$BRANCH && git push origin v$(VERSION)$(COLOR_RESET)" >&2; exit 1; }; \
 	fi
 
 .PHONY: status

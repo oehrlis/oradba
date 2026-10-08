@@ -1195,7 +1195,7 @@ Remaining scripts (using non-standard patterns) are scheduled for M6.
 |---------|----------------------------------------------------------------------------------------------|
 | v0.29.0 | `ORADBA_PREFIX` supported with deprecation warning; old function names supported with aliases |
 | v0.30.0 | `ORADBA_PREFIX` and unprefixed public function names removed                                 |
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 
 ## References
 

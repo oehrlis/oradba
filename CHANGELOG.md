@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- `make tag` now pushes both the branch commit and the annotated tag to `origin`
+  after creation; set `NO_PUSH=1` to keep the tag local and print the push
+  commands instead.
+- All `markdownlint-enable` comment markers in `*.md` files replaced with
+  `markdownlint-restore` to match markdownlint-cli v0.49.1 semantics (enable
+  re-activates rules that the project config disables; restore reinstates the
+  configured state).
+
 ## [1.1.0] - 2026-08-28
 
 Closes the gates that let four releases ship unverified, and adds the regression

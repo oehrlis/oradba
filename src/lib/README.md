@@ -83,7 +83,7 @@ source "${SCRIPT_DIR}/../lib/oradba_bootstrap.sh"
 | `oradba_env_config.sh`           | Configuration file management                                                      |
 | `oradba_env_status.sh`           | Environment and service status display                                             |
 | `oradba_env_changes.sh`          | Configuration change tracking and auto-reload                                      |
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 
 ## Usage
 
