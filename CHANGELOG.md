@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `.gitleaks.toml`: gitleaks config extending the default rules with OCI-specific
+  patterns (PAR URL tokens, OCIDs, API-key fingerprints). Enables `gitleaks git`
+  history scans and pre-commit usage with correct Oracle/OCI coverage.
+- `docs/review-lens.md`: `/repo-audit` lens with invariants, threat model, and
+  verification commands. Initialises the routine-audit register.
+- `tasks/review-register.md`, `tasks/review-2026-10-10-befunde.md`,
+  `tasks/review-2026-10-10.md`: first `/repo-audit --init + --quick` run artefacts.
+  History-scan clean (1514 commits, 0 findings). 6 findings open, 2 resolved
+  in this session.
+
+### Fixed
+
+- `.gitignore`: add `.claude/settings.local.json` to prevent accidental commit of
+  the Claude Code allowlist file.
+
 ### Changed
 
 - `make tag` now pushes both the branch commit and the annotated tag to `origin`
