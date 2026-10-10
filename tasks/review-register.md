@@ -8,13 +8,15 @@
 
 ### RA-oradba-001 - Kein gitleaks in CI (History-Gate fehlt)
 
-- status: offen
+- status: behoben
 - schwere: hoch
 - rolle: security
 - ort: .github/workflows/ci.yml
 - regel: ci-gate
 - gefunden: 2026-10-10
 - beleg: .github/workflows/ci.yml - kein gitleaks-Step in ci.yml, ci.yml, release.yml
+- erledigt: 2026-10-10
+- commit: a4ce314
 
 ### RA-oradba-002 - .claude/settings.local.json nicht in .gitignore
 
