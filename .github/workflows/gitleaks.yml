@@ -1,0 +1,36 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: gitleaks.yml
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Date.......: 2026.10.10
+# Version....: 0.1.0
+# Purpose....: Secret scan of the full history with .gitleaks.toml (OCI rules)
+# Notes......: Full history was clean on 2026-10-10 (1518 commits) - any red
+#              run is a new finding, see RA-oradba-001.
+# License....: Apache License Version 2.0, January 2004 as shown
+#              at http://www.apache.org/licenses/
+# ------------------------------------------------------------------------------
+---
+name: Secret Scan
+
+"on":
+  push:
+  pull_request:
+
+jobs:
+  gitleaks:
+    name: gitleaks (full history)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/gitleaks/gitleaks:v8.30.1
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan all refs
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          gitleaks git --config .gitleaks.toml --redact --log-opts=--all --exit-code 1 .
