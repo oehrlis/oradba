@@ -1,0 +1,58 @@
+# .gitleaks.toml - secret scanning config for the oradba repo
+#
+# Extends the gitleaks default rules with OCI-specific patterns. The defaults
+# know no OCI pre-authenticated requests and no OCIDs.
+#
+# History scan (all refs):
+#   gitleaks git --config .gitleaks.toml --redact --log-opts=--all .
+
+title = "gitleaks default + OCI / Oracle"
+
+[extend]
+useDefault = true
+
+# OCI pre-authenticated request. Covers the short form .../p/<token>/ and the long
+# form .../p/<token>/n/<namespace>/b/<bucket>/o/<object>, on the classic and the
+# dedicated endpoint (<ns>.objectstorage.<region>.oci.customer-oci.com).
+[[rules]]
+id = "oci-par-url"
+description = "OCI Object Storage pre-authenticated request (PAR) URL with token"
+regex = '''objectstorage\.[a-z0-9-]+\.(?:oraclecloud\.com|oci\.customer-oci\.com)/p/([A-Za-z0-9_-]{20,})/'''
+secretGroup = 1
+keywords = ["objectstorage"]
+
+[[rules.allowlists]]
+description = "placeholder tokens (xxxx, 0000, ...)"
+regexTarget = "match"
+regexes = ['''/p/(?:[xX]+|0+|[aA]+)/''']
+
+# Real OCIDs: ocid1.<type>.<realm>.<region-or-empty>.<unique>. Tenancy, user and
+# compartment carry an empty region (ocid1.tenancy.oc1..aaaa...), regional resources a
+# region key or name (ocid1.instance.oc1.eu-zurich-1.anl...). Real unique parts often
+# start with "aaaaaaaa" - only an unique part made of a/x/0 alone is a placeholder.
+[[rules]]
+id = "oci-ocid"
+description = "OCI resource OCID (identifies tenancy, users, resources)"
+regex = '''ocid1\.(?:tenancy|user|compartment|instance|vcn|subnet|drg|dbsystem|database|autonomousdatabase|vault|key|bucket|group|dynamicgroup|policy)\.oc[0-9]+\.[a-z0-9-]*\.[a-z0-9]{40,}'''
+keywords = ["ocid1."]
+
+[[rules.allowlists]]
+description = "placeholder OCIDs (aaaa..., xxxx..., 0000...)"
+regexTarget = "match"
+regexes = ['''\.[ax0]{40,}$''']
+
+# OCI API signing key fingerprint (MD5, 16 hex pairs) next to "fingerprint".
+[[rules]]
+id = "oci-api-key-fingerprint"
+description = "OCI API key fingerprint"
+regex = '''(?i)fingerprint["']?\s*[:=]\s*["']?([0-9a-f]{2}(?::[0-9a-f]{2}){15})'''
+secretGroup = 1
+keywords = ["fingerprint"]
+
+[[rules.allowlists]]
+description = "placeholder fingerprints (00:00:..., aa:aa:..., 12:34:...)"
+regexTarget = "secret"
+regexes = ['''^(?:00:){15}00$''', '''^(?:aa:){15}aa$''', '''^(?:xx:){15}xx$''', '''^12:34:56:78:''']
+
+# Private key blocks (-----BEGIN ... PRIVATE KEY-----) are covered by the default
+# rule "private-key" - not repeated here.
