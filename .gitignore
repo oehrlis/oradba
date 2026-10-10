@@ -105,6 +105,7 @@ doc/local-dev-notes.md
 .claude/commands/
 .claude/rules/
 .claude/settings.json
+.claude/settings.local.json
 .claude/skills/bash-header
 .claude/skills/documentation
 .claude/skills/markdown-lint
