@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `src/doc/conventions.md`: single definition of OS groups and GIDs (Preinstallation
+  RPM defaults, os\* site variant), filesystem layout (`/u00` software, `/u01` data,
+  `/u02` archive), Oracle Home naming `product/<x.y.0.0>` and the central inventory.
+  odb_autoupgrade 0.6.0 and the planned `oradba-ansible` collection implement these
+  as overridable defaults. Linked in the mkdocs navigation and the docs index.
 - `.gitleaks.toml`: gitleaks config extending the default rules with OCI-specific
   patterns (PAR URL tokens, OCIDs, API-key fingerprints). Enables `gitleaks git`
   history scans and pre-commit usage with correct Oracle/OCI coverage.
