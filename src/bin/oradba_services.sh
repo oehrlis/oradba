@@ -193,9 +193,9 @@ start_listeners() {
 
     oradba_log INFO "Executing: ${cmd}"
     oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Executing command via eval"
-    eval "${cmd}"
+    local rc=0
+    eval "${cmd}" || rc=$?
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_listeners() - Command completed with exit code: ${rc}"
     
     if [[ ${rc} -eq 0 ]]; then
@@ -242,9 +242,9 @@ stop_listeners() {
 
     oradba_log INFO "Executing: ${cmd}"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Executing command via eval"
-    eval "${cmd}"
+    local rc=0
+    eval "${cmd}" || rc=$?
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: stop_listeners() - Command completed with exit code: ${rc}"
     
     if [[ ${rc} -eq 0 ]]; then
@@ -291,9 +291,9 @@ start_databases() {
 
     oradba_log INFO "Executing: ${cmd}"
     oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Executing command via eval"
-    eval "${cmd}"
+    local rc=0
+    eval "${cmd}" || rc=$?
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_databases() - Command completed with exit code: ${rc}"
     
     if [[ ${rc} -eq 0 ]]; then
@@ -340,9 +340,9 @@ stop_databases() {
 
     oradba_log INFO "Executing: ${cmd}"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Executing command via eval"
-    eval "${cmd}"
+    local rc=0
+    eval "${cmd}" || rc=$?
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: stop_databases() - Command completed with exit code: ${rc}"
     
     if [[ ${rc} -eq 0 ]]; then

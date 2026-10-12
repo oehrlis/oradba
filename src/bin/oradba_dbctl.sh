@@ -259,13 +259,13 @@ EOF
 
     # Start the database
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - Executing STARTUP command via sqlplus"
-    sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
+    local rc=0
+    sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1 || rc=$?
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 STARTUP;
 EXIT;
 EOF
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_database() - STARTUP command completed with exit code: ${rc}"
 
     if [[ ${rc} -eq 0 ]]; then
@@ -366,13 +366,13 @@ EOF
     oradba_log INFO "Attempting shutdown immediate for ${sid} (timeout: ${SHUTDOWN_TIMEOUT}s)"
     oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - Executing SHUTDOWN IMMEDIATE with ${SHUTDOWN_TIMEOUT}s timeout"
 
-    timeout "${SHUTDOWN_TIMEOUT}" sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1
+    local rc=0
+    timeout "${SHUTDOWN_TIMEOUT}" sqlplus -s / as sysdba << EOF >> "${LOGFILE}" 2>&1 || rc=$?
 WHENEVER SQLERROR CONTINUE
 SHUTDOWN IMMEDIATE;
 EXIT;
 EOF
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: stop_database() - SHUTDOWN IMMEDIATE completed with exit code: ${rc}"
 
     if [[ ${rc} -eq 0 ]]; then

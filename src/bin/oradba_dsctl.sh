@@ -389,9 +389,9 @@ start_connector() {
     # Start the connector (environment already set)
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - Executing cmctl startup command"
     local output
-    output=$("${cmctl}" startup -c "${instance_name}" 2>&1)
+    local rc=0
+    output=$("${cmctl}" startup -c "${instance_name}" 2>&1) || rc=$?
 
-    local rc=$?
     oradba_log DEBUG "${SCRIPT_NAME}: start_connector() - cmctl startup completed with exit code: ${rc}"
 
     # Log output to logfile
@@ -497,9 +497,9 @@ stop_connector() {
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - Executing cmctl shutdown with ${SHUTDOWN_TIMEOUT}s timeout"
 
         local output
-        output=$(timeout "${SHUTDOWN_TIMEOUT}" "${cmctl}" shutdown -c "${instance_name}" 2>&1)
+        local rc=0
+        output=$(timeout "${SHUTDOWN_TIMEOUT}" "${cmctl}" shutdown -c "${instance_name}" 2>&1) || rc=$?
 
-        local rc=$?
         oradba_log DEBUG "${SCRIPT_NAME}: stop_connector() - cmctl shutdown completed with exit code: ${rc}"
 
         # Log output to logfile
