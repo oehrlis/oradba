@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `oradba_install.sh --update` (#224): the old installation was removed before
+  the new one was downloaded and extracted, and a failure after that left an
+  empty prefix. The removal now happens after extraction, and any failure after
+  the backup restores the previous installation (EXIT trap). `perform_update`
+  ran in a command substitution, so "Already running latest version" did not
+  stop the installer and it reinstalled anyway; it is now called directly, and
+  `--github` / `--local` apply the same version check after extraction. The
+  crashing `mv` of the issue itself was fixed in 1.0.0-rc.8.
 - `mkdocs.yml`: exclude the synced extension pages (`extensions/*`) from the
   git-revision-date plugin. They are untracked here, the plugin warned once per
   page, and `mkdocs build --strict` aborted the Deploy Documentation workflow.
