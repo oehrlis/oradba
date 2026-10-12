@@ -387,24 +387,19 @@ teardown() {
 # generate_sid_aliases() Tests - rlwrap Integration
 # ------------------------------------------------------------------------------
 
-@test "generate_sid_aliases creates rlwrap aliases when rlwrap is available" {
-    if ! command -v rlwrap &>/dev/null; then
-        skip "rlwrap not installed on this system"
-    fi
-    
+@test "generate_sid_aliases leaves sq and sqh to oradba_standard.conf" {
+    # It used to redefine both with plain rlwrap, dropping the -z password filter
     export ORACLE_SID="TESTDB"
-    export RLWRAP_COMMAND="rlwrap"
+    export RLWRAP_COMMAND="bash"   # any existing command makes has_rlwrap true
     export RLWRAP_OPTS="-i -c"
-    
+    unalias sq sqh 2>/dev/null || true
+
     generate_sid_aliases
-    
-    # Query the alias in THIS shell. `bash -c "alias sq"` starts a new shell and
-    # aliases are not exported, so that form always failed regardless of the
-    # product - which is why this test was red for four releases.
+
     run alias sq
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "rlwrap" ]]
-    [[ "$output" =~ "sqlplus" ]]
+    [ "$status" -ne 0 ]
+    run alias sqh
+    [ "$status" -ne 0 ]
 }
 
 @test "generate_sid_aliases doesn't create rlwrap aliases when rlwrap not available" {
@@ -421,23 +416,25 @@ teardown() {
     [ "$?" -eq 0 ]
 }
 
-@test "sqh alias connects with sysdba when rlwrap available" {
-    if ! command -v rlwrap &>/dev/null; then
-        skip "rlwrap not installed on this system"
-    fi
-    
-    export ORACLE_SID="TESTDB"
-    export RLWRAP_COMMAND="rlwrap"
-    export RLWRAP_OPTS="-i -c"
-    
-    generate_sid_aliases
-    
-    # Check sqh alias uses "/ as sysdba" not "/nolog". Queried in this shell for
-    # the same reason as above.
-    run alias sqh
+@test "sqh keeps the rlwrap password filter after dynamic aliases load" {
+    # Full load path as oraenv.sh runs it: oradba_standard.conf with
+    # ORADBA_LOAD_ALIASES=true sources oradba_aliases.sh at the end
+    local stub="${BATS_TEST_TMPDIR}/stub"
+    mkdir -p "${stub}"
+    printf '#!/bin/sh\nexit 0\n' > "${stub}/rlwrap"
+    printf '#!/bin/sh\nexit 0\n' > "${stub}/filter"
+    chmod +x "${stub}/rlwrap" "${stub}/filter"
+
+    run env -i HOME="${HOME}" PATH="${stub}:${PATH}" ORADBA_PREFIX="${ORADBA_SRC_BASE}" \
+        ORADBA_BASE="${ORADBA_SRC_BASE}" ORADBA_ETC="${ORADBA_SRC_BASE}/etc" ORACLE_SID=TESTDB \
+        ORADBA_LOAD_ALIASES=true ORADBA_RLWRAP_FILTER=true ORADBA_RLWRAP_FILTER_PATH="${stub}/filter" \
+        bash -c 'shopt -s expand_aliases
+            source "${ORADBA_PREFIX}/lib/oradba_common.sh"
+            source "${ORADBA_PREFIX}/etc/oradba_standard.conf" > /dev/null 2>&1
+            alias sq; alias sqh'
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "sqlplus / as sysdba" ]]
-    [[ ! "$output" =~ "/nolog" ]]
+    [[ "${lines[0]}" == "alias sq='sqlplus / as sysdba'" ]]
+    [[ "${lines[1]}" == *'-z "${ORADBA_RLWRAP_FILTER_PATH}" sqlplus / as sysdba'* ]]
 }
 
 # ------------------------------------------------------------------------------

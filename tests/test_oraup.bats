@@ -235,6 +235,12 @@ setup() {
     ! grep -q "ORADBA_CACHED_PS" "${DATASAFE_PLUGIN}"
 }
 
+@test "nothing in src/ produces ORADBA_CACHED_PS any more" {
+    # The producer in oraup.sh outlived its last reader (443fc0c)
+    run grep -rn "export ORADBA_CACHED_PS\|ORADBA_CACHED_PS=" "${PROJECT_ROOT}/src"
+    [ "$status" -eq 1 ]
+}
+
 @test "oraup.sh Data Safe section displays only 4 columns" {
     # Verify Data Safe Connectors section displays: NAME, PORT, STATUS, DATASAFE_BASE_HOME
     # Not CMAN VERSION or CONNECTOR VER (those should be in oraenv.sh/oradba_env.sh)

@@ -160,6 +160,47 @@ teardown() {
     [[ "$output" =~ "Modified files: 1" ]]
 }
 
+# Build a PATH with the tools oradba_version.sh needs, optionally plus shasum
+make_tool_path() {
+    local dir="$1" with_shasum="$2" tool tool_path
+    mkdir -p "$dir"
+    for tool in bash grep awk wc tr cat basename dirname date sed cut sort head tail mktemp ls find uname; do
+        tool_path="$(type -P "$tool")" || continue
+        ln -sf "$tool_path" "$dir/$tool"
+    done
+    if [[ "$with_shasum" == "yes" ]]; then
+        tool_path="$(type -P shasum)" || return 1
+        ln -sf "$tool_path" "$dir/shasum"
+    fi
+}
+
+@test "oradba_version.sh --verify uses shasum when sha256sum is missing" {
+    command -v shasum > /dev/null || skip "shasum not available"
+    mkdir -p "$TEST_INSTALL_DIR/bin"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "original" > "$TEST_INSTALL_DIR/bin/test.sh"
+    (cd "$TEST_INSTALL_DIR" && shasum -a 256 bin/test.sh > .oradba.checksum)
+    make_tool_path "${BATS_TEST_TMPDIR}/tools" yes
+
+    run env PATH="${BATS_TEST_TMPDIR}/tools" ORADBA_BASE="$TEST_INSTALL_DIR" bash "$ORADBA_VERSION" --verify
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Installation integrity verified" ]]
+}
+
+@test "oradba_version.sh --verify names the missing SHA-256 tool" {
+    # Used to print "FAILED" with "Total issues: 0"
+    mkdir -p "$TEST_INSTALL_DIR/bin"
+    cp "$VERSION_FILE" "$TEST_INSTALL_DIR/"
+    echo "original" > "$TEST_INSTALL_DIR/bin/test.sh"
+    echo "0000  bin/test.sh" > "$TEST_INSTALL_DIR/.oradba.checksum"
+    make_tool_path "${BATS_TEST_TMPDIR}/tools" no
+
+    run env PATH="${BATS_TEST_TMPDIR}/tools" ORADBA_BASE="$TEST_INSTALL_DIR" bash "$ORADBA_VERSION" --verify
+    [[ "$status" -ne 0 ]]
+    [[ "$output" =~ "neither sha256sum nor shasum found" ]]
+    [[ ! "$output" =~ "Total issues" ]]
+}
+
 @test "oradba_version.sh --verify shows missing files correctly" {
     # Create test installation
     mkdir -p "$TEST_INSTALL_DIR/bin"
