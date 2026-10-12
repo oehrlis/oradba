@@ -42,13 +42,14 @@ Stand: 2026-08-28 (Session "Boot-Pfad-Gates schliessen", v1.0.5)
 Full analysis: `tasks/evolve-promotions.md`. The verification sweep on the four
 existing lessons produced **two FAIL**, both live defects:
 
-- [ ] **L1 FAIL, P1**: `oradba_services_root.sh:111-113` captures `$?` on the
+- [x] **L1 FAIL, P1** (2026-10-12, #229: latent - all callers use `if`; 9 sites now `|| rc=$?`):
+      `oradba_services_root.sh:111-113` captures `$?` on the
       line *after* `su - oracle -c ...` under `set -euo pipefail`. If `su` fails
       the script exits at the `su` line, so `local rc=$?` never runs and the
       `if [[ ${rc} -eq 0 ]]` error handling below is unreachable - in the systemd
       entry point, for the one case it exists for. `oradba_dbctl.sh:264-268` has
       the same shape after a sqlplus heredoc [P1]
-- [ ] **L2 FAIL, P2**: `oraenv.sh:141` expands `${!pathvar}` without `:-`,
+- [x] **L2 FAIL, P2** (2026-10-12, #229): `oraenv.sh:141` expands `${!pathvar}` without `:-`,
       reachable from `:1222` with `"SQLPATH"`, which may be unset [P2]
 - [ ] Rule promotions proposed for `ai-toolkit/claude/rules/claude-code.md`
       (0.8.0 -> 0.9.0) and `shell-scripts.md` (0.5.0 -> 0.6.0). Apply from
@@ -84,22 +85,24 @@ existing lessons produced **two FAIL**, both live defects:
 
 ### Found during this session, not fixed
 
-- [ ] `ORADBA_CACHED_PS` is dead: `oraup.sh:589` builds and exports a process
+- [x] (2026-10-12, #232) `ORADBA_CACHED_PS` is dead: `oraup.sh:589` builds and exports a process
       list that **no reader anywhere in `src/` consumes**. `443fc0c` replaced the
       ps-based detection with a port-based check and left the producer behind.
       Removing it touches `oraup.sh` parallel-status logic - do it deliberately,
       with a test, not in a patch release [P3]
-- [ ] The test suite is **not safe to run concurrently**. `test_installer.bats`
+- [x] (2026-10-12, #231: per-run staging + dist lock) The test suite is **not safe to run concurrently**.
+      `test_installer.bats`
       calls `scripts/build_installer.sh`, which writes the shared
       `build/tar_staging`; a parallel build or a second suite run corrupts both.
       Two runs were invalidated this way before the cause was found. Either give
       the build a per-run staging dir or serialise it explicitly [P2]
-- [ ] Log-directory fallback is inconsistent (M7): `oradba_dsctl.sh` and
+- [x] (2026-10-12, #230: oradba_resolve_log_file, /tmp + WARN) Log-directory fallback is inconsistent (M7):
+      `oradba_dsctl.sh` and
       `oradba_rman.sh` fall back to `/tmp` when the log dir is unwritable;
       `oradba_services.sh`, `oradba_lsnrctl.sh` and `oradba_dbctl.sh` do not, and
       `oradba_services_root.sh:30` hardcodes `/var/log/oracle` with no override
       at all. Decide one behaviour and apply it to all six [P2]
-- [ ] `oradba_version.sh` pads output with spaces for column alignment
+- [x] (2026-10-12, #232) `oradba_version.sh` pads output with spaces for column alignment
       (`Version:       1.0.4`), which conflicts with the no-alignment-padding
       convention. Cosmetic, but it is generated output [P3]
 - [ ] Formatting debt outside the CI scope: `make format-check` (the wide
@@ -109,23 +112,34 @@ existing lessons produced **two FAIL**, both live defects:
       with `make format`, but it touches files the suite covers, so it wants its
       own verified change. Until then `SHFMT_SCOPE` stays narrower than the
       repo [P3]
-- [ ] Three tests pass or fail depending on whether the runner is root:
+- [-] (2026-10-12: dsctl #230, persist #231 fixed; `--parallel gnu` open - not reproducible without root) Three tests
+      pass or fail depending on whether the runner is root:
       `persist_discovered_instances handles permission denied gracefully`,
       `log_directory_fallback_uses_tmp_when_var_log_oracle_missing` and
       `oradba_rman.sh accepts --parallel gnu` fail as root (root can write
       anywhere, so the negative case never triggers). They should skip with a
       reason when running as root instead of failing [P3]
-- [ ] The local test suite runs against a leaked environment: 71 `ORADBA_*` and
+- [x] (2026-10-12, #231: `make test-clean`) The local test suite runs against a leaked environment: 71 `ORADBA_*` and
       `ORACLE_*` variables from the developer's own installation, plus a
       populated `/etc/oratab`. That is what hid the two defects above. Consider a
       `make test-clean` that runs the suite under `env -i` with only what a
       clean host provides [P2]
-- [ ] `src/etc/sid._DEFAULT_.conf:20,22` expand `${ORACLE_SID}` bare. Only
+- [x] (2026-10-12, #232) `src/etc/sid._DEFAULT_.conf:20,22` expand `${ORACLE_SID}` bare. Only
       sourced once a SID is known, so not a live defect - but the only remaining
       instance of the pattern in `src/etc/` [P3]
-- [ ] `oradba_aliases.sh:208,209` give `sq` and `sqh` an identical definition.
+- [x] (2026-10-12, #232: not intentional - the override dropped the rlwrap -z password filter; removed)
+      `oradba_aliases.sh:208,209` give `sq` and `sqh` an identical definition.
       Matches `oradba_standard.conf` convention (both sysdba), so intentional -
       confirm and document, or differentiate [P3]
+
+### Found 2026-10-12 (fix round for v1.1.1), not fixed
+
+- [ ] `claude-review` workflow fails on every PR in setup: its marketplace source
+      `anthropics/claude-code.git` is blocked by enterprise policy. Change the
+      source to an allowed marketplace or disable the job - a check that is always
+      red trains everyone to merge past red [P2]
+- [ ] `oradba_rman.sh accepts --parallel gnu` fails as root according to the
+      2026-08-28 note; not reproducible without root, skipped in CI anyway [P3]
 
 ### Carried over from the PKM
 
