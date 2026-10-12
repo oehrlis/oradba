@@ -215,9 +215,22 @@ check_archived_version() {
 # Output..: None
 # Notes...: Called automatically via trap EXIT
 #           Removes TEMP_DIR if set and exists
+#           Update mode: on a non-zero exit while a backup exists (BACKUP_DIR,
+#           cleared once the update is verified), restores the previous
+#           installation so a failed update never leaves a broken prefix (#224)
 # ------------------------------------------------------------------------------
 cleanup() {
-    if [[ -n "$TEMP_DIR" ]] && [[ -d "$TEMP_DIR" ]]; then
+    local rc=$?
+    if [[ ${rc} -ne 0 ]] && [[ "${UPDATE_MODE:-false}" == "true" ]] \
+        && [[ -n "${BACKUP_DIR:-}" ]] && [[ -d "${BACKUP_DIR}" ]]; then
+        log_error "Update failed (exit code ${rc}) - restoring previous installation"
+        if restore_from_backup "$INSTALL_PREFIX" "$BACKUP_DIR"; then
+            log_info "Previous installation restored: $INSTALL_PREFIX"
+        else
+            log_error "Automatic restore failed - backup kept at: $BACKUP_DIR"
+        fi
+    fi
+    if [[ -n "${TEMP_DIR:-}" ]] && [[ -d "$TEMP_DIR" ]]; then
         rm -rf "$TEMP_DIR"
     fi
 }
@@ -1527,14 +1540,14 @@ backup_installation() {
     local backup_dir
     backup_dir="${install_dir}.backup.$(date +%Y%m%d_%H%M%S)"
 
-    log_info "Creating backup: $backup_dir"
+    log_info "Creating backup: $backup_dir" >&2
 
     if ! cp -r "$install_dir" "$backup_dir"; then
-        log_error "Failed to create backup"
+        log_error "Failed to create backup" >&2
         return 1
     fi
 
-    log_info "Backup created successfully"
+    log_info "Backup created successfully" >&2
     echo "$backup_dir"
     return 0
 }
@@ -1572,22 +1585,61 @@ restore_from_backup() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: check_update_version
+# Purpose.: Compare the version to install against the installed version
+# Args....: $1 - New version
+#           $2 - Installed version
+# Returns.: 0 when the update should proceed
+# Output..: Decision via log_info/log_warn/log_error
+# Notes...: Exits 0 for the same version and 1 for a downgrade unless
+#           FORCE_UPDATE=true. Called from perform_update when the version is
+#           known up front (embedded payload) and after extraction otherwise
+#           (--github, --local), so both paths apply the same rule.
+# ------------------------------------------------------------------------------
+check_update_version() {
+    local new_version="$1"
+    local current_version="$2"
+    local cmp_result=0
+
+    log_info "New version: $new_version"
+    version_compare "$new_version" "$current_version" || cmp_result=$?
+
+    if [[ $cmp_result -eq 0 ]]; then
+        if [[ "$FORCE_UPDATE" != "true" ]]; then
+            log_info "Already running latest version ($current_version)"
+            log_info "Use --force to reinstall same version"
+            exit 0
+        fi
+        log_info "Force update enabled - reinstalling version $current_version"
+    elif [[ $cmp_result -eq 2 ]]; then
+        log_warn "New version ($new_version) is older than installed ($current_version)"
+        if [[ "$FORCE_UPDATE" != "true" ]]; then
+            log_error "Use --force to downgrade"
+            exit 1
+        fi
+        log_info "Force downgrade enabled"
+    else
+        log_info "Upgrading from $current_version to $new_version"
+    fi
+    return 0
+}
+
+# ------------------------------------------------------------------------------
 # Function: perform_update
-# Purpose.: Execute update of existing OraDBA installation
+# Purpose.: Pre-checks and backup for an update of an existing installation
 # Args....: None (uses global variables)
-# Returns.: 0 on success, 1 on failure
+# Returns.: 0 on success; exits 0 when already up to date, 1 on failure
 # Output..: Update progress and status to stdout
-# Notes...: Orchestrates: backup, preserve configs, extract new version, restore configs
-#           Version comparison with --force override
-#           Automatic rollback on failure
-#           Preserves user customizations
+# Notes...: Sets the globals UPDATE_VERSION_CHECKED, BACKUP_DIR and CONFIG_DIR.
+#           Must be called directly, not in a command substitution: its exit
+#           calls have to end the installer (#224).
+#           Does not remove the installation - that happens in the main flow
+#           only after the new version was extracted successfully. A failure
+#           after the backup triggers the restore in cleanup().
 # ------------------------------------------------------------------------------
 perform_update() {
     local install_dir="$INSTALL_PREFIX"
     local current_version
-    local new_version="$INSTALLER_VERSION"
-    local backup_dir
-    local config_dir
 
     echo "==========================================="
     echo "OraDBA Update Process"
@@ -1605,77 +1657,27 @@ perform_update() {
     current_version=$(get_installed_version "$install_dir")
     log_info "Current version: $current_version"
 
-    # Determine new version from extracted tarball when available.
-    # For --github and --local modes this function runs before the tarball is
-    # downloaded/extracted, so the VERSION file does not exist yet — skip the
-    # comparison and proceed to backup; the version is logged after extraction.
-    # For embedded mode INSTALLER_VERSION is the payload version (always correct).
-    local version_known=false
-    if [[ -f "$TEMP_DIR/VERSION" ]]; then
-        new_version=$(cat "$TEMP_DIR/VERSION" 2> /dev/null || echo "$INSTALLER_VERSION")
-        version_known=true
-    elif [[ -n "$TEMP_DIR" ]]; then
-        local extracted_version
-        extracted_version=$(find "$TEMP_DIR" -name "VERSION" -type f 2> /dev/null | head -1)
-        if [[ -n "$extracted_version" ]]; then
-            new_version=$(cat "$extracted_version" 2> /dev/null || echo "$INSTALLER_VERSION")
-            version_known=true
-        fi
-    fi
-    # Embedded payload: INSTALLER_VERSION is the version being installed
-    if [[ "$version_known" == "false" && "$INSTALL_MODE" == "embedded" ]]; then
-        version_known=true
-    fi
-
-    if [[ "$version_known" == "true" ]]; then
-        log_info "New version: $new_version"
-
-        version_compare "$new_version" "$current_version"
-        local cmp_result=$?
-
-        if [[ $cmp_result -eq 0 ]]; then
-            if [[ "$FORCE_UPDATE" != "true" ]]; then
-                log_info "Already running latest version ($current_version)"
-                log_info "Use --force to reinstall same version"
-                exit 0
-            else
-                log_info "Force update enabled - reinstalling version $current_version"
-            fi
-        elif [[ $cmp_result -eq 2 ]]; then
-            log_warn "New version ($new_version) is older than installed ($current_version)"
-            if [[ "$FORCE_UPDATE" != "true" ]]; then
-                log_error "Use --force to downgrade"
-                exit 1
-            fi
-            log_info "Force downgrade enabled"
-        else
-            log_info "Upgrading from $current_version to $new_version"
-        fi
+    # The new version is only known up front for the embedded payload. For
+    # --github and --local the tarball is extracted later; the main flow then
+    # calls check_update_version once VERSION exists.
+    if [[ "$INSTALL_MODE" == "embedded" ]]; then
+        check_update_version "$INSTALLER_VERSION" "$current_version"
+        UPDATE_VERSION_CHECKED=true
     else
-        log_info "New version: (will be determined after download)"
+        log_info "New version: (determined after download)"
     fi
 
     # Create backup
-    backup_dir=$(backup_installation "$install_dir")
-    if [[ $? -ne 0 ]]; then
+    if ! BACKUP_DIR=$(backup_installation "$install_dir"); then
+        BACKUP_DIR=""
         log_error "Backup failed - aborting update"
         exit 1
     fi
 
     # Preserve configurations and runtime files (symlinks, oratab, etc.)
-    config_dir=$(mktemp -d)
-    preserve_runtime_files "$install_dir" "$config_dir"
-
-    # Remove old installation (keep backup)
-    log_info "Removing old installation..."
-    rm -rf "$install_dir"
-
+    CONFIG_DIR=$(mktemp -d)
+    preserve_runtime_files "$install_dir" "$CONFIG_DIR"
     echo ""
-    echo "Proceeding with installation..."
-    echo ""
-
-    # Return backup and config directories for use in main flow
-    echo "$backup_dir|$config_dir"
 }
 
 # Extract from embedded payload
@@ -2294,11 +2296,11 @@ extract_github_release() {
 # Handle update mode
 BACKUP_DIR=""
 CONFIG_DIR=""
+UPDATE_VERSION_CHECKED=false
 if [[ "$UPDATE_MODE" == "true" ]]; then
-    # Perform update pre-checks and backup (capture last line with paths, show rest)
-    UPDATE_INFO=$(perform_update 2>&1 | tee /dev/stderr | tail -1)
-    BACKUP_DIR="${UPDATE_INFO%%|*}"
-    CONFIG_DIR="${UPDATE_INFO##*|}"
+    # Pre-checks and backup; sets BACKUP_DIR and CONFIG_DIR (called directly so
+    # that its exit calls end the installer)
+    perform_update
 else
     echo "==========================================="
     echo "oradba Installer v${INSTALLER_VERSION}"
@@ -2356,14 +2358,20 @@ esac
 if [[ -f "$TEMP_DIR/VERSION" ]]; then
     INSTALLER_VERSION=$(cat "$TEMP_DIR/VERSION" | tr -d '[:space:]')
     log_info "Detected version: $INSTALLER_VERSION"
-    # For update mode: now that version is known, log the upgrade
-    if [[ "$UPDATE_MODE" == "true" ]]; then
+fi
+
+if [[ "$UPDATE_MODE" == "true" ]]; then
+    # --github / --local: the version is known only now; apply the same rule as
+    # for the embedded payload (exit 0 when up to date, 1 on downgrade)
+    if [[ "$UPDATE_VERSION_CHECKED" != "true" ]]; then
         _prev_ver=$(get_installed_version "$INSTALL_PREFIX" 2> /dev/null || echo "unknown")
-        if [[ "$_prev_ver" != "$INSTALLER_VERSION" ]]; then
-            log_info "Upgrading from ${_prev_ver} to ${INSTALLER_VERSION}"
-        fi
+        check_update_version "$INSTALLER_VERSION" "$_prev_ver"
         unset _prev_ver
     fi
+    # Remove the old installation only now that the new one is extracted; the
+    # backup in BACKUP_DIR is restored by cleanup() if anything below fails
+    log_info "Removing old installation..."
+    rm -rf "$INSTALL_PREFIX"
 fi
 
 # Create installation directory
@@ -2531,13 +2539,14 @@ if [[ -x "$INSTALL_PREFIX/bin/oradba_version.sh" ]]; then
         log_error "Some files may be corrupted or missing"
         echo ""
         echo "Running detailed verification:"
-        ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify-core
+        ORADBA_BASE="$INSTALL_PREFIX" "$INSTALL_PREFIX/bin/oradba_version.sh" --verify-core || true
         echo ""
 
         # Rollback if this was an update
         if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$BACKUP_DIR" ]]; then
             log_error "Update failed - rolling back to previous version"
             restore_from_backup "$INSTALL_PREFIX" "$BACKUP_DIR"
+            BACKUP_DIR=""
             log_info "Rollback completed - previous version restored"
             exit 1
         fi
@@ -2566,6 +2575,7 @@ if [[ "$UPDATE_MODE" == "true" ]] && [[ -n "$CONFIG_DIR" ]]; then
         log_info "Update successful - removing backup"
         rm -rf "$BACKUP_DIR"
     fi
+    BACKUP_DIR=""
 fi
 
 # Note: Not creating symlink to avoid conflict with Oracle's /usr/local/bin/oraenv

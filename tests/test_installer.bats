@@ -489,6 +489,63 @@ installer_function_body() {
     fi
 }
 
+@test "update stops on same version instead of reinstalling (#224)" {
+    # perform_update ran in a command substitution, so its 'exit 0' only left
+    # the subshell and the installer reinstalled after "Already running".
+    [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ] || skip "Built installer not found"
+    "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+
+    run "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update --prefix "$TEST_INSTALL_DIR"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Already running latest version"* ]]
+    [[ "$output" != *"Installing files"* ]]
+    [[ "$output" != *"Creating backup"* ]]
+}
+
+@test "failed update restores the previous installation (#224)" {
+    # The old installation was removed before the new one was extracted; any
+    # failure after that left an empty prefix and an unused backup.
+    [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ] || skip "Built installer not found"
+    "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+    local version_before
+    version_before=$(cat "$TEST_INSTALL_DIR/VERSION")
+    head -c 2048 /dev/urandom > "${TEST_TEMP_DIR}/corrupt.tar.gz"
+
+    run "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update \
+        --local "${TEST_TEMP_DIR}/corrupt.tar.gz" --prefix "$TEST_INSTALL_DIR"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Previous installation restored"* ]]
+    [ "$(cat "$TEST_INSTALL_DIR/VERSION")" = "$version_before" ]
+    [ -x "$TEST_INSTALL_DIR/bin/oraenv.sh" ]
+    run compgen -G "${TEST_INSTALL_DIR}.backup.*"
+    [ "$status" -ne 0 ]
+}
+
+@test "update failing verification after removal restores the previous installation (#224)" {
+    [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ] || skip "Built installer not found"
+    local tarball
+    tarball=$(compgen -G "${PROJECT_ROOT}/dist/oradba-[0-9]*.tar.gz" | head -1)
+    [ -n "$tarball" ] || skip "Release tarball not found"
+    "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
+
+    # Newer version with a modified file: passes the version gate, removes the
+    # old installation, then fails the checksum verification
+    mkdir -p "${TEST_TEMP_DIR}/tamper"
+    tar -xzf "$tarball" -C "${TEST_TEMP_DIR}/tamper"
+    echo "99.0.0" > "${TEST_TEMP_DIR}/tamper/VERSION"
+    echo "# tampered" >> "${TEST_TEMP_DIR}/tamper/bin/oraup.sh"
+    tar -czf "${TEST_TEMP_DIR}/tamper.tar.gz" -C "${TEST_TEMP_DIR}/tamper" .
+
+    run "${PROJECT_ROOT}/dist/oradba_install.sh" --silent --no-update-profile --update \
+        --local "${TEST_TEMP_DIR}/tamper.tar.gz" --prefix "$TEST_INSTALL_DIR"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Removing old installation"* ]]
+    [[ "$output" == *"previous version restored"* ]]
+    [ "$(cat "$TEST_INSTALL_DIR/VERSION")" != "99.0.0" ]
+    run grep -q "# tampered" "$TEST_INSTALL_DIR/bin/oraup.sh"
+    [ "$status" -ne 0 ]
+}
+
 @test "update preserves configuration files" {
     cd "$PROJECT_ROOT"
     if [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]; then
