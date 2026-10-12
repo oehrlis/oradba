@@ -97,6 +97,10 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
+      # Extension pages are synced untracked from external repos (.gitignore) and have
+      # no git history here; the plugin warns per page and --strict aborts the deploy.
+      exclude:
+        - extensions/*
 
 # Navigation structure
 nav:
