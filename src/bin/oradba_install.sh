@@ -1765,6 +1765,21 @@ prompt_oracle_base() {
         return 0
     fi
 
+    # A prefix of the form <base>/local/oradba already names the Oracle Base;
+    # asking with /opt/oracle as default overrode it in oradba_local.conf
+    if [[ "${INSTALL_PREFIX:-}" == */local/oradba ]]; then
+        ORACLE_BASE_PARAM="${INSTALL_PREFIX%/local/oradba}"
+        log_info "Using Oracle Base derived from prefix: ${ORACLE_BASE_PARAM}"
+        return 0
+    fi
+
+    # No terminal (pipe, CI, automation): read would hit EOF and silently take
+    # the default - leave it unset and say how to set it
+    if [[ ! -t 0 ]]; then
+        log_info "No terminal - Oracle Base not prompted (use --base PATH to set it)"
+        return 0
+    fi
+
     # Interactive prompt
     local default_base="/opt/oracle"
     echo ""

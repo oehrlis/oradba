@@ -444,6 +444,10 @@ EOF
 }
 
 @test "persist_discovered_instances handles permission denied gracefully" {
+    # root writes through mode 444, so the permission-denied path never runs
+    if [[ "${EUID}" -eq 0 ]]; then
+        skip "running as root: a read-only file is still writable, negative case cannot trigger"
+    fi
     # Create mock discovered instances
     local discovered_instances="PERMTEST:/opt/oracle/product/19c:N"
     local readonly_oratab="${TEST_TEMP_DIR}/readonly_oratab"

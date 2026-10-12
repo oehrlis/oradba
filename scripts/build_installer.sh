@@ -28,7 +28,9 @@ VERSION=$(cat VERSION 2> /dev/null || echo "0.1.0")
 if [[ -n "${ORADBA_BUILD_SUFFIX:-}" ]]; then
     VERSION="${VERSION}${ORADBA_BUILD_SUFFIX}"
 fi
-BUILD_DIR="build"
+# Per-run staging directory: concurrent builds (parallel test runs) shared
+# build/tar_staging and corrupted each other. ORADBA_BUILD_DIR overrides it.
+BUILD_DIR="${ORADBA_BUILD_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/oradba_build.XXXXXX")}"
 DIST_DIR="dist"
 PACKAGE_NAME="oradba-${VERSION}"
 DIST_TARBALL="${DIST_DIR}/${PACKAGE_NAME}.tar.gz"
@@ -43,6 +45,36 @@ echo "========================================="
 
 # Create directories
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
+
+# Serialise writers of dist/: a second build waits instead of overwriting the
+# artefacts of the first. mkdir is atomic and portable (no flock on macOS); a
+# lock whose owner is gone is taken over.
+LOCK_DIR="${DIST_DIR}/.build.lock"
+LOCK_WAIT="${ORADBA_BUILD_LOCK_WAIT:-300}"
+cleanup_build() {
+    [[ -z "${ORADBA_BUILD_DIR:-}" ]] && rm -rf "${BUILD_DIR:?}"
+    if [[ -f "${LOCK_DIR}/pid" ]] && [[ "$(cat "${LOCK_DIR}/pid" 2> /dev/null)" == "$$" ]]; then
+        rm -rf "${LOCK_DIR}"
+    fi
+}
+trap cleanup_build EXIT
+waited=0
+until mkdir "${LOCK_DIR}" 2> /dev/null; do
+    owner="$(cat "${LOCK_DIR}/pid" 2> /dev/null || true)"
+    if [[ -n "${owner}" ]] && ! kill -0 "${owner}" 2> /dev/null; then
+        echo "Removing stale build lock of PID ${owner}"
+        rm -rf "${LOCK_DIR}"
+        continue
+    fi
+    if ((waited >= LOCK_WAIT)); then
+        echo "ERROR: dist/ is locked by PID ${owner:-unknown} for ${LOCK_WAIT}s (${LOCK_DIR})" >&2
+        exit 1
+    fi
+    ((waited == 0)) && echo "Waiting for build lock held by PID ${owner:-unknown}..."
+    sleep 1
+    waited=$((waited + 1))
+done
+echo "$$" > "${LOCK_DIR}/pid"
 
 # Clean previous builds
 rm -rf "${BUILD_DIR:?}/"*

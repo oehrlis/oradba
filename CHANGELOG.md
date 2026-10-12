@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Interactive install with `--prefix <base>/local/oradba` prompted for Oracle Base
+  with `/opt/oracle` as default and wrote that over the base the prefix names; on
+  a non-terminal stdin it took the default silently. The prefix now wins, and
+  without a terminal the prompt is skipped with a hint to `--base`.
+- Build and tests: `build_installer.sh` stages in a per-run temp directory and
+  locks `dist/` (concurrent builds corrupted each other); five installer tests
+  looked for the tarball in `build/` and were always skipped, now they run.
+  New `make test-clean` runs the suite with a clean environment.
 - Fallbacks follow the conventions page and say so (#225, M7). Unset `ORACLE_BASE`
   now falls back to `/u00/app/oracle` (override `ORADBA_DEFAULT_ORACLE_BASE`) with
   a WARN in `oradba_logrotate.sh` and `oradba_sqlnet.sh`, instead of a silent

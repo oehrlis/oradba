@@ -190,6 +190,14 @@ test-full: ## Run all tests (no smart selection)
 	fi; \
 	echo -e "$(COLOR_GREEN)All tests passed (failures: 0)$(COLOR_RESET)"
 
+.PHONY: test-clean
+test-clean: ## Run all tests with a clean environment (no ORADBA_*/ORACLE_* from your shell)
+	@# A developer shell exports dozens of ORADBA_*/ORACLE_* variables that hid
+	@# defects CI then found. Only PATH, HOME, TERM, TMPDIR and LANG are kept.
+	@# Host files such as /etc/oratab are still visible - CI remains the reference.
+	@env -i PATH="$$PATH" HOME="$$HOME" TERM="$${TERM:-dumb}" TMPDIR="$${TMPDIR:-/tmp}" \
+		LANG="$${LANG:-C}" $(MAKE) --no-print-directory test-full
+
 .PHONY: test-unit
 test-unit: ## Run unit tests only
 	@echo -e "$(COLOR_BLUE)Running unit tests...$(COLOR_RESET)"

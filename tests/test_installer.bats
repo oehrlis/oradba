@@ -125,10 +125,27 @@ installer_function_body() {
     [ -d "${PROJECT_ROOT}/dist" ]
 }
 
-@test "build creates build directory" {
+@test "build stages in its own directory and releases the dist lock" {
+    # Staging moved from the shared build/ to a per-run directory: parallel
+    # builds corrupted build/tar_staging
     cd "$PROJECT_ROOT"
-    ./scripts/build_installer.sh >/dev/null 2>&1
-    [ -d "${PROJECT_ROOT}/build" ]
+    local stage="${BATS_TEST_TMPDIR}/stage"
+    mkdir -p "$stage"
+    ORADBA_BUILD_DIR="$stage" ./scripts/build_installer.sh >/dev/null 2>&1
+    [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]
+    [ ! -e "${PROJECT_ROOT}/dist/.build.lock" ]
+    [ ! -e "${stage}/tar_staging" ]
+}
+
+@test "build waits for a running build instead of overwriting dist" {
+    cd "$PROJECT_ROOT"
+    mkdir "${PROJECT_ROOT}/dist/.build.lock"
+    echo "$$" > "${PROJECT_ROOT}/dist/.build.lock/pid"
+    run env ORADBA_BUILD_LOCK_WAIT=2 ./scripts/build_installer.sh
+    /bin/rm -rf "${PROJECT_ROOT}/dist/.build.lock"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Waiting for build lock held by PID $$"* ]]
+    [[ "$output" == *"dist/ is locked by PID $$"* ]]
 }
 
 @test "build creates installer output" {
@@ -253,7 +270,7 @@ installer_function_body() {
 @test "local mode installation works" {
     cd "$PROJECT_ROOT"
     version=$(cat VERSION)
-    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tarball="${PROJECT_ROOT}/dist/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
         "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$TEST_INSTALL_DIR" >/dev/null 2>&1
@@ -268,7 +285,7 @@ installer_function_body() {
 @test "local mode accepts directory with a single tarball" {
     cd "$PROJECT_ROOT"
     version=$(cat VERSION)
-    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tarball="${PROJECT_ROOT}/dist/oradba-${version}.tar.gz"
     tar_dir="${TEST_TEMP_DIR}/tarballs"
 
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
@@ -785,7 +802,7 @@ installer_function_body() {
 @test "installation with --base sets ORACLE_BASE in oradba_local.conf" {
     cd "$PROJECT_ROOT"
     version=$(cat VERSION)
-    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tarball="${PROJECT_ROOT}/dist/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
         local test_base
@@ -814,7 +831,7 @@ installer_function_body() {
 @test "installation derives ORACLE_BASE from standard prefix pattern" {
     cd "$PROJECT_ROOT"
     version=$(cat VERSION)
-    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tarball="${PROJECT_ROOT}/dist/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
         local test_base
@@ -825,7 +842,8 @@ installer_function_body() {
         mkdir -p "$(dirname "$test_prefix")"
         
         # Install with --prefix following standard pattern
-        "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
+        # Hermetic: a developer shell exports ORACLE_BASE, which wins over the prefix
+        env -u ORACLE_BASE -u ORACLE_HOME "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
         
         # Verify oradba_local.conf exists
         [ -f "$test_prefix/etc/oradba_local.conf" ]
@@ -843,14 +861,15 @@ installer_function_body() {
 @test "installation with non-standard prefix does not set ORACLE_BASE" {
     cd "$PROJECT_ROOT"
     version=$(cat VERSION)
-    tarball="${PROJECT_ROOT}/build/oradba-${version}.tar.gz"
+    tarball="${PROJECT_ROOT}/dist/oradba-${version}.tar.gz"
     
     if [ -f "$tarball" ] && [ -f "$STANDALONE_INSTALLER" ]; then
         local test_prefix
         test_prefix="$(mktemp -d)"
         
         # Install with non-standard prefix (not ending in /local/oradba)
-        "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
+        # Hermetic: a developer shell exports ORACLE_BASE, which wins over the prefix
+        env -u ORACLE_BASE -u ORACLE_HOME "$STANDALONE_INSTALLER" --no-update-profile --local "$tarball" --prefix "$test_prefix" >/dev/null 2>&1
         
         # Verify oradba_local.conf exists
         [ -f "$test_prefix/etc/oradba_local.conf" ]
