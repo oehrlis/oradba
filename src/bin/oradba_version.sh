@@ -136,6 +136,25 @@ get_checksum_exclusions() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: resolve_sha256_cmd
+# Purpose.: Select the SHA-256 tool for checksum verification
+# Args....: None
+# Returns.: 0 when a tool was found, 1 otherwise
+# Output..: Sets global array SHA256_CMD; error message when no tool exists
+# Notes...: sha256sum, else shasum -a 256 (macOS). Without either the check
+#           reported "FAILED" with 0 issues - the missing tool is named now.
+# ------------------------------------------------------------------------------
+resolve_sha256_cmd() {
+    if command -v sha256sum > /dev/null 2>&1; then
+        SHA256_CMD=(sha256sum)
+    elif command -v shasum > /dev/null 2>&1; then
+        SHA256_CMD=(shasum -a 256)
+    else
+        echo -e "${RED}✗ ERROR: Cannot verify integrity - neither sha256sum nor shasum found in PATH${NC}"
+        return 1
+    fi
+}
+# ------------------------------------------------------------------------------
 # Function: check_integrity
 # Purpose.: Verify OraDBA installation integrity using SHA256 checksums
 # Args....: $1 - skip_extensions (optional, defaults to "false"; if "true", skip extension verification)
@@ -165,9 +184,11 @@ check_integrity() {
     # Exclude .install_info as it's modified during installation
     # Note: sha256sum -c exits non-zero when mismatches are found; capture status without
     # triggering set -e by using || assignment so script doesn't abort before formatting output.
+    resolve_sha256_cmd || return 1
+
     local verify_output=""
     local verify_status=0
-    verify_output=$(grep -Ev "${runtime_modified_pattern}" "${checksum_file}" | sha256sum -c - 2>&1) || verify_status=$?
+    verify_output=$(grep -Ev "${runtime_modified_pattern}" "${checksum_file}" | "${SHA256_CMD[@]}" -c - 2>&1) || verify_status=$?
 
     local integrity_result=0
 
@@ -196,8 +217,8 @@ check_integrity() {
             fi
 
             # Parse sha256sum error messages for missing files
-            if [[ "$line" =~ ^sha256sum:[[:space:]]+(.+):[[:space:]]+No[[:space:]]+such[[:space:]]+file ]]; then
-                local file="${BASH_REMATCH[1]}"
+            if [[ "$line" =~ ^(sha256sum|shasum):[[:space:]]+(.+):[[:space:]]+No[[:space:]]+such[[:space:]]+file ]]; then
+                local file="${BASH_REMATCH[2]}"
                 # Remove leading space if present
                 file="${file# }"
                 # Skip if already reported (use :- to handle unset key with set -u)
@@ -210,7 +231,7 @@ check_integrity() {
             fi
 
             # Skip other sha256sum warnings
-            if [[ "$line" =~ ^sha256sum: ]]; then
+            if [[ "$line" =~ ^(sha256sum|shasum): ]]; then
                 continue
             fi
 
@@ -240,8 +261,8 @@ check_integrity() {
         echo ""
         echo "Summary:"
         [[ $modified_count -gt 0 ]] && echo "  Modified files: ${modified_count}"
-        [[ $missing_count -gt 0 ]] && echo "  Missing files:  ${missing_count}"
-        echo "  Total issues:   $((modified_count + missing_count))"
+        [[ $missing_count -gt 0 ]] && echo "  Missing files: ${missing_count}"
+        echo "  Total issues: $((modified_count + missing_count))"
         integrity_result=1
     fi
 
@@ -416,9 +437,10 @@ check_extension_checksums() {
 
         # Verify checksums (apply exclusions from .checksumignore)
         # Checksum format is: hash  filename
-        local verify_output
-        verify_output=$(awk "!(${exclusions}) {print}" "${checksum_file}" | sha256sum -c - 2>&1)
-        local verify_status=$?
+        local verify_output=""
+        local verify_status=0
+        resolve_sha256_cmd || return 1
+        verify_output=$(awk "!(${exclusions}) {print}" "${checksum_file}" | "${SHA256_CMD[@]}" -c - 2>&1) || verify_status=$?
 
         if [[ ${verify_status} -eq 0 ]]; then
             local file_count
@@ -584,7 +606,7 @@ check_updates() {
     fi
 
     echo "Current version: ${current_version}"
-    echo "Latest version:  ${latest_version}"
+    echo "Latest version: ${latest_version}"
     echo ""
 
     # Compare versions
@@ -619,8 +641,8 @@ version_info() {
 
     echo "OraDBA Version Information"
     echo "=========================="
-    echo "Version:       ${version}"
-    echo "Install Path:  ${BASE_DIR}"
+    echo "Version: ${version}"
+    echo "Install Path: ${BASE_DIR}"
 
     if [[ -f "${install_info}" ]]; then
         echo ""
@@ -630,22 +652,22 @@ version_info() {
                 install_date)
                     local fmt_date="${value/T/ }"
                     fmt_date="${fmt_date%:??Z} UTC"
-                    printf "  %-14s%s\n" "Installed:" "${fmt_date}"
+                    printf "  %s %s\n" "Installed:" "${fmt_date}"
                     ;;
                 install_version)
-                    printf "  %-14s%s\n" "Version:" "${value}"
+                    printf "  %s %s\n" "Version:" "${value}"
                     ;;
                 install_method)
-                    printf "  %-14s%s\n" "Method:" "${value}"
+                    printf "  %s %s\n" "Method:" "${value}"
                     ;;
                 install_user)
-                    printf "  %-14s%s\n" "User:" "${value}"
+                    printf "  %s %s\n" "User:" "${value}"
                     ;;
                 coexist_mode)
-                    printf "  %-14s%s\n" "Mode:" "${ORADBA_COEXIST_MODE:-${value}}"
+                    printf "  %s %s\n" "Mode:" "${ORADBA_COEXIST_MODE:-${value}}"
                     ;;
                 basenv_detected)
-                    printf "  %-14s%s\n" "BasEnv:" "${value}"
+                    printf "  %s %s\n" "BasEnv:" "${value}"
                     ;;
             esac
         done < "${install_info}"

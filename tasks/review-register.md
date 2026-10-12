@@ -32,13 +32,16 @@
 
 ### RA-oradba-003 - Markdown-Lint-Fehler in Archiv-Releasenote
 
-- status: offen
+- status: behoben
 - schwere: niedrig
 - rolle: doku-tests
 - ort: doc/releases/v0.19.0.md
 - regel: lint-gate
 - gefunden: 2026-10-10
 - beleg: doc/releases/v0.19.0.md:350 - MD012 multiple consecutive blank lines
+- erledigt: 2026-10-12
+- commit: -
+- notiz: kein Fix-Commit - Datei seit 4aaa1b5 unveraendert, markdownlint 0.49.1 meldet 2026-10-12 nichts; Befund nicht reproduzierbar
 
 ### RA-oradba-004 - Plugin-Loader: direkte Source-Sites umgehen Isolation-Wrapper (CF-004)
 

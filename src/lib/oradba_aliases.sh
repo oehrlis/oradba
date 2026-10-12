@@ -203,11 +203,10 @@ generate_sid_aliases() {
         fi
     fi
 
-    # SQL*Plus with rlwrap if available
-    if has_rlwrap; then
-        create_dynamic_alias sq "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
-        create_dynamic_alias sqh "${RLWRAP_COMMAND} ${RLWRAP_OPTS} sqlplus / as sysdba" "true"
-    fi
+    # sq / sqh are defined in oradba_standard.conf (sq plain, sqh with rlwrap,
+    # completions and the optional password filter -z). Redefining them here
+    # replaced sqh without -z, so ORADBA_RLWRAP_FILTER=true stopped protecting
+    # passwords in the rlwrap history, and sq gained rlwrap against the docs.
 
     # TNS ping wrapper (supports both native tnsping and Instant Client sqlplus -P)
     create_dynamic_alias tnsping 'oradba_tnsping'

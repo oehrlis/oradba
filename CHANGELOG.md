@@ -26,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `sqh` lost the rlwrap password filter: with `ORACLE_SID` set and rlwrap present,
+  `oradba_aliases.sh` redefined `sq` and `sqh` as plain rlwrap calls after
+  `oradba_standard.conf` had set `sqh` with completions and `-z` filter, so
+  `ORADBA_RLWRAP_FILTER=true` stopped keeping passwords out of the rlwrap history,
+  and `sq` gained rlwrap against the documentation. The override is removed.
+- `oradba_version.sh --verify`: without `sha256sum` it reported "FAILED" with
+  0 issues; it now falls back to `shasum -a 256` and names a missing tool. The
+  extension check captured its exit code after the command (set -e).
+- `oradba_version.sh` output no longer pads labels with spaces; `oraup.sh` no
+  longer exports the unused `ORADBA_CACHED_PS`; `sid._DEFAULT_.conf` guards
+  `${ORACLE_SID:-}`.
 - Interactive install with `--prefix <base>/local/oradba` prompted for Oracle Base
   with `/opt/oracle` as default and wrote that over the base the prefix names; on
   a non-terminal stdin it took the default silently. The prefix now wins, and

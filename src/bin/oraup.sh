@@ -585,9 +585,6 @@ show_oracle_status_registry() {
                     local status="unknown"
                     local port_display="n/a"
 
-                    # Export cached process list for plugin to use
-                    export ORADBA_CACHED_PS="$process_list"
-
                     # Get status using plugin system
                     # || true: oradba_get_product_status returns exit code 1 for "stopped",
                     # which with pipefail would kill this subshell before the temp file is written
@@ -661,10 +658,9 @@ show_oracle_status_registry() {
     echo "=========================================================================================="
     echo ""
 
-    # Remove the batch-cached process snapshot from the shell environment so it
-    # does not persist after this function returns (sourced invocation via 'u'
-    # alias would otherwise export a stale ORADBA_CACHED_PS into the parent shell,
-    # causing subsequent oradba_dsctl.sh status calls to report wrong state).
+    # ORADBA_CACHED_PS is no longer produced (no reader since 443fc0c). Clear a
+    # stale value that versions up to 1.1.0 could leave in the parent shell
+    # through the sourced 'u' alias.
     unset ORADBA_CACHED_PS
 }
 
