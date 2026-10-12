@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `mkdocs.yml`: exclude the synced extension pages (`extensions/*`) from the
+  git-revision-date plugin. They are untracked here, the plugin warned once per
+  page, and `mkdocs build --strict` aborted the Deploy Documentation workflow.
 - `.gitignore`: add `.claude/settings.local.json` to prevent accidental commit of
   the Claude Code allowlist file.
 
