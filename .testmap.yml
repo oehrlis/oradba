@@ -5,7 +5,7 @@
 # Used by scripts/select_tests.sh for smart test selection.
 #
 # Architecture: Registry API + Plugin System + Environment Builder
-# Test Coverage: 1675 tests across 56 test files
+# Test Coverage: 1738 tests across 59 test files
 # ------------------------------------------------------------------------------
 
 # Tests that always run regardless of changes (core functionality)
@@ -91,6 +91,7 @@ mappings:
   
   src/bin/oraenv.sh:
     - test_oraenv.bats
+    - test_errexit_rc_capture.bats
   
   src/bin/oraup.sh:
     - test_oraup.bats
@@ -117,6 +118,7 @@ mappings:
   
   src/bin/oradba_dsctl.sh:
     - test_oradba_dsctl.bats
+    - test_errexit_rc_capture.bats
 
   # Admin / utility scripts (smoke tests - F-014)
   src/bin/oradba_logrotate.sh:
@@ -247,15 +249,18 @@ mappings:
   # Service management scripts
   src/bin/oradba_dbctl.sh:
     - test_service_management.bats
+    - test_errexit_rc_capture.bats
   
   src/bin/oradba_lsnrctl.sh:
     - test_service_management.bats
   
   src/bin/oradba_services.sh:
     - test_service_management.bats
+    - test_errexit_rc_capture.bats
   
   src/bin/oradba_services_root.sh:
     - test_service_management.bats
+    - test_errexit_rc_capture.bats
   
   src/etc/oradba_services.conf:
     - test_service_management.bats

@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stop the installer and it reinstalled anyway; it is now called directly, and
   `--github` / `--local` apply the same version check after extraction. The
   crashing `mv` of the issue itself was fixed in 1.0.0-rc.8.
+- Exit code capture under `set -euo pipefail`: 9 sites in `oradba_services_root.sh`,
+  `oradba_dbctl.sh`, `oradba_dsctl.sh` and `oradba_services.sh` captured `$?` on
+  the line after the command, so set -e would exit before the error handling ran.
+  Latent - all callers use `if` - now `cmd || rc=$?`. `oraenv.sh`
+  `_oradba_path_contains` uses `${!pathvar:-}` (unset `SQLPATH` under `set -u`).
 - `mkdocs.yml`: exclude the synced extension pages (`extensions/*`) from the
   git-revision-date plugin. They are untracked here, the plugin warned once per
   page, and `mkdocs build --strict` aborted the Deploy Documentation workflow.

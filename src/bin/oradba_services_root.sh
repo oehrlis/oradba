@@ -108,9 +108,9 @@ run_as_oracle() {
     oradba_log "INFO" "Executing ${action} as user ${ORACLE_USER}"
 
     # Execute services script as oracle user
-    su - "${ORACLE_USER}" -c "${SERVICES_SCRIPT} ${action} --force"
+    local rc=0
+    su - "${ORACLE_USER}" -c "${SERVICES_SCRIPT} ${action} --force" || rc=$?
 
-    local rc=$?
 
     if [[ ${rc} -eq 0 ]]; then
         oradba_log "INFO" "Command completed successfully"
