@@ -140,6 +140,25 @@ print_message() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: resolve_oracle_base
+# Purpose.: Return ORACLE_BASE, or the convention default when it is unset
+# Args....: None
+# Returns.: 0
+# Output..: ORACLE_BASE path to stdout; WARN to stderr when the default is used
+# Notes...: Default ${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle} per the
+#           conventions page (#225); standalone script, so no oradba_common.sh
+# ------------------------------------------------------------------------------
+resolve_oracle_base() {
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
+        echo "${ORACLE_BASE}"
+        return 0
+    fi
+    local default_base="${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle}"
+    print_message "${YELLOW}" "WARN: ORACLE_BASE not set - using ${default_base} (set ORACLE_BASE to change)" >&2
+    echo "${default_base}"
+}
+
+# ------------------------------------------------------------------------------
 # Function: check_root
 # Purpose.: Verify script is running as root (EUID 0)
 # Args....: $1 - Operation name for error message (e.g., "--install")
@@ -394,7 +413,8 @@ customize_logrotate() {
     fi
 
     # Detect Oracle environment
-    local oracle_base="${ORACLE_BASE:-/u01/app/oracle}"
+    local oracle_base
+    oracle_base="$(resolve_oracle_base)"
     local oracle_home="${ORACLE_HOME:-}"
 
     print_message "${GREEN}" "Detected environment:"
@@ -511,7 +531,8 @@ install_user() {
     echo ""
 
     # Detect Oracle environment
-    local oracle_base="${ORACLE_BASE:-/u01/app/oracle}"
+    local oracle_base
+    oracle_base="$(resolve_oracle_base)"
     local oracle_home="${ORACLE_HOME:-}"
 
     # Generate user-specific alert log config

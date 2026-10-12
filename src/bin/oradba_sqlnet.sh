@@ -40,6 +40,25 @@ TEMPLATE_DIR="${ORADBA_BASE}/templates/sqlnet"
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
+# Function: resolve_oracle_base
+# Purpose.: Return ORACLE_BASE, or the convention default when it is unset
+# Args....: None
+# Returns.: 0
+# Output..: ORACLE_BASE path to stdout; WARN to stderr when the default is used
+# Notes...: Default ${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle} per the
+#           conventions page (#225); standalone script, so no oradba_common.sh
+# ------------------------------------------------------------------------------
+resolve_oracle_base() {
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
+        echo "${ORACLE_BASE}"
+        return 0
+    fi
+    local default_base="${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle}"
+    echo "WARN: ORACLE_BASE not set - using ${default_base} (set ORACLE_BASE to change)" >&2
+    echo "${default_base}"
+}
+
+# ------------------------------------------------------------------------------
 # Function: usage
 # Purpose.: Display comprehensive help for SQL*Net configuration management
 # Args....: None
@@ -181,7 +200,8 @@ is_readonly_home() {
 # ------------------------------------------------------------------------------
 create_tns_structure() {
     local sid="${1:-${ORACLE_SID}}"
-    local base="${ORACLE_BASE:-/u01/app/oracle}"
+    local base
+    base="$(resolve_oracle_base)"
     local tns_admin
 
     if [[ -n "${sid}" ]]; then
@@ -511,12 +531,15 @@ install_sqlnet() {
         backup_file "${target}"
     fi
 
-    # Copy template with variable substitution
+    # Copy template with variable substitution; both paths use the same
+    # ORACLE_BASE (envsubst would otherwise write an empty one when unset)
+    local base
+    base="$(resolve_oracle_base)"
     if command -v envsubst > /dev/null 2>&1; then
-        envsubst < "${template}" > "${target}"
+        ORACLE_BASE="${base}" envsubst < "${template}" > "${target}"
     else
         # Manual substitution if envsubst not available
-        sed -e "s|\${ORACLE_BASE}|${ORACLE_BASE:-/u01/app/oracle}|g" \
+        sed -e "s|\${ORACLE_BASE}|${base}|g" \
             -e "s|\${ORACLE_SID}|${ORACLE_SID:-orcl}|g" \
             "${template}" > "${target}"
     fi

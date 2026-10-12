@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fallbacks follow the conventions page and say so (#225, M7). Unset `ORACLE_BASE`
+  now falls back to `/u00/app/oracle` (override `ORADBA_DEFAULT_ORACLE_BASE`) with
+  a WARN in `oradba_logrotate.sh` and `oradba_sqlnet.sh`, instead of a silent
+  `/u01/app/oracle`; the `envsubst` path of `oradba_sqlnet.sh` no longer writes an
+  empty `ORACLE_BASE`. The six control scripts resolve their log file through the
+  new `oradba_resolve_log_file`: `${ORADBA_LOG:-/var/log/oracle}`, `/tmp` fallback
+  with a WARN (before: two fell back silently, three not at all, and
+  `oradba_services_root.sh` ignored `ORADBA_LOG`). `oradba_dbca.sh` places data
+  and FRA under `ORACLE_DATA` / `ORACLE_ARCH` when set.
 - `oradba_install.sh --update` (#224): the old installation was removed before
   the new one was downloaded and extracted, and a failure after that left an
   empty prefix. The removal now happens after extraction, and any failure after

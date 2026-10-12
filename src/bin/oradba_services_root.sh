@@ -27,7 +27,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORADBA_BASE="$(dirname "${SCRIPT_DIR}")"
 ORACLE_USER="${ORACLE_USER:-oracle}"
 SERVICES_SCRIPT="${ORADBA_BASE}/bin/oradba_services.sh"
-LOGFILE="/var/log/oracle/oradba_services_root.log"
 
 # Source common functions
 if [[ -f "${ORADBA_BASE}/lib/oradba_common.sh" ]]; then
@@ -37,7 +36,8 @@ else
     exit 1
 fi
 
-# Enable file logging
+# Enable file logging (ORADBA_LOG overrides /var/log/oracle, /tmp fallback with WARN)
+LOGFILE="$(oradba_resolve_log_file "oradba_services_root.log")"
 export ORADBA_LOG_FILE="${LOGFILE}"
 
 # ------------------------------------------------------------------------------

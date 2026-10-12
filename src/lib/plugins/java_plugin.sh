@@ -31,7 +31,9 @@ export plugin_description="Oracle Java plugin"
 # ------------------------------------------------------------------------------
 plugin_detect_installation() {
     local -a java_homes=()
-    local oracle_base="${ORACLE_BASE:-/opt/oracle}"
+    # Detection probe: no WARN when ORACLE_BASE is unset (runs on every
+    # environment load); default per the conventions page (#225)
+    local oracle_base="${ORACLE_BASE:-${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle}}"
     
     # Skip if product directory doesn't exist
     [[ ! -d "${oracle_base}/product" ]] && return 0

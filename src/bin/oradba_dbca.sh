@@ -522,8 +522,18 @@ main() {
     # Set defaults for unspecified values
     DB_DOMAIN="${DB_DOMAIN:-$(detect_domain)}"
     DB_UNIQUE_NAME="${DB_UNIQUE_NAME:-${DB_SID}}"
-    DATA_DIR="${DATA_DIR:-${ORACLE_BASE}/oradata/${DB_SID}}"
-    FRA_DIR="${FRA_DIR:-${ORACLE_BASE}/fast_recovery_area/${DB_SID}}"
+    # Conventions page: ORACLE_DATA (/u01) and ORACLE_ARCH (/u02) roots when set,
+    # otherwise below ORACLE_BASE as before
+    if [[ -n "${ORACLE_DATA:-}" ]]; then
+        DATA_DIR="${DATA_DIR:-${ORACLE_DATA}/oradata/${DB_UNIQUE_NAME}}"
+    else
+        DATA_DIR="${DATA_DIR:-${ORACLE_BASE}/oradata/${DB_SID}}"
+    fi
+    if [[ -n "${ORACLE_ARCH:-}" ]]; then
+        FRA_DIR="${FRA_DIR:-${ORACLE_ARCH}/fast_recovery_area}"
+    else
+        FRA_DIR="${FRA_DIR:-${ORACLE_BASE}/fast_recovery_area/${DB_SID}}"
+    fi
 
     # Prompt for passwords if not provided (only in interactive mode)
     if [[ -z "${SYS_PASSWORD:-}" ]] && [[ -t 0 ]]; then
