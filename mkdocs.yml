@@ -111,6 +111,7 @@ nav:
     - Configuration System: configuration.md
     - Advanced Configuration: advanced-configuration.md
     - Environment Management: environment.md
+    - Conventions: conventions.md
 
   - Aliases & Tools:
     - Aliases Reference: aliases.md
