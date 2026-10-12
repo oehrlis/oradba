@@ -5,7 +5,7 @@
 # Used by scripts/select_tests.sh for smart test selection.
 #
 # Architecture: Registry API + Plugin System + Environment Builder
-# Test Coverage: 1738 tests across 59 test files
+# Test Coverage: 1749 tests across 60 test files
 # ------------------------------------------------------------------------------
 
 # Tests that always run regardless of changes (core functionality)
@@ -36,6 +36,7 @@ mappings:
     - test_oradba_version.bats
     - test_oradba_version_metadata.bats
   src/lib/oradba_common.sh:
+    - test_conventions_defaults.bats
     - test_oradba_common.bats
     - test_oradba_aliases.bats
     - test_oradba_db_functions.bats
@@ -100,12 +101,14 @@ mappings:
     - test_oradba_db_functions.bats
   
   src/bin/oradba_sqlnet.sh:
+    - test_conventions_defaults.bats
     - test_oradba_sqlnet.bats
   
   src/bin/oradba_extension.sh:
     - test_extensions.bats
   
   src/bin/oradba_rman.sh:
+    - test_conventions_defaults.bats
     - test_oradba_rman.bats
   
   src/bin/oradba_homes.sh:
@@ -114,14 +117,17 @@ mappings:
     - test_registry.bats
   
   src/bin/oradba_dbca.sh:
+    - test_conventions_defaults.bats
     - test_oradba_dbca.bats
   
   src/bin/oradba_dsctl.sh:
+    - test_conventions_defaults.bats
     - test_oradba_dsctl.bats
     - test_errexit_rc_capture.bats
 
   # Admin / utility scripts (smoke tests - F-014)
   src/bin/oradba_logrotate.sh:
+    - test_conventions_defaults.bats
     - test_oradba_admin_scripts.bats
 
   src/bin/sessionsql.sh:
@@ -225,6 +231,7 @@ mappings:
     - test_oradba_env_status.bats
   
   src/lib/plugins/java_plugin.sh:
+    - test_conventions_defaults.bats
     - test_java_plugin.bats
     - test_plugin_interface.bats
     - test_plugin_isolation.bats
@@ -248,17 +255,21 @@ mappings:
   
   # Service management scripts
   src/bin/oradba_dbctl.sh:
+    - test_conventions_defaults.bats
     - test_service_management.bats
     - test_errexit_rc_capture.bats
   
   src/bin/oradba_lsnrctl.sh:
+    - test_conventions_defaults.bats
     - test_service_management.bats
   
   src/bin/oradba_services.sh:
+    - test_conventions_defaults.bats
     - test_service_management.bats
     - test_errexit_rc_capture.bats
   
   src/bin/oradba_services_root.sh:
+    - test_conventions_defaults.bats
     - test_service_management.bats
     - test_errexit_rc_capture.bats
   

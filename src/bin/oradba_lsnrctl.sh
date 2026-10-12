@@ -46,7 +46,7 @@ ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 FORCE_MODE=false
 ACTION=""
 LISTENERS=()
-LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+LOGFILE="$(oradba_resolve_log_file "${SCRIPT_NAME%.sh}.log")"
 
 # ------------------------------------------------------------------------------
 # Functions

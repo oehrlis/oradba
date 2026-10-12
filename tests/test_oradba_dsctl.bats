@@ -397,38 +397,36 @@ dsctl_function_body() {
 # ------------------------------------------------------------------------------
 
 # Group 1 - b76fe9c: log directory fallback
-@test "log_directory_fallback_uses_tmp_when_var_log_oracle_missing" {
-    # Source the LOGFILE-resolution block in isolation with /var/log/oracle absent.
-    # The script must fall back to /tmp instead of failing.
-    run env ORADBA_LOG="/var/log/oracle/nonexistent_$$" bash -c '
+@test "log_directory_fallback_uses_tmp_when_log_dir_cannot_be_created" {
+    # Real code path: oradba_dsctl.sh resolves LOGFILE with
+    # oradba_resolve_log_file (M7). A regular file used as the directory cannot
+    # be created, also as root (the former /var/log/oracle/nonexistent probe
+    # failed as root because root can create it).
+    grep -q 'LOGFILE="$(oradba_resolve_log_file "${SCRIPT_NAME%.sh}.log")"' "${ORADBA_BIN}/oradba_dsctl.sh"
+    local blocker="${TEST_DIR}/not_a_dir"
+    : > "${blocker}"
+    run env ORADBA_LOG="${blocker}" TMPDIR="${TEST_DIR}" ORADBA_BASE="${ORADBA_BASE}" bash -c '
         set -euo pipefail
-        SCRIPT_NAME="oradba_dsctl.sh"
-        LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
-        if [[ ! -d "${LOGFILE%/*}" ]]; then
-            mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
-        fi
-        echo "${LOGFILE}"
+        source "${ORADBA_BASE}/lib/oradba_common.sh"
+        oradba_resolve_log_file oradba_dsctl.log 2>/dev/null
     '
     [ "$status" -eq 0 ]
-    [[ "$output" == "/tmp/oradba_dsctl.log" ]]
+    [ "$output" = "${TEST_DIR}/oradba_dsctl.log" ]
 }
 
 @test "log_directory_fallback_when_parent_not_writable" {
-    # Point the configured log parent at a path that cannot be created
-    # (a file used as a directory). Fallback must keep the script alive.
+    # Parent path is a file: mkdir -p fails, fallback keeps the script alive
+    # and the WARN names both directories.
     local blocker="${TEST_DIR}/not_a_dir"
     : > "${blocker}"
-    run env ORADBA_LOG="${blocker}/sub" bash -c '
+    run env ORADBA_LOG="${blocker}/sub" TMPDIR="${TEST_DIR}" ORADBA_BASE="${ORADBA_BASE}" bash -c '
         set -euo pipefail
-        SCRIPT_NAME="oradba_dsctl.sh"
-        LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
-        if [[ ! -d "${LOGFILE%/*}" ]]; then
-            mkdir -p "${LOGFILE%/*}" 2>/dev/null || LOGFILE="/tmp/${SCRIPT_NAME%.sh}.log"
-        fi
-        echo "${LOGFILE}"
+        source "${ORADBA_BASE}/lib/oradba_common.sh"
+        oradba_resolve_log_file oradba_dsctl.log
     '
     [ "$status" -eq 0 ]
-    [[ "$output" == "/tmp/oradba_dsctl.log" ]]
+    [[ "$output" == *"WARN"*"${blocker}/sub not writable"* ]]
+    [[ "${lines[-1]}" == "${TEST_DIR}/oradba_dsctl.log" ]]
 }
 
 # Group 2 - 5e89542: stopped connector display

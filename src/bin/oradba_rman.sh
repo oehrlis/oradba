@@ -37,16 +37,8 @@ fi
 # Global variables
 # ------------------------------------------------------------------------------
 TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
-SCRIPT_LOG="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
-
-# Create log directory if it doesn't exist
-LOG_DIR="$(dirname "${SCRIPT_LOG}")"
-if [[ ! -d "${LOG_DIR:-}" ]]; then
-    if ! mkdir -p "${LOG_DIR}" 2> /dev/null; then
-        # If we can't create the default log directory, use temp directory
-        SCRIPT_LOG="${TMPDIR:-/tmp}/${SCRIPT_NAME%.sh}_${TIMESTAMP}.log"
-    fi
-fi
+# Log directory ${ORADBA_LOG:-/var/log/oracle}, /tmp fallback with WARN
+SCRIPT_LOG="$(oradba_resolve_log_file "${SCRIPT_NAME%.sh}_${TIMESTAMP}.log")"
 
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/oradba_rman.XXXXXX")"
 trap 'if [[ "${OPT_NO_CLEANUP:-false}" != "true" ]]; then rm -rf "${TEMP_DIR:-}"; fi' EXIT

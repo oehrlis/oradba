@@ -41,7 +41,7 @@ ORADBA_DEBUG="${ORADBA_DEBUG:-false}"
 CONFIG_FILE="${ORADBA_BASE}/etc/oradba_services.conf"
 FORCE_MODE=false
 ACTION=""
-LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+LOGFILE="$(oradba_resolve_log_file "${SCRIPT_NAME%.sh}.log")"
 
 # Default configuration
 STARTUP_ORDER="listener,database"

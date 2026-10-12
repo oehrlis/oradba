@@ -791,6 +791,7 @@ check_oracle_versions() {
 
         # Fallback: Check common locations
         local common_locs=(
+            "/u00/app/oracle/product"
             "/u01/app/oracle/product"
             "/opt/oracle/product"
             "$HOME/oracle/product"

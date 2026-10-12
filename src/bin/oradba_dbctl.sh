@@ -59,7 +59,7 @@ FORCE_MODE=false
 OPEN_PDBS=false
 ACTION=""
 SIDS=()
-LOGFILE="${ORADBA_LOG:-/var/log/oracle}/${SCRIPT_NAME%.sh}.log"
+LOGFILE="$(oradba_resolve_log_file "${SCRIPT_NAME%.sh}.log")"
 
 # ------------------------------------------------------------------------------
 # Functions

@@ -335,6 +335,55 @@ oradba_log() {
 }
 
 # ------------------------------------------------------------------------------
+# Function: oradba_resolve_log_file
+# Purpose.: Resolve the log file path for a control script, with a fallback
+# Args....: $1 - Log file name (e.g. oradba_dbctl.log)
+# Returns.: 0 - Always successful
+# Output..: Log file path to stdout; WARN to stderr when falling back
+# Notes...: Directory: ${ORADBA_LOG:-/var/log/oracle}, created if missing.
+#           When it cannot be created or is not writable, falls back to
+#           ${TMPDIR:-/tmp} and says so - one behaviour for all control
+#           scripts (open-work M7), never a silent switch.
+# ------------------------------------------------------------------------------
+oradba_resolve_log_file() {
+    local name="$1"
+    local log_dir="${ORADBA_LOG:-/var/log/oracle}"
+    local fallback_dir="${TMPDIR:-/tmp}"
+    fallback_dir="${fallback_dir%/}"
+
+    if [[ ! -d "${log_dir}" ]]; then
+        mkdir -p "${log_dir}" 2> /dev/null || true
+    fi
+    if [[ -d "${log_dir}" && -w "${log_dir}" ]]; then
+        echo "${log_dir}/${name}"
+        return 0
+    fi
+
+    oradba_log WARN "Log directory ${log_dir} not writable - logging to ${fallback_dir}/${name} (set ORADBA_LOG to change)"
+    echo "${fallback_dir}/${name}"
+}
+
+# ------------------------------------------------------------------------------
+# Function: oradba_default_oracle_base
+# Purpose.: Return ORACLE_BASE, or the convention default when it is unset
+# Args....: None
+# Returns.: 0 - Always successful
+# Output..: ORACLE_BASE path to stdout; WARN to stderr when the default is used
+# Notes...: Default ${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle} as defined on
+#           the conventions page (doc/conventions.md). Replaces the scattered
+#           /u01/app/oracle fallbacks (#225).
+# ------------------------------------------------------------------------------
+oradba_default_oracle_base() {
+    if [[ -n "${ORACLE_BASE:-}" ]]; then
+        echo "${ORACLE_BASE}"
+        return 0
+    fi
+    local default_base="${ORADBA_DEFAULT_ORACLE_BASE:-/u00/app/oracle}"
+    oradba_log WARN "ORACLE_BASE not set - using ${default_base} (set ORACLE_BASE to change)"
+    echo "${default_base}"
+}
+
+# ------------------------------------------------------------------------------
 # Function: execute_db_query
 # Purpose.: Execute SQL*Plus query with standardized configuration and formatting
 # Syntax..: execute_db_query <query> [format]

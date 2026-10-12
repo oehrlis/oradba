@@ -43,11 +43,15 @@ dedicated volume without changing a path.
 Difference to Oracle OFA: OFA uses `/u01/app/oracle` for the software and `/u02`, `/u03`, ... for data. The OraDBA
 layout keeps software on `/u00` so that `/u01` and `/u02` carry only database files.
 
-Known deviations in existing code, to be aligned with this page:
+How OraDBA applies these defaults:
 
-- `oradba_logrotate.sh` and `oradba_sqlnet.sh` fall back to `/u01/app/oracle` when `ORACLE_BASE` is unset.
-- `oradba_dbca.sh` defaults the data directory to `${ORACLE_BASE}/oradata/<SID>`; set `DATA_DIR` to follow this page.
-- `oracle-database-docker-legacy` uses `ORACLE_DATA=/u00/oradata` (single root).
+- When `ORACLE_BASE` is unset, OraDBA scripts use `/u00/app/oracle` (override with `ORADBA_DEFAULT_ORACLE_BASE`)
+  and print a WARN line.
+- `oradba_dbca.sh` places datafiles in `${ORACLE_DATA}/oradata/<DB_UNIQUE_NAME>` and the fast recovery area in
+  `${ORACLE_ARCH}/fast_recovery_area` when these variables are set; otherwise below `ORACLE_BASE` as before.
+  `DATA_DIR` and `FRA_DIR` override both.
+
+Known deviation: `oracle-database-docker-legacy` uses `ORACLE_DATA=/u00/oradata` (single root).
 
 ## OS Users and Groups
 
