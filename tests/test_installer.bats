@@ -125,10 +125,27 @@ installer_function_body() {
     [ -d "${PROJECT_ROOT}/dist" ]
 }
 
-@test "build creates build directory" {
+@test "build stages in its own directory and releases the dist lock" {
+    # Staging moved from the shared build/ to a per-run directory: parallel
+    # builds corrupted build/tar_staging
     cd "$PROJECT_ROOT"
-    ./scripts/build_installer.sh >/dev/null 2>&1
-    [ -d "${PROJECT_ROOT}/build" ]
+    local stage="${BATS_TEST_TMPDIR}/stage"
+    mkdir -p "$stage"
+    ORADBA_BUILD_DIR="$stage" ./scripts/build_installer.sh >/dev/null 2>&1
+    [ -f "${PROJECT_ROOT}/dist/oradba_install.sh" ]
+    [ ! -e "${PROJECT_ROOT}/dist/.build.lock" ]
+    [ ! -e "${stage}/tar_staging" ]
+}
+
+@test "build waits for a running build instead of overwriting dist" {
+    cd "$PROJECT_ROOT"
+    mkdir "${PROJECT_ROOT}/dist/.build.lock"
+    echo "$$" > "${PROJECT_ROOT}/dist/.build.lock/pid"
+    run env ORADBA_BUILD_LOCK_WAIT=2 ./scripts/build_installer.sh
+    /bin/rm -rf "${PROJECT_ROOT}/dist/.build.lock"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Waiting for build lock held by PID $$"* ]]
+    [[ "$output" == *"dist/ is locked by PID $$"* ]]
 }
 
 @test "build creates installer output" {
