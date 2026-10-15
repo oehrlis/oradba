@@ -1668,57 +1668,8 @@ EOF
 # ==============================================================================
 
 @test "download_extension_from_github prefers release asset over tarball_url for latest release" {
-    # Source only download_extension_from_github function
-    # shellcheck disable=SC1090
-    source <(awk '
-        /^download_extension_from_github\(\)/ {capture=1}
-        capture {
-            if ($0 ~ /^validate_extension_structure\(\)/) exit
-            print
-        }
-    ' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
-
-    # Mock curl in PATH
-    local mock_bin="${TEST_TEMP_DIR}/mock_bin"
-    mkdir -p "${mock_bin}"
-    cat > "${mock_bin}/curl" << 'EOF'
-#!/usr/bin/env bash
-output_file=""
-url=""
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -o)
-            output_file="$2"
-            shift 2
-            ;;
-        -*)
-            shift
-            ;;
-        *)
-            url="$1"
-            shift
-            ;;
-    esac
-done
-
-if [[ "${url}" == *"/releases/latest" ]]; then
-    cat << 'JSON'
-{"tag_name":"v1.2.3","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v1.2.3","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v1.2.3/repo-extension-v1.2.3.tar.gz"}]}
-JSON
-    exit 0
-fi
-
-if [[ -n "${output_file}" ]]; then
-    printf '%s' "${url}" > "${output_file}"
-    exit 0
-fi
-
-exit 1
-EOF
-    chmod +x "${mock_bin}/curl"
-    export PATH="${mock_bin}:${PATH}"
-
+    _setup_github_mock
+    export MOCK_GH_MODE=release
     local output_file="${TEST_TEMP_DIR}/downloaded.tar.gz"
 
     run download_extension_from_github "owner/repo" "" "${output_file}"
@@ -1728,7 +1679,24 @@ EOF
 }
 
 @test "download_extension_from_github prefers release asset over tarball_url for specific version" {
-    # Source only download_extension_from_github function
+    _setup_github_mock
+    export MOCK_GH_MODE=release
+    local output_file="${TEST_TEMP_DIR}/downloaded-v2.tar.gz"
+
+    run download_extension_from_github "owner/repo" "2.0.0" "${output_file}"
+    [[ "${status}" -eq 0 ]]
+    [[ -f "${output_file}" ]]
+    grep -q "releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz" "${output_file}"
+}
+
+# ==============================================================================
+# GitHub API Error Handling Tests (#234)
+# ==============================================================================
+
+# Load download_extension_from_github and the github_* helpers, and put a curl
+# mock in PATH. MOCK_GH_MODE selects the API behaviour, every call is logged to
+# MOCK_CURL_LOG, a token passed via --config on stdin to MOCK_CURL_CONFIG.
+_setup_github_mock() {
     # shellcheck disable=SC1090
     source <(awk '
         /^download_extension_from_github\(\)/ {capture=1}
@@ -1737,54 +1705,209 @@ EOF
             print
         }
     ' "${ORADBA_SRC_BASE}/bin/oradba_extension.sh")
+    log_debug() { :; }
 
-    # Mock curl in PATH
     local mock_bin="${TEST_TEMP_DIR}/mock_bin"
     mkdir -p "${mock_bin}"
+    export MOCK_CURL_LOG="${TEST_TEMP_DIR}/curl.log"
+    export MOCK_CURL_CONFIG="${TEST_TEMP_DIR}/curl.config"
+    : > "${MOCK_CURL_LOG}"
     cat > "${mock_bin}/curl" << 'EOF'
 #!/usr/bin/env bash
-output_file=""
-url=""
-
+output_file="" header_file="" write_out="" url=""
+echo "$*" >> "${MOCK_CURL_LOG}"
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -o)
-            output_file="$2"
-            shift 2
-            ;;
-        -*)
-            shift
-            ;;
-        *)
-            url="$1"
-            shift
-            ;;
+        -o) output_file="$2"; shift 2 ;;
+        -D) header_file="$2"; shift 2 ;;
+        -w) write_out="$2"; shift 2 ;;
+        -H) shift 2 ;;
+        --config) [[ "$2" == "-" ]] && cat > "${MOCK_CURL_CONFIG}"; shift 2 ;;
+        -*) shift ;;
+        *) url="$1"; shift ;;
     esac
 done
 
-if [[ "${url}" == *"/releases/tags/v2.0.0" ]]; then
-    cat << 'JSON'
-{"tag_name":"v2.0.0","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v2.0.0","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz"}]}
-JSON
+# Plain download (no -w): write the URL into the output file
+if [[ -z "${write_out}" ]]; then
+    [[ -n "${output_file}" ]] && printf '%s' "${url}" > "${output_file}"
     exit 0
 fi
 
-if [[ -n "${output_file}" ]]; then
-    printf '%s' "${url}" > "${output_file}"
+respond() {
+    local status="$1" body="$2" extra="${3:-}"
+    printf 'HTTP/2 %s\r\n%s\r\n' "${status}" "${extra}" > "${header_file}"
+    printf '%s' "${body}" > "${output_file}"
+    printf '%s' "${status}"
     exit 0
-fi
+}
 
-exit 1
+case "${MOCK_GH_MODE}" in
+    ratelimit)
+        respond 403 '{"message":"API rate limit exceeded for 192.0.2.1."}' \
+            $'x-ratelimit-remaining: 0\r\nx-ratelimit-reset: 1760000000'
+        ;;
+    forbidden)
+        respond 403 '{"message":"Forbidden by proxy"}' $'x-ratelimit-remaining: 42'
+        ;;
+    private)
+        respond 404 '{"message":"Not Found"}'
+        ;;
+    refused)
+        echo "curl: (7) Failed to connect to api.github.com port 443: Connection refused" >&2
+        printf '000'
+        exit 7
+        ;;
+    tags | empty)
+        case "${url}" in
+            */releases/latest) respond 404 '{"message":"Not Found"}' ;;
+            */tags)
+                if [[ "${MOCK_GH_MODE}" == "tags" ]]; then
+                    respond 200 '[{"name":"v0.3.0","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v0.3.0"}]'
+                fi
+                respond 200 '[]'
+                ;;
+            */repos/owner/repo) respond 200 '{"full_name":"owner/repo"}' ;;
+        esac
+        ;;
+    release)
+        case "${url}" in
+            */releases/latest)
+                respond 200 '{"tag_name":"v1.2.3","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v1.2.3","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v1.2.3/repo-extension-v1.2.3.tar.gz"}]}'
+                ;;
+            */releases/tags/v2.0.0)
+                respond 200 '{"tag_name":"v2.0.0","tarball_url":"https://api.github.com/repos/owner/repo/tarball/v2.0.0","assets":[{"browser_download_url":"https://github.com/owner/repo/releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz"}]}'
+                ;;
+        esac
+        ;;
+    version_missing)
+        case "${url}" in
+            */releases/tags/*) respond 404 '{"message":"Not Found"}' ;;
+            */repos/owner/repo) respond 200 '{"full_name":"owner/repo"}' ;;
+        esac
+        ;;
+esac
+respond 500 '{"message":"unexpected mock call"}'
 EOF
     chmod +x "${mock_bin}/curl"
     export PATH="${mock_bin}:${PATH}"
+}
 
-    local output_file="${TEST_TEMP_DIR}/downloaded-v2.tar.gz"
+@test "github add: 403 rate limit is reported with reset time, no main fallback" {
+    _setup_github_mock
+    export MOCK_GH_MODE=ratelimit
+    local output_file="${TEST_TEMP_DIR}/dl.tar.gz"
 
-    run download_extension_from_github "owner/repo" "2.0.0" "${output_file}"
+    run download_extension_from_github "owner/repo" "" "${output_file}"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"GitHub API rate limit exceeded (HTTP 403), resets at "* ]]
+    [[ "${output}" == *"GITHUB_TOKEN"* ]]
+    [[ "${output}" != *"No releases found"* ]]
+    ! grep -q "refs/heads" "${MOCK_CURL_LOG}"
+    [[ ! -e "${output_file}" ]]
+}
+
+@test "github add: 403 without exhausted rate limit is reported as access denied" {
+    _setup_github_mock
+    export MOCK_GH_MODE=forbidden
+
+    run download_extension_from_github "owner/repo" "" "${TEST_TEMP_DIR}/dl.tar.gz"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"GitHub API denied access to owner/repo (HTTP 403: Forbidden by proxy)"* ]]
+    [[ "${output}" != *"rate limit exceeded"* ]]
+}
+
+@test "github add: 404 for private or misspelled repo is reported, no main fallback" {
+    _setup_github_mock
+    export MOCK_GH_MODE=private
+
+    run download_extension_from_github "owner/private" "" "${TEST_TEMP_DIR}/dl.tar.gz"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"GitHub repository owner/private not found or not accessible (HTTP 404)"* ]]
+    [[ "${output}" != *"No releases found"* ]]
+    ! grep -q "refs/heads" "${MOCK_CURL_LOG}"
+}
+
+@test "github add: connection refused shows the curl error" {
+    _setup_github_mock
+    export MOCK_GH_MODE=refused
+
+    run download_extension_from_github "owner/repo" "" "${TEST_TEMP_DIR}/dl.tar.gz"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"GitHub API not reachable"* ]]
+    [[ "${output}" == *"curl: (7) Failed to connect to api.github.com port 443: Connection refused"* ]]
+    ! grep -q "refs/heads" "${MOCK_CURL_LOG}"
+}
+
+@test "github add: accessible repo without release falls back to latest tag" {
+    _setup_github_mock
+    export MOCK_GH_MODE=tags
+    local output_file="${TEST_TEMP_DIR}/dl.tar.gz"
+
+    run download_extension_from_github "owner/repo" "" "${output_file}"
     [[ "${status}" -eq 0 ]]
-    [[ -f "${output_file}" ]]
-    grep -q "releases/download/v2.0.0/repo-extension-v2.0.0.tar.gz" "${output_file}"
+    [[ "${output}" == *"No releases found in owner/repo, checking for tags..."* ]]
+    [[ "${output}" == *"Found latest tag: v0.3.0"* ]]
+    grep -q "tarball/v0.3.0" "${output_file}"
+}
+
+@test "github add: repo without release and tag fails with --branch hint" {
+    _setup_github_mock
+    export MOCK_GH_MODE=empty
+
+    run download_extension_from_github "owner/repo" "" "${TEST_TEMP_DIR}/dl.tar.gz"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"owner/repo has neither a release nor a tag"* ]]
+    [[ "${output}" == *"--branch main"* ]]
+    ! grep -q "refs/heads" "${MOCK_CURL_LOG}"
+}
+
+@test "github add: missing version on accessible repo is reported as not found" {
+    _setup_github_mock
+    export MOCK_GH_MODE=version_missing
+
+    run download_extension_from_github "owner/repo" "9.9.9" "${TEST_TEMP_DIR}/dl.tar.gz"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"Version v9.9.9 not found in owner/repo"* ]]
+}
+
+@test "github add: --branch installs the branch with a WARN and no API call" {
+    _setup_github_mock
+    export MOCK_GH_MODE=ratelimit
+    local output_file="${TEST_TEMP_DIR}/dl.tar.gz"
+
+    run download_extension_from_github "owner/repo" "" "${output_file}" "main"
+    [[ "${status}" -eq 0 ]]
+    [[ "${output}" == *"WARN: Installing branch 'main' of owner/repo - a development tree, not a release."* ]]
+    grep -q "github.com/owner/repo/archive/refs/heads/main.tar.gz" "${output_file}"
+    ! grep -q "api.github.com" "${MOCK_CURL_LOG}"
+}
+
+@test "github add: GITHUB_TOKEN is sent via curl config on stdin, not argv" {
+    _setup_github_mock
+    export MOCK_GH_MODE=ratelimit
+    export GITHUB_TOKEN="ghp_testtoken123"
+
+    run download_extension_from_github "owner/repo" "" "${TEST_TEMP_DIR}/dl.tar.gz"
+    unset GITHUB_TOKEN
+    grep -q 'header = "Authorization: Bearer ghp_testtoken123"' "${MOCK_CURL_CONFIG}"
+    ! grep -q "ghp_testtoken123" "${MOCK_CURL_LOG}"
+}
+
+@test "oradba_extension.sh add: rate limit fails without 'added successfully'" {
+    _setup_github_mock
+    export MOCK_GH_MODE=ratelimit
+
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" add owner/repo --path "${TEST_TEMP_DIR}"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"GitHub API rate limit exceeded"* ]]
+    [[ "${output}" != *"added successfully"* ]]
+}
+
+@test "oradba_extension.sh add: --branch together with @version is rejected" {
+    run "${PROJECT_ROOT}/src/bin/oradba_extension.sh" add owner/repo@v1.0.0 --branch main --path "${TEST_TEMP_DIR}"
+    [[ "${status}" -ne 0 ]]
+    [[ "${output}" == *"Use either owner/repo@version or --branch, not both"* ]]
 }
 
 # ==============================================================================

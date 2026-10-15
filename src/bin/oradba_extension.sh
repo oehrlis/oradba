@@ -106,6 +106,8 @@ COMMANDS
           --name <name>         Override extension name
           --path <dir>          Target directory (default: \${ORADBA_LOCAL_BASE})
           --update              Update existing extension (creates .save for configs)
+          --branch <name>       Install a branch of a GitHub repo on purpose (development
+                                tree, no checksum; never used as automatic fallback)
 
     create <name> [options]
         Create a new extension from a template.
@@ -167,6 +169,8 @@ ENVIRONMENT VARIABLES
     ORADBA_EXTENSION_PATHS          Colon-separated list of manual extension paths
     ORADBA_EXT_<NAME>_ENABLED       Enable/disable specific extension (true/false)
     ORADBA_EXT_<NAME>_PRIORITY      Override priority for specific extension
+    GITHUB_TOKEN / GH_TOKEN         GitHub token for API calls (5000 instead of 60
+                                    requests/h, private repositories; curl only)
 
 EXAMPLES
     # Create new extension
@@ -282,10 +286,11 @@ download_github_release() {
 
     # Get latest release info
     local release_info
-    if ! release_info=$(curl -s "${api_url}"); then
-        echo "ERROR: Failed to fetch release information from GitHub" >&2
+    if ! github_api_get "${api_url}"; then
+        github_api_report_error "${repo}"
         return 1
     fi
+    release_info="${GH_API_BODY}"
 
     # Extract version tag
     local tag_name tarball_url _re
@@ -352,17 +357,21 @@ download_github_release() {
 # Args....: $1 - Repository (owner/repo format)
 #           $2 - Version/tag (optional, uses latest if empty)
 #           $3 - Output file path
+#           $4 - Branch (optional, installs a development tree on purpose)
 # Returns.: 0 on success, 1 on failure
-# Output..: Download status to stdout, errors to stderr
-# Notes...: Tries: specific release → latest release → tags → main/master branch
-#           Normalizes GitHub URLs, validates repo format
-#           Supports both curl and wget
+# Output..: Download status to stdout, errors and warnings to stderr
+# Notes...: Tries: specific release → latest release → latest tag
+#           Falls back to tags only when the API answered 404 for releases
+#           and the repository itself is accessible; any other API error
+#           (rate limit, no access, network) aborts with its cause
+#           A branch is installed only when $4 is given, never as fallback
 #           Adds 'v' prefix to versions if missing
 # ------------------------------------------------------------------------------
 download_extension_from_github() {
     local repo="$1"
     local version="${2:-}"
     local output_file="$3"
+    local branch="${4:-}"
 
     # Normalize repo name (remove github.com prefix if present)
     [[ "${repo}" =~ ^https?://github\.com/(.+) ]] && repo="${BASH_REMATCH[1]}"
@@ -403,120 +412,82 @@ download_extension_from_github() {
         return 0
     }
 
-    # Determine version/tag to use
-    local api_url
-    local download_url
-    local tag_name
+    local api_base="https://api.github.com/repos/${repo}"
+    local download_url=""
+    local tag_name=""
+    local _re
 
-    if [[ -n "${version}" ]]; then
-        # Specific version requested
-        echo "Requested version: ${version}"
-        # Add 'v' prefix if not present
-        [[ "${version}" =~ ^v ]] || version="v${version}"
-
-        # Check if this tag/release exists
-        api_url="https://api.github.com/repos/${repo}/releases/tags/${version}"
-
-        local release_info
-        if command -v curl > /dev/null 2>&1; then
-            release_info=$(curl -fsSL "${api_url}" 2> /dev/null)
-        elif command -v wget > /dev/null 2>&1; then
-            release_info=$(wget -qO- "${api_url}" 2> /dev/null)
+    if [[ -n "${branch}" ]]; then
+        # Branch requested explicitly - no API call, github.com archives are not rate limited
+        if [[ ! "${branch}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "ERROR: Invalid branch name: ${branch}" >&2
+            return 1
         fi
+        echo "WARN: Installing branch '${branch}' of ${repo} - a development tree, not a release." >&2
+        echo "WARN: It carries no .extension.checksum; 'add --update' cannot detect modified config files." >&2
+        tag_name="${branch}"
+        download_url="https://github.com/${repo}/archive/refs/heads/${branch}.tar.gz"
 
-        if [[ -n "${release_info}" ]]; then
-            download_url=$(select_release_archive_url "${release_info}")
+    elif [[ -n "${version}" ]]; then
+        # Specific version requested, add 'v' prefix if not present
+        [[ "${version}" =~ ^v ]] || version="v${version}"
+        echo "Requested version: ${version}"
+
+        if github_api_get "${api_base}/releases/tags/${version}"; then
+            download_url=$(select_release_archive_url "${GH_API_BODY}")
+        elif [[ "${GH_API_STATUS}" == "404" ]] && github_api_get "${api_base}"; then
+            # Repository answers, the release does not exist
+            echo "ERROR: Version ${version} not found in ${repo}" >&2
+            return 1
+        else
+            github_api_report_error "${repo}"
+            return 1
         fi
 
         if [[ -z "${download_url}" ]]; then
-            echo "ERROR: Version ${version} not found in ${repo}" >&2
+            echo "ERROR: Could not find download URL for release ${version} of ${repo}" >&2
             return 1
         fi
         tag_name="${version}"
+
     else
-        # Get latest release
         echo "Fetching latest release..."
-        api_url="https://api.github.com/repos/${repo}/releases/latest"
 
-        local release_info
-        if command -v curl > /dev/null 2>&1; then
-            release_info=$(curl -fsSL "${api_url}" 2> /dev/null)
-        elif command -v wget > /dev/null 2>&1; then
-            release_info=$(wget -qO- "${api_url}" 2> /dev/null)
-        else
-            echo "ERROR: Neither curl nor wget found" >&2
-            return 1
-        fi
-
-        # Check if release found, otherwise try tags
-        if [[ -z "${release_info}" ]] || echo "${release_info}" | grep -q '"message".*"Not Found"'; then
-            echo "No releases found, checking for tags..."
-
-            # Try to get latest tag
-            api_url="https://api.github.com/repos/${repo}/tags"
-            local tags_info
-            if command -v curl > /dev/null 2>&1; then
-                tags_info=$(curl -fsSL "${api_url}" 2> /dev/null)
-            elif command -v wget > /dev/null 2>&1; then
-                tags_info=$(wget -qO- "${api_url}" 2> /dev/null)
-            fi
-
-            if [[ -n "${tags_info}" ]] && [[ ! "${tags_info}" =~ '"message"'.*'"Not Found"' ]]; then
-                # Get first (latest) tag
-                local _re
-                _re='"name":[[:space:]]*"([^"]*)"'
-                [[ "${tags_info}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
-                _re='"tarball_url":[[:space:]]*"([^"]*)"'
-                [[ "${tags_info}" =~ ${_re} ]] && download_url="${BASH_REMATCH[1]}"
-
-                if [[ -n "${download_url}" ]]; then
-                    echo "Found latest tag: ${tag_name}"
-                else
-                    # No tags either, fallback to main/master branch
-                    echo "No tags found, using main branch..."
-                    tag_name="main"
-                    download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
-
-                    # Check if main branch exists, otherwise try master
-                    if command -v curl > /dev/null 2>&1; then
-                        if ! curl -fsSL -I "${download_url}" > /dev/null 2>&1; then
-                            echo "Trying master branch..."
-                            tag_name="master"
-                            download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
-                        fi
-                    fi
-                fi
-            else
-                # No tags, fallback to main/master branch
-                echo "No tags found, using main branch..."
-                tag_name="main"
-                download_url="https://github.com/${repo}/archive/refs/heads/main.tar.gz"
-
-                # Check if main branch exists, otherwise try master
-                if command -v curl > /dev/null 2>&1; then
-                    if ! curl -fsSL -I "${download_url}" > /dev/null 2>&1; then
-                        echo "Trying master branch..."
-                        tag_name="master"
-                        download_url="https://github.com/${repo}/archive/refs/heads/master.tar.gz"
-                    fi
-                fi
-            fi
-        else
-            # Release found
-            download_url=$(select_release_archive_url "${release_info}")
-            local _re='"tag_name":[[:space:]]*"([^"]*)"'
-            [[ "${release_info}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
+        if github_api_get "${api_base}/releases/latest"; then
+            download_url=$(select_release_archive_url "${GH_API_BODY}")
+            _re='"tag_name":[[:space:]]*"([^"]*)"'
+            [[ "${GH_API_BODY}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
 
             if [[ -z "${download_url}" ]]; then
-                echo "ERROR: Could not find download URL for latest release" >&2
+                echo "ERROR: Could not find download URL for latest release of ${repo}" >&2
+                return 1
+            fi
+            echo "Latest release: ${tag_name}"
+
+        elif [[ "${GH_API_STATUS}" == "404" ]] && github_api_get "${api_base}"; then
+            # Repository answers but has no release - the only case that may fall back to tags
+            echo "No releases found in ${repo}, checking for tags..."
+            if ! github_api_get "${api_base}/tags"; then
+                github_api_report_error "${repo}"
                 return 1
             fi
 
-            echo "Latest release: ${tag_name}"
-        fi
+            # First entry of the tag list
+            _re='"name":[[:space:]]*"([^"]*)"'
+            [[ "${GH_API_BODY}" =~ ${_re} ]] && tag_name="${BASH_REMATCH[1]}"
+            _re='"tarball_url":[[:space:]]*"([^"]*)"'
+            [[ "${GH_API_BODY}" =~ ${_re} ]] && download_url="${BASH_REMATCH[1]}"
 
-        if [[ -z "${download_url}" ]]; then
-            echo "ERROR: Could not determine download URL for ${repo}" >&2
+            if [[ -z "${download_url}" ]]; then
+                echo "ERROR: ${repo} has neither a release nor a tag" >&2
+                echo "To install a development branch on purpose:" >&2
+                echo "  $(basename "$0") add ${repo} --branch main" >&2
+                return 1
+            fi
+            echo "Found latest tag: ${tag_name}"
+
+        else
+            github_api_report_error "${repo}"
             return 1
         fi
     fi
@@ -525,7 +496,10 @@ download_extension_from_github() {
     echo "Downloading from: ${download_url}"
 
     if command -v curl > /dev/null 2>&1; then
-        if ! curl -fsSL -o "${output_file}" "${download_url}"; then
+        # The token goes only to api.github.com (tarball_url of tags and source archives)
+        local fetch=curl
+        [[ "${download_url}" == https://api.github.com/* ]] && fetch=github_curl
+        if ! "${fetch}" -fsSL -o "${output_file}" "${download_url}"; then
             echo "ERROR: Failed to download extension tarball" >&2
             return 1
         fi
@@ -534,9 +508,156 @@ download_extension_from_github() {
             echo "ERROR: Failed to download extension tarball" >&2
             return 1
         fi
+    else
+        echo "ERROR: Neither curl nor wget found" >&2
+        return 1
     fi
 
     echo "Downloaded successfully"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# Function: github_curl
+# Purpose.: Run curl with the GitHub token as Authorization header, if set
+# Args....: $@ - curl arguments
+# Returns.: Exit code of curl
+# Output..: Output of curl
+# Notes...: Token from GITHUB_TOKEN, else GH_TOKEN (5000 instead of 60 API
+#           requests per hour, access to private repositories)
+#           The header is passed via --config on stdin, so the token never
+#           appears in the process list
+# ------------------------------------------------------------------------------
+github_curl() {
+    local token="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+    if [[ -n "${token}" ]]; then
+        printf 'header = "Authorization: Bearer %s"\n' "${token}" | curl --config - "$@"
+    else
+        curl "$@"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Function: github_api_get
+# Purpose.: GET a GitHub API URL and keep HTTP status, headers, body and error
+# Args....: $1 - API URL
+# Returns.: 0 on HTTP 200, 1 otherwise
+# Output..: None; sets GH_API_URL, GH_API_STATUS (000 = no HTTP answer),
+#           GH_API_HEADERS, GH_API_BODY, GH_API_ERROR (curl/wget stderr)
+# Notes...: Call directly, not in $(...) - the result lives in globals
+#           wget fallback does not send the token (it would show in ps)
+# ------------------------------------------------------------------------------
+github_api_get() {
+    GH_API_URL="$1"
+    GH_API_STATUS="000"
+    GH_API_HEADERS=""
+    GH_API_BODY=""
+    GH_API_ERROR=""
+
+    local tmp_dir
+    tmp_dir=$(mktemp -d) || return 1
+
+    if command -v curl > /dev/null 2>&1; then
+        GH_API_STATUS=$(github_curl -sS -H "Accept: application/vnd.github+json" \
+            -D "${tmp_dir}/headers" -o "${tmp_dir}/body" -w '%{http_code}' \
+            "${GH_API_URL}" 2> "${tmp_dir}/err") || true
+        GH_API_HEADERS=$(cat "${tmp_dir}/headers" 2> /dev/null || true)
+    elif command -v wget > /dev/null 2>&1; then
+        if [[ -n "${GITHUB_TOKEN:-${GH_TOKEN:-}}" ]]; then
+            echo "NOTE: GITHUB_TOKEN/GH_TOKEN is only used with curl, wget sends no token" >&2
+        fi
+        wget -S --content-on-error -O "${tmp_dir}/body" "${GH_API_URL}" 2> "${tmp_dir}/err" || true
+        # wget -S writes the response headers to stderr
+        GH_API_HEADERS=$(grep -E '^[[:space:]]+[A-Za-z-]+:|^[[:space:]]*HTTP/' "${tmp_dir}/err" || true)
+        local _re='HTTP/[0-9.]+ ([0-9]{3})'
+        local line
+        while IFS= read -r line; do
+            [[ "${line}" =~ ${_re} ]] && GH_API_STATUS="${BASH_REMATCH[1]}"
+        done <<< "${GH_API_HEADERS}"
+    else
+        GH_API_ERROR="neither curl nor wget found"
+        rm -rf "${tmp_dir}"
+        return 1
+    fi
+
+    GH_API_BODY=$(cat "${tmp_dir}/body" 2> /dev/null || true)
+    GH_API_ERROR=$(tail -n 3 "${tmp_dir}/err" 2> /dev/null || true)
+    rm -rf "${tmp_dir}"
+
+    [[ "${GH_API_STATUS}" =~ ^[0-9]{3}$ ]] || GH_API_STATUS="000"
+    log_debug "GitHub API ${GH_API_URL} -> HTTP ${GH_API_STATUS}"
+    [[ "${GH_API_STATUS}" == "200" ]] && return 0 || return 1
+}
+
+# ------------------------------------------------------------------------------
+# Function: github_api_header
+# Purpose.: Value of a response header from the last github_api_get call
+# Args....: $1 - Header name (case-insensitive)
+# Returns.: 0
+# Output..: Header value (last occurrence), empty if missing
+# ------------------------------------------------------------------------------
+github_api_header() {
+    local name="$1"
+    local value
+    value=$(printf '%s\n' "${GH_API_HEADERS}" | tr -d '\r' \
+        | grep -i -E "^[[:space:]]*${name}:" | tail -n 1 || true)
+    value="${value#*:}"
+    value="${value//[[:space:]]/}"
+    echo "${value}"
+}
+
+# ------------------------------------------------------------------------------
+# Function: github_api_report_error
+# Purpose.: Explain why the last github_api_get call failed
+# Args....: $1 - Repository (owner/repo)
+# Returns.: 0
+# Output..: ERROR line with cause and a hint to stderr
+# Notes...: Distinguishes no HTTP answer (network/proxy), 401 bad token,
+#           403/429 rate limit (with reset time) or access denied, 404
+# ------------------------------------------------------------------------------
+github_api_report_error() {
+    local repo="$1"
+    local message="" _re
+    _re='"message":[[:space:]]*"([^"]*)"'
+    [[ "${GH_API_BODY}" =~ ${_re} ]] && message="${BASH_REMATCH[1]}"
+
+    case "${GH_API_STATUS}" in
+        000)
+            echo "ERROR: GitHub API not reachable: ${GH_API_URL}" >&2
+            [[ -n "${GH_API_ERROR}" ]] && echo "${GH_API_ERROR}" >&2
+            echo "Check network and proxy (https_proxy) access to api.github.com." >&2
+            ;;
+        401)
+            echo "ERROR: GitHub API rejected the token (HTTP 401${message:+: ${message}})" >&2
+            echo "Check GITHUB_TOKEN / GH_TOKEN." >&2
+            ;;
+        403 | 429)
+            local remaining reset reset_time
+            remaining=$(github_api_header "x-ratelimit-remaining")
+            if [[ "${remaining}" == "0" ]] || [[ "${message}" == *"rate limit"* ]]; then
+                reset=$(github_api_header "x-ratelimit-reset")
+                reset_time=""
+                if [[ "${reset}" =~ ^[0-9]+$ ]]; then
+                    reset_time=$(date -d "@${reset}" '+%Y-%m-%d %H:%M:%S %Z' 2> /dev/null \
+                        || date -r "${reset}" '+%Y-%m-%d %H:%M:%S %Z' 2> /dev/null \
+                        || echo "${reset}")
+                fi
+                echo "ERROR: GitHub API rate limit exceeded (HTTP ${GH_API_STATUS})${reset_time:+, resets at ${reset_time}}" >&2
+                echo "Set GITHUB_TOKEN (5000 requests/h instead of 60), or install the release" >&2
+                echo "asset directly: $(basename "$0") add <url-or-file.tar.gz>" >&2
+            else
+                echo "ERROR: GitHub API denied access to ${repo} (HTTP ${GH_API_STATUS}${message:+: ${message}})" >&2
+                echo "A proxy may block api.github.com, or the token lacks access." >&2
+            fi
+            ;;
+        404)
+            echo "ERROR: GitHub repository ${repo} not found or not accessible (HTTP 404)" >&2
+            echo "Check the spelling; a private repository needs GITHUB_TOKEN with read access." >&2
+            ;;
+        *)
+            echo "ERROR: GitHub API request failed (HTTP ${GH_API_STATUS}${message:+: ${message}}): ${GH_API_URL}" >&2
+            ;;
+    esac
     return 0
 }
 
@@ -988,6 +1109,7 @@ cmd_add() {
     local target_path="${ORADBA_LOCAL_BASE}"
     local ext_name=""
     local do_update=false
+    local branch=""
     local temp_dir=""
     local tarball_path=""
     local extract_dir=""
@@ -1010,6 +1132,14 @@ cmd_add() {
             --update)
                 do_update=true
                 shift
+                ;;
+            --branch)
+                if [[ -z "${2:-}" ]]; then
+                    echo "ERROR: --branch requires a branch name" >&2
+                    return 1
+                fi
+                branch="$2"
+                shift 2
                 ;;
             -*)
                 echo "ERROR: Unknown option: $1" >&2
@@ -1046,6 +1176,18 @@ cmd_add() {
         return 1
     fi
 
+    # --branch only applies to GitHub repositories, and not together with @version
+    if [[ -n "${branch}" ]]; then
+        if [[ -f "${source}" ]] || [[ "${source}" =~ ^https?:// && ! "${source}" =~ ^https?://github\.com/ ]]; then
+            echo "ERROR: --branch only applies to a GitHub repository (owner/repo)" >&2
+            return 1
+        fi
+        if [[ "${source}" =~ @ ]]; then
+            echo "ERROR: Use either owner/repo@version or --branch, not both" >&2
+            return 1
+        fi
+    fi
+
     # Determine source type and get tarball
     if [[ -f "${source}" ]]; then
         # Local tarball
@@ -1053,7 +1195,7 @@ cmd_add() {
         tarball_path="${source}"
         log_debug "Source type=local file, tarball='${tarball_path}'"
 
-    elif [[ "${source}" =~ ^https?:// ]]; then
+    elif [[ "${source}" =~ ^https?:// && ! (-n "${branch}" && "${source}" =~ ^https?://github\.com/) ]]; then
         # Full URL - download to temp location
         echo -e "${BOLD}Adding extension from URL${NC}"
         temp_dir=$(mktemp -d)
@@ -1094,11 +1236,11 @@ cmd_add() {
         fi
 
         # Download from GitHub release
-        if ! download_extension_from_github "${repo}" "${version}" "${tarball_path}"; then
+        if ! download_extension_from_github "${repo}" "${version}" "${tarball_path}" "${branch}"; then
             rm -rf "${temp_dir}"
             return 1
         fi
-        log_debug "Source type=GitHub repo='${repo}', version='${version:-latest}', tarball='${tarball_path}'"
+        log_debug "Source type=GitHub repo='${repo}', version='${version:-latest}', branch='${branch}', tarball='${tarball_path}'"
     fi
 
     # Validate tarball exists
