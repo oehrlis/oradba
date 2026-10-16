@@ -202,7 +202,18 @@ oradba_extension.sh add oehrlis/odb_autoupgrade --update
 
 # Install with custom name
 oradba_extension.sh add oehrlis/odb_xyz --name custom_name
+
+# Install a development branch on purpose (no release, no checksum)
+oradba_extension.sh add oehrlis/odb_xyz --branch main
 ```
+
+Without a version, `add` installs the latest release. If the repository answers but has no release,
+it uses the latest tag. It never falls back to a branch: a repository without release and tag fails
+with a hint to `--branch`. GitHub API errors abort the install and name the cause - rate limit (with
+reset time), no access (HTTP 404 for a private or misspelled repository) or a network/proxy error.
+Unauthenticated API calls are limited to 60 per hour and IP; set `GITHUB_TOKEN` (or `GH_TOKEN`) to
+raise the limit to 5000 and to reach private repositories. Behind a proxy that blocks
+`api.github.com`, download the release asset and install it from the local tarball.
 
 The add command downloads and extracts the extension, validates its structure, and enables it by default.
 When updating with `--update`, it:

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-10-16
+
+### Added
+
+- `oradba_extension.sh add --branch <name>`: installs a branch of a GitHub repository on purpose, with a
+  WARN that a development tree without `.extension.checksum` is installed.
+- `GITHUB_TOKEN` / `GH_TOKEN` are used for the GitHub API calls of `add` and `create --from-github`
+  (5000 instead of 60 requests/h, private repositories). curl gets the header via `--config` on stdin,
+  so the token does not show in the process list; the wget fallback sends no token and says so.
+
+### Fixed
+
+- `oradba_extension.sh add` reported every failed GitHub API call as "No releases found" and then
+  installed the `main` branch with "Extension added successfully" (#234). The HTTP status is now
+  evaluated: a rate limit (403/429, with reset time and token hint), access denied, 404 for a private
+  or misspelled repository and network or proxy errors (with the curl error) abort the install.
+  `create --from-github` reports the same causes.
+
+### Changed
+
+- `oradba_extension.sh add` falls back to the latest tag only when the repository answers and has no
+  release, and never to a branch. A repository without release and tag fails with a hint to `--branch`.
+
 ## [1.1.2] - 2026-10-16
 
 ### Fixed
