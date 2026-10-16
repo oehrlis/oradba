@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-16
+
+### Fixed
+
+- `oradba_version.sh`: extension integrity check no longer aborts with an awk syntax
+  error on `.checksumignore` patterns that contain a slash (`etc/*.env`, `jar/*.jar`).
+  The glob-to-regex conversion now escapes `/`, the awk regex delimiter.
+- `oradba_version.sh`: extension update backups (`<name>_backup_YYYYMMDD_HHMMSS`)
+  are no longer checksum-verified as extensions; they are listed as skipped, matching
+  the `discover_extensions` rule.
+
 ## [1.1.1] - 2026-10-12
 
 ### Added

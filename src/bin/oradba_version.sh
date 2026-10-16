@@ -104,16 +104,22 @@ get_checksum_exclusions() {
             line="${line%"${line##*[![:space:]]}"}"
             [[ -z "$line" ]] && continue
 
-            # Convert glob pattern to awk regex using parameter expansion
+            # A trailing / marks a directory pattern; strip it before escaping
             local pattern="$line"
-            pattern="${pattern//./\\.}" # Escape dots: . -> \.
-            pattern="${pattern//\*/.*}" # Glob * -> regex .*
-            pattern="${pattern//\?/.}"  # Glob ? -> regex .
-
-            # If pattern ends with /, match directory contents
+            local is_dir=false
             if [[ "$pattern" == */ ]]; then
-                # Remove trailing / and add it back in the regex to avoid double /
+                is_dir=true
                 pattern="${pattern%/}"
+            fi
+
+            # Convert glob pattern to awk regex using parameter expansion
+            pattern="${pattern//./\\.}"  # Escape dots: . -> \.
+            pattern="${pattern//\//\\/}" # Escape slashes: / -> \/ (awk regex delimiter)
+            pattern="${pattern//\*/.*}"  # Glob * -> regex .*
+            pattern="${pattern//\?/.}"   # Glob ? -> regex .
+
+            # Directory pattern matches directory contents
+            if [[ "$is_dir" == true ]]; then
                 patterns+=("\$2 ~ /^${pattern}\\//")
             else
                 # Match exact file or pattern
@@ -396,11 +402,18 @@ check_extension_checksums() {
 
     # First pass: check which extensions are enabled
     local enabled_extensions=()
+    local skipped_backups=()
     for checksum_file in "${checksum_files[@]}"; do
         local extension_dir
         extension_dir=$(dirname "${checksum_file}")
         local ext_name
         ext_name=$(basename "${extension_dir}")
+
+        # Skip backup directories left by extension updates (same rule as discover_extensions)
+        if [[ -n "${BACKUP_DIR_PATTERN:-}" ]] && [[ "${ext_name}" =~ ${BACKUP_DIR_PATTERN} ]]; then
+            skipped_backups+=("${ext_name}")
+            continue
+        fi
 
         if is_extension_enabled "${ext_name}" "${extension_dir}" 2> /dev/null; then
             enabled_extensions+=("${checksum_file}")
@@ -416,6 +429,11 @@ check_extension_checksums() {
     echo -e "${BLUE}Extension Integrity Checks:${NC}"
     echo "  Managed directories: bin, sql, rcv, etc, lib"
     echo "  (Other directories like doc/ and templates/ are not verified)"
+    if [[ ${#skipped_backups[@]} -gt 0 ]]; then
+        for ext_name in "${skipped_backups[@]}"; do
+            echo "  - Skipped '${ext_name}': update backup, not an active extension"
+        done
+    fi
 
     # Check each enabled extension checksum file
     for checksum_file in "${enabled_extensions[@]}"; do

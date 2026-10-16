@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# shellcheck disable=SC1091,SC2030,SC2031,SC2314,SC2315
+# shellcheck disable=SC1090,SC1091,SC2030,SC2031,SC2314,SC2315
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
@@ -377,4 +377,40 @@ EOF
     run "$ORADBA_VERSION" --verify
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Installation integrity verified" ]]
+}
+
+# ------------------------------------------------------------------------------
+# .checksumignore pattern conversion (get_checksum_exclusions)
+# ------------------------------------------------------------------------------
+
+# Load get_checksum_exclusions without running main()
+load_checksum_exclusions() {
+    source <(sed -n '/^get_checksum_exclusions() {/,/^}/p' "$ORADBA_VERSION")
+}
+
+@test "get_checksum_exclusions escapes slashes inside patterns" {
+    load_checksum_exclusions
+    local ext_dir="${TEST_INSTALL_DIR}/ext"
+    mkdir -p "$ext_dir"
+    printf '%s\n' 'etc/autoupgrade.env' 'etc/*.env' 'jar/*.jar' 'keystore/' > "${ext_dir}/.checksumignore"
+
+    local exclusions
+    exclusions=$(get_checksum_exclusions "$ext_dir")
+    [[ "$exclusions" == *'/^etc\/autoupgrade\.env$/'* ]]
+    [[ "$exclusions" == *'/^jar\/.*\.jar$/'* ]]
+    [[ "$exclusions" == *'/^keystore\//'* ]]
+
+    # The generated expression must be valid awk and filter the right entries
+    printf '%s\n' 'h1  etc/autoupgrade.env' 'h2  etc/other.env' 'h3  jar/au.jar' \
+        'h4  keystore/cwallet.sso' 'h5  bin/tool.sh' 'h6  etc/tool.conf' > "${ext_dir}/sums"
+    run awk "!(${exclusions}) {print \$2}" "${ext_dir}/sums"
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == $'bin/tool.sh\netc/tool.conf' ]]
+}
+
+@test "get_checksum_exclusions keeps default exclusions without ignore file" {
+    load_checksum_exclusions
+    local exclusions
+    exclusions=$(get_checksum_exclusions "${TEST_INSTALL_DIR}")
+    [[ "$exclusions" == '$2 ~ /^\.extension$/ || $2 ~ /^\.checksumignore$/ || $2 ~ /^log\//' ]]
 }
