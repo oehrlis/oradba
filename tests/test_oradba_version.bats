@@ -412,6 +412,7 @@ load_checksum_exclusions() {
     load_checksum_exclusions
     local exclusions
     exclusions=$(get_checksum_exclusions "${TEST_INSTALL_DIR}")
+    # shellcheck disable=SC2016 # literal awk expression, $2 must not expand
     [[ "$exclusions" == '$2 ~ /^\.extension$/ || $2 ~ /^\.checksumignore$/ || $2 ~ /^log\//' ]]
 }
 
@@ -421,9 +422,12 @@ load_checksum_exclusions() {
         source <(sed -n "/^${fn}() {/,/^}/p" "$ORADBA_VERSION")
     done
     is_extension_enabled() { return 0; }
+    # shellcheck disable=SC2034 # read by the sourced check_extension_checksums
     BACKUP_DIR_PATTERN='_backup_[0-9]{8}_[0-9]{6}$'
+    # shellcheck disable=SC2034 # read by the sourced check_extension_checksums
     RED="" GREEN="" BLUE="" NC=""
     BASE_DIR="${TEST_INSTALL_DIR}/oradba"
+    # shellcheck disable=SC2034 # read by the sourced check_extension_checksums
     ORADBA_LOCAL_BASE="${TEST_INSTALL_DIR}"
     mkdir -p "$BASE_DIR"
 
@@ -436,7 +440,7 @@ load_checksum_exclusions() {
 
     run check_extension_checksums
     [[ "$status" -eq 0 ]]
-    [[ "$output" =~ "Skipped 'odb_test_backup_20261015_164657': update backup" ]]
-    [[ "$output" =~ "Extension 'odb_test': verified (1 files)" ]]
-    [[ ! "$output" =~ "Extension 'odb_test_backup_20261015_164657': verified" ]]
+    [[ "$output" == *"Skipped 'odb_test_backup_20261015_164657': update backup"* ]]
+    [[ "$output" == *"Extension 'odb_test': verified (1 files)"* ]]
+    [[ "$output" != *"Extension 'odb_test_backup_20261015_164657': verified"* ]]
 }
