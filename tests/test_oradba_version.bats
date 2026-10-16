@@ -414,3 +414,29 @@ load_checksum_exclusions() {
     exclusions=$(get_checksum_exclusions "${TEST_INSTALL_DIR}")
     [[ "$exclusions" == '$2 ~ /^\.extension$/ || $2 ~ /^\.checksumignore$/ || $2 ~ /^log\//' ]]
 }
+
+@test "check_extension_checksums skips update backup directories by name" {
+    # Load the check and its helpers without running main(); stub the extensions.sh parts
+    for fn in check_extension_checksums get_checksum_exclusions resolve_sha256_cmd; do
+        source <(sed -n "/^${fn}() {/,/^}/p" "$ORADBA_VERSION")
+    done
+    is_extension_enabled() { return 0; }
+    BACKUP_DIR_PATTERN='_backup_[0-9]{8}_[0-9]{6}$'
+    RED="" GREEN="" BLUE="" NC=""
+    BASE_DIR="${TEST_INSTALL_DIR}/oradba"
+    ORADBA_LOCAL_BASE="${TEST_INSTALL_DIR}"
+    mkdir -p "$BASE_DIR"
+
+    local ext
+    for ext in odb_test odb_test_backup_20261015_164657; do
+        mkdir -p "${TEST_INSTALL_DIR}/${ext}/bin"
+        echo "echo ${ext}" > "${TEST_INSTALL_DIR}/${ext}/bin/tool.sh"
+        (cd "${TEST_INSTALL_DIR}/${ext}" && resolve_sha256_cmd && "${SHA256_CMD[@]}" bin/tool.sh > .extension.checksum)
+    done
+
+    run check_extension_checksums
+    [[ "$status" -eq 0 ]]
+    [[ "$output" =~ "Skipped 'odb_test_backup_20261015_164657': update backup" ]]
+    [[ "$output" =~ "Extension 'odb_test': verified (1 files)" ]]
+    [[ ! "$output" =~ "Extension 'odb_test_backup_20261015_164657': verified" ]]
+}
