@@ -95,7 +95,7 @@ SET LINESIZE 160 PAGESIZE 200
 DECLARE
 
   -- Types
-  SUBTYPE text_type IS VARCHAR2(512 CHAR);
+  SUBTYPE text_type IS VARCHAR2(32767);
 
   -- Exceptions
   e_table_exists      EXCEPTION;
@@ -175,10 +175,15 @@ CREATE OR REPLACE PROCEDURE ]' || l_schema || q'[.sync_archive_timestamp(
   -- "Active" means updated within p_stale_hours.
   -- If no active checkpoint found, falls back to a conservative rolling window.
   -- Archive timestamp is never moved backwards.
+  --
+  -- DBMS_AUDIT_MGMT reads last_archive_time as UTC for the unified trail and
+  -- drops the offset of a TIMESTAMP WITH TIME ZONE. All boundary values are
+  -- therefore plain TIMESTAMPs in UTC, including the current value read back
+  -- for the never-backwards comparison.
 
   v_checkpoint_ts   TIMESTAMP WITH TIME ZONE;
-  v_archive_ts      TIMESTAMP WITH TIME ZONE;
-  v_current_ts      TIMESTAMP WITH TIME ZONE;
+  v_archive_ts      TIMESTAMP;  -- UTC
+  v_current_ts      TIMESTAMP;  -- UTC
   v_stale_threshold INTERVAL DAY TO SECOND;
   v_mode            VARCHAR2(20);
 BEGIN
@@ -194,18 +199,18 @@ BEGIN
   IF v_checkpoint_ts IS NOT NULL THEN
     -- Precise: archive up to what Splunk has confirmed reading,
     -- minus a safety buffer to absorb timing edge cases
-    v_archive_ts := v_checkpoint_ts - NUMTODSINTERVAL(p_safety_min, 'MINUTE');
+    v_archive_ts := SYS_EXTRACT_UTC(v_checkpoint_ts) - NUMTODSINTERVAL(p_safety_min, 'MINUTE');
     v_mode       := 'CHECKPOINT';
   ELSE
     -- Fallback: Splunk checkpoint is stale or absent.
     -- Conservative rolling window prevents unbounded growth.
-    v_archive_ts := SYSTIMESTAMP - NUMTODSINTERVAL(p_fallback_days, 'DAY');
+    v_archive_ts := SYS_EXTRACT_UTC(SYSTIMESTAMP) - NUMTODSINTERVAL(p_fallback_days, 'DAY');
     v_mode       := 'FALLBACK';
   END IF;
 
-  -- Read current archive timestamp (may not exist on first run)
+  -- Read current archive timestamp in UTC (may not exist on first run)
   BEGIN
-    SELECT last_archive_ts INTO v_current_ts
+    SELECT SYS_EXTRACT_UTC(last_archive_ts) INTO v_current_ts
     FROM   sys.dba_audit_mgmt_last_arch_ts
     WHERE  audit_trail = 'UNIFIED AUDIT TRAIL';
   EXCEPTION
@@ -219,7 +224,7 @@ BEGIN
       last_archive_time => v_archive_ts);
     sys.dbms_output.put_line(
       'sync_archive_timestamp: mode=' || v_mode ||
-      ' archive_ts=' || TO_CHAR(v_archive_ts, 'YYYY-MM-DD HH24:MI:SS TZH:TZM'));
+      ' archive_ts=' || TO_CHAR(v_archive_ts, 'YYYY-MM-DD HH24:MI:SS') || ' UTC');
   ELSE
     sys.dbms_output.put_line(
       'sync_archive_timestamp: mode=' || v_mode ||
@@ -291,7 +296,7 @@ END sync_archive_timestamp;]';
   sys.dbms_output.put_line('       VALUES (s.collector_id, s.last_read_ts);');
   sys.dbms_output.put_line('');
   sys.dbms_output.put_line('  2. Verify Purge Job exists (from aud_init_full_aud.sql):');
-  sys.dbms_output.put_line('     SELECT job_name, job_status, use_last_arch_timestamp');
+  sys.dbms_output.put_line('     SELECT job_name, job_status, use_last_archive_timestamp');
   sys.dbms_output.put_line('     FROM   dba_audit_mgmt_cleanup_jobs;');
   sys.dbms_output.put_line('');
   sys.dbms_output.put_line('  3. Test sync manually:');
@@ -335,11 +340,11 @@ FROM   dba_audit_mgmt_last_arch_ts
 ORDER BY audit_trail;
 
 PROMPT
-PROMPT >> Purge jobs (use_last_arch_timestamp must be YES):
+PROMPT >> Purge jobs (use_last_archive_timestamp must be YES):
 COL job_name               FOR a35
 COL audit_trail            FOR a25
-COL use_last_arch_timestamp FOR a5
-SELECT job_name, job_status, audit_trail, use_last_arch_timestamp
+COL use_last_archive_timestamp FOR a5
+SELECT job_name, job_status, audit_trail, use_last_archive_timestamp
 FROM   dba_audit_mgmt_cleanup_jobs
 ORDER BY job_name;
 

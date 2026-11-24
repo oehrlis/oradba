@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trail, so on a server at UTC+1 the purge boundary was off by one hour (lab-verified on 19.27 and 23.26.3). The
   job now uses `sys_extract_utc(systimestamp) - INTERVAL '<retention>' DAY`; retention semantics are unchanged.
   Existing jobs keep the old action until re-created.
+- `aud_splunk_checkpoint_setup.sql`, `aud_splunk_at_detection_setup.sql`: the sync procedures passed a
+  `TIMESTAMP WITH TIME ZONE` to `SET_LAST_ARCHIVE_TIMESTAMP`, which drops the offset and reads the value as UTC.
+  On a UTC+1 server the boundary was one hour late in every mode, a checkpoint less than an hour old was rejected
+  as a future timestamp (ORA-46410 on 26ai), and the never-backwards check compared the shifted stored value with
+  the true one, so the boundary stopped advancing for an hour. In detection mode the result also depended on the
+  session time zone of the caller, because `EVENT_TIMESTAMP` follows it. Both procedures now compute in UTC
+  (`SYS_EXTRACT_UTC`, `EVENT_TIMESTAMP_UTC`) and compare the UTC value of the current boundary; safety margins
+  and never-backwards semantics are unchanged. Lab-verified on 23.26.3 (fallback, checkpoint and detection mode).
+  Existing installations keep the old procedure until the script is re-run.
+- `aud_splunk_checkpoint_setup.sql`, `aud_splunk_at_detection_setup.sql`: the setup aborted with ORA-06502
+  before creating the procedure (DDL buffer of 512 characters), the detection script referenced the non-existent
+  `sys.unified_audit_trail` (now `audsys.unified_audit_trail`), and the verification queries used column names
+  that do not exist (`use_last_arch_timestamp`, `enabled_opt`, `user_name`, `client_id`).
 
 ## [1.1.2] - 2026-10-16
 

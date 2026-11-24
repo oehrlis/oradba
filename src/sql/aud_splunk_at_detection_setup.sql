@@ -32,8 +32,8 @@
 --               - Audit Policy ODB_SPLUNK_SESSION_AUD audits Splunk SELECTs
 --               - Logon trigger sets CLIENT_IDENTIFIER for JDBC sessions
 --               - SYNC_ARCHIVE_TS_FROM_AUDIT reads audit trail for Splunk reads
---               - Fresh read (< 4h): archive_ts = max_ts - interval - safety
---               - No recent read: archive_ts = SYSTIMESTAMP - fallback_days (V-RW)
+--               - Fresh read (< 4h): archive_ts = max_ts - interval - safety (UTC)
+--               - No recent read: archive_ts = UTC now - fallback_days (V-RW)
 --               - Archive timestamp never moved backwards
 --
 --             IMPORTANT: Verify audit record format in your environment before
@@ -101,7 +101,7 @@ SET LINESIZE 160 PAGESIZE 200
 DECLARE
 
   -- Types
-  SUBTYPE text_type IS VARCHAR2(512 CHAR);
+  SUBTYPE text_type IS VARCHAR2(32767);
 
   -- Exceptions
   e_obj_exists        EXCEPTION;
@@ -145,7 +145,7 @@ BEGIN
     -- Uncomment Option B if Option A does not produce the expected audit records.
     EXECUTE IMMEDIATE
       'CREATE AUDIT POLICY ODB_SPLUNK_SESSION_AUD' ||
-      ' ACTIONS SELECT ON sys.unified_audit_trail';
+      ' ACTIONS SELECT ON audsys.unified_audit_trail';
     sys.dbms_output.put_line('created (SELECT ON unified_audit_trail)');
   EXCEPTION
     WHEN e_policy_exists THEN
@@ -217,27 +217,32 @@ CREATE OR REPLACE PROCEDURE sys.sync_archive_ts_from_audit(
   -- If a recent read is found (< p_stale_hours old):
   --   archive_ts = max_splunk_select_ts - p_interval_min - p_safety_min
   -- If no recent read found:
-  --   archive_ts = SYSTIMESTAMP - p_fallback_days   (V-RW Fallback)
+  --   archive_ts = UTC now - p_fallback_days   (V-RW Fallback)
   --
   -- Archive timestamp is never moved backwards.
   --
   -- IMPORTANT: The audit record for Splunk SELECT must exist in UNIFIED_AUDIT_TRAIL.
   -- Verify: SELECT event_timestamp, action_name, object_name FROM unified_audit_trail
   --         WHERE dbusername = 'SPLUNK_READER' AND action_name = 'SELECT';
+  --
+  -- DBMS_AUDIT_MGMT reads last_archive_time as UTC for the unified trail and
+  -- drops the offset of a TIMESTAMP WITH TIME ZONE. EVENT_TIMESTAMP follows the
+  -- session time zone, so all values here are plain TIMESTAMPs in UTC based on
+  -- EVENT_TIMESTAMP_UTC - independent of the session time zone of the job.
 
-  v_max_splunk_ts   TIMESTAMP WITH TIME ZONE;
-  v_archive_ts      TIMESTAMP WITH TIME ZONE;
-  v_current_ts      TIMESTAMP WITH TIME ZONE;
+  v_max_splunk_ts   TIMESTAMP;  -- UTC
+  v_archive_ts      TIMESTAMP;  -- UTC
+  v_current_ts      TIMESTAMP;  -- UTC
   v_mode            VARCHAR2(20);
 BEGIN
   -- Find the most recent Splunk SELECT in the audit trail
   -- Filter: within p_stale_hours to detect Splunk outage
-  SELECT MAX(event_timestamp)
+  SELECT MAX(event_timestamp_utc)
   INTO   v_max_splunk_ts
-  FROM   sys.unified_audit_trail
+  FROM   audsys.unified_audit_trail
   WHERE  dbusername = p_splunk_user
     AND  action_name = 'SELECT'
-    AND  (SYSTIMESTAMP - event_timestamp) < NUMTODSINTERVAL(p_stale_hours, 'HOUR');
+    AND  event_timestamp_utc > SYS_EXTRACT_UTC(SYSTIMESTAMP) - NUMTODSINTERVAL(p_stale_hours, 'HOUR');
 
   IF v_max_splunk_ts IS NOT NULL THEN
     -- V-AT: Precise timestamp based on confirmed Splunk read.
@@ -251,13 +256,13 @@ BEGIN
   ELSE
     -- V-RW Fallback: No recent Splunk read detected.
     -- Conservative rolling window prevents unbounded audit trail growth.
-    v_archive_ts := SYSTIMESTAMP - NUMTODSINTERVAL(p_fallback_days, 'DAY');
+    v_archive_ts := SYS_EXTRACT_UTC(SYSTIMESTAMP) - NUMTODSINTERVAL(p_fallback_days, 'DAY');
     v_mode := 'V-RW-FALLBACK';
   END IF;
 
-  -- Read current archive timestamp (may not exist on first run)
+  -- Read current archive timestamp in UTC (may not exist on first run)
   BEGIN
-    SELECT last_archive_ts INTO v_current_ts
+    SELECT SYS_EXTRACT_UTC(last_archive_ts) INTO v_current_ts
     FROM   sys.dba_audit_mgmt_last_arch_ts
     WHERE  audit_trail = 'UNIFIED AUDIT TRAIL';
   EXCEPTION
@@ -271,8 +276,8 @@ BEGIN
       last_archive_time => v_archive_ts);
     sys.dbms_output.put_line(
       'sync_archive_ts_from_audit: mode=' || v_mode ||
-      ' archive_ts=' || TO_CHAR(v_archive_ts, 'YYYY-MM-DD HH24:MI:SS TZH:TZM') ||
-      ' max_splunk_ts=' || NVL(TO_CHAR(v_max_splunk_ts, 'YYYY-MM-DD HH24:MI:SS'), 'NULL'));
+      ' archive_ts=' || TO_CHAR(v_archive_ts, 'YYYY-MM-DD HH24:MI:SS') || ' UTC' ||
+      ' max_splunk_ts=' || NVL2(v_max_splunk_ts, TO_CHAR(v_max_splunk_ts, 'YYYY-MM-DD HH24:MI:SS') || ' UTC', 'NULL'));
   ELSE
     sys.dbms_output.put_line(
       'sync_archive_ts_from_audit: mode=' || v_mode ||
@@ -321,7 +326,7 @@ END sync_archive_ts_from_audit;]';
   sys.dbms_output.put_line('');
   sys.dbms_output.put_line('  2. Check audit record format (run as SYSDBA):');
   sys.dbms_output.put_line('     SELECT event_timestamp, action_name, object_schema,');
-  sys.dbms_output.put_line('            object_name, client_id, dbusername');
+  sys.dbms_output.put_line('            object_name, client_identifier, dbusername');
   sys.dbms_output.put_line('     FROM   unified_audit_trail');
   sys.dbms_output.put_line('     WHERE  dbusername = ''' || l_splunk_user || '''');
   sys.dbms_output.put_line('     AND    action_name = ''SELECT''');
@@ -344,11 +349,11 @@ END;
 PROMPT
 PROMPT >> Audit policy status:
 COL policy_name     FOR a30
-COL enabled_opt     FOR a15
-COL user_name       FOR a20
+COL enabled_option  FOR a15
+COL entity_name     FOR a20
 COL success         FOR a10
 COL failure         FOR a10
-SELECT policy_name, enabled_opt, user_name, success, failure
+SELECT policy_name, enabled_option, entity_name, success, failure
 FROM   audit_unified_enabled_policies
 WHERE  policy_name = 'ODB_SPLUNK_SESSION_AUD';
 
@@ -379,11 +384,11 @@ FROM   dba_audit_mgmt_last_arch_ts
 ORDER  BY audit_trail;
 
 PROMPT
-PROMPT >> Purge jobs (use_last_arch_timestamp must be YES):
+PROMPT >> Purge jobs (use_last_archive_timestamp must be YES):
 COL job_name                FOR a35
 COL audit_trail             FOR a25
-COL use_last_arch_timestamp FOR a5
-SELECT job_name, job_status, audit_trail, use_last_arch_timestamp
+COL use_last_archive_timestamp FOR a5
+SELECT job_name, job_status, audit_trail, use_last_archive_timestamp
 FROM   dba_audit_mgmt_cleanup_jobs
 ORDER  BY job_name;
 
@@ -396,7 +401,7 @@ WHERE  username = upper('&splunk_user');
 PROMPT
 PROMPT >> Step 0 Verification - run after first Splunk test connection:
 PROMPT    SELECT event_timestamp, action_name, object_schema, object_name,
-PROMPT           client_id, dbusername, sql_text
+PROMPT           client_identifier, dbusername, sql_text
 PROMPT    FROM   unified_audit_trail
 PROMPT    WHERE  dbusername = upper('&splunk_user') AND action_name = 'SELECT'
 PROMPT    ORDER  BY event_timestamp DESC FETCH FIRST 5 ROWS ONLY;
