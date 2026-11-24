@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `aud_init_jobs_aud.sql`: the `DAILY_UNIFIED_AUDIT_TIMESTAMP` job set the unified audit last archive timestamp
+  from `sysdate-<retention>`. `DBMS_AUDIT_MGMT.SET_LAST_ARCHIVE_TIMESTAMP` reads the value as UTC for the unified
+  trail, so on a server at UTC+1 the purge boundary was off by one hour (lab-verified on 19.27 and 23.26.3). The
+  job now uses `sys_extract_utc(systimestamp) - INTERVAL '<retention>' DAY`; retention semantics are unchanged.
+  Existing jobs keep the old action until re-created.
+
 ## [1.1.2] - 2026-10-16
 
 ### Fixed

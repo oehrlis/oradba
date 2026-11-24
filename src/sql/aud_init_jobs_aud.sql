@@ -78,12 +78,14 @@ BEGIN
     sys.dbms_scheduler.create_job(
       job_name        => 'DAILY_UNIFIED_AUDIT_TIMESTAMP',
       job_type        => 'PLSQL_BLOCK',
+      -- unified trail reads last_archive_time as UTC: sysdate would shift the boundary by the server's UTC offset
       job_action      => 'BEGIN sys.dbms_audit_mgmt.set_last_archive_timestamp(audit_trail_type => '
-                      || 'sys.dbms_audit_mgmt.audit_trail_unified,last_archive_time => sysdate-&audit_retention); END;',
+                      || 'sys.dbms_audit_mgmt.audit_trail_unified,last_archive_time => '
+                      || 'sys_extract_utc(systimestamp) - INTERVAL ''&audit_retention'' DAY); END;',
       start_date      => sysdate,
       repeat_interval => 'FREQ=HOURLY;INTERVAL=24',
       enabled         => TRUE,
-      comments        => 'Archive timestamp for unified audit to sysdate-&audit_retention'
+      comments        => 'Archive timestamp for unified audit to UTC now - &audit_retention days'
     );
     sys.dbms_output.put_line('created');
   EXCEPTION
