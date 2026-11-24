@@ -9,7 +9,7 @@
 -- Usage.....: aud_init_jobs_aud.sql <AUDIT RETENTION>
 --
 --              AUDIT RETENTION   Days for which an audit timestamp will be created e.g.
---                                sysdate - <AUDIT RETENTION>. This defines the time window
+--                                UTC now - <AUDIT RETENTION>. This defines the time window
 --                                where audit records will be available on the system. This
 --                                amount of DAYS is also the fallback when the AVAGENT does
 --                                not create timestamps. Default 30 days

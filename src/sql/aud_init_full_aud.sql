@@ -11,7 +11,7 @@
 --              TABLESPACE NAME   Name of the audit tablespace. Default is AUDIT_DATA
 --              DATAFILE SIZE     Initial size of datafile. Default 20480K
 --              AUDIT RETENTION   Days for which an audit timestamp will be created e.g.
---                                sysdate - <AUDIT RETENTION>. This does help to create
+--                                UTC now - <AUDIT RETENTION>. This does help to create
 --                                some kind of time window where audit records will be
 --                                available on the system. This amount of DAYS
 --                                is also the fallback when the AVAGENT does not create
