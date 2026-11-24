@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-11-24
+
 ### Fixed
 
 - `aud_init_jobs_aud.sql`: the `DAILY_UNIFIED_AUDIT_TIMESTAMP` job set the unified audit last archive timestamp
